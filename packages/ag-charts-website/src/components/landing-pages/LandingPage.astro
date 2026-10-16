@@ -312,7 +312,5 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
                 return null;
         }
     })}
-    {content.analyticsPrefix === 'enterprise-charts' && (
-        <FrameworkLinks client:idle pageNames={['community-vs-enterprise', 'quick-start']} />
-    )}
+    {content.analyticsPrefix === 'enterprise-charts' && <FrameworkLinks client:idle />}
 </Layout>
