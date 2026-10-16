@@ -177,6 +177,8 @@ describe('ChartTheme', () => {
         };
 
         const serializedOptions = JSON.stringify(cartesianChartOptions);
+        // Bespoke: unprepared options, so the theme under test reaches the chart unmodified (`createChart` would prepare it).
+        // The chart is also inspected synchronously, before it has settled.
         beforeEach(() => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
         });
@@ -273,6 +275,8 @@ describe('ChartTheme', () => {
 
         const serializedOptions = JSON.stringify(polarChartOptions);
 
+        // Bespoke: unprepared options, so the theme under test reaches the chart unmodified (`createChart` would prepare it).
+        // The chart is also inspected synchronously, before it has settled.
         beforeEach(() => {
             chart = deproxy(AgCharts.create(polarChartOptions));
         });
@@ -428,6 +432,7 @@ describe('ChartTheme', () => {
             ],
         };
 
+        // Bespoke: unprepared options, so the theme under test reaches the chart unmodified (`createChart` would prepare it).
         test('Cartesian chart instance properties', async () => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
             if (!(chart instanceof CartesianChart)) fail();
@@ -480,6 +485,7 @@ describe('ChartTheme', () => {
     });
 
     describe('$lightDark in overrides', () => {
+        // Bespoke: unprepared options, so the theme under test reaches the chart unmodified (`createChart` would prepare it).
         test.each([
             ['ag-default', '#111111'],
             ['ag-default-dark', '#222222'],
@@ -503,6 +509,7 @@ describe('ChartTheme', () => {
     });
 
     describe('dark and financial theme defaults', () => {
+        // Bespoke: unprepared options with a custom container, which `createChart` would override.
         test.each([
             ['ag-default', false, 'block', 'center'],
             ['ag-default-dark', true, 'block', 'center'],
@@ -687,6 +694,7 @@ describe('ChartTheme', () => {
             },
         };
 
+        // Bespoke: unprepared options, so the theme under test reaches the chart unmodified (`createChart` would prepare it).
         test('Themed bottom category, unthemed left number', async () => {
             chart = deproxy(
                 AgCharts.create({
@@ -1175,6 +1183,7 @@ describe('ChartTheme', () => {
             ],
         };
 
+        // Bespoke: unprepared options, so the theme under test reaches the chart unmodified (`createChart` would prepare it).
         test('Cartesian chart instance properties', async () => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
             if (!(chart instanceof CartesianChart)) fail();

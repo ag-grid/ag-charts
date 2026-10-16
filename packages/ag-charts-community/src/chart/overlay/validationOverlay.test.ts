@@ -3,7 +3,6 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { ChartUpdateType } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import { TooltipManager } from '../interaction/tooltipManager';
 import {
@@ -128,12 +127,14 @@ describe('ValidationOverlay', () => {
         // The selected overlay state stays 'validation' across both updates (never dismissed), so this
         // exercises the content-refresh path independently of any state transition.
         test('replacing one issue with another re-renders the overlay content while it stays shown', async () => {
-            const options = prepareTestOptions({
+            const options = {
                 ...invalidStrokeWidthOptions,
                 validations: { showOverlayOn: ['warning'] },
-            } as AgChartOptions);
-            const proxy = AgCharts.create(options);
+            } as AgChartOptions;
+            const proxy = await createChart(options);
             chart = deproxy(proxy);
+            // The factory prepares a copy, so prepare the options reused by the update.
+            prepareTestOptions(options);
             await chart.waitForUpdate(5000, true);
 
             const messagesFor = () =>
@@ -326,12 +327,14 @@ describe('ValidationOverlay', () => {
         // Assert on `aria-hidden`: hideOverlay clears content via `innerText`, which jsdom does not apply to
         // descendant nodes, so a child element can linger in jsdom while `aria-hidden` stays correct.
         test('dismiss hides the overlay; a subsequent different issue re-shows it', async () => {
-            const options = prepareTestOptions({
+            const options = {
                 ...invalidStrokeWidthOptions,
                 validations: { showOverlayOn: ['warning'] },
-            } as AgChartOptions);
-            const proxy = AgCharts.create(options);
+            } as AgChartOptions;
+            const proxy = await createChart(options);
             chart = deproxy(proxy);
+            // The factory prepares a copy, so prepare the options reused by the update.
+            prepareTestOptions(options);
             await chart.waitForUpdate(5000, true);
 
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.getAttribute('aria-hidden')).toEqual(

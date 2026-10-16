@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { type AgChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import type { AgChartProxy, Chart } from '../test/utils';
 import {
     compareImageSnapshot,
@@ -115,7 +114,7 @@ describe('Tooltip', () => {
     describe('Realtime', () => {
         it('should update tooltip correctly', async () => {
             // The tooltip should update when the mouse stays in place but the data is updated.
-            const opts: AgChartOptions = prepareTestOptions({});
+            const opts: AgChartOptions = {};
             opts.data = [
                 { step: 0, voltage: 1.362460821419385 },
                 { step: 1, voltage: 1.3072694395877953 },
@@ -130,7 +129,9 @@ describe('Tooltip', () => {
             ];
             opts.series = [{ type: 'line', xKey: 'step', yKey: 'voltage' }];
 
-            chart = AgCharts.create(opts) as AgChartProxy;
+            chart = (await createChart(opts)) as AgChartProxy;
+            // The factory prepares a copy, so prepare the options reused by the updates.
+            prepareTestOptions(opts);
             await waitForChartStability(chart);
 
             const nextValue = async (step: number, voltage: number) => {

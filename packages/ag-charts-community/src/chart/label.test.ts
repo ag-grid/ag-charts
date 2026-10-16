@@ -4,7 +4,6 @@ import { type NormalisedChartLabelStyleOptions, resolveCollideWith } from 'ag-ch
 import { classCast } from 'ag-charts-test';
 import type { AgBarSeriesLabelPlacement, AgChartInstance } from 'ag-charts-types';
 
-import { AgCharts } from '../api/agCharts';
 import { resolvePlacementLabelPadding } from './label';
 import { adjustLabelPlacement } from './labelUtil';
 import { BarSeries } from './series/cartesian/barSeries';
@@ -12,7 +11,6 @@ import {
     compareImageSnapshot,
     createChart,
     deproxy,
-    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -37,7 +35,7 @@ describe('Labels', () => {
 
     describe('AG-8917', () => {
         test('itemStyler auto-enables border', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 data: [
                     { x: "Q1'18", y: 140 },
                     { x: "Q2'18", y: 124 },
@@ -57,7 +55,6 @@ describe('Labels', () => {
                     },
                 ],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
     });
@@ -107,12 +104,10 @@ describe('Labels', () => {
 
     describe('collision.alwaysShow', () => {
         test('defaults to true (keep the label rather than hide it)', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [{ x: 'A', y: 1 }],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                })
-            );
+            chart = await createChart({
+                data: [{ x: 'A', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
             await waitForChartStability(chart);
             const barSeries = classCast(deproxy(chart).series[0], BarSeries);
             expect(barSeries.options.label.collision.alwaysShow).toBe(true);

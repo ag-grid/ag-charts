@@ -66,6 +66,8 @@ describe('CartesianAxis animation', () => {
             },
         });
 
+    // Bespoke: `frames.runToEnd` drives the animation frames from the chart's first frame, so the chart must not be
+    // settled by `createChart`'s stability wait.
     it('number-axis domain growth slides surviving ticks and swaps the tick set with fades', async () => {
         chart = AgCharts.create(
             numberChartOptions([

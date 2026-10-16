@@ -15,7 +15,13 @@ import { LegendModule } from '../chart/legend/legendModule';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import { PieSeriesModule } from '../chart/series/polar/pieSeriesModule';
-import { prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from '../chart/test/utils';
+import {
+    createChart,
+    prepareTestOptions,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../chart/test/utils';
 import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
 import { NumberAxisModule } from './axis-modules/numberAxisModule';
 import { ChartOptions } from './optionsModule';
@@ -233,6 +239,8 @@ describe('instance modules', () => {
                 ModuleRegistry.registerModules(LINE_MODULES);
 
                 delete enterpriseRegistry.licenseManager;
+                // Bespoke (every call in this describe): each chart renders into a per-test document so licences are
+                // not shared, and some pass instance modules or options the factory would change.
                 const unlicensedChart = AgCharts.create(lineChart());
                 await waitForChartStability(unlicensedChart);
                 expect(createLicenseManager).not.toHaveBeenCalled();
@@ -453,6 +461,8 @@ describe('instance modules', () => {
         });
 
         it('throws when neither the global registry nor the params hold any module', () => {
+            // Bespoke (every remaining AgCharts.create here): creation is expected to throw, or is given instance
+            // modules through the second `params` argument, which the factory cannot pass.
             expect(() => AgCharts.create(prepareTestOptions({ ...LINE_CHART }))).toThrow(
                 /No modules have been registered/
             );
@@ -463,7 +473,7 @@ describe('instance modules', () => {
 
         it('renders identically whether modules are registered globally or per instance', async () => {
             ModuleRegistry.registerModules([...LINE_MODULES, LegendModule]);
-            chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
+            chart = await createChart({ ...LINE_CHART });
             await waitForChartStability(chart);
             const globalSnapshot = ctx.snapshot();
             chart.destroy();

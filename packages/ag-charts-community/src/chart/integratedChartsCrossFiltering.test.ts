@@ -1,11 +1,10 @@
 import { afterEach, describe, it } from 'vitest';
 
-import { AgCharts } from '../api/agCharts';
 import type { ChartOrProxy } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
-    prepareTestOptions,
+    createChart,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -134,9 +133,7 @@ describe('Integrated Charts Cross Filtering', () => {
                 },
             ],
         };
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createChart(options);
         await waitForChartStability(chart);
         await compare();
     });
@@ -190,9 +187,7 @@ describe('Integrated Charts Cross Filtering', () => {
                 },
             ],
         };
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createChart(options);
         await waitForChartStability(chart);
         await compare();
     });
@@ -231,9 +226,7 @@ describe('Integrated Charts Cross Filtering', () => {
                 },
             ],
         };
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createChart(options);
         await waitForChartStability(chart);
         await compare();
     });

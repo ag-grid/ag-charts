@@ -2,10 +2,10 @@ import { afterEach, describe, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgChartLegendOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../api/agCharts';
 import * as examples from './test/examples';
 import {
     compareImageSnapshot,
+    createChart,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -36,8 +36,9 @@ describe('Scene', () => {
                 ...examples.STACKED_BAR_CHART_EXAMPLE,
                 legend: { position: 'bottom' },
             };
+            chart = await createChart(options);
+            // The factory prepares a copy, so prepare the options reused by the update.
             prepareTestOptions(options);
-            chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
             (options.legend as AgChartLegendOptions).position = 'top';
@@ -66,8 +67,9 @@ describe('Scene', () => {
                     },
                 },
             };
+            chart = await createChart(options);
+            // The factory prepares a copy, so prepare the options reused by the update.
             prepareTestOptions(options);
-            chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
             (options.legend as AgChartLegendOptions).position = 'top';

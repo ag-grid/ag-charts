@@ -2008,6 +2008,7 @@ describe('CrossLine', () => {
             const options = prepareTestOptions(collisionChart({ values: [3, 6] }), container);
             delete options.width;
             delete options.height;
+            // Bespoke: custom container, and the size is removed after preparation.
             chart = deproxy(AgCharts.create(options));
 
             const resizeTo = async (width: number) => {

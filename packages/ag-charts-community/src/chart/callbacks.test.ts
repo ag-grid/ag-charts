@@ -8,7 +8,6 @@ import type {
     AgChartInstance,
 } from 'ag-charts-types';
 
-import { AgCharts } from '../api/agCharts';
 import type {
     MockAPICallback,
     MockAxisLabelFormatter,
@@ -585,7 +584,7 @@ describe('callback cache', () => {
     test('AG-10112 re-evaluate callbacks on update', async () => {
         let selectedCountry: string;
 
-        const opts = prepareTestOptions({
+        const opts: AgCartesianChartOptions = {
             data: [
                 { gdp: 1419, country: 'Spain' },
                 { gdp: 2855, country: 'UK' },
@@ -612,18 +611,19 @@ describe('callback cache', () => {
                     },
                 },
             },
-        });
+        };
 
         selectedCountry = 'Spain';
-        chart = AgCharts.create(opts);
+        chart = await createChart(opts);
         await compare('AG-10112-reevaluate-Spain');
 
+        // The factory prepares a copy of `opts`, so prepare the options reused for each update here.
         selectedCountry = 'UK';
-        await chart.update(opts);
+        await chart.update(prepareTestOptions({ ...opts }));
         await compare('AG-10112-reevaluate-UK');
 
         selectedCountry = 'Germany';
-        await chart.update(opts);
+        await chart.update(prepareTestOptions({ ...opts }));
         await compare('AG-10112-reevaluate-Germany');
     });
 });
