@@ -11,6 +11,7 @@ import {
     type NormalisedLinearGaugeScaleOptions,
     type NormalisedLinearGaugeTargetOptions,
     type NormalisedTextOrSegments,
+    boxContains,
     cachedTextMeasurer,
     getColorStops,
     isArray,
@@ -517,11 +518,17 @@ export function reservedLinearGaugeLabelPlacement(
     if (text == null) {
         return first;
     }
-    return placements.find(
-        (placement) =>
-            isOutsidePlacement(placement) ||
-            layoutLinearGaugeLabel(text, labelDatum, placement, false, opts, bboxes) != null
-    );
+    return placements.find((placement) => {
+        if (isOutsidePlacement(placement)) {
+            return true;
+        }
+        const fitted = layoutLinearGaugeLabel(text, labelDatum, placement, false, opts, bboxes);
+        if (fitted == null) {
+            return false;
+        }
+        const { box, region } = fitted;
+        return region == null || boxContains(region, box.x, box.y, box.width, box.height);
+    });
 }
 
 /**

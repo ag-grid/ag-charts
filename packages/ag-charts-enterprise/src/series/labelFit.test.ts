@@ -1505,24 +1505,28 @@ describe('series label fit', () => {
             expect(firstLabelNode().textAlign).toBe('right');
         });
 
-        it.each(['horizontal', 'vertical'])(
-            'reserves room for a %s linear-gauge outside fallback when the first placement does not fit',
-            async (direction) => {
+        it.each([
+            ['horizontal', 'inside-center', 60, 20],
+            ['vertical', 'inside-center', 60, 20],
+            ['horizontal', 'bar-inside', 0, 60],
+        ])(
+            'reserves room for a %s linear-gauge outside fallback when %s does not fit',
+            async (direction, first, value, thickness) => {
                 const options = (placement: string | string[]) =>
                     horizontalLinearGauge({
                         direction,
-                        value: 60,
-                        thickness: 20,
+                        value,
+                        thickness,
                         scale: { min: 0, max: 100, label: { enabled: false } },
                         label: { enabled: true, text: 'Fallback', padding: 8, border: { enabled: true }, placement },
                     });
                 await renderGauge(options('outside-end'));
                 const { x, y } = firstLabelNode();
 
-                await renderGauge(options('inside-center'));
+                await renderGauge(options(first));
                 expect(gaugeLabelTexts()).toEqual([]);
 
-                await renderGauge(options(['inside-center', 'outside-end']));
+                await renderGauge(options([first, 'outside-end']));
                 expect(gaugeLabelTexts()).toEqual(['Fallback']);
                 expect(firstLabelNode()).toMatchObject({ x, y });
             }
@@ -1605,7 +1609,7 @@ describe('series label fit', () => {
             expect(chart.series[0].targetLabelSelection.nodes()[0].hasBoxing()).toBe(false);
         });
 
-        it('keeps an alwaysShow linear-gauge label at an overflowing placement over one with no room', async () => {
+        it('falls back to an outside linear-gauge placement rather than overflowing inside-end with alwaysShow', async () => {
             await renderGauge(
                 horizontalLinearGauge({
                     value: 95,
@@ -1618,8 +1622,8 @@ describe('series label fit', () => {
                     },
                 })
             );
-            expect(gaugeLabelTexts()).toHaveLength(1);
-            expect(firstLabelNode().textAlign).toBe('right');
+            expect(gaugeLabelTexts()).toEqual(['A long label text']);
+            expect(firstLabelNode().textAlign).toBe('left');
         });
 
         it('reserves room for an outside linear-gauge label within its maxWidth', async () => {
