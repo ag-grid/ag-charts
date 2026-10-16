@@ -460,9 +460,7 @@ describe('Navigator', () => {
                 data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9]),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             await chart.updateDelta({ navigator: { enabled: true, miniChart: { enabled: true } } });
             await waitForChartStability(chart);
