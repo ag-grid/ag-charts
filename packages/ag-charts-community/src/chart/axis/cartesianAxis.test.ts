@@ -3647,14 +3647,17 @@ describe('CartesianAxis', () => {
             await waitForChartStability(chart);
         };
 
-        it('matches a fresh chart after a row is added', async () => {
-            const data = (count: number) => sequence(0, count, (i) => i * 7);
-            chart = await create({ axes: numberAxes, data: data(10) });
+        it.each([
+            { name: 'number axes', axes: numberAxes, rows: sequence },
+            { name: 'category x axis', axes: categoryAxes, rows: categories },
+        ])('matches a fresh chart after a row is added ($name)', async ({ axes, rows }) => {
+            const data = (count: number) => rows(0, count, (i) => i * 7);
+            chart = await create({ axes, data: data(10) });
             const before = getAxisTickLayouts(chart);
 
             await update({ data: data(11) });
 
-            const fresh = await createFresh({ axes: numberAxes, data: data(11) });
+            const fresh = await createFresh({ axes, data: data(11) });
             expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
             expect(getAxisTickLayouts(chart)).not.toEqual(before);
         });
