@@ -8,6 +8,7 @@ import {
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
+    expectDrawnAtFullRange,
     expectNoAnimation,
     setupMockCanvas,
     setupMockConsole,
@@ -170,15 +171,6 @@ describe('CandlestickSeries', () => {
             const key = candleKeys(sample).find((k) => k.startsWith(`series[0]/path[${datePrefix}`));
             expect(key, `candle for ${datePrefix}`).toBeDefined();
             return key!;
-        };
-
-        // Anti-vacuity: three subpaths over a real pixel height means the candle is drawn at full
-        // size, not parked collapsed at a baseline waiting to grow.
-        const expectDrawnAtFullRange = (sample: SceneGeometrySample, key: string) => {
-            const node = sample.get(key);
-            expect(node, key).toBeDefined();
-            expect(node!.subpaths, `${key} subpaths`).toBe(3);
-            expect(node!.height, `${key} height`).toBeGreaterThan(20);
         };
 
         const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
@@ -380,14 +372,14 @@ describe('CandlestickSeries', () => {
         };
 
         it('defaults to a disabled shadow', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions());
+            const chart: any = deproxy(await createEnterpriseChart(buildOptions()));
 
             expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions());
+            const chart: any = deproxy(await createEnterpriseChart(buildOptions()));
 
             expect(itemNodes(chart)).toHaveLength(4);
             expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
@@ -395,7 +387,7 @@ describe('CandlestickSeries', () => {
         });
 
         it('casts one silhouette shadow over the body and wicks of up and down items alike', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions(SHADOW));
+            const chart: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
 
             const shapes = itemNodes(chart);
             expect(shapes).toHaveLength(4);
@@ -412,15 +404,15 @@ describe('CandlestickSeries', () => {
         });
 
         it('keeps shared wicks on the body path and styled wicks on their own path', async () => {
-            const shared: any = await createEnterpriseChart(buildOptions(SHADOW));
+            const shared: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
             for (const node of itemNodes(shared)) {
                 expect(node['wickPath'].isEmpty()).toBe(true);
             }
             shared.destroy();
 
             // The styled wicks are drawn apart from the body, so they reach the shadow through renderSilhouetteExtras.
-            const styled: any = await createEnterpriseChart(
-                buildOptions(SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS })
+            const styled: any = deproxy(
+                await createEnterpriseChart(buildOptions(SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS }))
             );
             for (const node of itemNodes(styled)) {
                 expect(node['wickPath'].isEmpty()).toBe(false);
@@ -431,7 +423,7 @@ describe('CandlestickSeries', () => {
         });
 
         it('carries the shadow spread to the silhouette shadow of every item', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions(SPREAD_SHADOW));
+            const chart: any = deproxy(await createEnterpriseChart(buildOptions(SPREAD_SHADOW)));
 
             expect(itemNodes(chart).length).toBeGreaterThan(0);
 

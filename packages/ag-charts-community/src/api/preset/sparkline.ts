@@ -21,6 +21,8 @@ interface SparklineUndocumentedProperties {
     foreground?: object;
 }
 
+const DEFAULT_SERIES_ID = 'sparkline';
+
 type SparklineSeries = AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions;
 
 export function sparklineDataPreset(data: any[] | undefined): {
@@ -200,6 +202,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     if (seriesOverrides != null) {
         Object.assign(seriesConfig, seriesOverrides);
     }
+    seriesConfig.id ??= DEFAULT_SERIES_ID;
     seriesConfig.tooltip = {
         ...tooltip,
         renderer: tooltipRendererFn(tooltip, datumKey),

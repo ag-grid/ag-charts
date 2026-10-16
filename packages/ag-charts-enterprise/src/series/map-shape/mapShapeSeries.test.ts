@@ -31,6 +31,7 @@ import {
     DEFAULT_DISABLED_SHADOW,
     SMALL_SHADOW,
     collectShapes,
+    createEnterpriseChart,
     prepareEnterpriseTestOptions,
     shadowedShapes,
 } from '../../test/utils';
@@ -114,21 +115,19 @@ describe('MapShapeSeries', () => {
             series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
         });
 
-        const createChart = async (options: AgChartOptions) => {
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+        const renderSeries = async (options: AgChartOptions) => {
+            chart = deproxy(await createEnterpriseChart(options));
             return chart.series[0];
         };
 
         it('defaults to a disabled shadow', async () => {
-            const series = await createChart(shadowOptions());
+            const series = await renderSeries(shadowOptions());
 
             expect(series['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const series = await createChart(shadowOptions());
+            const series = await renderSeries(shadowOptions());
 
             const shapes = collectShapes(series.contentGroup);
             expect(shapes.length).toBeGreaterThan(0);
@@ -136,7 +135,7 @@ describe('MapShapeSeries', () => {
         });
 
         it('applies an enabled shadow to every shape', async () => {
-            const series = await createChart(shadowOptions(SMALL_SHADOW));
+            const series = await renderSeries(shadowOptions(SMALL_SHADOW));
 
             const shapes = collectShapes(series.contentGroup);
             expect(shapes.length).toBeGreaterThan(0);
@@ -146,13 +145,13 @@ describe('MapShapeSeries', () => {
         });
 
         it('should render a chart with the shadow enabled', async () => {
-            await createChart(shadowOptions(SMALL_SHADOW));
+            await renderSeries(shadowOptions(SMALL_SHADOW));
             await compare();
         });
 
         describe('cutout drawing mode', () => {
             const highlightFirstShape = async (options: AgChartOptions) => {
-                await createChart(options);
+                await renderSeries(options);
 
                 const seriesImpl = chart.series[0] as MapShapeSeries;
                 const node = seriesImpl?.['contextNodeData']?.nodeData[0];
@@ -427,11 +426,11 @@ describe('MapShapeSeries', () => {
     }) => {
         const format = (...values: any[]) => values.join(': ');
 
-        const createChart = async (params: {
+        const chartOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): Promise<any> => {
+        }): AgCartesianChartOptions | AgPolarChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
                       renderer(rParams: any) {
@@ -460,10 +459,7 @@ describe('MapShapeSeries', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            prepareEnterpriseTestOptions(options);
-            const newChart = deproxy(AgCharts.create(options));
-            await waitForChartStability(newChart);
-            return newChart;
+            return options;
         };
 
         const hoverChartNodes = async (
@@ -516,7 +512,7 @@ describe('MapShapeSeries', () => {
         };
 
         it(`should render tooltip correctly`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
             await hoverChartNodes(chart, ({ series, item }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -536,36 +532,40 @@ describe('MapShapeSeries', () => {
         });
 
         it(`should highlight hovered items`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should highlight hovered items when tooltip is disabled`, async () => {
-            chart = await createChart({ hasTooltip: false });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: false })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: false, onNodeClick });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: false, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 6 }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
     };

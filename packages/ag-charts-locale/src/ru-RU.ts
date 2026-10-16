@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_RU_RU: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'Объём ${value}',
+    statusBarVolumeProfilePrice: 'Цена',
+    statusBarVolumeProfileUp: 'Рост',
+    statusBarVolumeProfileDown: 'Падение',
+    statusBarVolumeProfileTotal: 'Всего',
     tooltipPaginationStatus: '${index}[number] из ${count}[number]',
 };

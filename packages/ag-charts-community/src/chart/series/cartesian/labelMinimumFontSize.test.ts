@@ -2,12 +2,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance } from 'ag-charts-types';
 
-import { AgCharts } from '../../../api/agCharts';
 import {
     compareImageSnapshot,
+    createChart,
     deproxy,
     expectWarningsCalls,
-    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -29,14 +28,11 @@ describe('label minimumFontSize', () => {
     });
 
     const render = async (options: object) => {
-        prepareTestOptions(options as any);
-        chart = AgCharts.create(options as any);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
     };
 
     const renderAndSnapshot = async (options: object) => {
-        prepareTestOptions(options as any);
-        chart = AgCharts.create(options as any);
+        chart = await createChart(options);
         await compareImageSnapshot(chart, ctx);
     };
 

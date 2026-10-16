@@ -25,6 +25,7 @@ import {
 } from 'ag-charts-core';
 import type { ClickWidgetEvent, DragWidgetEvent, MouseWidgetEvent } from 'ag-charts-core';
 
+import { snapPositionToInterval } from '../../utils/axisSnap';
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel } from './crosshairLabel';
 
@@ -183,7 +184,8 @@ export class Crosshair
         const crosshairKeys = ['pointer', ...this.axisCtx.seriesKeyProperties()];
         this.updateSelections(crosshairKeys);
 
-        if (!options.snap && this.activeHighlight) {
+        const followsPointer = this.followsPointer();
+        if (followsPointer && this.activeHighlight) {
             // A non-snapping crosshair tracks the mouse position, so a layout:complete raised by clicking a node
             // must not reposition it.
             return;
@@ -192,7 +194,7 @@ export class Crosshair
         this.updateLines();
         this.updateLabels(crosshairKeys);
 
-        if (options.snap && !this.activeHighlightInViewport) {
+        if (!followsPointer && !this.activeHighlightInViewport) {
             // Do not redraw the crosshair labels when the highlight is outside the viewport.
             return;
         }
@@ -248,6 +250,16 @@ export class Crosshair
         });
     }
 
+    /** A snap interval keeps a snapping crosshair on the pointer, snapped to the interval, rather than on the highlight. */
+    private followsPointer(): boolean {
+        return !this.options?.snap || this.snapInterval() != null;
+    }
+
+    private snapInterval(): number | undefined {
+        const options = this.options;
+        return options?.snap && this.axisCtx.continuous ? options.snapInterval : undefined;
+    }
+
     private isVertical(): boolean {
         return this.axisCtx.direction === ChartAxisDirection.X;
     }
@@ -272,7 +284,7 @@ export class Crosshair
 
     private onMouseHoverLike(event: HoverLikeEvent) {
         const options = this.options;
-        if (!options?.enabled || options.snap) return;
+        if (!options?.enabled || !this.followsPointer()) return;
 
         const requiredState = this.isHover(event)
             ? InteractionState.Hoverable | InteractionState.Frozen
@@ -286,11 +298,10 @@ export class Crosshair
     }
 
     private onMouseOut() {
-        // Non-snap crosshairs respond to mouse movements on frozen charts; snap crosshairs don't.
-        const snap = this.options?.snap ?? true;
-        const mask: _ModuleSupport.InteractionState = snap
-            ? InteractionState.Hoverable
-            : InteractionState.Hoverable | InteractionState.Frozen;
+        // Pointer-following crosshairs respond to mouse movements on frozen charts; highlight-driven ones don't.
+        const mask: _ModuleSupport.InteractionState = this.followsPointer()
+            ? InteractionState.Hoverable | InteractionState.Frozen
+            : InteractionState.Hoverable;
         if (!this.ctx.interactionManager.isState(mask)) return;
         this.hideCrosshairs();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
@@ -312,7 +323,7 @@ export class Crosshair
         this.annotationLabelDragging = false;
         // A snapping crosshair is highlight-driven, so restore its label now; a non-snapping one follows the
         // next pointer move.
-        if (this.options?.snap && this.crosshairGroup.visible) {
+        if (!this.followsPointer() && this.crosshairGroup.visible) {
             this.refreshPositions();
         }
     }
@@ -325,7 +336,11 @@ export class Crosshair
 
     private onKeyPress() {
         const options = this.options;
-        if (options?.enabled && !options.snap && this.ctx.interactionManager.isState(InteractionState.Default)) {
+        if (
+            options?.enabled &&
+            this.followsPointer() &&
+            this.ctx.interactionManager.isState(InteractionState.Default)
+        ) {
             this.hideCrosshairs();
         }
     }
@@ -346,7 +361,7 @@ export class Crosshair
 
         if (!this.activeHighlight) {
             this.hideCrosshairs();
-        } else if (options.snap) {
+        } else if (!this.followsPointer()) {
             if (event.highlightInViewport) {
                 const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
 
@@ -417,12 +432,16 @@ export class Crosshair
         // A drag keeps reporting the pointer once it has left the series area; hide rather than follow it.
         if (!this.isInRange(position)) return {};
 
-        let value = datum?.[isVertical ? xKey : yKey] ?? '';
-        if (axisCtx.continuous) {
-            value = axisCtx.scaleInvert(position);
+        if (!axisCtx.continuous) {
+            return { [key]: { position, value: datum?.[isVertical ? xKey : yKey] ?? '' } };
         }
 
-        return { [key]: { position, value } };
+        const snapInterval = this.snapInterval();
+        if (snapInterval == null) {
+            return { [key]: { position, value: axisCtx.scaleInvert(position) } };
+        }
+
+        return { [key]: snapPositionToInterval(axisCtx, position, snapInterval) };
     }
 
     private getActiveHighlightData(

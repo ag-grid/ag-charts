@@ -6,7 +6,14 @@ import type { AgCartesianAxisPosition, AgCartesianChartOptions } from 'ag-charts
 import { AgCharts } from '../api/agCharts';
 import type { CartesianChart } from './cartesianChart';
 import { LayoutElement } from './layout/layoutManager';
-import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
+import {
+    createChart,
+    deproxy,
+    prepareTestOptions,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from './test/utils';
 
 const INSET = 30;
 
@@ -33,9 +40,7 @@ describe('CartesianChart series insets', () => {
     });
 
     const create = async (options: AgCartesianChartOptions) => {
-        prepareTestOptions(options);
-        chart = deproxy(AgCharts.create(options)) as CartesianChart;
-        await waitForChartStability(chart);
+        chart = deproxy(await createChart(options)) as CartesianChart;
         return chart;
     };
 

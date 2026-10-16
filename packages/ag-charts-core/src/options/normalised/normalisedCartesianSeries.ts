@@ -192,6 +192,8 @@ export type NormalisedBarSeriesOwnOptions = Normalised<
     simpleItemStyler?: (datum: unknown) => AgBarSeriesStyle | undefined;
     /** Undocumented: bars sharing a group select and deselect together, matched by category. */
     selectionGroup?: string;
+    /** Undocumented: `false` keeps the pointer from highlighting the bars or showing their tooltip, though they can still be clicked. */
+    hoverable?: boolean;
 };
 
 export type NormalisedBarSeriesOptions = NormalisedSeriesOptions<NormalisedBarSeriesOwnOptions> &

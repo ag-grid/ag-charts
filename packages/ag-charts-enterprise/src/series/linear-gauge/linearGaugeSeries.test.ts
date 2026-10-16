@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgLinearGaugeLabelPlacement, AgLinearGaugeOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
@@ -98,6 +98,21 @@ describe('LinearGaugeSeries', () => {
                 expectSceneTrajectory(trajectory, { [VALUE_BAR]: valueBarSpec });
             }
         );
+
+        it('formats the final label text once while counting up', async () => {
+            const formatter = vi.fn(({ value }: { value: number }) => `${value}`);
+            const options: AgLinearGaugeOptions = { ...EXAMPLE_OPTIONS, label: { enabled: true, formatter } };
+            prepareEnterpriseTestOptions(options);
+
+            const proxy = AgCharts.createGauge(options);
+            chart = deproxy(proxy);
+            await frames.captureAnimationFrames(proxy, createSceneGeometrySampler(proxy));
+            await frames.runToEnd(proxy);
+
+            const finalCalls = formatter.mock.calls.filter(([{ value }]) => value === options.value);
+            expect(formatter.mock.calls.length).toBeGreaterThan(finalCalls.length);
+            expect(finalCalls).toHaveLength(1);
+        });
     });
 
     describe.each(['horizontal', 'vertical'] as const)('series labels (%s)', (direction) => {

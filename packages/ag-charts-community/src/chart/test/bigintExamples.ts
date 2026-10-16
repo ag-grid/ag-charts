@@ -1,8 +1,8 @@
 import { expect } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { type Chart, expectNonBlank, prepareTestOptions, waitForChartStability } from './utils';
+import { expectNonBlank, prepareTestOptions, waitForChartStability } from './utils';
 
 /** Shared fixtures for bigint / ISO-datetime series coverage. */
 
@@ -69,7 +69,7 @@ interface Snapshotter {
     snapshot: () => ImageData;
 }
 
-type ChartFactory = (options: AgChartOptions) => Promise<Chart>;
+type ChartFactory = (options: AgChartOptions) => Promise<AgChartInstance>;
 
 export interface MagnitudePair {
     /** Options whose data sits within the Number range. */
@@ -137,7 +137,7 @@ export async function expectPixelIdenticalAcrossUpdate(
         for (const options of updates) {
             // `update()` bypasses the create-time preparation in `create`, so re-apply the test
             // sizing/theme (and the animation-off default) before updating.
-            await chart.publicApi!.update(prepareTestOptions({ animation: { enabled: false }, ...options }));
+            await chart.update(prepareTestOptions({ animation: { enabled: false }, ...options }));
             await waitForChartStability(chart);
         }
         const afterImage = ctx.snapshot();

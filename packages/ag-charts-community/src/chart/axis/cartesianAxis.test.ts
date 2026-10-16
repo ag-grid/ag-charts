@@ -507,10 +507,7 @@ describe('CartesianAxis', () => {
     const ctx = setupMockCanvas();
 
     const renderAndSnapshot = async (factory: OptionsFactory, snapshotId: string) => {
-        const options = factory();
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createChart(factory());
         await compare(snapshotId);
     };
 
@@ -946,9 +943,7 @@ describe('CartesianAxis', () => {
 
             const crossTranslationY = async (value: AgCartesianAxisCrossAt['value']) => {
                 const options = bigintDomainOptions(value);
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 const chartInstance = deproxy(chart as any) as any;
                 const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
                 expect(bottomAxis).toBeDefined();
@@ -1536,6 +1531,7 @@ describe('CartesianAxis', () => {
             await waitForChartStability(chart);
         };
 
+        // Bespoke: skips `prepareTestOptions` so the chart has no explicit width/height and takes the auto-size path.
         const createAutoSizedChart = () => {
             const options: AgCartesianChartOptions = {
                 container,
@@ -1695,9 +1691,7 @@ describe('CartesianAxis', () => {
 
         const expectPickIndexMatchesFormatter = async (reverse: boolean) => {
             const options = baseOptions(reverse);
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const chartInstance = deproxy(chart as any) as any;
             const yAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
@@ -1950,9 +1944,7 @@ describe('CartesianAxis', () => {
                     (chart as unknown) = undefined;
                 }
                 const options: AgCartesianChartOptions = { ...rightAxisOptions(label), enableRtl };
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 return chart;
             };
 
@@ -2054,9 +2046,7 @@ describe('CartesianAxis', () => {
                     (chart as unknown) = undefined;
                 }
                 const options = bottomAxisOptions(label);
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 return chart;
             };
 
@@ -2164,9 +2154,7 @@ describe('CartesianAxis', () => {
                         (chart as unknown) = undefined;
                     }
                     const options = continuousOptions(textAlign);
-                    prepareTestOptions(options);
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
                     return getAxisLabelNodes(chart, 'bottom');
                 };
 
@@ -2567,6 +2555,7 @@ describe('CartesianAxis', () => {
             }
         });
 
+        // Bespoke: `width` is applied after `prepareTestOptions`, which `createChart` would overwrite with the default.
         const renderChart = async (options: AgCartesianChartOptions, width?: number) => {
             if (chart != null) {
                 chart.destroy();

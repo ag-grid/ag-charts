@@ -110,5 +110,6 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
         focusPriority: number,
         simpleItemStyler: callback,
         selectionGroup: string,
+        hoverable: boolean,
     }),
 };

@@ -11,6 +11,7 @@ import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
+    deproxy,
     setupMockCanvas,
     setupMockConsole,
 } from 'ag-charts-community-test';
@@ -84,7 +85,7 @@ describe('Enterprise highlight defaults', () => {
     };
 
     const runHighlightSnapshot = async (testCase: HighlightTestCase) => {
-        chart = await createEnterpriseChart(testCase.options);
+        chart = deproxy(await createEnterpriseChart(testCase.options));
         const highlightDatum = testCase.getDatum?.(chart) ?? defaultHighlightDatum(chart, testCase);
         if (highlightDatum == null) {
             throw new Error(`No highlight datum found for test case: ${testCase.name}`);
@@ -830,16 +831,18 @@ describe('Enterprise highlight defaults', () => {
 
         describe('treemap', () => {
             it('tile highlight - same root branch', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'treemap',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                        },
-                    ],
-                });
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                            },
+                        ],
+                    })
+                );
 
                 // Hover over first tile in Root A (path: [0, 0])
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
@@ -849,16 +852,18 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('tile highlight - different root branch', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'treemap',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                        },
-                    ],
-                });
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                            },
+                        ],
+                    })
+                );
 
                 // Hover over first tile in Root B (path: [1, 0])
                 const highlightDatum = getNodeAtPath(chart, [1, 0]);
@@ -868,29 +873,31 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('group highlight - tiles inherit only opacity', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'treemap',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            group: {
-                                highlight: {
-                                    highlightedItem: {
-                                        opacity: 1,
-                                        fill: 'red', // Should NOT be inherited by tiles
-                                        stroke: 'darkred', // Should NOT be inherited by tiles
-                                        strokeWidth: 5, // Should NOT be inherited by tiles
-                                    },
-                                    unhighlightedItem: {
-                                        opacity: 0.3,
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                group: {
+                                    highlight: {
+                                        highlightedItem: {
+                                            opacity: 1,
+                                            fill: 'red', // Should NOT be inherited by tiles
+                                            stroke: 'darkred', // Should NOT be inherited by tiles
+                                            strokeWidth: 5, // Should NOT be inherited by tiles
+                                        },
+                                        unhighlightedItem: {
+                                            opacity: 0.3,
+                                        },
                                     },
                                 },
                             },
-                        },
-                    ],
-                });
+                        ],
+                    })
+                );
 
                 // Hover over group in Root A (path: [0, 2])
                 const highlightDatum = getNodeAtPath(chart, [0, 2]);
@@ -900,22 +907,24 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('group highlight - different root branches', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'treemap',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            group: {
-                                highlight: {
-                                    highlightedItem: { opacity: 1 },
-                                    unhighlightedItem: { opacity: 0.1 },
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                group: {
+                                    highlight: {
+                                        highlightedItem: { opacity: 1 },
+                                        unhighlightedItem: { opacity: 0.1 },
+                                    },
                                 },
                             },
-                        },
-                    ],
-                });
+                        ],
+                    })
+                );
 
                 // Hover over group in Root B (path: [1, 1])
                 const highlightDatum = getNodeAtPath(chart, [1, 1]);
@@ -925,34 +934,36 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('custom tile highlight - highlightedItem', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'treemap',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            tile: {
-                                highlight: {
-                                    highlightedItem: {
-                                        fill: 'orange',
-                                        fillOpacity: 0.9,
-                                        stroke: 'darkorange',
-                                    },
-                                    unhighlightedItem: {
-                                        fill: 'grey',
-                                    },
-                                    unhighlightedBranch: {
-                                        fill: 'orange',
-                                    },
-                                    highlightedBranch: {
-                                        strokeWidth: 5,
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                tile: {
+                                    highlight: {
+                                        highlightedItem: {
+                                            fill: 'orange',
+                                            fillOpacity: 0.9,
+                                            stroke: 'darkorange',
+                                        },
+                                        unhighlightedItem: {
+                                            fill: 'grey',
+                                        },
+                                        unhighlightedBranch: {
+                                            fill: 'orange',
+                                        },
+                                        highlightedBranch: {
+                                            strokeWidth: 5,
+                                        },
                                     },
                                 },
                             },
-                        },
-                    ],
-                });
+                        ],
+                    })
+                );
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
@@ -961,25 +972,27 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('custom tile highlight - unhighlightedBranch', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'treemap',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            tile: {
-                                highlight: {
-                                    unhighlightedBranch: {
-                                        fill: 'gray',
-                                        fillOpacity: 0.3,
-                                        strokeOpacity: 0.5,
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                tile: {
+                                    highlight: {
+                                        unhighlightedBranch: {
+                                            fill: 'gray',
+                                            fillOpacity: 0.3,
+                                            strokeOpacity: 0.5,
+                                        },
                                     },
                                 },
                             },
-                        },
-                    ],
-                });
+                        ],
+                    })
+                );
 
                 // Hover tile in Root A to see Root B dimmed
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
@@ -989,19 +1002,21 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('colorScale without highlight fill - uses colorScale', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'treemap',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            colorKey: 'value',
-                            colorScale: { fills: [{ color: '#2196F3' }, { color: '#FFC107' }] },
-                            // No highlight.fill configured - should use colorScale
-                        },
-                    ],
-                });
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                colorKey: 'value',
+                                colorScale: { fills: [{ color: '#2196F3' }, { color: '#FFC107' }] },
+                                // No highlight.fill configured - should use colorScale
+                            },
+                        ],
+                    })
+                );
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
@@ -1010,25 +1025,27 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('colorScale with highlight fill - highlight overrides colorScale', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'treemap',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            colorKey: 'value',
-                            colorScale: { fills: [{ color: '#2196F3' }, { color: '#FFC107' }] },
-                            tile: {
-                                highlight: {
-                                    highlightedItem: {
-                                        fill: 'red', // Should override colorScale
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                colorKey: 'value',
+                                colorScale: { fills: [{ color: '#2196F3' }, { color: '#FFC107' }] },
+                                tile: {
+                                    highlight: {
+                                        highlightedItem: {
+                                            fill: 'red', // Should override colorScale
+                                        },
                                     },
                                 },
                             },
-                        },
-                    ],
-                });
+                        ],
+                    })
+                );
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
@@ -1037,22 +1054,24 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('nested group highlight - opacity inheritance', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'treemap',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            group: {
-                                highlight: {
-                                    highlightedItem: { opacity: 0.5 },
-                                    unhighlightedItem: { opacity: 1 },
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                group: {
+                                    highlight: {
+                                        highlightedItem: { opacity: 0.5 },
+                                        unhighlightedItem: { opacity: 1 },
+                                    },
                                 },
                             },
-                        },
-                    ],
-                });
+                        ],
+                    })
+                );
 
                 // Hover over nested group (path: [0, 2])
                 const highlightDatum = getNodeAtPath(chart, [0, 2]);
@@ -1064,16 +1083,18 @@ describe('Enterprise highlight defaults', () => {
 
         describe('sunburst', () => {
             it('segment highlight - same root branch', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'sunburst',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                        },
-                    ],
-                });
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'sunburst',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                            },
+                        ],
+                    })
+                );
 
                 // Hover over first segment in Root A (path: [0, 0])
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
@@ -1083,16 +1104,18 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('segment highlight - different root branch', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'sunburst',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                        },
-                    ],
-                });
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'sunburst',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                            },
+                        ],
+                    })
+                );
 
                 // Hover over first segment in Root B (path: [1, 0])
                 const highlightDatum = getNodeAtPath(chart, [1, 0]);
@@ -1102,24 +1125,26 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('custom highlight - highlightedItem', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'sunburst',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            highlight: {
-                                highlightedItem: {
-                                    fill: 'purple',
-                                    fillOpacity: 0.9,
-                                    stroke: 'darkviolet',
-                                    strokeWidth: 3,
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'sunburst',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                highlight: {
+                                    highlightedItem: {
+                                        fill: 'purple',
+                                        fillOpacity: 0.9,
+                                        stroke: 'darkviolet',
+                                        strokeWidth: 3,
+                                    },
                                 },
                             },
-                        },
-                    ],
-                });
+                        ],
+                    })
+                );
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
@@ -1128,22 +1153,24 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('custom highlight - unhighlightedBranch', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'sunburst',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            highlight: {
-                                unhighlightedBranch: {
-                                    fillOpacity: 0.2,
-                                    strokeOpacity: 0.4,
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'sunburst',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                highlight: {
+                                    unhighlightedBranch: {
+                                        fillOpacity: 0.2,
+                                        strokeOpacity: 0.4,
+                                    },
                                 },
                             },
-                        },
-                    ],
-                });
+                        ],
+                    })
+                );
 
                 // Hover segment in Root A to see Root B dimmed
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
@@ -1153,19 +1180,21 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('colorScale without highlight fill - uses colorScale', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'sunburst',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            colorKey: 'value',
-                            colorScale: { fills: [{ color: '#E91E63' }, { color: '#9C27B0' }] },
-                            // No highlight.fill configured - should use colorScale
-                        },
-                    ],
-                });
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'sunburst',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                colorKey: 'value',
+                                colorScale: { fills: [{ color: '#E91E63' }, { color: '#9C27B0' }] },
+                                // No highlight.fill configured - should use colorScale
+                            },
+                        ],
+                    })
+                );
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
@@ -1174,23 +1203,25 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('colorScale with highlight fill - highlight overrides colorScale', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'sunburst',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                            colorKey: 'value',
-                            colorScale: { fills: [{ color: '#E91E63' }, { color: '#9C27B0' }] },
-                            highlight: {
-                                highlightedItem: {
-                                    fill: 'green', // Should override colorScale
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'sunburst',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                                colorKey: 'value',
+                                colorScale: { fills: [{ color: '#E91E63' }, { color: '#9C27B0' }] },
+                                highlight: {
+                                    highlightedItem: {
+                                        fill: 'green', // Should override colorScale
+                                    },
                                 },
                             },
-                        },
-                    ],
-                });
+                        ],
+                    })
+                );
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
@@ -1199,16 +1230,18 @@ describe('Enterprise highlight defaults', () => {
             });
 
             it('inner ring highlight - branch highlighting', async () => {
-                chart = await createEnterpriseChart({
-                    data: hierarchyData,
-                    series: [
-                        {
-                            type: 'sunburst',
-                            labelKey: 'name',
-                            sizeKey: 'size',
-                        },
-                    ],
-                });
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: hierarchyData,
+                        series: [
+                            {
+                                type: 'sunburst',
+                                labelKey: 'name',
+                                sizeKey: 'size',
+                            },
+                        ],
+                    })
+                );
 
                 // Hover over inner ring (parent node) - path: [0]
                 const highlightDatum = getNodeAtPath(chart, [0]);

@@ -270,6 +270,10 @@ export interface ErrorBoundSeriesNodeDatum {
     readonly cumulativeValue?: number;
     xBar?: { lowerPoint: Point; upperPoint: Point };
     yBar?: { lowerPoint: Point; upperPoint: Point };
+    /** Box spanned by the whiskers, which the datum's directional label sits beyond. */
+    overlayBounds?: BoxBounds;
+    /** Drawn whisker and cap boxes, which every label avoids. */
+    overlayBoxes?: readonly BoxBounds[];
 }
 
 export type NodeDataDependencies = { seriesRectWidth: number; seriesRectHeight: number };

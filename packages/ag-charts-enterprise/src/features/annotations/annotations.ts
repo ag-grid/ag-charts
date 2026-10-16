@@ -84,6 +84,7 @@ export class Annotations extends AbstractModuleInstance {
     });
 
     public axesButtons: Required<AgAnnotationAxesButtons> = { enabled: false, axes: 'y' };
+    private axesButtonsSnapInterval?: number;
 
     // Annotations is only created when the `annotations` subtree is configured, so assert
     // the subtree's presence here and rely on annotationsTheme for field-level defaults.
@@ -136,6 +137,7 @@ export class Annotations extends AbstractModuleInstance {
                 this.toolbar.applyOptions({ ...toolbar, enabled: toolbar?.enabled ?? enabled });
                 this.optionsToolbar.applyOptions({ ...optionsToolbar, enabled: optionsToolbar?.enabled ?? enabled });
                 this.axesButtons = { enabled: axesButtons?.enabled ?? enabled, axes: axesButtons?.axes ?? 'y' };
+                this.axesButtonsSnapInterval = axesButtons?.snap ? axesButtons.snapInterval : undefined;
             }),
             () => {
                 this.clear();
@@ -819,7 +821,7 @@ export class Annotations extends AbstractModuleInstance {
                 seriesRect
             );
             const axisLabelPadding = calculateAxisLabelPadding(axisLayout);
-            button.update(seriesRect, axisLabelPadding);
+            button.update(seriesRect, axisLabelPadding, this.axesButtonsSnapInterval);
         } else {
             button?.destroy();
             button = undefined;

@@ -70,7 +70,7 @@ export interface AgMapShapeSeriesLabelOptions<TDatum, TParams, TContext = Contex
      * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
      * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
      *
-     * @deprecated v14.2.0 Use `truncate` instead.
+     * @deprecated v14.3.0 Use `truncate` instead.
      */
     overflowStrategy?: OverflowStrategy;
 }

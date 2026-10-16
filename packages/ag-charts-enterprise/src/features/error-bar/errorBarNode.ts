@@ -1,6 +1,6 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Node, Normalised, PickNodeDatumResult, RequireOptional } from 'ag-charts-core';
+import type { BoxBounds, Node, Normalised, PickNodeDatumResult, RequireOptional } from 'ag-charts-core';
 import {
     BBox,
     Group,
@@ -30,7 +30,7 @@ type NormalisedErrorBarCapStyle = Normalised<
     never,
     { stroke?: CssColor }
 >;
-type NormalisedErrorBarStyles = {
+export type NormalisedErrorBarStyles = {
     whiskerStyle: NormalisedErrorBarStylingOptions;
     capsStyle: NormalisedErrorBarCapStyle | undefined;
 };
@@ -58,6 +58,112 @@ type Caller = {
 type CapDefaults = NonNullable<ErrorBarNodeDatum['capDefaults']>;
 type CapOptions = NonNullable<AgErrorBarThemeableOptions['cap']>;
 type CapLengthOptions = Pick<CapOptions, 'length' | 'lengthRatio'>;
+
+/** The cap length: a user-defined `length` (px), else `lengthRatio` of the series default, capped at `lengthMax`. */
+export function errorBarCapLength(capsTheme: CapLengthOptions, capDefaults: CapDefaults): number {
+    const { lengthRatio = 1, length } = capsTheme;
+    const { lengthRatioMultiplier, lengthMax } = capDefaults;
+    const desiredLength = length ?? lengthRatio * lengthRatioMultiplier;
+    return Math.min(desiredLength, lengthMax);
+}
+
+interface StrokeStyle {
+    readonly visible?: boolean;
+    readonly stroke?: unknown;
+    readonly strokeWidth?: number;
+    readonly strokeOpacity?: number;
+}
+
+/** Matches the conditions under which `Shape` paints a stroke. */
+function strokeDrawn({ visible, stroke, strokeWidth = 0, strokeOpacity = 1 }: StrokeStyle): boolean {
+    return visible !== false && stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0;
+}
+
+/** The extent of the whiskers and caps drawn for a datum, strokes and cap lengths included. */
+export function errorBarDrawnBounds(
+    { xBar, yBar }: Pick<ErrorBarNodeDatum, 'xBar' | 'yBar'>,
+    whisker: StrokeStyle,
+    caps: StrokeStyle | undefined,
+    capLength: number
+): BoxBounds | undefined {
+    const whiskerVisible = strokeDrawn(whisker);
+    const capsVisible = caps != null && strokeDrawn(caps);
+    if (!whiskerVisible && !capsVisible) return undefined;
+    const across = Math.max(whiskerVisible ? (whisker.strokeWidth ?? 0) / 2 : 0, capsVisible ? capLength / 2 : 0);
+    const along = capsVisible ? (caps.strokeWidth ?? 0) / 2 : 0;
+    let x0 = Infinity;
+    let y0 = Infinity;
+    let x1 = -Infinity;
+    let y1 = -Infinity;
+    if (yBar != null) {
+        const { lowerPoint, upperPoint } = yBar;
+        x0 = lowerPoint.x - across;
+        x1 = lowerPoint.x + across;
+        y0 = Math.min(lowerPoint.y, upperPoint.y) - along;
+        y1 = Math.max(lowerPoint.y, upperPoint.y) + along;
+    }
+    if (xBar != null) {
+        const { lowerPoint, upperPoint } = xBar;
+        x0 = Math.min(x0, lowerPoint.x - along, upperPoint.x - along);
+        x1 = Math.max(x1, lowerPoint.x + along, upperPoint.x + along);
+        y0 = Math.min(y0, lowerPoint.y - across);
+        y1 = Math.max(y1, lowerPoint.y + across);
+    }
+    if (x0 > x1) return undefined;
+    return { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
+}
+
+function getItemStylerParams(
+    datum: ErrorBarNodeDatum,
+    options: FormatOptions,
+    style: AgErrorBarThemeableOptions,
+    highlightState: HighlightState,
+    selectionState: SelectionState | undefined,
+    candidateState: SelectionState | undefined
+) {
+    const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;
+
+    return {
+        ...(style as Required<AgErrorBarThemeableOptions>),
+        datum: datum.datum,
+        seriesId: datum.series.id,
+        xKey: datum.xKey,
+        yKey: datum.yKey,
+        xLowerKey,
+        xUpperKey,
+        yLowerKey,
+        yUpperKey,
+        highlightState,
+        selectionState,
+        candidateState,
+    } satisfies ErrorBarItemStylerParamsRules;
+}
+
+/** The whisker and cap styles `datum` is drawn with, after its `itemStyler`. */
+export function resolveErrorBarStyles(
+    datum: ErrorBarNodeDatum,
+    style: AgErrorBarThemeableOptions,
+    options: FormatOptions,
+    caller: Caller,
+    highlightState: HighlightState,
+    selectionState: SelectionState | undefined,
+    candidateState: SelectionState | undefined
+): NormalisedErrorBarStyles {
+    let { cap: capsStyle, ...whiskerStyle } = style;
+
+    if (options.itemStyler != null) {
+        const params = getItemStylerParams(datum, options, style, highlightState, selectionState, candidateState);
+        type F = NonNullable<typeof options.itemStyler>;
+        type I = Parameters<F>[0];
+        type O = ReturnType<F>;
+        const result = caller.callWithContext<I, O, F>(options.itemStyler, params);
+        whiskerStyle = mergeDefaults(result, whiskerStyle);
+        capsStyle = mergeDefaults(result?.cap, result, capsStyle);
+    }
+
+    // Colour refs are resolved at runtime before render, so the styles are concrete here.
+    return { whiskerStyle, capsStyle } as NormalisedErrorBarStyles;
+}
 
 class HierarchicalBBox {
     // ErrorBarNode can include up to 6 bboxes in total (2 whiskers, 4 caps). This is expensive hit
@@ -112,68 +218,6 @@ export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
         this.append([this.whiskerPath, this.capsPath]);
     }
 
-    private calculateCapLength(capsTheme: CapLengthOptions, capDefaults: CapDefaults): number {
-        // Order of priorities for determining the length of the cap:
-        // 1.  User-defined length (pixels).
-        // 2.  User-defined lengthRatio.
-        // 3.  Library default (defined by underlying series).
-        const { lengthRatio = 1, length } = capsTheme;
-        const { lengthRatioMultiplier, lengthMax } = capDefaults;
-        const desiredLength = length ?? lengthRatio * lengthRatioMultiplier;
-        return Math.min(desiredLength, lengthMax);
-    }
-
-    private getItemStylerParams(
-        options: FormatOptions,
-        style: AgErrorBarThemeableOptions,
-        highlightState: HighlightState,
-        selectionState: SelectionState | undefined,
-        candidateState: SelectionState | undefined
-    ) {
-        const { datum } = this;
-        if (datum == null || options.itemStyler == null) return;
-        const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;
-
-        return {
-            ...(style as Required<AgErrorBarThemeableOptions>),
-            datum: datum.datum,
-            seriesId: datum.series.id,
-            xKey: datum.xKey,
-            yKey: datum.yKey,
-            xLowerKey,
-            xUpperKey,
-            yLowerKey,
-            yUpperKey,
-            highlightState,
-            selectionState,
-            candidateState,
-        } satisfies ErrorBarItemStylerParamsRules;
-    }
-
-    private formatStyles(
-        style: AgErrorBarThemeableOptions,
-        options: FormatOptions,
-        caller: Caller,
-        highlightState: HighlightState,
-        selectionState: SelectionState | undefined,
-        candidateState: SelectionState | undefined
-    ): NormalisedErrorBarStyles {
-        let { cap: capsStyle, ...whiskerStyle } = style;
-
-        const params = this.getItemStylerParams(options, style, highlightState, selectionState, candidateState);
-        if (params != null && options.itemStyler != null) {
-            type F = NonNullable<typeof options.itemStyler>;
-            type I = Parameters<F>[0];
-            type O = ReturnType<F>;
-            const result = caller.callWithContext<I, O, F>(options.itemStyler, params);
-            whiskerStyle = mergeDefaults(result, whiskerStyle);
-            capsStyle = mergeDefaults(result?.cap, result, capsStyle);
-        }
-
-        // Colour refs are resolved at runtime before render, so the styles are concrete here.
-        return { whiskerStyle, capsStyle } as NormalisedErrorBarStyles;
-    }
-
     private applyStyling(target: Path, source?: NormalisedErrorBarStylingOptions) {
         // Style can be any object, including user data (e.g. formatter
         // result). So filter out anything that isn't styling options:
@@ -196,14 +240,16 @@ export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
             return;
         }
 
-        const { whiskerStyle, capsStyle } = this.formatStyles(
-            style,
-            formatters,
-            caller,
-            highlightState,
-            selectionState,
-            candidateState
+        this.draw(
+            resolveErrorBarStyles(this.datum, style, formatters, caller, highlightState, selectionState, candidateState)
         );
+    }
+
+    draw({ whiskerStyle, capsStyle }: NormalisedErrorBarStyles) {
+        if (this.datum === undefined) {
+            return;
+        }
+
         const { xBar, yBar, capDefaults } = this.datum;
 
         const whisker = this.whiskerPath;
@@ -221,7 +267,7 @@ export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
 
         // ErrorBar caps stretch out perpendicular to the whisker equally on both
         // sides, so we want the offset to be half of the total length.
-        this.capLength = this.calculateCapLength(capsStyle ?? {}, capDefaults);
+        this.capLength = errorBarCapLength(capsStyle ?? {}, capDefaults);
         const capOffset = this.capLength / 2;
         const caps = this.capsPath;
         this.applyStyling(caps, capsStyle);
@@ -241,26 +287,54 @@ export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
         caps.path.closePath();
     }
 
+    drawnBounds(): BoxBounds | undefined {
+        const { datum } = this;
+        if (datum == null) return undefined;
+        return errorBarDrawnBounds(datum, this.whiskerPath, this.capsPath, this.capLength);
+    }
+
+    /** The boxes of the whiskers and caps actually drawn; each bar's boxes are its whisker then two caps. */
+    get drawnBBoxComponents(): readonly BBox[] {
+        const { components } = this.bboxes;
+        const whisker = strokeDrawn(this.whiskerPath);
+        const caps = strokeDrawn(this.capsPath);
+        if (whisker && caps) return components;
+        return components.filter((_, i) => (i % 3 === 0 ? whisker : caps));
+    }
+
     updateBBoxes(): void {
         const { capLength, whiskerPath: whisker, capsPath: caps } = this;
         const { yBar, xBar } = this.datum ?? {};
         const capOffset = capLength / 2;
+        // Strokes are centred on their path, so each box straddles its line by half the stroke width.
+        const whiskerWidth = whisker.strokeWidth;
+        const capWidth = caps.strokeWidth;
         const components = [];
 
         if (yBar !== undefined) {
-            const whiskerHeight = yBar.lowerPoint.y - yBar.upperPoint.y;
+            const { lowerPoint, upperPoint } = yBar;
             components.push(
-                new BBox(yBar.lowerPoint.x, yBar.upperPoint.y, whisker.strokeWidth, whiskerHeight),
-                new BBox(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y, capLength, caps.strokeWidth),
-                new BBox(yBar.upperPoint.x - capOffset, yBar.upperPoint.y, capLength, caps.strokeWidth)
+                new BBox(
+                    lowerPoint.x - whiskerWidth / 2,
+                    Math.min(lowerPoint.y, upperPoint.y),
+                    whiskerWidth,
+                    Math.abs(lowerPoint.y - upperPoint.y)
+                ),
+                new BBox(lowerPoint.x - capOffset, lowerPoint.y - capWidth / 2, capLength, capWidth),
+                new BBox(upperPoint.x - capOffset, upperPoint.y - capWidth / 2, capLength, capWidth)
             );
         }
         if (xBar !== undefined) {
-            const whiskerWidth = xBar.upperPoint.x - xBar.lowerPoint.x;
+            const { lowerPoint, upperPoint } = xBar;
             components.push(
-                new BBox(xBar.lowerPoint.x, xBar.upperPoint.y, whiskerWidth, whisker.strokeWidth),
-                new BBox(xBar.lowerPoint.x, xBar.lowerPoint.y - capOffset, caps.strokeWidth, capLength),
-                new BBox(xBar.upperPoint.x, xBar.upperPoint.y - capOffset, caps.strokeWidth, capLength)
+                new BBox(
+                    Math.min(lowerPoint.x, upperPoint.x),
+                    upperPoint.y - whiskerWidth / 2,
+                    Math.abs(upperPoint.x - lowerPoint.x),
+                    whiskerWidth
+                ),
+                new BBox(lowerPoint.x - capWidth / 2, lowerPoint.y - capOffset, capWidth, capLength),
+                new BBox(upperPoint.x - capWidth / 2, upperPoint.y - capOffset, capWidth, capLength)
             );
         }
 

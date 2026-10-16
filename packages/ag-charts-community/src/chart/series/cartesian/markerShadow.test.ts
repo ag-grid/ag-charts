@@ -2,13 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgDropShadowOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../../api/agCharts';
 import type { Marker } from '../../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
 import { MARKER_SHADOW, customMarkerShape } from '../../test/shadowFixtures';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
+    createChart,
     deproxy,
     prepareTestOptions,
     setupMockCanvas,
@@ -69,9 +69,7 @@ describe('marker shadow', () => {
     const ctx = setupMockCanvas();
 
     const create = async (options: AgCartesianChartOptions) => {
-        prepareTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
         return chart;
     };
 
