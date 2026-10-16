@@ -1283,23 +1283,33 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
 
     // Wrap a text segment that overflows the current line into sub-segments, advancing
     // lineWidth/totalHeight. Returns true when the label is full and the line should stop.
-    function wrapOverflowingTextSegment(segment: MeasuredTextSegment): boolean {
+    // `pendingRowHeight` is the tallest segment already placed on the row the first wrapped line continues.
+    function wrapOverflowingTextSegment(segment: MeasuredTextSegment, pendingRowHeight: number): boolean {
         const measurer = cachedTextMeasurer(segment);
         const guardedText = guardTextEdges(segment.text);
         const { lineHeight } = segment;
-        const wrapOptions = { ...options, font: segment, lineHeight, maxHeight: maxHeight - totalHeight };
+        const segmentLineHeight = lineHeight ?? segment.textMetrics.height;
+        const budget = (rowCarry: number) => ({
+            ...options,
+            font: segment,
+            lineHeight,
+            maxHeight: maxHeight - totalHeight - Math.max(0, rowCarry - segmentLineHeight),
+        });
+        let rowCarry = pendingRowHeight;
 
-        let wrappedLines = textWrap(guardedText, { ...wrapOptions, overflow: 'hide' }, lineWidth, totalHeight);
+        let wrappedLines = textWrap(guardedText, { ...budget(rowCarry), overflow: 'hide' }, lineWidth, totalHeight);
         if (wrappedLines.length === 0) {
             if (options.textWrap === 'never') {
-                wrappedLines = textWrap(guardedText, wrapOptions, lineWidth, totalHeight);
+                wrappedLines = textWrap(guardedText, budget(rowCarry), lineWidth, totalHeight);
             } else {
-                wrappedLines = textWrap(guardedText, wrapOptions, 0, totalHeight);
                 const lastSegment = result.at(-1);
                 if (lastSegment && lastSegment.type !== 'image') {
                     lastSegment.text += '\n';
                     lineWidth = 0;
+                    totalHeight += rowCarry;
+                    rowCarry = 0;
                 }
+                wrappedLines = textWrap(guardedText, budget(rowCarry), 0, totalHeight);
             }
         }
 
@@ -1340,7 +1350,8 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 subSegment.text += '\n';
                 lineWidth = 0;
             }
-            totalHeight += lineHeight ?? textMetrics.height;
+            const subLineHeight = lineHeight ?? textMetrics.height;
+            totalHeight += i === 0 ? Math.max(rowCarry, subLineHeight) : subLineHeight;
             result.push(subSegment);
         }
 
@@ -1413,7 +1424,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 return result;
             }
 
-            if (wrapOverflowingTextSegment(segment)) break;
+            if (wrapOverflowingTextSegment(segment, lineHeight)) break;
             lineHeight = 0;
         }
     }
