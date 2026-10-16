@@ -245,7 +245,7 @@ export function createVolumeProfileAxis(
 ): Record<string, AgNumberAxisOptions | AgCategoryAxisOptions> {
     if (!volumeProfile) return {};
 
-    const placedRight = volumeProfile.placement === 'right';
+    const placedRight = volumeProfile.placement !== 'left';
 
     return {
         yVolumeProfile: {

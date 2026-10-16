@@ -113,7 +113,7 @@ export interface AgVolumeProfileOptions extends Toggleable {
     downKey: string;
     /** The edge of the series area the bars extend from.
      *
-     * Default: `'left'`
+     * Default: `'right'`
      */
     placement?: AgVolumeProfilePlacement;
     /** The length of the longest bar, as a ratio of the series area width.
