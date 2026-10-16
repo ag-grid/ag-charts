@@ -1283,8 +1283,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         rowHeight = height;
     }
 
-    function joinRow(segment: MeasuredSegment, force = preserveText): boolean {
-        const height = rowHeightWith(segment);
+    function joinRow(segment: MeasuredSegment, force = preserveText, height = rowHeightWith(segment)): boolean {
         const extra = height - rowHeight;
         if (!force && extra > 0 && totalHeight + extra > maxHeight) return false;
         totalHeight += Math.max(0, extra);
@@ -1412,10 +1411,9 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         }
 
         for (const segment of segments) {
-            const segmentHeight =
-                (segment.type === 'image' ? undefined : segment.lineHeight) ?? segment.textMetrics.height;
-            if (lineWidth + segment.textMetrics.width <= maxWidth(segmentHeight)) {
-                if (!joinRow(segment)) {
+            const joinedRowHeight = rowHeightWith(segment);
+            if (lineWidth + segment.textMetrics.width <= maxWidth(joinedRowHeight)) {
+                if (!joinRow(segment, preserveText, joinedRowHeight)) {
                     truncateLastSegment();
                     return result;
                 }
