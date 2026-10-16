@@ -55,7 +55,7 @@ type ProxyMeta = {
     };
     slider: {
         params: ParentProperties<ToolbarWidget | GroupWidget> &
-            InteractParams<'slider'> & { readonly ariaLabel: TranslationKey; readonly role?: string };
+            InteractParams<'slider'> & { readonly ariaLabel: TranslationKey };
         result: SliderWidget;
     };
     text: {
@@ -196,7 +196,6 @@ export class ProxyInteractionService {
             const slider = result.getElement();
             this.initInteract(params, result);
             slider.type = 'range';
-            slider.role = params.role ?? 'presentation';
             slider.style.margin = '0px';
             this.addLocalisation(() => {
                 slider.ariaLabel = this.ctx.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
