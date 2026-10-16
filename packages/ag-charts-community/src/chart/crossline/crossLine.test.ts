@@ -1620,7 +1620,7 @@ describe('CrossLine', () => {
                 return (chart as any).seriesRect.y - withoutLabel;
             };
 
-            chart = await createChart(build(false, 0));
+            chart = deproxy(await createChart(build(false, 0)));
             const labelExtent = await reservedFor(0);
 
             expect(labelExtent).toBeGreaterThan(10);
