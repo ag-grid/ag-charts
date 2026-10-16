@@ -214,12 +214,8 @@ describe('CategoryScale domain index', () => {
         const domain = ['A', 'B', 'C'];
         const scale = newScale(domain);
         expect(scale.findIndex('B')).toBe(1);
-        const index = scale.indexMap;
 
-        scale.restoreDomain(scale.snapshotDomain());
         scale.domain = domain;
-        expect(scale.isIndexBuilt).toBe(true);
-        expect(scale.indexMap).toBe(index);
         expect(scale.findIndex('B')).toBe(1);
 
         scale.domain = ['A', 'B', 'C'];
@@ -228,6 +224,20 @@ describe('CategoryScale domain index', () => {
         scale.domain = ['C', 'B'];
         expect(scale.findIndex('C')).toBe(0);
         expect(scale.findIndex('A')).toBeUndefined();
+    });
+
+    test('restoring the unchanged domain is a no-op that keeps the built index', () => {
+        const domain = ['A', 'B', 'C'];
+        const scale = newScale(domain);
+        expect(scale.findIndex('B')).toBe(1);
+        const index = scale.indexMap;
+
+        scale.restoreDomain(scale.snapshotDomain());
+
+        expect(scale.domain).toBe(domain);
+        expect(scale.isIndexBuilt).toBe(true);
+        expect(scale.indexMap).toBe(index);
+        expect(scale.findIndex('B')).toBe(1);
     });
 
     test('keeps the index across a snapshot, temporary domain and restore', () => {
@@ -295,6 +305,23 @@ describe('CategoryScale domain index', () => {
         scale.domain = temporary;
         expect(scale.isIndexBuilt).toBe(false);
         expect(scale.findIndex('B')).toBe(0);
+        expect(scale.findIndex('Y')).toBeUndefined();
+    });
+
+    test('does not reuse the index outside the snapshot window', () => {
+        const a = ['A', 'B', 'C'];
+        const scale = newScale(a);
+        expect(scale.findIndex('C')).toBe(2);
+        const index = scale.indexMap;
+
+        // Plain domain sets, as on a data update, are never a swap back.
+        scale.domain = ['X', 'Y'];
+        expect(scale.findIndex('Y')).toBe(1);
+        scale.domain = a;
+
+        expect(scale.isIndexBuilt).toBe(false);
+        expect(scale.indexMap).not.toBe(index);
+        expect(scale.findIndex('C')).toBe(2);
         expect(scale.findIndex('Y')).toBeUndefined();
     });
 
