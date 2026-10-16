@@ -234,6 +234,7 @@ describe('Category Axis', () => {
             { day: 'Thu', value: 6 },
         ];
 
+        // Bespoke: the image loader must be stubbed before the first render, so it cannot follow `createChart`'s wait.
         async function createStubbedChart(options: AgCartesianChartOptions) {
             chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })) as any);
             stubChartImageLoader(chart);

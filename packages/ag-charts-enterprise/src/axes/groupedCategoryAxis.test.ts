@@ -2,7 +2,6 @@ import { afterEach, describe, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
 import {
-    Chart,
     type ChartOrProxy,
     INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE,
     applyRotationWithoutCollisionAvoidance,
@@ -22,6 +21,7 @@ import type {
     AgBaseChartOptions,
     AgCartesianAxisType,
     AgCartesianChartOptions,
+    AgChartInstance,
     AgContextMenuGetItemsParams,
 } from 'ag-charts-types';
 
@@ -84,7 +84,7 @@ describe('Grouped Category Axis Examples', () => {
 describe('Grouped Category', () => {
     setupMockCanvas();
     setupMockConsole();
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         chart?.destroy();

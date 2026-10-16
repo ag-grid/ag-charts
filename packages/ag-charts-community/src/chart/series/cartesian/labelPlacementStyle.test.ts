@@ -5,6 +5,7 @@ import type { AgChartInstance } from 'ag-charts-types';
 import { AgCharts } from '../../../api/agCharts';
 import {
     compareImageSnapshot,
+    createChart,
     deproxy,
     prepareTestOptions,
     setupMockCanvas,
@@ -25,8 +26,7 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
     });
 
     const renderAndSnapshot = async (options: object) => {
-        prepareTestOptions(options as any);
-        chart = AgCharts.create(options as any);
+        chart = await createChart(options);
         await compareImageSnapshot(chart, ctx);
     };
 
@@ -424,9 +424,7 @@ describe('resolved placement/orientation in itemStyler params', () => {
         for (const series of options.series) {
             series.label = { ...series.label, itemStyler: (params: any) => (captured.push(params), {}) };
         }
-        prepareTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
         expect(captured.length).toBeGreaterThan(0);
         return captured;
     };

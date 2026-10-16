@@ -3,10 +3,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { ChartUpdateType, Transformable } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import { STRIPPED_NUMBER_AXES } from '../test/bigintExamples';
 import { SERIES_SHADOW } from '../test/shadowFixtures';
-import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
+import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 const XY_DATA = [
     { x: 1, y: 5, size: 10 },
@@ -87,9 +86,7 @@ describe('layer shadow batching of series', () => {
     });
 
     const create = async (options: AgChartOptions) => {
-        prepareTestOptions(options);
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createChart(options));
         return chart;
     };
 

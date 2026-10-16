@@ -1808,9 +1808,7 @@ describe('BarSeries', () => {
     // so an unfittable label is dropped; the default (`alwaysShow: true`) keeps the fast-path bake.
     describe('alwaysShow single-placement hiding', () => {
         const visibleLabelCounts = async (options: AgChartOptions) => {
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
             return (deproxy(chart).series as any[]).map(
                 (series) => series.labelSelection.nodes().filter((node: any) => node.visible).length
             );
@@ -2219,17 +2217,15 @@ describe('BarSeries', () => {
 
     describe('AG-8290', () => {
         async function testCase(labelOpts: { placement: AgBarSeriesLabelPlacement; spacing?: number }, name: string) {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: '1', y: 140 },
-                        { x: '2', y: 124 },
-                        { x: '3', y: 112 },
-                        { x: '4', y: 118 },
-                    ],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { ...labelOpts } }],
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: '1', y: 140 },
+                    { x: '2', y: 124 },
+                    { x: '3', y: 112 },
+                    { x: '4', y: 118 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { ...labelOpts } }],
+            });
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
         describe('spacing sets the gap between the bar and the label', () => {
@@ -4521,9 +4517,7 @@ describe('BarSeries', () => {
                     },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
             const series = deproxy(chart).series[0] as any;
             const nodes = series.labelSelection.nodes().filter((node: any) => node.visible);
             expect(nodes.length).toBe(paddingData.length);
@@ -4586,9 +4580,7 @@ describe('BarSeries', () => {
                     },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
             const series = deproxy(chart).series[0] as any;
             const node = series.labelSelection.nodes().find((n: any) => n.visible);
             const bar = series.contextNodeData?.nodeData?.[0];
@@ -4620,8 +4612,8 @@ describe('BarSeries', () => {
         });
     });
     describe('AG-14101 ArrowDown into a series with a missing datum', () => {
-        function createTwoSeriesChart(data: Array<{ x: number; y1: number; y2?: number }>) {
-            const options: AgCartesianChartOptions = {
+        function twoSeriesOptions(data: Array<{ x: number; y1: number; y2?: number }>): AgCartesianChartOptions {
+            return {
                 data,
                 animation: { enabled: false },
                 series: [
@@ -4629,9 +4621,6 @@ describe('BarSeries', () => {
                     { id: 'y2', type: 'bar', xKey: 'x', yKey: 'y2' },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            return waitForChartStability(chart);
         }
 
         function getBarCentre(seriesIndex: number, datumIndex: number) {
@@ -4654,12 +4643,14 @@ describe('BarSeries', () => {
 
         describe('missing middle datum', () => {
             beforeEach(async () => {
-                await createTwoSeriesChart([
-                    { x: 0, y1: 10, y2: 12 },
-                    { x: 1, y1: 11 }, // y2 missing
-                    { x: 3, y1: 12, y2: 16 },
-                    { x: 4, y1: 13, y2: 18 },
-                ]);
+                chart = await createChart(
+                    twoSeriesOptions([
+                        { x: 0, y1: 10, y2: 12 },
+                        { x: 1, y1: 11 }, // y2 missing
+                        { x: 3, y1: 12, y2: 16 },
+                        { x: 4, y1: 13, y2: 18 },
+                    ])
+                );
             });
 
             it('ArrowDown from y1 x:1 focuses y2 x:0', async () => {
@@ -4682,12 +4673,14 @@ describe('BarSeries', () => {
 
         describe('missing first datum', () => {
             beforeEach(async () => {
-                await createTwoSeriesChart([
-                    { x: 0, y1: 10 }, // y2 missing
-                    { x: 1, y1: 11, y2: 14 },
-                    { x: 3, y1: 12, y2: 16 },
-                    { x: 4, y1: 13, y2: 18 },
-                ]);
+                chart = await createChart(
+                    twoSeriesOptions([
+                        { x: 0, y1: 10 }, // y2 missing
+                        { x: 1, y1: 11, y2: 14 },
+                        { x: 3, y1: 12, y2: 16 },
+                        { x: 4, y1: 13, y2: 18 },
+                    ])
+                );
             });
 
             it('ArrowDown from y1 x:0 focuses y2 x:1', async () => {
@@ -4705,12 +4698,14 @@ describe('BarSeries', () => {
 
         describe('missing last datum', () => {
             beforeEach(async () => {
-                await createTwoSeriesChart([
-                    { x: 0, y1: 10, y2: 12 },
-                    { x: 1, y1: 11, y2: 14 },
-                    { x: 3, y1: 12, y2: 16 },
-                    { x: 4, y1: 13 }, // y2 missing
-                ]);
+                chart = await createChart(
+                    twoSeriesOptions([
+                        { x: 0, y1: 10, y2: 12 },
+                        { x: 1, y1: 11, y2: 14 },
+                        { x: 3, y1: 12, y2: 16 },
+                        { x: 4, y1: 13 }, // y2 missing
+                    ])
+                );
             });
 
             it('ArrowDown from y1 x:4 focuses y2 x:3', async () => {

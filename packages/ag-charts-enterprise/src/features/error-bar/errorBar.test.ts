@@ -12,12 +12,12 @@ import {
     type Styler,
 } from 'ag-charts-community';
 import {
-    type Chart,
     MIN_UNHIGHLIGHT_DELAY,
     type MockErrorBarStyler,
     clickAction,
     compareImageSnapshot,
     computeLegendBBox,
+    deproxy,
     getCursor,
     hoverAction,
     newFreezableMock,
@@ -26,6 +26,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
+import type { AgChartInstance } from 'ag-charts-types';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -157,7 +158,7 @@ const SERIES_BOYLESLAW: AgScatterSeriesOptions = {
 describe('ErrorBars', () => {
     setupMockConsole();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
@@ -169,7 +170,7 @@ describe('ErrorBars', () => {
     };
 
     const getItemCoords = (itemIndex: number): { x: number; y: number } => {
-        const series = chart['series'][0] as any;
+        const series = deproxy(chart)['series'][0] as any;
         const item = series['contextNodeData'].nodeData[itemIndex];
         const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
             series.contentGroup,
@@ -575,7 +576,14 @@ describe('ErrorBars', () => {
                     size: 80,
                     strokeWidth: 60,
                     data: [
-                        { volume: 2, volumeLower: 1, volumeUpper: 3, pressure: 2, pressureLower: 1, pressureUpper: 3 },
+                        {
+                            volume: 2,
+                            volumeLower: 1,
+                            volumeUpper: 3,
+                            pressure: 2,
+                            pressureLower: 1,
+                            pressureUpper: 3,
+                        },
                     ],
                 },
             ],
@@ -713,7 +721,7 @@ describe('ErrorBars', () => {
             ],
         });
 
-        const { x = 0, y = 0, width = 0 } = computeLegendBBox(chart);
+        const { x = 0, y = 0, width = 0 } = computeLegendBBox(deproxy(chart));
 
         // Hide Canada
         await clickAction(x, y)(chart);

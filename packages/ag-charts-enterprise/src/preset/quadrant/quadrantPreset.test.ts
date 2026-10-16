@@ -700,6 +700,7 @@ describe('AG-18413 quadrant with a key naming no column', () => {
         chart = undefined;
     });
 
+    // Bespoke: creates through `AgCharts.createQuadrantChart`, which the shared factory does not cover.
     const createQuadrantChart = async (overrides: Partial<AgQuadrantChartOptions>) => {
         const options: AgQuadrantChartOptions = { ...NUMERIC, ...overrides };
         prepareEnterpriseTestOptions(options as AgChartOptions);

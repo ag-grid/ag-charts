@@ -422,14 +422,14 @@ describe('BoxPlotSeries', () => {
         };
 
         it('defaults to a disabled shadow', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions());
+            const chart: any = deproxy(await createEnterpriseChart(buildOptions()));
 
             expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions());
+            const chart: any = deproxy(await createEnterpriseChart(buildOptions()));
 
             expect(itemNodes(chart)).toHaveLength(4);
             expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
@@ -439,7 +439,7 @@ describe('BoxPlotSeries', () => {
         it.each(['vertical', 'horizontal'] as const)(
             'casts one silhouette shadow over each %s box, whiskers and caps',
             async (direction) => {
-                const chart: any = await createEnterpriseChart(buildOptions(SHADOW, undefined, direction));
+                const chart: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW, undefined, direction)));
 
                 const shapes = itemNodes(chart);
                 expect(shapes).toHaveLength(4);
@@ -453,14 +453,16 @@ describe('BoxPlotSeries', () => {
         );
 
         it('keeps shared whiskers on the box path and styled whiskers on their own path', async () => {
-            const shared: any = await createEnterpriseChart(buildOptions(SHADOW));
+            const shared: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
             for (const node of itemNodes(shared)) {
                 expect(node['wickPath'].isEmpty()).toBe(true);
             }
             shared.destroy();
 
             // The styled whiskers are drawn apart from the box, so they reach the shadow through renderSilhouetteExtras.
-            const styled: any = await createEnterpriseChart(buildOptions(SHADOW, { whisker: STYLED_WHISKERS }));
+            const styled: any = deproxy(
+                await createEnterpriseChart(buildOptions(SHADOW, { whisker: STYLED_WHISKERS }))
+            );
             for (const node of itemNodes(styled)) {
                 expect(node['wickPath'].isEmpty()).toBe(false);
                 expect(node.shadowMode).toBe('silhouette');
@@ -470,7 +472,9 @@ describe('BoxPlotSeries', () => {
         });
 
         it('carries the shadow spread to the silhouette shadow of every box', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions(SPREAD_SHADOW, { whisker: STYLED_WHISKERS }));
+            const chart: any = deproxy(
+                await createEnterpriseChart(buildOptions(SPREAD_SHADOW, { whisker: STYLED_WHISKERS }))
+            );
 
             expect(itemNodes(chart).length).toBeGreaterThan(0);
 

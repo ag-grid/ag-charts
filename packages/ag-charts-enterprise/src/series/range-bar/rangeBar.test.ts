@@ -2265,11 +2265,6 @@ describe('RangeBarSeries', () => {
             seriesNodeClick = vi.fn();
         });
 
-        async function createChart(options: AgChartOptions) {
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-        }
-
         function getBarCentre(seriesIndex: number, nodeIndex: number) {
             const series = new Caster(deproxy(chart))
                 .accessProperty('series')
@@ -2289,7 +2284,7 @@ describe('RangeBarSeries', () => {
         }
 
         it('ArrowRight focuses the second bar with numeric time x values', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: Array.from({ length: 20_000 }, (_row, index) => ({
                     index,
                     time: Date.UTC(2024, 0, 1) + index * 60_000,
@@ -2300,7 +2295,6 @@ describe('RangeBarSeries', () => {
                 series: [{ type: 'range-bar', xKey: 'time', yLowKey: 'low', yHighKey: 'high' }],
                 listeners: { seriesNodeClick },
             });
-            await createChart(options);
 
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowRight');
@@ -2315,7 +2309,7 @@ describe('RangeBarSeries', () => {
         });
 
         it('ArrowRight focuses the second bar with ISO-string x values', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: Array.from({ length: 20_000 }, (_row, index) => ({
                     index,
                     time: new Date(Date.UTC(2024, 0, 1) + index * 60_000).toISOString(),
@@ -2326,7 +2320,6 @@ describe('RangeBarSeries', () => {
                 series: [{ type: 'range-bar', xKey: 'time', yLowKey: 'low', yHighKey: 'high' }],
                 listeners: { seriesNodeClick },
             });
-            await createChart(options);
 
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowRight');
@@ -2341,7 +2334,7 @@ describe('RangeBarSeries', () => {
         });
 
         it('ArrowRight focuses the second bar with bigint x values', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: Array.from({ length: 20_000 }, (_row, index) => ({
                     index,
                     x: 2n ** 60n + BigInt(index) * 1_000_000_000n,
@@ -2352,7 +2345,6 @@ describe('RangeBarSeries', () => {
                 series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'low', yHighKey: 'high' }],
                 listeners: { seriesNodeClick },
             });
-            await createChart(options);
 
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowRight');
@@ -2366,7 +2358,7 @@ describe('RangeBarSeries', () => {
         });
 
         it('ArrowDown then ArrowRight focuses the second bar of the second grouped series', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: Array.from({ length: 20_000 }, (_row, index) => ({
                     index,
                     time: Date.UTC(2024, 0, 1) + index * 60_000,
@@ -2389,7 +2381,6 @@ describe('RangeBarSeries', () => {
                 ],
                 listeners: { seriesNodeClick },
             });
-            await createChart(options);
 
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowDown');

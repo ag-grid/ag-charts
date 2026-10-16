@@ -51,7 +51,7 @@ describe('AG-13024 API context', () => {
     type TContext = { name: string };
     type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
 
-    let chart: Chart;
+    let chart: AgChartInstance;
     let options: AgCartesianChartOptions<TDatum, TContext>;
     let seriesContext0: TContext;
     let seriesContext1: TContext;
@@ -374,7 +374,7 @@ describe('AG-13024 API context - overlays', () => {
 });
 
 describe('AG-13024 API context validation', () => {
-    let chart: Chart;
+    let chart: AgChartInstance;
     setupMockConsole();
     setupMockCanvas();
     afterEach(() => chart?.destroy());
@@ -399,7 +399,7 @@ describe('AG-13024 API context validation', () => {
 });
 
 describe('AG-15283 context precedence', () => {
-    let chart: Chart;
+    let chart: AgChartInstance;
     setupMockCanvas();
     afterEach(() => chart?.destroy());
 
@@ -473,7 +473,7 @@ describe('AG-16613 null category callbacks', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart != null) {

@@ -1,10 +1,16 @@
 import { memoryUsage } from 'process';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { AgCharts } from '../api/agCharts';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
-import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
+import {
+    createChart,
+    deproxy,
+    prepareTestOptions,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from './test/utils';
 
 // Heap size comparisons can be flaky - let's be sure any failure is consistent.
 
@@ -92,14 +98,6 @@ describe('Chart Heap Memory', { retry: 5 }, () => {
     setupMockCanvas();
 
     describe('Check for leaks', () => {
-        async function createChart(options: object) {
-            const chartOptions = prepareTestOptions(options);
-            const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
-            const chartInstance = deproxy(chartProxy);
-            await waitForChartStability(chartInstance);
-            return { chart: chartInstance, chartProxy, chartOptions };
-        }
-
         async function updateChart(chartProxy: AgChartProxy, options: object) {
             const chartOptions = prepareTestOptions(options);
             await chartProxy.update(chartOptions);
@@ -111,7 +109,7 @@ describe('Chart Heap Memory', { retry: 5 }, () => {
             const startingHeap = memoryUsage().heapUsed;
 
             const options = [options1, options2, options1, options2];
-            const { chartProxy } = await createChart({});
+            const chartProxy = (await createChart({})) as AgChartProxy;
 
             for (let i = 0; i < 3; i++) {
                 for (const nextOpts of options) {
@@ -130,7 +128,7 @@ describe('Chart Heap Memory', { retry: 5 }, () => {
 
         // Reason: Need to add --expose-gc to node instance, couldn't figure out how to do it yet...
         it('should free modules from memory', async () => {
-            let chartProxy: AgChartProxy | null = (await createChart({})).chartProxy;
+            let chartProxy: AgChartProxy | null = (await createChart({})) as AgChartProxy;
 
             const instantiatedSeries = new Set<string>();
             const seriesFinalizationRegistry = new FinalizationRegistry<string>((id) => {

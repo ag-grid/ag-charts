@@ -88,9 +88,8 @@ describe('HlcSeries', () => {
         await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
-    const createChart = async (options: AgChartOptions) => {
-        chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-        await waitForChartStability(chart);
+    const renderSeries = async (options: AgChartOptions) => {
+        chart = await createEnterpriseChart(options);
         return deproxy(chart).series[0] as any;
     };
 
@@ -106,17 +105,17 @@ describe('HlcSeries', () => {
 
     describe('rendering', () => {
         it('renders two bands and a close line with the default ordinal-time axis', async () => {
-            await createChart(HLC_OPTIONS);
+            await renderSeries(HLC_OPTIONS);
             await compare();
         });
 
         it('renders with a unit-time x-axis', async () => {
-            await createChart({ ...HLC_OPTIONS, axes: { x: { type: 'unit-time' }, y: { type: 'number' } } });
+            await renderSeries({ ...HLC_OPTIONS, axes: { x: { type: 'unit-time' }, y: { type: 'number' } } });
             await compare();
         });
 
         it('renders with reversed axes', async () => {
-            await createChart({
+            await renderSeries({
                 ...HLC_OPTIONS,
                 axes: { x: { type: 'ordinal-time', reverse: true }, y: { type: 'number', reverse: true } },
             });
@@ -124,12 +123,12 @@ describe('HlcSeries', () => {
         });
 
         it('takes the up and down palette colours for the bands and a neutral close line', async () => {
-            await createChart({ ...HLC_OPTIONS, theme: UP_DOWN_THEME });
+            await renderSeries({ ...HLC_OPTIONS, theme: UP_DOWN_THEME });
             await compare();
         });
 
         it('renders with markers enabled', async () => {
-            await createChart(withSeries({ marker: { enabled: true } }));
+            await renderSeries(withSeries({ marker: { enabled: true } }));
             await compare();
         });
 
@@ -137,12 +136,12 @@ describe('HlcSeries', () => {
             ['smooth', { type: 'smooth' }],
             ['step', { type: 'step' }],
         ])('renders with %s interpolation', async (_name, interpolation) => {
-            await createChart(withSeries({ interpolation }));
+            await renderSeries(withSeries({ interpolation }));
             await compare();
         });
 
         it('renders a marker shadow', async () => {
-            await createChart(
+            await renderSeries(
                 withSeries({
                     marker: {
                         enabled: true,
@@ -157,7 +156,7 @@ describe('HlcSeries', () => {
         it.each(['xKey', 'highKey', 'lowKey', 'closeKey'])('reports a missing %s', async (key) => {
             const series: Record<string, unknown> = { ...HLC_OPTIONS.series![0] };
             delete series[key];
-            await createChart({ ...HLC_OPTIONS, series: [series as any] });
+            await renderSeries({ ...HLC_OPTIONS, series: [series as any] });
             expectWarningsCalls().toEqual([
                 [
                     `AG Charts - Option \`series[0].${key}\` is required and has not been provided; expecting a string, ignoring.`,
@@ -168,19 +167,19 @@ describe('HlcSeries', () => {
 
     describe('legend', () => {
         it('has a single entry for the series', async () => {
-            const series = await createChart(withSeries({ yName: 'S&P 500' }));
+            const series = await renderSeries(withSeries({ yName: 'S&P 500' }));
             const legendData = series.getLegendData('category');
             expect(legendData).toHaveLength(1);
             expect(legendData[0].label.text).toBe('S&P 500');
         });
 
         it('hides both bands, every stroke and the markers when the series is hidden', async () => {
-            await createChart(withSeries({ marker: { enabled: true }, visible: false }));
+            await renderSeries(withSeries({ marker: { enabled: true }, visible: false }));
             await compare();
         });
 
         it('hides the series when its legend item is clicked and restores it on a second click', async () => {
-            const series = await createChart({
+            const series = await renderSeries({
                 ...withSeries({ marker: { enabled: true } }),
                 legend: { enabled: true },
             });
@@ -203,7 +202,7 @@ describe('HlcSeries', () => {
 
     describe('tooltip', () => {
         it('shows the high, low and close values of a datum together', async () => {
-            const series = await createChart(
+            const series = await renderSeries(
                 withSeries({ highName: 'High', lowName: 'Low', closeName: 'Close', marker: { enabled: true } })
             );
             const content = series.getTooltipContent(1, undefined);
@@ -216,13 +215,13 @@ describe('HlcSeries', () => {
         });
 
         it('headlines the tooltip with the formatted x value', async () => {
-            const series = await createChart(withSeries({ marker: { enabled: true } }));
+            const series = await renderSeries(withSeries({ marker: { enabled: true } }));
             const content = series.getTooltipContent(1, undefined);
             expect(content.heading).toBe('Jan  2 2024');
         });
 
         it('shows exactly one tooltip with a High, Low and Close row each when a datum is hovered', async () => {
-            const series = await createChart(
+            const series = await renderSeries(
                 withSeries({ highName: 'High', lowName: 'Low', closeName: 'Close', marker: { enabled: true } })
             );
             const closeNode = series.getNodeData().find((d: any) => d.datumIndex === 1 && d.itemType === 'close');
@@ -251,7 +250,7 @@ describe('HlcSeries', () => {
 
         it('passes the hovered item type to the renderer', async () => {
             const renderer = vi.fn(() => undefined);
-            const series = await createChart(withSeries({ marker: { enabled: true }, tooltip: { renderer } }));
+            const series = await renderSeries(withSeries({ marker: { enabled: true }, tooltip: { renderer } }));
             const highNode = series.getNodeData().find((d: any) => d.datumIndex === 2 && d.itemType === 'high');
             series.getTooltipContent(2, highNode);
             series.getTooltipContent(2, undefined);
@@ -266,7 +265,7 @@ describe('HlcSeries', () => {
                 hi: 10 + (i % 5),
                 cl: (i % 10) - 5,
             }));
-            const series = await createChart({
+            const series = await renderSeries({
                 data,
                 series: [{ type: 'hlc', xKey: 'x', highKey: 'hi', lowKey: 'lo', closeKey: 'cl' }],
                 axes: STRIPPED_NUMBER_AXES,
@@ -292,7 +291,7 @@ describe('HlcSeries', () => {
 
     describe('highlight and selection', () => {
         it('highlights all three values of the hovered datum', async () => {
-            const series = await createChart(withSeries({ marker: { enabled: true } }));
+            const series = await renderSeries(withSeries({ marker: { enabled: true } }));
             const nodeData = series.getNodeData();
             const highlighted = series.getHighlightData(nodeData, nodeData[3]);
             expect(highlighted.map((d: any) => d.itemType)).toEqual(['high', 'low', 'close']);
@@ -300,7 +299,7 @@ describe('HlcSeries', () => {
         });
 
         it('selects the whole datum when one of its markers is clicked', async () => {
-            const series = await createChart({
+            const series = await renderSeries({
                 ...withSeries({ marker: { enabled: true } }),
                 selection: { enabled: true },
             });
@@ -334,7 +333,7 @@ describe('HlcSeries', () => {
                         return { fill: 'orange', size: 12 };
                 }
             });
-            await createChart(withSeries({ marker: { enabled: true, itemStyler } }));
+            await renderSeries(withSeries({ marker: { enabled: true, itemStyler } }));
 
             const itemTypes = itemStyler.mock.calls.map(([params]) => params.itemType);
             expect(itemTypes.filter((t) => t === 'high')).toHaveLength(DATA.length);
@@ -345,7 +344,7 @@ describe('HlcSeries', () => {
         });
 
         it('styles the bands and strokes from the item options', async () => {
-            await createChart(
+            await renderSeries(
                 withSeries({
                     item: {
                         high: { fill: 'lightgreen', fillOpacity: 0.6, stroke: 'green', lineDash: [4, 2] },
@@ -365,7 +364,7 @@ describe('HlcSeries', () => {
                     close: { stroke: 'purple', strokeWidth: 4, marker: { fill: 'purple' } },
                 },
             }));
-            const series = await createChart(withSeries({ styler, item: { close: { marker: { enabled: true } } } }));
+            const series = await renderSeries(withSeries({ styler, item: { close: { marker: { enabled: true } } } }));
             expect(styler.mock.calls[0]).toMatchSnapshot();
             await compare();
             const stateOf = ([params]: [AgHlcSeriesStylerParams<Datum, unknown>]) => params.highlightState;
@@ -400,7 +399,7 @@ describe('HlcSeries', () => {
         const focusedDatumIndex = () => deproxy(chart).ctx.highlightManager.getActiveHighlight()?.datumIndex;
 
         it('moves focus between datums with the arrow keys', async () => {
-            const series = await createChart(HLC_OPTIONS);
+            const series = await renderSeries(HLC_OPTIONS);
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowRight');
             await pressKey(chart, 'ArrowRight');
@@ -410,7 +409,7 @@ describe('HlcSeries', () => {
         });
 
         it('keeps moving focus after the focused datum is panned out of view', async () => {
-            const series = await createChart(windowed());
+            const series = await renderSeries(windowed());
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowRight');
             expect(focusedDatumIndex()).toBe(1);
@@ -438,7 +437,7 @@ describe('HlcSeries', () => {
         };
 
         it('lists one legend entry per series and shows one hlc section in the shared tooltip', async () => {
-            const series = await createChart(MIXED_OPTIONS);
+            const series = await renderSeries(MIXED_OPTIONS);
             const legendIds = getLegendModule(deproxy(chart))
                 .itemSelection.nodes()
                 .map((node) => node.datum?.id);
@@ -464,7 +463,7 @@ describe('HlcSeries', () => {
 
     describe('navigator and zoom', () => {
         it('draws an hlc mini chart in the navigator', async () => {
-            await createChart({
+            await renderSeries({
                 ...HLC_OPTIONS,
                 theme: UP_DOWN_THEME,
                 navigator: { enabled: true, miniChart: { enabled: true } },
@@ -476,7 +475,7 @@ describe('HlcSeries', () => {
         });
 
         it('keeps the bands and close line aligned when zoomed', async () => {
-            await createChart({
+            await renderSeries({
                 ...HLC_OPTIONS,
                 theme: UP_DOWN_THEME,
                 zoom: { enabled: true },
@@ -488,7 +487,7 @@ describe('HlcSeries', () => {
 
     describe('data edge cases', () => {
         it('breaks the bands and lines at missing values', async () => {
-            await createChart({
+            await renderSeries({
                 ...HLC_OPTIONS,
                 data: DATA.map((d, i) => {
                     if (i === 3) return { ...d, close: undefined };
@@ -501,7 +500,7 @@ describe('HlcSeries', () => {
         });
 
         it('connects across missing values with connectMissingData', async () => {
-            await createChart({
+            await renderSeries({
                 ...withSeries({ connectMissingData: true }),
                 data: DATA.map((d, i) => (i === 3 ? { ...d, close: undefined } : d)),
             });
@@ -509,7 +508,7 @@ describe('HlcSeries', () => {
         });
 
         it('leaves a close outside the high-low range unfilled and includes it in the domain', async () => {
-            const series = await createChart({
+            const series = await renderSeries({
                 ...withSeries({ item: { high: { fill: '#57b757' }, low: { fill: '#41a9c9' } } }),
                 data: DATA.map((d, i) => (i === 5 ? { ...d, close: 130 } : d)),
             });
@@ -519,7 +518,7 @@ describe('HlcSeries', () => {
         });
 
         it('clamps the band edge to the high-low range at an out-of-range close', async () => {
-            const series = await createChart({
+            const series = await renderSeries({
                 ...HLC_OPTIONS,
                 data: DATA.map((d, i) => {
                     if (i === 5) return { ...d, close: 130 };
@@ -535,7 +534,7 @@ describe('HlcSeries', () => {
         });
 
         it('rejects a null x key with a warning', async () => {
-            await createChart({
+            await renderSeries({
                 ...HLC_OPTIONS,
                 axes: { x: { type: 'category' }, y: { type: 'number' } },
                 data: [
@@ -613,7 +612,7 @@ describe('HlcSeries', () => {
 
         it("takes each bucket's close from its last datum", async () => {
             const data = Array.from({ length: N }, (_, i) => ({ x: i, lo: -10, hi: 10, cl: (i % 10) - 5 }));
-            const series = await createChart({
+            const series = await renderSeries({
                 data,
                 series: [{ type: 'hlc', xKey: 'x', highKey: 'hi', lowKey: 'lo', closeKey: 'cl' }],
                 axes: STRIPPED_NUMBER_AXES,

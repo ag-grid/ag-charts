@@ -134,7 +134,7 @@ describe('label collision avoidance', () => {
 
         const anchorGap = async (spacing: number) => {
             chart?.destroy();
-            chart = await createEnterpriseChart(singleMarker(spacing));
+            chart = deproxy(await createEnterpriseChart(singleMarker(spacing)));
             const series = chart.series.find((s: any) => s.type === 'map-marker') as unknown as PlacedLabelGeometry;
             return topLabelAnchorGap(series);
         };
@@ -1101,7 +1101,7 @@ describe('label collision avoidance', () => {
 
         const render = async (options: object) => {
             chart?.destroy();
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
         };
 
         /** Every stage's label anchor and resolved placement, in stage order. */

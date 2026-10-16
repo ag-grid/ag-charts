@@ -1,5 +1,3 @@
-// Uses vitest globals (enabled in vitest.config.ts) so this dev-only helper adds no
-// npm-dev dependency edge from src/ (see the not-to-dev-dep dependency-cruiser rule).
 import type { AgChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 

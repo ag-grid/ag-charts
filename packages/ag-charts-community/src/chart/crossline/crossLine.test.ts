@@ -480,7 +480,7 @@ describe('CrossLine', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
-                chart = await createChart({ ...example.options });
+                chart = deproxy(await createChart({ ...example.options }));
                 await example.assertions(chart);
                 expectWarningMessages(positionDeprecations(example.options));
             }
@@ -489,7 +489,7 @@ describe('CrossLine', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
-                chart = await createChart({ ...example.options });
+                chart = deproxy(await createChart({ ...example.options }));
                 await compare();
                 expectWarningMessages(positionDeprecations(example.options));
             }
@@ -500,7 +500,7 @@ describe('CrossLine', () => {
         it.each(Object.entries(INVALID_EXAMPLES))(
             'for %s it should render to canvas without crossLines and show warning',
             async (_exampleName, example) => {
-                chart = await createChart({ ...example.options });
+                chart = deproxy(await createChart({ ...example.options }));
                 await compare();
 
                 expectWarningMessages(example.warningMessages);
@@ -512,7 +512,7 @@ describe('CrossLine', () => {
         it.each(Object.entries(UNKNOWN_OPTION_EXAMPLES))(
             'for %s it should render to canvas with crossLines and show warning',
             async (_exampleName, example) => {
-                chart = await createChart({ ...example.options });
+                chart = deproxy(await createChart({ ...example.options }));
                 await compare();
 
                 expectWarningMessages(example.warningMessages);
@@ -532,7 +532,7 @@ describe('CrossLine', () => {
                         : axis
                 ),
             };
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
         });
     });
 
@@ -579,18 +579,20 @@ describe('CrossLine', () => {
     describe('cross-line level listeners', () => {
         test('AC1: clicking a cross line fires `click` with the cross-line params', async () => {
             const click = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    axes: {
-                        x: { type: 'category' },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            crossLines: [rangeCrossLine({ click }, 'band')],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                crossLines: [rangeCrossLine({ click }, 'band')],
+                            },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
@@ -612,18 +614,20 @@ describe('CrossLine', () => {
         test('AC2: double-clicking a cross line fires `doubleClick`', async () => {
             const click = vi.fn();
             const doubleClick = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    axes: {
-                        x: { type: 'category' },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            crossLines: [rangeCrossLine({ click, doubleClick })],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                crossLines: [rangeCrossLine({ click, doubleClick })],
+                            },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             await doubleClickAction(CENTRE_X, CENTRE_Y)(chart);
@@ -638,18 +642,20 @@ describe('CrossLine', () => {
 
         test('AC3: an unset `id` falls back to an internally generated identifier', async () => {
             const click = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    axes: {
-                        x: { type: 'category' },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            crossLines: [rangeCrossLine({ click })],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                crossLines: [rangeCrossLine({ click })],
+                            },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
@@ -662,23 +668,30 @@ describe('CrossLine', () => {
         test('AC5: overlapping cross lines each fire their own listener', async () => {
             const clickY = vi.fn();
             const clickX = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    axes: {
-                        x: {
-                            type: 'category',
-                            crossLines: [
-                                { id: 'x-band', type: 'range', range: ['Jan', 'Feb'], listeners: { click: clickX } },
-                            ],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        axes: {
+                            x: {
+                                type: 'category',
+                                crossLines: [
+                                    {
+                                        id: 'x-band',
+                                        type: 'range',
+                                        range: ['Jan', 'Feb'],
+                                        listeners: { click: clickX },
+                                    },
+                                ],
+                            },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                crossLines: [rangeCrossLine({ click: clickY }, 'y-band')],
+                            },
                         },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            crossLines: [rangeCrossLine({ click: clickY }, 'y-band')],
-                        },
-                    },
-                })
+                    })
+                )
             );
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
@@ -693,19 +706,21 @@ describe('CrossLine', () => {
 
         test('AC6: with no listener registered the click falls through to the chart', async () => {
             const chartClick = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    listeners: { click: chartClick },
-                    axes: {
-                        x: { type: 'category' },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            crossLines: [rangeCrossLine()],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        listeners: { click: chartClick },
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                crossLines: [rangeCrossLine()],
+                            },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
@@ -736,7 +751,7 @@ describe('CrossLine', () => {
                     },
                 });
 
-            chart = await createChart(build('Threshold'));
+            chart = deproxy(await createChart(build('Threshold')));
 
             const { x, y } = crossLineLabelCentre(chart, 'y');
             await clickAction(x, y)(chart);
@@ -779,7 +794,7 @@ describe('CrossLine', () => {
                     },
                 });
 
-            chart = await createChart(build('Threshold'));
+            chart = deproxy(await createChart(build('Threshold')));
 
             const { x, y } = crossLineLabelCentre(chart, 'y');
             await clickAction(x, y)(chart);
@@ -805,7 +820,7 @@ describe('CrossLine', () => {
                     },
                 });
 
-            chart = await createChart(build(20));
+            chart = deproxy(await createChart(build(20)));
 
             const axis = chart.axes.findById('y')!;
             const [crossLine] = getCrossLinesPlugin(axis)!.getInstances();
@@ -825,18 +840,20 @@ describe('CrossLine', () => {
 
         test('clicking outside every cross line fires nothing', async () => {
             const click = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    axes: {
-                        x: { type: 'category' },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            crossLines: [{ id: 'band', type: 'range', range: [0, 1], listeners: { click } }],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                crossLines: [{ id: 'band', type: 'range', range: [0, 1], listeners: { click } }],
+                            },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             await clickAction(CENTRE_X, 60)(chart);
@@ -856,38 +873,45 @@ describe('CrossLine', () => {
                 chartCrossLineDoubleClick = vi.fn();
                 chartSeriesNodeClick = vi.fn();
                 seriesSeriesNodeClick = vi.fn();
-                chart = await createChart({
-                    data: [
-                        { x: 'Jan', y: 8 },
-                        { x: 'Mar', y: 6 },
-                        { x: 'May', y: 3 },
-                        { x: 'Jul', y: 9 },
-                    ],
-                    series: [
-                        { type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeClick: seriesSeriesNodeClick } },
-                    ],
-                    axes: {
-                        myX: {
-                            type: 'category',
-                            crossAt: { value: 0 },
-                            crossLines: [
-                                { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
-                                { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
-                            ],
+                chart = deproxy(
+                    await createChart({
+                        data: [
+                            { x: 'Jan', y: 8 },
+                            { x: 'Mar', y: 6 },
+                            { x: 'May', y: 3 },
+                            { x: 'Jul', y: 9 },
+                        ],
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'x',
+                                yKey: 'y',
+                                listeners: { seriesNodeClick: seriesSeriesNodeClick },
+                            },
+                        ],
+                        axes: {
+                            myX: {
+                                type: 'category',
+                                crossAt: { value: 0 },
+                                crossLines: [
+                                    { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
+                                    { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
+                                ],
+                            },
+                            myY: {
+                                type: 'number',
+                                // No user-option `id`; Use auto-generated id.
+                                crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
+                            },
                         },
-                        myY: {
-                            type: 'number',
-                            // No user-option `id`; Use auto-generated id.
-                            crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
+                        listeners: {
+                            click: chartClick,
+                            crossLineClick: chartCrossLineClick,
+                            crossLineDoubleClick: chartCrossLineDoubleClick,
+                            seriesNodeClick: chartSeriesNodeClick,
                         },
-                    },
-                    listeners: {
-                        click: chartClick,
-                        crossLineClick: chartCrossLineClick,
-                        crossLineDoubleClick: chartCrossLineDoubleClick,
-                        seriesNodeClick: chartSeriesNodeClick,
-                    },
-                });
+                    })
+                );
             });
             test('click where all 3 cross-lines overlap', async () => {
                 await clickAction(505, 130)(chart);
@@ -966,18 +990,20 @@ describe('CrossLine', () => {
             });
             test('a cross line wins over a series node under the pointer that nothing listens to', async () => {
                 chart.destroy();
-                chart = await createChart({
-                    data: [{ x: 'May', y: 3 }],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                    axes: {
-                        myX: {
-                            type: 'category',
-                            crossLines: [{ id: 'blue-line', type: 'line', value: 'May', strokeWidth: 2 }],
+                chart = deproxy(
+                    await createChart({
+                        data: [{ x: 'May', y: 3 }],
+                        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                        axes: {
+                            myX: {
+                                type: 'category',
+                                crossLines: [{ id: 'blue-line', type: 'line', value: 'May', strokeWidth: 2 }],
+                            },
+                            myY: { type: 'number' },
                         },
-                        myY: { type: 'number' },
-                    },
-                    listeners: { crossLineClick: chartCrossLineClick },
-                });
+                        listeners: { crossLineClick: chartCrossLineClick },
+                    })
+                );
                 const { x, y, width, height } = chart.seriesRect!;
                 await clickAction(x + width / 2, y + height - 10)(chart);
                 expect(chartCrossLineClick).toHaveBeenCalledWith(
@@ -999,18 +1025,20 @@ describe('CrossLine', () => {
                 async ({ gesture, nodeListener, crossLineListener }) => {
                     const crossLineListenerFn = vi.fn();
                     chart.destroy();
-                    chart = await createChart({
-                        data: [{ x: 'May', y: 3 }],
-                        series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { [nodeListener]: vi.fn() } }],
-                        axes: {
-                            myX: {
-                                type: 'category',
-                                crossLines: [{ id: 'blue-line', type: 'line', value: 'May', strokeWidth: 2 }],
+                    chart = deproxy(
+                        await createChart({
+                            data: [{ x: 'May', y: 3 }],
+                            series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { [nodeListener]: vi.fn() } }],
+                            axes: {
+                                myX: {
+                                    type: 'category',
+                                    crossLines: [{ id: 'blue-line', type: 'line', value: 'May', strokeWidth: 2 }],
+                                },
+                                myY: { type: 'number' },
                             },
-                            myY: { type: 'number' },
-                        },
-                        listeners: { [crossLineListener]: crossLineListenerFn },
-                    });
+                            listeners: { [crossLineListener]: crossLineListenerFn },
+                        })
+                    );
                     const { x, y, width, height } = chart.seriesRect!;
                     const action = gesture === 'click' ? clickAction : doubleClickAction;
                     await action(x + width / 2, y + height - 10)(chart);
@@ -1021,34 +1049,36 @@ describe('CrossLine', () => {
             );
             test('a cross line wins over a series node only within `nodeClickRange`', async () => {
                 chart.destroy();
-                chart = await createChart({
-                    data: [
-                        { x: 'Jan', y: 8 },
-                        { x: 'Mar', y: 6 },
-                        { x: 'May', y: 3 },
-                        { x: 'Jul', y: 9 },
-                    ],
-                    series: [
-                        {
-                            type: 'bar',
-                            xKey: 'x',
-                            yKey: 'y',
-                            nodeClickRange: 'nearest',
-                            listeners: { seriesNodeClick: seriesSeriesNodeClick },
+                chart = deproxy(
+                    await createChart({
+                        data: [
+                            { x: 'Jan', y: 8 },
+                            { x: 'Mar', y: 6 },
+                            { x: 'May', y: 3 },
+                            { x: 'Jul', y: 9 },
+                        ],
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'x',
+                                yKey: 'y',
+                                nodeClickRange: 'nearest',
+                                listeners: { seriesNodeClick: seriesSeriesNodeClick },
+                            },
+                        ],
+                        axes: {
+                            myX: {
+                                type: 'category',
+                                crossAt: { value: 0 },
+                                crossLines: [
+                                    { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
+                                ],
+                            },
+                            myY: { type: 'number' },
                         },
-                    ],
-                    axes: {
-                        myX: {
-                            type: 'category',
-                            crossAt: { value: 0 },
-                            crossLines: [
-                                { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
-                            ],
-                        },
-                        myY: { type: 'number' },
-                    },
-                    listeners: { crossLineClick: chartCrossLineClick, seriesNodeClick: chartSeriesNodeClick },
-                });
+                        listeners: { crossLineClick: chartCrossLineClick, seriesNodeClick: chartSeriesNodeClick },
+                    })
+                );
                 // Above the May bar, on the blue line.
                 await clickAction(505, 130)(chart);
                 expect(chartCrossLineClick).toHaveBeenCalledWith(
@@ -1090,42 +1120,44 @@ describe('CrossLine', () => {
                 chartSeriesNodeClick = vi.fn();
                 chartClick = vi.fn();
 
-                chart = await createChart({
-                    data: [
-                        { x: 'Jan', y: 8 },
-                        { x: 'Mar', y: 6 },
-                        { x: 'May', y: 3 },
-                        { x: 'Jul', y: 9 },
-                    ],
-                    series: [
-                        {
-                            type: 'bar',
-                            xKey: 'x',
-                            yKey: 'y',
-                            listeners: { seriesNodeClick: seriesSeriesNodeClick },
+                chart = deproxy(
+                    await createChart({
+                        data: [
+                            { x: 'Jan', y: 8 },
+                            { x: 'Mar', y: 6 },
+                            { x: 'May', y: 3 },
+                            { x: 'Jul', y: 9 },
+                        ],
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'x',
+                                yKey: 'y',
+                                listeners: { seriesNodeClick: seriesSeriesNodeClick },
+                            },
+                        ],
+                        axes: {
+                            myX: {
+                                type: 'category',
+                                crossAt: { value: 0 },
+                                crossLines: [
+                                    { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
+                                    { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
+                                ],
+                            },
+                            myY: {
+                                type: 'number',
+                                // No user-option `id`; Use auto-generated id.
+                                crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
+                            },
                         },
-                    ],
-                    axes: {
-                        myX: {
-                            type: 'category',
-                            crossAt: { value: 0 },
-                            crossLines: [
-                                { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
-                                { id: 'grey-range', type: 'range', range: ['Mar', 'Jul'], strokeWidth: 2 },
-                            ],
+                        listeners: {
+                            click: chartClick,
+                            seriesNodeClick: chartSeriesNodeClick,
+                            // `crossLineClick` omitted
                         },
-                        myY: {
-                            type: 'number',
-                            // No user-option `id`; Use auto-generated id.
-                            crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
-                        },
-                    },
-                    listeners: {
-                        click: chartClick,
-                        seriesNodeClick: chartSeriesNodeClick,
-                        // `crossLineClick` omitted
-                    },
-                });
+                    })
+                );
             });
             test('click Jan bar', async () => {
                 await clickAction(140, 255)(chart);
@@ -1192,27 +1224,29 @@ describe('CrossLine', () => {
     describe('TC1: secondary axes', () => {
         test('a cross line on a secondary axis reports that axis key', async () => {
             const click = vi.fn();
-            chart = await createChart({
-                data: [
-                    { x: 'Jan', y: 2, y2: 400 },
-                    { x: 'Feb', y: 8, y2: 700 },
-                ],
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y' },
-                    { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'ySecondary' },
-                ],
-                axes: {
-                    x: { type: 'category' },
-                    y: { type: 'number', position: 'left' },
-                    ySecondary: {
-                        type: 'number',
-                        position: 'right',
-                        min: 0,
-                        max: 1000,
-                        crossLines: [{ id: 'volume-band', type: 'range', range: [0, 1000], listeners: { click } }],
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { x: 'Jan', y: 2, y2: 400 },
+                        { x: 'Feb', y: 8, y2: 700 },
+                    ],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'ySecondary' },
+                    ],
+                    axes: {
+                        x: { type: 'category' },
+                        y: { type: 'number', position: 'left' },
+                        ySecondary: {
+                            type: 'number',
+                            position: 'right',
+                            min: 0,
+                            max: 1000,
+                            crossLines: [{ id: 'volume-band', type: 'range', range: [0, 1000], listeners: { click } }],
+                        },
                     },
-                },
-            });
+                })
+            );
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
 
@@ -1227,20 +1261,22 @@ describe('CrossLine', () => {
             const crossLineClick = vi.fn();
             const axisClick = vi.fn();
             const chartClick = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    listeners: { crossLineClick: chartClick },
-                    axes: {
-                        x: { type: 'category' },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            listeners: { crossLineClick: axisClick },
-                            crossLines: [rangeCrossLine({ click: crossLineClick }, 'band')],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        listeners: { crossLineClick: chartClick },
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                listeners: { crossLineClick: axisClick },
+                                crossLines: [rangeCrossLine({ click: crossLineClick }, 'band')],
+                            },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
@@ -1259,19 +1295,21 @@ describe('CrossLine', () => {
 
         test('axis-level `crossLineDoubleClick` fires on double click', async () => {
             const axisDoubleClick = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    axes: {
-                        x: { type: 'category' },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            listeners: { crossLineDoubleClick: axisDoubleClick },
-                            crossLines: [rangeCrossLine()],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                listeners: { crossLineDoubleClick: axisDoubleClick },
+                                crossLines: [rangeCrossLine()],
+                            },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             await doubleClickAction(CENTRE_X, CENTRE_Y)(chart);
@@ -1283,20 +1321,22 @@ describe('CrossLine', () => {
     describe('callback context', () => {
         test('the axis context wins over the chart context', async () => {
             const click = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    context: 'chart-context',
-                    axes: {
-                        x: { type: 'category' },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            context: 'axis-context',
-                            crossLines: [rangeCrossLine({ click })],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        context: 'chart-context',
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                context: 'axis-context',
+                                crossLines: [rangeCrossLine({ click })],
+                            },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
@@ -1306,19 +1346,21 @@ describe('CrossLine', () => {
 
         test('the chart context is used when the axis has none', async () => {
             const click = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    context: 'chart-context',
-                    axes: {
-                        x: { type: 'category' },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            crossLines: [rangeCrossLine({ click })],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        context: 'chart-context',
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                crossLines: [rangeCrossLine({ click })],
+                            },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
@@ -1328,21 +1370,23 @@ describe('CrossLine', () => {
 
         test('the chart listener gets the axis context with no other listener registered', async () => {
             const chartClick = vi.fn();
-            chart = await createChart(
-                fullRangeOptions({
-                    context: 'chart-context',
-                    listeners: { crossLineClick: chartClick },
-                    axes: {
-                        x: { type: 'category' },
-                        y: {
-                            type: 'number',
-                            min: FULL_RANGE[0],
-                            max: FULL_RANGE[1],
-                            context: 'axis-context',
-                            crossLines: [rangeCrossLine()],
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        context: 'chart-context',
+                        listeners: { crossLineClick: chartClick },
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                min: FULL_RANGE[0],
+                                max: FULL_RANGE[1],
+                                context: 'axis-context',
+                                crossLines: [rangeCrossLine()],
+                            },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
@@ -1368,7 +1412,7 @@ describe('CrossLine', () => {
                     },
                 });
 
-            chart = await createChart(build(first));
+            chart = deproxy(await createChart(build(first)));
             await chart.publicApi!.update(build(second));
             await waitForChartStability(chart);
 
@@ -1383,23 +1427,25 @@ describe('CrossLine', () => {
         const MONTHS = Array.from({ length: 6 }, (_, i) => new Date(2026, i, 1));
 
         async function createBandChart(...ranges: Array<[Date, Date]>) {
-            chart = await createChart({
-                data: MONTHS.map((date, i) => ({ date, value: i + 1 })),
-                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
-                axes: {
-                    x: {
-                        type: 'unit-time',
-                        position: 'bottom',
-                        paddingOuter: 0,
-                        crossLines: ranges.map((range) => ({
-                            type: 'range' as const,
-                            range,
-                            label: { text: 'Range' },
-                        })),
+            chart = deproxy(
+                await createChart({
+                    data: MONTHS.map((date, i) => ({ date, value: i + 1 })),
+                    series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                    axes: {
+                        x: {
+                            type: 'unit-time',
+                            position: 'bottom',
+                            paddingOuter: 0,
+                            crossLines: ranges.map((range) => ({
+                                type: 'range' as const,
+                                range,
+                                label: { text: 'Range' },
+                            })),
+                        },
+                        y: { type: 'number', position: 'left' },
                     },
-                    y: { type: 'number', position: 'left' },
-                },
-            });
+                })
+            );
             const [crossLine] = getCrossLinesPlugin(chart.axes.findById('x')!)!.getInstances();
             return crossLine;
         }
@@ -1537,7 +1583,7 @@ describe('CrossLine', () => {
                 ),
             });
 
-            chart = await createChart(build('pad-chart'));
+            chart = deproxy(await createChart(build('pad-chart')));
             const padded = (chart as any).seriesRect.clone();
 
             await chart.publicApi!.update(build('realign-text'));
@@ -1588,16 +1634,20 @@ describe('CrossLine', () => {
             const veryLongLabel = 'A'.repeat(400);
             const { x, y } = examples.LINE_CROSSLINES.axes as any;
 
-            chart = await createChart({
-                ...examples.LINE_CROSSLINES,
-                axes: {
-                    x,
-                    y: {
-                        ...y,
-                        crossLines: [{ type: 'line', value: 0.87, label: { text: veryLongLabel, placement: 'left' } }],
+            chart = deproxy(
+                await createChart({
+                    ...examples.LINE_CROSSLINES,
+                    axes: {
+                        x,
+                        y: {
+                            ...y,
+                            crossLines: [
+                                { type: 'line', value: 0.87, label: { text: veryLongLabel, placement: 'left' } },
+                            ],
+                        },
                     },
-                },
-            });
+                })
+            );
 
             const seriesRect = (chart as any).seriesRect;
 
@@ -1626,7 +1676,7 @@ describe('CrossLine', () => {
                 },
             });
 
-            chart = await createChart(build('clip-text'));
+            chart = deproxy(await createChart(build('clip-text')));
             const clipped = crossLineLabelText(chart, 'y');
 
             expect(clipped).not.toEqual(veryLongLabel);
@@ -1667,7 +1717,7 @@ describe('CrossLine', () => {
                 },
             });
 
-            chart = await createChart(build(0));
+            chart = deproxy(await createChart(build(0)));
             const rendered = [crossLineLabelText(chart, 'x')];
             for (const padding of [20, 40, 60, 200]) {
                 await chart.publicApi!.update(build(padding));
@@ -1765,23 +1815,25 @@ describe('CrossLine', () => {
 
         it('renders every padding branch under pad-chart', async () => {
             const padChart: OverflowCase = { overflow: 'pad-chart' };
-            chart = await createChart(overflowChart(padChart, padChart, padChart, padChart));
+            chart = deproxy(await createChart(overflowChart(padChart, padChart, padChart, padChart)));
             await compare();
         });
 
         it('renders every padding branch under realign-text', async () => {
             const realign: OverflowCase = { overflow: 'realign-text' };
-            chart = await createChart(overflowChart(realign, realign, realign, realign));
+            chart = deproxy(await createChart(overflowChart(realign, realign, realign, realign)));
             await compare();
         });
 
         it('renders mixed overflow modes alongside a label larger than the space available', async () => {
-            chart = await createChart(
-                overflowChart(
-                    { overflow: 'pad-chart' },
-                    { overflow: 'realign-text' },
-                    { overflow: 'pad-chart', label: 'A'.repeat(400) },
-                    { overflow: 'realign-text' }
+            chart = deproxy(
+                await createChart(
+                    overflowChart(
+                        { overflow: 'pad-chart' },
+                        { overflow: 'realign-text' },
+                        { overflow: 'pad-chart', label: 'A'.repeat(400) },
+                        { overflow: 'realign-text' }
+                    )
                 )
             );
             await compare();
@@ -1838,7 +1890,7 @@ describe('CrossLine', () => {
         }
 
         it('hides a colliding label and releases the space it padded', async () => {
-            chart = await createChart(collisionChart({ alwaysShow: true }));
+            chart = deproxy(await createChart(collisionChart({ alwaysShow: true })));
             const shownTop = chart.seriesRect!.y;
             expect(labelsShown()).toEqual([true, true]);
 
@@ -1850,19 +1902,19 @@ describe('CrossLine', () => {
         });
 
         it('renders a colliding label hidden without the space it would pad', async () => {
-            chart = await createChart(collisionChart());
+            chart = deproxy(await createChart(collisionChart()));
             await compare();
         });
 
         it('keeps a label outside the series area when nothing collides with it', async () => {
-            chart = await createChart(collisionChart({ small: { enabled: false } }));
+            chart = deproxy(await createChart(collisionChart({ small: { enabled: false } })));
 
             expect(labelsShown()[1]).toBe(true);
         });
 
         it('hides a label behind another droppable cross line label', async () => {
-            chart = await createChart(
-                collisionChart({ small: { reserveSpace: false, collision: { alwaysShow: false } } })
+            chart = deproxy(
+                await createChart(collisionChart({ small: { reserveSpace: false, collision: { alwaysShow: false } } }))
             );
 
             expect(labelsShown()).toEqual([true, false]);
@@ -1901,16 +1953,16 @@ describe('CrossLine', () => {
                 },
             });
 
-            chart = await createChart(seriesLabelChart(false));
+            chart = deproxy(await createChart(seriesLabelChart(false)));
             expect(labelsShown('y')).toEqual([true]);
             chart.destroy();
 
-            chart = await createChart(seriesLabelChart(true));
+            chart = deproxy(await createChart(seriesLabelChart(true)));
             expect(labelsShown('y')).toEqual([false]);
         });
 
         it('settles on the same result when laid out again', async () => {
-            chart = await createChart(collisionChart());
+            chart = deproxy(await createChart(collisionChart()));
             await chart.publicApi!.update(collisionChart({ stroke: 'red' }));
             await waitForChartStability(chart);
             const settled = { top: chart.seriesRect!.y, shown: labelsShown() };
@@ -1922,7 +1974,7 @@ describe('CrossLine', () => {
         });
 
         it('lets a label hidden by the re-layout keep the space it was padded', async () => {
-            chart = await createChart(collisionChart({ alwaysShow: true }));
+            chart = deproxy(await createChart(collisionChart({ alwaysShow: true })));
             const [, crossLine] = getCrossLinesPlugin(chart.axes.findById('x')!)!.getInstances();
 
             crossLine.holdLabelPlacement!(true);
@@ -1935,7 +1987,7 @@ describe('CrossLine', () => {
 
         it('lays a hidden label out once when it keeps its verdict', async () => {
             async function updateLabelsCallsOnLayout(options: AgCartesianChartOptions) {
-                chart = await createChart(options);
+                chart = deproxy(await createChart(options));
                 const updateLabels = vi.spyOn(chart.ctx.labelManager, 'updateLabels');
                 chart.update(ChartUpdateType.PERFORM_LAYOUT);
                 await waitForChartStability(chart);
@@ -2011,10 +2063,12 @@ describe('CrossLine', () => {
             ['dropped', { alwaysShow: false }],
             ['kept', { alwaysShow: true }],
         ])('moves a %s label to the next placement when the first collides', async (_, collision) => {
-            chart = await createChart(
-                placementChart({ text: 'PLACED', fontSize: 20, placement: ['right', 'inside-left'], collision }, [
-                    'right',
-                ])
+            chart = deproxy(
+                await createChart(
+                    placementChart({ text: 'PLACED', fontSize: 20, placement: ['right', 'inside-left'], collision }, [
+                        'right',
+                    ])
+                )
             );
 
             const box = placedLabelBox();
@@ -2025,12 +2079,16 @@ describe('CrossLine', () => {
         });
 
         it('pads the chart for the placement chosen', async () => {
-            chart = await createChart(placementChart(undefined, ['inside-left']));
+            chart = deproxy(await createChart(placementChart(undefined, ['inside-left'])));
             const unpaddedWidth = chart.seriesRect!.width;
             chart.destroy();
 
-            chart = await createChart(
-                placementChart({ text: 'PLACED', fontSize: 20, placement: ['inside-left', 'right'] }, ['inside-left'])
+            chart = deproxy(
+                await createChart(
+                    placementChart({ text: 'PLACED', fontSize: 20, placement: ['inside-left', 'right'] }, [
+                        'inside-left',
+                    ])
+                )
             );
 
             const box = placedLabelBox();
@@ -2042,11 +2100,13 @@ describe('CrossLine', () => {
         });
 
         it('keeps a label equally blocked at every placement at its first', async () => {
-            chart = await createChart(
-                placementChart({ text: 'PLACED', fontSize: 20, placement: ['inside-left', 'inside-right'] }, [
-                    'inside-left',
-                    'inside-right',
-                ])
+            chart = deproxy(
+                await createChart(
+                    placementChart({ text: 'PLACED', fontSize: 20, placement: ['inside-left', 'inside-right'] }, [
+                        'inside-left',
+                        'inside-right',
+                    ])
+                )
             );
 
             const box = placedLabelBox();
@@ -2067,20 +2127,22 @@ describe('CrossLine', () => {
                 placement: ['inside-left', 'inside-right'],
             });
             const y = options.axes!.y as AgNumberAxisOptions;
-            chart = await createChart({
-                ...options,
-                axes: {
-                    ...options.axes,
-                    y: {
-                        ...y,
-                        crossLines: [
-                            blocker('BLOCKER BLOCKER', 20, 'inside-left'),
-                            blocker('B', 8, 'inside-right'),
-                            ...y.crossLines!,
-                        ],
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    axes: {
+                        ...options.axes,
+                        y: {
+                            ...y,
+                            crossLines: [
+                                blocker('BLOCKER BLOCKER', 20, 'inside-left'),
+                                blocker('B', 8, 'inside-right'),
+                                ...y.crossLines!,
+                            ],
+                        },
                     },
-                },
-            });
+                })
+            );
 
             const box = placedLabelBox();
             const seriesRect = chart.seriesRect!;
@@ -2093,12 +2155,14 @@ describe('CrossLine', () => {
                 text: 'A cross line label far too long to fit beside the chart',
                 overflow: 'clip-text',
             } as const;
-            chart = await createChart(placementChart(undocumentedLabel({ ...label, placement: 'inside-left' })));
+            chart = deproxy(
+                await createChart(placementChart(undocumentedLabel({ ...label, placement: 'inside-left' })))
+            );
             const rendered = placedLabelBox()!;
             chart.destroy();
 
-            chart = await createChart(
-                placementChart(undocumentedLabel({ ...label, placement: ['right', 'inside-left'] }))
+            chart = deproxy(
+                await createChart(placementChart(undocumentedLabel({ ...label, placement: ['right', 'inside-left'] })))
             );
             const seriesRect = chart.seriesRect!;
             const crossLine = getCrossLinesPlugin(chart.axes.findById('y')!)!.getInstances().at(-1)!;
@@ -2113,7 +2177,7 @@ describe('CrossLine', () => {
             const options = placementChart({ text: 'PLACED', fontSize: 20, placement: ['inside-left', 'right'] }, [
                 'inside-left',
             ]);
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             const settled = { seriesRect: chart.seriesRect!.clone(), box: placedLabelBox() };
 
             await chart.publicApi!.update(prepareTestOptions({ ...options, title: { text: 'Again' } }));
@@ -2125,7 +2189,7 @@ describe('CrossLine', () => {
         });
 
         it('places an `end` label right of the series area in a left-to-right chart', async () => {
-            chart = await createChart(placementChart({ text: 'PLACED', placement: 'end' }));
+            chart = deproxy(await createChart(placementChart({ text: 'PLACED', placement: 'end' })));
 
             const box = placedLabelBox();
             expect(box).toBeDefined();
@@ -2133,7 +2197,9 @@ describe('CrossLine', () => {
         });
 
         it('places an `end` label left of the series area in a right-to-left chart', async () => {
-            chart = await createChart({ ...placementChart({ text: 'PLACED', placement: 'end' }), enableRtl: true });
+            chart = deproxy(
+                await createChart({ ...placementChart({ text: 'PLACED', placement: 'end' }), enableRtl: true })
+            );
 
             const box = placedLabelBox();
             expect(box).toBeDefined();
@@ -2142,17 +2208,19 @@ describe('CrossLine', () => {
 
         it('resolves a placement array supplied through a theme override', async () => {
             const options = placementChart({ text: 'PLACED', fontSize: 20 }, ['right']);
-            chart = await createChart({
-                ...options,
-                axes: { ...options.axes, x: { ...options.axes!.x, crossLines: [] } },
-                theme: {
-                    overrides: {
-                        common: {
-                            axes: { number: { crossLines: { label: { placement: ['right', 'inside-left'] } } } },
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    axes: { ...options.axes, x: { ...options.axes!.x, crossLines: [] } },
+                    theme: {
+                        overrides: {
+                            common: {
+                                axes: { number: { crossLines: { label: { placement: ['right', 'inside-left'] } } } },
+                            },
                         },
                     },
-                },
-            });
+                })
+            );
 
             const box = placedLabelBox();
             const seriesRect = chart.seriesRect!;
@@ -2163,10 +2231,12 @@ describe('CrossLine', () => {
 
         it('places a label by the physical side whichever way the axis runs', async () => {
             const options = placementChart({ text: 'PLACED', placement: 'right' });
-            chart = await createChart({
-                ...options,
-                axes: { ...options.axes, x: { ...options.axes!.x, reverse: true } },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    axes: { ...options.axes, x: { ...options.axes!.x, reverse: true } },
+                })
+            );
 
             const box = placedLabelBox();
             expect(box).toBeDefined();
@@ -2174,28 +2244,30 @@ describe('CrossLine', () => {
         });
 
         it('keeps the fallback placement across layouts when the first overflows the chart', async () => {
-            chart = await createChart({
-                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: {
-                        type: 'number',
-                        position: 'bottom',
-                        crossLines: [
-                            {
-                                type: 'line',
-                                value: 0,
-                                label: {
-                                    text: 'A LONG CROSS LINE LABEL',
-                                    fontSize: 20,
-                                    placement: ['top', 'right-top'],
+            chart = deproxy(
+                await createChart({
+                    data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: {
+                            type: 'number',
+                            position: 'bottom',
+                            crossLines: [
+                                {
+                                    type: 'line',
+                                    value: 0,
+                                    label: {
+                                        text: 'A LONG CROSS LINE LABEL',
+                                        fontSize: 20,
+                                        placement: ['top', 'right-top'],
+                                    },
                                 },
-                            },
-                        ],
+                            ],
+                        },
+                        y: { type: 'number', position: 'left' },
                     },
-                    y: { type: 'number', position: 'left' },
-                },
-            });
+                })
+            );
             const labelBox = () => getCrossLinesPlugin(chart.axes.findById('x')!)!.getInstances()[0].getLabelBox?.();
             const settled = labelBox();
             expect(settled).toBeDefined();
@@ -2236,7 +2308,7 @@ describe('CrossLine', () => {
         });
 
         it('ignores a placement that does not apply to the axis, with a warning', async () => {
-            chart = await createChart(placementChart({ text: 'PLACED', placement: ['left-top', 'right'] }));
+            chart = deproxy(await createChart(placementChart({ text: 'PLACED', placement: ['left-top', 'right'] })));
 
             const box = placedLabelBox();
             expect(box!.x).toBeGreaterThanOrEqual(chart.seriesRect!.x + chart.seriesRect!.width);
@@ -2250,7 +2322,7 @@ describe('CrossLine', () => {
         });
 
         it('aliases a deprecated line placement to its replacement, with a warning', async () => {
-            chart = await createChart(placementChart({ text: 'PLACED', placement: 'inside-top' }));
+            chart = deproxy(await createChart(placementChart({ text: 'PLACED', placement: 'inside-top' })));
 
             expectWarningMessages([
                 'AG Charts - Placement `inside-top` is deprecated on a line cross line on a y axis. Use `top` instead.',
@@ -2263,14 +2335,16 @@ describe('CrossLine', () => {
         ] as const)('keeps a %s-axis placement on the same side when the axis is reversed', async (axis, placement) => {
             const labelBox = async (reverse: boolean) => {
                 const crossLines = [{ type: 'line' as const, value: 5, label: { text: 'PLACED', placement } }];
-                chart = await createChart({
-                    data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: {
-                        x: { type: 'number', position: 'bottom', ...(axis === 'x' && { reverse, crossLines }) },
-                        y: { type: 'number', position: 'left', ...(axis === 'y' && { reverse, crossLines }) },
-                    },
-                });
+                chart = deproxy(
+                    await createChart({
+                        data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        axes: {
+                            x: { type: 'number', position: 'bottom', ...(axis === 'x' && { reverse, crossLines }) },
+                            y: { type: 'number', position: 'left', ...(axis === 'y' && { reverse, crossLines }) },
+                        },
+                    })
+                );
                 const box = getCrossLinesPlugin(chart.axes.findById(axis)!)!.getInstances()[0].getLabelBox?.();
                 chart.destroy();
                 return box;
@@ -2334,7 +2408,7 @@ describe('CrossLine', () => {
                 };
             };
 
-            chart = await createChart(build(false));
+            chart = deproxy(await createChart(build(false)));
             const off = clearOfCrossLine();
             await chart.publicApi!.update(build(true));
             await waitForChartStability(chart);
@@ -2370,7 +2444,7 @@ describe('CrossLine', () => {
                 };
             };
 
-            chart = await createChart(build(false));
+            chart = deproxy(await createChart(build(false)));
             const off = geometry();
             await chart.publicApi!.update(build(true));
             await waitForChartStability(chart);
@@ -2387,7 +2461,7 @@ describe('CrossLine', () => {
         });
 
         it('reserves nothing while the cross line is hidden by an overflowing layout', async () => {
-            chart = await createChart(reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, true));
+            chart = deproxy(await createChart(reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, true)));
 
             const axis = chart.axes.findById('y')!;
             const plugin = getCrossLinesPlugin(axis)!;
@@ -2470,12 +2544,12 @@ describe('CrossLine', () => {
         }
 
         it('renders series labels clear of every cross line label that reserves its space', async () => {
-            chart = await createChart(packedReservationChart(true));
+            chart = deproxy(await createChart(packedReservationChart(true)));
             await compare();
         });
 
         it('renders series labels over cross line labels that reserve nothing', async () => {
-            chart = await createChart(packedReservationChart(false));
+            chart = deproxy(await createChart(packedReservationChart(false)));
             await compare();
         });
     });
@@ -2501,25 +2575,27 @@ describe('CrossLine', () => {
             const withCrossLines = { crossLines: [ruler, ...crossLines] };
 
             crossLineClick = vi.fn();
-            chart = await createChart({
-                data: [
-                    { date: X_MIN, value: 2 },
-                    { date: new Date(Date.UTC(2024, 5, 1)), value: Y_MAX },
-                    { date: X_MAX, value: Y_MIN },
-                ],
-                series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
-                listeners: { crossLineClick },
-                axes: {
-                    x: { position: 'bottom', type: 'time', nice: false, ...(direction === 'x' && withCrossLines) },
-                    y: {
-                        position: 'left',
-                        type: 'number',
-                        min: Y_MIN,
-                        max: Y_MAX,
-                        ...(direction === 'y' && withCrossLines),
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { date: X_MIN, value: 2 },
+                        { date: new Date(Date.UTC(2024, 5, 1)), value: Y_MAX },
+                        { date: X_MAX, value: Y_MIN },
+                    ],
+                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                    listeners: { crossLineClick },
+                    axes: {
+                        x: { position: 'bottom', type: 'time', nice: false, ...(direction === 'x' && withCrossLines) },
+                        y: {
+                            position: 'left',
+                            type: 'number',
+                            min: Y_MIN,
+                            max: Y_MAX,
+                            ...(direction === 'y' && withCrossLines),
+                        },
                     },
-                },
-            });
+                })
+            );
         };
 
         /** Canvas points on the axis's min and max, read off the ruler rather than a cross line under test. */
@@ -2653,48 +2729,62 @@ describe('CrossLine theme colour references', () => {
     });
 
     it('resolves a plain param reference on a range fill', async () => {
-        chart = await createChart(chartOptions([{ type: 'range', range: [1, 3], fill: { ref: 'foregroundColor' } }]));
+        chart = deproxy(
+            await createChart(chartOptions([{ type: 'range', range: [1, 3], fill: { ref: 'foregroundColor' } }]))
+        );
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
     });
 
     it('resolves a reference blended onto another param', async () => {
-        chart = await createChart(
-            chartOptions([
-                { type: 'range', range: [1, 3], fill: { ref: 'foregroundColor', mix: 0.2, onto: 'backgroundColor' } },
-            ])
+        chart = deproxy(
+            await createChart(
+                chartOptions([
+                    {
+                        type: 'range',
+                        range: [1, 3],
+                        fill: { ref: 'foregroundColor', mix: 0.2, onto: 'backgroundColor' },
+                    },
+                ])
+            )
         );
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#33cc00']);
     });
 
     it('resolves a reference blended onto a literal colour', async () => {
-        chart = await createChart(
-            chartOptions([
-                { type: 'range', range: [1, 3], fill: { ref: 'foregroundColor', mix: 0.25, ontoColor: '#00ff00' } },
-            ])
+        chart = deproxy(
+            await createChart(
+                chartOptions([
+                    { type: 'range', range: [1, 3], fill: { ref: 'foregroundColor', mix: 0.25, ontoColor: '#00ff00' } },
+                ])
+            )
         );
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#40bf00']);
     });
 
     it('resolves references on the stroke of both cross line variants', async () => {
-        chart = await createChart(
-            chartOptions([
-                { type: 'range', range: [1, 3], stroke: { ref: 'backgroundColor' } },
-                { type: 'line', value: 2, stroke: { ref: 'foregroundColor', mix: 0.5 } },
-            ])
+        chart = deproxy(
+            await createChart(
+                chartOptions([
+                    { type: 'range', range: [1, 3], stroke: { ref: 'backgroundColor' } },
+                    { type: 'line', value: 2, stroke: { ref: 'foregroundColor', mix: 0.5 } },
+                ])
+            )
         );
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.stroke)).toEqual(['#00ff00', 'rgba(255, 0, 0, 0.5)']);
     });
 
     it('resolves a reference supplied through a theme override', async () => {
-        chart = await createChart(
-            chartOptions([{ type: 'range', range: [1, 3] }], {
-                params: PARAMS,
-                overrides: { common: { axes: { number: { crossLines: { fill: { ref: 'foregroundColor' } } } } } },
-            })
+        chart = deproxy(
+            await createChart(
+                chartOptions([{ type: 'range', range: [1, 3] }], {
+                    params: PARAMS,
+                    overrides: { common: { axes: { number: { crossLines: { fill: { ref: 'foregroundColor' } } } } } },
+                })
+            )
         );
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
@@ -2704,7 +2794,7 @@ describe('CrossLine theme colour references', () => {
         const crossLines: AgCartesianCrossLineOptions[] = [
             { type: 'range', range: [1, 3], fill: { ref: 'foregroundColor' } },
         ];
-        chart = await createChart(chartOptions(crossLines));
+        chart = deproxy(await createChart(chartOptions(crossLines)));
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
 
@@ -2717,14 +2807,16 @@ describe('CrossLine theme colour references', () => {
     });
 
     it('ignores malformed reference members and still resolves the reference', async () => {
-        chart = await createChart(
-            chartOptions([
-                {
-                    type: 'range',
-                    range: [1, 3],
-                    fill: { ref: 'foregroundColor', mix: 'backgroundColor', ratio: 0.2 },
-                } as unknown as AgCartesianCrossLineOptions,
-            ])
+        chart = deproxy(
+            await createChart(
+                chartOptions([
+                    {
+                        type: 'range',
+                        range: [1, 3],
+                        fill: { ref: 'foregroundColor', mix: 'backgroundColor', ratio: 0.2 },
+                    } as unknown as AgCartesianCrossLineOptions,
+                ])
+            )
         );
 
         expectWarningMessages([
@@ -2747,18 +2839,20 @@ describe('CrossLine theme overrides', () => {
     });
 
     it('styles only the axes that have cross lines', async () => {
-        chart = await createChart({
-            data: [
-                { x: 1, y: 1 },
-                { x: 2, y: 2 },
-            ],
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            axes: {
-                x: { type: 'number', position: 'bottom' },
-                y: { type: 'number', position: 'left', crossLines: [{ type: 'line', value: 1 }] },
-            },
-            theme: { overrides: { common: { axes: { number: { crossLines: { label: { color: 'red' } } } } } } },
-        });
+        chart = deproxy(
+            await createChart({
+                data: [
+                    { x: 1, y: 1 },
+                    { x: 2, y: 2 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', crossLines: [{ type: 'line', value: 1 }] },
+                },
+                theme: { overrides: { common: { axes: { number: { crossLines: { label: { color: 'red' } } } } } } },
+            })
+        );
 
         expect(crossLineInstancesOf(chart, 'x')).toHaveLength(0);
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.label.color)).toEqual(['red']);
@@ -2787,13 +2881,15 @@ describe('CrossLine theme overrides', () => {
     ];
 
     it('styles each cross line by its type ahead of the shared options', async () => {
-        chart = await createChart(
-            typedChart(LINE_AND_RANGE, {
-                stroke: 'red',
-                strokeWidth: 3,
-                line: { stroke: 'blue' },
-                range: { stroke: 'green', fill: 'yellow' },
-            })
+        chart = deproxy(
+            await createChart(
+                typedChart(LINE_AND_RANGE, {
+                    stroke: 'red',
+                    strokeWidth: 3,
+                    line: { stroke: 'blue' },
+                    range: { stroke: 'green', fill: 'yellow' },
+                })
+            )
         );
 
         const instances = crossLineInstancesOf(chart, 'y');
@@ -2803,22 +2899,29 @@ describe('CrossLine theme overrides', () => {
     });
 
     it('lets the options of a cross line beat its type', async () => {
-        chart = await createChart(
-            typedChart([{ type: 'range', range: [1, 3], stroke: 'black' }], { range: { stroke: 'green' } })
+        chart = deproxy(
+            await createChart(
+                typedChart([{ type: 'range', range: [1, 3], stroke: 'black' }], { range: { stroke: 'green' } })
+            )
         );
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.stroke)).toEqual(['black']);
     });
 
     it('styles by type from the series-type namespace', async () => {
-        chart = await createChart(typedChart(LINE_AND_RANGE, { line: { strokeWidth: 5 } }, 'line'));
+        chart = deproxy(await createChart(typedChart(LINE_AND_RANGE, { line: { strokeWidth: 5 } }, 'line')));
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.strokeWidth)).toEqual([5, 1]);
     });
 
     it('merges the label options of a type with the shared label options', async () => {
-        chart = await createChart(
-            typedChart(LINE_AND_RANGE, { label: { fontSize: 20, color: 'red' }, range: { label: { color: 'blue' } } })
+        chart = deproxy(
+            await createChart(
+                typedChart(LINE_AND_RANGE, {
+                    label: { fontSize: 20, color: 'red' },
+                    range: { label: { color: 'blue' } },
+                })
+            )
         );
 
         const labels = crossLineInstancesOf(chart, 'y').map((c) => c.label);
@@ -2827,15 +2930,17 @@ describe('CrossLine theme overrides', () => {
     });
 
     it('lets a type in either namespace beat the shared options of both', async () => {
-        chart = await createChart({
-            ...typedChart(LINE_AND_RANGE, {}),
-            theme: {
-                overrides: {
-                    common: { axes: { number: { crossLines: { line: { stroke: 'blue' } } } } },
-                    line: { axes: { number: { crossLines: { stroke: 'red', range: { stroke: 'green' } } } } },
+        chart = deproxy(
+            await createChart({
+                ...typedChart(LINE_AND_RANGE, {}),
+                theme: {
+                    overrides: {
+                        common: { axes: { number: { crossLines: { line: { stroke: 'blue' } } } } },
+                        line: { axes: { number: { crossLines: { stroke: 'red', range: { stroke: 'green' } } } } },
+                    },
                 },
-            },
-        });
+            })
+        );
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.stroke)).toEqual(['blue', 'green']);
     });
@@ -2847,7 +2952,7 @@ describe('CrossLine theme overrides', () => {
     });
 
     it('rejects a fill on line cross lines', async () => {
-        chart = await createChart(typedChart(LINE_AND_RANGE, { line: { fill: 'red' } }));
+        chart = deproxy(await createChart(typedChart(LINE_AND_RANGE, { line: { fill: 'red' } })));
 
         expectWarningMessages([
             'AG Charts - Unknown option `theme.overrides.common.axes.number.crossLines.line.fill`; Did you mean `stroke`? Ignoring.',
@@ -2860,7 +2965,7 @@ describe('CrossLine theme overrides', () => {
         ['the shared options of the series type', { label: { maxWidth: 40 } }, 'line'],
         ['the options of a type', { line: { label: { maxWidth: 40 } }, range: { label: { maxWidth: 40 } } }, 'common'],
     ] as const)('fits a label bounded through %s', async (_, overrides, namespace) => {
-        chart = await createChart(typedChart(LINE_AND_RANGE, overrides, namespace));
+        chart = deproxy(await createChart(typedChart(LINE_AND_RANGE, overrides, namespace)));
 
         const labels = crossLineInstancesOf(chart, 'y').map((c) => c.label);
         expect(labels.map((l) => [l.maxWidth, l.wrapping, l.truncate])).toEqual([
@@ -2925,7 +3030,7 @@ describe('CrossLine label fitting', () => {
         ['nothing', {}],
         ['an array placement', { placement: ['left', 'right'] }],
     ])('renders the label whole with %s set', async (_, label) => {
-        chart = await createChart(fitChart(lineWith(label)));
+        chart = deproxy(await createChart(fitChart(lineWith(label))));
 
         const rendered = renderedLabel();
         expect(rendered.text).toBe(LONG_TEXT);
@@ -2936,7 +3041,7 @@ describe('CrossLine label fitting', () => {
         ['line', 'y', lineWith({ maxWidth: 80 })],
         ['range', 'x', { type: 'range', range: [2, 4], label: { text: LONG_TEXT, maxWidth: 80 } }],
     ])('wraps a %s label within maxWidth', async (_, axisId, crossLine) => {
-        chart = await createChart(fitChart(crossLine, axisId));
+        chart = deproxy(await createChart(fitChart(crossLine, axisId)));
 
         const rendered = renderedLabel(axisId);
         expect(rendered.text.split('\n').length).toBeGreaterThan(1);
@@ -2947,7 +3052,7 @@ describe('CrossLine label fitting', () => {
     it.each(['always', 'hyphenate', 'on-space', 'never'] as const)(
         'keeps a label wrapped %s within maxWidth',
         async (wrapping) => {
-            chart = await createChart(fitChart(lineWith({ maxWidth: 80, wrapping })));
+            chart = deproxy(await createChart(fitChart(lineWith({ maxWidth: 80, wrapping }))));
 
             const rendered = renderedLabel();
             expect(rendered.width).toBeLessThanOrEqual(80);
@@ -2959,7 +3064,7 @@ describe('CrossLine label fitting', () => {
         ['maxWidth', { maxWidth: 80, wrapping: 'never' }],
         ['maxHeight', { maxWidth: 80, maxHeight: 20 }],
     ])('ellipsises a label bounded by %s', async (_, label) => {
-        chart = await createChart(fitChart(lineWith({ ...label, truncate: true })));
+        chart = deproxy(await createChart(fitChart(lineWith({ ...label, truncate: true }))));
 
         const rendered = renderedLabel();
         expect(rendered.text.endsWith('…')).toBe(true);
@@ -2968,7 +3073,7 @@ describe('CrossLine label fitting', () => {
     });
 
     it('lets a label that does not fit overflow when truncate is disabled', async () => {
-        chart = await createChart(fitChart(lineWith({ maxWidth: 80, wrapping: 'never', truncate: false })));
+        chart = deproxy(await createChart(fitChart(lineWith({ maxWidth: 80, wrapping: 'never', truncate: false }))));
 
         const rendered = renderedLabel();
         expect(rendered.text).toBe(LONG_TEXT);
@@ -2978,25 +3083,25 @@ describe('CrossLine label fitting', () => {
     it('shrinks a label towards minimumFontSize before truncating it', async () => {
         const text = 'Target value';
         const label = { text, fontSize: 20, wrapping: 'never', minimumFontSize: 8 } as const;
-        chart = await createChart(fitChart(lineWith({ ...label, maxWidth: 1e3 })));
+        chart = deproxy(await createChart(fitChart(lineWith({ ...label, maxWidth: 1e3 }))));
         const fullWidth = renderedLabel().width;
         chart.destroy();
 
-        chart = await createChart(fitChart(lineWith({ ...label, maxWidth: fullWidth * 0.75 })));
+        chart = deproxy(await createChart(fitChart(lineWith({ ...label, maxWidth: fullWidth * 0.75 }))));
         const shrunk = renderedLabel();
         expect(shrunk.text).toBe(text);
         expect(shrunk.fontSize).toBeLessThan(20);
         expect(shrunk.fontSize).toBeGreaterThanOrEqual(8);
         chart.destroy();
 
-        chart = await createChart(fitChart(lineWith({ ...label, maxWidth: fullWidth * 0.2 })));
+        chart = deproxy(await createChart(fitChart(lineWith({ ...label, maxWidth: fullWidth * 0.2 }))));
         const truncated = renderedLabel();
         expect(truncated.fontSize).toBe(8);
         expect(truncated.text.endsWith('…')).toBe(true);
     });
 
     it('bounds the label before rotating it', async () => {
-        chart = await createChart(fitChart(lineWith({ maxWidth: 80, rotation: 90, padding: 0 }), 'x'));
+        chart = deproxy(await createChart(fitChart(lineWith({ maxWidth: 80, rotation: 90, padding: 0 }), 'x')));
 
         const rendered = renderedLabel('x');
         expect(rendered.text.includes('\n')).toBe(true);
@@ -3006,11 +3111,11 @@ describe('CrossLine label fitting', () => {
     it('pads the chart for the fitted label', async () => {
         const options = (label: AgCartesianCrossLineLabelOptions) =>
             fitChart(lineWith({ placement: 'left', ...label }));
-        chart = await createChart(options({}));
+        chart = deproxy(await createChart(options({})));
         const unfittedWidth = chart.seriesRect!.width;
         chart.destroy();
 
-        chart = await createChart(options({ maxWidth: 80 }));
+        chart = deproxy(await createChart(options({ maxWidth: 80 })));
 
         const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
         renderedLabel().crossLine.calculatePadding!(into);
@@ -3019,7 +3124,7 @@ describe('CrossLine label fitting', () => {
     });
 
     it('neither pads the chart nor collides for a label erased by a maxHeight below one line', async () => {
-        chart = await createChart(fitChart(lineWith({ placement: 'left', maxHeight: 4 })));
+        chart = deproxy(await createChart(fitChart(lineWith({ placement: 'left', maxHeight: 4 }))));
 
         const rendered = renderedLabel();
         const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
@@ -3030,7 +3135,7 @@ describe('CrossLine label fitting', () => {
     });
 
     it('refits the label once a web font loads', async () => {
-        chart = await createChart(fitChart(lineWith({ maxWidth: 80 })));
+        chart = deproxy(await createChart(fitChart(lineWith({ maxWidth: 80 }))));
         const { crossLine } = renderedLabel();
         const fittedBeforeLoad = (crossLine as any).fitted;
 
@@ -3049,7 +3154,7 @@ describe('CrossLine label fitting', () => {
             maxWidth: 2000,
             wrapping: 'always',
         });
-        chart = await createChart({ ...fitChart(lineWith(label)), width: 300, height: 300 });
+        chart = deproxy(await createChart({ ...fitChart(lineWith(label)), width: 300, height: 300 }));
 
         const rendered = renderedLabel();
         expect(rendered.text.split('…')).toHaveLength(2);
@@ -3065,7 +3170,7 @@ describe('CrossLine label fitting', () => {
             maxWidth: 30,
             wrapping: 'always',
         });
-        chart = await createChart({ ...fitChart(lineWith(label), 'x'), width: 300, height: 120 });
+        chart = deproxy(await createChart({ ...fitChart(lineWith(label), 'x'), width: 300, height: 120 }));
 
         const rendered = renderedLabel('x');
         expect(rendered.text.includes('\n')).toBe(false);
@@ -3089,7 +3194,7 @@ describe('CrossLine label fitting', () => {
             return footprint.y >= band.y;
         };
 
-        chart = await createChart(options(6));
+        chart = deproxy(await createChart(options(6)));
         const zoomedIn = renderedLabel('x').text;
         expect(labelInsideBand()).toBe(true);
 
@@ -3110,22 +3215,24 @@ describe('CrossLine label fitting', () => {
                 return i + 1;
             };
             const value = xValue(2);
-            chart = await createChart(
-                prepareTestOptions({
-                    data: Array.from({ length: 5 }, (_, i) => ({ x: xValue(i), y: i })),
-                    series: [{ type: axisType === 'log' ? 'line' : 'bar', xKey: 'x', yKey: 'y' } as any],
-                    axes: {
-                        x: { type: axisType, position: 'bottom', crossLines: [{ type: 'line', value }] } as any,
-                        y: { type: 'number', position: 'left' },
-                    },
-                    theme: {
-                        overrides: {
-                            common: {
-                                axes: { [axisType]: { crossLines: { label: { text: LONG_TEXT, maxWidth: 40 } } } },
+            chart = deproxy(
+                await createChart(
+                    prepareTestOptions({
+                        data: Array.from({ length: 5 }, (_, i) => ({ x: xValue(i), y: i })),
+                        series: [{ type: axisType === 'log' ? 'line' : 'bar', xKey: 'x', yKey: 'y' } as any],
+                        axes: {
+                            x: { type: axisType, position: 'bottom', crossLines: [{ type: 'line', value }] } as any,
+                            y: { type: 'number', position: 'left' },
+                        },
+                        theme: {
+                            overrides: {
+                                common: {
+                                    axes: { [axisType]: { crossLines: { label: { text: LONG_TEXT, maxWidth: 40 } } } },
+                                },
                             },
                         },
-                    },
-                })
+                    })
+                )
             );
 
             const rendered = renderedLabel('x');
@@ -3144,7 +3251,7 @@ describe('CrossLine label fitting', () => {
             { overrides: { line: { axes: { number: { crossLines: { line: { label: { maxWidth: 40 } } } } } } } },
         ],
     ])('fits a label bounded through %s in the theme', async (_, theme) => {
-        chart = await createChart(fitChart(lineWith({}), 'y', { theme }));
+        chart = deproxy(await createChart(fitChart(lineWith({}), 'y', { theme })));
 
         const rendered = renderedLabel();
         expect(rendered.text.includes('\n')).toBe(true);
@@ -3156,20 +3263,22 @@ describe('CrossLine label fitting', () => {
             'AG Charts - Option `axes.y.crossLines[0][type=line].label.minimumFontSize` cannot be set to `14`; expecting a number greater than 0 and the value to be less than or equal to `fontSize`, ignoring.';
 
         it('warns when minimumFontSize exceeds the label fontSize', async () => {
-            chart = await createChart(fitChart(lineWith({ fontSize: 10, minimumFontSize: 14, maxWidth: 80 })));
+            chart = deproxy(await createChart(fitChart(lineWith({ fontSize: 10, minimumFontSize: 14, maxWidth: 80 }))));
 
             expectWarningMessages([MINIMUM_FONT_SIZE_WARNING]);
         });
 
         it('warns when minimumFontSize exceeds the themed fontSize', async () => {
-            chart = await createChart(fitChart(lineWith({ minimumFontSize: 14, maxWidth: 80 })));
+            chart = deproxy(await createChart(fitChart(lineWith({ minimumFontSize: 14, maxWidth: 80 }))));
 
             expectWarningMessages([MINIMUM_FONT_SIZE_WARNING]);
         });
 
         it('accepts a minimumFontSize below a themed fontSize', async () => {
             const theme = { overrides: { common: { axes: { number: { crossLines: { label: { fontSize: 30 } } } } } } };
-            chart = await createChart(fitChart(lineWith({ minimumFontSize: 20, maxWidth: 80 }), 'y', { theme }));
+            chart = deproxy(
+                await createChart(fitChart(lineWith({ minimumFontSize: 20, maxWidth: 80 }), 'y', { theme }))
+            );
 
             expect(renderedLabel().fontSize).toBeLessThanOrEqual(30);
         });
@@ -3178,7 +3287,9 @@ describe('CrossLine label fitting', () => {
             const theme = {
                 overrides: { common: { axes: { number: { crossLines: { line: { label: { fontSize: 30 } } } } } } },
             };
-            chart = await createChart(fitChart(lineWith({ minimumFontSize: 20, maxWidth: 80 }), 'y', { theme }));
+            chart = deproxy(
+                await createChart(fitChart(lineWith({ minimumFontSize: 20, maxWidth: 80 }), 'y', { theme }))
+            );
 
             expect(renderedLabel().fontSize).toBeLessThanOrEqual(30);
         });
@@ -3201,8 +3312,10 @@ describe('CrossLine label fitting', () => {
                 label: { text: LONG_TEXT, fontSize: 16, maxWidth: 120, maxHeight: 24, minimumFontSize: 9 },
             },
         ];
-        chart = await createChart(
-            fitChart(xCrossLines[0], 'x', { x: { crossLines: xCrossLines }, y: { crossLines: yCrossLines } })
+        chart = deproxy(
+            await createChart(
+                fitChart(xCrossLines[0], 'x', { x: { crossLines: xCrossLines }, y: { crossLines: yCrossLines } })
+            )
         );
 
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
