@@ -60,7 +60,8 @@ const anchors = currentPage ? getNestedAnchors(currentPage) : [];
 
 {/*
     Server-rendered reference content for crawlers that don't execute JavaScript, replaced once the
-    <ApiReferencePage> island hydrates. Deliberately flat, to keep the served HTML small.
+    <ApiReferencePage> island hydrates. Lists only the members the navigation links to beneath the top
+    level, to keep the served HTML small.
 */}
 <div class:list={['api-reference-fallback', 'layout-grid', styles.fallback]}>
     {/*
