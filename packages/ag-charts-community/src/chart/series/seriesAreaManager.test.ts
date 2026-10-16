@@ -268,7 +268,7 @@ describe('focusIndex', () => {
     it('applies a focusIndex change from updateDelta', async () => {
         chart = deproxy(await createChart(focusIndexOptions([undefined, undefined, undefined, undefined])));
 
-        await chart.publicApi!.updateDelta({ series: focusIndexSeries([undefined, undefined, undefined, 0]) });
+        await chart.updateDelta({ series: focusIndexSeries([undefined, undefined, undefined, 0]) });
         await waitForChartStability(chart);
 
         expect(await readFocusOrder()).toEqual(['Delta', 'Alpha', 'Bravo', 'Charlie']);

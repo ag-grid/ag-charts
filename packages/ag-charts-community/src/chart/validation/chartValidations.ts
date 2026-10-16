@@ -147,17 +147,23 @@ export class ChartValidations {
     }
 
     /**
-     * Replaces the collection with what a re-validating pass raised. `handledBy` is the instance the pass
-     * reported through; what it or this instance already told the same listener is not told again.
+     * Replaces the collection with what a re-validating pass raised, keeping what the data pass raised, which
+     * only a later data pass can retire. `handledBy` is the instance the pass reported through; what it or this
+     * instance already told the same listener is not told again.
      */
     beginCycle(issues: readonly LogIssue[], handledBy: ChartValidations = this) {
         const previous = new Set(this.collection.keys());
         if (handledBy !== this && handledBy.listener === this.listener) {
             for (const key of handledBy.told) this.told.add(key);
         }
+        const fromDataPass = [...this.collection].filter(([key]) => this.passOf.get(key) === 'data');
         this.collection.clear();
         this.passOf.clear();
         this.raisedInPass.clear();
+        for (const [key, issue] of fromDataPass) {
+            this.collection.set(key, issue);
+            this.passOf.set(key, 'data');
+        }
         const fresh: LogIssue[] = [];
         for (const issue of issues) {
             const key = keyOf(issue);

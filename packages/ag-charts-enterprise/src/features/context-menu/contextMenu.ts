@@ -22,7 +22,7 @@ import type {
     DatumDefault,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { CallbackParamRules, DynamicContext, WidgetEvent } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext, NormalisedContextMenuOptions, WidgetEvent } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     MenuItemWidget,
@@ -91,8 +91,13 @@ type GetItemsOpts = {
 type GetItemsParams = [AgContextMenuGetItemsParams, Caller[]];
 
 export class ContextMenu extends AbstractModuleInstance {
-    private get opts() {
-        return this.ctx.chartState.getValue('options', 'contextMenu') ?? {};
+    private get opts(): NormalisedContextMenuOptions {
+        return (
+            this.ctx.chartState.getValue('options', 'contextMenu') ?? {
+                enabled: false,
+                allowBrowserMenuWithModifierKey: false,
+            }
+        );
     }
 
     // Module context
