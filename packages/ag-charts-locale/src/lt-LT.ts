@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_LT_LT: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'Apyv. ${value}',
+    statusBarVolumeProfilePrice: 'Kaina',
+    statusBarVolumeProfileUp: 'Aukštyn',
+    statusBarVolumeProfileDown: 'Žemyn',
+    statusBarVolumeProfileTotal: 'Iš viso',
     tooltipPaginationStatus: '${index}[number] iš ${count}[number]',
 };

@@ -322,16 +322,18 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
     }
 
     if (typeof options?.theme === 'object') {
-        // fontFamily must stay pinned to the bundled test font even in dark mode: the default stack
-        // is unregistered and resolves per-platform, breaking snapshots.
+        // fontFamily must stay pinned to the bundled test font whatever params a test supplies: the
+        // default stack is unregistered and resolves per-platform, breaking snapshots.
+        const fontFamily = baseTestTheme.params!.fontFamily;
+        let params = options.theme.params ? { fontFamily, ...options.theme.params } : baseTestTheme.params;
+        if (baseThemeString === 'ag-default-dark') {
+            params = { fontFamily };
+        }
         baseTestTheme = {
             ...options.theme,
             baseTheme: options.theme.baseTheme ?? baseTestTheme.baseTheme,
             palette: options.theme.palette ?? baseTestTheme.palette,
-            params:
-                baseThemeString === 'ag-default-dark'
-                    ? { fontFamily: baseTestTheme.params!.fontFamily }
-                    : (options.theme.params ?? baseTestTheme.params),
+            params,
         };
     } else if (typeof options?.theme === 'string') {
         // Override colours.
@@ -1173,6 +1175,15 @@ export async function tabIntoChart(chart: ChartOrProxy) {
     await waitForChartStability(chart);
 }
 
+// The swap-chain's visible announcer is labelled by the text read out for the focused datum.
+export function getSwapChainText() {
+    const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[aria-hidden="false"]');
+    expect(announcer).not.toBeNull();
+    const label = document.getElementById(announcer!.getAttribute('aria-labelledby') ?? '');
+    expect(label).not.toBeNull();
+    return label!.textContent;
+}
+
 // The series-area widget handles keyboard navigation.
 export async function pressKey(chart: ChartOrProxy, key: string) {
     const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
@@ -1181,9 +1192,13 @@ export async function pressKey(chart: ChartOrProxy, key: string) {
     await waitForChartStability(chart);
 }
 
-export async function createChart(options: AgChartOptions<any, any>) {
+/**
+ * The canonical chart factory for tests. Returns the public `AgChartInstance`; wrap the result in `deproxy()` where a
+ * test needs chart internals, so that the internal access is visible at the call site.
+ */
+export async function createChart(options: AgChartOptions<any, any>): Promise<AgChartInstance> {
     options = prepareTestOptions({ ...options });
-    const chart = deproxy(AgCharts.create(options) as AgChartProxy);
+    const chart = AgCharts.create(options);
     await waitForChartStability(chart);
     return chart;
 }
@@ -2265,4 +2280,15 @@ export function captureUncaught(
             window.removeEventListener('error', onError);
         },
     };
+}
+
+/**
+ * Anti-vacuity check for a financial series: three subpaths over a real pixel height means the datum is drawn at
+ * full size, not parked collapsed at a baseline waiting to grow.
+ */
+export function expectDrawnAtFullRange(sample: SceneGeometrySample, key: string) {
+    const node = sample.get(key);
+    expect(node, key).toBeDefined();
+    expect(node!.subpaths, `${key} subpaths`).toBe(3);
+    expect(node!.height, `${key} height`).toBeGreaterThan(20);
 }

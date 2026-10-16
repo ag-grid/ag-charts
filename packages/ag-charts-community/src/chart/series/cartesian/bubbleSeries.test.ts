@@ -1481,9 +1481,7 @@ describe('BubbleSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             } as AgCartesianChartOptions;
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
         };
 
         it('clamps out-of-domain values to [minSize, maxSize] (AC3, AC4)', async () => {
@@ -1636,9 +1634,7 @@ describe('BubbleSeries', () => {
                 },
                 ...extra,
             } as AgCartesianChartOptions;
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
         };
 
         const areaOf = (size: number) => size * size;
@@ -1892,9 +1888,7 @@ describe('BubbleSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             } as AgCartesianChartOptions;
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
         };
 
         // `''` is a property key like any other — `({ '': 2 })['']` is 2 — so an empty key names a

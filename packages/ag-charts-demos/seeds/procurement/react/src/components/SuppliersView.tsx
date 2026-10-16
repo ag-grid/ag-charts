@@ -1,13 +1,22 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { QualityCost, SupplierScorecard as Row, SlipDistribution, SupplierTrendPoint } from '../types';
-import { ToggleGroup } from '../ui';
+import type {
+    MaterialQualityCost,
+    QualityCost,
+    SupplierScorecard as Row,
+    SlipDistribution,
+    SupplierTrendPoint,
+} from '../types';
+import { Button, ToggleGroup } from '../ui';
 import { CostReliabilityScatter } from './CostReliabilityScatter';
 import { DeliverySlipHistograms } from './DeliverySlipHistograms';
 import { EmptyState } from './EmptyState';
 import { QualityCostChart } from './QualityCostChart';
 import { SupplierScorecard } from './SupplierScorecard';
 import { SupplierTrendChart, type TrendMetric } from './SupplierTrendChart';
+import { useClickAway } from './useClickAway';
+
+const NO_MATERIALS: MaterialQualityCost[] = [];
 
 /** Price leads: it is the metric the renewal conversation opens on. */
 const METRIC_OPTIONS: { value: TrendMetric; label: string }[] = [
@@ -21,9 +30,12 @@ interface SuppliersViewProps {
     supplierNames: Map<string, string>;
     supplierColors: Record<string, string>;
     selectedSupplierId?: string;
-    onSelectSupplier: (supplierId: string) => void;
+    /** Every chart and the scorecard share this one selected supplier. */
+    onSelectedSupplierChange: (supplierId: string | undefined) => void;
     slipDistributions: SlipDistribution[];
     qualityCost: QualityCost[];
+    /** Each supplier's rejected cost per material, for drilling into a quality cost bar. */
+    materialQualityCost: Map<string, MaterialQualityCost[]>;
     trend: Map<string, SupplierTrendPoint[]>;
 }
 
@@ -39,12 +51,42 @@ export function SuppliersView({
     supplierNames,
     supplierColors,
     selectedSupplierId,
-    onSelectSupplier,
+    onSelectedSupplierChange,
     slipDistributions,
     qualityCost,
+    materialQualityCost,
     trend,
 }: SuppliersViewProps) {
     const [metric, setMetric] = useState<TrendMetric>('price');
+    const [drilledSupplierId, setDrilledSupplierId] = useState<string>();
+    const drilledMaterials = useMemo(
+        () => (drilledSupplierId == null ? NO_MATERIALS : (materialQualityCost.get(drilledSupplierId) ?? NO_MATERIALS)),
+        [drilledSupplierId, materialQualityCost]
+    );
+
+    const onDrill = useCallback(
+        (supplierId: string) => {
+            setDrilledSupplierId(supplierId);
+            onSelectedSupplierChange(supplierId);
+        },
+        [onSelectedSupplierChange]
+    );
+
+    // A drill shows one supplier's materials, so selecting another supplier leaves it; clearing the selection does not.
+    useEffect(() => {
+        if (selectedSupplierId == null) return;
+        setDrilledSupplierId((drilled) => (drilled === selectedSupplierId ? drilled : undefined));
+    }, [selectedSupplierId]);
+
+    const clearSelectedSupplier = useCallback(() => onSelectedSupplierChange(undefined), [onSelectedSupplierChange]);
+    // Mounted only while this tab is shown, so a click elsewhere on the page clears only while it is in view.
+    useClickAway(selectedSupplierId != null, clearSelectedSupplier);
+
+    // A card has no empty space to click away on, so selecting the selected supplier again clears it.
+    const onToggleSupplier = useCallback(
+        (supplierId: string) => onSelectedSupplierChange(supplierId === selectedSupplierId ? undefined : supplierId),
+        [selectedSupplierId, onSelectedSupplierChange]
+    );
 
     return (
         <div className="pc-view-content pc-view-content--fill">
@@ -57,13 +99,13 @@ export function SuppliersView({
                     </div>
                     {/* Fills the card: a fixed box would leave dead space under it in a row that
                         takes the rest of the page. */}
-                    <div className="pc-chart-box--grow">
+                    <div className="pc-chart-box--grow" data-keeps-selection>
                         {rows.some((row) => row.orderCount > 0) ? (
                             <CostReliabilityScatter
                                 rows={rows}
                                 supplierColors={supplierColors}
                                 selectedSupplierId={selectedSupplierId}
-                                onSelect={onSelectSupplier}
+                                onSelectedSupplierChange={onSelectedSupplierChange}
                             />
                         ) : (
                             <EmptyState
@@ -85,7 +127,7 @@ export function SuppliersView({
                             rows={slipDistributions}
                             supplierColors={supplierColors}
                             selectedSupplierId={selectedSupplierId}
-                            onSelect={onSelectSupplier}
+                            onSelectedSupplierChange={onSelectedSupplierChange}
                         />
                     ) : (
                         <EmptyState
@@ -99,17 +141,28 @@ export function SuppliersView({
             <div className="pc-grid-2">
                 <section className="pc-card">
                     <div className="pc-card-head">
-                        <div>
+                        <div className="pc-card-title-inline">
                             <h2 className="pc-card-title">Cost of rejected material</h2>
+                            {drilledSupplierId != null && (
+                                <span className="pc-card-sub">from {supplierNames.get(drilledSupplierId)}</span>
+                            )}
                         </div>
+                        {drilledSupplierId != null && (
+                            <Button className="pc-btn-sm" onClick={() => setDrilledSupplierId(undefined)}>
+                                ← Back to all suppliers
+                            </Button>
+                        )}
                     </div>
-                    <div className="pc-chart-box">
-                        {qualityCost.length > 0 ? (
+                    <div className="pc-chart-box" data-keeps-selection>
+                        {qualityCost.length > 0 && (drilledSupplierId == null || drilledMaterials.length > 0) ? (
                             <QualityCostChart
                                 rows={qualityCost}
+                                drilledSupplierId={drilledSupplierId}
+                                materialRows={drilledMaterials}
                                 supplierColors={supplierColors}
                                 selectedSupplierId={selectedSupplierId}
-                                onSelect={onSelectSupplier}
+                                onSelectedSupplierChange={onSelectedSupplierChange}
+                                onDrill={onDrill}
                             />
                         ) : (
                             <EmptyState
@@ -133,13 +186,14 @@ export function SuppliersView({
                         />
                     </div>
                     {/* Sized by the scorecard beside it, which hugs its grid. */}
-                    <div className="pc-chart-box--match">
+                    <div className="pc-chart-box--match" data-keeps-selection>
                         <SupplierTrendChart
                             trend={trend}
                             supplierNames={supplierNames}
                             supplierColors={supplierColors}
                             metric={metric}
                             selectedSupplierId={selectedSupplierId}
+                            onSelectedSupplierChange={onSelectedSupplierChange}
                         />
                     </div>
                 </section>
@@ -155,7 +209,7 @@ export function SuppliersView({
                     rows={rows}
                     supplierColors={supplierColors}
                     selectedSupplierId={selectedSupplierId}
-                    onSelect={onSelectSupplier}
+                    onSelect={onToggleSupplier}
                 />
             </section>
         </div>

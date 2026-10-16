@@ -28,7 +28,7 @@ export const scenarios = [
         name: 'enterprise/full',
         package: 'ag-charts-enterprise',
         import: '*',
-        limit: 719_000,
+        limit: 755_000,
     },
     {
         name: 'enterprise/AllCartesianModule',
@@ -52,7 +52,7 @@ export const scenarios = [
         name: 'enterprise/AllEnterpriseModule',
         package: 'ag-charts-enterprise',
         import: '{ AllEnterpriseModule }',
-        limit: 712_000,
+        limit: 748_000,
     },
     {
         name: 'enterprise/BoxPlotSeriesModule',

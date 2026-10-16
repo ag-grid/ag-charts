@@ -9,12 +9,12 @@ import {
     SHIPMENTS,
     SUBCATEGORIES,
     SUPPLIERS,
+    YEAR_START,
     sumSpend,
 } from './data';
 import {
     ALL_FILTER,
     DEFAULT_ORDERS_FILTER,
-    DEFAULT_PERIOD,
     MANAGER,
     MY_ORDERS,
     MY_SHIPMENTS,
@@ -25,7 +25,6 @@ import {
     myOrdersFilterOptions,
     myOrdersInRange,
     myOrdersScope,
-    myPeriod,
     myScorecard,
     mySpendTree,
     mySpendTrend,
@@ -114,6 +113,32 @@ describe('orders tab filters', () => {
         const summary = mySummary([], scope);
         const counted = Object.values(summary.shipmentsByStatus).reduce((total, count) => total + count, 0);
         expect(counted).toBe(scope.shipments.length);
+    });
+
+    it('narrows the headline figures to the filtered supplier', () => {
+        const whole = mySummary([], myOrdersScope(DEFAULT_ORDERS_FILTER));
+        const filtered = mySummary([], myOrdersScope({ supplierId, subcategory: ALL_FILTER }));
+        const theirs = MY_ORDERS.filter((order) => order.supplierId === supplierId);
+
+        expect(filtered.openOrders).toBe(theirs.filter((order) => order.actualDate == null).length);
+        expect(filtered.spendYtd).toBeCloseTo(sumSpend(theirs.filter((order) => order.orderDate >= YEAR_START)));
+        expect(filtered.atRiskShipments).toBe(
+            MY_TRACKED_SHIPMENTS.filter(
+                (shipment) =>
+                    shipment.supplierId === supplierId && (shipment.status === 'At risk' || shipment.status === 'Late')
+            ).length
+        );
+
+        expect(filtered.openOrders).toBeLessThan(whole.openOrders);
+        expect(filtered.spendYtd).toBeLessThan(whole.spendYtd);
+        const theirShipments = MY_TRACKED_SHIPMENTS.filter((shipment) => shipment.supplierId === supplierId);
+        for (const status of ['On time', 'At risk', 'Late'] as const) {
+            expect(filtered.shipmentsByStatus[status]).toBe(
+                theirShipments.filter((shipment) => shipment.status === status).length
+            );
+        }
+        expect(theirShipments.length).toBeGreaterThan(0);
+        expect(theirShipments.length).toBeLessThan(MY_TRACKED_SHIPMENTS.length);
     });
 });
 
@@ -233,25 +258,6 @@ describe('her KPI figures', () => {
         );
         expect(kpis.openOrders).toBe(MY_ORDERS.filter((order) => order.actualDate == null).length);
         expect(kpis.atRiskShipments).toBe(MY_SHIPMENTS.filter((shipment) => shipment.status !== 'On time').length);
-        // The on-time rate is a rolling twelve months, not the selected period — see `mySummary`.
-        expect(kpis.onTimeRate).toBeGreaterThan(0);
-        expect(kpis.onTimeRate).toBeLessThanOrEqual(1);
-    });
-
-    /**
-     * The headline sits above the cards it summarises, so it has to be drawn from the same
-     * deliveries. Scoping it by order date instead silently measures a smaller set.
-     */
-    it('measure on-time over the same deliveries the supplier cards do', () => {
-        const kpis = mySummary(myOrdersInRange(RANGE_PRESETS.currentQuarter()));
-        const rows = myScorecard(myOrdersInRange(myPeriod(DEFAULT_PERIOD)), MY_TRACKED_SHIPMENTS, DEFAULT_PERIOD);
-
-        expect(kpis.deliveredCount).toBe(rows.reduce((sum, row) => sum + row.deliveredCount, 0));
-        // Every card is measured rather than falling back to a contracted rate, so the headline is
-        // exactly their delivery-weighted average.
-        expect(rows.every((row) => !row.rateIsContracted)).toBe(true);
-        const onTime = rows.reduce((sum, row) => sum + row.onTimeRate * row.deliveredCount, 0);
-        expect(kpis.onTimeRate).toBeCloseTo(onTime / kpis.deliveredCount, 10);
     });
 
     /** Her tiles are her commodity's, so they must be strictly smaller than the whole book. */

@@ -10,6 +10,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../test/utils';
 import ukTopology from './map-test/ukTopology.json';
@@ -17,6 +18,13 @@ import { usData } from './map-test/usData';
 import usTopology from './map-test/usTopology.json';
 
 const ELLIPSIS = '…';
+
+type BBox = { x: number; y: number; width: number; height: number };
+const contains = (outer: BBox, inner: BBox, tolerance = 0.5) =>
+    inner.x >= outer.x - tolerance &&
+    inner.y >= outer.y - tolerance &&
+    inner.x + inner.width <= outer.x + outer.width + tolerance &&
+    inner.y + inner.height <= outer.y + outer.height + tolerance;
 
 // The label-fit options are undocumented, so labels are built untyped and cast at the AgCharts.create
 // boundary; `setupMockConsole` fails the test on any "property is unknown" warning.
@@ -36,8 +44,9 @@ describe('series label fit', () => {
         await waitForChartStability(chart);
     };
 
-    const renderAndSnapshot = async (options: object) => {
+    const renderAndSnapshot = async (options: object, size?: { width: number; height: number }) => {
         prepareEnterpriseTestOptions(options as AgChartOptions);
+        Object.assign(options, size);
         chart = deproxy(AgCharts.create(options as AgChartOptions));
         await compareImageSnapshot(chart, ctx);
     };
@@ -1199,7 +1208,9 @@ describe('series label fit', () => {
             return texts;
         };
         const heatmapLabelTexts = (): string[] =>
-            (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: unknown }) => String(d.text));
+            (chart.series[0].contextNodeData?.labelData ?? [])
+                .filter((d: { hidden?: boolean }) => d.hidden !== true)
+                .map((d: { text: unknown; fittedText?: unknown }) => String(d.fittedText ?? d.text));
         const longNameShown = (texts: string[]) => tileNames.filter((name) => texts.includes(name)).length;
 
         it.each([
@@ -1306,15 +1317,119 @@ describe('series label fit', () => {
             expect(someTruncated(texts)).toBe(true);
             expect(texts.length).toBe(data.length);
         });
+
+        it('shrinks heatmap labels towards minimumFontSize to keep them inside their cells', async () => {
+            const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+            const regions = ['Americas', 'EMEA', 'APAC'];
+            await renderAndSnapshot(
+                {
+                    title: { text: 'minimumFontSize: 8 only' },
+                    data: regions.flatMap((region, r) =>
+                        quarters.map((quarter, q) => ({ region, quarter, growth: 10 + r * 7 + q * 3 }))
+                    ),
+                    series: [
+                        {
+                            type: 'heatmap',
+                            xKey: 'quarter',
+                            yKey: 'region',
+                            colorKey: 'growth',
+                            label: {
+                                enabled: true,
+                                fontSize: 14,
+                                minimumFontSize: 8,
+                                formatter: ({ value }: any) => `Revenue growth of ${value} percent year on year`,
+                            },
+                        },
+                    ],
+                    legend: { enabled: false },
+                },
+                { width: 460, height: 340 }
+            );
+            const series = chart.series[0];
+            const cells = new Map<number, BBox>();
+            for (const rect of series.datumSelection.nodes()) {
+                cells.set(rect.datum.datumIndex, Transformable.toCanvas(rect));
+            }
+            const labels = (series.labelSelection.nodes() as any[]).filter((node) => node.visible && node.text !== '');
+            expect(labels.length).toBe(cells.size);
+            const overflowing = labels.filter(
+                (node) => !contains(cells.get(node.datum.datumIndex)!, Transformable.toCanvas(node))
+            );
+            expect(overflowing.map((node) => ({ text: node.text, fontSize: node.fontSize }))).toEqual([]);
+            expect(labels.some((node) => node.fontSize < 14)).toBe(true);
+        });
+
+        it('keeps sunburst labels shrunk and inside the chart when it is too small for them', async () => {
+            const leaf = (name: string, note: string, size: number) => ({ name, note, size });
+            await renderAndSnapshot(
+                {
+                    title: { text: 'minimumFontSize only' },
+                    data: [
+                        {
+                            name: 'Information Technology',
+                            note: 'Largest sector by market capitalisation',
+                            children: [
+                                leaf('Semiconductors and Semiconductor Equipment', 'Up 2.4% on the day', 40),
+                                leaf('Cloud', 'Up 0.9%', 14),
+                                leaf('Cybersecurity and Network Infrastructure', 'Down 1.2% on the day', 9),
+                                leaf('AI', 'Up 3.1%', 4),
+                            ],
+                        },
+                        {
+                            name: 'Health Care and Life Sciences',
+                            note: 'Defensive sector',
+                            children: [
+                                leaf('Pharmaceuticals and Biotechnology', 'Down 0.3% on the day', 30),
+                                leaf('Medical Devices', 'Up 0.4%', 12),
+                                leaf('Diagnostics and Research Tools', 'Up 1.7% on the day', 6),
+                            ],
+                        },
+                        {
+                            name: 'Financials',
+                            note: 'Rate sensitive',
+                            children: [
+                                leaf('Banks and Diversified Financial Services', 'Up 0.6% on the day', 25),
+                                leaf('Insurance', 'Flat', 10),
+                                leaf('Asset Management', 'Down 2.0%', 5),
+                            ],
+                        },
+                    ],
+                    series: [
+                        {
+                            type: 'sunburst',
+                            labelKey: 'name',
+                            secondaryLabelKey: 'note',
+                            sizeKey: 'size',
+                            label: { fontSize: 16, minimumFontSize: 8 },
+                            secondaryLabel: { fontSize: 14, minimumFontSize: 8 },
+                        },
+                    ],
+                },
+                { width: 220, height: 220 }
+            );
+            const drawn: { text: string; fontSize: number; box: BBox }[] = [];
+            chart.series[0].labelSelection.each((group: any) => {
+                for (const node of group.children()) {
+                    if (node.visible && node.text) {
+                        drawn.push({ text: node.text, fontSize: node.fontSize, box: Transformable.toCanvas(node) });
+                    }
+                }
+            });
+            expect(drawn.length).toBeGreaterThan(0);
+            expect(drawn.filter((label) => label.fontSize >= 14).map((label) => label.text)).toEqual([]);
+            const canvas = { x: 0, y: 0, width: 220, height: 220 };
+            expect(drawn.filter(({ box }) => !contains(canvas, box)).map((label) => label.text)).toEqual([]);
+        });
     });
 
     describe('gauge labels', () => {
         const longText = 'Supercalifragilistic'.repeat(6);
-        const gaugeLabelTexts = (): string[] =>
-            chart.series[0].labelSelection
+        const visibleTexts = (selection: any): string[] =>
+            selection
                 .nodes()
                 .filter((node: any) => node.visible)
                 .map((node: any) => String(node.text));
+        const gaugeLabelTexts = () => visibleTexts(chart.series[0].labelSelection);
         const renderGauge = async (options: object) => {
             prepareEnterpriseTestOptions(options as AgChartOptions);
             chart = deproxy(AgCharts.createGauge(options as any));
@@ -1360,6 +1475,372 @@ describe('series label fit', () => {
                 )
             );
             expect(gaugeLabelTexts()).toEqual(['Score', longText]);
+        });
+
+        it('never hides a radial-gauge secondary label for colliding with its own primary label', async () => {
+            await renderGauge(radialGauge({ text: 'Score' }, { text: 'Label', collision: { threshold: 30 } }));
+            expect(gaugeLabelTexts()).toEqual(['Score', 'Label']);
+        });
+
+        const targetLabelTexts = () => visibleTexts(chart.series[0].targetLabelSelection);
+        const scaleLabelTexts = () => visibleTexts(chart.series[0].tickSelection);
+        const firstLabelNode = () => chart.series[0].labelSelection.nodes()[0];
+        const horizontalLinearGauge = (options: object) => ({
+            type: 'linear-gauge',
+            direction: 'horizontal',
+            value: 10,
+            scale: { min: 0, max: 100 },
+            width: 600,
+            height: 300,
+            ...options,
+        });
+
+        it('falls back through a linear-gauge placement list until one fits', async () => {
+            const label = { enabled: true, text: 'A long label text' };
+            await renderGauge(horizontalLinearGauge({ label: { ...label, placement: 'bar-inside' } }));
+            expect(gaugeLabelTexts()).toEqual([]);
+
+            await renderGauge(horizontalLinearGauge({ label: { ...label, placement: ['bar-inside', 'inside-end'] } }));
+            expect(gaugeLabelTexts()).toEqual([label.text]);
+            expect(firstLabelNode().textAlign).toBe('right');
+        });
+
+        it('colours linear-gauge labels from insideStyle or outsideStyle by where they land', async () => {
+            const label = {
+                enabled: true,
+                text: 'Label',
+                insideStyle: { color: 'red' },
+                outsideStyle: { color: 'blue' },
+            };
+            await renderGauge(horizontalLinearGauge({ value: 80, label: { ...label, placement: 'bar-inside' } }));
+            expect(firstLabelNode().fill).toBe('red');
+
+            await renderGauge(horizontalLinearGauge({ value: 80, label: { ...label, placement: 'inside-end' } }));
+            expect(firstLabelNode().fill).toBe('blue');
+
+            await renderGauge(
+                horizontalLinearGauge({ value: 80, label: { ...label, placement: 'bar-inside', color: 'green' } })
+            );
+            expect(firstLabelNode().fill).toBe('red');
+
+            await renderGauge(
+                horizontalLinearGauge({
+                    value: 80,
+                    label: { enabled: true, text: 'Label', placement: 'bar-inside', color: 'green' },
+                })
+            );
+            expect(firstLabelNode().fill).toBe('green');
+        });
+
+        it('boxes linear-gauge labels from insideStyle or outsideStyle and fits the box', async () => {
+            const label = {
+                enabled: true,
+                text: 'Label',
+                truncate: false,
+                insideStyle: { fill: 'yellow', padding: 4 },
+                outsideStyle: { fill: 'grey', border: { stroke: 'black' } },
+            };
+            await renderGauge(horizontalLinearGauge({ value: 80, label: { ...label, placement: 'bar-inside' } }));
+            expect(firstLabelNode().getBoxingProperties()).toMatchObject({ fill: 'yellow', padding: 4 });
+
+            await renderGauge(horizontalLinearGauge({ value: 80, label: { ...label, placement: 'inside-end' } }));
+            expect(firstLabelNode().getBoxingProperties()).toMatchObject({ fill: 'grey', border: { enabled: true } });
+
+            const paddedOut = { ...label, insideStyle: { fill: 'yellow', padding: 300 }, placement: 'bar-inside' };
+            await renderGauge(horizontalLinearGauge({ value: 80, label: paddedOut }));
+            expect(gaugeLabelTexts()).toEqual([]);
+
+            await renderGauge(horizontalLinearGauge({ value: 80, label: { enabled: true, text: 'Label' } }));
+            expect(firstLabelNode().hasBoxing()).toBe(false);
+        });
+
+        it('boxes radial-gauge labels and fits the boxes within the gauge', async () => {
+            const label = { text: 'Score', fill: 'yellow', padding: 4 };
+            const secondaryLabel = { text: 'Label', border: { stroke: 'red' } };
+            await renderGauge(radialGauge(label, secondaryLabel));
+            const [primaryNode, secondaryNode] = chart.series[0].labelSelection.nodes();
+            expect(primaryNode.getBoxingProperties()).toMatchObject({ fill: 'yellow', padding: 4 });
+            expect(secondaryNode.getBoxingProperties()).toMatchObject({ border: { enabled: true, stroke: 'red' } });
+            expect(primaryNode.getBBox().y + primaryNode.getBBox().height).toBeLessThanOrEqual(
+                secondaryNode.getBBox().y
+            );
+
+            await renderGauge(radialGauge({ ...label, padding: 300 }));
+            expect(gaugeLabelTexts()).toEqual([]);
+        });
+
+        it.each([
+            ['radial-gauge', { type: 'radial-gauge', value: 50, scale: { min: 0, max: 100 } }],
+            ['linear-gauge', { type: 'linear-gauge', value: 50, scale: { min: 0, max: 100 } }],
+        ] as const)('boxes %s target labels', async (_, options) => {
+            const label = { fill: 'yellow', padding: 3, border: { stroke: 'red' } };
+            await renderGauge({ ...options, targets: [{ value: 30, text: 'Target', label }] });
+            const [node] = chart.series[0].targetLabelSelection.nodes();
+            expect(node.getBoxingProperties()).toMatchObject({ fill: 'yellow', padding: 3, border: { enabled: true } });
+
+            await renderGauge({ ...options, targets: [{ value: 30, text: 'Target' }] });
+            expect(chart.series[0].targetLabelSelection.nodes()[0].hasBoxing()).toBe(false);
+        });
+
+        it('keeps an alwaysShow linear-gauge label at an overflowing placement over one with no room', async () => {
+            await renderGauge(
+                horizontalLinearGauge({
+                    value: 95,
+                    label: {
+                        enabled: true,
+                        text: 'A long label text',
+                        placement: ['inside-end', 'outside-end'],
+                        truncate: false,
+                        collision: { alwaysShow: true },
+                    },
+                })
+            );
+            expect(gaugeLabelTexts()).toHaveLength(1);
+            expect(firstLabelNode().textAlign).toBe('right');
+        });
+
+        it('reserves room for an outside linear-gauge label within its maxWidth', async () => {
+            const label = { enabled: true, text: 'A much longer label text', spacing: 10, placement: 'outside-start' };
+            await renderGauge(horizontalLinearGauge({ label: { ...label, maxWidth: 60 } }));
+            expect(chart.series[0].gaugeRect.x).toBeLessThanOrEqual(70);
+        });
+
+        it.each([
+            ['radial-gauge', radialGauge],
+            ['linear-gauge', linearGauge],
+        ] as const)('%s keeps its label within maxWidth and maxHeight', async (_, build) => {
+            const text = 'A long label text';
+            await renderGauge(build({ text, minimumFontSize: undefined, maxWidth: 60 }));
+            expect(gaugeLabelTexts()).toHaveLength(1);
+            expect(firstLabelNode().getBBox().width).toBeLessThanOrEqual(60);
+
+            await renderGauge(build({ text, minimumFontSize: undefined, maxHeight: 20 }));
+            expect(gaugeLabelTexts()).toHaveLength(1);
+            expect(firstLabelNode().getBBox().height).toBeLessThanOrEqual(20);
+        });
+
+        it('wraps a linear-gauge label within maxWidth', async () => {
+            await renderGauge(linearGauge({ text: 'A long label text', wrapping: 'on-space', maxWidth: 60 }));
+            expect(gaugeLabelTexts()[0]).toContain('\n');
+        });
+
+        it('drops the scale labels a linear-gauge label overlaps only when collision is set', async () => {
+            const label = { enabled: true, text: 'Label', fontSize: 40, spacing: 0, placement: 'outside-end' };
+            const allScaleLabels = ['0', '20', '40', '60', '80', '100'];
+            await renderGauge(horizontalLinearGauge({ thickness: 10, label }));
+            expect(gaugeLabelTexts()).toEqual(['Label']);
+            expect(scaleLabelTexts()).toEqual(allScaleLabels);
+
+            await renderGauge(horizontalLinearGauge({ thickness: 10, label: { ...label, collision: {} } }));
+            expect(gaugeLabelTexts()).toEqual(['Label']);
+            expect(scaleLabelTexts()).toEqual(['0', '20', '40', '60', '80']);
+        });
+
+        it.each([
+            ['radial-gauge', { type: 'radial-gauge', width: 400, height: 400 }],
+            ['linear-gauge', horizontalLinearGauge({})],
+        ] as const)('%s drops the scale labels under a target only when its label sets collision', async (_, base) => {
+            const options = (label?: object) => ({
+                ...base,
+                value: 50,
+                scale: { min: 0, max: 100 },
+                targets: [{ value: 40, text: 'Target label text', label }],
+            });
+            await renderGauge(options());
+            expect(targetLabelTexts()).toEqual(['Target label text']);
+            expect(scaleLabelTexts()).toEqual(['0', '20', '40', '60', '80', '100']);
+
+            await renderGauge(options({ collision: {} }));
+            expect(targetLabelTexts()).toEqual(['Target label text']);
+            expect(scaleLabelTexts()).toEqual(['0', '20', '60', '80', '100']);
+        });
+
+        it('warns once on the deprecated avoidCollisions and keeps the label at its natural size', async () => {
+            const text = 'A long label text';
+            await renderGauge(
+                horizontalLinearGauge({
+                    label: { enabled: true, text, avoidCollisions: false, placement: 'bar-inside' },
+                })
+            );
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`label.avoidCollisions\` is deprecated. Use \`collision.alwaysShow\` instead.",
+                ],
+              ]
+            `);
+            expect(gaugeLabelTexts()).toEqual([text]);
+        });
+
+        it('styles and fits linear-gauge target labels', async () => {
+            const label = { color: 'red', fontSize: 16, spacing: 12 };
+            await renderGauge(horizontalLinearGauge({ targets: [{ value: 50, text: 'Target label text', label }] }));
+            const [node] = chart.series[0].targetLabelSelection.nodes();
+            expect(node).toMatchObject({ fill: 'red', fontSize: 16, text: 'Target label text' });
+
+            await renderGauge(
+                horizontalLinearGauge({ targets: [{ value: 50, text: 'Target label text', label: { maxWidth: 40 } }] })
+            );
+            expect(targetLabelTexts()).toEqual(['Target\nlabel\ntext']);
+            expect(chart.series[0].targetLabelSelection.nodes()[0].getBBox().width).toBeLessThanOrEqual(40);
+
+            await renderGauge(
+                horizontalLinearGauge({
+                    targets: [{ value: 50, text: 'Target label text', label: { maxWidth: 40, maxHeight: 15 } }],
+                })
+            );
+            expect(someTruncated(targetLabelTexts())).toBe(true);
+        });
+
+        it.each([
+            ['radial-gauge', { type: 'radial-gauge', width: 400, height: 400 }],
+            ['linear-gauge', horizontalLinearGauge({})],
+        ] as const)('%s hides a target label that is not enabled', async (_, base) => {
+            await renderGauge({
+                ...base,
+                value: 50,
+                scale: { min: 0, max: 100 },
+                targets: [
+                    { value: 30, text: 'Shown' },
+                    { value: 70, text: 'Hidden', label: { enabled: false } },
+                ],
+            });
+            expect(targetLabelTexts()).toEqual(['Shown']);
+        });
+
+        it('ignores linear-gauge targets without text as collision obstacles', async () => {
+            await renderGauge(
+                horizontalLinearGauge({
+                    targets: [{ value: 50 }, { value: 51, text: 'B', label: { collision: { threshold: 4 } } }],
+                })
+            );
+            expect(targetLabelTexts()).toEqual(['B']);
+        });
+
+        it.each([
+            ['radial-gauge', { type: 'radial-gauge', width: 400, height: 400 }],
+            ['linear-gauge', horizontalLinearGauge({})],
+        ] as const)('%s hides colliding target labels only when collision is set', async (_, base) => {
+            const options = (label?: object) => ({
+                ...base,
+                value: 50,
+                scale: { min: 0, max: 100 },
+                targets: [
+                    { value: 50, text: 'Target label text' },
+                    { value: 52, text: 'Overlap', label },
+                ],
+            });
+            await renderGauge(options());
+            expect(targetLabelTexts()).toEqual(['Target label text', 'Overlap']);
+
+            await renderGauge(options({ collision: {} }));
+            expect(targetLabelTexts()).toEqual(['Target label text']);
+
+            await renderGauge(options({ collision: { alwaysShow: true } }));
+            expect(targetLabelTexts()).toEqual(['Target label text', 'Overlap']);
+        });
+
+        const renderGaugeAndSnapshot = async (options: object) => {
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+            chart = deproxy(AgCharts.createGauge(options as any));
+            await compareImageSnapshot(chart, ctx);
+        };
+
+        const fittedLinearGauge = (targetLabel: object) =>
+            horizontalLinearGauge({
+                value: 90,
+                label: {
+                    enabled: true,
+                    text: 'Fallback label',
+                    placement: ['bar-outside-end', 'bar-inside'],
+                    insideStyle: { color: 'white' },
+                    outsideStyle: { color: 'black' },
+                },
+                targets: [
+                    {
+                        value: 20,
+                        text: 'Wrapped target text',
+                        label: { maxWidth: 50, color: 'red', spacing: 4, ...targetLabel },
+                    },
+                    { value: 80, text: 'Target', label: { fontSize: 16, fontWeight: 'bold', ...targetLabel } },
+                    { value: 82, text: 'Hidden', label: { collision: {} } },
+                ],
+            });
+        const fittedRadialGauge = (targetLabel: object) => ({
+            type: 'radial-gauge',
+            width: 400,
+            height: 400,
+            value: 60,
+            scale: { min: 0, max: 100 },
+            label: { text: 'A long radial gauge label', fontSize: 30, maxWidth: 120 },
+            targets: [
+                { value: 20, text: 'Wrapped target text', label: { maxWidth: 50, color: 'red', ...targetLabel } },
+                { value: 70, text: 'Target', label: { fontSize: 16, fontWeight: 'bold', ...targetLabel } },
+                { value: 71, text: 'Hidden', label: { fontSize: 16, collision: {} } },
+            ],
+        });
+
+        it('renders linear-gauge label fallback, placement styles and fitted target labels always shown without collision', async () => {
+            await renderGaugeAndSnapshot(fittedLinearGauge({}));
+            expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
+        });
+
+        it('renders linear-gauge fitted target labels dropping the scale labels they overlap with collision', async () => {
+            await renderGaugeAndSnapshot(fittedLinearGauge({ collision: {} }));
+            expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
+            expect(scaleLabelTexts()).toEqual(['0', '40', '60', '100']);
+        });
+
+        it('renders radial-gauge fitted labels and target labels always shown without collision', async () => {
+            await renderGaugeAndSnapshot(fittedRadialGauge({}));
+            expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
+        });
+
+        it('renders radial-gauge fitted target labels dropping the scale labels they overlap with collision', async () => {
+            await renderGaugeAndSnapshot(fittedRadialGauge({ collision: {} }));
+            expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
+            expect(scaleLabelTexts()).toEqual(['0', '40', '60', '80', '100']);
+        });
+
+        it('renders boxed linear-gauge labels and target labels', async () => {
+            await renderGaugeAndSnapshot(
+                horizontalLinearGauge({
+                    value: 70,
+                    label: {
+                        enabled: true,
+                        text: 'Boxed label',
+                        placement: 'bar-inside',
+                        insideStyle: {
+                            color: 'black',
+                            fill: 'white',
+                            cornerRadius: 6,
+                            padding: { left: 12, right: 12 },
+                        },
+                        outsideStyle: { fill: 'black' },
+                    },
+                    targets: [
+                        { value: 30, text: 'Filled', label: { fill: 'gold', padding: 4 } },
+                        { value: 85, text: 'Bordered', label: { border: { stroke: 'red', strokeWidth: 2 } } },
+                    ],
+                })
+            );
+            expect(gaugeLabelTexts()).toEqual(['Boxed label']);
+            expect(targetLabelTexts()).toEqual(['Filled', 'Bordered']);
+        });
+
+        it('renders boxed radial-gauge labels and target labels', async () => {
+            await renderGaugeAndSnapshot({
+                type: 'radial-gauge',
+                width: 400,
+                height: 400,
+                value: 60,
+                scale: { min: 0, max: 100 },
+                label: { text: 'Boxed label', fontSize: 30, fill: 'gold', cornerRadius: 8 },
+                secondaryLabel: { text: 'Bordered', border: { stroke: 'red' }, padding: 4 },
+                targets: [{ value: 30, text: 'Target', label: { fill: 'lightblue', padding: 4 } }],
+            });
+            expect(gaugeLabelTexts()).toEqual(['Boxed label', 'Bordered']);
+            expect(targetLabelTexts()).toEqual(['Target']);
         });
     });
 });

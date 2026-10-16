@@ -1,13 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions, AgDropShadowOptions, _ModuleSupport } from 'ag-charts-community';
-import {
-    type Chart,
-    MARKER_SHADOW,
-    customMarkerShape,
-    setupMockCanvas,
-    setupMockConsole,
-} from 'ag-charts-community-test';
+import { MARKER_SHADOW, customMarkerShape, deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import type { AgChartInstance } from 'ag-charts-types';
 
 import { createEnterpriseChart } from '../test/utils';
 import { ukData } from './map-test/ukData';
@@ -106,7 +101,7 @@ describe('marker shadow', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Chart | undefined;
+    let chart: AgChartInstance | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -119,7 +114,7 @@ describe('marker shadow', () => {
     };
 
     const visibleMarkers = ({ selection }: MarkerSeriesCase): Marker[] => {
-        const series = chart!.series.find((s) => (s as any)[selection] != null) as any;
+        const series = deproxy(chart!).series.find((s) => (s as any)[selection] != null) as any;
         return Array.from<Marker>(series[selection].nodes()).filter((node) => node.visible);
     };
 
@@ -235,7 +230,7 @@ describe('marker shadow', () => {
             };
             await create(options);
 
-            (chart!.series[0] as any).getTooltipContent(0, undefined);
+            (deproxy(chart!).series[0] as any).getTooltipContent(0, undefined);
 
             expect(received).toHaveLength(1);
             expect(received[0]).not.toHaveProperty('shadow');

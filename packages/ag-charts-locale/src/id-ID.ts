@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_ID_ID: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'Vol ${value}',
+    statusBarVolumeProfilePrice: 'Harga',
+    statusBarVolumeProfileUp: 'Naik',
+    statusBarVolumeProfileDown: 'Turun',
+    statusBarVolumeProfileTotal: 'Total',
     tooltipPaginationStatus: '${index}[number] dari ${count}[number]',
 };

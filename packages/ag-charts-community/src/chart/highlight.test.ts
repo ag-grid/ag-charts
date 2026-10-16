@@ -8,6 +8,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     createChart,
+    deproxy,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
@@ -46,7 +47,7 @@ describe('Chart highlighting', () => {
             ],
         });
 
-        chart = await createChart(options);
+        chart = deproxy(await createChart(options));
         await waitForChartStability(chart);
 
         // Yellow line, green line, red bar
@@ -122,7 +123,7 @@ describe('Chart highlighting', () => {
     };
 
     const runHighlightSnapshot = async (testCase: HighlightTestCase) => {
-        chart = await createChart(testCase.options);
+        chart = deproxy(await createChart(testCase.options));
         const highlightDatum = testCase.getDatum?.(chart) ?? defaultHighlightDatum(chart, testCase);
         if (highlightDatum == null) {
             throw new Error(`No highlight datum found for test case: ${testCase.name}`);
@@ -477,7 +478,7 @@ describe('Chart highlighting', () => {
                 ],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
 
             // First highlight the disabled series (apples)
             const disabledDatum = defaultHighlightDatum(chart, {
@@ -538,7 +539,7 @@ describe('Chart highlighting', () => {
                 ],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
 
             // First highlight an enabled series (oranges) — bananas should dehighlight
             const enabledDatum = defaultHighlightDatum(chart, {
@@ -685,7 +686,7 @@ describe('Chart highlighting', () => {
                 ],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             expect(seriesHighlightEnabled(chart, 0)).toBe(false);
@@ -702,7 +703,7 @@ describe('Chart highlighting', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             expect(seriesHighlightEnabled(chart, 0)).toBe(true);
@@ -733,7 +734,7 @@ describe('Chart highlighting', () => {
 
         it('clears item dimming when a datum highlight is replaced by a series highlight of the same series', async () => {
             const options = twoSeriesOptions();
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Baseline: the bar theme's `unhighlightedItem`/`unhighlightedSeries` are not applied yet.
@@ -763,7 +764,7 @@ describe('Chart highlighting', () => {
 
         it('restores item dimming when a series highlight is replaced by a datum highlight of the same series', async () => {
             const options = twoSeriesOptions();
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
@@ -787,7 +788,7 @@ describe('Chart highlighting', () => {
 
         it('keeps other series dimmed across the transition', async () => {
             const options = twoSeriesOptions();
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const datumHighlight = defaultHighlightDatum(chart, {
@@ -812,7 +813,7 @@ describe('Chart highlighting', () => {
 
         it('hides the highlight overlay for a series-level highlight but shows it for a datum-level one', async () => {
             const options = twoSeriesOptions();
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const datumHighlight = defaultHighlightDatum(chart, {
@@ -861,7 +862,7 @@ describe('Chart highlighting', () => {
         // of a non-contributing series is `unhighlighted-series`.
         it('lights every item in the shared group exactly like the hovered one', async () => {
             const options = twoBarSeriesOptions('shared');
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const hoveredDatum = defaultHighlightDatum(chart, {
@@ -922,7 +923,7 @@ describe('Chart highlighting', () => {
             'applies the four rules across three stacked %s series, hovering Pears in Q2',
             async (seriesType) => {
                 const options = stackedReproOptions(seriesType);
-                chart = await createChart(options);
+                chart = deproxy(await createChart(options));
                 await waitForChartStability(chart);
 
                 const hoveredDatum = defaultHighlightDatum(chart, {
@@ -974,7 +975,7 @@ describe('Chart highlighting', () => {
                 ],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const hoveredDatum = defaultHighlightDatum(chart, {
@@ -1014,7 +1015,7 @@ describe('Chart highlighting', () => {
                 ],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const hoveredDatum = defaultHighlightDatum(chart, {
@@ -1048,7 +1049,7 @@ describe('Chart highlighting', () => {
                 ],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const hoveredDatum = defaultHighlightDatum(chart, {
@@ -1069,7 +1070,7 @@ describe('Chart highlighting', () => {
 
         it('is unaffected by a series-level (legend-focus) highlight, which carries a NaN datumIndex', async () => {
             const options = twoBarSeriesOptions('shared');
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const legendHighlight: HighlightNodeDatum = {
@@ -1089,7 +1090,7 @@ describe('Chart highlighting', () => {
 
         it('is provably the non-default: highlight.mode left unset behaves like single mode', async () => {
             const options = twoBarSeriesOptions();
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const hoveredDatum = defaultHighlightDatum(chart, {
@@ -1110,7 +1111,7 @@ describe('Chart highlighting', () => {
 
         it('repaints the previously-matched item when the hover moves to a different category (no itemStyler)', async () => {
             const options = twoBarSeriesOptions('shared');
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const datumQ2 = defaultHighlightDatum(chart, { name: 'q2', options, seriesIndex: 0, datumIndex: 1 });
@@ -1141,7 +1142,7 @@ describe('Chart highlighting', () => {
             const statesForRange = async (range: 'node' | 'tooltip') => {
                 const options = twoBarSeriesOptions('shared');
                 options.highlight = { mode: 'shared', range };
-                chart = await createChart(options);
+                chart = deproxy(await createChart(options));
                 await waitForChartStability(chart);
 
                 // Inside the Q2 bar of the first series.
@@ -1188,7 +1189,7 @@ describe('Chart highlighting', () => {
                 ],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const datumQ2 = defaultHighlightDatum(chart, { name: 'q2', options, seriesIndex: 0, datumIndex: 1 });
@@ -1214,7 +1215,7 @@ describe('Chart highlighting', () => {
         describe('visual regression', () => {
             it('renders the items at the hovered category lit across every contributing series', async () => {
                 const options = twoBarSeriesOptions('shared');
-                chart = await createChart(options);
+                chart = deproxy(await createChart(options));
                 await waitForChartStability(chart);
 
                 const datumQ2 = defaultHighlightDatum(chart, { name: 'q2', options, seriesIndex: 0, datumIndex: 1 });
@@ -1257,7 +1258,7 @@ describe('Chart highlighting', () => {
                     })) as AgCartesianChartOptions['series'],
                 });
 
-                chart = await createChart(options);
+                chart = deproxy(await createChart(options));
                 await waitForChartStability(chart);
 
                 const hoveredDatum = defaultHighlightDatum(chart, {
@@ -1293,7 +1294,7 @@ describe('Chart highlighting', () => {
                     ],
                 });
 
-                chart = await createChart(options);
+                chart = deproxy(await createChart(options));
                 await waitForChartStability(chart);
 
                 const hoveredDatum = defaultHighlightDatum(chart, {
@@ -1311,7 +1312,7 @@ describe('Chart highlighting', () => {
 
             it('renders single mode unchanged for the same hover', async () => {
                 const options = twoBarSeriesOptions('single');
-                chart = await createChart(options);
+                chart = deproxy(await createChart(options));
                 await waitForChartStability(chart);
 
                 const hoveredDatum = defaultHighlightDatum(chart, {
@@ -1345,7 +1346,7 @@ describe('Chart highlighting', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Enable fake timers
@@ -1381,7 +1382,7 @@ describe('Chart highlighting', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Enable fake timers
@@ -1427,7 +1428,7 @@ describe('Chart highlighting', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Enable fake timers after chart creation
@@ -1481,7 +1482,7 @@ describe('Chart highlighting', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Enable fake timers after chart creation
@@ -1547,7 +1548,7 @@ describe('Chart highlighting', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Enable fake timers after chart creation
@@ -1605,7 +1606,7 @@ describe('Chart highlighting', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Enable fake timers
@@ -1643,7 +1644,7 @@ describe('Chart highlighting', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Enable fake timers
@@ -1694,7 +1695,7 @@ describe('Chart highlighting', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Enable fake timers
@@ -1748,7 +1749,7 @@ describe('Chart highlighting', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Enable fake timers after chart creation

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgRadialGaugeOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
@@ -117,6 +117,21 @@ describe('RadialGaugeSeries', () => {
                 // pixel-scaled monotonicTol — tighten it so the `increases` direction is enforced, not vacuous.
                 { monotonicTol: 0.05 }
             );
+        });
+
+        it('formats the final label text once for the label and once for the caption while counting up', async () => {
+            const formatter = vi.fn(({ value }: { value: number }) => `${value}`);
+            const options: AgRadialGaugeOptions = { ...EXAMPLE_OPTIONS, label: { formatter } };
+            prepareEnterpriseTestOptions(options);
+
+            const proxy = AgCharts.createGauge(options);
+            chart = deproxy(proxy);
+            await frames.captureAnimationFrames(proxy, createSceneGeometrySampler(proxy));
+            await frames.runToEnd(proxy);
+
+            const finalCalls = formatter.mock.calls.filter(([{ value }]) => value === options.value);
+            expect(formatter.mock.calls.length).toBeGreaterThan(finalCalls.length);
+            expect(finalCalls).toHaveLength(2);
         });
     });
 

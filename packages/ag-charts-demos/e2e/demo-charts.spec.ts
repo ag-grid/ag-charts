@@ -36,7 +36,7 @@ const DEMOS: DemoCase[] = [
     {
         id: 'procurement',
         // The landing tab only: Radix unmounts inactive tab content, so the other tabs are covered in procurement.spec.ts.
-        population: { structural: 4 },
+        population: { structural: 3 },
     },
 ];
 

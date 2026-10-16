@@ -1,16 +1,19 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgPieSeriesOptions,
     AgPolarChartOptions,
+    AgSelectionItemIds,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { NEUTRAL, THEME } from '../chartTheme';
 import { fmtInt, fmtPct } from '../format';
 import type { SlipDistribution } from '../types';
+import { stylerOwnedSelection } from './chartSelection';
+import { useSupplierSelection } from './useSupplierSelection';
 
 /** One day of slip, and how many deliveries landed on it. */
 interface Bar {
@@ -26,8 +29,8 @@ interface DeliverySlipHistogramsProps {
     supplierColors: Record<string, string>;
     /** The supplier currently selected, if any. */
     selectedSupplierId?: string;
-    /** Selecting the same supplier again clears it. */
-    onSelect: (supplierId: string) => void;
+    /** The user selected a supplier's bars or split, or clicked away to clear the selection. */
+    onSelectedSupplierChange: (supplierId: string | undefined) => void;
 }
 
 /**
@@ -39,6 +42,11 @@ export const MAX_SLIP_DAYS = 14;
 
 /** The terminal category, holding every slip past `MAX_SLIP_DAYS`. */
 const OVERFLOW_DAY = `${MAX_SLIP_DAYS + 1}+`;
+
+const BARS_SERIES_ID = 'slips';
+const SPLIT_SERIES_ID = 'split';
+/** The split's slices, which are also its selection item ids. */
+const SPLIT_OUTCOMES = ['Late', 'On time'] as const;
 
 /** Days late, as a buyer would read the number. */
 const fmtDays = (days: number) => `${days}d late`;
@@ -100,7 +108,7 @@ export function binned(rows: SlipDistribution[]): Binned {
 
 /** One slice of a facet's split: how many deliveries landed either side of the promised date. */
 interface Slice {
-    outcome: string;
+    outcome: (typeof SPLIT_OUTCOMES)[number];
     deliveries: number;
     fill: string;
     /** Recedes the ground slice. Omitted is solid — a sector only takes what `itemStyler` returns. */
@@ -119,9 +127,15 @@ interface Slice {
  * here: the row already names the count in words, and a supplier's identity colour cannot double as a
  * severity signal without one meaning undermining the other.
  */
-function splitOptions(row: SlipDistribution, lateCount: number, color: string): AgPolarChartOptions<Slice> {
+function splitOptions(
+    row: SlipDistribution,
+    lateCount: number,
+    color: string,
+    listeners: NonNullable<AgPolarChartOptions<Slice>['listeners']>
+): AgPolarChartOptions<Slice> {
     const series: AgPieSeriesOptions<Slice> = {
         type: 'pie',
+        id: SPLIT_SERIES_ID,
         angleKey: 'deliveries',
         angleName: 'Deliveries',
         calloutLabelKey: 'outcome',
@@ -129,6 +143,7 @@ function splitOptions(row: SlipDistribution, lateCount: number, color: string): 
         sectorLabel: { enabled: false },
         strokeWidth: 0,
         itemStyler: ({ datum }) => ({ fill: datum.fill, fillOpacity: datum.fillOpacity ?? 1 }),
+        selection: stylerOwnedSelection(0),
         tooltip: {
             renderer: ({ datum }) => ({
                 title: `${row.supplier} · ${datum.outcome}`,
@@ -151,12 +166,15 @@ function splitOptions(row: SlipDistribution, lateCount: number, color: string): 
                 fillOpacity: 0.3,
             },
         ],
+        dataIdKey: 'outcome',
         series: [series],
         legend: { enabled: false },
         // Below the 300px chart minimum; a chart that will not shrink overflows its box and swallows clicks.
         minWidth: 0,
         minHeight: 0,
         padding: { top: 0, right: 0, bottom: 0, left: 0 },
+        selection: { enabled: true },
+        listeners,
     };
 }
 
@@ -176,106 +194,185 @@ export function DeliverySlipHistograms({
     rows,
     supplierColors,
     selectedSupplierId,
-    onSelect,
+    onSelectedSupplierChange,
 }: DeliverySlipHistogramsProps) {
     const scale = useMemo(() => binned(rows), [rows]);
 
-    const facets = useMemo(
+    return (
+        <div className="pc-facets">
+            {rows.map((row, index) => (
+                <SlipFacet
+                    key={row.supplierId}
+                    row={row}
+                    bars={scale.bars.get(row.supplierId) ?? []}
+                    maxCount={scale.maxCount}
+                    // The x axis is drawn once, under the bottom facet: every facet shares the same categories.
+                    isLast={index === rows.length - 1}
+                    color={supplierColors[row.supplierId] ?? NEUTRAL}
+                    selectedSupplierId={selectedSupplierId}
+                    onSelectedSupplierChange={onSelectedSupplierChange}
+                />
+            ))}
+        </div>
+    );
+}
+
+interface SlipFacetProps {
+    row: SlipDistribution;
+    bars: Bar[];
+    maxCount: number;
+    isLast: boolean;
+    color: string;
+    selectedSupplierId?: string;
+    onSelectedSupplierChange: (supplierId: string | undefined) => void;
+}
+
+/** One supplier's row: its late share and its histogram, each a chart that selects the supplier as a whole. */
+function SlipFacet({
+    row,
+    bars,
+    maxCount,
+    isLast,
+    color: supplierColor,
+    selectedSupplierId,
+    onSelectedSupplierChange,
+}: SlipFacetProps) {
+    const supplierIdOf = useCallback(() => row.supplierId, [row.supplierId]);
+
+    const barItemsFor = useCallback(
+        (supplierId: string): AgSelectionItemIds[] =>
+            supplierId === row.supplierId ? bars.map((bar) => ({ seriesId: BARS_SERIES_ID, itemId: bar.day })) : [],
+        [row.supplierId, bars]
+    );
+    const barSelection = useSupplierSelection<Bar>({
+        selectedSupplierId,
+        onSelectedSupplierChange,
+        supplierIdOf,
+        itemsFor: barItemsFor,
+    });
+
+    const splitItemsFor = useCallback(
+        (supplierId: string): AgSelectionItemIds[] =>
+            supplierId === row.supplierId
+                ? SPLIT_OUTCOMES.map((outcome) => ({ seriesId: SPLIT_SERIES_ID, itemId: outcome }))
+                : [],
+        [row.supplierId]
+    );
+    const splitSelection = useSupplierSelection<Slice>({
+        selectedSupplierId,
+        onSelectedSupplierChange,
+        supplierIdOf,
+        itemsFor: splitItemsFor,
+    });
+
+    const dimmed = selectedSupplierId != null && row.supplierId !== selectedSupplierId;
+    const color = dimmed ? NEUTRAL : supplierColor;
+    // Same boundary the bands draw: a delivery on its promised day is not late.
+    const lateCount = useMemo(() => row.slips.filter((slip) => slip > 0).length, [row.slips]);
+
+    const options = useMemo<AgCartesianChartOptions<Bar>>(() => {
+        const series: AgBarSeriesOptions<Bar> = {
+            type: 'bar',
+            id: BARS_SERIES_ID,
+            xKey: 'day',
+            yKey: 'count',
+            xName: 'Slip',
+            yName: 'Deliveries',
+            fill: color,
+            fillOpacity: dimmed ? 0.3 : 0.85,
+            cornerRadius: 2,
+            selection: stylerOwnedSelection(0),
+            tooltip: {
+                renderer: ({ datum }) => ({
+                    heading: '',
+                    title: row.supplier,
+                    data: [
+                        { label: 'Slip', value: datum.slipLabel },
+                        { label: 'Deliveries', value: fmtInt(datum.count) },
+                    ],
+                }),
+            },
+        };
+
+        return {
+            theme: THEME,
+            data: bars,
+            dataIdKey: 'day',
+            series: [series],
+            // Below the 300px chart minimum; a chart that will not shrink overflows its box and swallows clicks.
+            minWidth: 0,
+            minHeight: 0,
+            axes: {
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    bandHighlight: { enabled: true },
+                    // Bars all but touching, so a run of days reads as one distribution.
+                    paddingInner: 0.12,
+                    paddingOuter: 0.05,
+                    label: { enabled: isLast },
+                    // Ticks and labels centred on the band rather than on the gap between two.
+                    interval: { placement: 'on' },
+                },
+                y: {
+                    type: 'number',
+                    position: 'left',
+                    min: 0,
+                    max: maxCount,
+                    nice: false,
+                    label: { enabled: false },
+                    // A facet this short has room only for the two ticks that bound the shared scale.
+                    interval: { values: [0, maxCount] },
+                },
+            },
+            legend: { enabled: false },
+            padding: { top: 4, right: 8, bottom: 0, left: 0 },
+            selection: { enabled: true },
+            listeners: {
+                selectionChange: barSelection.onChartSelectionChange,
+                click: barSelection.onChartClick,
+            },
+        };
+    }, [
+        row.supplier,
+        bars,
+        maxCount,
+        isLast,
+        color,
+        dimmed,
+        barSelection.onChartSelectionChange,
+        barSelection.onChartClick,
+    ]);
+
+    const split = useMemo(
         () =>
-            rows.map((row, index) => {
-                // The x axis is drawn once, under the bottom facet: every facet shares the same categories.
-                const isLast = index === rows.length - 1;
-                const dimmed = selectedSupplierId != null && row.supplierId !== selectedSupplierId;
-                const color = dimmed ? NEUTRAL : (supplierColors[row.supplierId] ?? NEUTRAL);
-
-                const series: AgBarSeriesOptions<Bar> = {
-                    type: 'bar',
-                    xKey: 'day',
-                    yKey: 'count',
-                    xName: 'Slip',
-                    yName: 'Deliveries',
-                    fill: color,
-                    fillOpacity: dimmed ? 0.3 : 0.85,
-                    cornerRadius: 3,
-                    tooltip: {
-                        renderer: ({ datum }) => ({
-                            heading: '',
-                            title: '',
-                            data: [
-                                { label: 'Slip', value: datum.slipLabel },
-                                { label: 'Deliveries', value: fmtInt(datum.count) },
-                            ],
-                        }),
-                    },
-                    listeners: { seriesNodeClick: () => onSelect(row.supplierId) },
-                };
-
-                const options: AgCartesianChartOptions<Bar> = {
-                    theme: THEME,
-                    data: scale.bars.get(row.supplierId) ?? [],
-                    series: [series],
-                    // Below the 300px chart minimum; a chart that will not shrink overflows its box and swallows clicks.
-                    minWidth: 0,
-                    minHeight: 0,
-                    axes: {
-                        x: {
-                            type: 'category',
-                            position: 'bottom',
-                            bandHighlight: { enabled: true },
-                            // Bars all but touching, so a run of days reads as one distribution.
-                            paddingInner: 0.12,
-                            paddingOuter: 0.05,
-                            label: { enabled: isLast },
-                            // Ticks and labels centred on the band rather than on the gap between two.
-                            interval: { placement: 'on' },
-                        },
-                        y: {
-                            type: 'number',
-                            position: 'left',
-                            min: 0,
-                            max: scale.maxCount,
-                            nice: false,
-                            label: { enabled: false },
-                            // A facet this short has room only for the two ticks that bound the shared scale.
-                            interval: { values: [0, scale.maxCount] },
-                        },
-                    },
-                    legend: { enabled: false },
-                    padding: { top: 4, right: 8, bottom: 0, left: 0 },
-                };
-
-                // Same boundary the bands draw: a delivery on its promised day is not late.
-                const lateCount = row.slips.filter((slip) => slip > 0).length;
-
-                return { row, options, split: splitOptions(row, lateCount, color), isLast, lateCount };
+            splitOptions(row, lateCount, color, {
+                selectionChange: splitSelection.onChartSelectionChange,
+                click: splitSelection.onChartClick,
             }),
-        [rows, scale, supplierColors, selectedSupplierId, onSelect]
+        [row, lateCount, color, splitSelection.onChartSelectionChange, splitSelection.onChartClick]
     );
 
     return (
-        <div className="pc-facets">
-            {facets.map(({ row, options, split, isLast, lateCount }) => (
-                // The bottom facet is taller by its axis-label band, so every series area keeps the same height.
-                <div key={row.supplierId} className={isLast ? 'pc-facet pc-facet--axis' : 'pc-facet'}>
-                    <span className="pc-facet-head">
-                        <span className="pc-facet-name">{row.supplier}</span>
-                        <span className="pc-facet-note">
-                            {fmtInt(lateCount)} late out of {fmtInt(row.slips.length)} deliveries
-                        </span>
-                    </span>
-                    {/* The share of deliveries that ran late, against the shape of how late. The inner
-                        box is what the chart fills; the outer one spans the series area beside it, so the
-                        two stay centred on each other whatever height the facet takes. */}
-                    <div className="pc-facet-split">
-                        <div className="pc-facet-pie">
-                            <AgCharts options={split} style={{ height: '100%', width: '100%' }} />
-                        </div>
-                    </div>
-                    <div className="pc-facet-chart">
-                        <AgCharts options={options} style={{ height: '100%', width: '100%' }} />
-                    </div>
+        // The bottom facet is taller by its axis-label band, so every series area keeps the same height.
+        <div className={isLast ? 'pc-facet pc-facet--axis' : 'pc-facet'}>
+            <span className="pc-facet-head">
+                <span className="pc-facet-name">{row.supplier}</span>
+                <span className="pc-facet-note">
+                    {fmtInt(lateCount)} late out of {fmtInt(row.slips.length)} deliveries
+                </span>
+            </span>
+            {/* The share of deliveries that ran late, against the shape of how late. The inner
+                box is what the chart fills; the outer one spans the series area beside it, so the
+                two stay centred on each other whatever height the facet takes. */}
+            <div className="pc-facet-split">
+                <div className="pc-facet-pie" data-keeps-selection>
+                    <AgCharts ref={splitSelection.chartRef} options={split} style={{ height: '100%', width: '100%' }} />
                 </div>
-            ))}
+            </div>
+            <div className="pc-facet-chart" data-keeps-selection>
+                <AgCharts ref={barSelection.chartRef} options={options} style={{ height: '100%', width: '100%' }} />
+            </div>
         </div>
     );
 }

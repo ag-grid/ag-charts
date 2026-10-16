@@ -1,11 +1,13 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
-import type { AgCartesianChartOptions, AgLineSeriesOptions } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgLineSeriesOptions, AgSelectionItemIds } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { NEUTRAL, THEME } from '../chartTheme';
-import { fmtPct } from '../format';
+import { fmtIndex, fmtPct, fmtPctWhole } from '../format';
 import type { SupplierTrendPoint } from '../types';
+import { stylerOwnedSelection } from './chartSelection';
+import { useSupplierSelection } from './useSupplierSelection';
 
 /** Which metric the chart is reading off each month's point. */
 export type TrendMetric = 'price' | 'onTime' | 'quality';
@@ -24,7 +26,12 @@ interface SupplierTrendChartProps {
     metric: TrendMetric;
     /** The supplier currently selected, if any — its line is brought forward. */
     selectedSupplierId?: string;
+    /** The user selected a supplier's line, or clicked away to clear the selection. */
+    onSelectedSupplierChange: (supplierId: string | undefined) => void;
 }
+
+/** Each supplier's line is its own series, so the series id names the supplier. */
+const supplierIdOf = ({ seriesId }: { seriesId: string }) => seriesId;
 
 /** How each metric is read off a point, titled and formatted. */
 interface MetricSpec {
@@ -32,6 +39,8 @@ interface MetricSpec {
     axisTitle: string;
     tooltipLabel: string;
     format: (value: number) => string;
+    /** For the axis ticks, where they need fewer digits than a single reading. */
+    axisFormat: (value: number) => string;
     /** Axis ceiling, for a metric with a fixed one. Omitted where the domain is the data's own. */
     max?: number;
 }
@@ -41,17 +50,19 @@ function metricSpec(metric: TrendMetric): MetricSpec {
         case 'onTime':
             return {
                 read: (point) => point.onTimeRate,
-                axisTitle: 'Percent on time',
+                axisTitle: 'On-time delivery',
                 tooltipLabel: 'On time',
                 format: fmtPct,
+                axisFormat: fmtPctWhole,
                 max: 1,
             };
         case 'quality':
             return {
                 read: (point) => point.qualityRate,
-                axisTitle: 'Percent accepted at inspection',
+                axisTitle: 'Percent accepted',
                 tooltipLabel: 'Accepted',
                 format: fmtPct,
+                axisFormat: fmtPctWhole,
                 max: 1,
             };
         case 'price':
@@ -61,7 +72,8 @@ function metricSpec(metric: TrendMetric): MetricSpec {
                 read: (point) => point.index,
                 axisTitle: 'Price vs list price',
                 tooltipLabel: 'Price vs list',
-                format: (value) => `${value.toFixed(2)}×`,
+                format: fmtIndex,
+                axisFormat: (value) => fmtIndex(value, 1),
             };
     }
 }
@@ -81,6 +93,7 @@ export function SupplierTrendChart({
     supplierColors,
     metric,
     selectedSupplierId,
+    onSelectedSupplierChange,
 }: SupplierTrendChartProps) {
     const spec = useMemo(() => metricSpec(metric), [metric]);
 
@@ -96,26 +109,42 @@ export function SupplierTrendChart({
         });
     }, [trend, spec]);
 
+    const itemsFor = useCallback(
+        (supplierId: string): AgSelectionItemIds[] =>
+            supplierNames.has(supplierId) ? data.map((row) => ({ seriesId: supplierId, itemId: row.label })) : [],
+        [data, supplierNames]
+    );
+
+    const { chartRef, onChartSelectionChange, onChartClick } = useSupplierSelection<Row>({
+        selectedSupplierId,
+        onSelectedSupplierChange,
+        supplierIdOf,
+        itemsFor,
+    });
+
     const options = useMemo<AgCartesianChartOptions<Row>>(() => {
         const series = [...supplierNames.entries()].map<AgLineSeriesOptions<Row>>(([supplierId, name]) => {
             const dimmed = selectedSupplierId != null && supplierId !== selectedSupplierId;
             const color = supplierColors[supplierId] ?? NEUTRAL;
             return {
                 type: 'line',
+                id: supplierId,
                 xKey: 'label',
                 yKey: supplierId,
                 yName: name,
-                // interpolation: { type: 'step' },
                 stroke: dimmed ? NEUTRAL : color,
                 strokeWidth: dimmed ? 1 : 2,
                 strokeOpacity: dimmed ? 0.35 : 1,
                 marker: { enabled: true, size: 5, fill: dimmed ? NEUTRAL : color, fillOpacity: dimmed ? 0.35 : 1 },
                 // A month a supplier has no record in is a gap, not a drop to zero.
                 connectMissingData: false,
+                // The markers carry no outline of their own.
+                selection: stylerOwnedSelection(0),
                 tooltip: {
                     renderer: ({ datum }) => {
                         const value = datum[supplierId];
                         return {
+                            heading: '',
                             title: `${name} · ${datum.label}`,
                             data: [
                                 typeof value === 'number'
@@ -131,6 +160,7 @@ export function SupplierTrendChart({
         return {
             theme: THEME,
             data,
+            dataIdKey: 'label',
             series,
             // This box is shorter than the 300px a chart defaults to as its minimum, and a chart that
             // will not shrink to its box overflows it and swallows clicks meant for the card below.
@@ -142,14 +172,16 @@ export function SupplierTrendChart({
                     position: 'left',
                     max: spec.max,
                     title: { enabled: true, text: spec.axisTitle },
-                    label: { formatter: ({ value }) => spec.format(value) },
+                    label: { formatter: ({ value }) => spec.axisFormat(value) },
                     nice: false,
                 },
             },
             legend: { enabled: true, position: 'bottom' },
             padding: { top: 8, right: 12, bottom: 4, left: 4 },
+            selection: { enabled: true },
+            listeners: { selectionChange: onChartSelectionChange, click: onChartClick },
         };
-    }, [data, supplierNames, supplierColors, selectedSupplierId, spec]);
+    }, [data, supplierNames, supplierColors, selectedSupplierId, spec, onChartSelectionChange, onChartClick]);
 
-    return <AgCharts options={options} style={{ height: '100%', width: '100%' }} />;
+    return <AgCharts ref={chartRef} options={options} style={{ height: '100%', width: '100%' }} />;
 }

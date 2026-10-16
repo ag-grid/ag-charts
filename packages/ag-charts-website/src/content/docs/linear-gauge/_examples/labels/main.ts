@@ -26,8 +26,7 @@ const options: AgLinearGaugeOptions = {
     label: {
         enabled: true,
         placement: 'inside-start',
-        avoidCollisions: true,
-        color: { ref: 'textColor' },
+        outsideStyle: { color: { ref: 'textColor' } },
     },
 };
 
@@ -38,8 +37,8 @@ function setLabelPlacement(placement: AgLinearGaugeLabelPlacement) {
     chart.update(options);
 }
 
-function setAvoidCollisions(avoidCollisions: boolean) {
-    options.label!.avoidCollisions = avoidCollisions;
+function setAlwaysShow(alwaysShow: boolean) {
+    options.label!.collision = { alwaysShow };
     chart.update(options);
 }
 

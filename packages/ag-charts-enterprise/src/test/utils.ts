@@ -1,12 +1,10 @@
-import { type AgChartOptions, AgCharts, type AgGaugeOptions } from 'ag-charts-community';
+import { type AgChartInstance, type AgChartOptions, AgCharts, type AgGaugeOptions } from 'ag-charts-community';
 import {
-    type Chart,
     type PhasedPropertyExpectation,
     type SceneGeometrySample,
     type SceneNodeExpectation,
     type ScenePropertyExpectation,
     type TrajectoryExpectation,
-    deproxy,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
@@ -62,9 +60,13 @@ export function prepareEnterpriseTestOptions<T extends AgChartOptions<any, any> 
     return prepareTestOptions(options as any, container);
 }
 
-export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(options: T): Promise<Chart> {
+/**
+ * The canonical enterprise chart factory for tests. Returns the public `AgChartInstance`; wrap the result in `deproxy()`
+ * where a test needs chart internals, so that the internal access is visible at the call site.
+ */
+export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(options: T): Promise<AgChartInstance> {
     options = prepareEnterpriseTestOptions({ ...options });
-    const chart = deproxy(AgCharts.create(options as any));
+    const chart = AgCharts.create(options as any);
     await waitForChartStability(chart);
     return chart;
 }

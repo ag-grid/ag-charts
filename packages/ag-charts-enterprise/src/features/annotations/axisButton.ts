@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-core';
 import { AbstractModuleInstance, ButtonWidget, ChartAxisDirection, clamp, getIconClassNames } from 'ag-charts-core';
 
+import { snapPositionToInterval } from '../../utils/axisSnap';
 import { convert, invert } from './utils/values';
 
 const { InteractionState } = _ModuleSupport;
@@ -21,6 +22,7 @@ export class AxisButton extends AbstractModuleInstance {
     private readonly button: ButtonWidget;
     private readonly snap: boolean = false;
     private padding: number = 0;
+    private snapInterval?: number;
     private coords?: Point;
 
     constructor(
@@ -51,9 +53,10 @@ export class AxisButton extends AbstractModuleInstance {
         );
     }
 
-    update(seriesRect: BBox, padding: number) {
+    update(seriesRect: BBox, padding: number, snapInterval?: number) {
         this.seriesRect = seriesRect;
         this.padding = padding;
+        this.snapInterval = snapInterval;
     }
 
     private setup() {
@@ -94,12 +97,22 @@ export class AxisButton extends AbstractModuleInstance {
 
         this.toggleVisibility(true);
 
-        const buttonCoords = this.getButtonCoordinates({ x, y });
+        const snappedY = this.snapToInterval(y);
+        const buttonCoords = this.getButtonCoordinates({ x, y: snappedY ?? y });
         this.coords = {
             x: buttonCoords.x + this.button.clientWidth / 2,
-            y: buttonCoords.y + this.button.clientHeight / 2,
+            // The button is clamped inside the series area; the line still goes on the snapped price.
+            y: snappedY ?? buttonCoords.y + this.button.clientHeight / 2,
         };
         this.updatePosition(buttonCoords);
+    }
+
+    private snapToInterval(y: number) {
+        const { axisCtx, snapInterval } = this;
+        if (snapInterval == null || !axisCtx.continuous || axisCtx.direction !== ChartAxisDirection.Y) {
+            return;
+        }
+        return snapPositionToInterval(axisCtx, y, snapInterval).position;
     }
 
     private hide() {

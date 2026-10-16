@@ -5,16 +5,9 @@
 import { vi } from 'vitest';
 
 import type { AgCartesianChartOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
-import {
-    Chart,
-    clickAction,
-    deproxy,
-    doubleClickAction,
-    setupMockCanvas,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { clickAction, doubleClickAction, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
 import { closeToBigInt, closeToDate, expectWarningsCalls, setupMockConsole } from 'ag-charts-test';
+import type { AgChartInstance } from 'ag-charts-types';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -45,7 +38,7 @@ describe('AxisInteraction', () => {
     setupMockConsole();
     let formatter: ReturnType<typeof vi.fn>;
     let click: ReturnType<typeof vi.fn>;
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     beforeEach(() => {
         formatter = vi.fn();
@@ -861,8 +854,8 @@ describe('AxisInteraction', () => {
 
         type ChartOverrides = Pick<AgCartesianChartOptions, 'axes' | 'zoom'>;
 
-        async function createChart(overrides: ChartOverrides = {}) {
-            const options: AgCartesianChartOptions = {
+        function chartOptions(overrides: ChartOverrides = {}): AgCartesianChartOptions {
+            return {
                 data: [
                     { x: 'A', y: 1 },
                     { x: 'B', y: 2 },
@@ -871,7 +864,6 @@ describe('AxisInteraction', () => {
                 listeners: { click: chartClick, doubleClick: chartDoubleClick },
                 ...overrides,
             };
-            return createEnterpriseChart(options);
         }
 
         beforeEach(() => {
@@ -880,7 +872,7 @@ describe('AxisInteraction', () => {
         });
 
         test('fires for a click on either axis area', async () => {
-            chart = await createChart();
+            chart = await createEnterpriseChart(chartOptions());
 
             await clickAction(...X_AXIS_AREA)(chart);
             await clickAction(...Y_AXIS_AREA)(chart);
@@ -893,7 +885,7 @@ describe('AxisInteraction', () => {
         });
 
         test('fires doubleClick for a double-click on the axis area', async () => {
-            chart = await createChart();
+            chart = await createEnterpriseChart(chartOptions());
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -902,7 +894,7 @@ describe('AxisInteraction', () => {
         });
 
         test('an axis listener consumes the click, and only for its own axis', async () => {
-            chart = await createChart({ axes: { x: { listeners: { click } }, y: {} } });
+            chart = await createEnterpriseChart(chartOptions({ axes: { x: { listeners: { click } }, y: {} } }));
 
             await clickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -921,7 +913,7 @@ describe('AxisInteraction', () => {
         // A listener for one event type must not suppress the fallback for the other: the dispatch below
         // picks its listener by event type, so the unmatched event would otherwise reach nothing at all.
         test('a click-only axis listener leaves doubleClick to the chart', async () => {
-            chart = await createChart({ axes: { x: { listeners: { click } }, y: {} } });
+            chart = await createEnterpriseChart(chartOptions({ axes: { x: { listeners: { click } }, y: {} } }));
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -933,7 +925,7 @@ describe('AxisInteraction', () => {
 
         test('a doubleClick-only axis listener leaves click to the chart', async () => {
             const doubleClick = vi.fn();
-            chart = await createChart({ axes: { x: { listeners: { doubleClick } }, y: {} } });
+            chart = await createEnterpriseChart(chartOptions({ axes: { x: { listeners: { doubleClick } }, y: {} } }));
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -947,7 +939,9 @@ describe('AxisInteraction', () => {
         });
 
         test('zoom owns the axis, so nothing is handed back to the chart', async () => {
-            chart = await createChart({ zoom: { enabled: true, enableDoubleClickToReset: true } });
+            chart = await createEnterpriseChart(
+                chartOptions({ zoom: { enabled: true, enableDoubleClickToReset: true } })
+            );
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -985,28 +979,19 @@ describe('AxisInteraction', () => {
             { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'y2' },
         ];
 
-        // Creates through the public API so that the test can also drive `update` on the same instance.
-        async function create(options: AgCartesianChartOptions) {
-            prepareEnterpriseTestOptions(options);
-            const proxy = AgCharts.create(options);
-            chart = deproxy(proxy);
-            await waitForChartStability(chart);
-            return proxy;
-        }
-
-        async function update(proxy: ReturnType<typeof AgCharts.create>, options: AgCartesianChartOptions) {
+        async function update(proxy: AgChartInstance, options: AgCartesianChartOptions) {
             prepareEnterpriseTestOptions(options);
             await proxy.update(options);
             await waitForChartStability(chart);
         }
 
         test('defaults to the axis keys when no axes are configured', async () => {
-            await create(lineOptions());
+            chart = await createEnterpriseChart(lineOptions());
             expect(regionLabels()).toEqual(expect.arrayContaining(['x', 'y']));
         });
 
         test('uses the axis title text', async () => {
-            await create(
+            chart = await createEnterpriseChart(
                 lineOptions({
                     x: { type: 'number', title: { text: 'Time' } },
                     y: { type: 'number', title: { text: 'Price' } },
@@ -1016,7 +1001,7 @@ describe('AxisInteraction', () => {
         });
 
         test('ariaLabel wins over the title', async () => {
-            await create(
+            chart = await createEnterpriseChart(
                 lineOptions({
                     x: { type: 'number', ariaLabel: 'Horizontal', title: { text: 'Time' } },
                     y: { type: 'number', title: { text: 'Price' } },
@@ -1026,7 +1011,7 @@ describe('AxisInteraction', () => {
         });
 
         test('a disabled title falls back to the axis key', async () => {
-            await create(
+            chart = await createEnterpriseChart(
                 lineOptions({
                     x: { type: 'number', title: { enabled: false, text: 'Time' } },
                     y: { type: 'number', title: { enabled: true, text: 'Price' } },
@@ -1036,7 +1021,7 @@ describe('AxisInteraction', () => {
         });
 
         test('a secondary axis is labelled with its key, never the internal id', async () => {
-            await create(
+            chart = await createEnterpriseChart(
                 lineOptions(
                     {
                         x: { type: 'number' },
@@ -1056,10 +1041,10 @@ describe('AxisInteraction', () => {
                 x: { type: 'number' },
                 y: { type: 'number', title: { text } },
             });
-            const proxy = await create(lineOptions(axes('Before')));
+            chart = await createEnterpriseChart(lineOptions(axes('Before')));
             expect(regionLabels()).toEqual(['Before', 'x']);
 
-            await update(proxy, lineOptions(axes('After')));
+            await update(chart, lineOptions(axes('After')));
             expect(regionLabels()).toEqual(['After', 'x']);
         });
 
@@ -1068,15 +1053,15 @@ describe('AxisInteraction', () => {
                 x: { type: 'number' },
                 y: { type: 'number', ariaLabel: 'Fixed', title: { text } },
             });
-            const proxy = await create(lineOptions(axes('Before')));
+            chart = await createEnterpriseChart(lineOptions(axes('Before')));
             expect(regionLabels()).toEqual(['Fixed', 'x']);
 
-            await update(proxy, lineOptions(axes('After')));
+            await update(chart, lineOptions(axes('After')));
             expect(regionLabels()).toEqual(['Fixed', 'x']);
         });
 
         test('axes sharing a title are disambiguated by key', async () => {
-            await create(
+            chart = await createEnterpriseChart(
                 lineOptions(
                     {
                         x: { type: 'number' },
@@ -1098,7 +1083,7 @@ describe('AxisInteraction', () => {
                 },
                 twoYSeries
             );
-            await create(options);
+            chart = await createEnterpriseChart(options);
             expect(regionLabels()).toEqual(['Same', 'Same', 'x']);
             expectWarningsCalls().toEqual([[expect.stringContaining('[ariaLabel]')]]);
         });

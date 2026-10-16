@@ -1,5 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import type {
+    NormalisedChartLabelStyleOptions,
     NormalisedGaugeSeriesStyle,
     NormalisedLinearGaugeLabelOptions,
     NormalisedTextOrSegments,
@@ -11,8 +12,11 @@ import type {
     AgNumericValue,
     FontStyle,
     FontWeight,
+    PaddingOptions,
     TextWrap,
 } from 'ag-charts-types';
+
+import type { GaugeTargetDatumLabel } from '../gauge-util/labelPlacement';
 
 export enum NodeDataType {
     Node,
@@ -39,19 +43,6 @@ export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     style: NormalisedGaugeSeriesStyle;
 }
 
-export interface LinearGaugeTargetDatumLabel {
-    offsetX: number;
-    offsetY: number;
-    fill: string | undefined;
-    textAlign: CanvasTextAlign;
-    textBaseline: CanvasTextBaseline;
-    fontStyle: FontStyle | undefined;
-    fontWeight: FontWeight | undefined;
-    fontSize: number;
-    fontFamily: string;
-    lineHeight: number | undefined;
-}
-
 export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     type: NodeDataType.Target;
     readonly itemId: `target-${number}`;
@@ -62,14 +53,19 @@ export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     shape: AgLinearGaugeMarkerShape;
     size: number;
     rotation: number;
-    label: LinearGaugeTargetDatumLabel;
+    label: GaugeTargetDatumLabel;
     style: NormalisedGaugeSeriesStyle;
 }
 
 export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum {
-    placement: AgLinearGaugeLabelPlacement;
-    avoidCollisions: boolean;
+    placements: AgLinearGaugeLabelPlacement[];
+    avoidCollisions: boolean | undefined;
     spacing: number;
+    maxWidth: number | undefined;
+    maxHeight: number | undefined;
+    insideStyle: NormalisedChartLabelStyleOptions;
+    outsideStyle: NormalisedChartLabelStyleOptions;
+    boxExtent: Required<PaddingOptions>;
     text: NormalisedTextOrSegments | undefined;
     value: AgNumericValue;
     fill: string | undefined;

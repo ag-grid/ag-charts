@@ -158,12 +158,6 @@ export interface TrackedShipment extends Shipment {
     position: GeoPoint;
     /** Whole days until (positive) or past (negative) the required date. */
     daysToRequired: number;
-    /**
-     * Days of slack between the projected arrival and the required date. Negative means
-     * the shipment is projected to land late — this, not `daysToRequired`, is what the
-     * status is derived from.
-     */
-    slackDays: number;
 }
 
 /** A node in the spend hierarchy the sunburst renders. */
@@ -376,6 +370,18 @@ export interface SlipDistribution {
 export interface QualityCost {
     supplierId: string;
     supplier: string;
+    /** Value of the quantity that failed inspection, at the price she paid for it. */
+    rejectedValue: number;
+    /** Share of delivered quantity accepted, 0-1 — the rate the value is derived from. */
+    acceptedRate: number;
+    /** Delivered lines behind the figure. */
+    deliveredCount: number;
+}
+
+/** One material's rejected cost from a single supplier, beneath that supplier's `QualityCost`. */
+export interface MaterialQualityCost {
+    material: string;
+    subcategory: string;
     /** Value of the quantity that failed inspection, at the price she paid for it. */
     rejectedValue: number;
     /** Share of delivered quantity accepted, 0-1 — the rate the value is derived from. */

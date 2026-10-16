@@ -191,7 +191,7 @@ export interface AgAxisLineOptions {
     enabled?: boolean;
     /**
      * The width in pixels of the axis line.
-     * @deprecated v14.2.0 Use `strokeWidth` instead.
+     * @deprecated v14.3.0 Use `strokeWidth` instead.
      */
     width?: PixelSize;
     /** The colour of the axis line. */

@@ -577,11 +577,13 @@ describe('PieSeries', () => {
 
     describe('#create', () => {
         test('zerosum pie', async () => {
-            chart = await createChart({
-                ...options,
-                data: [{ value: 0 }, { value: 0 }],
-                series: [{ type: 'pie', angleKey: 'value' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [{ value: 0 }, { value: 0 }],
+                    series: [{ type: 'pie', angleKey: 'value' }],
+                })
+            );
             await compare();
         });
 
@@ -598,7 +600,7 @@ describe('PieSeries', () => {
                 { type: 'pie', data, angleKey: 'value', calloutLabelKey: 'label', sectorLabelKey: 'value' },
             ];
 
-            chart = await createChart({ ...options, series: makeSeries(numberData) });
+            chart = deproxy(await createChart({ ...options, series: makeSeries(numberData) }));
             const numberImage = ctx.snapshot();
             chart.destroy();
 
@@ -606,7 +608,7 @@ describe('PieSeries', () => {
             // (a stale canvas would let an image comparison alone pass spuriously, so assert that too).
             const errorSpy = vi.spyOn(console, 'error');
             const bigintData = numberData.map((d) => ({ ...d, value: BigInt(d.value) }));
-            chart = await createChart({ ...options, series: makeSeries(bigintData) });
+            chart = deproxy(await createChart({ ...options, series: makeSeries(bigintData) }));
             const bigintImage = ctx.snapshot();
 
             expect(errorSpy).not.toHaveBeenCalled();
@@ -617,11 +619,13 @@ describe('PieSeries', () => {
 
     describe('#validation', () => {
         test('missing data warning', async () => {
-            chart = await createChart({
-                ...options,
-                data: [{ cat: '1' }, { cat: '2' }, { fox: 'L' }, { cat: '4', dog: 10 }, { cat: '5', dog: 20 }],
-                series: [{ type: 'pie', calloutLabelKey: 'cat', angleKey: 'dog', sectorLabelKey: 'fox' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [{ cat: '1' }, { cat: '2' }, { fox: 'L' }, { cat: '4', dog: 10 }, { cat: '5', dog: 20 }],
+                    series: [{ type: 'pie', calloutLabelKey: 'cat', angleKey: 'dog', sectorLabelKey: 'fox' }],
+                })
+            );
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -643,15 +647,17 @@ describe('PieSeries', () => {
         });
 
         test('null callout label key warning', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { label: 'A', value: 10 },
-                    { label: null, value: 20 },
-                    { label: 'B', value: 15 },
-                ],
-                series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { label: 'A', value: 10 },
+                        { label: null, value: 20 },
+                        { label: 'B', value: 15 },
+                    ],
+                    series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+                })
+            );
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -673,7 +679,7 @@ describe('PieSeries', () => {
             const opts: AgChartOptions = examples.PIE_NULL_ANGLE_KEY_EXAMPLE;
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -694,7 +700,7 @@ describe('PieSeries', () => {
             const opts: AgChartOptions = examples.PIE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -704,7 +710,7 @@ describe('PieSeries', () => {
             const opts: AgChartOptions = examples.PIE_UNDEFINED_CATEGORY_KEY_EXAMPLE;
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -725,7 +731,7 @@ describe('PieSeries', () => {
             const opts: AgChartOptions = examples.PIE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -735,7 +741,7 @@ describe('PieSeries', () => {
             const opts: AgChartOptions = examples.PIE_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -768,7 +774,7 @@ describe('PieSeries', () => {
             };
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expect(calloutLabelFormatter).toHaveBeenCalled();
             const callWithNull = calloutLabelFormatter.mock.calls.find((c: any[]) => c[0]?.value === null);
@@ -795,7 +801,7 @@ describe('PieSeries', () => {
             };
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             await compare();
         });
@@ -803,22 +809,24 @@ describe('PieSeries', () => {
 
     describe('duplicate labels', () => {
         it('retains both callout and sector labels when two sectors share a label value', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { label: 'Android', value: 56.9, value2: 'duplicate' },
-                    { label: 'iOS', value: 56.9, value2: 'duplicate' },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        angleKey: 'value',
-                        calloutLabelKey: 'value2',
-                        sectorLabelKey: 'value2',
-                        sectorLabel: { color: 'white', fontWeight: 'bold' },
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { label: 'Android', value: 56.9, value2: 'duplicate' },
+                        { label: 'iOS', value: 56.9, value2: 'duplicate' },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'value',
+                            calloutLabelKey: 'value2',
+                            sectorLabelKey: 'value2',
+                            sectorLabel: { color: 'white', fontWeight: 'bold' },
+                        },
+                    ],
+                })
+            );
 
             const pieSeries = classCast(deproxy(chart).series[0], PieSeries);
             const labels = (pieSeries.getNodeData() ?? []).map((datum) => ({
@@ -843,452 +851,479 @@ describe('PieSeries', () => {
 
     describe('pattern fill', () => {
         it('should render pie series with default pattern fills', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 20, dog: 31 },
-                    { cat: 3, fox: 11, dog: 30 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        fills: [{ type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }],
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 20, dog: 31 },
+                        { cat: 3, fox: 11, dog: 30 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            fills: [{ type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }],
+                        },
+                    ],
+                })
+            );
             await compare(undefined, PATTERN_SNAPSHOT_DEFAULTS);
         });
 
         it('should render pie series with pattern fills', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 20, dog: 31 },
-                    { cat: 3, fox: 11, dog: 30 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        fills: [
-                            {
-                                type: 'pattern',
-                                pattern: 'hearts',
-                                fill: 'red',
-                                stroke: 'red',
-                                backgroundFill: 'cyan',
-                                backgroundFillOpacity: 0.6,
-                                fillOpacity: 1,
-                                strokeWidth: 1,
-                                width: 60,
-                                height: 60,
-                            },
-                            {
-                                type: 'pattern',
-                                pattern: 'stars',
-                                fill: 'cyan',
-                                stroke: 'blue',
-                                backgroundFill: 'yellow',
-                                backgroundFillOpacity: 0.6,
-                                fillOpacity: 1,
-                                strokeWidth: 1,
-                                width: 20,
-                                height: 20,
-                            },
-                            {
-                                type: 'pattern',
-                                pattern: 'circles',
-                                fill: 'cyan',
-                                stroke: 'blue',
-                                backgroundFill: 'yellow',
-                                backgroundFillOpacity: 0.6,
-                                fillOpacity: 1,
-                                strokeWidth: 2,
-                                width: 50,
-                                height: 50,
-                            },
-                            {
-                                type: 'pattern',
-                                fill: 'cyan',
-                                stroke: 'blue',
-                                backgroundFill: 'yellow',
-                                backgroundFillOpacity: 0.6,
-                                fillOpacity: 1,
-                                strokeWidth: 2,
-                                path: 'M 0 17.83 V 0 h 17.83 a 3 3 0 0 1 -5.66 2 H 5.9 A 5 5 0 0 1 2 5.9 v 6.27 a 3 3 0 0 1 -2 5.66 Z m 0 18.34 a 3 3 0 0 1 2 5.66 v 6.27 A 5 5 0 0 1 5.9 52 h 6.27 a 3 3 0 0 1 5.66 0 H 0 V 36.17 Z M 36.17 52 a 3 3 0 0 1 5.66 0 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 0 1 0 -5.66 V 52 H 36.17 Z M 0 31.93 v -9.78 a 5 5 0 0 1 3.8 0.72 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 L 5.2 24.28 a 5 5 0 0 1 0 5.52 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 3.8 31.2 a 5 5 0 0 1 -3.8 0.72 Z m 52 -14.1 a 3 3 0 0 1 0 -5.66 V 5.9 A 5 5 0 0 1 48.1 2 h -6.27 a 3 3 0 0 1 -5.66 -2 H 52 v 17.83 Z m 0 14.1 a 4.97 4.97 0 0 1 -1.72 -0.72 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 0 -5.52 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 c 0.53 -0.35 1.12 -0.6 1.72 -0.72 v 9.78 Z M 22.15 0 h 9.78 a 5 5 0 0 1 -0.72 3.8 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 29.8 5.2 a 5 5 0 0 1 -5.52 0 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 -0.72 -3.8 Z m 0 52 c 0.13 -0.6 0.37 -1.19 0.72 -1.72 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 a 5 5 0 0 1 5.52 0 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 l -4.44 4.43 c 0.36 0.53 0.6 1.12 0.72 1.72 h -9.78 Z m 9.75 -24 a 5 5 0 0 1 -3.9 3.9 v 6.27 a 3 3 0 1 1 -2 0 V 31.9 a 5 5 0 0 1 -3.9 -3.9 h -6.27 a 3 3 0 1 1 0 -2 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 1 1 2 0 v 6.27 a 5 5 0 0 1 3.9 3.9 h 6.27 a 3 3 0 1 1 0 2 H 31.9 Z',
-                                width: 50,
-                                height: 50,
-                            },
-                            {
-                                type: 'pattern',
-                                pattern: 'crosses',
-                                fill: 'orange',
-                                stroke: 'red',
-                                backgroundFill: 'cyan',
-                                backgroundFillOpacity: 0.6,
-                                fillOpacity: 1,
-                                strokeWidth: 1,
-                                padding: 5,
-                                width: 40,
-                                height: 40,
-                            },
-                        ],
-                    } as AgPieSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 20, dog: 31 },
+                        { cat: 3, fox: 11, dog: 30 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            fills: [
+                                {
+                                    type: 'pattern',
+                                    pattern: 'hearts',
+                                    fill: 'red',
+                                    stroke: 'red',
+                                    backgroundFill: 'cyan',
+                                    backgroundFillOpacity: 0.6,
+                                    fillOpacity: 1,
+                                    strokeWidth: 1,
+                                    width: 60,
+                                    height: 60,
+                                },
+                                {
+                                    type: 'pattern',
+                                    pattern: 'stars',
+                                    fill: 'cyan',
+                                    stroke: 'blue',
+                                    backgroundFill: 'yellow',
+                                    backgroundFillOpacity: 0.6,
+                                    fillOpacity: 1,
+                                    strokeWidth: 1,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                {
+                                    type: 'pattern',
+                                    pattern: 'circles',
+                                    fill: 'cyan',
+                                    stroke: 'blue',
+                                    backgroundFill: 'yellow',
+                                    backgroundFillOpacity: 0.6,
+                                    fillOpacity: 1,
+                                    strokeWidth: 2,
+                                    width: 50,
+                                    height: 50,
+                                },
+                                {
+                                    type: 'pattern',
+                                    fill: 'cyan',
+                                    stroke: 'blue',
+                                    backgroundFill: 'yellow',
+                                    backgroundFillOpacity: 0.6,
+                                    fillOpacity: 1,
+                                    strokeWidth: 2,
+                                    path: 'M 0 17.83 V 0 h 17.83 a 3 3 0 0 1 -5.66 2 H 5.9 A 5 5 0 0 1 2 5.9 v 6.27 a 3 3 0 0 1 -2 5.66 Z m 0 18.34 a 3 3 0 0 1 2 5.66 v 6.27 A 5 5 0 0 1 5.9 52 h 6.27 a 3 3 0 0 1 5.66 0 H 0 V 36.17 Z M 36.17 52 a 3 3 0 0 1 5.66 0 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 0 1 0 -5.66 V 52 H 36.17 Z M 0 31.93 v -9.78 a 5 5 0 0 1 3.8 0.72 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 L 5.2 24.28 a 5 5 0 0 1 0 5.52 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 3.8 31.2 a 5 5 0 0 1 -3.8 0.72 Z m 52 -14.1 a 3 3 0 0 1 0 -5.66 V 5.9 A 5 5 0 0 1 48.1 2 h -6.27 a 3 3 0 0 1 -5.66 -2 H 52 v 17.83 Z m 0 14.1 a 4.97 4.97 0 0 1 -1.72 -0.72 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 0 -5.52 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 c 0.53 -0.35 1.12 -0.6 1.72 -0.72 v 9.78 Z M 22.15 0 h 9.78 a 5 5 0 0 1 -0.72 3.8 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 29.8 5.2 a 5 5 0 0 1 -5.52 0 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 -0.72 -3.8 Z m 0 52 c 0.13 -0.6 0.37 -1.19 0.72 -1.72 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 a 5 5 0 0 1 5.52 0 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 l -4.44 4.43 c 0.36 0.53 0.6 1.12 0.72 1.72 h -9.78 Z m 9.75 -24 a 5 5 0 0 1 -3.9 3.9 v 6.27 a 3 3 0 1 1 -2 0 V 31.9 a 5 5 0 0 1 -3.9 -3.9 h -6.27 a 3 3 0 1 1 0 -2 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 1 1 2 0 v 6.27 a 5 5 0 0 1 3.9 3.9 h 6.27 a 3 3 0 1 1 0 2 H 31.9 Z',
+                                    width: 50,
+                                    height: 50,
+                                },
+                                {
+                                    type: 'pattern',
+                                    pattern: 'crosses',
+                                    fill: 'orange',
+                                    stroke: 'red',
+                                    backgroundFill: 'cyan',
+                                    backgroundFillOpacity: 0.6,
+                                    fillOpacity: 1,
+                                    strokeWidth: 1,
+                                    padding: 5,
+                                    width: 40,
+                                    height: 40,
+                                },
+                            ],
+                        } as AgPieSeriesOptions,
+                    ],
+                })
+            );
             await compare(undefined, looserSnapshotDefaults(0.08));
         });
     });
 
     describe('gradient fill', () => {
         it('should render pie series with a default radial gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        fills: [
-                            {
-                                type: 'gradient',
-                            },
-                        ],
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                },
+                            ],
+                        },
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render pie series with a radial gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        fills: [
-                            {
-                                type: 'gradient',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render pie series with a mix of radial gradient and string fills', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        fills: [
-                            {
-                                type: 'gradient',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                            'blue',
-                        ],
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                                'blue',
+                            ],
+                        },
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render pie series with an item bound linear gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        fills: [
-                            {
-                                type: 'gradient',
-                                /* @ts-expect-error internal option */
-                                gradient: 'linear',
-                                bounds: 'item',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    } as AgPieSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    /* @ts-expect-error internal option */
+                                    gradient: 'linear',
+                                    bounds: 'item',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            ],
+                        } as AgPieSeriesOptions,
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render pie series with a series bound linear gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        fills: [
-                            {
-                                type: 'gradient',
-                                /* @ts-expect-error internal option */
-                                gradient: 'linear',
-                                bounds: 'series',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    } as AgPieSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    /* @ts-expect-error internal option */
+                                    gradient: 'linear',
+                                    bounds: 'series',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            ],
+                        } as AgPieSeriesOptions,
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render pie series with a series bound radial gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        angleKey: 'fox',
-                        radiusKey: 'cat',
-                        sectorLabelKey: 'fox',
-                        fills: [
-                            {
-                                type: 'gradient',
-                                /* @ts-expect-error internal option */
-                                gradient: 'radial',
-                                bounds: 'series',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    } as AgPieSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'fox',
+                            radiusKey: 'cat',
+                            sectorLabelKey: 'fox',
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    /* @ts-expect-error internal option */
+                                    gradient: 'radial',
+                                    bounds: 'series',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            ],
+                        } as AgPieSeriesOptions,
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render pie series with an item bound radial gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        angleKey: 'fox',
-                        radiusKey: 'cat',
-                        sectorLabelKey: 'fox',
-                        fills: [
-                            {
-                                type: 'gradient',
-                                /* @ts-expect-error internal option */
-                                gradient: 'radial',
-                                bounds: 'item',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    } as AgPieSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'fox',
+                            radiusKey: 'cat',
+                            sectorLabelKey: 'fox',
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    /* @ts-expect-error internal option */
+                                    gradient: 'radial',
+                                    bounds: 'item',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            ],
+                        } as AgPieSeriesOptions,
+                    ],
+                })
+            );
             await compare();
         });
     });
 
     describe('itemStyler', () => {
         it('complex fills', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        itemStyler: (params) => {
-                            if (params.datum.fox === 20) return { fill: { type: 'gradient' } };
-                            if (params.datum.fox === 10) return { fill: { type: 'pattern' } };
-                            if (params.datum.fox === 15) return { fill: { type: 'pattern', pattern: 'squares' } };
-                            if (params.datum.fox === 17) {
-                                return {
-                                    fill: { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'blue' }] },
-                                };
-                            }
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            itemStyler: (params) => {
+                                if (params.datum.fox === 20) return { fill: { type: 'gradient' } };
+                                if (params.datum.fox === 10) return { fill: { type: 'pattern' } };
+                                if (params.datum.fox === 15) return { fill: { type: 'pattern', pattern: 'squares' } };
+                                if (params.datum.fox === 17) {
+                                    return {
+                                        fill: { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'blue' }] },
+                                    };
+                                }
+                            },
                         },
-                    },
-                ],
-            });
+                    ],
+                })
+            );
             await compare();
         });
 
         it('complex fills over default fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        fills: ['red'],
-                        itemStyler: (params) => {
-                            if (params.datum.fox === 20) return { fill: { type: 'gradient' } };
-                            if (params.datum.fox === 10) return { fill: { type: 'pattern' } };
-                            if (params.datum.fox === 15) return { fill: { type: 'pattern', pattern: 'squares' } };
-                            if (params.datum.fox === 17) {
-                                return {
-                                    fill: { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'blue' }] },
-                                };
-                            }
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            fills: ['red'],
+                            itemStyler: (params) => {
+                                if (params.datum.fox === 20) return { fill: { type: 'gradient' } };
+                                if (params.datum.fox === 10) return { fill: { type: 'pattern' } };
+                                if (params.datum.fox === 15) return { fill: { type: 'pattern', pattern: 'squares' } };
+                                if (params.datum.fox === 17) {
+                                    return {
+                                        fill: { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'blue' }] },
+                                    };
+                                }
+                            },
                         },
-                    },
-                ],
-            });
+                    ],
+                })
+            );
             await compare();
         });
 
         it('complex fills over default gradient', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'pie',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        fills: [{ type: 'gradient' }],
-                        itemStyler: (params) => {
-                            if (params.datum.fox === 20) return { fill: { type: 'gradient' } };
-                            if (params.datum.fox === 10) return { fill: { type: 'pattern' } };
-                            if (params.datum.fox === 15) return { fill: { type: 'pattern', pattern: 'squares' } };
-                            if (params.datum.fox === 17) {
-                                return {
-                                    fill: { type: 'gradient', colorStops: [{ color: 'pink' }, { color: 'orange' }] },
-                                };
-                            }
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            fills: [{ type: 'gradient' }],
+                            itemStyler: (params) => {
+                                if (params.datum.fox === 20) return { fill: { type: 'gradient' } };
+                                if (params.datum.fox === 10) return { fill: { type: 'pattern' } };
+                                if (params.datum.fox === 15) return { fill: { type: 'pattern', pattern: 'squares' } };
+                                if (params.datum.fox === 17) {
+                                    return {
+                                        fill: {
+                                            type: 'gradient',
+                                            colorStops: [{ color: 'pink' }, { color: 'orange' }],
+                                        },
+                                    };
+                                }
+                            },
                         },
-                    },
-                ],
-            });
+                    ],
+                })
+            );
             await compare();
         });
     });
@@ -1331,7 +1366,7 @@ describe('PieSeries', () => {
         };
 
         beforeEach(async () => {
-            chart = await createChart(nodeClickOptions);
+            chart = deproxy(await createChart(nodeClickOptions));
             clicks.splice(0, clicks.length);
             doubleClicks.splice(0, doubleClicks.length);
             legendClicks.splice(0, legendClicks.length);
@@ -1409,14 +1444,16 @@ describe('PieSeries', () => {
 
     describe('AG-14232 legend toggling', () => {
         beforeEach(async () => {
-            chart = await createChart({
-                data: [
-                    { name: 'Pizza', value: 3 },
-                    { name: 'Cake', value: 4 },
-                    { name: 'Quiche', value: 5 },
-                ],
-                series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'name' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { name: 'Pizza', value: 3 },
+                        { name: 'Cake', value: 4 },
+                        { name: 'Quiche', value: 5 },
+                    ],
+                    series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'name' }],
+                })
+            );
         });
         describe('click', () => {
             test('mouse', async () => {
@@ -1622,13 +1659,13 @@ describe('PieSeries', () => {
         });
 
         it('should display legend item for zero value sectors when `hideZeroValueSectorsInLegend` is not supplied in the options', async () => {
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
             await compare();
         });
         it('should hide legend item for zero value sectors when `hideZeroValueSectorsInLegend` is set to `true`', async () => {
             opts.series[0] = { ...series[0], hideZeroValueSectorsInLegend: true };
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
             await compare();
         });
     });
@@ -1657,7 +1694,7 @@ describe('PieSeries', () => {
                 ],
             };
 
-            chart = await createChart(invalidDataOptions);
+            chart = deproxy(await createChart(invalidDataOptions));
             await compare();
 
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -1732,7 +1769,7 @@ describe('PieSeries', () => {
                     },
                 ],
             };
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
         });
         test('calls', () => {
             expect(itemStyler.mock.mock.calls).toMatchSnapshot();
@@ -1817,18 +1854,20 @@ describe('PieSeries', () => {
         ];
 
         it('angleKey less than angleFilterKey', async () => {
-            chart = await createChart({
-                ...options,
-                data: angleFilterData,
-                series: [
-                    {
-                        type: 'pie',
-                        angleKey: 'angle',
-                        angleFilterKey: 'angleFilter',
-                        calloutLabelKey: 'label',
-                    } as AgPieSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: angleFilterData,
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'angle',
+                            angleFilterKey: 'angleFilter',
+                            calloutLabelKey: 'label',
+                        } as AgPieSeriesOptions,
+                    ],
+                })
+            );
             await waitForChartStability(chart);
 
             await compare();
@@ -1840,18 +1879,20 @@ describe('PieSeries', () => {
                 { label: 'B', angle: 15, angleFilter: 5 },
                 { label: 'C', angle: 12, angleFilter: 8 },
             ];
-            chart = await createChart({
-                ...options,
-                data,
-                series: [
-                    {
-                        type: 'pie',
-                        angleKey: 'angle',
-                        angleFilterKey: 'angleFilter',
-                        calloutLabelKey: 'label',
-                    } as AgPieSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data,
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'angle',
+                            angleFilterKey: 'angleFilter',
+                            calloutLabelKey: 'label',
+                        } as AgPieSeriesOptions,
+                    ],
+                })
+            );
             await waitForChartStability(chart);
 
             await compare();

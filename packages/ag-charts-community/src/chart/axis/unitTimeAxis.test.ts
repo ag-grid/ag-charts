@@ -1,15 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { BBox, mapValues } from 'ag-charts-core';
-import type {
-    AgBaseChartOptions,
-    AgCartesianAxisPosition,
-    AgCartesianAxisType,
-    AgCartesianChartOptions,
-    AgPolarChartOptions,
-} from 'ag-charts-types';
+import { BBox } from 'ag-charts-core';
+import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
-import type { ChartAxis } from '../chartAxis';
+import { calculateAxisBBox, mixinDerivedCases } from '../test/axisTestCases';
 import {
     type ChartOrProxy,
     cartesianChartAssertions,
@@ -17,7 +11,6 @@ import {
     createChart,
     deproxy,
     prepareTestOptions,
-    reverseAxes,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -384,35 +377,6 @@ const TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA: AgCartesianChartOptions = {
     ],
 };
 
-function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
-    };
-}
-
-function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
-    const positionFlip = (position?: AgCartesianAxisPosition) => {
-        switch (position) {
-            case 'top':
-                return 'bottom';
-            case 'left':
-                return 'right';
-            case 'bottom':
-                return 'top';
-            case 'right':
-                return 'left';
-            default:
-                return position;
-        }
-    };
-
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
-    };
-}
-
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
     assertions: (chart: ChartOrProxy) => Promise<void> | void;
@@ -420,7 +384,7 @@ type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     compare?: (AgCartesianAxisType | 'unit-time')[];
 };
 const EXAMPLES: Record<string, TestCase> = {
-    ...mixinDerivedCases({
+    ...mixinDerivedCases<TestCase>({
         BASIC_TIME_AXIS_EXAMPLE: {
             options: BASIC_TIME_AXIS_EXAMPLE,
             compare: ['unit-time'],
@@ -461,40 +425,6 @@ const EXAMPLES: Record<string, TestCase> = {
     }),
 };
 
-function mixinDerivedCases<T extends AgBaseChartOptions>(
-    baseCases: Record<string, TestCase<T>>
-): Record<string, TestCase<T>> {
-    const result = { ...baseCases };
-
-    for (const [name, baseCase] of Object.entries(baseCases)) {
-        // Add manual rotation.
-        result[name + '_MANUAL_ROTATION'] = {
-            ...baseCase,
-            options: applyRotation(baseCase.options, -30),
-        };
-
-        // Add flipped axes.
-        result[name + '_FLIP'] = {
-            ...baseCase,
-            options: applyAxesFlip(baseCase.options),
-        };
-
-        result[name + '_REVERSED_AXES'] = {
-            ...baseCase,
-            options: reverseAxes(baseCase.options, true),
-        };
-    }
-
-    return result;
-}
-
-function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: number; height: number } {
-    const bbox = axis.getBBox();
-
-    const { x, y, width, height } = bbox;
-    return { x, y, width, height };
-}
-
 describe('Time Axis Examples', () => {
     setupMockConsole();
     let chart: any;
@@ -513,7 +443,7 @@ describe('Time Axis Examples', () => {
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
         it(`for ${exampleName} it should create chart instance as expected`, async () => {
-            chart = await createChart(example.options);
+            chart = deproxy(await createChart(example.options));
             await example.assertions(chart);
         });
 
@@ -529,7 +459,7 @@ describe('Time Axis Examples', () => {
                 }
             };
 
-            chart = await createChart(example.options);
+            chart = deproxy(await createChart(example.options));
             await axisCompare();
 
             if (example.extraScreenshotActions) {
@@ -541,7 +471,7 @@ describe('Time Axis Examples', () => {
 
     it('should handle a single value', async () => {
         const options = { ...BASIC_TIME_AXIS_EXAMPLE, data: BASIC_TIME_AXIS_EXAMPLE.data!.slice(0, 1) };
-        chart = await createChart(options);
+        chart = deproxy(await createChart(options));
         await compare();
     });
 
@@ -570,7 +500,7 @@ describe('Time Axis Examples', () => {
                 y: { type: 'number', position: 'left' },
             },
         };
-        chart = await createChart(options);
+        chart = deproxy(await createChart(options));
         await compare();
     });
 
@@ -606,7 +536,7 @@ describe('Time Axis Examples', () => {
                 y: { type: 'number', position: 'left' },
             },
         };
-        chart = await createChart(options);
+        chart = deproxy(await createChart(options));
         await compare();
     });
 
@@ -648,7 +578,7 @@ describe('Time Axis Examples', () => {
         it.each(['time', 'unit-time'] as const)(
             'renders only the parent (year) tier when base labels are disabled on a %s axis',
             async (axisType) => {
-                chart = await createChart(monthAndYearOptions(false, axisType));
+                chart = deproxy(await createChart(monthAndYearOptions(false, axisType)));
 
                 const texts = labelTexts(chart);
                 expect(texts.length).toBeGreaterThan(0);
@@ -662,14 +592,14 @@ describe('Time Axis Examples', () => {
             const options = monthAndYearOptions(false, 'unit-time');
             // The label group draws only while a base or parent tick is enabled.
             (options.axes as any).x.parentLevel.tick = { enabled: true };
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             const axis = deproxy(chart).axes.find((a: any) => a.position === 'bottom') as any;
             expect(labelTexts(chart)).toContain('2024');
             expect(axis.labelSource.getLabelObstacles(BBox.zero)).toHaveLength(labelTexts(chart).length);
         });
 
         it('removes base-tier labels at runtime while the parent tier remains (TC2)', async () => {
-            chart = await createChart(monthAndYearOptions(true, 'unit-time'));
+            chart = deproxy(await createChart(monthAndYearOptions(true, 'unit-time')));
 
             const before = labelTexts(chart);
             expect(before.some((t) => /Jan|Feb|Mar|Nov|Dec/.test(t))).toBe(true);
@@ -683,14 +613,16 @@ describe('Time Axis Examples', () => {
         });
 
         it('hides all labels on a number axis when its labels are disabled (regression guard)', async () => {
-            chart = await createChart({
-                data: PARENT_TIER_DATA,
-                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
-                axes: {
-                    x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left', label: { enabled: false } },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: PARENT_TIER_DATA,
+                    series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left', label: { enabled: false } },
+                    },
+                })
+            );
 
             expect(labelTexts(chart, 'left')).toEqual([]);
         });
@@ -726,7 +658,7 @@ describe('Time Axis Examples', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await compare();
         });
     });

@@ -151,7 +151,7 @@ export type {
 export type { PickFocusInputs, PickFocusOutputs, SeriesNodePickMatch } from './chart/series/pickTypes';
 export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from './chart/series/seriesLabelUtil';
 export type { SeriesItemHighlightStyle } from './chart/series/seriesProperties';
-export { toHighlightString, toSelectionString, isUnselected } from './chart/series/seriesProperties';
+export { hasStateStyle, toHighlightString, toSelectionString, isUnselected } from './chart/series/seriesProperties';
 export type {
     DatumIndex,
     ErrorBoundSeriesNodeDatum,
@@ -283,6 +283,7 @@ export {
     labelHasBox,
     placedLabelTextOffset,
     resolvePlacementLabelBoxExtent,
+    resolvePlacementLabelStyle,
 } from './chart/label';
 export { Marker } from './chart/marker/marker';
 

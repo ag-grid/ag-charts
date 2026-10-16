@@ -39,7 +39,12 @@ import {
 import { Text, Transformable, deepClone } from 'ag-charts-core';
 import type { BBox, Rect } from 'ag-charts-core';
 
-import { DEFAULT_DISABLED_SHADOW, HIERARCHY_SHADOW_DATA, prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    HIERARCHY_SHADOW_DATA,
+    createEnterpriseChart,
+    prepareEnterpriseTestOptions,
+} from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
 
 describe('TreemapSeries', () => {
@@ -131,14 +136,6 @@ describe('TreemapSeries', () => {
             animation: { enabled: false },
         });
 
-        const createChart = async (tileHighlight: any, groupHighlight: any) => {
-            const options = buildOptions(tileHighlight, groupHighlight);
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
-            return chart;
-        };
-
         const nodeAtPath = (series: TreemapSeries, path: number[]): any =>
             path.reduce<any>((node, idx) => node?.children[idx], (series as any).rootNode);
 
@@ -156,31 +153,31 @@ describe('TreemapSeries', () => {
         };
 
         it('highlights a tile on hover by default (control)', async () => {
-            await createChart({}, {});
+            chart = deproxy(await createEnterpriseChart(buildOptions({}, {})));
             const series = chart.series[0] as TreemapSeries;
             expect(await highlightNodeAndReadFill(series, [0, 0])).toEqual('lime');
         });
 
         it('suppresses tile highlighting when tile.highlight.enabled is false', async () => {
-            await createChart({ enabled: false }, {});
+            chart = deproxy(await createEnterpriseChart(buildOptions({ enabled: false }, {})));
             const series = chart.series[0] as TreemapSeries;
             expect(await highlightNodeAndReadFill(series, [0, 0])).not.toEqual('lime');
         });
 
         it('suppresses group highlighting when group.highlight.enabled is false', async () => {
-            await createChart({}, { enabled: false });
+            chart = deproxy(await createEnterpriseChart(buildOptions({}, { enabled: false })));
             const series = chart.series[0] as TreemapSeries;
             expect(await highlightNodeAndReadFill(series, [0])).not.toEqual('cyan');
         });
 
         it('highlights only groups when tile.highlight.enabled is false and group.highlight.enabled is true', async () => {
-            await createChart({ enabled: false }, { enabled: true });
+            chart = deproxy(await createEnterpriseChart(buildOptions({ enabled: false }, { enabled: true })));
             const series = chart.series[0] as TreemapSeries;
             expect(await highlightNodeAndReadFill(series, [0])).toEqual('cyan');
         });
 
         it('suppresses all highlighting when both tile and group highlight.enabled are false', async () => {
-            await createChart({ enabled: false }, { enabled: false });
+            chart = deproxy(await createEnterpriseChart(buildOptions({ enabled: false }, { enabled: false })));
             const series = chart.series[0] as TreemapSeries;
             expect(await highlightNodeAndReadFill(series, [0, 0])).not.toEqual('lime');
             expect(await highlightNodeAndReadFill(series, [0])).not.toEqual('cyan');
@@ -1049,6 +1046,27 @@ describe('TreemapSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        it('should not call the secondaryLabel itemStyler without a secondaryLabelKey', async () => {
+            const secondaryStyler = vi.fn(() => ({}));
+            const options: AgChartOptions = {
+                data: [{ name: 'Group', children: [{ name: 'Alpha', size: 6 }] }],
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        tile: { secondaryLabel: { enabled: true, itemStyler: secondaryStyler } },
+                    },
+                ],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            expect(secondaryStyler).not.toHaveBeenCalled();
+        });
     });
 
     const testPointerEvents = (testParams: {
@@ -1062,11 +1080,11 @@ describe('TreemapSeries', () => {
     }) => {
         const format = (...values: any[]) => values.join(' ');
 
-        const createChart = async (params: {
+        const chartOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): Promise<any> => {
+        }): AgCartesianChartOptions | AgPolarChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
                       renderer(rParams: any) {
@@ -1102,10 +1120,7 @@ describe('TreemapSeries', () => {
                 ...(testParams.chartOptions ?? {}),
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-            const newChart = deproxy(AgCharts.create(options));
-            await waitForChartStability(newChart);
-            return newChart;
+            return options;
         };
 
         const hoverChartNodes = async (
@@ -1155,7 +1170,7 @@ describe('TreemapSeries', () => {
         };
 
         it(`should render tooltip correctly`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
             await hoverChartNodes(chart, ({ series, item }) => {
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
@@ -1172,36 +1187,40 @@ describe('TreemapSeries', () => {
         });
 
         it(`should highlight hovered items`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should highlight hovered items when tooltip is disabled`, async () => {
-            chart = await createChart({ hasTooltip: false });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: false })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: false, onNodeClick });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: false, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 6 }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
     };
@@ -1400,9 +1419,8 @@ describe('TreemapSeries', () => {
             return options;
         };
 
-        const createChart = async (data: any[], series: any = {}) => {
-            chart = deproxy(AgCharts.create(treemapOptions(data, series)));
-            await waitForChartStability(chart);
+        const renderSeries = async (data: any[], series: any = {}) => {
+            chart = deproxy(await createEnterpriseChart(treemapOptions(data, series)));
             return chart.series[0] as TreemapSeries;
         };
 
@@ -1422,7 +1440,7 @@ describe('TreemapSeries', () => {
         const fillOf = (series: TreemapSeries, name: string) => stylesByName(series)[name]?.fill;
 
         it('defaults the group palette to the theme hierarchy colours', async () => {
-            const series = await createChart(DEEP_DATA);
+            const series = await renderSeries(DEEP_DATA);
             const styles = stylesByName(series);
 
             const depthFills = ['A', 'A1', 'A1a'].map((name) => styles[name].fill);
@@ -1431,7 +1449,7 @@ describe('TreemapSeries', () => {
         });
 
         it('cycles the group palette by hierarchy depth', async () => {
-            const series = await createChart(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
+            const series = await renderSeries(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
             const styles = stylesByName(series);
 
             for (const root of ['A', 'B']) {
@@ -1443,7 +1461,7 @@ describe('TreemapSeries', () => {
 
         it('uses only as many colours as the hierarchy is deep', async () => {
             const fills = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
-            const series = await createChart(SHALLOW_DATA, { group: { fills } });
+            const series = await renderSeries(SHALLOW_DATA, { group: { fills } });
             const styles = stylesByName(series);
 
             expect(styles.C.fill).toBe('#ff0000');
@@ -1457,12 +1475,12 @@ describe('TreemapSeries', () => {
         });
 
         it('leaves tile fills unaffected', async () => {
-            const withoutOption = await createChart(DEEP_DATA);
+            const withoutOption = await renderSeries(DEEP_DATA);
             const leafNames = ['A1a-x', 'A1a-y', 'B1a-x', 'B1a-y'];
             const before = leafNames.map((name) => fillOf(withoutOption, name));
             chart.destroy();
 
-            const withOption = await createChart(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
+            const withOption = await renderSeries(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
             const after = leafNames.map((name) => fillOf(withOption, name));
 
             expect(before.every((fill) => fill != null)).toBe(true);
@@ -1470,7 +1488,7 @@ describe('TreemapSeries', () => {
         });
 
         it('gives an explicit group.fill priority over group.fills', async () => {
-            const series = await createChart(DEEP_DATA, {
+            const series = await renderSeries(DEEP_DATA, {
                 group: { fill: '#0000ff', fills: ['#ff0000', '#00ff00'] },
             });
             const styles = stylesByName(series);
@@ -1482,11 +1500,11 @@ describe('TreemapSeries', () => {
 
         it('does not rotate group strokes', async () => {
             const groupNames = ['A', 'A1', 'A1a', 'B', 'B1', 'B1a'];
-            const withoutOption = await createChart(DEEP_DATA);
+            const withoutOption = await renderSeries(DEEP_DATA);
             const before = groupNames.map((name) => stylesByName(withoutOption)[name].stroke);
             chart.destroy();
 
-            const withOption = await createChart(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
+            const withOption = await renderSeries(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
             const after = groupNames.map((name) => stylesByName(withOption)[name].stroke);
 
             // Depths must resolve distinct strokes, or a rotated index would collapse depth 2 onto depth 0.
@@ -1512,7 +1530,7 @@ describe('TreemapSeries', () => {
 
         it('accepts non-string colour values', async () => {
             // A validator rejecting the gradient object would emit a warning, which setupMockConsole() fails on.
-            const series = await createChart(DEEP_DATA, {
+            const series = await renderSeries(DEEP_DATA, {
                 group: {
                     fills: [{ type: 'gradient', colorStops: [{ color: 'green' }, { color: 'white' }] }, '#00ff00'],
                 },
@@ -1532,7 +1550,7 @@ describe('TreemapSeries', () => {
                 name: root,
                 children: [{ name: `${root}-x`, size: 3 }],
             }));
-            const series = await createChart(data, {
+            const series = await renderSeries(data, {
                 fills: ['#ff0000', '#00ff00', '#0000ff', '#ffff00'],
                 strokes,
                 tile: { strokeWidth: 2 },
@@ -1807,6 +1825,8 @@ describe('TreemapSeries', () => {
                             spacing: 8,
                             fill: 'pink',
                             border: { stroke: 'black', strokeWidth: 1 },
+                            // Lets each box's padding and border overhang its tile rather than crowd out the text.
+                            collision: { threshold: -10 },
                         },
                         secondaryLabel: {
                             formatter: (params) => `£${params.value.toFixed(1)}bn`,
@@ -1841,10 +1861,8 @@ describe('TreemapSeries', () => {
             legend: { enabled: false },
             animation: { enabled: false },
         });
-        const createChart = async (options: AgChartOptions) => {
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+        const renderRects = async (options: AgChartOptions) => {
+            chart = deproxy(await createEnterpriseChart(options));
             const series = chart.series[0] as TreemapSeries;
             const rects: { isLeaf: boolean; rect: Rect }[] = [];
             series['datumSelection'].each((rect, node) => {
@@ -1855,14 +1873,14 @@ describe('TreemapSeries', () => {
         };
 
         it('defaults to disabled group and tile shadows', async () => {
-            const { series } = await createChart(shadowOptions());
+            const { series } = await renderRects(shadowOptions());
 
             expect(series['options'].group.shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             expect(series['options'].tile.shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const { rects, leaves, groups } = await createChart(shadowOptions());
+            const { rects, leaves, groups } = await renderRects(shadowOptions());
 
             expect(leaves).toHaveLength(4);
             expect(groups).toHaveLength(3);
@@ -1870,7 +1888,7 @@ describe('TreemapSeries', () => {
         });
 
         it('shadows only the groups when only group.shadow is enabled', async () => {
-            const { leaves, groups } = await createChart(shadowOptions({ group: shadow }));
+            const { leaves, groups } = await renderRects(shadowOptions({ group: shadow }));
 
             expect(groups).toHaveLength(3);
             for (const { rect } of groups) {
@@ -1880,7 +1898,7 @@ describe('TreemapSeries', () => {
         });
 
         it('shadows only the tiles when only tile.shadow is enabled', async () => {
-            const { leaves, groups } = await createChart(shadowOptions({ tile: shadow }));
+            const { leaves, groups } = await renderRects(shadowOptions({ tile: shadow }));
 
             expect(leaves).toHaveLength(4);
             for (const { rect } of leaves) {
@@ -1892,17 +1910,17 @@ describe('TreemapSeries', () => {
         });
 
         it('renders with group.shadow enabled', async () => {
-            await createChart(shadowOptions({ group: shadow }));
+            await renderRects(shadowOptions({ group: shadow }));
             await compare();
         });
 
         it('renders with tile.shadow enabled', async () => {
-            await createChart(shadowOptions({ tile: shadow }));
+            await renderRects(shadowOptions({ tile: shadow }));
             await compare();
         });
 
         it('renders with group.shadow and tile.shadow enabled', async () => {
-            await createChart(shadowOptions({ group: shadow, tile: shadow }));
+            await renderRects(shadowOptions({ group: shadow, tile: shadow }));
             await compare();
         });
     });

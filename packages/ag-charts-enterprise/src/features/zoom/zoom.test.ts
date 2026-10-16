@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -18,8 +18,10 @@ import {
     doubleTapAction,
     dragAction,
     findChartTarget,
+    focusIndicatorContainsCanvasPoint,
     getAggregatedMarkerXValues,
     getLegendModule,
+    getSwapChainText,
     hoverAction,
     mouseDownAction,
     mouseMoveAction,
@@ -35,10 +37,10 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection, type DeepReadonly, Transformable } from 'ag-charts-core';
-import { WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
+import { Caster, WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Zoom', () => {
     setupMockConsole();
@@ -1213,11 +1215,11 @@ describe('Zoom', () => {
             return data;
         }
 
-        async function createMinichartChart(
+        function minichartOptions(
             initialState: NonNullable<AgChartOptions['initialState']>['zoom'],
             myOptions: AgCartesianChartOptions<TDatum>
-        ): Promise<void> {
-            const options: AgCartesianChartOptions<TDatum> = {
+        ): AgCartesianChartOptions<TDatum> {
+            return {
                 data: getData(),
                 series: [{ type: 'line', xKey: 'date', yKey: 'price', marker: { enabled: true } }],
                 axes: {
@@ -1235,32 +1237,33 @@ describe('Zoom', () => {
                     },
                 },
                 ...myOptions,
+                initialState: { zoom: initialState },
             };
-            await prepareChart(undefined, initialState, options, false);
         }
 
         it('should stay in sync with series-area', async () => {
-            await createMinichartChart(
-                { ratioX: { start: 0, end: 0.25 } },
-                {
-                    zoom: {
-                        enabled: true,
-                        autoScaling: {
-                            enabled: false,
-                        },
-                        onDataChange: {
-                            strategy: 'preserveRatios',
-                        },
-                    },
-                    navigator: {
-                        enabled: true,
-                        miniChart: {
+            chart = await createEnterpriseChart(
+                minichartOptions(
+                    { ratioX: { start: 0, end: 0.25 } },
+                    {
+                        zoom: {
                             enabled: true,
+                            autoScaling: {
+                                enabled: false,
+                            },
+                            onDataChange: {
+                                strategy: 'preserveRatios',
+                            },
                         },
-                    },
-                }
+                        navigator: {
+                            enabled: true,
+                            miniChart: {
+                                enabled: true,
+                            },
+                        },
+                    }
+                )
             );
-            await waitForChartStability(chart);
             await compare();
 
             await chart.updateDelta({ data: getData().slice(4) });
@@ -1269,34 +1272,35 @@ describe('Zoom', () => {
 
         describe('AG-8627 TC10', () => {
             it('should clamp navigator handles when removing from start', async () => {
-                await createMinichartChart(
-                    { ratioX: { start: 0, end: 0.25 } },
-                    {
-                        zoom: {
-                            enabled: true,
-                            minVisibleItems: 0,
-                            autoScaling: {
-                                enabled: false,
-                            },
-                            onDataChange: {
-                                strategy: 'preserveDomain',
-                            },
-                        },
-                        navigator: {
-                            enabled: true,
-                            miniChart: {
+                chart = await createEnterpriseChart(
+                    minichartOptions(
+                        { ratioX: { start: 0, end: 0.25 } },
+                        {
+                            zoom: {
                                 enabled: true,
+                                minVisibleItems: 0,
+                                autoScaling: {
+                                    enabled: false,
+                                },
+                                onDataChange: {
+                                    strategy: 'preserveDomain',
+                                },
                             },
-                            minHandle: {
-                                fill: 'yellow',
+                            navigator: {
+                                enabled: true,
+                                miniChart: {
+                                    enabled: true,
+                                },
+                                minHandle: {
+                                    fill: 'yellow',
+                                },
+                                maxHandle: {
+                                    fill: 'cyan',
+                                },
                             },
-                            maxHandle: {
-                                fill: 'cyan',
-                            },
-                        },
-                    }
+                        }
+                    )
                 );
-                await waitForChartStability(chart);
                 await compare();
 
                 await chart.updateDelta({ data: getData().slice(10) });
@@ -1304,34 +1308,35 @@ describe('Zoom', () => {
             });
 
             it('should clamp navigator handles when removing from end', async () => {
-                await createMinichartChart(
-                    { ratioX: { start: 0.75, end: 1 } },
-                    {
-                        zoom: {
-                            enabled: true,
-                            minVisibleItems: 0,
-                            autoScaling: {
-                                enabled: false,
-                            },
-                            onDataChange: {
-                                strategy: 'preserveDomain',
-                            },
-                        },
-                        navigator: {
-                            enabled: true,
-                            miniChart: {
+                chart = await createEnterpriseChart(
+                    minichartOptions(
+                        { ratioX: { start: 0.75, end: 1 } },
+                        {
+                            zoom: {
                                 enabled: true,
+                                minVisibleItems: 0,
+                                autoScaling: {
+                                    enabled: false,
+                                },
+                                onDataChange: {
+                                    strategy: 'preserveDomain',
+                                },
                             },
-                            minHandle: {
-                                fill: 'yellow',
+                            navigator: {
+                                enabled: true,
+                                miniChart: {
+                                    enabled: true,
+                                },
+                                minHandle: {
+                                    fill: 'yellow',
+                                },
+                                maxHandle: {
+                                    fill: 'cyan',
+                                },
                             },
-                            maxHandle: {
-                                fill: 'cyan',
-                            },
-                        },
-                    }
+                        }
+                    )
                 );
-                await waitForChartStability(chart);
                 await compare();
 
                 await chart.updateDelta({ data: getData().slice(0, -10) });
@@ -1339,67 +1344,69 @@ describe('Zoom', () => {
             });
 
             it('should keep minVisibleItems 2 when removing from start', async () => {
-                await createMinichartChart(
-                    { ratioX: { start: 0, end: 0.25 } },
-                    {
-                        zoom: {
-                            enabled: true,
-                            minVisibleItems: 2,
-                            autoScaling: {
-                                enabled: false,
-                            },
-                            onDataChange: {
-                                strategy: 'preserveDomain',
-                            },
-                        },
-                        navigator: {
-                            enabled: true,
-                            miniChart: {
+                chart = await createEnterpriseChart(
+                    minichartOptions(
+                        { ratioX: { start: 0, end: 0.25 } },
+                        {
+                            zoom: {
                                 enabled: true,
+                                minVisibleItems: 2,
+                                autoScaling: {
+                                    enabled: false,
+                                },
+                                onDataChange: {
+                                    strategy: 'preserveDomain',
+                                },
                             },
-                            minHandle: {
-                                fill: 'yellow',
+                            navigator: {
+                                enabled: true,
+                                miniChart: {
+                                    enabled: true,
+                                },
+                                minHandle: {
+                                    fill: 'yellow',
+                                },
+                                maxHandle: {
+                                    fill: 'cyan',
+                                },
                             },
-                            maxHandle: {
-                                fill: 'cyan',
-                            },
-                        },
-                    }
+                        }
+                    )
                 );
-                await waitForChartStability(chart);
                 await chart.updateDelta({ data: getData().slice(10) });
                 await compare();
             });
 
             it('should keep minVisibleItems 2 when removing from end', async () => {
-                await createMinichartChart(
-                    { ratioX: { start: 0.75, end: 1 } },
-                    {
-                        zoom: {
-                            enabled: true,
-                            minVisibleItems: 2,
-                            autoScaling: {
+                chart = await createEnterpriseChart(
+                    minichartOptions(
+                        { ratioX: { start: 0.75, end: 1 } },
+                        {
+                            zoom: {
                                 enabled: true,
+                                minVisibleItems: 2,
+                                autoScaling: {
+                                    enabled: true,
+                                },
+                                onDataChange: {
+                                    strategy: 'preserveDomain',
+                                },
                             },
-                            onDataChange: {
-                                strategy: 'preserveDomain',
-                            },
-                        },
-                        navigator: {
-                            enabled: true,
-                            miniChart: {
+                            navigator: {
                                 enabled: true,
+                                miniChart: {
+                                    enabled: true,
+                                },
+                                minHandle: {
+                                    fill: 'yellow',
+                                },
+                                maxHandle: {
+                                    fill: 'cyan',
+                                },
                             },
-                            minHandle: {
-                                fill: 'yellow',
-                            },
-                            maxHandle: {
-                                fill: 'cyan',
-                            },
-                        },
-                    }
+                        }
+                    )
                 );
-                await waitForChartStability(chart);
                 await chart.updateDelta({ data: getData().slice(0, -10) });
                 await compare();
             });
@@ -1822,6 +1829,82 @@ describe('Zoom', () => {
             expect(start).toBeGreaterThan(0);
             expect(end).toBeGreaterThan(0.25);
             expect(end - start).toBeCloseTo(0.25, 10);
+        });
+
+        describe('AG-14101 ArrowDown into a series whose datum is outside the viewport', () => {
+            function getBarCentre(seriesIndex: number, datumIndex: number) {
+                const series = new Caster(deproxy(chart))
+                    .accessProperty('series')
+                    .accessProperty(`${seriesIndex}`)
+                    .cast(_ModuleSupport.AbstractBarSeries).value;
+                const node = series.getNodeData()?.find((datum) => datum.datumIndex === datumIndex) as
+                    { x: number; y: number; width: number; height: number } | undefined;
+                expect(node).toEqual(
+                    expect.objectContaining({
+                        x: expect.any(Number),
+                        y: expect.any(Number),
+                        width: expect.any(Number),
+                        height: expect.any(Number),
+                    })
+                );
+                return Transformable.toCanvasPoint(
+                    series.contentGroup,
+                    node!.x + node!.width / 2,
+                    node!.y + node!.height / 2
+                );
+            }
+
+            beforeEach(async () => {
+                // Each series has 1,000 records, so the bar series only creates nodes inside the viewport. Series 'b'
+                // is shifted 500 to the left of series 'a', so the same datum index is at a different x in each one.
+                const options: AgCartesianChartOptions = {
+                    animation: { enabled: false },
+                    axes: {
+                        x: { type: 'number', position: 'bottom', min: 0, max: 1500 },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [
+                        {
+                            id: 'a',
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y1',
+                            data: Array.from({ length: 1000 }, (_v, index) => ({
+                                x: index + 500,
+                                y1: 10 + (index % 7),
+                            })),
+                        },
+                        {
+                            id: 'b',
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y2',
+                            data: Array.from({ length: 1000 }, (_v, index) => ({ x: index, y2: 5 + (index % 5) })),
+                        },
+                    ],
+                    zoom: { enabled: true, axes: 'x' },
+                    initialState: { zoom: { ratioX: { start: 0.3, end: 0.4 } } },
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+            });
+
+            it('pans to the datum with the same index in the other series', async () => {
+                // Series 'a' datum 0 (x = 500) is in the viewport; series 'b' datum 0 (x = 0) is to its left.
+                await tabIntoChart(chart);
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(0, 0))).toBe(true);
+                // Tabbing in does not activate an item, so there is no `activeItem` to check yet.
+                expect(getSwapChainText()).toBe('500; y1; 10; y2; 5');
+
+                await pressKey(chart, 'ArrowDown');
+                const { start = Number.NaN, end = Number.NaN } = chart.getState().zoom?.ratioX ?? {};
+                expect(start).toBeLessThan(0.3);
+                expect(end - start).toBeCloseTo(0.1, 10);
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(1, 0))).toBe(true);
+                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'b', itemId: 0 });
+                expect(getSwapChainText()).toBe('0; y2; 5');
+            });
         });
     });
 });

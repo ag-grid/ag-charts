@@ -2,8 +2,6 @@ import {
     type AgActiveItemState,
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeTargetPlacement,
-    type FontStyle,
-    type FontWeight,
     type TextAlign,
     type VerticalAlign,
     _ModuleSupport,
@@ -16,6 +14,7 @@ import {
     type NormalisedGaugeSeriesStyle,
     type NormalisedRadialGaugeSeriesOwnOptions,
     type NormalisedTextOrSegments,
+    type PlacedLabel,
     type Point,
     PointerEvents,
     Sector,
@@ -44,6 +43,20 @@ import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
+import {
+    type GaugeLabelPlacements,
+    type GaugePointLabelDatum,
+    type GaugeTargetDatumLabel,
+    type GaugeTargetLabelOptions,
+    gaugeLabelPlacements,
+    gaugeScaleLabelData,
+    gaugeTargetLabelDatum,
+    gaugeTargetMarkerObstacles,
+    hideDroppedScaleLabels,
+    layoutGaugeTargetLabel,
+    pickGaugeTargetLabelOptions,
+    updateGaugeTargetLabelNode,
+} from '../gauge-util/labelPlacement';
 import { LineMarker, lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { getGaugeSegments } from '../gauge-util/segmentation';
@@ -54,29 +67,28 @@ import {
     type RadialGaugeLabelDatum,
     type RadialGaugeNodeDatum,
     type RadialGaugeTargetDatum,
-    type RadialGaugeTargetDatumLabel,
 } from './radialGaugeTypes';
 import {
+    type RadialGaugeLabelFrame,
+    type RadialGaugeLabelTexts,
     formatRadialGaugeLabels,
     getRadialGaugeBarStyle,
     getRadialGaugeScaleStyle,
     getRadialGaugeTargetStyle,
+    isFinalLabelFrame,
     prepareRadialGaugeSeriesAnimationFunctions,
+    radialGaugeLabelData,
+    radialGaugeLabelTexts,
     resetRadialGaugeSeriesResetNeedleFunction,
     resetRadialGaugeSeriesResetSectorFunction,
 } from './radialGaugeUtil';
 
-const { fromToMotion, resetMotion, SeriesNodePickMode, createDatumId } = _ModuleSupport;
+const { fromToMotion, resetMotion, SeriesNodePickMode, createDatumId, expandLabelBoxExtent } = _ModuleSupport;
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
-interface TargetLabel {
-    enabled: boolean;
+interface TargetLabel extends GaugeTargetLabelOptions {
     color: string;
-    fontStyle: FontStyle;
-    fontWeight: FontWeight;
-    fontSize: number;
-    fontFamily: string;
     spacing: number;
 }
 
@@ -146,6 +158,10 @@ const insideLabelPlacements: Array<{ textAlign: CanvasTextAlign; textBaseline: C
     { textAlign: 'right', textBaseline: 'top' },
 ];
 
+function targetLabelAnchor({ centerX, centerY, radius, angle }: RadialGaugeTargetDatum) {
+    return { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) };
+}
+
 export class RadialGaugeSeries
     extends _ModuleSupport.Series<
         RadialGaugeNodeDatum,
@@ -208,10 +224,15 @@ export class RadialGaugeSeries
 
     public contextNodeData?: RadialGaugeNodeDataContext;
 
+    private labelPlacements: GaugeLabelPlacements = new Map();
+    private labelTexts?: RadialGaugeLabelTexts;
+    private finalLabelTexts?: { labelData: RadialGaugeLabelDatum[]; texts: RadialGaugeLabelTexts | undefined };
+
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            usesPlacedLabels: true,
         });
 
         this.animationState = new StateMachine<GaugeAnimationState, GaugeAnimationEvent>('empty', {
@@ -424,15 +445,7 @@ export class RadialGaugeSeries
                 spacing = defaultTarget.spacing,
                 size = defaultTarget.size,
             } = target;
-            const {
-                enabled: labelEnabled = defaultTarget.label.enabled,
-                color: labelColor = defaultTarget.label.color,
-                fontStyle: labelFontStyle = defaultTarget.label.fontStyle,
-                fontWeight: labelFontWeight = defaultTarget.label.fontWeight,
-                fontSize: labelFontSize = defaultTarget.label.fontSize,
-                fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
-                spacing: labelSpacing = defaultTarget.label.spacing,
-            } = target.label ?? {};
+            const label = mergeDefaults(target.label, defaultTarget.label);
 
             return {
                 text,
@@ -443,13 +456,9 @@ export class RadialGaugeSeries
                 size,
                 rotation,
                 label: {
-                    enabled: labelEnabled,
-                    color: labelColor,
-                    fontStyle: labelFontStyle,
-                    fontWeight: labelFontWeight,
-                    fontSize: labelFontSize,
-                    fontFamily: labelFontFamily,
-                    spacing: labelSpacing,
+                    ...pickGaugeTargetLabelOptions(label, target.label),
+                    color: label.color,
+                    spacing: label.spacing,
                 },
                 style: getRadialGaugeTargetStyle(target),
             };
@@ -474,11 +483,11 @@ export class RadialGaugeSeries
         }
     }
 
-    private getTargetLabel(target: Target): RadialGaugeTargetDatumLabel {
+    private getTargetLabel(target: Target): GaugeTargetDatumLabel {
         const { scale } = this;
 
         const { value, size, placement, label } = target;
-        const { spacing, color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;
+        const { spacing, color: fill } = label;
         const angle = scale.convert(value);
 
         const quadrant = Math.trunc(normalizeAngle360(angle) / (Math.PI / 2));
@@ -514,11 +523,7 @@ export class RadialGaugeSeries
             fill,
             textAlign,
             textBaseline,
-            fontStyle,
-            fontWeight,
-            fontSize,
-            fontFamily,
-            lineHeight: undefined,
+            ...layoutGaugeTargetLabel(target.text, label),
         };
     }
 
@@ -676,10 +681,14 @@ export class RadialGaugeSeries
                 lineHeight,
                 truncate,
                 collision,
+                maxWidth,
+                maxHeight,
                 formatter = (params) => this.formatLabel(params.value),
             } = label;
             labelData.push({
                 label: LabelType.Primary,
+                maxWidth,
+                maxHeight,
                 centerX,
                 centerY,
                 text,
@@ -694,6 +703,8 @@ export class RadialGaugeSeries
                 truncate,
                 collision,
                 formatter,
+                box: label,
+                boxExtent: expandLabelBoxExtent(label),
             });
         }
 
@@ -727,6 +738,8 @@ export class RadialGaugeSeries
                 truncate,
                 collision,
                 formatter,
+                box: secondaryLabel,
+                boxExtent: expandLabelBoxExtent(secondaryLabel),
             });
         }
 
@@ -848,7 +861,9 @@ export class RadialGaugeSeries
         this.updateTargetNodes({ targetSelection });
 
         this.targetLabelSelection = this.updateTargetLabelSelection({ targetData, targetLabelSelection });
-        this.updateTargetLabelNodes({ targetLabelSelection });
+
+        this.tickSelection = this.updateTickSelection({ tickData, tickSelection });
+        this.updateTickNodes({ tickSelection });
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumNodes({ datumSelection });
@@ -863,8 +878,7 @@ export class RadialGaugeSeries
         this.updateTargetStyles({ targetSelection: highlightTargetSelection, isHighlight: true });
         this.updateTargetNodes({ targetSelection: highlightTargetSelection });
 
-        this.tickSelection = this.updateTickSelection({ tickData, tickSelection });
-        this.updateTickNodes({ tickSelection });
+        this.updateTargetLabelNodes();
 
         if (resize) {
             this.animationState.transition('resize');
@@ -1061,32 +1075,11 @@ export class RadialGaugeSeries
         return opts.targetLabelSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
-    private updateTargetLabelNodes(opts: {
-        targetLabelSelection: Selection<RadialGaugeTargetDatum, Text<RadialGaugeTargetDatum>>;
-    }) {
-        const { targetLabelSelection } = opts;
-
-        targetLabelSelection.each((label, target) => {
-            const { centerX, centerY, radius, angle, text } = target;
-            const { offsetX, offsetY, fill, fontStyle, fontWeight, fontSize, fontFamily, textAlign, textBaseline } =
-                target.label;
-
-            if (text == null) {
-                label.visible = false;
-                return;
-            }
-
-            label.visible = true;
-            label.x = centerX + radius * Math.cos(angle) + offsetX;
-            label.y = centerY + radius * Math.sin(angle) + offsetY;
-            label.text = text;
-            label.fill = fill;
-            label.fontStyle = fontStyle;
-            label.fontWeight = fontWeight;
-            label.fontSize = fontSize;
-            label.fontFamily = fontFamily;
-            label.textAlign = textAlign;
-            label.textBaseline = textBaseline;
+    private updateTargetLabelNodes() {
+        const { labelPlacements } = this;
+        this.targetLabelSelection.each((label, target) => {
+            const { x, y } = targetLabelAnchor(target);
+            updateGaugeTargetLabelNode(label, target.label, x, y, labelPlacements.has(target.itemId));
         });
     }
 
@@ -1271,18 +1264,79 @@ export class RadialGaugeSeries
         return true;
     }
 
-    formatLabelText(datum?: { label: AgNumericValue | undefined; secondaryLabel: AgNumericValue | undefined }) {
-        const { labelSelection, radius, textAlign, verticalAlign } = this;
-        const { spacing: padding, innerRadiusRatio } = this.options;
+    private labelLayoutOptions() {
+        const { textAlign, verticalAlign } = this;
+        return { padding: this.options.spacing, textAlign, verticalAlign };
+    }
 
+    formatLabelText(datum?: RadialGaugeLabelFrame) {
+        const labelData = this.contextNodeData?.labelData ?? [];
+        let texts: RadialGaugeLabelTexts | undefined;
+        if (datum == null) {
+            texts = radialGaugeLabelTexts(this, this.ctx, labelData);
+            this.finalLabelTexts = { labelData, texts };
+        } else if (isFinalLabelFrame(labelData, datum)) {
+            texts = this.finalTexts(labelData);
+        } else {
+            texts = radialGaugeLabelTexts(this, this.ctx, labelData, datum);
+        }
+        this.labelTexts = texts;
+        this.layoutLabels();
+    }
+
+    private finalTexts(labelData: RadialGaugeLabelDatum[]) {
+        const { finalLabelTexts } = this;
+        if (finalLabelTexts?.labelData === labelData) {
+            return finalLabelTexts.texts;
+        }
+        const texts = radialGaugeLabelTexts(this, this.ctx, labelData);
+        this.finalLabelTexts = { labelData, texts };
+        return texts;
+    }
+
+    private layoutLabels() {
         formatRadialGaugeLabels(
-            this,
-            this.ctx,
-            labelSelection,
-            { padding, textAlign, verticalAlign },
-            radius * innerRadiusRatio,
-            datum
+            this.labelSelection,
+            this.labelTexts,
+            this.labelLayoutOptions(),
+            this.radius * this.options.innerRadiusRatio,
+            this.labelPlacements
         );
+    }
+
+    override getLabelData(): GaugePointLabelDatum[] {
+        const { seriesRectWidth: width, seriesRectHeight: height } = this.nodeDataDependencies;
+        const seriesArea = { x: 0, y: 0, width, height };
+        const labelData = this.contextNodeData?.labelData ?? [];
+        const texts = this.finalTexts(labelData);
+        const labels = radialGaugeLabelData(
+            labelData,
+            texts,
+            this.labelLayoutOptions(),
+            this.radius * this.options.innerRadiusRatio,
+            seriesArea
+        );
+
+        for (const target of this.contextNodeData?.targetData ?? []) {
+            const { x, y } = targetLabelAnchor(target);
+            const targetLabel = gaugeTargetLabelDatum(target.itemId, target.label, x, y, seriesArea);
+            if (targetLabel != null) {
+                labels.push(targetLabel);
+            }
+        }
+        labels.push(...gaugeScaleLabelData(this.tickSelection, this.options.scale.label.enabled));
+        return labels;
+    }
+
+    getLabelObstacles() {
+        return gaugeTargetMarkerObstacles(this.targetSelection);
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
+        this.labelPlacements = gaugeLabelPlacements(placed);
+        this.layoutLabels();
+        this.updateTargetLabelNodes();
+        hideDroppedScaleLabels(this.tickSelection, this.labelPlacements);
     }
 
     protected resetAllAnimation() {
