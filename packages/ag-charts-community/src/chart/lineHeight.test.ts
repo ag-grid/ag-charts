@@ -10,6 +10,7 @@ import type {
 import {
     compareImageSnapshot,
     createChart,
+    deproxy,
     expectWarningsCalls,
     getVisibleLabelNodes,
     setupMockCanvas,
@@ -34,15 +35,19 @@ describe('lineHeight', () => {
     }
 
     describe('theme params', () => {
-        async function resolvedXAxis(params: AgChartThemeParams | undefined, label: object = {}) {
-            const { chartOptions } = await render({
+        async function resolvedX(options: AgChartOptions) {
+            const { chartOptions } = deproxy(await render(options));
+            const { axes } = chartOptions.processedOptions as AgCartesianChartOptions;
+            return (axes as Record<string, any>).x;
+        }
+
+        function resolvedXAxis(params: AgChartThemeParams | undefined, label: object = {}) {
+            return resolvedX({
                 data: [{ x: 'a', y: 1 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                 axes: { x: { type: 'category', position: 'bottom', label, title: { enabled: true } } },
                 theme: params ? { params } : undefined,
             });
-            const { axes } = chartOptions.processedOptions as AgCartesianChartOptions;
-            return (axes as Record<string, any>).x;
         }
 
         it('leaves lineHeight unset when no param is set', async () => {
@@ -81,7 +86,7 @@ describe('lineHeight', () => {
 
         describe('time axis parent level labels', () => {
             async function resolvedParentLabel(label: object, parentLabel: object) {
-                const { chartOptions } = await render({
+                const axis = await resolvedX({
                     data: [{ x: new Date(2024, 0, 1), y: 1 }],
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
@@ -89,8 +94,7 @@ describe('lineHeight', () => {
                     },
                     theme: { params: { lineHeight: 1.5 } },
                 });
-                const { axes } = chartOptions.processedOptions as AgCartesianChartOptions;
-                return (axes as Record<string, any>).x.parentLevel.label;
+                return axis.parentLevel.label;
             }
 
             it('derives lineHeight from their own fontSize', async () => {
