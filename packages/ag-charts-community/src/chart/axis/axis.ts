@@ -152,6 +152,8 @@ interface TickLayout<D, TickLayoutMeta> {
     timeInterval: AnyTimeInterval | undefined;
     bbox?: BBox;
     layout?: TickLayoutMeta;
+    /** The axis state that calculating this layout sets as a side effect, restored when the layout is reused. */
+    state?: unknown;
 }
 
 interface TickLayoutCache<D, TickLayoutMeta> {
@@ -812,11 +814,10 @@ export abstract class Axis<
 
             const niceMode = nice.map((n) => (n ? NiceMode.TickAndDomain : NiceMode.Off));
             unzoomedTickLayout = this.calculateTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
+            unzoomedTickLayout.state = this.captureTickLayoutState();
 
             scale.range = scaleRange;
 
-            // Computing a layout sets the pick data and label thickness, so the zoomed layout must be computed after it.
-            this.tickLayoutCache = undefined;
             this.unzoomedTickLayoutCache = {
                 domain,
                 rangeExtent,
@@ -842,6 +843,12 @@ export abstract class Axis<
     private tickLayoutCache: TickLayoutCache<D, TickLayoutMeta> | undefined;
     protected tickLayout: TickLayoutMeta | undefined = undefined;
     private tickDatumsStale = false;
+
+    protected captureTickLayoutState(): unknown {
+        return undefined;
+    }
+
+    protected restoreTickLayoutState(_state: unknown): void {}
 
     /** A copy of `layout` whose datums are new objects, so that the nodes bound to them animate as updated, not added. */
     protected refreshTickDatums(layout: TickLayoutMeta): TickLayoutMeta {
@@ -890,6 +897,7 @@ export abstract class Axis<
                 })
             ) {
                 tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
+                tickLayout.state = this.captureTickLayoutState();
 
                 this.tickLayoutCache = {
                     domain,
@@ -916,6 +924,7 @@ export abstract class Axis<
                 ? { zoomed: zoomedTickCount, unzoomed: unzoomedTickCount }
                 : undefined;
 
+        this.restoreTickLayoutState(tickLayout.state);
         if (reused && this.tickDatumsStale && tickLayout.layout != null) {
             // Written back so that later passes of this update bind the same datums.
             tickLayout.layout = this.refreshTickDatums(tickLayout.layout);

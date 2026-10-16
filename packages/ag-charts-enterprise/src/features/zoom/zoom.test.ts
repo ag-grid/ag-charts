@@ -251,6 +251,39 @@ describe('Zoom', () => {
                 fresh.destroy();
             }
         });
+
+        it('keeps the picked ticks of an axis whose zoom is reset before a data update that leaves its domain unchanged', async () => {
+            const rows = (shift: number) =>
+                Array.from({ length: 11 }, (_, i) => ({ x: i * 2, y: ((i + shift) % 2) * 10 }));
+            const baseOptions = (shift: number): AgCartesianChartOptions => ({
+                data: rows(shift),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                zoom: { enabled: true, axes: 'x' },
+            });
+            const pickedTicks = (instance: AgChartInstance) => {
+                const xAxis = deproxy(instance).axes.find((axis) => axis.direction === ChartAxisDirection.X);
+                return (xAxis as unknown as { pickTickData: unknown }).pickTickData;
+            };
+
+            await prepareChart(undefined, { ratioX: { start: 0.2, end: 0.4 } }, baseOptions(0), false);
+            await waitForChartStability(chart);
+            await chart.setState({ ...chart.getState(), zoom: { ratioX: { start: 0, end: 1 } } });
+            await waitForChartStability(chart);
+            await chart.updateDelta({ data: rows(1) });
+            await waitForChartStability(chart);
+
+            const fresh = AgCharts.create(prepareEnterpriseTestOptions(baseOptions(1) as AgChartOptions));
+            try {
+                await waitForChartStability(fresh);
+                expect(pickedTicks(chart)).toEqual(pickedTicks(fresh));
+            } finally {
+                fresh.destroy();
+            }
+        });
     });
 
     describe('visibleDomain', () => {
