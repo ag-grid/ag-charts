@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
     type AgCartesianChartOptions,
     type AgChartOptions,
-    AgCharts,
     type AgHlcSeriesItemStylerParams,
     type AgHlcSeriesStyle,
     type AgHlcSeriesStylerParams,
@@ -646,9 +645,7 @@ describe('HlcSeries', () => {
         const frames = spyOnAnimationFrames();
 
         it('reveals the bands and strokes by a left-to-right swipe with markers scaling in', async () => {
-            const options = prepareEnterpriseTestOptions(withSeries({ marker: { enabled: true } }));
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(withSeries({ marker: { enabled: true } })));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -680,7 +677,7 @@ describe('HlcSeries', () => {
                 data: DATA.map((d) => ({ ...d, low: d.low - 2, high: d.high + 2 })),
             };
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, widened);
         });
     });
@@ -694,8 +691,7 @@ describe('HlcSeries', () => {
             });
 
         it('keeps both bands between the high and low lines while a datum with an out-of-range close arrives', async () => {
-            const options = prepareEnterpriseTestOptions(HLC_OPTIONS);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(HLC_OPTIONS);
             const { trajectory } = await frames.captureSnap(chart, createSceneGeometrySampler(chart), () =>
                 chart.update(appended(130))
             );
@@ -717,7 +713,7 @@ describe('HlcSeries', () => {
 
         it('settles at a static render when an out-of-range close arrives', async () => {
             const before = prepareEnterpriseTestOptions(HLC_OPTIONS);
-            chart = AgCharts.create(before);
+            chart = await createEnterpriseChart(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, appended(130));
         });
     });

@@ -76,19 +76,14 @@ describe('SunburstSeries', () => {
 
         it('should render a complex chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
         const childAtDepth = [0, 0, 0, 0];
         it.each([0, 1, 2, 3])(`should render highlight at depth %s`, async (depth) => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[0] as SunburstSeries;
             let node = seriesImpl.rootNode;
@@ -164,9 +159,7 @@ describe('SunburstSeries', () => {
                 series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', colorKey: undefined }],
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             expect(seriesHighlightEnabled(chart.series[0] as SunburstSeries)).toBe(false);
         });
 
@@ -185,9 +178,7 @@ describe('SunburstSeries', () => {
                 ],
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             expect(seriesHighlightEnabled(chart.series[0] as SunburstSeries)).toBe(true);
         });
 
@@ -206,9 +197,7 @@ describe('SunburstSeries', () => {
                 ],
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const series = chart.series[0] as SunburstSeries;
             const sectors = Array.from((series as any).sectorGroup.children());
@@ -242,18 +231,13 @@ describe('SunburstSeries', () => {
         for (const [exampleName, example] of Object.entries(examples)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 const options: AgChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
                 example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
                 const options: AgChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await compare();
             });
         }
@@ -286,9 +270,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -520,9 +502,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compare();
         });
 
@@ -550,9 +530,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compare();
         });
 
@@ -581,9 +559,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compare();
         });
 
@@ -612,9 +588,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compare();
         });
 
@@ -643,9 +617,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compare();
         });
 
@@ -675,9 +647,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compare();
         });
     });
@@ -737,9 +707,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -759,9 +727,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -781,9 +747,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -807,9 +771,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -847,9 +809,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
 
             const seriesImpl = chart.series[0] as SunburstSeries;
@@ -906,9 +866,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -928,9 +886,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -954,9 +910,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -979,9 +933,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -1019,10 +971,7 @@ describe('SunburstSeries', () => {
 
         it('should render updated data in the itemStyler specified colors', async () => {
             const options = { ...EXAMPLE_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await chart.updateDelta({ data: DATA2 });
             await compare();
         });
@@ -1067,7 +1016,7 @@ describe('SunburstSeries', () => {
         ];
 
         test('static label styles', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data,
                 series: [
                     {
@@ -1080,12 +1029,11 @@ describe('SunburstSeries', () => {
                     },
                 ],
             });
-            chart = AgCharts.create(options);
             await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
         });
 
         test('dynamic label styles', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data,
                 series: [
                     {
@@ -1106,7 +1054,6 @@ describe('SunburstSeries', () => {
                     },
                 ],
             });
-            chart = AgCharts.create(options);
             await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
         });
     });
@@ -1170,9 +1117,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             stubChartImageLoader(chart);
             // The snapshot is the guard: if the series flattened the formatter's segment array to
             // plain text the stubbed image would not render and the baseline would diff.
@@ -1205,9 +1150,7 @@ describe('SunburstSeries', () => {
                 ],
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -1314,10 +1257,8 @@ describe('SunburstSeries', () => {
                     selectionChange: (event: AgSelectionChangeEvent<unknown, unknown>) => events.push(event),
                 },
             };
-            prepareEnterpriseTestOptions(options);
-            const proxy = AgCharts.create(options);
+            const proxy = await createEnterpriseChart(options);
             chart = deproxy(proxy);
-            await waitForChartStability(chart);
 
             const [{ children }] = data;
             await proxy.updateDelta({ data: [{ ...data[0], children: children.slice(1) }] });
@@ -1338,6 +1279,7 @@ describe('SunburstSeries', () => {
         });
     });
 
+    // Bespoke: these tests sample the animation from the chart's first frame, with animations enabled and prepared options reused by update.
     // Initial load scales the whole sector group up from nothing; a data reshuffle instead SNAPS,
     // with every sector jumping to its new layout on the first frame (no per-sector tween).
     describe('animation -test page actions', () => {

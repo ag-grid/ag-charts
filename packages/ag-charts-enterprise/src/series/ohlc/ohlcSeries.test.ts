@@ -1,6 +1,6 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions } from 'ag-charts-community';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -67,7 +67,7 @@ describe('OhlcSeries', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
 
-    const compareSnapshot = async (chart: any) => {
+    const compareSnapshot = async (chart: AgChartInstance) => {
         await compareImageSnapshot(chart, ctx);
 
         chart.destroy();
@@ -75,8 +75,7 @@ describe('OhlcSeries', () => {
 
     it(`should render a ohlc chart as expected with default ordinal time x-axis`, async () => {
         const options = OHLC_OPTIONS;
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a ohlc chart with a unit time x-axis`, async () => {
@@ -93,8 +92,7 @@ describe('OhlcSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a ohlc chart as expected with reversed axes`, async () => {
@@ -113,8 +111,7 @@ describe('OhlcSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a ohlc chart with a reversed unit time x-axis`, async () => {
@@ -132,8 +129,7 @@ describe('OhlcSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a ohlc chart with a time x-axis`, async () => {
@@ -151,8 +147,7 @@ describe('OhlcSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a ohlc chart with a reversed time x-axis`, async () => {
@@ -171,8 +166,7 @@ describe('OhlcSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render an ohlc chart with RTL enabled`, async () => {
@@ -180,8 +174,7 @@ describe('OhlcSeries', () => {
             ...OHLC_OPTIONS,
             enableRtl: true,
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     // `OhlcSeriesBase` implements no animation hooks, so every action must land completely on the
@@ -224,13 +217,13 @@ describe('OhlcSeries', () => {
             return key!;
         };
 
-        const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
-            chart = AgCharts.create(options);
+        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+            chart = await createEnterpriseChart(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
         it('initial load: bars render instantly at their full ranges', async () => {
-            chart = AgCharts.create(ohlcOptions());
+            chart = await createEnterpriseChart(ohlcOptions());
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             // Anti-vacuity: expectNoAnimation alone passes on a blank scene.
@@ -299,7 +292,7 @@ describe('OhlcSeries', () => {
             const before = ohlcOptions();
             const data = barData();
             data[2] = { ...data[2], close: 8, high: 9.5 };
-            chart = AgCharts.create(before);
+            chart = await createEnterpriseChart(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
                 ...ohlcOptions(),
                 data,
@@ -308,7 +301,7 @@ describe('OhlcSeries', () => {
 
         it('sanity: add data endpoints match static renders', async () => {
             const before = ohlcOptions();
-            chart = AgCharts.create(before);
+            chart = await createEnterpriseChart(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
                 ...ohlcOptions(),
                 data: [...barData(), { date: new Date(2023, 0, 4), low: 2, open: 5, close: 7, high: 9 }],
@@ -317,7 +310,7 @@ describe('OhlcSeries', () => {
 
         it('sanity: remove data endpoints match static renders', async () => {
             const before = ohlcOptions();
-            chart = AgCharts.create(before);
+            chart = await createEnterpriseChart(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
                 ...ohlcOptions(),
                 data: barData().slice(0, 2),
@@ -330,7 +323,6 @@ describe('OhlcSeries', () => {
 
         const buildOptions = (shadow?: typeof SHADOW & { spread?: number }): AgChartOptions => {
             const options = { ...OHLC_OPTIONS, series: [{ ...OHLC_OPTIONS.series![0], shadow }] } as AgChartOptions;
-            prepareEnterpriseTestOptions(options as any);
             return options;
         };
 
@@ -362,7 +354,7 @@ describe('OhlcSeries', () => {
         });
 
         it('should render an ohlc chart with a shadow', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions(SHADOW)));
+            await compareSnapshot(await createEnterpriseChart(buildOptions(SHADOW)));
         });
 
         it('carries the shadow spread to the stroke shadow of every item', async () => {
@@ -378,7 +370,7 @@ describe('OhlcSeries', () => {
         });
 
         it('should render an ohlc chart with a shadow spread', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions(SPREAD_SHADOW)));
+            await compareSnapshot(await createEnterpriseChart(buildOptions(SPREAD_SHADOW)));
         });
     });
 
@@ -409,10 +401,8 @@ describe('OhlcSeries', () => {
 
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = { ...OHLC_NULL_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
 
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -435,10 +425,8 @@ describe('OhlcSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compareSnapshot(chart);
@@ -497,10 +485,8 @@ describe('OhlcSeries', () => {
 
         it('should reject undefined category key with warning', async () => {
             const options: AgChartOptions = { ...OHLC_UNDEFINED_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
 
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -523,10 +509,8 @@ describe('OhlcSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compareSnapshot(chart);
@@ -542,10 +526,8 @@ describe('OhlcSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compareSnapshot(chart);

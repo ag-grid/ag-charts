@@ -37,7 +37,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('NightingaleSeries', () => {
     setupMockConsole();
@@ -94,8 +94,7 @@ describe('NightingaleSeries', () => {
 
     it(`should render stacked nightingale chart as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-        prepareEnterpriseTestOptions(options as any);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -105,8 +104,7 @@ describe('NightingaleSeries', () => {
             ...exampleOptions,
             series: series?.map((s) => ({ ...s, data: [...(data ?? [])] })),
         };
-        prepareEnterpriseTestOptions(options as any);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -124,8 +122,7 @@ describe('NightingaleSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -139,9 +136,7 @@ describe('NightingaleSeries', () => {
                 };
             }),
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -165,9 +160,7 @@ describe('NightingaleSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -181,9 +174,7 @@ describe('NightingaleSeries', () => {
                 };
             }),
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -207,9 +198,7 @@ describe('NightingaleSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -231,8 +220,7 @@ describe('NightingaleSeries', () => {
                     { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services' },
                 ],
             };
-            chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await clickAction(400, 300)(chart); // interrupt animation
         });
         describe('click', () => {
@@ -328,6 +316,8 @@ describe('NightingaleSeries', () => {
             }
         };
 
+        // Bespoke: the animation-frame spy has to be in place before the chart's first frame, so these charts cannot
+        // be created through the factory, which awaits stability.
         it('initial load: every wedge grows radially from a collapsed centre', async () => {
             const proxy = AgCharts.create(nightingaleOptions());
             chart = deproxy(proxy);
@@ -474,9 +464,7 @@ describe('NightingaleSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -502,9 +490,7 @@ describe('NightingaleSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -531,9 +517,7 @@ describe('NightingaleSeries', () => {
                     } as AgNightingaleSeriesOptions,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -560,9 +544,7 @@ describe('NightingaleSeries', () => {
                     } as AgNightingaleSeriesOptions,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -590,9 +572,7 @@ describe('NightingaleSeries', () => {
                     } as AgNightingaleSeriesOptions,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -607,7 +587,7 @@ describe('NightingaleSeries', () => {
             cornerRadius: 10,
         } as const satisfies NonNullable<AgNightingaleSeriesOptions['label']>;
 
-        const options = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: [
                 { quarter: `Q1'22`, software: 4.35, hardware: 2.14, services: 3.91 },
                 { quarter: `Q2'22`, software: 4.28, hardware: 3.13, services: 3.04 },
@@ -623,9 +603,9 @@ describe('NightingaleSeries', () => {
                 { type: 'nightingale', angleKey: 'quarter', radiusKey: 'hardware', label },
                 { type: 'nightingale', angleKey: 'quarter', radiusKey: 'services', label },
             ],
-        });
+        };
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -676,34 +656,31 @@ describe('NightingaleSeries', () => {
             beforeEach(async () => {
                 c1 = { name: 'software context 1' };
                 c2 = { name: 'hardware context 2' };
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'nightingale',
-                                angleKey: 'quarter',
-                                radiusKey: 'sw',
-                                radiusName: 'Software',
-                                context: c1,
-                                fill: 'lime', // ignored
-                                fillOpacity: 0.5, // not ignored
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'nightingale',
-                                angleKey: 'quarter',
-                                radiusKey: 'hw',
-                                context: c2,
-                                stroke: 'CornflowerBlue', // ignored
-                                strokeOpacity: 0.5, // not ignored
-                                strokeWidth: 15, // ignored
-                                styler: styler.frozen,
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'nightingale',
+                            angleKey: 'quarter',
+                            radiusKey: 'sw',
+                            radiusName: 'Software',
+                            context: c1,
+                            fill: 'lime', // ignored
+                            fillOpacity: 0.5, // not ignored
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'nightingale',
+                            angleKey: 'quarter',
+                            radiusKey: 'hw',
+                            context: c2,
+                            stroke: 'CornflowerBlue', // ignored
+                            strokeOpacity: 0.5, // not ignored
+                            strokeWidth: 15, // ignored
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -730,34 +707,31 @@ describe('NightingaleSeries', () => {
                     }
                     return {};
                 };
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'nightingale',
-                                angleKey: 'quarter',
-                                radiusKey: 'sw',
-                                radiusName: 'Software',
-                                fill: 'lime', // ignored
-                                fillOpacity: 0.5, // not ignored
-                                styler: styler.frozen,
-                                itemStyler,
-                            },
-                            {
-                                type: 'nightingale',
-                                angleKey: 'quarter',
-                                radiusKey: 'hw',
-                                stroke: 'CornflowerBlue', // ignored
-                                strokeOpacity: 0.5, // not ignored
-                                strokeWidth: 15, // ignored
-                                styler: styler.frozen,
-                                itemStyler,
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'nightingale',
+                            angleKey: 'quarter',
+                            radiusKey: 'sw',
+                            radiusName: 'Software',
+                            fill: 'lime', // ignored
+                            fillOpacity: 0.5, // not ignored
+                            styler: styler.frozen,
+                            itemStyler,
+                        },
+                        {
+                            type: 'nightingale',
+                            angleKey: 'quarter',
+                            radiusKey: 'hw',
+                            stroke: 'CornflowerBlue', // ignored
+                            strokeOpacity: 0.5, // not ignored
+                            strokeWidth: 15, // ignored
+                            styler: styler.frozen,
+                            itemStyler,
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -765,31 +739,28 @@ describe('NightingaleSeries', () => {
         });
         describe('gradient-pattern', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'nightingale',
-                                angleKey: 'quarter',
-                                radiusKey: 'sw',
-                                radiusName: 'Software',
-                                styler: () => {
-                                    return { fill: { type: 'gradient' } };
-                                },
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'nightingale',
+                            angleKey: 'quarter',
+                            radiusKey: 'sw',
+                            radiusName: 'Software',
+                            styler: () => {
+                                return { fill: { type: 'gradient' } };
                             },
-                            {
-                                type: 'nightingale',
-                                angleKey: 'quarter',
-                                radiusKey: 'hw',
-                                styler: () => {
-                                    return { fill: { type: 'pattern' } };
-                                },
+                        },
+                        {
+                            type: 'nightingale',
+                            angleKey: 'quarter',
+                            radiusKey: 'hw',
+                            styler: () => {
+                                return { fill: { type: 'pattern' } };
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -797,27 +768,24 @@ describe('NightingaleSeries', () => {
         });
         describe('highlights', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'nightingale',
-                                angleKey: 'quarter',
-                                radiusKey: 'sw',
-                                radiusName: 'Software',
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'nightingale',
-                                angleKey: 'quarter',
-                                radiusKey: 'hw',
-                                styler: styler.frozen,
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'nightingale',
+                            angleKey: 'quarter',
+                            radiusKey: 'sw',
+                            radiusName: 'Software',
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'nightingale',
+                            angleKey: 'quarter',
+                            radiusKey: 'hw',
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
 
             const miss = { x: 100, y: 100 } as const;
@@ -884,7 +852,7 @@ describe('NightingaleSeries', () => {
 
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            create: async (o) => (chart = await createEnterpriseChart(o)),
             compare,
             chartOptions: {
                 data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
@@ -917,10 +885,7 @@ describe('NightingaleSeries', () => {
 
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = { ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -943,10 +908,7 @@ describe('NightingaleSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -991,10 +953,7 @@ describe('NightingaleSeries', () => {
 
         it('should reject undefined category key with warning', async () => {
             const options: AgChartOptions = { ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -1017,10 +976,7 @@ describe('NightingaleSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1036,10 +992,7 @@ describe('NightingaleSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();

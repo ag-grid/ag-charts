@@ -6,7 +6,6 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import {
     BIG,
     type Chart,
@@ -77,18 +76,15 @@ describe('PyramidSeries', () => {
     describe('Series Highlighting', () => {
         it('should render a chart', async () => {
             const options: AgChartOptions = { ...PYRAMID_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
         it('should render highlight of node', async () => {
             const options: AgChartOptions = { ...PYRAMID_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const node = chart.series[0].contextNodeData.nodeData[0];
 
@@ -324,9 +320,8 @@ describe('PyramidSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compare();
         });
 
@@ -354,9 +349,8 @@ describe('PyramidSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compare();
         });
 
@@ -385,9 +379,8 @@ describe('PyramidSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compare();
         });
 
@@ -416,9 +409,8 @@ describe('PyramidSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compare();
         });
     });
@@ -440,10 +432,8 @@ describe('PyramidSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -472,10 +462,8 @@ describe('PyramidSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -505,10 +493,8 @@ describe('PyramidSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -531,10 +517,8 @@ describe('PyramidSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -557,10 +541,8 @@ describe('PyramidSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -589,10 +571,8 @@ describe('PyramidSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expect(formatterCalls).toContain(null);
             expectWarningsCalls().toEqual([]);
@@ -600,7 +580,7 @@ describe('PyramidSeries', () => {
     });
 
     test('AG-8290 label boxing', async () => {
-        const options = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: [
                 { group: 'Close', value: 4460 },
                 { group: 'Propose', value: 7260 },
@@ -629,8 +609,8 @@ describe('PyramidSeries', () => {
                     },
                 },
             ],
-        });
-        chart = deproxy(AgCharts.create(options));
+        };
+        chart = deproxy(await createEnterpriseChart(options));
         await compare();
     });
 
@@ -646,10 +626,8 @@ describe('PyramidSeries', () => {
                 ],
                 series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -667,10 +645,8 @@ describe('PyramidSeries', () => {
                 ],
                 series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -735,7 +711,7 @@ describe('PyramidSeries', () => {
 
         // Pyramid reuses only the BaseFunnelSeries label-fade primitive, not being a subclass of it.
         it('initial load: stage bodies grow from collapsed and item labels fade in', async () => {
-            chart = deproxy(AgCharts.create(animated(DATA)));
+            chart = deproxy(await createEnterpriseChart(animated(DATA)));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -761,7 +737,7 @@ describe('PyramidSeries', () => {
 
         // Pyramid only animates its empty→ready reveal, so a data revalue reshapes bodies structurally without tweening.
         it('data update: reshapes the bodies to the new values without tweening', async () => {
-            const proxy = AgCharts.create(animated(DATA));
+            const proxy = await createEnterpriseChart(animated(DATA));
             chart = deproxy(proxy);
             const sampler = createSceneGeometrySampler(chart);
             const { trajectory, before, after } = await frames.captureSnap(chart, sampler, () =>
@@ -775,7 +751,7 @@ describe('PyramidSeries', () => {
 
         it('animated endpoints match a static render (initial load + data update)', async () => {
             const opts = animated(DATA);
-            chart = AgCharts.create(opts);
+            chart = await createEnterpriseChart(opts);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, opts, animated(UPDATED));
         });
     });

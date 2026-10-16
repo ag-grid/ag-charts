@@ -12,7 +12,7 @@ import {
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
 import ukTopology from './map-test/ukTopology.json';
 import { usData } from './map-test/usData';
 import usTopology from './map-test/usTopology.json';
@@ -39,11 +39,10 @@ describe('series label fit', () => {
     });
 
     const render = async (options: object) => {
-        prepareEnterpriseTestOptions(options as AgChartOptions);
-        chart = deproxy(AgCharts.create(options as AgChartOptions));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
     };
 
+    // Bespoke: the size is set after preparation, which the factory would overwrite with the default canvas size.
     const renderAndSnapshot = async (options: object, size?: { width: number; height: number }) => {
         prepareEnterpriseTestOptions(options as AgChartOptions);
         Object.assign(options, size);
@@ -554,6 +553,7 @@ describe('series label fit', () => {
                 { stage: 'Paid', value: 9, label: 'Paid subscriptions' },
                 { stage: 'Renewed', value: 4, label: 'Annual renewals completed' },
             ];
+            // Bespoke: the size is set after preparation, which the factory would overwrite with the default canvas size.
             const renderAt = (width: number, height: number, type: string, label: object) => {
                 const options = {
                     data: stages,
@@ -804,6 +804,7 @@ describe('series label fit', () => {
                 },
             ],
         });
+        // Bespoke: the width is set after preparation, which the factory would overwrite with the default canvas size.
         const renderNarrow = async (options: object) => {
             prepareEnterpriseTestOptions(options as AgChartOptions);
             chart = deproxy(AgCharts.create({ ...options, width: 500 } as AgChartOptions));
@@ -923,8 +924,7 @@ describe('series label fit', () => {
                     { from: 'Industry analyst coverage, awards and press', to: 'Paid subscription', size: 2 },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
             await compareImageSnapshot(chart, ctx);
         });
     });
@@ -1091,6 +1091,7 @@ describe('series label fit', () => {
 
             it('keeps a label that fits as the chart grows', async () => {
                 const options = usSeries() as AgChartOptions;
+                // Bespoke: the size is set after preparation, which the factory would overwrite with the default canvas size.
                 prepareEnterpriseTestOptions(options);
                 Object.assign(options, { width: 890, height: 600 });
                 const api = AgCharts.create(options);

@@ -95,14 +95,12 @@ describe('BoxPlotSeries', () => {
 
     it(`should render a box-plot chart as expected`, async () => {
         const options = BOX_PLOT_BAR_OPTIONS;
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a horizontal box-plot chart as expected`, async () => {
         const options = switchSeriesType(BOX_PLOT_BAR_OPTIONS, 'horizontal');
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a box-plot chart with a unit time x-axis`, async () => {
@@ -120,8 +118,7 @@ describe('BoxPlotSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a box-plot chart with a time x-axis`, async () => {
@@ -140,8 +137,7 @@ describe('BoxPlotSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a horizontal box-plot chart with a unit time y-axis`, async () => {
@@ -159,8 +155,7 @@ describe('BoxPlotSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a horizontal box-plot chart with a time y-axis`, async () => {
@@ -179,8 +174,7 @@ describe('BoxPlotSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a box-plot chart as expected with reversed axes`, async () => {
@@ -199,8 +193,7 @@ describe('BoxPlotSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a horizontal box-plot chart as expected with reversed axes`, async () => {
@@ -219,8 +212,7 @@ describe('BoxPlotSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a box-plot chart with a reversed unit time x-axis`, async () => {
@@ -239,8 +231,7 @@ describe('BoxPlotSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a box-plot chart with a reversed time x-axis`, async () => {
@@ -260,8 +251,7 @@ describe('BoxPlotSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a horizontal box-plot chart with a reversed unit time y-axis`, async () => {
@@ -280,8 +270,7 @@ describe('BoxPlotSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a horizontal box-plot chart with a reversed time y-axis`, async () => {
@@ -301,10 +290,10 @@ describe('BoxPlotSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
+    // Bespoke: the animation trajectory is captured from the chart's first frame, before it settles.
     // Each box grows vertically about its median: scalingY sweeps 0 -> 1 while scalingX holds.
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
@@ -372,8 +361,7 @@ describe('BoxPlotSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-            await compareSnapshot(AgCharts.create(options as AgChartOptions));
+            await compareSnapshot(await createEnterpriseChart(options as AgChartOptions));
         });
 
         it('should render box plot series with a gradient fill', async () => {
@@ -396,8 +384,7 @@ describe('BoxPlotSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-            await compareSnapshot(AgCharts.create(options as AgChartOptions));
+            await compareSnapshot(await createEnterpriseChart(options as AgChartOptions));
         });
     });
 
@@ -417,7 +404,6 @@ describe('BoxPlotSeries', () => {
                 } as AgCartesianChartOptions,
                 direction
             ) as AgChartOptions;
-            prepareEnterpriseTestOptions(options as any);
             return options;
         };
 
@@ -486,25 +472,27 @@ describe('BoxPlotSeries', () => {
         });
 
         it('should render a box-plot chart with a shadow spread and shared whisker styling', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions(SPREAD_SHADOW)));
+            await compareSnapshot(await createEnterpriseChart(buildOptions(SPREAD_SHADOW)));
         });
 
         it('should render a box-plot chart with a shadow spread and separately styled whiskers', async () => {
             await compareSnapshot(
-                AgCharts.create(buildOptions(SPREAD_SHADOW, { whisker: STYLED_WHISKERS }, 'horizontal'))
+                await createEnterpriseChart(buildOptions(SPREAD_SHADOW, { whisker: STYLED_WHISKERS }, 'horizontal'))
             );
         });
 
         it('should render a box-plot chart with a shadow and shared whisker styling', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions(SHADOW)));
+            await compareSnapshot(await createEnterpriseChart(buildOptions(SHADOW)));
         });
 
         it('should render a box-plot chart with a shadow and separately styled whiskers', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions(SHADOW, { whisker: STYLED_WHISKERS })));
+            await compareSnapshot(await createEnterpriseChart(buildOptions(SHADOW, { whisker: STYLED_WHISKERS })));
         });
 
         it('should render a horizontal box-plot chart with a shadow and separately styled whiskers', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions(SHADOW, { whisker: STYLED_WHISKERS }, 'horizontal')));
+            await compareSnapshot(
+                await createEnterpriseChart(buildOptions(SHADOW, { whisker: STYLED_WHISKERS }, 'horizontal'))
+            );
         });
     });
 
@@ -635,44 +623,41 @@ describe('BoxPlotSeries', () => {
             beforeEach(async () => {
                 c1 = { name: 'context 1' };
                 c2 = { name: 'context 2' };
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'box-plot',
-                                yName: 'Company 1',
-                                xKey: 'role',
-                                minKey: 's1_min',
-                                q1Key: 's1_q1',
-                                medianKey: 's1_median',
-                                q3Key: 's1_q3',
-                                maxKey: 's1_max',
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'box-plot',
+                            yName: 'Company 1',
+                            xKey: 'role',
+                            minKey: 's1_min',
+                            q1Key: 's1_q1',
+                            medianKey: 's1_median',
+                            q3Key: 's1_q3',
+                            maxKey: 's1_max',
 
-                                context: c1,
-                                fill: 'lime', // ignored
-                                stroke: 'lawngreen', // ignored
-                                whisker: { stroke: 'seagreen' }, // ignored
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'box-plot',
-                                yName: 'Company 2',
-                                xKey: 'role',
-                                minKey: 's2_min',
-                                q1Key: 's2_q1',
-                                medianKey: 's2_median',
-                                q3Key: 's2_q3',
-                                maxKey: 's2_max',
+                            context: c1,
+                            fill: 'lime', // ignored
+                            stroke: 'lawngreen', // ignored
+                            whisker: { stroke: 'seagreen' }, // ignored
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'box-plot',
+                            yName: 'Company 2',
+                            xKey: 'role',
+                            minKey: 's2_min',
+                            q1Key: 's2_q1',
+                            medianKey: 's2_median',
+                            q3Key: 's2_q3',
+                            maxKey: 's2_max',
 
-                                context: c2,
-                                stroke: 'gold', // not ignored
-                                styler: styler.frozen,
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                            context: c2,
+                            stroke: 'gold', // not ignored
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compareSnapshot(chart);
@@ -701,45 +686,42 @@ describe('BoxPlotSeries', () => {
                     }
                     return {};
                 };
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'box-plot',
-                                yName: 'Company 1',
-                                xKey: 'role',
-                                minKey: 's1_min',
-                                q1Key: 's1_q1',
-                                medianKey: 's1_median',
-                                q3Key: 's1_q3',
-                                maxKey: 's1_max',
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'box-plot',
+                            yName: 'Company 1',
+                            xKey: 'role',
+                            minKey: 's1_min',
+                            q1Key: 's1_q1',
+                            medianKey: 's1_median',
+                            q3Key: 's1_q3',
+                            maxKey: 's1_max',
 
-                                fill: 'lime', // ignored
-                                stroke: 'lawngreen', // ignored
-                                whisker: { stroke: 'seagreen' }, // ignored
-                                itemStyler,
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'box-plot',
-                                yName: 'Company 2',
-                                xKey: 'role',
-                                minKey: 's2_min',
-                                q1Key: 's2_q1',
-                                medianKey: 's2_median',
-                                q3Key: 's2_q3',
-                                maxKey: 's2_max',
+                            fill: 'lime', // ignored
+                            stroke: 'lawngreen', // ignored
+                            whisker: { stroke: 'seagreen' }, // ignored
+                            itemStyler,
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'box-plot',
+                            yName: 'Company 2',
+                            xKey: 'role',
+                            minKey: 's2_min',
+                            q1Key: 's2_q1',
+                            medianKey: 's2_median',
+                            q3Key: 's2_q3',
+                            maxKey: 's2_max',
 
-                                stroke: 'gold', // not ignored
-                                cornerRadius: 45, // ignored (overridden by: styler, itemStyler for Manager & Human Resources)
-                                itemStyler,
-                                styler: styler.frozen,
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                            stroke: 'gold', // not ignored
+                            cornerRadius: 45, // ignored (overridden by: styler, itemStyler for Manager & Human Resources)
+                            itemStyler,
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compareSnapshot(chart);
@@ -747,42 +729,39 @@ describe('BoxPlotSeries', () => {
         });
         describe('gradient-pattern', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'box-plot',
-                                yName: 'Company 1',
-                                xKey: 'role',
-                                minKey: 's1_min',
-                                q1Key: 's1_q1',
-                                medianKey: 's1_median',
-                                q3Key: 's1_q3',
-                                maxKey: 's1_max',
-                                fill: { type: 'gradient' },
-                                styler: () => {
-                                    return { fill: { type: 'gradient' } };
-                                },
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'box-plot',
+                            yName: 'Company 1',
+                            xKey: 'role',
+                            minKey: 's1_min',
+                            q1Key: 's1_q1',
+                            medianKey: 's1_median',
+                            q3Key: 's1_q3',
+                            maxKey: 's1_max',
+                            fill: { type: 'gradient' },
+                            styler: () => {
+                                return { fill: { type: 'gradient' } };
                             },
-                            {
-                                type: 'box-plot',
-                                yName: 'Company 2',
-                                xKey: 'role',
-                                minKey: 's2_min',
-                                q1Key: 's2_q1',
-                                medianKey: 's2_median',
-                                q3Key: 's2_q3',
-                                maxKey: 's2_max',
-                                fill: { type: 'pattern' },
-                                styler: () => {
-                                    return { fill: { type: 'pattern' } };
-                                },
+                        },
+                        {
+                            type: 'box-plot',
+                            yName: 'Company 2',
+                            xKey: 'role',
+                            minKey: 's2_min',
+                            q1Key: 's2_q1',
+                            medianKey: 's2_median',
+                            q3Key: 's2_q3',
+                            maxKey: 's2_max',
+                            fill: { type: 'pattern' },
+                            styler: () => {
+                                return { fill: { type: 'pattern' } };
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compareSnapshot(chart);
@@ -790,36 +769,33 @@ describe('BoxPlotSeries', () => {
         });
         describe('highlights', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'box-plot',
-                                yName: 'Company 1',
-                                xKey: 'role',
-                                minKey: 's1_min',
-                                q1Key: 's1_q1',
-                                medianKey: 's1_median',
-                                q3Key: 's1_q3',
-                                maxKey: 's1_max',
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'box-plot',
-                                yName: 'Company 2',
-                                xKey: 'role',
-                                minKey: 's2_min',
-                                q1Key: 's2_q1',
-                                medianKey: 's2_median',
-                                q3Key: 's2_q3',
-                                maxKey: 's2_max',
-                                styler: styler.frozen,
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'box-plot',
+                            yName: 'Company 1',
+                            xKey: 'role',
+                            minKey: 's1_min',
+                            q1Key: 's1_q1',
+                            medianKey: 's1_median',
+                            q3Key: 's1_q3',
+                            maxKey: 's1_max',
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'box-plot',
+                            yName: 'Company 2',
+                            xKey: 'role',
+                            minKey: 's2_min',
+                            q1Key: 's2_q1',
+                            medianKey: 's2_median',
+                            q3Key: 's2_q3',
+                            maxKey: 's2_max',
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
 
             const miss = { x: 200, y: 100 } as const;
@@ -914,8 +890,7 @@ describe('BoxPlotSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-            await compareSnapshot(AgCharts.create(options));
+            await compareSnapshot(await createEnterpriseChart(options));
         });
 
         it('should render box-plot series with segmentation styling on y-axis', async () => {
@@ -958,8 +933,7 @@ describe('BoxPlotSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-            await compareSnapshot(AgCharts.create(options));
+            await compareSnapshot(await createEnterpriseChart(options));
         });
 
         it('should render horizontal box-plot series with segmentation', async () => {
@@ -996,8 +970,7 @@ describe('BoxPlotSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-            await compareSnapshot(AgCharts.create(options));
+            await compareSnapshot(await createEnterpriseChart(options));
         });
 
         it('should render box-plot series with pattern fill segmentation', async () => {
@@ -1044,8 +1017,7 @@ describe('BoxPlotSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-            await compareSnapshot(AgCharts.create(options as AgChartOptions));
+            await compareSnapshot(await createEnterpriseChart(options as AgChartOptions));
         });
     });
 
@@ -1077,10 +1049,7 @@ describe('BoxPlotSeries', () => {
 
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = { ...BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
-
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -1103,10 +1072,7 @@ describe('BoxPlotSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compareSnapshot(chart);
@@ -1167,10 +1133,7 @@ describe('BoxPlotSeries', () => {
 
         it('should reject undefined category key with warning', async () => {
             const options: AgChartOptions = { ...BOX_PLOT_UNDEFINED_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
-
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -1193,10 +1156,7 @@ describe('BoxPlotSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compareSnapshot(chart);
@@ -1212,10 +1172,7 @@ describe('BoxPlotSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compareSnapshot(chart);
@@ -1333,6 +1290,7 @@ describe('BoxPlotSeries', () => {
 
     // The scatter keeps the y-domain populated, so a hidden box-plot's stale nodes would otherwise
     // re-project through a changed scale and render as stretched boxes.
+    // Bespoke: the prepared options object is reused by chart.update after the chart is created.
     describe('hide on legend toggle (CRT-1144)', () => {
         const animate = spyOnAnimationManager();
 

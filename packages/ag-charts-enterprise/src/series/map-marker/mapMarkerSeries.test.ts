@@ -83,9 +83,7 @@ describe('MapMarkerSeries', () => {
     describe('Simple Chart', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -93,10 +91,7 @@ describe('MapMarkerSeries', () => {
     describe('Series Highlighting', () => {
         it.each([0, 1, 2, 3])('should render a highlight at index %i', async (i: number) => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[1] as MapMarkerSeries;
             const node = seriesImpl?.['contextNodeData']?.nodeData[i];
@@ -115,10 +110,7 @@ describe('MapMarkerSeries', () => {
                 ...SIMPLIFIED_EXAMPLE,
                 legend: { enabled: true },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const { x, y } = computeLegendBBox(chart);
             await hoverAction(x + 10, y + 10)(chart);
@@ -129,9 +121,7 @@ describe('MapMarkerSeries', () => {
     describe('Bubble markers', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIZE_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -324,9 +314,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -346,9 +334,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -368,9 +354,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -394,9 +378,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -426,10 +408,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
 
             const seriesImpl = chart.series[1] as MapMarkerSeries;
@@ -467,10 +446,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expectWarningsCalls().toEqual([]);
         });
@@ -490,10 +466,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[1] as MapMarkerSeries;
             const targetNode = seriesImpl?.['contextNodeData']?.nodeData[0];
@@ -528,10 +501,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[1] as MapMarkerSeries;
             const missingNode = seriesImpl?.['contextNodeData']?.nodeData.find((node: any) =>
@@ -556,9 +526,7 @@ describe('MapMarkerSeries', () => {
                 ...COLOR_EXAMPLE,
                 gradientLegend: { enabled: true },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -580,9 +548,7 @@ describe('MapMarkerSeries', () => {
                 legend: { enabled: true },
                 gradientLegend: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -608,9 +574,7 @@ describe('MapMarkerSeries', () => {
                 legend: { enabled: true },
                 gradientLegend: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -634,9 +598,7 @@ describe('MapMarkerSeries', () => {
                 ],
                 gradientLegend: { enabled: true },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -661,9 +623,7 @@ describe('MapMarkerSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
         it('should render map marker series with a gradient fill', async () => {
@@ -693,9 +653,7 @@ describe('MapMarkerSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -709,9 +667,7 @@ describe('MapMarkerSeries', () => {
                     { type: 'map-marker', idKey: 'name', sizeKey: 'population', ...markerOverrides },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             return chart.series[1].sizeScale.range;
         };
 
@@ -758,9 +714,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
             expect(markerSizes.length).toBeGreaterThan(0);
@@ -785,9 +739,7 @@ describe('MapMarkerSeries', () => {
                     } as never,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
             expect(markerSizes.length).toBeGreaterThan(0);
@@ -820,9 +772,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
             expect(markerSizes.length).toBeGreaterThan(0);
@@ -840,9 +790,7 @@ describe('MapMarkerSeries', () => {
                     { type: 'map-marker', idKey: 'name', size: 12, minSize: 40, maxSize: 50 },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
             expect(markerSizes.length).toBeGreaterThan(0);
@@ -860,9 +808,7 @@ describe('MapMarkerSeries', () => {
                 ],
                 ...(theme ? { theme } : {}),
             } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             return chart.series[1].contextNodeData?.nodeData as any[];
         };
         const sizesByName = (nodes: any[]) => Object.fromEntries(nodes.map((n) => [n.datum.name, n.point.size]));
@@ -961,9 +907,7 @@ describe('MapMarkerSeries', () => {
                 ...SIMPLIFIED_EXAMPLE,
                 series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name', ...markerOverrides }],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             return chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
         };
 
@@ -1006,6 +950,8 @@ describe('MapMarkerSeries', () => {
         const markerKeys = (sample: ReadonlyMap<string, unknown>) =>
             [...sample.keys()].filter((key) => /^series\[1\]\/marker\[/.test(key));
 
+        // Bespoke: the animation-frame spy has to be in place before the chart's first frame, so the chart cannot
+        // be created through the factory, which awaits stability.
         it('markers scale in from a point (width/height 0 -> full) on the initial reveal', async () => {
             const options = mapOptions(ukData);
             prepareEnterpriseTestOptions(options);

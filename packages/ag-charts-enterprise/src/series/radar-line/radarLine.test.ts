@@ -34,7 +34,7 @@ import {
 } from 'ag-charts-community-test';
 import type { NonNullablePath } from 'ag-charts-core';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RadarLineSeries', () => {
     setupMockConsole();
@@ -80,9 +80,7 @@ describe('RadarLineSeries', () => {
 
     it(`should render polar chart as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -91,9 +89,7 @@ describe('RadarLineSeries', () => {
             ...EXAMPLE_OPTIONS,
             axes: { angle: { type: 'angle-category', shape: 'circle' }, radius: { type: 'radius-number' } },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -112,9 +108,7 @@ describe('RadarLineSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -133,9 +127,7 @@ describe('RadarLineSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -152,9 +144,7 @@ describe('RadarLineSeries', () => {
                 radius: { type: 'radius-number' },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -173,9 +163,7 @@ describe('RadarLineSeries', () => {
                 connectMissingData: false,
             })),
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -190,9 +178,7 @@ describe('RadarLineSeries', () => {
                 { subject: 'P.E.', gradeA: 9.8, gradeB: 6.4 },
             ],
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -201,9 +187,7 @@ describe('RadarLineSeries', () => {
             ...EXAMPLE_OPTIONS,
             legend: { item: { showSeriesStroke: true } },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
     // Radar-line only genuinely tweens on its initial reveal; data-swap and legend-toggle both
@@ -267,6 +251,8 @@ describe('RadarLineSeries', () => {
             settlesAt: 1,
         };
 
+        // Bespoke: the animation-frame spy has to be in place before the chart's first frame, so these charts cannot
+        // be created through the factory, which awaits stability.
         it('initial reveal: the line grows out from the centre and markers fade in', async () => {
             const proxy = AgCharts.create(radarOptions(DATA_1));
             chart = deproxy(proxy);
@@ -406,7 +392,7 @@ describe('RadarLineSeries', () => {
     });
 
     test('AG-8290 label boxing', async () => {
-        const options = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: [
                 { department: 'Sales', quality: 40, efficiency: 75 },
                 { department: 'Engineering', quality: 45, efficiency: 90 },
@@ -429,9 +415,9 @@ describe('RadarLineSeries', () => {
                     },
                 },
             ],
-        });
+        };
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -517,56 +503,53 @@ describe('RadarLineSeries', () => {
             beforeEach(async () => {
                 c1 = { name: 'healer - magic powers' };
                 c2 = { name: 'tank - heavy armor' };
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'radar-line',
-                                context: c1,
-                                angleKey: 'trait',
-                                radiusKey: 'healer',
-                                stroke: 'limegreen', // ignored
-                                strokeWidth: 30, // ignored
-                                strokeOpacity: 0.3, // ignored
-                                lineDash: [7, 7, 4, 4], // ignored
-                                marker: {
-                                    fill: 'mediumseagreen', // ignored
-                                    fillOpacity: 0.2, // ignored
-                                    shape: 'heart', // ignored
-                                    size: 40, // ignored
-                                    stroke: 'seagreen', // ignored
-                                    strokeWidth: 5, // ignored
-                                },
-                                styler: styler.frozen,
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'radar-line',
+                            context: c1,
+                            angleKey: 'trait',
+                            radiusKey: 'healer',
+                            stroke: 'limegreen', // ignored
+                            strokeWidth: 30, // ignored
+                            strokeOpacity: 0.3, // ignored
+                            lineDash: [7, 7, 4, 4], // ignored
+                            marker: {
+                                fill: 'mediumseagreen', // ignored
+                                fillOpacity: 0.2, // ignored
+                                shape: 'heart', // ignored
+                                size: 40, // ignored
+                                stroke: 'seagreen', // ignored
+                                strokeWidth: 5, // ignored
                             },
-                            {
-                                type: 'radar-line',
-                                context: c2,
-                                angleKey: 'trait',
-                                radiusKey: 'tank',
-                                stroke: 'fuchsia', // ignored
-                                strokeWidth: 3, // not ignored
-                                strokeOpacity: 0.9, // not ignored
-                                // marker should be enabled
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'radar-line',
-                                angleKey: 'trait',
-                                radiusKey: 'damage',
-                                // should use all style properties from the styler
-                                marker: {}, // should be enabled, but with the styler's styling
-                                styler: styler.frozen,
-                            },
-                        ],
-                        legend: {
-                            position: 'bottom',
-                            item: { line: { length: 40 } },
+                            styler: styler.frozen,
                         },
-                    })
-                );
-                await waitForChartStability(chart);
+                        {
+                            type: 'radar-line',
+                            context: c2,
+                            angleKey: 'trait',
+                            radiusKey: 'tank',
+                            stroke: 'fuchsia', // ignored
+                            strokeWidth: 3, // not ignored
+                            strokeOpacity: 0.9, // not ignored
+                            // marker should be enabled
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'radar-line',
+                            angleKey: 'trait',
+                            radiusKey: 'damage',
+                            // should use all style properties from the styler
+                            marker: {}, // should be enabled, but with the styler's styling
+                            styler: styler.frozen,
+                        },
+                    ],
+                    legend: {
+                        position: 'bottom',
+                        item: { line: { length: 40 } },
+                    },
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -597,55 +580,52 @@ describe('RadarLineSeries', () => {
                     }
                 };
 
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'radar-line',
-                                angleKey: 'trait',
-                                radiusKey: 'healer',
-                                stroke: 'limegreen', // ignored
-                                strokeWidth: 30, // ignored
-                                strokeOpacity: 0.3, // ignored
-                                lineDash: [7, 7, 4, 4], // ignored
-                                marker: {
-                                    itemStyler,
-                                    fill: 'mediumseagreen', // ignored
-                                    fillOpacity: 0.2, // ignored
-                                    shape: 'heart', // ignored
-                                    size: 40, // ignored
-                                    stroke: 'seagreen', // ignored
-                                    strokeWidth: 5, // ignored
-                                },
-                                styler: styler.frozen,
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'radar-line',
+                            angleKey: 'trait',
+                            radiusKey: 'healer',
+                            stroke: 'limegreen', // ignored
+                            strokeWidth: 30, // ignored
+                            strokeOpacity: 0.3, // ignored
+                            lineDash: [7, 7, 4, 4], // ignored
+                            marker: {
+                                itemStyler,
+                                fill: 'mediumseagreen', // ignored
+                                fillOpacity: 0.2, // ignored
+                                shape: 'heart', // ignored
+                                size: 40, // ignored
+                                stroke: 'seagreen', // ignored
+                                strokeWidth: 5, // ignored
                             },
-                            {
-                                type: 'radar-line',
-                                angleKey: 'trait',
-                                radiusKey: 'tank',
-                                stroke: 'fuchsia', // ignored
-                                strokeWidth: 3, // not ignored
-                                strokeOpacity: 0.9, // not ignored
-                                styler: styler.frozen,
-                                marker: { itemStyler },
-                            },
-                            {
-                                type: 'radar-line',
-                                angleKey: 'trait',
-                                radiusKey: 'damage',
-                                // should use all style properties from the styler
-                                styler: styler.frozen,
-                                marker: { itemStyler },
-                            },
-                        ],
-                        legend: {
-                            position: 'bottom',
-                            item: { line: { length: 40 } },
+                            styler: styler.frozen,
                         },
-                    })
-                );
-                await waitForChartStability(chart);
+                        {
+                            type: 'radar-line',
+                            angleKey: 'trait',
+                            radiusKey: 'tank',
+                            stroke: 'fuchsia', // ignored
+                            strokeWidth: 3, // not ignored
+                            strokeOpacity: 0.9, // not ignored
+                            styler: styler.frozen,
+                            marker: { itemStyler },
+                        },
+                        {
+                            type: 'radar-line',
+                            angleKey: 'trait',
+                            radiusKey: 'damage',
+                            // should use all style properties from the styler
+                            styler: styler.frozen,
+                            marker: { itemStyler },
+                        },
+                    ],
+                    legend: {
+                        position: 'bottom',
+                        item: { line: { length: 40 } },
+                    },
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -653,36 +633,33 @@ describe('RadarLineSeries', () => {
         });
         describe('gradient-pattern', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'radar-line',
-                                angleKey: 'trait',
-                                radiusKey: 'healer',
-                                marker: { size: 30 },
-                                styler: (): AgRadarLineSeriesStyle | undefined => {
-                                    return {
-                                        marker: { fill: { type: 'pattern' } },
-                                    };
-                                },
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'radar-line',
+                            angleKey: 'trait',
+                            radiusKey: 'healer',
+                            marker: { size: 30 },
+                            styler: (): AgRadarLineSeriesStyle | undefined => {
+                                return {
+                                    marker: { fill: { type: 'pattern' } },
+                                };
                             },
-                            {
-                                type: 'radar-line',
-                                angleKey: 'trait',
-                                radiusKey: 'tank',
-                                marker: { size: 30 },
-                                styler: (): AgRadarLineSeriesStyle | undefined => {
-                                    return {
-                                        marker: { fill: { type: 'gradient' } },
-                                    };
-                                },
+                        },
+                        {
+                            type: 'radar-line',
+                            angleKey: 'trait',
+                            radiusKey: 'tank',
+                            marker: { size: 30 },
+                            styler: (): AgRadarLineSeriesStyle | undefined => {
+                                return {
+                                    marker: { fill: { type: 'gradient' } },
+                                };
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 // The 'pattern' fill type renders slightly differently on GitHub CI, imperceptible without an image-diff aid.
@@ -691,38 +668,35 @@ describe('RadarLineSeries', () => {
         });
         describe('highlights', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'radar-line',
-                                angleKey: 'trait',
-                                radiusKey: 'healer',
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'radar-line',
-                                angleKey: 'trait',
-                                radiusKey: 'tank',
-                                strokeWidth: 3,
-                                strokeOpacity: 0.9,
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'radar-line',
-                                angleKey: 'trait',
-                                radiusKey: 'damage',
-                                styler: styler.frozen,
-                            },
-                        ],
-                        legend: {
-                            position: 'bottom',
-                            item: { line: { length: 40 } },
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'radar-line',
+                            angleKey: 'trait',
+                            radiusKey: 'healer',
+                            styler: styler.frozen,
                         },
-                    })
-                );
-                await waitForChartStability(chart);
+                        {
+                            type: 'radar-line',
+                            angleKey: 'trait',
+                            radiusKey: 'tank',
+                            strokeWidth: 3,
+                            strokeOpacity: 0.9,
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'radar-line',
+                            angleKey: 'trait',
+                            radiusKey: 'damage',
+                            styler: styler.frozen,
+                        },
+                    ],
+                    legend: {
+                        position: 'bottom',
+                        item: { line: { length: 40 } },
+                    },
+                });
             });
 
             const miss = { x: 10, y: 10 } as const;
@@ -814,8 +788,7 @@ describe('RadarLineSeries', () => {
             ],
         };
 
-        prepareEnterpriseTestOptions(options as any);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
 
         await waitForChartStability(chart);
         await hoverAction(300, 200)(chart);
@@ -829,9 +802,7 @@ describe('RadarLineSeries', () => {
             series: [{ type: 'radar-line', angleKey: 'subject', radiusKey: 'gradeA', marker: { size: 10 } }],
             legend: { enabled: true, position: 'bottom' },
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         const { highlightGroup } = deproxy(chart).series[0];
         const highlightNodeCount = () => [...highlightGroup.children()].length;
@@ -849,7 +820,7 @@ describe('RadarLineSeries', () => {
 
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            create: async (o) => (chart = await createEnterpriseChart(o)),
             compare,
             chartOptions: {
                 data: [
@@ -886,10 +857,7 @@ describe('RadarLineSeries', () => {
 
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = { ...RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -912,10 +880,7 @@ describe('RadarLineSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -960,10 +925,7 @@ describe('RadarLineSeries', () => {
 
         it('should reject undefined category key with warning', async () => {
             const options: AgChartOptions = { ...RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -986,10 +948,7 @@ describe('RadarLineSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1005,10 +964,7 @@ describe('RadarLineSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1033,6 +989,8 @@ describe('RadarLineSeries', () => {
                     },
                 ],
             };
+            // Bespoke: the prepared options are spread into the update below, so they must be the ones the chart
+            // was created from.
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
@@ -1084,9 +1042,7 @@ describe('RadarLineSeries', () => {
                 series: [{ type: 'radar-line', angleKey: 'subject', radiusKey: 'grade' }],
                 axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
@@ -1101,10 +1057,7 @@ describe('RadarLineSeries', () => {
                     visible: false,
                 })),
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });

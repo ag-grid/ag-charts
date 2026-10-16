@@ -1,19 +1,17 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { afterEach, describe, it } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
-    deproxy,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 import ukTopology from '../map-test/ukTopology.json';
 
 const SIMPLIFIED_EXAMPLE: AgChartOptions = {
@@ -27,10 +25,10 @@ const SIMPLIFIED_EXAMPLE: AgChartOptions = {
 
 describe('MapShapeBackgroundSeries', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -45,18 +43,14 @@ describe('MapShapeBackgroundSeries', () => {
     describe('Simple Chart', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should ignore hover picks, having no tooltip option', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
         });
@@ -76,9 +70,7 @@ describe('MapShapeBackgroundSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });
@@ -105,9 +97,7 @@ describe('MapShapeBackgroundSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });

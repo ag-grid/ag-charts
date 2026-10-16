@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 import type { Node, Rect, Sector } from 'ag-charts-core';
 
-import { HIERARCHY_SHADOW_DATA, collectShapes, prepareEnterpriseTestOptions } from '../test/utils';
+import { HIERARCHY_SHADOW_DATA, collectShapes, createEnterpriseChart } from '../test/utils';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
 
@@ -30,9 +29,7 @@ describe('layer shadow batching of enterprise series', () => {
     });
 
     const create = async (options: AgChartOptions) => {
-        prepareEnterpriseTestOptions(options);
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(options));
         return chart.series[0];
     };
 
