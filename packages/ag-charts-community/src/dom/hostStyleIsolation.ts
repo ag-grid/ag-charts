@@ -8,11 +8,14 @@ export function isInHostWithLeakingStyles(container: HTMLElement): boolean {
 
 /** claude.ai's inline visualiser: its `button` rule carries ID weight, so no class-based chart rule can win. */
 function isInClaudeVisualiser(container: HTMLElement): boolean {
-    return container.closest('#vis-container') != null && hasClaudeVisualiserStylesheet(container.ownerDocument);
+    // The visualiser's base styles exempt its own `form.elicit` controls, which no other page is likely to name.
+    return (
+        container.closest('#vis-container') != null && hasStylesheetRuleMatching(container.ownerDocument, 'form.elicit')
+    );
 }
 
-/** The visualiser's base styles exempt its own `form.elicit` controls, which no other page is likely to name. */
-function hasClaudeVisualiserStylesheet(doc: Document): boolean {
+/** Whether any readable stylesheet in the document has a rule whose selector contains `selectorFragment`. */
+function hasStylesheetRuleMatching(doc: Document, selectorFragment: string): boolean {
     const { styleSheets } = doc;
     for (let i = 0, len = styleSheets.length; i < len; ++i) {
         let rules: CSSRuleList;
@@ -24,11 +27,11 @@ function hasClaudeVisualiserStylesheet(doc: Document): boolean {
         }
         for (let j = 0, rulesLen = rules.length; j < rulesLen; ++j) {
             const rule = rules[j];
-            // Duck-typed rather than `instanceof CSSStyleRule`, which fails for a container in another window.
+            // Duck-typed: rules from another window's stylesheets fail `instanceof` against this window's CSSStyleRule.
             if (
                 'selectorText' in rule &&
                 typeof rule.selectorText === 'string' &&
-                rule.selectorText.includes('form.elicit')
+                rule.selectorText.includes(selectorFragment)
             ) {
                 return true;
             }
