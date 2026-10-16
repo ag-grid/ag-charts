@@ -10,7 +10,7 @@ type TSeries = {
     legendItemName?: string;
 };
 type TestLegendItemNameOptions = {
-    create: (opts: AgChartOptions) => AgChartInstance;
+    create: (opts: AgChartOptions) => AgChartInstance | Promise<AgChartInstance>;
     compare: () => Promise<void>;
     chartOptions: AgChartOptions & { series: TSeries[] };
 };
@@ -34,7 +34,7 @@ export function testLegendItemName(testOptions: TestLegendItemNameOptions) {
             chartOptions.series[1].legendItemName = 'Bravo';
             chartOptions.series[2].legendItemName = 'Charlie';
 
-            chart = testOptions.create(chartOptions);
+            chart = await testOptions.create(chartOptions);
             await waitForChartStability(chart);
         });
 
@@ -63,7 +63,7 @@ export function testLegendItemName(testOptions: TestLegendItemNameOptions) {
             chartOptions.series[1].legendItemName = '1';
 
             resetMockConsole();
-            chart = testOptions.create(chartOptions);
+            chart = await testOptions.create(chartOptions);
             await waitForChartStability(chart);
 
             expectWarningMessages([

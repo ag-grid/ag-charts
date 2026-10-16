@@ -169,6 +169,8 @@ describe('PieSeries', () => {
 
         // Callout labels snap to opacity 0 at frame 0, which trips captureUpdate's whole-scene start
         // anchor, so only the end anchor is kept. `setup` establishes an extra settled pre-state.
+        // Bespoke: every bare create in this suite captures the animation frames from the chart's first frame,
+        // so it must not be created through the factory, which awaits stability first.
         const captureFrom = async (
             create: AgPolarChartOptions,
             action: (proxy: AgChartInstance) => void | Promise<void>,
@@ -1491,17 +1493,16 @@ describe('PieSeries', () => {
         let chartProxy: AgChartProxy;
 
         beforeEach(async () => {
-            const testOptions: AgPolarChartOptions = prepareTestOptions({
+            const testOptions: AgPolarChartOptions = {
                 data: [
                     { name: 'A (deselected)', value: 10 },
                     { name: 'B', value: 20 },
                     { name: 'C', value: 30 },
                 ],
                 series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'name' }],
-            });
-            chartProxy = AgCharts.create(testOptions) as AgChartProxy;
+            };
+            chartProxy = await createChart(testOptions);
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
         });
 
         test('should exclude hidden sectors from downloaded image', async () => {
@@ -1533,18 +1534,15 @@ describe('PieSeries', () => {
         const overrideFills = ['red', 'green', 'blue'];
         const data = Array.from({ length: 70 }, (_, index) => ({ food: `F${index}`, value: 10 + index }));
         chart = deproxy(
-            AgCharts.create(
-                prepareTestOptions({
-                    theme: {
-                        palette: { fills: ['#111111', '#222222', '#333333', '#444444'] },
-                        overrides: { pie: { series: { fills: overrideFills } } },
-                    },
-                    data,
-                    series: [{ type: 'pie', angleKey: 'value' }],
-                })
-            )
+            await createChart({
+                theme: {
+                    palette: { fills: ['#111111', '#222222', '#333333', '#444444'] },
+                    overrides: { pie: { series: { fills: overrideFills } } },
+                },
+                data,
+                series: [{ type: 'pie', angleKey: 'value' }],
+            })
         );
-        await waitForChartStability(chart);
 
         const pieSeries = classCast(chart.series[0], PieSeries);
         expect((pieSeries.getNodeData() ?? []).map((datum) => datum.sectorFormat.fill)).toEqual(
@@ -1556,15 +1554,12 @@ describe('PieSeries', () => {
         const colours = (count: number) =>
             Array.from({ length: count }, (_, index) => `#${index.toString(16).padStart(6, '0')}`);
         chart = deproxy(
-            AgCharts.create(
-                prepareTestOptions({
-                    theme: { palette: { fills: colours(101), strokes: colours(103) } },
-                    data: [{ value: 1 }, { value: 2 }, { value: 3 }],
-                    series: [{ type: 'pie', angleKey: 'value' }],
-                })
-            )
+            await createChart({
+                theme: { palette: { fills: colours(101), strokes: colours(103) } },
+                data: [{ value: 1 }, { value: 2 }, { value: 3 }],
+                series: [{ type: 'pie', angleKey: 'value' }],
+            })
         );
-        await waitForChartStability(chart);
 
         const { fills, strokes } = classCast(chart.series[0], PieSeries).options;
         expect(strokes).toHaveLength(103);
@@ -1577,7 +1572,7 @@ describe('PieSeries', () => {
         let pieSeries: PieSeries;
 
         beforeEach(async () => {
-            const transactionOptions = prepareTestOptions({
+            chartProxy = await createChart({
                 theme: {
                     palette: {
                         fills: ['red', 'green'],
@@ -1590,9 +1585,7 @@ describe('PieSeries', () => {
                 ],
                 series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'food' }],
             });
-            chartProxy = AgCharts.create(transactionOptions);
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
 
             pieSeries = classCast(chart.series[0], PieSeries);
         });
@@ -1807,10 +1800,7 @@ describe('PieSeries', () => {
                         } as AgPieSeriesOptions,
                     ],
                 };
-                prepareTestOptions(opts);
-
-                chart = AgCharts.create(opts) as any;
-                await waitForChartStability(chart);
+                chart = deproxy(await createChart(opts));
 
                 await compare(undefined, PATTERN_SNAPSHOT_DEFAULTS);
             });
@@ -1836,10 +1826,7 @@ describe('PieSeries', () => {
                         } as AgPieSeriesOptions,
                     ],
                 };
-                prepareTestOptions(opts);
-
-                chart = AgCharts.create(opts) as any;
-                await waitForChartStability(chart);
+                chart = deproxy(await createChart(opts));
 
                 await compare();
             });
