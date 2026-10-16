@@ -22,6 +22,10 @@ export interface FallbackNavItem {
     href: string;
     /** Set when `href` is the page being rendered, rather than another page or an anchor on one. */
     isCurrentPage: boolean;
+    /** Id of the element `href` targets, when it is an anchor on a page rather than a page of its own. */
+    anchorId?: string;
+    /** The property the entry stands for; unset for the root and for the entries of union variants. */
+    member?: MemberNode;
     children: FallbackNavItem[];
 }
 
@@ -110,7 +114,11 @@ function memberPath(member: MemberNode, cleanName = true): NavigationPath {
 function toHref(navData: NavigationData, parentPageInterface: string) {
     // An entry that opens a page of its own links to the page itself, not an anchor on it.
     const isPageLink = navData.pageInterface !== parentPageInterface;
-    return { href: isPageLink ? navData.pathname : `${navData.pathname}#${navData.hash}`, isPageLink };
+    return {
+        href: isPageLink ? navData.pathname : `${navData.pathname}#${navData.hash}`,
+        anchorId: isPageLink ? undefined : navData.hash,
+        isPageLink,
+    };
 }
 
 function shouldListAll(options: FallbackNavOptions, level: number, isCurrentPage: boolean) {
@@ -133,13 +141,15 @@ function buildMemberItem(
 
     const parentNavData = getNavigationDataFromPath(path.slice(0, -1), specialTypes);
     const navData = getNavigationDataFromPath(path, specialTypes);
-    const { href, isPageLink } = toHref(navData, parentNavData.pageInterface);
+    const { href, anchorId, isPageLink } = toHref(navData, parentNavData.pageInterface);
     const isCurrentPage = isPageLink && navData.pageInterface === walk.pageInterface;
 
     const item: FallbackNavItem = {
         label: `${cleanupName(member.name)}${specialType === 'InterfaceRecord' ? '.key' : ''}`,
         href,
         isCurrentPage,
+        anchorId,
+        member,
         children: [],
     };
 
@@ -206,7 +216,7 @@ function buildVariantItems(
 
         const path = parentPath.concat(variant);
         const navData = getNavigationDataFromPath(path, config.specialTypes);
-        const { href, isPageLink } = toHref(navData, parentNavData.pageInterface);
+        const { href, anchorId, isPageLink } = toHref(navData, parentNavData.pageInterface);
         if (!listAll && !isPageLink) {
             return [];
         }
@@ -217,6 +227,7 @@ function buildVariantItems(
             label: isPageLink ? apiReferencePageHeading(navData.pageTitle) : `${discriminatorKey}='${variant.name}'`,
             href,
             isCurrentPage,
+            anchorId,
             children: [],
         };
 
@@ -229,6 +240,30 @@ function buildVariantItems(
 
         return [item];
     });
+}
+
+/** The entry for the page being rendered, whose members the page lists. */
+export function findCurrentPage(item: FallbackNavItem): FallbackNavItem | undefined {
+    if (item.isCurrentPage) {
+        return item;
+    }
+    for (const child of item.children) {
+        const found = findCurrentPage(child);
+        if (found) {
+            return found;
+        }
+    }
+}
+
+/**
+ * The entries below `item` that are anchors on the page being rendered, nested as in the navigation.
+ * Entries that open a page of their own are left out, along with everything beneath them, as the
+ * page that renders them provides their targets.
+ */
+export function getNestedAnchors(item: FallbackNavItem): FallbackNavItem[] {
+    return item.children
+        .filter((child) => child.anchorId != null)
+        .map((child) => ({ ...child, children: getNestedAnchors(child) }));
 }
 
 /** Members an `Omit<>`-typed member leaves out, which the hydrated tree skips too. */

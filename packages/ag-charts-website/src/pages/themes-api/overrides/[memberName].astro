@@ -1,7 +1,6 @@
 ---
 import { type SpecialTypesMap, getThemesApiStaticPaths } from '@components/api-documentation/apiReferenceHelpers';
 import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
-import ApiReferenceFallbackNav from '@components/api-documentation/components/ApiReferenceFallbackNav.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getInterfacesReference } from '@utils/server/getInterfacesReference';
@@ -33,16 +32,10 @@ const specialTypes: SpecialTypesMap = {
             rootInterface="AgChartTheme"
             pageInterface={Astro.props.pageInterface}
             pageTitle={Astro.props.pageTitle}
-        >
-            <ApiReferenceFallbackNav
-                slot="nav"
-                label="Themes API reference"
-                rootInterface="AgChartTheme"
-                rootLabel="theme"
-                basePath="themes-api"
-                pageInterface={Astro.props.pageInterface}
-                specialTypes={specialTypes}
-            />
-        </ApiReferenceFallback>
+            navLabel="Themes API reference"
+            rootLabel="theme"
+            basePath="themes-api"
+            specialTypes={specialTypes}
+        />
     </ApiReferencePage>
 </APIViewLayout>

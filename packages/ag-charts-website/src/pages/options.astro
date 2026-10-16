@@ -1,7 +1,6 @@
 ---
 import type { SpecialTypesMap } from '@components/api-documentation/apiReferenceHelpers';
 import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
-import ApiReferenceFallbackNav from '@components/api-documentation/components/ApiReferenceFallbackNav.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { OPTIONS_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePageContent';
@@ -26,16 +25,14 @@ const specialTypes: SpecialTypesMap = {
         specialTypes={specialTypes}
         noExpand={['theme']}
     >
-        <ApiReferenceFallback slot="fallback" rootInterface="AgChartOptions">
-            <ApiReferenceFallbackNav
-                slot="nav"
-                label="Options API reference"
-                rootInterface="AgChartOptions"
-                rootLabel="options"
-                basePath="options"
-                specialTypes={specialTypes}
-                noExpand={['theme']}
-            />
-        </ApiReferenceFallback>
+        <ApiReferenceFallback
+            slot="fallback"
+            rootInterface="AgChartOptions"
+            navLabel="Options API reference"
+            rootLabel="options"
+            basePath="options"
+            specialTypes={specialTypes}
+            noExpand={['theme']}
+        />
     </ApiReferencePage>
 </APIViewLayout>

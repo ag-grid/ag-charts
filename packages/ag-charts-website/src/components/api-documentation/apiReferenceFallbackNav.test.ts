@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { type FallbackNavItem, type FallbackNavOptions, buildFallbackNav } from './apiReferenceFallbackNav';
+import {
+    type FallbackNavItem,
+    type FallbackNavOptions,
+    buildFallbackNav,
+    findCurrentPage,
+    getNestedAnchors,
+} from './apiReferenceFallbackNav';
 
 const prop = (name: string, type: any) => ({ kind: 'member' as const, name, type, optional: true });
 const iface = (name: string, members: any[]) => ({ kind: 'interface' as const, name, members });
@@ -139,5 +145,40 @@ describe('buildFallbackNav', () => {
             '    bar /charts/themes-api/overrides/bar/ (current)',
             '      series /charts/themes-api/overrides/bar/#reference-AgBarSeriesThemeOverrides-series',
         ]);
+    });
+
+    it('finds the entry of the page being rendered', () => {
+        expect(findCurrentPage(optionsNav())?.label).toBe('options');
+        expect(findCurrentPage(optionsNav({ pageInterface: 'AgBarSeriesOptions' }))?.label).toBe("series[type='bar']");
+        expect(findCurrentPage(optionsNav({ pageInterface: 'NotInTheNav' }))).toBeUndefined();
+    });
+});
+
+describe('getNestedAnchors', () => {
+    const anchorIds = (items: FallbackNavItem[]): string[] =>
+        items.flatMap((item) => [item.anchorId!, ...anchorIds(item.children)]);
+
+    it('gives every anchor the navigation links to on the page, whatever its depth', () => {
+        const root = optionsNav();
+        const anchors = getNestedAnchors(root);
+
+        expect(anchorIds(anchors)).toEqual([
+            'reference-AgChartOptions-data',
+            'reference-AgChartOptions-legend',
+            'reference-AgChartOptions-legend-item',
+            'reference-AgChartOptions-series',
+        ]);
+        expect(anchors.find((item) => item.member?.name === 'legend')?.children[0].member?.name).toBe('item');
+    });
+
+    it('leaves out pages of their own, and the entries beneath them', () => {
+        const page = findCurrentPage(optionsNav({ pageInterface: 'AgBarSeriesOptions' }))!;
+        expect(anchorIds(getNestedAnchors(page))).toEqual([
+            'reference-AgBarSeriesOptions-type',
+            'reference-AgBarSeriesOptions-fill',
+        ]);
+
+        const series = getNestedAnchors(optionsNav()).find((item) => item.member?.name === 'series');
+        expect(series?.children).toEqual([]);
     });
 });
