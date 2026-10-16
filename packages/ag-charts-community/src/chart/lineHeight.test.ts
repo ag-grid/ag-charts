@@ -78,6 +78,29 @@ describe('lineHeight', () => {
             const axis = await resolvedXAxis({ lineHeight: 1.5 }, { lineHeight: 7 });
             expect(axis.label.lineHeight).toBe(7);
         });
+
+        describe('time axis parent level labels', () => {
+            async function resolvedParentLabel(label: object, parentLabel: object) {
+                const { chartOptions } = await render({
+                    data: [{ x: new Date(2024, 0, 1), y: 1 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'time', position: 'bottom', label, parentLevel: { label: parentLabel } },
+                    },
+                    theme: { params: { lineHeight: 1.5 } },
+                });
+                const { axes } = chartOptions.processedOptions as AgCartesianChartOptions;
+                return (axes as Record<string, any>).x.parentLevel.label;
+            }
+
+            it('derives lineHeight from their own fontSize', async () => {
+                expect((await resolvedParentLabel({ fontSize: 10 }, { fontSize: 20 })).lineHeight).toBe(30);
+            });
+
+            it('inherits a lineHeight set on the axis label', async () => {
+                expect((await resolvedParentLabel({ lineHeight: 18 }, { fontSize: 20 })).lineHeight).toBe(18);
+            });
+        });
     });
 
     describe('series labels', () => {

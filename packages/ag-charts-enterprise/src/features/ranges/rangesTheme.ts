@@ -64,7 +64,7 @@ const componentTheme: WithThemeParams<AgRangesButtonStyles> = {
     fill: { $path: '../fill' },
     fillOpacity: { $path: '../fillOpacity' },
     fontSize: { $path: '../fontSize' },
-    lineHeight: { $path: '../lineHeight' },
+    lineHeight: { $isUserOption: ['../lineHeight', { $path: '../lineHeight' }, themeLineHeight('chromeLineHeight')] },
     fontFamily: { $path: '../fontFamily' },
     fontWeight: { $path: '../fontWeight' },
     padding: { $path: '../padding' },

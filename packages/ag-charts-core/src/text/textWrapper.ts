@@ -1285,7 +1285,8 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
     function wrapOverflowingTextSegment(segment: MeasuredTextSegment): boolean {
         const measurer = cachedTextMeasurer(segment);
         const guardedText = guardTextEdges(segment.text);
-        const wrapOptions = { ...options, font: segment, maxHeight: maxHeight - totalHeight };
+        const { lineHeight } = segment;
+        const wrapOptions = { ...options, font: segment, lineHeight, maxHeight: maxHeight - totalHeight };
 
         let wrappedLines = textWrap(guardedText, { ...wrapOptions, overflow: 'hide' }, lineWidth, totalHeight);
         if (wrappedLines.length === 0) {
@@ -1338,7 +1339,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 subSegment.text += '\n';
                 lineWidth = 0;
             }
-            totalHeight += textMetrics.height;
+            totalHeight += lineHeight ?? textMetrics.height;
             result.push(subSegment);
         }
 
@@ -1370,9 +1371,11 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         // Only the image-wrap path below leaves a line unaccounted for in totalHeight.
         let lineHeight = 0;
         for (const segment of segments) {
-            if (lineWidth + segment.textMetrics.width <= maxWidth(segment.textMetrics.height)) {
+            const segmentHeight =
+                (segment.type === 'image' ? undefined : segment.lineHeight) ?? segment.textMetrics.height;
+            if (lineWidth + segment.textMetrics.width <= maxWidth(segmentHeight)) {
                 lineWidth += segment.textMetrics.width;
-                lineHeight = Math.max(lineHeight, segment.textMetrics.height);
+                lineHeight = Math.max(lineHeight, segmentHeight);
                 result.push(segment);
                 continue;
             }

@@ -351,7 +351,7 @@ export function measureTextSegments(
                 } else {
                     lineHeights[index] = Math.max(lineHeights[index] ?? 0, lineHeight);
                 }
-                currentLine.segments.push({ ...font, ...rest, text: textLine, textMetrics });
+                currentLine.segments.push({ ...font, ...rest, lineHeight, text: textLine, textMetrics });
                 currentLineUncommitted = false;
             }
         }

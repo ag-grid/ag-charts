@@ -970,6 +970,18 @@ describe('measureTextSegments — lineHeight', () => {
         ]);
     });
 
+    it('wraps a segment to the height of its inherited lineHeight', () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
+        const fitted = fitLabelText(
+            [text('AAAA BBBB CCCC', { fontSize: 20 })],
+            { maxWidth: 50, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            font
+        ) as MeasuredSegment[];
+        const { height, lineMetrics } = measureTextSegments(fitted, font);
+        expect(lineMetrics).toHaveLength(1);
+        expect(height).toBe(40);
+    });
+
     it("inherits the default font's lineHeight in proportion to each segment's fontSize", () => {
         const font = { ...baseFont, fontSize: 10, lineHeight: 15 };
         expect(lineHeights([text('A'), text('\nB', { fontSize: 20 }), text('\nC', { lineHeight: 40 })], font)).toEqual([

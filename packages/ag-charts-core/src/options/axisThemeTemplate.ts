@@ -41,7 +41,13 @@ export const parentLevelAxisThemeTemplate = {
             },
             fill: { $path: '../../label/fill' },
             fontSize: { $path: '../../label/fontSize' },
-            lineHeight: { $path: '../../label/lineHeight' },
+            lineHeight: {
+                $isUserOption: [
+                    '../../label/lineHeight',
+                    { $path: '../../label/lineHeight' },
+                    themeLineHeight('axisLabelLineHeight'),
+                ],
+            },
             fontFamily: { $path: '../../label/fontFamily' },
             fontWeight: 'bold',
             spacing: { $path: '../../label/spacing' },

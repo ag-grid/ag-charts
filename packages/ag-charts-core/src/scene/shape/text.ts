@@ -566,7 +566,8 @@ export class Text<D = unknown> extends Shape<D> {
                 continue;
             }
 
-            const { color, textMetrics, verticalAlign, ...segment } = measured;
+            // The line metrics already space rows by `lineHeight`; on a one-line node it would shift the bbox.
+            const { color, textMetrics, verticalAlign, lineHeight: _lineHeight, ...segment } = measured;
             const textNode = node as Text;
             const segmentBaseline: CanvasTextBaseline = toCanvasTextBaseline(verticalAlign) ?? 'alphabetic';
             textNode.x = lineLeft + offsetX;
