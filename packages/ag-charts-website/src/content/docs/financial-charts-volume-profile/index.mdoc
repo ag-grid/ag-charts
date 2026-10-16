@@ -49,9 +49,9 @@ Nothing is added for price levels with no volume, or if the status bar is disabl
 
 ## Selecting Price Levels
 
-Set `selection.enabled` to let users click a price level to select it, highlighting both its up and down segments and the background behind it. In a Financial Chart, set the same options on `volumeProfile.selection`.
+In a Volume Profile Chart created with `AgCharts.createVolumeProfileChart()`, set `selection.enabled` to let users click a price level to select it, highlighting both its up and down segments and the background behind it. Price levels cannot be selected in a Financial Chart.
 
-The two segments have the fixed series ids `'volumeProfileUp'` and `'volumeProfileDown'`, in both chart types, for use in selection callbacks, `setSelection()` and `getSelection()`.
+The two segments have the fixed series ids `'volumeProfileUp'` and `'volumeProfileDown'`, in both chart types, for use in callbacks. In a Volume Profile Chart they can also be used with `setSelection()` and `getSelection()`.
 
 {% chartExampleRunner title="Selecting Price Levels" name="selection" type="generated" /%}
 

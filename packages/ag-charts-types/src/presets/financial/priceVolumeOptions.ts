@@ -103,12 +103,12 @@ export interface AgVolumeProfileOptions extends Toggleable {
     priceKey?: string;
     /** The key used to retrieve the up volume of each level from the data.
      *
-     * The series has the fixed id `'volumeProfileUp'`, for use in callbacks and the Selection API.
+     * The series has the fixed id `'volumeProfileUp'`, for use in callbacks.
      */
     upKey: string;
     /** The key used to retrieve the down volume of each level from the data.
      *
-     * The series has the fixed id `'volumeProfileDown'`, for use in callbacks and the Selection API.
+     * The series has the fixed id `'volumeProfileDown'`, for use in callbacks.
      */
     downKey: string;
     /** The edge of the series area the bars extend from.
@@ -123,8 +123,6 @@ export interface AgVolumeProfileOptions extends Toggleable {
     widthRatio?: Ratio;
     /** A fixed-width column showing each level's total volume, set between the price axis and the up and down bars. */
     totalSegment?: AgVolumeProfileTotalSegmentOptions;
-    /** Selection of price levels. */
-    selection?: AgVolumeProfileSelectionOptions;
 }
 
 export interface AgVolumeProfileSelectionOptions extends Toggleable {

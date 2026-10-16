@@ -352,6 +352,15 @@ describe('priceVolumePreset', () => {
             });
         });
 
+        it('should leave the volume profile unselectable', async () => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data: getStockData(), volumeProfile }));
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).ctx.chartService.series;
+            expect(series).toHaveLength(4);
+            expect(series.map((s) => s.isSelectionEnabled())).toEqual(series.map(() => false));
+        });
+
         it('should render no volume profile when enabled is false', async () => {
             chart = AgCharts.createFinancialChart(
                 prepareFinancialTestOptions({
