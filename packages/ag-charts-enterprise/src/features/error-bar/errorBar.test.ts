@@ -999,8 +999,9 @@ describe('ErrorBars', () => {
             errorBar: { yLowerKey: `${yKey}Lo`, yUpperKey: `${yKey}Hi` },
         });
 
-        const nodeDataOf = (seriesIndex: number) => (chart['series'][seriesIndex] as any).contextNodeData.nodeData;
-        const placedLabelsOf = (seriesIndex: number) => (chart['series'][seriesIndex] as any).placedLabelData;
+        const nodeDataOf = (seriesIndex: number) =>
+            (deproxy(chart)['series'][seriesIndex] as any).contextNodeData.nodeData;
+        const placedLabelsOf = (seriesIndex: number) => (deproxy(chart)['series'][seriesIndex] as any).placedLabelData;
 
         // The anchor sits `spacing` past the drawn whisker span along the value axis, on the side `inside` names.
         const expectAnchoredPastWhisker = (seriesIndex: number, inside: boolean, horizontal: boolean) => {
