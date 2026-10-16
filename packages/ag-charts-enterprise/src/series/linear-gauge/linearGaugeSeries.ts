@@ -1191,7 +1191,21 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             barRect = new BBox(x, yValue, width, y + height - yValue);
         }
 
-        return { seriesRect, gaugeRect, barRect };
+        return { seriesRect, gaugeRect, visibleGaugeRect: this.visibleGaugeRect(gaugeRect), barRect };
+    }
+
+    private visibleGaugeRect(gaugeRect: BBox) {
+        const { horizontal, seriesRect } = this;
+        const { width, height } = this.ctx.scene;
+        const { x, y } = gaugeRect;
+        if (horizontal) {
+            const y0 = Math.max(y, -seriesRect.y);
+            const y1 = Math.min(y + gaugeRect.height, height - seriesRect.y);
+            return new BBox(x, y0, gaugeRect.width, Math.max(0, y1 - y0));
+        }
+        const x0 = Math.max(x, -seriesRect.x);
+        const x1 = Math.min(x + gaugeRect.width, width - seriesRect.x);
+        return new BBox(x0, y, Math.max(0, x1 - x0), gaugeRect.height);
     }
 
     private labelLayoutOptions() {

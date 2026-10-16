@@ -307,7 +307,13 @@ interface LinearGaugeLabelLayout {
     region: BoxBounds | undefined;
 }
 
-type LinearGaugeLabelBBoxes = { seriesRect: BBox; gaugeRect: BBox; barRect: BBox };
+interface LinearGaugeLabelBBoxes {
+    seriesRect: BBox;
+    gaugeRect: BBox;
+    /** The gauge clipped across its thickness to the canvas, which a thick gauge on a short chart overflows. */
+    visibleGaugeRect: BBox;
+    barRect: BBox;
+}
 
 interface LinearGaugeLabelOpts {
     padding: number;
@@ -442,7 +448,7 @@ function layoutLinearGaugeLabel(
     opts: LinearGaugeLabelOpts,
     bboxes: LinearGaugeLabelBBoxes
 ): LinearGaugeLabelLayout | undefined {
-    const { gaugeRect } = bboxes;
+    const { visibleGaugeRect: gaugeRect } = bboxes;
     const { padding, horizontal } = opts;
     const legacyKeep = isLegacyKeep(labelDatum);
     const bounds = labelBounds(placement, horizontal, bboxes);

@@ -1554,6 +1554,36 @@ describe('series label fit', () => {
             }
         );
 
+        it('shrinks an inside linear-gauge label to the part of the gauge the canvas shows', async () => {
+            const options = {
+                type: 'linear-gauge',
+                direction: 'horizontal',
+                value: 60,
+                scale: { min: 0, max: 100, label: { enabled: false } },
+                label: {
+                    enabled: true,
+                    placement: 'inside-center',
+                    maxWidth: 80,
+                    fontSize: 30,
+                    minimumFontSize: 8,
+                    text: 'A rather long gauge label',
+                    padding: 4,
+                },
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+            Object.assign(options, { width: 420, height: 30 });
+            chart = deproxy(AgCharts.createGauge(options as any));
+            await waitForChartStability(chart);
+
+            const label = firstLabelNode();
+            const { y, height } = label.getBBox();
+            const { seriesRect } = chart.series[0];
+            expect(gaugeLabelTexts()).toHaveLength(1);
+            expect(label.fontSize).toBeLessThan(30);
+            expect(y + seriesRect.y).toBeGreaterThanOrEqual(0);
+            expect(y + seriesRect.y + height).toBeLessThanOrEqual(30);
+        });
+
         it('colours linear-gauge labels from insideStyle or outsideStyle by where they land', async () => {
             const label = {
                 enabled: true,
