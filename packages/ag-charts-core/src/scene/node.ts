@@ -238,7 +238,11 @@ export abstract class Node<TDatum = unknown> {
         return true;
     }
 
-    /** Isolated render - the context is returned to its prior state, unless {@link needsIsolatedState} is false. */
+    /**
+     * Isolated render - the context is returned to its prior state, even if `render` fails, unless
+     * {@link needsIsolatedState} is false. Then there is no save and restore, so a failed render can leak
+     * state, and later siblings must set their own fill style.
+     */
     isolatedRender(renderCtx: RenderContext): void {
         const isolate = this.needsIsolatedState();
         // Snapshot alongside ctx.save() — restore() reverts ctx.font, so tracker must too.
