@@ -177,15 +177,19 @@ describe('enterprise cartesian axis modules', () => {
 });
 
 describe('preset module dependencies', () => {
-    it.each([
-        ['volume-profile', VolumeProfilePresetModule],
-        ['price-volume', PriceVolumePresetModule],
-    ])('registers the modules behind the total segment and selection with the %s preset', (_name, preset) => {
+    it('registers the modules behind the total segment and selection with the volume-profile preset', () => {
         const scope = new ModuleScope();
-        scope.register(preset);
+        scope.register(VolumeProfilePresetModule);
 
         expect(scope.hasModule('axisInsetValue')).toBe(true);
         expect(scope.hasModule('axisSelectedBand')).toBe(true);
         expect(scope.hasModule('selection')).toBe(true);
+    });
+
+    it('registers the module behind the total segment with the price-volume preset', () => {
+        const scope = new ModuleScope();
+        scope.register(PriceVolumePresetModule);
+
+        expect(scope.hasModule('axisInsetValue')).toBe(true);
     });
 });
