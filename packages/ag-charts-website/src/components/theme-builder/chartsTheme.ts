@@ -116,7 +116,7 @@ export const UNSET_BY_DEFAULT_PARAMS = new Set(['lineHeight']);
 
 /** Line heights are ratios of the font size, which the name-based inference would edit as pixel lengths. */
 export const chartsParamType = (property: string): ParamType | undefined =>
-    property === 'lineHeight' || property.endsWith('LineHeight') ? 'scale' : undefined;
+    property === 'lineHeight' || property.endsWith('LineHeight') ? 'ratio' : undefined;
 
 /**
  * Edited only as on/off toggles, so a stock theme reads them as `true`. The

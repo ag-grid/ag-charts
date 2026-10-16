@@ -40,6 +40,9 @@ const BASE_OPTIONS = {
     textBaseline: 'top' as CanvasTextBaseline,
 };
 
+// Segments inherit a set lineHeight, so rich-text cases leave it natural.
+const { lineHeight: _lineHeight, ...SEGMENT_OPTIONS } = BASE_OPTIONS;
+
 describe('Text', () => {
     setupMockConsole();
 
@@ -228,7 +231,7 @@ describe('Text', () => {
             },
         ];
 
-        it('should render as expected', () => {
+        it('should render as expected with a lineHeight shorter than the natural line height', () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.strokeStyle = 'black';
@@ -528,7 +531,7 @@ describe('Text', () => {
 
             const text = new Text();
             Object.assign(text, {
-                ...BASE_OPTIONS,
+                ...SEGMENT_OPTIONS,
                 text: [
                     { text: 'Hello ', fontWeight: 'bold' as const },
                     { type: 'image', url: ICON_SVG, width: 24, height: 24, verticalAlign: 'middle' },
@@ -562,7 +565,7 @@ describe('Text', () => {
 
             const text = new Text();
             Object.assign(text, {
-                ...BASE_OPTIONS,
+                ...SEGMENT_OPTIONS,
                 textBaseline: 'middle',
                 text: [
                     {
@@ -604,7 +607,7 @@ describe('Text', () => {
 
             const text = new Text();
             Object.assign(text, {
-                ...BASE_OPTIONS,
+                ...SEGMENT_OPTIONS,
                 text: [
                     { text: 'Before ' },
                     { type: 'image', url: ICON_SVG, width: 24, height: 24, ...extra },
@@ -676,7 +679,7 @@ describe('Text', () => {
             {
                 x = 200,
                 y = 120,
-                textAlign = BASE_OPTIONS.textAlign,
+                textAlign = SEGMENT_OPTIONS.textAlign,
                 direction = 'ltr',
             }: { x?: number; y?: number; textAlign?: CanvasTextAlign; direction?: CanvasDirection } = {}
         ) {
@@ -684,7 +687,7 @@ describe('Text', () => {
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 800, canvasCtx.nodeCanvas.height ?? 600);
 
-            Object.assign(node, { ...BASE_OPTIONS, textBaseline: 'middle', textAlign, text, x, y });
+            Object.assign(node, { ...SEGMENT_OPTIONS, textBaseline: 'middle', textAlign, text, x, y });
             node.setScene({ ...makeImageLoaderScene(imagesByUri), isRtl: direction === 'rtl' });
 
             ctx.save();
@@ -1114,7 +1117,7 @@ describe('Text', () => {
         it('tracks the textBaseline for a segmented label', () => {
             const measure = (textBaseline: CanvasTextBaseline) => {
                 const node = Object.assign(new Text(), {
-                    ...BASE_OPTIONS,
+                    ...SEGMENT_OPTIONS,
                     textBaseline,
                     text: [
                         { text: 'Ag', fontSize: 24 },

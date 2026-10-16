@@ -8,11 +8,13 @@ import { EllipsisChar, graphemeSegments, toFontString, toTextString } from '../t
 import {
     type LabelFit,
     type RegionAlign,
+    drawnLineHeight,
     findLargestFontSizeDescending,
     fitLabelTextOrOverflowAutoSize,
     fontWithSize,
     hasRealChars,
     isErased,
+    lineHeightAtSize,
     resolveMinimumFontSize,
 } from '../text/textWrapper';
 import type { Point, SizedPoint } from '../types/scene';
@@ -770,6 +772,7 @@ function candidateFontAt(font: FontOptions): FontOptions {
     trialFont.fontStyle = font.fontStyle;
     trialFont.fontWeight = font.fontWeight;
     trialFont.fontFamily = font.fontFamily;
+    trialFont.lineHeight = lineHeightAtSize(font, candidateTrialFontSize);
     return trialFont;
 }
 // Per-datum inputs to `cascadeCandidates`, refilled by `placeAvoidingLabel` before it runs. Held here
@@ -1920,7 +1923,7 @@ function shrinkCompassCandidate(
     const upright = rotation % 180 === 0;
     const font = candidateFontAt(style?.font ?? fit.font);
     const unstyled = style == null && candidateTrialFontSize == null;
-    const lineHeight = (unstyled ? cascadeMeasurer! : cachedTextMeasurer(font)).lineHeight();
+    const lineHeight = font.lineHeight ?? (unstyled ? cascadeMeasurer! : cachedTextMeasurer(font)).lineHeight();
     const floorX = upright ? 0 : lineHeight;
     const floorY = upright ? lineHeight : 0;
     // Most re-fits fail by breaking a word the budget cannot hold, so the reduction the text can afford
@@ -1982,7 +1985,7 @@ function shrinkPositionedCandidate(
     const fit = d.fit;
     const fitTo = c.fitTo;
     if (fit == null || fitTo == null || d.stack != null || (c.rotation ?? 0) % 360 !== 0) return false;
-    const lineHeight = cachedTextMeasurer(fitTo.font ?? fit.font).lineHeight();
+    const lineHeight = drawnLineHeight(fitTo.font ?? fit.font);
     if (
         !measureShrinkReduction(
             anchorPinX(fitTo.anchor),
@@ -2730,7 +2733,7 @@ function fitPositionedCandidate(
     const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
     const floorFont = fontWithSize(font, floor);
     keptLineContainer.width = fitTo.container.width;
-    keptLineContainer.height = Math.max(fitTo.container.height, cachedTextMeasurer(floorFont).lineHeight());
+    keptLineContainer.height = Math.max(fitTo.container.height, drawnLineHeight(floorFont));
     if (fitLabelToCandidate(fit, font, source, keptLineContainer, fontSearch) && hasRealChars(fittedLabel.text)) {
         return true;
     }

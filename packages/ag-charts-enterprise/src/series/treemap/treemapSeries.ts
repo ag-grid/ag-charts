@@ -13,6 +13,7 @@ import {
     type BoxBounds,
     type CallbackParamRules,
     type FittedLabelStack,
+    type FontOptions,
     Group,
     type LabelFit,
     type LabelFitDescriptor,
@@ -818,12 +819,31 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         return ['series', `${this.declarationOrder}`, 'tile', 'secondaryLabel'];
     }
 
-    /** The drawn box around a label at rest, so the fit reserves room for an `itemStyler`'s padding and border. */
-    private labelBoxExtent(node: TreemapNode, props: TreemapLabelOptions, tag: TextNodeTag) {
-        if (props.itemStyler == null) return expandLabelBoxExtent(props);
+    /** A label at rest in its `itemStyler`'s font and box, so the fit reserves room for restyled text. */
+    private styledLabel(node: TreemapNode, props: TreemapLabelOptions, tag: TextNodeTag) {
+        if (props.itemStyler == null) return { label: props, box: expandLabelBoxExtent(props) };
         const path = this.labelPath(node.children.length === 0, tag);
         const style = getLabelStyles(this, node, this.labelFormatterParams(node), props, false, undefined, path);
-        return expandLabelBoxExtent(style);
+        const { fontSize, fontStyle = props.fontStyle, fontWeight = props.fontWeight, lineHeight } = style;
+        const label = {
+            ...props,
+            fontSize,
+            fontStyle,
+            fontWeight,
+            fontFamily: style.fontFamily ?? props.fontFamily,
+            lineHeight,
+        };
+        return { label, box: expandLabelBoxExtent(style) };
+    }
+
+    private styledLabelFit(
+        node: TreemapNode,
+        text: NormalisedTextOrSegments,
+        props: TreemapLabelOptions,
+        tag: TextNodeTag
+    ) {
+        const { label, box } = this.styledLabel(node, props, tag);
+        return labelFitDescriptor(text, label, undefined, box);
     }
 
     private updateLabelNodes() {
@@ -888,23 +908,11 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         if (bbox == null) return;
         const { tile } = this.options;
         const primary =
-            primaryText == null
-                ? undefined
-                : labelFitDescriptor(
-                      primaryText,
-                      tile.label,
-                      undefined,
-                      this.labelBoxExtent(node, tile.label, TextNodeTag.Primary)
-                  );
+            primaryText == null ? undefined : this.styledLabelFit(node, primaryText, tile.label, TextNodeTag.Primary);
         const secondary =
             secondaryText == null
                 ? undefined
-                : labelFitDescriptor(
-                      secondaryText,
-                      tile.secondaryLabel,
-                      undefined,
-                      this.labelBoxExtent(node, tile.secondaryLabel, TextNodeTag.Secondary)
-                  );
+                : this.styledLabelFit(node, secondaryText, tile.secondaryLabel, TextNodeTag.Secondary);
         const lead = primary ?? secondary;
         if (lead == null) return;
         const blocks = labelPairBlocks(primary, secondary);
@@ -944,7 +952,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             title.text,
             sized,
             room.width,
-            this.labelBoxExtent(node, label, TextNodeTag.Primary)
+            this.styledLabel(node, label, TextNodeTag.Primary).box
         );
         const { alwaysShow = false, threshold } = label.collision ?? {};
         return this.placedLabelDatum(node, fit, room, [TextNodeTag.Primary], alwaysShow, threshold);
@@ -1032,10 +1040,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const blocks = tags.map((tag, index) => {
             const fitted = stack.blocks[index];
             const props = tag === TextNodeTag.Primary ? tile.label : tile.secondaryLabel;
-            const padding = labelStack?.blocks[index].fit.boxPadding ?? expandLabelBoxExtent(props);
+            const blockFit = labelStack?.blocks[index].fit;
+            const font = blockFit?.font ?? props;
+            const padding = blockFit?.boxPadding ?? expandLabelBoxExtent(props);
             return fitted == null
                 ? undefined
-                : { tag, fitted, props, padding, height: fitted.height + boxHeightOf(padding) };
+                : { tag, fitted, props, font, padding, height: fitted.height + boxHeightOf(padding) };
         });
         const centreY = (height: number, verticalAlign: VerticalAlign) =>
             room.y + height * 0.5 + (room.height - height) * (verticalAlignFactors[verticalAlign] ?? 0.5);
@@ -1060,11 +1070,11 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const isRtl = this.ctx.domManager.isRtl;
         const write = (block: (typeof blocks)[number], boxCentreY: number) => {
             if (block == null) return;
-            const { fitted, props, padding, tag } = block;
+            const { fitted, props, font, padding, tag } = block;
             const factor = textAlignFactors[resolveTextAlign(props.textAlign, isRtl)] ?? 0.5;
             const x = room.x + padding.left + (room.width - padding.left - padding.right) * factor;
             const y = boxCentreY + (padding.top - padding.bottom) * 0.5;
-            const layout = this.labelLayout(props, fitted.text, fitted.fontSize, x, y, 'middle');
+            const layout = this.labelLayout(props, fitted.text, fitted.fontSize, x, y, 'middle', font);
             if (tag === TextNodeTag.Primary) {
                 node.label = layout;
             } else {
@@ -1081,11 +1091,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         fontSize: number,
         x: number,
         y: number,
-        verticalAlign: VerticalAlign
+        verticalAlign: VerticalAlign,
+        font: FontOptions = props
     ): LabelLayout {
-        const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black', textAlign } = props;
-        const font = fontWithSize(props, fontSize);
-        const lineHeight = drawnLineHeight(font);
+        const { fontStyle = 'normal', fontFamily = props.fontFamily, fontWeight = 'normal' } = font;
+        const { color = 'black', textAlign } = props;
+        const lineHeight = drawnLineHeight(fontWithSize(font, fontSize));
         return {
             text,
             fontSize,

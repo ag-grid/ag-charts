@@ -44,7 +44,7 @@ describe('AG Charts param translation', () => {
     it('edits line heights as ratios', () => {
         const lineHeights = PUBLIC_PARAM_NAMES.filter((property) => /lineHeight$/i.test(property));
         expect(lineHeights.length).toBeGreaterThan(1);
-        expect(lineHeights.filter((property) => chartsParamType(property) !== 'scale')).toEqual([]);
+        expect(lineHeights.filter((property) => chartsParamType(property) !== 'ratio')).toEqual([]);
     });
 
     it('handles every operation AG Charts uses in its param defaults', () => {

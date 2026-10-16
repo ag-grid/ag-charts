@@ -948,6 +948,32 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
     });
 });
 
+describe('measureTextSegments — lineHeight', () => {
+    const lineHeights = (segments: TextSegment[], font: FontOptions = baseFont) =>
+        measureTextSegments(segments, font).lineMetrics.map(({ height, ascent, descent }) => ({
+            height,
+            ascent,
+            descent,
+        }));
+
+    it('spaces each line by its largest segment lineHeight, even below the natural height', () => {
+        expect(lineHeights([text('A', { lineHeight: 30 }), text('B', { lineHeight: 24 }), text('\nC')])).toEqual([
+            { height: 30, ascent: 16, descent: 14 },
+            { height: 20, ascent: 16, descent: 4 },
+        ]);
+        expect(lineHeights([text('A', { lineHeight: 12 })])).toEqual([{ height: 12, ascent: 16, descent: -4 }]);
+    });
+
+    it("inherits the default font's lineHeight in proportion to each segment's fontSize", () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 15 };
+        expect(lineHeights([text('A'), text('\nB', { fontSize: 20 }), text('\nC', { lineHeight: 40 })], font)).toEqual([
+            { height: 15, ascent: 16, descent: -1 },
+            { height: 30, ascent: 16, descent: 14 },
+            { height: 40, ascent: 16, descent: 24 },
+        ]);
+    });
+});
+
 describe('fitLabelText', () => {
     const font: FontOptions = { fontSize: 10, fontFamily: 'sans-serif' };
 

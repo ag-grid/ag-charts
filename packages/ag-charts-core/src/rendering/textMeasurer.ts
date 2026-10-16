@@ -316,7 +316,9 @@ export function measureTextSegments(
             fontStyle = defaultFont.fontStyle,
             fontWeight = defaultFont.fontWeight,
             fontFamily = defaultFont.fontFamily,
-            lineHeight,
+            lineHeight = defaultFont.lineHeight == null
+                ? undefined
+                : (defaultFont.lineHeight * fontSize) / defaultFont.fontSize,
             // Consumed by the auto-size search before measuring; a measured segment is spread onto a scene
             // node, which would take it as a property of its own.
             minimumFontSize: _minimumFontSize,
