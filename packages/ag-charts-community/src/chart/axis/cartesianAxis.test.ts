@@ -3750,6 +3750,15 @@ describe('CartesianAxis', () => {
             );
         });
 
+        it('keeps the category x ticks when only the values change', async () => {
+            chart = await create({ axes: categoryAxes, data: categories(0, 8, alternating(0)) });
+            const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+
+            await update({ data: categories(0, 8, alternating(1)) });
+
+            expect(xTickLayout).not.toHaveBeenCalled();
+        });
+
         it('matches a fresh chart when only the values change on a category axis', async () => {
             chart = await create({ axes: categoryAxes, data: categories(0, 8) });
 

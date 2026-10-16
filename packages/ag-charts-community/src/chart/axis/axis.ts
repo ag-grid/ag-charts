@@ -815,6 +815,8 @@ export abstract class Axis<
 
             scale.range = scaleRange;
 
+            // Computing a layout sets the pick data and label thickness, so the zoomed layout must be computed after it.
+            this.tickLayoutCache = undefined;
             this.unzoomedTickLayoutCache = {
                 domain,
                 rangeExtent,

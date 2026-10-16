@@ -214,6 +214,43 @@ describe('Zoom', () => {
             expect(after).toHaveLength(before.length);
             expect(after.filter((datum) => before.includes(datum))).toEqual([]);
         });
+
+        it('keeps the picked ticks of a zoomed axis when the raw domain changes but the nice domain does not', async () => {
+            const rows = (maxX: number) =>
+                Array.from({ length: 11 }, (_, i) => ({ x: (i * maxX) / 10, y: (i % 2) * 10 }));
+            const baseOptions = (maxX: number): AgCartesianChartOptions => ({
+                data: rows(maxX),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                zoom: { enabled: true, axes: 'x' },
+            });
+            const zoom = { ratioX: { start: 0.2, end: 0.6 } };
+            const pickedTicks = (instance: AgChartInstance) => {
+                const xAxis = deproxy(instance).axes.find((axis) => axis.direction === ChartAxisDirection.X);
+                return (xAxis as unknown as { pickTickData: unknown }).pickTickData;
+            };
+
+            await prepareChart(undefined, zoom, baseOptions(50), false);
+            await waitForChartStability(chart);
+            const before = pickedTicks(chart);
+
+            await chart.updateDelta({ data: rows(48) });
+            await waitForChartStability(chart);
+
+            const fresh = AgCharts.create(
+                prepareEnterpriseTestOptions({ ...baseOptions(48), initialState: { zoom } } as AgChartOptions)
+            );
+            try {
+                await waitForChartStability(fresh);
+                expect(pickedTicks(chart)).toEqual(pickedTicks(fresh));
+                expect(pickedTicks(chart)).toEqual(before);
+            } finally {
+                fresh.destroy();
+            }
+        });
     });
 
     describe('visibleDomain', () => {

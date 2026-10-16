@@ -61,10 +61,6 @@ export class GroupedCategoryAxis extends CategoryAxis<
     static override readonly className = 'GroupedCategoryAxis';
     static override readonly type = 'grouped-category' as const;
 
-    protected override get tickLayoutIgnoresData() {
-        return false;
-    }
-
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.
     readonly tickScale = new GroupedCategoryScale<GroupedCategoryKey>();
