@@ -1505,6 +1505,85 @@ describe('series label fit', () => {
             expect(firstLabelNode().textAlign).toBe('right');
         });
 
+        it.each([
+            ['horizontal', 'inside-center', 60, 20],
+            ['vertical', 'inside-center', 60, 20],
+            ['horizontal', 'bar-inside', 0, 60],
+        ])(
+            'reserves room for a %s linear-gauge outside fallback when %s does not fit',
+            async (direction, first, value, thickness) => {
+                const options = (placement: string | string[]) =>
+                    horizontalLinearGauge({
+                        direction,
+                        value,
+                        thickness,
+                        scale: { min: 0, max: 100, label: { enabled: false } },
+                        label: { enabled: true, text: 'Fallback', padding: 8, border: { enabled: true }, placement },
+                    });
+                await renderGauge(options('outside-end'));
+                const { x, y } = firstLabelNode();
+
+                await renderGauge(options(first));
+                expect(gaugeLabelTexts()).toEqual([]);
+
+                await renderGauge(options([first, 'outside-end']));
+                expect(gaugeLabelTexts()).toEqual(['Fallback']);
+                expect(firstLabelNode()).toMatchObject({ x, y });
+            }
+        );
+
+        it.each([['outside-end'], ['inside-center', 'outside-end']])(
+            'reserves no room for a linear-gauge %s label too tall for the room beside the gauge',
+            async (...placement) => {
+                const options = {
+                    type: 'linear-gauge',
+                    direction: 'horizontal',
+                    value: 60,
+                    thickness: 20,
+                    scale: { min: 0, max: 100, label: { enabled: false } },
+                    label: { enabled: true, text: 'Fallback', padding: 8, border: { enabled: true }, placement },
+                };
+                prepareEnterpriseTestOptions(options as AgChartOptions);
+                Object.assign(options, { width: 220, height: 40 });
+                chart = deproxy(AgCharts.createGauge(options as any));
+                await waitForChartStability(chart);
+
+                const { gaugeRect, seriesRect } = chart.series[0];
+                expect(gaugeLabelTexts()).toEqual([]);
+                expect(gaugeRect.width).toBe(seriesRect.width);
+            }
+        );
+
+        it('shrinks an inside linear-gauge label to the part of the gauge the canvas shows', async () => {
+            const options = {
+                type: 'linear-gauge',
+                direction: 'horizontal',
+                value: 60,
+                scale: { min: 0, max: 100, label: { enabled: false } },
+                label: {
+                    enabled: true,
+                    placement: 'inside-center',
+                    maxWidth: 80,
+                    fontSize: 30,
+                    minimumFontSize: 8,
+                    text: 'A rather long gauge label',
+                    padding: 4,
+                },
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+            Object.assign(options, { width: 420, height: 30 });
+            chart = deproxy(AgCharts.createGauge(options as any));
+            await waitForChartStability(chart);
+
+            const label = firstLabelNode();
+            const { y, height } = label.getBBox();
+            const { seriesRect } = chart.series[0];
+            expect(gaugeLabelTexts()).toHaveLength(1);
+            expect(label.fontSize).toBeLessThan(30);
+            expect(y + seriesRect.y).toBeGreaterThanOrEqual(0);
+            expect(y + seriesRect.y + height).toBeLessThanOrEqual(30);
+        });
+
         it('colours linear-gauge labels from insideStyle or outsideStyle by where they land', async () => {
             const label = {
                 enabled: true,
@@ -1582,7 +1661,7 @@ describe('series label fit', () => {
             expect(chart.series[0].targetLabelSelection.nodes()[0].hasBoxing()).toBe(false);
         });
 
-        it('keeps an alwaysShow linear-gauge label at an overflowing placement over one with no room', async () => {
+        it('falls back to an outside linear-gauge placement rather than overflowing inside-end with alwaysShow', async () => {
             await renderGauge(
                 horizontalLinearGauge({
                     value: 95,
@@ -1595,8 +1674,8 @@ describe('series label fit', () => {
                     },
                 })
             );
-            expect(gaugeLabelTexts()).toHaveLength(1);
-            expect(firstLabelNode().textAlign).toBe('right');
+            expect(gaugeLabelTexts()).toEqual(['A long label text']);
+            expect(firstLabelNode().textAlign).toBe('left');
         });
 
         it('reserves room for an outside linear-gauge label within its maxWidth', async () => {
@@ -1800,6 +1879,27 @@ describe('series label fit', () => {
             await renderGaugeAndSnapshot(fittedRadialGauge({ collision: {} }));
             expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
             expect(scaleLabelTexts()).toEqual(['0', '40', '60', '80', '100']);
+        });
+
+        it('renders a boxed linear-gauge label falling back to an outside placement', async () => {
+            await renderGaugeAndSnapshot(
+                horizontalLinearGauge({
+                    value: 60,
+                    thickness: 20,
+                    scale: { min: 0, max: 100, label: { enabled: false } },
+                    label: {
+                        enabled: true,
+                        text: 'Fallback',
+                        placement: ['inside-center', 'outside-end'],
+                        color: '#222',
+                        fill: '#fff3b0',
+                        border: { enabled: true, stroke: '#c0392b', strokeWidth: 2 },
+                        padding: 8,
+                        cornerRadius: 6,
+                    },
+                })
+            );
+            expect(gaugeLabelTexts()).toEqual(['Fallback']);
         });
 
         it('renders boxed linear-gauge labels and target labels', async () => {

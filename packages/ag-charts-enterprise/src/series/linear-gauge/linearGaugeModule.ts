@@ -75,7 +75,7 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             wrapping: 'on-space',
             truncate: AUTO_SIZED_LABEL_TRUNCATE,
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside', 'chartBackgroundColor'),
-            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside', 'chartBackgroundColor'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside', 'foregroundColor'),
         },
         tooltip: {
             ...SERIES_TOOLTIP_THEME,
