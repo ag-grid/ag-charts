@@ -361,7 +361,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const previous = this.buildSignature;
         const signature = this.captureBuildSignature(ctx);
         const touched = this.findTouchedDatumIndices(ctx, signature);
-        this.cellsStyledByHighlight = ctx.itemStyleContext.highlightActive;
+        // An incremental pass leaves untouched cells styled as before, so `updateDatumStyles` decides whether they need a restyle.
+        if (touched == null) this.cellsStyledByHighlight = ctx.itemStyleContext.highlightActive;
         this.touchedDatumIndices = touched;
         this.buildSignature = signature;
 
@@ -443,8 +444,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             previous.colorScaleValid !== next.colorScaleValid ||
             !arraysEqual(previous.colorDomain, next.colorDomain) ||
             !arraysEqual(previous.layout, next.layout) ||
-            // Cells styled under a highlight that has since ended need a restyle.
-            this.cellsStyledByHighlight !== ctx.itemStyleContext.highlightActive ||
             this.isLabelEnabled()
         ) {
             return undefined;

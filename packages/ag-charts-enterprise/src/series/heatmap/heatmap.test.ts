@@ -2325,6 +2325,25 @@ describe('HeatmapSeries', () => {
             expect(cells(chart)).toEqual(await freshCells(data, { itemStyler }));
         });
 
+        it('restyles an itemStyler from the new data indices when a transaction removes a cell', async () => {
+            const itemStyler = ({ datum }: { datum: Cell }) => ((datum.v ?? 0) > 6 ? { fill: 'green' } : {});
+            await create(GRID, { itemStyler });
+
+            await transact({ remove: [{ id: '0:0' }] });
+
+            expect(cells(chart)).toEqual(await freshCells(GRID.slice(1), { itemStyler }));
+        });
+
+        it('restyles an itemStyler that reads the fill when a transaction moves the colour domain', async () => {
+            const itemStyler = ({ fill }: { fill: string }) => ({ stroke: fill });
+            await create(GRID, { itemStyler });
+
+            // 50 lies outside the 0..11 extent, so every cell's fill, and the stroke taken from it, changes.
+            await transact({ update: [UPDATED('3:2', 50)] });
+
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('3:2', 50)), { itemStyler }));
+        });
+
         it('keeps the highlight styling of a hovered cell while another cell updates', async () => {
             const series = { ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } };
             await create(GRID, series);
@@ -2338,6 +2357,25 @@ describe('HeatmapSeries', () => {
             await hoverAction(1, 1)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('2:2', 5)), series));
+        });
+
+        it('rebuilds only the updated cells while a hover is held across transactions', async () => {
+            await create(GRID, NO_TOOLTIP);
+            await hoverDatumByIndex(chart, 0, 0);
+            expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.6));
+
+            // The update clears the hover for its first pass and applies it again in the second.
+            await transactIncrementally([UPDATED('1:1', 7)]);
+            await transactIncrementally([UPDATED('2:2', 5)]);
+
+            const reference = deproxy(
+                AgCharts.create(buildOptions(withUpdates(UPDATED('1:1', 7), UPDATED('2:2', 5)), NO_TOOLTIP))
+            );
+            await waitForChartStability(reference);
+            await hoverDatumByIndex(reference, 0, 0);
+            const expected = cells(reference);
+            reference.destroy();
+            expect(cells(chart)).toEqual(expected);
         });
 
         it('undims every cell when the highlight ends in the same update as a transaction', async () => {
