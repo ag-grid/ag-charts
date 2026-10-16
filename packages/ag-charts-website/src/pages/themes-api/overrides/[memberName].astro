@@ -1,5 +1,5 @@
 ---
-import { getThemesApiStaticPaths } from '@components/api-documentation/apiReferenceHelpers';
+import { type SpecialTypesMap, getThemesApiStaticPaths } from '@components/api-documentation/apiReferenceHelpers';
 import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
@@ -9,6 +9,10 @@ export async function getStaticPaths() {
     const reference = getInterfacesReference();
     return getThemesApiStaticPaths(reference);
 }
+
+const specialTypes: SpecialTypesMap = {
+    AgBaseChartThemeOverrides: 'NestedPage',
+};
 ---
 
 <APIViewLayout title="Themes API">
@@ -21,15 +25,17 @@ export async function getStaticPaths() {
         breadcrumbs={['options', 'theme']}
         nestedPages={['overrides']}
         basePath="themes-api"
-        specialTypes={{
-            AgBaseChartThemeOverrides: 'NestedPage',
-        }}
+        specialTypes={specialTypes}
     >
         <ApiReferenceFallback
             slot="fallback"
             rootInterface="AgChartTheme"
             pageInterface={Astro.props.pageInterface}
             pageTitle={Astro.props.pageTitle}
+            navLabel="Themes API reference"
+            rootLabel="theme"
+            basePath="themes-api"
+            specialTypes={specialTypes}
         />
     </ApiReferencePage>
 </APIViewLayout>

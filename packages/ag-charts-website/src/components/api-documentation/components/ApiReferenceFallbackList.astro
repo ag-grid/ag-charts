@@ -1,11 +1,12 @@
 ---
 /**
- * Flat, server-rendered list of an interface's top-level members, for crawlers that don't execute
- * JavaScript. Replaced once the React reference island mounts, so it stays deliberately shallow to
- * keep the served HTML small.
+ * Server-rendered list of an interface's members, for crawlers that don't execute JavaScript.
+ * Replaced once the React reference island mounts. Only the members the navigation links to are
+ * listed beneath the top level, to keep the served HTML small.
  */
-import { cleanupName, normalizeType, parseJsDocs } from '@components/api-documentation/apiReferenceHelpers';
+import type { FallbackNavItem } from '@components/api-documentation/apiReferenceFallbackNav';
 import type { MemberNode } from '@generate-code-reference-plugin/doc-interfaces/types';
+import ApiReferenceFallbackRow from './ApiReferenceFallbackRow.astro';
 import styles from './ApiReferenceFallback.module.scss';
 
 interface Props {
@@ -13,30 +14,22 @@ interface Props {
     id: string;
     members: MemberNode[];
     hideRequired?: boolean;
+    /** Navigation entries for the members, which the properties nested beneath each are taken from. */
+    anchors?: FallbackNavItem[];
 }
 
-const { id, members, hideRequired } = Astro.props;
+const { id, members, hideRequired, anchors = [] } = Astro.props;
 ---
 
 <dl class={styles.referenceList}>
     {
-        members.map((member) => {
-            const memberDocs = parseJsDocs(member.docs);
-            return (
-                <div class={styles.referenceRow} id={`reference-${id}-${member.name}`}>
-                    <dt>
-                        <span class={styles.propertyName}>{cleanupName(member.name)}</span>
-                        {!member.optional && !hideRequired && <span class={styles.required}>required</span>}
-                        <code class={styles.propertyType}>{normalizeType(member.type)}</code>
-                        {member.defaultValue != null && (
-                            <span class={styles.propertyDefault}>default: {member.defaultValue}</span>
-                        )}
-                    </dt>
-                    {/* Always rendered: a definition-list group needs both a term and a
-                        description, even for undocumented members. */}
-                    <dd class="text-secondary">{memberDocs}</dd>
-                </div>
-            );
-        })
+        members.map((member) => (
+            <ApiReferenceFallbackRow
+                id={`reference-${id}-${member.name}`}
+                member={member}
+                hideRequired={hideRequired}
+                anchors={anchors.find((anchor) => anchor.member?.name === member.name)?.children}
+            />
+        ))
     }
 </dl>

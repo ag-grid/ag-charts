@@ -1,0 +1,55 @@
+---
+/**
+ * One property of the server-rendered reference, and the properties nested beneath it, each a target
+ * for the anchor the navigation links to.
+ */
+import { cleanupName, normalizeType, parseJsDocs } from '@components/api-documentation/apiReferenceHelpers';
+import type { FallbackNavItem } from '@components/api-documentation/apiReferenceFallbackNav';
+import type { MemberNode } from '@generate-code-reference-plugin/doc-interfaces/types';
+import styles from './ApiReferenceFallback.module.scss';
+
+interface Props {
+    /** Id of the row, matching the anchor the hydrated row uses. */
+    id: string;
+    /** Name shown for the row; the member's own name unless the navigation labels it otherwise. */
+    label?: string;
+    /** Unset for an entry that is not a property, such as a union variant. */
+    member?: MemberNode;
+    hideRequired?: boolean;
+    /** Entries nested beneath this one in the navigation, rendered inside the row. */
+    anchors?: FallbackNavItem[];
+}
+
+const { id, label, member, hideRequired, anchors = [] } = Astro.props;
+---
+
+<div class={styles.referenceRow} id={id}>
+    <dt>
+        <span class={styles.propertyName}>{label ?? (member && cleanupName(member.name))}</span>
+        {member && !member.optional && !hideRequired && <span class={styles.required}>required</span>}
+        {member && <code class={styles.propertyType}>{normalizeType(member.type)}</code>}
+        {member?.defaultValue != null && <span class={styles.propertyDefault}>default: {member.defaultValue}</span>}
+    </dt>
+    {
+        /* Always rendered: a definition-list group needs both a term and a
+            description, even for undocumented members. */
+    }
+    <dd class="text-secondary">{member && parseJsDocs(member.docs)}</dd>
+    {
+        anchors.length > 0 && (
+            <dd>
+                <dl class={styles.referenceNestedList}>
+                    {anchors.map((anchor) => (
+                        <Astro.self
+                            id={anchor.anchorId!}
+                            label={anchor.label}
+                            member={anchor.member}
+                            hideRequired={hideRequired}
+                            anchors={anchor.children}
+                        />
+                    ))}
+                </dl>
+            </dd>
+        )
+    }
+</div>

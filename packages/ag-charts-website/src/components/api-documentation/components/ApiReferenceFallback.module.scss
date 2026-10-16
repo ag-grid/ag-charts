@@ -1,6 +1,24 @@
 @use 'design-system' as *;
 
 /*
+    With JavaScript, the React app replaces the fallback on mount and looks different enough that showing
+    the fallback first is a visible flash. So the fallback's content is hidden, leaving the nav
+    placeholder's borders and a viewport-high block so the page does not jump on hydration. Without
+    JavaScript the query does not match and the content stays visible.
+*/
+.fallback {
+    @media (scripting: enabled) {
+        max-height: 100vh;
+        overflow: hidden;
+
+        .referenceNav,
+        .referenceContent {
+            visibility: hidden;
+        }
+    }
+}
+
+/*
     Mirrors the two-column geometry the hydrated <ApiReferencePage> produces, so the swap to the
     React app does not shift the page horizontally.
 */
@@ -25,6 +43,48 @@
 
     @media screen and (min-width: $breakpoint-options-large) {
         width: calc(var(--layout-width-3-12) + var(--layout-horizontal-margins));
+    }
+}
+
+/*
+    Links between reference pages, in the column the hydrated navigation tree occupies. Like the tree,
+    it is hidden below the medium breakpoint, and above it scrolls independently of the page.
+*/
+.referenceNav {
+    --total-header-height: calc(var(--header-nav-height) + var(--tab-bar-height));
+
+    display: none;
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        position: sticky;
+        top: var(--total-header-height);
+        display: block;
+        max-height: calc(100vh - var(--total-header-height));
+        padding: $spacing-size-4 $spacing-size-4 $spacing-size-4 var(--layout-horizontal-margins);
+        overflow-y: auto;
+        font-size: var(--text-fs-sm);
+    }
+
+    @media screen and (min-width: $breakpoint-options-extra-large) {
+        padding: $spacing-size-4;
+    }
+
+    ul {
+        margin: 0;
+        padding-left: $spacing-size-4;
+        list-style: none;
+    }
+
+    > ul {
+        padding-left: 0;
+    }
+
+    li {
+        margin: $spacing-size-1 0;
+    }
+
+    a[aria-current='page'] {
+        font-weight: var(--text-bold);
     }
 }
 
@@ -61,6 +121,8 @@
 .referenceRow {
     padding: $spacing-size-4 0;
     border-top: 1px solid var(--color-border-secondary);
+    /* Keeps an anchor's row clear of the sticky header when the page jumps to it. */
+    scroll-margin-top: calc(var(--header-nav-height) + var(--tab-bar-height));
 
     dt {
         display: flex;
@@ -76,6 +138,10 @@
             margin: 0;
         }
     }
+}
+
+.referenceNestedList {
+    margin: 0 0 0 $spacing-size-4;
 }
 
 .propertyName {

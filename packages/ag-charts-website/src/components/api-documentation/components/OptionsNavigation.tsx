@@ -1,11 +1,6 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { scrollIntoView, scrollIntoViewById } from '@ag-website-shared/utils/navigation';
-import type {
-    ApiReferenceNode,
-    ApiReferenceType,
-    MemberNode,
-    TypeNode,
-} from '@generate-code-reference-plugin/doc-interfaces/types';
+import type { MemberNode, TypeNode } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
 import Flexsearch from 'flexsearch';
@@ -34,6 +29,7 @@ import {
     extractSearchData,
     getAliasedUnionVariants,
     getDetailsId,
+    getInterfaceArrayTypes,
     getMemberType,
     getNavigationDataFromPath,
     getVariantDiscriminator,
@@ -628,24 +624,4 @@ function useAutoExpand(shouldExpand: () => boolean): [boolean, () => void] {
     }, [location?.pathname, location?.hash]);
 
     return [isExpanded, toggleExpanded];
-}
-
-function getInterfaceArrayTypes(reference?: ApiReferenceType, interfaceRef?: ApiReferenceNode) {
-    if (
-        interfaceRef?.kind === 'typeAlias' &&
-        typeof interfaceRef.type === 'object' &&
-        interfaceRef.type.kind === 'union'
-    ) {
-        return interfaceRef.type.type
-            .map((type) => {
-                const nodeType = normalizeType(type);
-                const innerInterfaceRef = reference?.get(nodeType);
-                const discriminator = getVariantDiscriminator(innerInterfaceRef);
-                if (discriminator) {
-                    return { name: discriminator.value, type: nodeType };
-                }
-            })
-            .filter((item): item is NavigationPath => item != null);
-    }
-    return [];
 }

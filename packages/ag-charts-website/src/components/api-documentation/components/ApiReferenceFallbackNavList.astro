@@ -1,0 +1,22 @@
+---
+import type { FallbackNavItem } from '@components/api-documentation/apiReferenceFallbackNav';
+
+interface Props {
+    items: FallbackNavItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul>
+    {
+        items.map((item) => (
+            <li>
+                <a href={item.href} aria-current={item.isCurrentPage ? 'page' : undefined}>
+                    {item.label}
+                </a>
+                {item.children.length > 0 && <Astro.self items={item.children} />}
+            </li>
+        ))
+    }
+</ul>
