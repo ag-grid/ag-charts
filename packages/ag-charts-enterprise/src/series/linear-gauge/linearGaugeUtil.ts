@@ -496,6 +496,34 @@ function layoutLinearGaugeLabel(
     return { layout, x, y, align: bounds.align, box, region };
 }
 
+function isOutsidePlacement(placement: AgLinearGaugeLabelPlacement) {
+    return placement === 'outside-start' || placement === 'outside-end';
+}
+
+/** The placement to set room aside for beside the gauge: the first outside one reached before any placement fits. */
+export function reservedLinearGaugeLabelPlacement(
+    labelDatum: LinearGaugeLabelDatum,
+    labelText: () => NormalisedTextOrSegments | undefined,
+    opts: LinearGaugeLabelOpts,
+    bboxes: LinearGaugeLabelBBoxes
+): AgLinearGaugeLabelPlacement | undefined {
+    const { placements } = labelDatum;
+    const [first] = placements;
+    if (isOutsidePlacement(first) || isLegacyKeep(labelDatum) || !placements.some(isOutsidePlacement)) {
+        return first;
+    }
+
+    const text = labelText();
+    if (text == null) {
+        return first;
+    }
+    return placements.find(
+        (placement) =>
+            isOutsidePlacement(placement) ||
+            layoutLinearGaugeLabel(text, labelDatum, placement, false, opts, bboxes) != null
+    );
+}
+
 /**
  * Offers the label to the label manager at the final value. Each placement that fits is a candidate in
  * order; with `alwaysShow`, placements that only fit by overflowing follow them as fallbacks.

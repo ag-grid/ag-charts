@@ -72,6 +72,7 @@ import {
     getLinearGaugeTargetStyle,
     linearGaugeLabelDatum,
     prepareLinearGaugeSeriesAnimationFunctions,
+    reservedLinearGaugeLabelPlacement,
     resetLinearGaugeSeriesResetRectFunction,
 } from './linearGaugeUtil';
 
@@ -538,7 +539,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             axisRotation = 0;
         }
 
-        const primaryPlacement = firstCandidate(label.placement);
+        const valueLabel = label.enabled ? this.labelDatum(label, value) : undefined;
         let x0: number;
         let x1: number;
         let y0: number;
@@ -548,24 +549,28 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             x1 = seriesRect.width;
             y0 = (seriesRect.height - thickness) / 2;
             y1 = y0 + thickness;
-
-            if (primaryPlacement === 'outside-start') {
-                x0 += this.horizontalLabelInset();
-            } else if (primaryPlacement === 'outside-end') {
-                x1 -= this.horizontalLabelInset();
-            }
         } else {
             x0 = (seriesRect.width - thickness) / 2;
             x1 = x0 + thickness;
             // Reversed
             y1 = 0;
             y0 = seriesRect.height;
+        }
 
-            if (primaryPlacement === 'outside-start') {
-                y0 -= this.verticalLabelInset();
-            } else if (primaryPlacement === 'outside-end') {
-                y1 += this.verticalLabelInset();
+        const reservedPlacement = this.reservedLabelPlacement(
+            valueLabel,
+            new BBox(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0))
+        );
+        if (horizontal) {
+            if (reservedPlacement === 'outside-start') {
+                x0 += this.horizontalLabelInset();
+            } else if (reservedPlacement === 'outside-end') {
+                x1 -= this.horizontalLabelInset();
             }
+        } else if (reservedPlacement === 'outside-start') {
+            y0 -= this.verticalLabelInset();
+        } else if (reservedPlacement === 'outside-end') {
+            y1 += this.verticalLabelInset();
         }
 
         this.gaugeRect = new BBox(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
@@ -781,8 +786,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             }
         }
 
-        if (label.enabled) {
-            labelData.push(this.labelDatum(label, value));
+        if (valueLabel != null) {
+            labelData.push(valueLabel);
         }
 
         const targetPlacementRotation = horizontal
@@ -1140,8 +1145,20 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return true;
     }
 
-    private labelBBoxes(value: AgNumericValue) {
-        const { horizontal, scale, seriesRect, gaugeRect } = this;
+    private reservedLabelPlacement(labelDatum: LinearGaugeLabelDatum | undefined, gaugeRect: BBox) {
+        if (labelDatum == null) {
+            return firstCandidate(this.options.label.placement);
+        }
+        return reservedLinearGaugeLabelPlacement(
+            labelDatum,
+            () => this.finalText(labelDatum),
+            this.labelLayoutOptions(),
+            this.labelBBoxes(this.options.value, gaugeRect)
+        );
+    }
+
+    private labelBBoxes(value: AgNumericValue, gaugeRect = this.gaugeRect) {
+        const { horizontal, scale, seriesRect } = this;
         const { x, y, width, height } = gaugeRect;
 
         let barRect: BBox;
