@@ -2320,6 +2320,43 @@ describe('HeatmapSeries', () => {
             expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('2:2', 8)), series));
         });
 
+        it('undims every cell when the highlight ends in the same update as a transaction', async () => {
+            const series = { ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } };
+            await create(GRID, series);
+            // The highlight is set through the manager, so the pointer cannot bring it back after the update.
+            const { highlightManager } = (chart as Chart).ctx;
+            highlightManager.updateHighlight('test', heatmap(chart).getNodeData()![0]);
+            await waitForChartStability(chart);
+            expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.4));
+
+            highlightManager.updateHighlight('test');
+            await transact({ update: [UPDATED('2:2', 8)] });
+
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('2:2', 8)), series));
+            expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(1));
+        });
+
+        it('restyles and updates only the updated cells when an itemStyler is set', async () => {
+            const itemStyler = ({ datum }: { datum: Cell }) => ((datum.v ?? 0) > 6 ? { strokeWidth: 3 } : {});
+            await create(GRID, { itemStyler });
+            const spy = spyOnCellRebuilds();
+            const nodeUpdates = rects(chart).map((rect) => vi.spyOn(rect, 'setStyleProperties'));
+
+            try {
+                await transact({ update: [UPDATED('1:1', 7)] });
+
+                expect(spy.datums).toHaveBeenCalledTimes(1);
+                expect(spy.styles).toHaveBeenCalledTimes(1);
+                expect(nodeUpdates.filter((update) => update.mock.calls.length > 0)).toHaveLength(1);
+            } finally {
+                spy.restore();
+                for (const update of nodeUpdates) update.mockRestore();
+            }
+
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('1:1', 7)), { itemStyler }));
+        });
+
         it('picks and shows the tooltip of an updated cell', async () => {
             await create(GRID);
             await transact({ update: [UPDATED('2:1', 100)] });
