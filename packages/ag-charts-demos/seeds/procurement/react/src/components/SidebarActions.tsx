@@ -25,8 +25,8 @@ const ACTIONS = [
         label: 'Settings',
         icon: (
             <Icon>
+                <path d="M6.49 3.34 6.83 1.35h2.34l.34 1.99 1.77 1.02 1.89-.7 1.17 2.03-1.55 1.29v2.04l1.55 1.29-1.17 2.03-1.89-.7-1.77 1.02-.34 1.99H6.83l-.34-1.99-1.77-1.02-1.89.7-1.17-2.03 1.55-1.29V6.98L1.66 5.69l1.17-2.03 1.89.7Z" />
                 <circle cx="8" cy="8" r="2" />
-                <path d="M8 1.5v1.75M8 12.75v1.75M1.5 8h1.75M12.75 8h1.75M3.4 3.4l1.24 1.24M11.36 11.36l1.24 1.24M3.4 12.6l1.24-1.24M11.36 4.64l1.24-1.24" />
             </Icon>
         ),
     },
@@ -50,14 +50,22 @@ const ACTIONS = [
     },
 ];
 
-/** Account actions. Placeholders: the demo has no settings, help centre or session, so none of them act. */
+/**
+ * Account actions. Placeholders: the demo has no settings, help centre or session, so none of them act.
+ * `aria-disabled` rather than `disabled` keeps them focusable, so the title explaining why can be reached.
+ */
 export function SidebarActions() {
     return (
         <ul className="pc-side-actions" aria-label="Account">
             {ACTIONS.map(({ label, icon }) => (
                 <li key={label}>
                     {/* Titled because the label beside it is hidden in the collapsed layout. */}
-                    <button type="button" className="pc-side-action" title={label}>
+                    <button
+                        type="button"
+                        className="pc-side-action"
+                        aria-disabled="true"
+                        title={`${label} · Not available in this demo`}
+                    >
                         {icon}
                         <span className="pc-side-action-label">{label}</span>
                     </button>

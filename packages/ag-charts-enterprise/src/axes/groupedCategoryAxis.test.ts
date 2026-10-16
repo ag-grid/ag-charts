@@ -2,64 +2,31 @@ import { afterEach, describe, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
 import {
-    Chart,
     type ChartOrProxy,
     INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE,
+    applyRotationWithoutCollisionAvoidance,
     cartesianChartAssertions,
     clickAction,
     compareImageSnapshot,
     contextMenuAction,
     hoverAction,
+    mixinDerivedCases,
     repeat,
-    reverseAxes,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Point, mapValues } from 'ag-charts-core';
+import { Point } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
-    AgCartesianAxisPosition,
     AgCartesianAxisType,
     AgCartesianChartOptions,
+    AgChartInstance,
     AgContextMenuGetItemsParams,
-    AgPolarChartOptions,
 } from 'ag-charts-types';
 
 import { DEFAULT_CONTEXT_MENU_CLASS } from '../features/context-menu/contextMenuStyles';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
-
-function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({
-            ...axis,
-            label: { ...axis.label, rotation, avoidCollisions: false },
-        })),
-    };
-}
-
-function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
-    const positionFlip = (position?: AgCartesianAxisPosition) => {
-        switch (position) {
-            case 'top':
-                return 'bottom';
-            case 'left':
-                return 'right';
-            case 'bottom':
-                return 'top';
-            case 'right':
-                return 'left';
-            default:
-                return position;
-        }
-    };
-
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
-    };
-}
 
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
@@ -69,44 +36,20 @@ type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
 };
 
 const EXAMPLES: Record<string, TestCase> = {
-    ...mixinDerivedCases({
-        INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE: {
-            options: INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE,
-            assertions: cartesianChartAssertions({
-                axisTypes: { x: 'grouped-category', y: 'number' },
-                seriesTypes: repeat('bar', 3),
-            }),
-            compare: ['grouped-category'],
+    ...mixinDerivedCases<TestCase>(
+        {
+            INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE: {
+                options: INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE,
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'grouped-category', y: 'number' },
+                    seriesTypes: repeat('bar', 3),
+                }),
+                compare: ['grouped-category'],
+            },
         },
-    }),
+        applyRotationWithoutCollisionAvoidance
+    ),
 };
-
-function mixinDerivedCases<T extends AgBaseChartOptions>(
-    baseCases: Record<string, TestCase<T>>
-): Record<string, TestCase<T>> {
-    const result = { ...baseCases };
-
-    for (const [name, baseCase] of Object.entries(baseCases)) {
-        // Add manual rotation.
-        result[name + '_MANUAL_ROTATION'] = {
-            ...baseCase,
-            options: applyRotation(baseCase.options, -30),
-        };
-
-        // Add flipped axes.
-        result[name + '_FLIP'] = {
-            ...baseCase,
-            options: applyAxesFlip(baseCase.options),
-        };
-
-        result[name + '_REVERSED_AXES'] = {
-            ...baseCase,
-            options: reverseAxes(baseCase.options, true),
-        };
-    }
-
-    return result;
-}
 
 describe('Grouped Category Axis Examples', () => {
     setupMockConsole();
@@ -141,7 +84,7 @@ describe('Grouped Category Axis Examples', () => {
 describe('Grouped Category', () => {
     setupMockCanvas();
     setupMockConsole();
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         chart?.destroy();

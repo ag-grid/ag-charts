@@ -136,6 +136,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                     spacing: 5,
                     rotation: 0,
                     label: {
+                        ...LABEL_BOXING_DEFAULTS,
                         enabled: true,
                         fontStyle: 'normal',
                         ...FONT_THEME_DEFAULTS,

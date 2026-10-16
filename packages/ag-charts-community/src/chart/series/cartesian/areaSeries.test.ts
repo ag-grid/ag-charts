@@ -18,6 +18,7 @@ import type {
 
 import { AgCharts } from '../../../api/agCharts';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
+import { buildLogAxisTestCase } from '../../test/axisTestCases';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -81,17 +82,6 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 import { AreaSeries } from './areaSeries';
-
-const buildLogAxisTestCase = (
-    data: any[],
-    extra?: { warnings?: string[]; skipWarningsReversed?: boolean }
-): CartesianOrPolarTestCase => {
-    return {
-        options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'area'),
-        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'log' }, seriesTypes: ['area'] }),
-        ...extra,
-    };
-};
 
 const EXAMPLES: Record<
     string,
@@ -222,10 +212,10 @@ const EXAMPLES: Record<
                 seriesTypes: repeat('area', 2),
             }),
         },
-        AREA_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
-        AREA_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
-        AREA_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
-        AREA_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS, {
+        AREA_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase('area', DATA_POSITIVE_LOG_AXIS),
+        AREA_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase('area', DATA_NEGATIVE_LOG_AXIS),
+        AREA_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase('area', DATA_FRACTIONAL_LOG_AXIS),
+        AREA_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase('area', DATA_ZERO_EXTENT_LOG_AXIS, {
             warnings: [
                 'AG Charts - The log axis domain contains a value of 0, the chart data cannot be rendered. See log axis documentation for more information.',
             ],
@@ -361,7 +351,7 @@ const EXAMPLES: Record<
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, ChartTestCase> = {
-    AREA_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase(DATA_INVALID_DOMAIN_LOG_AXIS),
+    AREA_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase('area', DATA_INVALID_DOMAIN_LOG_AXIS),
 };
 
 describe('AreaSeries', () => {

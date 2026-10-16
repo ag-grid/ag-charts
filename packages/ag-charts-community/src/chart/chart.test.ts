@@ -15,6 +15,7 @@ import type { Node } from 'ag-charts-core';
 import { Caster, classCast } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
+    AgChartInstance,
     AgChartValidationsOptions,
     AgLineSeriesOptions,
     AgPolarChartOptions,
@@ -182,7 +183,7 @@ describe('Chart', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            return createChart(options);
+            return deproxy(await createChart(options));
         };
 
         const hoverChartNodes = async (
@@ -343,8 +344,8 @@ describe('Chart', () => {
 
     // A markerless series' node is the point on the line where the marker would have been.
     describe(`Markerless Line Series node interactions (AG-10226)`, () => {
-        const createMarkerlessLineChart = async (listeners: any) =>
-            createChart({
+        const markerlessLineChartOptions = (listeners: any) =>
+            ({
                 container: document.body,
                 data: datasets.economy.data,
                 series: [
@@ -356,7 +357,7 @@ describe('Chart', () => {
                         listeners,
                     },
                 ],
-            } as AgCartesianChartOptions);
+            }) as AgCartesianChartOptions;
 
         const nodeCanvasPoint = (chartInstance: Chart, datumIndex: number) => {
             const series = chartInstance.series[0] as any;
@@ -367,7 +368,7 @@ describe('Chart', () => {
 
         it(`should handle nodeClick event at a datum's notional marker position`, async () => {
             const seriesNodeClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await clickAction(canvasX, canvasY)(chart);
@@ -379,7 +380,7 @@ describe('Chart', () => {
 
         it(`should not handle nodeClick event well outside the markerless pick range`, async () => {
             const seriesNodeClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await clickAction(canvasX, canvasY + 60)(chart);
@@ -390,7 +391,7 @@ describe('Chart', () => {
 
         it(`should handle nodeDoubleClick event at a datum's notional marker position`, async () => {
             const seriesNodeDoubleClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeDoubleClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await doubleClickAction(canvasX, canvasY)(chart);
@@ -402,7 +403,7 @@ describe('Chart', () => {
 
         it(`should not handle nodeDoubleClick event well outside the markerless pick range`, async () => {
             const seriesNodeDoubleClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeDoubleClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await doubleClickAction(canvasX, canvasY + 60)(chart);
@@ -513,16 +514,11 @@ describe('Chart', () => {
 
     describe('Chart data change', () => {
         const testDataUpdate = async (testOptions: { seriesOptions: any; getNodes: (chart: Chart) => Node[] }) => {
-            const chartOptions = prepareTestOptions<{
-                data: { year: string; gdp: number; gnp: number }[];
-                series: any[];
-            }>({
+            const chartProxy = (await createChart({
                 data: [],
                 series: [testOptions.seriesOptions],
-            });
-            const chartProxy = AgCharts.create(chartOptions);
+            })) as AgChartProxy;
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(0);
 
             await chartProxy.updateDelta({
@@ -705,15 +701,7 @@ describe('Chart', () => {
     });
 
     describe('Chart data inherited by Series', () => {
-        async function createSeriesTestChart(options: object) {
-            const chartOptions = prepareTestOptions(options);
-            const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
-            chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
-            return { chartProxy, chartOptions };
-        }
-
-        async function updateChart(chartProxy: AgChartProxy, options: object) {
+        async function updateChart(chartProxy: AgChartInstance, options: object) {
             const chartOptions = prepareTestOptions(options);
             await chartProxy.update(chartOptions);
             await waitForChartStability(deproxy(chartProxy));
@@ -722,7 +710,7 @@ describe('Chart', () => {
         it('Chart data inherited only when Series data is not defined ', async () => {
             const moreData = datasets.economy.data;
             const lessData = datasets.economy.data.slice(0, 2);
-            const { chartProxy } = await createSeriesTestChart({
+            const chartProxy = await createChart({
                 data: moreData,
                 series: [
                     {
@@ -738,6 +726,7 @@ describe('Chart', () => {
                     },
                 ],
             });
+            chart = deproxy(chartProxy);
             expect(chart.data).toEqual(DataSet.wrap(moreData, chart.ctx.logger));
             expect(chart.series[0].data).toEqual(DataSet.wrap(moreData, chart.ctx.logger));
             expect(chart.series[1].data).toEqual(DataSet.wrap(lessData, chart.ctx.logger));
@@ -798,7 +787,7 @@ describe('Chart', () => {
         };
 
         it('dispatches required range ratio based on seriesRect and direction', async () => {
-            chart = await createChart(baseOptions);
+            chart = deproxy(await createChart(baseOptions));
             const chartAny = chart as any;
             let capturedEvent: { requiredRangeRatio: number; requiredRangeDirection: ChartAxisDirection } | undefined;
 
@@ -818,7 +807,7 @@ describe('Chart', () => {
         });
 
         it('falls back to 0 when the ratio is NaN', async () => {
-            chart = await createChart(baseOptions);
+            chart = deproxy(await createChart(baseOptions));
             const chartAny = chart as any;
             let capturedEvent: { requiredRangeRatio: number } | undefined;
 
@@ -1128,8 +1117,7 @@ describe('Chart', () => {
         });
 
         const createMarkerChart = async (options: AgCartesianChartOptions) => {
-            chart = deproxy(AgCharts.create(prepareTestOptions(options)));
-            await waitForChartStability(chart);
+            chart = deproxy(await createChart(options));
 
             const [node] = classCast(chart.series[0], LineSeries).contextNodeData?.nodeData ?? [];
             expect(node).toBeDefined();
@@ -1229,11 +1217,8 @@ describe('Chart', () => {
 
         async function createChartWithClickListener(options: AgCartesianChartOptions) {
             click = vi.fn();
-            chartInstance = AgCharts.create(
-                prepareTestOptions<AgCartesianChartOptions>({ ...options, listeners: { click } })
-            ) as AgChartProxy;
+            chartInstance = (await createChart({ ...options, listeners: { click } })) as AgChartProxy;
             chart = deproxy(chartInstance);
-            await waitForChartStability(chart);
         }
 
         /**
@@ -2076,7 +2061,7 @@ describe('Chart', () => {
                 displayNullData: true,
             } as any;
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
@@ -2092,6 +2077,7 @@ describe('Chart destroy() / performUpdate() race condition', () => {
         { x: 'C', y: 30 },
     ];
 
+    // Bespoke: no `prepareTestOptions`, so the chart is created with the bare options and the document body as container.
     async function testDestroyRace(seriesType: 'bar' | 'area' | 'line') {
         const proxy = AgCharts.create({
             container: document.body,
@@ -2340,6 +2326,8 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         for (const proxy of created.splice(0)) proxy.destroy();
     });
 
+    // Bespoke: creates synchronously without `prepareTestOptions` or a stability wait, to observe failures raised
+    // during `AgCharts.create` itself.
     // Every chart a test creates, including those a listener creates re-entrantly, so all are destroyed.
     function create(options: AgCartesianChartOptions) {
         const proxy = AgCharts.create(options) as AgChartProxy;

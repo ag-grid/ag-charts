@@ -347,7 +347,7 @@
             "items": [
                 {
                     "question": "Is AG Charts free to use?",
-                    "answer": "AG Charts Community is free and open-source under the MIT license. Use it in commercial projects without restrictions. [AG Charts Enterprise](/license-pricing/) adds financial charts, maps, annotations, and advanced interactivity."
+                    "answer": "AG Charts Community is free and open-source under the MIT license. Use it in commercial projects without restrictions. [AG Charts Enterprise](./community-vs-enterprise/) adds financial charts, maps, annotations, and advanced interactivity."
                 },
                 {
                     "question": "What chart types are included?",
@@ -367,7 +367,7 @@
                 },
                 {
                     "question": "What's included in AG Charts Enterprise?",
-                    "answer": "[AG Charts Enterprise](/license-pricing/) includes Financial Charts with annotations, Maps, Gauges, Zoom, Crosshairs, Navigator, and Context Menus. Start a free trial to evaluate."
+                    "answer": "[AG Charts Enterprise](./community-vs-enterprise/) includes Financial Charts with annotations, Maps, Gauges, Zoom, Crosshairs, Navigator, and Context Menus. Start a free trial to evaluate."
                 },
                 {
                     "question": "How does AG Charts handle large datasets?",

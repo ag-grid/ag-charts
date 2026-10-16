@@ -8,6 +8,7 @@ import {
     compareImageSnapshot,
     createChart,
     delay,
+    deproxy,
     expectWarningsCalls,
     hoverAction,
     mouseDownAction,
@@ -90,7 +91,7 @@ describe('Tooltip', () => {
                 ],
                 series: [{ type: 'line', xKey: 'month', yKey: 'sweaters' }],
             };
-            const internalChart = await createChart(options);
+            const internalChart = deproxy(await createChart(options));
             chart = internalChart;
             const { publicApi } = internalChart;
             expect(publicApi).toBeDefined();
@@ -226,24 +227,26 @@ describe('Tooltip', () => {
 
     describe('Symbol', () => {
         it('should allow disabling symbol', async () => {
-            chart = await createChart({
-                data: [{ step: 0, voltage: 1 }],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'step',
-                        yKey: 'voltage',
-                        tooltip: {
-                            renderer() {
-                                return { symbol: { marker: { enabled: false } } };
+            chart = deproxy(
+                await createChart({
+                    data: [{ step: 0, voltage: 1 }],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'step',
+                            yKey: 'voltage',
+                            tooltip: {
+                                renderer() {
+                                    return { symbol: { marker: { enabled: false } } };
+                                },
                             },
                         },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
                     },
-                ],
-                tooltip: {
-                    mode: 'shared',
-                },
-            });
+                })
+            );
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
@@ -252,24 +255,26 @@ describe('Tooltip', () => {
         });
 
         it('should allow disabling symbol line only', async () => {
-            chart = await createChart({
-                data: [{ step: 0, voltage: 1 }],
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'step',
-                        yKey: 'voltage',
-                        tooltip: {
-                            renderer() {
-                                return { symbol: { line: { enabled: false } } };
+            chart = deproxy(
+                await createChart({
+                    data: [{ step: 0, voltage: 1 }],
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'step',
+                            yKey: 'voltage',
+                            tooltip: {
+                                renderer() {
+                                    return { symbol: { line: { enabled: false } } };
+                                },
                             },
                         },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
                     },
-                ],
-                tooltip: {
-                    mode: 'shared',
-                },
-            });
+                })
+            );
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
@@ -280,24 +285,26 @@ describe('Tooltip', () => {
         });
 
         it('should allow disabling symbol marker only', async () => {
-            chart = await createChart({
-                data: [{ step: 0, voltage: 1 }],
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'step',
-                        yKey: 'voltage',
-                        tooltip: {
-                            renderer() {
-                                return { symbol: { marker: { enabled: false } } };
+            chart = deproxy(
+                await createChart({
+                    data: [{ step: 0, voltage: 1 }],
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'step',
+                            yKey: 'voltage',
+                            tooltip: {
+                                renderer() {
+                                    return { symbol: { marker: { enabled: false } } };
+                                },
                             },
                         },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
                     },
-                ],
-                tooltip: {
-                    mode: 'shared',
-                },
-            });
+                })
+            );
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
@@ -308,24 +315,26 @@ describe('Tooltip', () => {
         });
 
         it('should allow customizing symbol fill and shape', async () => {
-            chart = await createChart({
-                data: [{ step: 0, voltage: 1 }],
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'step',
-                        yKey: 'voltage',
-                        tooltip: {
-                            renderer() {
-                                return { symbol: { marker: { fill: 'red', shape: 'square' } } };
+            chart = deproxy(
+                await createChart({
+                    data: [{ step: 0, voltage: 1 }],
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'step',
+                            yKey: 'voltage',
+                            tooltip: {
+                                renderer() {
+                                    return { symbol: { marker: { fill: 'red', shape: 'square' } } };
+                                },
                             },
                         },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
                     },
-                ],
-                tooltip: {
-                    mode: 'shared',
-                },
-            });
+                })
+            );
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
@@ -336,24 +345,26 @@ describe('Tooltip', () => {
         });
 
         it('should render symbol line when user specifies it on non-line series', async () => {
-            chart = await createChart({
-                data: [{ step: 0, voltage: 1 }],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'step',
-                        yKey: 'voltage',
-                        tooltip: {
-                            renderer() {
-                                return { symbol: { line: { enabled: true, stroke: 'red', strokeWidth: 2 } } };
+            chart = deproxy(
+                await createChart({
+                    data: [{ step: 0, voltage: 1 }],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'step',
+                            yKey: 'voltage',
+                            tooltip: {
+                                renderer() {
+                                    return { symbol: { line: { enabled: true, stroke: 'red', strokeWidth: 2 } } };
+                                },
                             },
                         },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
                     },
-                ],
-                tooltip: {
-                    mode: 'shared',
-                },
-            });
+                })
+            );
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
@@ -363,31 +374,33 @@ describe('Tooltip', () => {
         });
 
         it('should default line stroke properties from marker when not specified', async () => {
-            chart = await createChart({
-                data: [{ step: 0, voltage: 1 }],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'step',
-                        yKey: 'voltage',
-                        stroke: 'purple',
-                        strokeWidth: 3,
-                        tooltip: {
-                            renderer() {
-                                return {
-                                    symbol: {
-                                        marker: { stroke: 'purple', strokeWidth: 3 },
-                                        line: { enabled: true },
-                                    },
-                                };
+            chart = deproxy(
+                await createChart({
+                    data: [{ step: 0, voltage: 1 }],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'step',
+                            yKey: 'voltage',
+                            stroke: 'purple',
+                            strokeWidth: 3,
+                            tooltip: {
+                                renderer() {
+                                    return {
+                                        symbol: {
+                                            marker: { stroke: 'purple', strokeWidth: 3 },
+                                            line: { enabled: true },
+                                        },
+                                    };
+                                },
                             },
                         },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
                     },
-                ],
-                tooltip: {
-                    mode: 'shared',
-                },
-            });
+                })
+            );
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
@@ -397,24 +410,26 @@ describe('Tooltip', () => {
         });
 
         it('should default line.enabled to true when user provides line properties', async () => {
-            chart = await createChart({
-                data: [{ step: 0, voltage: 1 }],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'step',
-                        yKey: 'voltage',
-                        tooltip: {
-                            renderer() {
-                                return { symbol: { line: { stroke: 'orange' } } };
+            chart = deproxy(
+                await createChart({
+                    data: [{ step: 0, voltage: 1 }],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'step',
+                            yKey: 'voltage',
+                            tooltip: {
+                                renderer() {
+                                    return { symbol: { line: { stroke: 'orange' } } };
+                                },
                             },
                         },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
                     },
-                ],
-                tooltip: {
-                    mode: 'shared',
-                },
-            });
+                })
+            );
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
@@ -423,24 +438,26 @@ describe('Tooltip', () => {
         });
 
         it('should not render line when user explicitly sets enabled to false on non-line series', async () => {
-            chart = await createChart({
-                data: [{ step: 0, voltage: 1 }],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'step',
-                        yKey: 'voltage',
-                        tooltip: {
-                            renderer() {
-                                return { symbol: { line: { enabled: false, stroke: 'red' } } };
+            chart = deproxy(
+                await createChart({
+                    data: [{ step: 0, voltage: 1 }],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'step',
+                            yKey: 'voltage',
+                            tooltip: {
+                                renderer() {
+                                    return { symbol: { line: { enabled: false, stroke: 'red' } } };
+                                },
                             },
                         },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
                     },
-                ],
-                tooltip: {
-                    mode: 'shared',
-                },
-            });
+                })
+            );
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
@@ -451,29 +468,31 @@ describe('Tooltip', () => {
 
     describe('AG-16613 allowNullKeys', () => {
         it('should show xValue row for null category key when allowNullKeys is true', async () => {
-            chart = await createChart({
-                data: [
-                    { x: 'A', y: 10 },
-                    { x: null, y: 20 },
-                    { x: 'B', y: 15 },
-                ],
-                axes: {
-                    x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                },
-                series: [
-                    {
-                        type: 'bubble',
-                        xKey: 'x',
-                        xName: 'Category',
-                        yKey: 'y',
-                        yName: 'Value',
-                        sizeKey: 'y',
-                        sizeName: 'Size',
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { x: 'A', y: 10 },
+                        { x: null, y: 20 },
+                        { x: 'B', y: 15 },
+                    ],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [
+                        {
+                            type: 'bubble',
+                            xKey: 'x',
+                            xName: 'Category',
+                            yKey: 'y',
+                            yName: 'Value',
+                            sizeKey: 'y',
+                            sizeName: 'Size',
+                            allowNullKeys: true,
+                        } as any,
+                    ],
+                })
+            );
             // Hover over the middle bubble (null category key)
             await hoverAction(400, 200)(chart);
             await waitForChartStability(chart);
@@ -517,20 +536,22 @@ describe('Tooltip', () => {
 
     describe('AG-16272 Missing Values', () => {
         it('should not show rows for series with missing data in shared tooltips', async () => {
-            chart = await createChart({
-                data: [
-                    { x: 'Q1', y1: 10, y2: 20, y3: null },
-                    { x: 'Q2', y1: 15, y2: 25, y3: 30 },
-                ],
-                series: [
-                    { type: 'bar', xKey: 'x', yKey: 'y1', yName: 'Series 1' },
-                    { type: 'bar', xKey: 'x', yKey: 'y2', yName: 'Series 2' },
-                    { type: 'bar', xKey: 'x', yKey: 'y3', yName: 'Series 3' },
-                ],
-                tooltip: {
-                    mode: 'shared',
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { x: 'Q1', y1: 10, y2: 20, y3: null },
+                        { x: 'Q2', y1: 15, y2: 25, y3: 30 },
+                    ],
+                    series: [
+                        { type: 'bar', xKey: 'x', yKey: 'y1', yName: 'Series 1' },
+                        { type: 'bar', xKey: 'x', yKey: 'y2', yName: 'Series 2' },
+                        { type: 'bar', xKey: 'x', yKey: 'y3', yName: 'Series 3' },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
+                    },
+                })
+            );
             // Hover over the first bar group (Q1)
             await hoverAction(200, 250)(chart);
             await waitForChartStability(chart);
@@ -546,25 +567,27 @@ describe('Tooltip', () => {
         it('should not show empty row for missing bubble size', async () => {
             const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
             try {
-                chart = await createChart({
-                    data: [
-                        { x: 10, y: 20, size: 30, age: 25 },
-                        { x: 15, y: 25 }, // Missing size and age
-                    ],
-                    series: [
-                        {
-                            type: 'bubble',
-                            xKey: 'x',
-                            xName: 'X Value',
-                            yKey: 'y',
-                            yName: 'Y Value',
-                            sizeKey: 'size',
-                            sizeName: 'Size',
-                            labelKey: 'age',
-                            labelName: 'Age',
-                        },
-                    ],
-                });
+                chart = deproxy(
+                    await createChart({
+                        data: [
+                            { x: 10, y: 20, size: 30, age: 25 },
+                            { x: 15, y: 25 }, // Missing size and age
+                        ],
+                        series: [
+                            {
+                                type: 'bubble',
+                                xKey: 'x',
+                                xName: 'X Value',
+                                yKey: 'y',
+                                yName: 'Y Value',
+                                sizeKey: 'size',
+                                sizeName: 'Size',
+                                labelKey: 'age',
+                                labelName: 'Age',
+                            },
+                        ],
+                    })
+                );
                 // Hover the second bubble (at far right, missing size and age)
                 await hoverAction(500, 300)(chart);
                 await waitForChartStability(chart);
@@ -582,26 +605,28 @@ describe('Tooltip', () => {
         });
 
         it('should show label with empty string value from custom renderer', async () => {
-            chart = await createChart({
-                data: [{ x: 'Q1', y: 10 }],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'x',
-                        yKey: 'y',
-                        tooltip: {
-                            renderer: () => {
-                                return {
-                                    data: [
-                                        { label: 'label 1', value: '' },
-                                        { label: 'label 2', value: 'value 2' },
-                                    ],
-                                };
+            chart = deproxy(
+                await createChart({
+                    data: [{ x: 'Q1', y: 10 }],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            tooltip: {
+                                renderer: () => {
+                                    return {
+                                        data: [
+                                            { label: 'label 1', value: '' },
+                                            { label: 'label 2', value: 'value 2' },
+                                        ],
+                                    };
+                                },
                             },
                         },
-                    },
-                ],
-            });
+                    ],
+                })
+            );
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
@@ -613,20 +638,22 @@ describe('Tooltip', () => {
         });
 
         it('should not show rows for series with non-finite values (NaN, Infinity) in shared tooltips', async () => {
-            chart = await createChart({
-                data: [
-                    { x: 'Q1', y1: 10, y2: Number.NaN, y3: Infinity },
-                    { x: 'Q2', y1: 15, y2: 25, y3: 30 },
-                ],
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y1', yName: 'Valid Series' },
-                    { type: 'line', xKey: 'x', yKey: 'y2', yName: 'NaN Series' },
-                    { type: 'line', xKey: 'x', yKey: 'y3', yName: 'Infinity Series' },
-                ],
-                tooltip: {
-                    mode: 'shared',
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { x: 'Q1', y1: 10, y2: Number.NaN, y3: Infinity },
+                        { x: 'Q2', y1: 15, y2: 25, y3: 30 },
+                    ],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y1', yName: 'Valid Series' },
+                        { type: 'line', xKey: 'x', yKey: 'y2', yName: 'NaN Series' },
+                        { type: 'line', xKey: 'x', yKey: 'y3', yName: 'Infinity Series' },
+                    ],
+                    tooltip: {
+                        mode: 'shared',
+                    },
+                })
+            );
             // Hover near the first data point (Q1) - use a coordinate that should trigger the tooltip
             await hoverAction(150, 200)(chart);
             await waitForChartStability(chart);
@@ -666,7 +693,7 @@ describe('Tooltip', () => {
                 ],
             };
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Manually show tooltip
@@ -701,7 +728,7 @@ describe('Tooltip', () => {
                 ],
             };
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             // Only fake setTimeout/clearTimeout: faking requestAnimationFrame breaks jsdom's rAF permanently, as
@@ -748,7 +775,7 @@ describe('Tooltip', () => {
                 ],
             };
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -801,7 +828,7 @@ describe('Tooltip', () => {
                 ],
             };
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -855,7 +882,7 @@ describe('Tooltip', () => {
                 ],
             };
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -892,15 +919,17 @@ describe('Tooltip', () => {
 
     describe('CRT-1038 Drag', () => {
         it('should update tooltip when click-dragging between data points', async () => {
-            chart = await createChart({
-                data: [
-                    { x: 'A', y: 10 },
-                    { x: 'B', y: 20 },
-                    { x: 'C', y: 15 },
-                ],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                tooltip: { range: 'nearest' },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { x: 'A', y: 10 },
+                        { x: 'B', y: 20 },
+                        { x: 'C', y: 15 },
+                    ],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    tooltip: { range: 'nearest' },
+                })
+            );
 
             // Hover over first bar to establish tooltip
             await hoverAction(160, 300)(chart);

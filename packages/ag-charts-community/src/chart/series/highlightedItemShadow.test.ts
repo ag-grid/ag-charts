@@ -5,8 +5,9 @@ import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } fro
 
 import { AgCharts } from '../../api/agCharts';
 import { Marker } from '../marker/marker';
-import { HIGHLIGHT_SHADOW, SERIES_SHADOW } from '../test/shadowFixtures';
+import { HIGHLIGHT_SHADOW, SERIES_SHADOW, legendHighlight } from '../test/shadowFixtures';
 import {
+    createChart,
     deproxy,
     expectWarningMessages,
     prepareTestOptions,
@@ -135,16 +136,6 @@ describe('highlightedItem.shadow', () => {
         chart = undefined;
     });
 
-    /** The highlight the legend raises for the series' first legend item: per sector, or the whole series. */
-    const legendHighlight = (series: any) => {
-        const [legendDatum] = series.getLegendData('category');
-        if (legendDatum == null) return undefined;
-        const { itemId, legendItemName } = legendDatum;
-        return typeof itemId === 'number'
-            ? { series, itemId: undefined, datum: undefined, datumIndex: itemId, legendItemName }
-            : { series, itemId, datum: undefined, datumIndex: Number.NaN, legendItemName };
-    };
-
     const hoverFirstItem = async (
         testCase: SeriesCase,
         shadow: AgDropShadowOptions | undefined,
@@ -159,9 +150,7 @@ describe('highlightedItem.shadow', () => {
             highlight: { drawingMode },
             series: [testCase.series(shadow, { highlight })],
         } as AgChartOptions;
-        prepareTestOptions(options);
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createChart(options));
 
         const [series] = chart.series;
         const inPlaceBefore = shapesOf(series.contentGroup, testCase.kind);
@@ -401,10 +390,10 @@ describe('highlightedItem.shadow', () => {
                 highlight: { drawingMode },
                 series: [testCase.series(SERIES_SHADOW, {})],
             } as AgChartOptions;
+            // `options` is returned and reused for a later update, so it keeps the prepared test theme and size.
             prepareTestOptions(options);
-            const proxy = AgCharts.create(options);
+            const proxy = await createChart(options);
             chart = deproxy(proxy);
-            await waitForChartStability(chart);
 
             const [series] = chart.series;
             chart.ctx.highlightManager.updateHighlight(chart.id, series.getNodeData()[0]);

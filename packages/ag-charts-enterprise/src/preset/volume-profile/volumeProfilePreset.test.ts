@@ -406,6 +406,42 @@ describe('volumeProfilePreset', () => {
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
     });
 
+    describe('with keys the data lacks', () => {
+        it('should warn for each key found in no data element', async () => {
+            chart = AgCharts.createVolumeProfileChart(
+                prepareFinancialTestOptions({
+                    ...volumeProfile,
+                    priceKey: 'noPrice',
+                    upKey: 'nope',
+                    downKey: 'alsoNope',
+                })
+            );
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([
+                ["AG Charts - the key 'noPrice' was not found in any data element."],
+                ["AG Charts - the key 'nope' was not found in any data element."],
+                ["AG Charts - the key 'alsoNope' was not found in any data element."],
+            ]);
+        });
+
+        it('should warn for the key alone when the others match', async () => {
+            chart = AgCharts.createVolumeProfileChart(
+                prepareFinancialTestOptions({ ...volumeProfile, downKey: 'nope' })
+            );
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([["AG Charts - the key 'nope' was not found in any data element."]]);
+        });
+
+        it('should not warn when there is no data to hold the keys', async () => {
+            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile, data: [] }));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+        });
+    });
+
     it('should colour the bars from the theme palette', async () => {
         chart = AgCharts.createVolumeProfileChart(
             prepareFinancialTestOptions({

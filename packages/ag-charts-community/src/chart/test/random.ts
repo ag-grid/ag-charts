@@ -21,3 +21,14 @@ export function seedRandom(seed = 1337): () => number {
     // https://en.wikipedia.org/wiki/Nothing-up-my-sleeve_number
     return sfc32(0x9e3779b9, 0x243f6a88, 0xb7e15162, realSeed);
 }
+
+/**
+ * A Park-Miller minimal standard LCG (multiplier 16807, modulus 2^31 - 1). It yields a different sequence from
+ * {@link seedRandom}, so it is kept separate for the tests whose data was generated with it.
+ */
+export function seedLcgRandom(seed = 1337): () => number {
+    return function random() {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+    };
+}

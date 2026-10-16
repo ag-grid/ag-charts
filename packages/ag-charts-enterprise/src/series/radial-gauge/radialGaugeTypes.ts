@@ -1,12 +1,19 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import type { NormalisedGaugeSeriesStyle, NormalisedRadialGaugeLabelOptions } from 'ag-charts-core';
+import type {
+    NormalisedGaugeSeriesStyle,
+    NormalisedRadialGaugeLabelOptions,
+    TextBoxingProperties,
+} from 'ag-charts-core';
 import type {
     AgChartLabelCollisionOptions,
     AgNumericValue,
     AgRadialGaugeMarkerShape,
     FontStyle,
     FontWeight,
+    PaddingOptions,
 } from 'ag-charts-types';
+
+import type { GaugeTargetDatumLabel } from '../gauge-util/labelPlacement';
 
 export enum NodeDataType {
     Node,
@@ -34,19 +41,6 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     style: NormalisedGaugeSeriesStyle;
 }
 
-export interface RadialGaugeTargetDatumLabel {
-    offsetX: number;
-    offsetY: number;
-    fill: string | undefined;
-    textAlign: CanvasTextAlign;
-    textBaseline: CanvasTextBaseline;
-    fontStyle: FontStyle | undefined;
-    fontWeight: FontWeight | undefined;
-    fontSize: number;
-    fontFamily: string;
-    lineHeight: number | undefined;
-}
-
 export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     type: NodeDataType.Target;
     readonly itemId: `target-${number}`;
@@ -59,7 +53,7 @@ export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     angle: number;
     size: number;
     rotation: number;
-    label: RadialGaugeTargetDatumLabel;
+    label: GaugeTargetDatumLabel;
     style: NormalisedGaugeSeriesStyle;
 }
 
@@ -78,5 +72,9 @@ export type RadialGaugeLabelDatum = {
     lineHeight: number | undefined;
     truncate: boolean;
     collision: AgChartLabelCollisionOptions | undefined;
+    maxWidth?: number;
+    maxHeight?: number;
     formatter: NormalisedRadialGaugeLabelOptions['formatter'];
+    box: TextBoxingProperties;
+    boxExtent: Required<PaddingOptions>;
 };

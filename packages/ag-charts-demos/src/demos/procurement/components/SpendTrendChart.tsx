@@ -4,7 +4,7 @@ import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-comm
 import { AgCharts } from 'ag-charts-react';
 
 import { SEGMENT_SEPARATOR, THEME } from '../chartTheme';
-import { fmtCurrency, fmtCurrencyCompact, fmtPct } from '../format';
+import { fmtCurrency, fmtCurrencyMillions, fmtPct, wholeMillionStep } from '../format';
 import type { SpendTrendGrain, SpendTrendRow } from '../types';
 
 /** One stacked band: the row key it reads, the name it is shown under and its colour. */
@@ -50,12 +50,14 @@ export function SpendTrendChart({ rows, stacks, grain }: SpendTrendChartProps) {
             yName: name,
             stacked: true,
             fill,
+            cornerRadius: 3,
             ...SEGMENT_SEPARATOR,
             tooltip: {
                 renderer: ({ datum }) => {
                     const spend = Number(datum[key] ?? 0);
                     const total = stacks.reduce((sum, stack) => sum + Number(datum[stack.key] ?? 0), 0);
                     return {
+                        heading: '',
                         title: `${name} · ${spanOf(datum.label)}`,
                         data: [
                             { label: 'Committed', value: fmtCurrency(spend) },
@@ -67,6 +69,11 @@ export function SpendTrendChart({ rows, stacks, grain }: SpendTrendChartProps) {
             },
         }));
 
+        const yMax = Math.max(
+            0,
+            ...rows.map((row) => stacks.reduce((sum, stack) => sum + Number(row[stack.key] ?? 0), 0))
+        );
+
         return {
             theme: THEME,
             data: rows,
@@ -77,7 +84,8 @@ export function SpendTrendChart({ rows, stacks, grain }: SpendTrendChartProps) {
                     type: 'number',
                     position: 'left',
                     title: { enabled: true, text: 'Committed spend' },
-                    label: { formatter: ({ value }) => fmtCurrencyCompact(value) },
+                    interval: { step: wholeMillionStep(yMax) },
+                    label: { formatter: ({ value }) => fmtCurrencyMillions(value) },
                 },
             },
             legend: { enabled: true, position: 'bottom' },

@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_HI_IN: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'वॉल्यूम ${value}',
+    statusBarVolumeProfilePrice: 'मूल्य',
+    statusBarVolumeProfileUp: 'ऊपर',
+    statusBarVolumeProfileDown: 'नीचे',
+    statusBarVolumeProfileTotal: 'कुल',
     tooltipPaginationStatus: '${count}[number] में से ${index}[number]',
 };

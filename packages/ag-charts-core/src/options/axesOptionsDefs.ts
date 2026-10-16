@@ -440,6 +440,7 @@ export function cartesianAxisCrosshairOptions(
         label: crosshairLabel ?? baseCrosshairLabel,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
+        ...undocumentedDefs({ snapInterval: positiveNumberNonZero }),
     };
 }
 

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
+    AgChartInstance,
     AgChartLegendClickEvent,
     AgChartLegendDoubleClickEvent,
     AgChartOptions,
@@ -9,7 +10,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import type { Chart } from '../chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -44,7 +44,7 @@ function strictKeyMatcher<T>(matcherObject: { [K in keyof T]: null }) {
 
 describe('LegendEvent', () => {
     setupMockConsole();
-    let chart: Chart;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     const compare = async () => {
@@ -208,7 +208,7 @@ describe('LegendEvent', () => {
 
             const opts = prepareTestOptions({ ...OPTIONS, listeners: { seriesVisibilityChange } });
             const apiChart = AgCharts.create(opts);
-            chart = deproxy(apiChart);
+            chart = apiChart;
             await waitForChartStability(chart);
             await apiChart.update({
                 ...opts,
@@ -247,7 +247,7 @@ describe('LegendEvent', () => {
                 series: [{ id: 'donut-1', type: 'donut', angleKey: 'share', legendItemKey: 'os' }],
             } as AgChartOptions);
             const apiChart = AgCharts.create(opts);
-            chart = deproxy(apiChart);
+            chart = apiChart;
             await waitForChartStability(chart);
 
             await apiChart.update({
@@ -258,7 +258,7 @@ describe('LegendEvent', () => {
 
             // `itemId: 0` addresses the first slice only; a truthiness check on `itemId` matched
             // every item in the series instead.
-            const { legendManager } = chart.ctx;
+            const { legendManager } = deproxy(chart).ctx;
             expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 0 })).toBe(true);
             expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 1 })).toBe(true);
             expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 2 })).toBe(true);

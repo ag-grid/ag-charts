@@ -1,10 +1,20 @@
-import { isFiniteNumber } from 'ag-charts-core';
+import { type Logger, isFiniteNumber, stripFloatNoise } from 'ag-charts-core';
 import type { DatumDefault } from 'ag-charts-types';
 
 export interface VolumeProfileKeys {
     priceKey: string;
     upKey: string;
     downKey: string;
+}
+
+/** The series read the grouped levels, so the data model cannot see a key the rows lack. */
+export function warnMissingVolumeProfileKeys(data: DatumDefault[], keys: VolumeProfileKeys, logger: Logger) {
+    if (data.length === 0) return;
+
+    for (const key of new Set([keys.priceKey, keys.upKey, keys.downKey])) {
+        if (data.some((d) => d?.[key] !== undefined)) continue;
+        logger.warnOnce(`the key '${key}' was not found in any data element.`);
+    }
 }
 
 export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: string): number | undefined {
@@ -20,7 +30,7 @@ export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: strin
     }
     if (!Number.isFinite(smallest)) return undefined;
 
-    return canonical(smallest);
+    return stripFloatNoise(smallest);
 }
 
 export function normaliseVolumeProfile(
@@ -43,13 +53,23 @@ export function normaliseVolumeProfile(
     const levels: VolumeProfileDatum[] = [];
     for (let index = highest; index >= lowest; index--) {
         const { upVolume = 0, downVolume = 0 } = byLevel.get(index) ?? {};
-        levels.push({ price: canonical(index * tickSize), upVolume, downVolume, total: upVolume + downVolume });
+        levels.push({
+            price: stripFloatNoise(index * tickSize),
+            priceLow: stripFloatNoise((index - 0.5) * tickSize),
+            priceHigh: stripFloatNoise((index + 0.5) * tickSize),
+            upVolume,
+            downVolume,
+            total: upVolume + downVolume,
+        });
     }
     return levels;
 }
 
 export interface VolumeProfileDatum {
     price: number;
+    // The extent of the prices merged into this level: its centre `price` plus or minus half the tick size.
+    priceLow: number;
+    priceHigh: number;
     upVolume: number;
     downVolume: number;
     total: number;
@@ -66,16 +86,11 @@ function mergeVolumeProfileLevels(
     for (const d of data) {
         const price = d[priceKey];
         if (!isFiniteNumber(price)) continue;
-        const index = Math.round(canonical(price / tickSize));
+        const index = Math.round(stripFloatNoise(price / tickSize));
         const level = byLevel.get(index) ?? { upVolume: 0, downVolume: 0 };
         level.upVolume += d[upKey] ?? 0;
         level.downVolume += d[downKey] ?? 0;
         byLevel.set(index, level);
     }
     return byLevel;
-}
-
-// Decimal arithmetic carries float noise (e.g. 2.4999999999999716), and categories compare by exact value.
-function canonical(value: number) {
-    return Number(value.toPrecision(12));
 }

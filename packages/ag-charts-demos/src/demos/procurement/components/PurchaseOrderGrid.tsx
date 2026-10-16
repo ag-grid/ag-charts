@@ -159,7 +159,7 @@ export function PurchaseOrderGrid({ orders, poActions, onAction }: PurchaseOrder
     );
 
     return (
-        <div className="pc-grid-host">
+        <div className="pc-grid-host" data-keeps-selection>
             <AgGridReact<PurchaseOrder>
                 theme={gridTheme}
                 rowData={orders}

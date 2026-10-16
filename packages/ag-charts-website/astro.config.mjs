@@ -30,6 +30,7 @@ import agHtaccessGen from './plugins/agHtaccessGen';
 import agHtmlAsString from './plugins/agHtmlAsString';
 import agNpmPackages from './plugins/agNpmPackages';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
+import agSourceSideEffects from './plugins/agSourceSideEffects';
 import { FRAMEWORKS, FRAMEWORK_REDIRECT_PATH } from './src/constants';
 import { getIsBenchmarkOnlyBuild } from './src/utils/env';
 import { getHiddenDocsPageNames } from './src/utils/hiddenDocsPages';
@@ -109,6 +110,7 @@ const plugins = [
     agSourcemapCors(),
     svgr(),
     agCssAsString(),
+    agSourceSideEffects(),
     agHtmlAsString(),
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),

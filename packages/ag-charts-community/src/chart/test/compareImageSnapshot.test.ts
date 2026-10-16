@@ -5,18 +5,16 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     type SceneGeometrySample,
     compareImageSnapshot,
+    createChart,
     extractImageData,
     flattenPathPolylines,
-    prepareTestOptions,
     sceneSampleToJSON,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from './utils';
 
 describe('sceneSampleToJSON', () => {
@@ -105,12 +103,10 @@ describe('compareImageSnapshot scene capture', () => {
     }
 
     async function renderBarChart(data: Array<{ c: string; v: number }>) {
-        const options: AgChartOptions = prepareTestOptions({
+        chart = await createChart({
             data,
             series: [{ type: 'bar', xKey: 'c', yKey: 'v' }],
         });
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
     }
 
     // Persist the currently-rendered canvas as the baseline PNG so the comparison matches in any

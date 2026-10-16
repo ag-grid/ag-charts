@@ -28,3 +28,16 @@ export const customMarkerShape: AgMarkerShapeFn = ({ path, x, y, size }) => {
     path.lineTo(x, y + size / 2);
     path.closePath();
 };
+
+/**
+ * The highlight the legend raises for the series' first legend item: per stage or sector, or the whole series.
+ * Series without legend items, like a treemap or a heatmap with a colour scale, have nothing to hover.
+ */
+export const legendHighlight = (series: any) => {
+    const [legendDatum] = series.getLegendData('category');
+    if (legendDatum == null) return undefined;
+    const { itemId, legendItemName } = legendDatum;
+    return typeof itemId === 'number'
+        ? { series, itemId: undefined, datum: undefined, datumIndex: itemId, legendItemName }
+        : { series, itemId, datum: undefined, datumIndex: Number.NaN, legendItemName };
+};

@@ -61,6 +61,7 @@ describe('licence check for a community-only chart', () => {
         ModuleRegistry.registerModules(registeredModules);
     });
 
+    // Bespoke: renders into a container from a fresh document and uses the community test options preparation.
     async function createChart() {
         chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }, hostDocument.body));
         await waitForChartStability(chart);

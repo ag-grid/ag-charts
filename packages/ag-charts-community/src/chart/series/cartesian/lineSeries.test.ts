@@ -13,6 +13,7 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { buildLogAxisTestCase } from '../../test/axisTestCases';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -64,17 +65,6 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
-
-const buildLogAxisTestCase = (
-    data: any[],
-    extra?: { warnings?: string[]; skipWarningsReversed?: boolean }
-): CartesianOrPolarTestCase => {
-    return {
-        options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'line'),
-        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'log' }, seriesTypes: ['line'] }),
-        ...extra,
-    };
-};
 
 const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
     ...mixinReversedAxesCases({
@@ -145,16 +135,16 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             options: examples.LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS,
             assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
         },
-        LINE_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
-        LINE_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
-        LINE_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
-        LINE_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS, {
+        LINE_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase('line', DATA_POSITIVE_LOG_AXIS),
+        LINE_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase('line', DATA_NEGATIVE_LOG_AXIS),
+        LINE_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase('line', DATA_FRACTIONAL_LOG_AXIS),
+        LINE_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase('line', DATA_ZERO_EXTENT_LOG_AXIS, {
             warnings: [
                 'AG Charts - The log axis domain contains a value of 0, the chart data cannot be rendered. See log axis documentation for more information.',
             ],
             skipWarningsReversed: false,
         }),
-        LINE_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase(DATA_INVALID_DOMAIN_LOG_AXIS, {
+        LINE_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase('line', DATA_INVALID_DOMAIN_LOG_AXIS, {
             warnings: [
                 'AG Charts - The log axis domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
             ],

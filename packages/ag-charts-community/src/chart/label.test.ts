@@ -10,6 +10,7 @@ import { adjustLabelPlacement } from './labelUtil';
 import { BarSeries } from './series/cartesian/barSeries';
 import {
     compareImageSnapshot,
+    createChart,
     deproxy,
     prepareTestOptions,
     setupMockCanvas,
@@ -66,31 +67,28 @@ describe('Labels', () => {
         // ahead of them for fallbacks the label turned out not to need.
         async function placementsStyled(placement: AgBarSeriesLabelPlacement[], barHeight: number) {
             const placements: (string | undefined)[] = [];
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    // The tall bar sets the axis domain, so `barHeight` is what the short bar's label has
-                    // to fit inside; only that bar's styler calls are recorded.
-                    data: [
-                        { x: 'A', y: barHeight },
-                        { x: 'B', y: 100 },
-                    ],
-                    series: [
-                        {
-                            type: 'bar',
-                            xKey: 'x',
-                            yKey: 'y',
-                            label: {
-                                placement,
-                                itemStyler: (params) => {
-                                    if ((params.datum as { x: string }).x === 'A') placements.push(params.placement);
-                                    return {};
-                                },
+            chart = await createChart({
+                // The tall bar sets the axis domain, so `barHeight` is what the short bar's label has
+                // to fit inside; only that bar's styler calls are recorded.
+                data: [
+                    { x: 'A', y: barHeight },
+                    { x: 'B', y: 100 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            placement,
+                            itemStyler: (params) => {
+                                if ((params.datum as { x: string }).x === 'A') placements.push(params.placement);
+                                return {};
                             },
                         },
-                    ],
-                })
-            );
-            await waitForChartStability(chart);
+                    },
+                ],
+            });
             return Array.from(new Set(placements));
         }
 

@@ -1,13 +1,9 @@
 import type { PaddingOptions } from 'ag-charts-types';
 
 import { isArray } from '../data/typeGuards';
-import {
-    type LabelFit,
-    type LabelFitDescriptor,
-    type MeasuredLabel,
-    measureLabelText,
-} from '../geometry/labelPlacement';
+import { type LabelFit, type LabelFitDescriptor, type MeasuredLabel } from '../geometry/labelPlacement';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
+import { measureLabelText } from '../rendering/textMeasurer';
 import type { FontOptions } from '../types/text';
 import { fitLabelTextOrOverflowAutoSize, fontWithSize } from './textWrapper';
 

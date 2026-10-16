@@ -1,5 +1,7 @@
 // Undocumented APIs used by Enterprise Modules.
 export * from './chart/test/utils';
+export * from './chart/test/axisTestCases';
+export * from './chart/test/random';
 export * from './chart/test/bigintExamples';
 export * from './chart/test/aggregationStubs';
 export { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from './chart/test/examples-gallery';

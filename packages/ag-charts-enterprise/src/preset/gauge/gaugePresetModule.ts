@@ -47,6 +47,7 @@ export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     type: 'preset',
     name: 'gauge-preset',
     apiName: 'AgCharts.createGauge',
+    reportsSeriesAdvisories: true,
     enterprise: true,
     version: VERSION,
     dependencies: [StandaloneChartModule],

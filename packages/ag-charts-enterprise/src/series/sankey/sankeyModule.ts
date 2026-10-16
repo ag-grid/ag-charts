@@ -58,6 +58,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 10,
+                collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }) },
             },
             node: {
                 spacing: { $if: [{ $greaterThan: [{ $path: './minSpacing' }, 20] }, { $path: './minSpacing' }, 20] },

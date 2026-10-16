@@ -366,7 +366,10 @@ export type NormalisedCrosshairOptions<TFormat = string, TContext = ContextDefau
     AgCrosshairOptions<NormalisedCrosshairLabelOptions<TFormat, TContext>>,
     'enabled' | 'snap' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'label',
     CrosshairLabelMorph<TFormat, TContext>
->;
+> & {
+    /** When set with `snap`, the pointer value snaps to the nearest multiple of this interval. */
+    snapInterval?: number;
+};
 
 export type NormalisedBandHighlightOptions = Normalised<
     AgBandHighlightOptions,

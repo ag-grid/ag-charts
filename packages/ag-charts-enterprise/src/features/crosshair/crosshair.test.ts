@@ -4,12 +4,12 @@ import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
     AgCartesianAxesOptions,
-    AgCartesianAxisPosition,
     AgCartesianChartOptions,
     AgChartOptions,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
+    applyAxesFlip,
     compareImageSnapshot,
     deproxy,
     hoverAction,
@@ -21,29 +21,7 @@ import {
 } from 'ag-charts-community-test';
 import { mapValues } from 'ag-charts-core';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
-
-function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
-    const positionFlip = (position?: AgCartesianAxisPosition) => {
-        switch (position) {
-            case 'top':
-                return 'bottom';
-            case 'left':
-                return 'right';
-            case 'bottom':
-                return 'top';
-            case 'right':
-                return 'left';
-            default:
-                return position;
-        }
-    };
-
-    return {
-        ...opts,
-        axes: mapValues(opts['axes'] ?? {}, (axis) => ({ ...axis, position: positionFlip(axis?.position) })),
-    };
-}
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 function applyCrosshairSnap<T extends AgCartesianChartOptions>(opts: T, snap: boolean): T {
     return {
@@ -809,13 +787,6 @@ describe('Crosshair', () => {
             };
         };
 
-        const createChart = async (annotation: object, snap: boolean) => {
-            const options = withAnnotation(annotation, snap);
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-        };
-
         // Every annotation under test passes through the datum at (5, 5); hovering there first is what marks it
         // as the drag target. The drag ends near (8, 8), along the series and far enough that a snapping
         // crosshair changes its highlighted datum mid-drag.
@@ -858,7 +829,7 @@ describe('Crosshair', () => {
 
         describe.each([true, false])('snap: %s', (snap) => {
             it.each(Object.entries(DRAG_CASES))('%s while dragging', async (_name, testCase) => {
-                await createChart(testCase.annotation, snap);
+                chart = await createEnterpriseChart(withAnnotation(testCase.annotation, snap));
                 const to = await startDragging();
                 expectLabels(testCase);
 
@@ -871,7 +842,9 @@ describe('Crosshair', () => {
             });
 
             it('hovering a labelled cross-line without dragging keeps both labels', async () => {
-                await createChart(DRAG_CASES['vertical line yields the x-axis label'].annotation, snap);
+                chart = await createEnterpriseChart(
+                    withAnnotation(DRAG_CASES['vertical line yields the x-axis label'].annotation, snap)
+                );
                 const over = toCanvas(5, 5);
                 await hoverAction(over.x, over.y)(chart);
                 await waitForChartStability(chart);
@@ -903,7 +876,7 @@ describe('Crosshair', () => {
             };
 
             const startDrag = async (annotation: object) => {
-                await createChart(annotation, false);
+                chart = await createEnterpriseChart(withAnnotation(annotation, false));
                 const from = toCanvas(5, 5);
                 await hoverAction(from.x, from.y)(chart);
                 await mouseDownAction(from.x, from.y)(chart);

@@ -27,6 +27,7 @@ import {
     groupBy,
     hasRequiredInPath,
     isArray,
+    isBoolean,
     isEnumValue,
     isFunction,
     isKeyOf,
@@ -87,6 +88,7 @@ import {
     createOptionsGraph,
     createOptionsGraphMemoised,
     resolveSeriesThemeDefaultsMemoised,
+    resolveSeriesThemeOption,
 } from './optionsGraph';
 import {
     type StructuralCacheEntry,
@@ -298,6 +300,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     revalidated = true;
     // Provide the unmapped axis keys for error logging & callbacks.
     unmappedAxisKeys: Map<string, string> = new Map();
+    private seriesTheme?: ChartTheme;
 
     // Validation runs in this constructor, before a chart exists; a new chart adopts this instance as
     // `ctx.logger`, and an existing one supplied its own.
@@ -622,7 +625,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.soloSeriesIntegrity(options);
 
-        const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
+        const seriesParams = presetDef?.reportsSeriesAdvisories
+            ? { ...this.validateParams, silentAdvisories: true }
+            : this.validateParams;
+        const missingSeriesModules = this.validateSeriesOptions(options, seriesParams);
 
         const chartType = detectChartType(options, this.moduleRegistry);
 
@@ -658,6 +664,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Process series options _before_ passing to the OptionsGraph. This ensures the series themes are applied in
         // the correct order to the re-ordered series.
+        this.seriesTheme = activeTheme;
         this.processSeriesOptions(options);
         const remappedAxisKeys = this.processAxesOptions(options, chartType);
 
@@ -679,6 +686,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // TODO: move into options graph?
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
+        // Grouping was already resolved into `seriesGrouping`, so a themed `grouped` is spent.
+        for (const series of processedOptions.series ?? []) {
+            delete series.grouped;
+        }
 
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions, this.moduleRegistry);
         processModuleOptions(
@@ -1114,15 +1125,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             hasNonDefaultSeriesAxisKeys && nonDefaultSeriesAxisKeysCount < (options?.series?.length ?? 0);
 
         const primarySeriesOptions = options.series?.[0];
+        const isPrimarySeriesHorizontal =
+            isObject(primarySeriesOptions) && this.isSeriesHorizontal(primarySeriesOptions);
+        const predictionSeriesOptions = isPrimarySeriesHorizontal
+            ? { ...primarySeriesOptions, direction: 'horizontal' }
+            : primarySeriesOptions;
         const seriesType = this.optionsType(options);
         const defaultAxes: Record<string, PlainObject> =
-            this.predictAxes(seriesType, directions, primarySeriesOptions, options.data) ??
+            this.predictAxes(seriesType, directions, predictionSeriesOptions, options.data) ??
             this.cloneDefaultAxes(seriesType);
 
         const isPrimarySeriesFlipped =
-            isObject(primarySeriesOptions) &&
-            'direction' in primarySeriesOptions &&
-            primarySeriesOptions.direction === 'horizontal' &&
+            isPrimarySeriesHorizontal &&
             this.moduleRegistry.getSeriesModule(primarySeriesOptions.type)?.axisKeysFlipped != null;
 
         if (!hasAxes && !hasNonDefaultSeriesAxisKeys && !isPrimarySeriesFlipped) {
@@ -1179,11 +1193,28 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const seriesModule = this.moduleRegistry.getSeriesModule(seriesOptions.type);
         if (!seriesModule) return;
 
-        const isFlipped = 'direction' in seriesOptions && seriesOptions.direction === 'horizontal';
-
-        return isFlipped && seriesModule.axisKeysFlipped
+        return this.isSeriesHorizontal(seriesOptions) && seriesModule.axisKeysFlipped
             ? seriesModule.axisKeysFlipped[direction]
             : seriesModule.axisKeys?.[direction];
+    }
+
+    private isSeriesHorizontal(seriesOptions: NonNullable<T['series']>[number]) {
+        return this.getThemedSeriesOption(seriesOptions, 'direction') === 'horizontal';
+    }
+
+    /** Series and axis processing run before the options graph applies the theme, so themed values are read here. */
+    private getThemedSeriesOption(seriesOptions: PlainObject & { type: string }, key: string): unknown {
+        const ownValue = seriesOptions[key];
+        const theme = this.seriesTheme;
+        if (ownValue !== undefined || theme == null) {
+            return ownValue;
+        }
+        const overrides: PlainObject | undefined = theme.overrides;
+        const themedValue = overrides?.[seriesOptions.type]?.series?.[key];
+        if (!isPlainObject(themedValue)) {
+            return themedValue;
+        }
+        return resolveSeriesThemeOption(theme, seriesOptions, key, this.moduleRegistry);
     }
 
     /** Swaps a series' axis keys when both axes are positioned for the other direction, as with swapped `x` and `y`. */
@@ -1723,7 +1754,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.logger.warnOnce(`unsupported stacking of series type "${series.type}".`);
         }
 
-        let { grouped, stacked } = series;
+        const themedGrouped = this.getThemedSeriesOption(series, 'grouped');
+        let grouped = isBoolean(themedGrouped) ? themedGrouped : undefined;
+        let { stacked } = series;
 
         stacked ??= (stackedByDefault || series.stackGroup != null) && !(groupable && grouped);
         grouped ??= true;

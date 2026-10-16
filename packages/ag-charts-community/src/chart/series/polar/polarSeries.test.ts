@@ -10,6 +10,7 @@ import {
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     compareImageSnapshot,
+    createChart,
     deproxy,
     hoverAction,
     polarChartAssertions,
@@ -241,11 +242,11 @@ describe('PolarSeries', () => {
     }) => {
         const format = (...values: any[]) => values.join(' ');
 
-        const createChart = async (params: {
+        const presetOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): Promise<Chart> => {
+        }): AgPolarChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
                       renderer(rParams: any) {
@@ -257,7 +258,7 @@ describe('PolarSeries', () => {
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
-            const options: AgPolarChartOptions = {
+            return {
                 container: document.body,
                 series: [
                     {
@@ -274,10 +275,6 @@ describe('PolarSeries', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            prepareTestOptions(options);
-            const newChart = deproxy(AgCharts.create(options));
-            await waitForChartStability(newChart);
-            return newChart;
         };
 
         const hoverChartNodes = async (
@@ -330,7 +327,7 @@ describe('PolarSeries', () => {
         };
 
         it(`should render tooltip correctly`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: true })));
             await hoverChartNodes(chart, ({ series, item }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -350,36 +347,38 @@ describe('PolarSeries', () => {
         });
 
         it(`should highlight hovered items`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: true })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: true, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should highlight hovered items when tooltip is disabled`, async () => {
-            chart = await createChart({ hasTooltip: false });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: false })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: false, onNodeClick });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: false, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
+            chart = deproxy(
+                await createChart(presetOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 6 })));
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
     };

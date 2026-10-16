@@ -4,7 +4,7 @@ import type { AgAreaSeriesOptions, AgCartesianChartOptions, AgLineSeriesOptions 
 import { AgCharts } from 'ag-charts-react';
 
 import { NEUTRAL, PALETTE, THEME } from '../chartTheme';
-import { fmtCurrency, fmtCurrencyCompact, fmtDate, fmtPct } from '../format';
+import { fmtCurrency, fmtCurrencyCompact, fmtCurrencyMillions, fmtDate, fmtPct, wholeMillionStep } from '../format';
 import type { BurnUpPoint } from '../types';
 
 interface BudgetBurnUpProps {
@@ -38,6 +38,7 @@ export function BudgetBurnUp({ points, budget }: BudgetBurnUpProps) {
             connectMissingData: false,
             tooltip: {
                 renderer: ({ datum }) => ({
+                    heading: '',
                     title: fmtDate(datum.date),
                     data: [
                         { label: 'Committed', value: fmtCurrency(datum.committed ?? 0) },
@@ -60,6 +61,8 @@ export function BudgetBurnUp({ points, budget }: BudgetBurnUpProps) {
             tooltip: { enabled: false },
         };
 
+        const yMax = Math.max(budget, ...points.map((point) => Math.max(point.committed ?? 0, point.pace)));
+
         return {
             theme: THEME,
             data: points,
@@ -70,7 +73,8 @@ export function BudgetBurnUp({ points, budget }: BudgetBurnUpProps) {
                     type: 'number',
                     position: 'left',
                     title: { enabled: true, text: 'Committed spend' },
-                    label: { formatter: ({ value }) => fmtCurrencyCompact(value) },
+                    interval: { step: wholeMillionStep(yMax) },
+                    label: { formatter: ({ value }) => fmtCurrencyMillions(value) },
                     crossLines: [
                         {
                             type: 'line',
@@ -89,7 +93,8 @@ export function BudgetBurnUp({ points, budget }: BudgetBurnUpProps) {
                 },
             },
             legend: { enabled: true, position: 'bottom' },
-            padding: { top: 8, right: 12, bottom: 4, left: 4 },
+            padding: { top: 8, right: 12, bottom: 0, left: 4 },
+            highlight: { enabled: false },
         };
     }, [points, budget]);
 

@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_FIL_PH: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'Dami ${value}',
+    statusBarVolumeProfilePrice: 'Presyo',
+    statusBarVolumeProfileUp: 'Pataas',
+    statusBarVolumeProfileDown: 'Pababa',
+    statusBarVolumeProfileTotal: 'Kabuuan',
     tooltipPaginationStatus: '${index}[number] sa ${count}[number]',
 };

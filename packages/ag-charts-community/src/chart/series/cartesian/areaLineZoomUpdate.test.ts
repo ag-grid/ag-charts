@@ -6,6 +6,7 @@ import type { AgCartesianChartOptions, AgCartesianSeriesOptions } from 'ag-chart
 import { expectPixelIdenticalAcrossUpdate } from '../../test/bigintExamples';
 import {
     createChart,
+    deproxy,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -143,7 +144,7 @@ describe('area and line series zoom updates', () => {
         variant: Variant,
         check: (chart: any, range: [number, number]) => Promise<void> | void
     ) {
-        const chart = await createChart(buildOptions(type, variant));
+        const chart = deproxy(await createChart(buildOptions(type, variant)));
         try {
             for (const range of ZOOM_SEQUENCE) {
                 await chart.publicApi!.update(prepareTestOptions(buildOptions(type, variant, range)));
@@ -166,7 +167,7 @@ describe('area and line series zoom updates', () => {
     describe('node data', () => {
         it.each(cases)('%s matches a chart created at the same zoom', async (_, type, variant) => {
             await zoomThrough(type, variant, async (chart, range) => {
-                const fresh = await createChart(buildOptions(type, variant, range));
+                const fresh = deproxy(await createChart(buildOptions(type, variant, range)));
                 try {
                     expect(snapshotChart(chart), `zoom ${range}`).toEqual(snapshotChart(fresh));
                 } finally {
@@ -184,7 +185,7 @@ describe('area and line series zoom updates', () => {
         });
 
         it.each(cases)('%s leaves the node data of an earlier update untouched', async (_, type, variant) => {
-            const chart = await createChart(buildOptions(type, variant, ZOOM_SEQUENCE[0]));
+            const chart = deproxy(await createChart(buildOptions(type, variant, ZOOM_SEQUENCE[0])));
             try {
                 const [series] = chart.series as any[];
                 const before = series.contextNodeData;
@@ -205,7 +206,7 @@ describe('area and line series zoom updates', () => {
         it.each(cases)(
             '%s does not carry a node focus size to the datum that takes its place',
             async (_, type, variant) => {
-                const chart = await createChart(buildOptions(type, variant, ZOOM_SEQUENCE[0]));
+                const chart = deproxy(await createChart(buildOptions(type, variant, ZOOM_SEQUENCE[0])));
                 try {
                     const [series] = chart.series as any[];
                     // Keyboard focus enlarges the focused node's `point` in place (`applyFocusSize`).

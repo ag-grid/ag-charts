@@ -34,9 +34,24 @@ In this example:
 - The column is as wide as its widest label, but never narrower than `minWidth` (60 pixels by default). Set `width` to fix the width instead, in which case labels that do not fit are shortened.
 - Price levels with no volume have no block, and labels are hidden when the price levels are too close together to read.
 
+## Hovering Price Levels
+
+In a Financial Chart, the Volume Profile bars cannot be hovered and show no tooltip. Instead, moving the pointer over the chart shows the details of the price level at the pointer's price in the status bar, after the values of the hovered candle:
+
+- `Price`: the range of prices the level covers, which is its price plus or minus half the `tickSize`.
+- `Up`: the up volume traded in the level, in the up colour.
+- `Down`: the down volume traded in the level, in the down colour.
+- `Total`: the total volume traded in the level.
+
+If the level does not fit beside the candle values, it moves to a second line below them. It never uses more than two lines, and runs past the edge of the chart if the chart is narrower still.
+
+Nothing is added for price levels with no volume, or if the status bar is disabled with `statusBar: false`. A Volume Profile Chart created with `AgCharts.createVolumeProfileChart()` has no status bar, so it shows a tooltip instead.
+
 ## Selecting Price Levels
 
 Set `selection.enabled` to let users click a price level to select it, highlighting both its up and down segments and the background behind it. In a Financial Chart, set the same options on `volumeProfile.selection`.
+
+The two segments have the fixed series ids `'volumeProfileUp'` and `'volumeProfileDown'`, in both chart types, for use in selection callbacks, `setSelection()` and `getSelection()`.
 
 {% chartExampleRunner title="Selecting Price Levels" name="selection" type="generated" /%}
 
@@ -55,3 +70,40 @@ In this example:
 - Click a price level to select it, or click away from the bars to clear the selection.
 - With `enableDrag` set, drag across the chart to select every price level the rectangle touches.
 - Use the Click Mode buttons to switch `selection.clickMode` between `'single'`, where each click replaces the selection, and `'multiple'`, where each click toggles a level.
+
+## Tick Size
+
+In a Financial Chart, set `tickSize` to the price increment of the instrument. Each Volume Profile price level is then one `tickSize` high.
+
+When `tickSize` is set, the price crosshair snaps to the nearest multiple of `tickSize`, so its label always shows a valid price. The axis button for adding a horizontal line snaps in the same way.
+
+To have the price crosshair follow the pointer instead, set `snap` to `false` on the number axis crosshair in the theme overrides:
+
+```js format="snippet"
+{
+    tickSize: 0.25,
+    theme: {
+        overrides: {
+            common: {
+                axes: {
+                    number: {
+                        crosshair: {
+                            snap: false,
+                        },
+                    },
+                },
+            },
+        },
+    },
+}
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgVolumeProfileChartOptions" label="Options" %}
+{% apiReference id="AgVolumeProfileChartOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

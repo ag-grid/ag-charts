@@ -3,6 +3,7 @@ import { afterEach, describe } from 'vitest';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { EXAMPLE_GRID_LINE } from '../test/axisTestCases';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -10,16 +11,6 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../test/utils';
-
-const EXAMPLE_GRID_LINE = {
-    width: 2,
-    style: [
-        { fill: 'red', fillOpacity: 0.1, stroke: 'red' },
-        { fill: 'blue', fillOpacity: 0.1, stroke: 'blue' },
-        { fill: 'green', fillOpacity: 0.1, stroke: 'green' },
-        { fill: 'yellow', fillOpacity: 0.1, stroke: 'yellow' },
-    ],
-};
 
 describe('AxisGridLine', () => {
     setupMockConsole();
