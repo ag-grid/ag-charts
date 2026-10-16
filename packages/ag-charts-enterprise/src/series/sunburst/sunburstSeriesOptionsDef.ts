@@ -81,7 +81,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
 
 export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
     ...sunburstSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight', 'showInLegend']),
+    ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight', 'showInLegend', 'focusIndex']),
     type: required(constant('sunburst')),
     // Re-declared after the themeable spread, which would otherwise leave `fill` optional.
     innerCircle: {

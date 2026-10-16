@@ -118,7 +118,10 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
 
 export interface AgSunburstSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend' | 'selection'>,
+        Omit<
+            AgBaseSeriesOptions<TDatum, TContext>,
+            'highlight' | 'highlightStyle' | 'showInLegend' | 'selection' | 'focusIndex'
+        >,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
         Omit<AgSunburstSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'> {

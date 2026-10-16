@@ -149,6 +149,7 @@ const VOLUME_SERIES_ID = 'volume';
 
 interface PriceSeriesCommon {
     id: string;
+    focusIndex: number;
     pickOutsideVisibleMinorAxis: boolean;
     tooltip: { enabled: boolean };
     selection?: { enabled: boolean };
@@ -179,6 +180,7 @@ function createPriceSeries(
     };
     const common: PriceSeriesCommon = {
         id: PRICE_SERIES_ID,
+        focusIndex: 0,
         tooltip: { enabled: false },
         pickOutsideVisibleMinorAxis: true,
         ...(selection === undefined ? undefined : { selection }),
@@ -207,8 +209,6 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
     return [
         {
             type: 'ohlc',
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
             ...common,
             ...keys,
         } satisfies AgOhlcSeriesOptions,
@@ -219,8 +219,6 @@ function createPriceSeriesLine(common: PriceSeriesCommon, singleKeys: PriceSerie
     return [
         {
             type: 'line',
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
             ...common,
             ...singleKeys,
         } satisfies AgLineSeriesOptions,
@@ -231,8 +229,6 @@ function createPriceSeriesHLC(common: PriceSeriesCommon, { xKey, highKey, lowKey
     return [
         {
             type: 'hlc',
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
             ...common,
             xKey,
             highKey,
@@ -251,8 +247,6 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
             yHighKey: highKey,
             yLowKey: lowKey,
             tooltip: { range: 'nearest' },
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
         } satisfies AgRangeBarSeriesOptions,
     ];
 }
@@ -261,8 +255,6 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
     return [
         {
             type: 'candlestick',
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
             ...common,
             ...keys,
         } satisfies AgCandlestickSeriesOptions,
@@ -287,12 +279,12 @@ function createVolumeSeries(
             tooltip: { enabled: false },
             ...(selection === undefined ? undefined : { selection }),
             grouped: false,
-            // @ts-expect-error undocumented options: simpleItemStyler, focusPriority
+            // @ts-expect-error undocumented option
             simpleItemStyler(datum: DatumDefault) {
                 const { up, down } = getTheme().palette;
                 return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
             },
-            focusPriority: 1,
+            focusIndex: 1,
             highlight: { unhighlightedSeries: { opacity: 1 } },
         } satisfies AgBarSeriesOptions,
     ];

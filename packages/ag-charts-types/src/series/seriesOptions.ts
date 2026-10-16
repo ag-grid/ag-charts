@@ -126,4 +126,10 @@ export interface AgBaseSeriesOptions<
     data?: TDatum[];
     /** Whether to display the series. */
     visible?: boolean;
+    /**
+     * Position of the series in the keyboard focus order within the series area. Series with a lower value are focused first, and series with the same value follow their order in the `series` array.
+     *
+     * Series without a `focusIndex` are focused after those with one, in `series` array order.
+     */
+    focusIndex?: number;
 }

@@ -9,6 +9,7 @@ import {
     lineDashOptionsDef,
     required,
     strokeOptionsDef,
+    without,
 } from 'ag-charts-core';
 
 export const mapShapeBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeBackgroundThemeableOptions> = {
@@ -20,7 +21,7 @@ export const mapShapeBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapShape
 
 export const mapShapeBackgroundSeriesOptionsDef: OptionsDefs<AgMapShapeBackgroundOptions> = {
     ...mapShapeBackgroundSeriesThemeableOptionsDef,
-    ...commonSeriesOptionsDefs,
+    ...without(commonSeriesOptionsDefs, ['focusIndex']),
     type: required(constant('map-shape-background')),
     topology: geoJson,
 };

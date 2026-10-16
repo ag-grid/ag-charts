@@ -17,7 +17,7 @@ import type {
 
 export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight' | 'focusIndex'>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
         AgSankeySeriesThemeableOptions<TDatum, TContext> {

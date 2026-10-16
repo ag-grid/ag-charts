@@ -69,7 +69,7 @@ export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemea
 
 export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions> = {
     ...pyramidSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlight']),
+    ...without(commonSeriesOptionsDefs, ['highlight', 'focusIndex']),
     type: required(constant('pyramid')),
     stageKey: required(string),
     valueKey: required(string),
