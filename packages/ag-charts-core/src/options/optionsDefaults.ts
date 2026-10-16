@@ -52,6 +52,7 @@ import {
     optionsDefs,
     or,
     positiveNumber,
+    positiveNumberNonZero,
     ratio,
     required,
     strictUnion,
@@ -504,7 +505,7 @@ export const fontOptionsDef: OptionsDefs<TextOptions> = {
     color: colorOrRef,
     fontFamily: fontFamilyFull,
     fontSize: positiveNumber,
-    lineHeight: positiveNumber,
+    lineHeight: positiveNumberNonZero,
     fontStyle: union('normal', 'italic', 'oblique'),
     fontWeight: fontWeight,
 };

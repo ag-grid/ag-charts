@@ -84,6 +84,24 @@ describe('lineHeight', () => {
             expect(axis.label.lineHeight).toBe(7);
         });
 
+        it('rejects a zero lineHeight', async () => {
+            chart = await createChart({
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { lineHeight: 0 } }],
+                theme: { params: { lineHeight: 0 } },
+            });
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`theme.params.lineHeight\` cannot be set to \`0\`; expecting a number greater than 0, ignoring.",
+                ],
+                [
+                  "AG Charts - Option \`series[0].label.lineHeight\` cannot be set to \`0\`; expecting a number greater than 0, ignoring.",
+                ],
+              ]
+            `);
+        });
+
         describe('time axis parent level labels', () => {
             async function resolvedParentLabel(label: object, parentLabel: object) {
                 const axis = await resolvedX({
