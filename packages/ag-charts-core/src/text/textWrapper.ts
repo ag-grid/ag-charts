@@ -1266,17 +1266,27 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
 
     let lineWidth = 0;
     let totalHeight = 0;
-    // The open row's height, already counted in totalHeight, so a taller segment only adds the difference.
+    // The open row and its height, already counted in totalHeight. The row is measured as the renderer
+    // lays it out (baseline extents, lineHeight overrides, inline images), so joining adds only the growth.
+    let rowSegments: MeasuredSegment[] = [];
     let rowHeight = 0;
     const rowTop = () => totalHeight - rowHeight;
     const maxWidth = (height = 0) => lineMaxWidth(options, rowTop(), rowTop() + height);
+    const rowHeightWith = (segment: MeasuredSegment) =>
+        measureTextSegments([...rowSegments, segment], options.font).height;
 
-    function growRow(height: number): boolean {
-        const extra = height - rowHeight;
-        if (extra <= 0) return true;
-        if (!preserveText && totalHeight + extra > maxHeight) return false;
-        totalHeight += extra;
+    function startRow(segments: MeasuredSegment[] = [], height = 0) {
+        rowSegments = segments;
         rowHeight = height;
+    }
+
+    function joinRow(segment: MeasuredSegment, force = preserveText): boolean {
+        const height = rowHeightWith(segment);
+        const extra = height - rowHeight;
+        if (!force && extra > 0 && totalHeight + extra > maxHeight) return false;
+        totalHeight += Math.max(0, extra);
+        rowHeight = Math.max(rowHeight, height);
+        rowSegments.push(segment);
         return true;
     }
 
@@ -1298,12 +1308,13 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         const guardedText = guardTextEdges(segment.text);
         const { lineHeight } = segment;
         const segmentLineHeight = lineHeight ?? segment.textMetrics.height;
-        // The first wrapped line shares the open row, so only its height above that row is new.
+        // textWrap counts every line at segmentLineHeight, but the first one shares the open row and adds
+        // only that row's growth.
         const budget = () => ({
             ...options,
             font: segment,
             lineHeight,
-            maxHeight: maxHeight - totalHeight + Math.min(segmentLineHeight, rowHeight),
+            maxHeight: maxHeight - totalHeight - (rowHeightWith(segment) - rowHeight) + segmentLineHeight,
         });
 
         let wrappedLines = textWrap(guardedText, { ...budget(), overflow: 'hide' }, lineWidth, rowTop());
@@ -1315,7 +1326,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 if (lastSegment && lastSegment.type !== 'image') {
                     lastSegment.text += '\n';
                     lineWidth = 0;
-                    rowHeight = 0;
+                    startRow();
                 }
                 wrappedLines = textWrap(guardedText, budget(), 0, rowTop());
             }
@@ -1352,16 +1363,14 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             }
             const textMetrics = measurer.measureText(cleanLine);
             const subSegment = { ...segment, text: cleanLine, textMetrics };
+            if (i > 0) startRow();
+            joinRow(subSegment, true);
             if (i === lastIndex) {
                 lineWidth += textMetrics.width;
             } else {
                 subSegment.text += '\n';
                 lineWidth = 0;
             }
-            const subLineHeight = lineHeight ?? textMetrics.height;
-            if (i > 0) rowHeight = 0;
-            totalHeight += Math.max(0, subLineHeight - rowHeight);
-            rowHeight = Math.max(rowHeight, subLineHeight);
             result.push(subSegment);
         }
 
@@ -1373,7 +1382,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         if (!isFirstLine) {
             appendLineBreak(result, options.font);
             lineWidth = 0;
-            rowHeight = 0;
+            startRow();
         }
         isFirstLine = false;
 
@@ -1387,7 +1396,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         if (lineWidth + width <= maxWidth(height)) {
             lineWidth += width;
             totalHeight += height;
-            rowHeight = height;
+            startRow([...segments], height);
             result.push(...segments);
             continue;
         }
@@ -1396,7 +1405,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             const segmentHeight =
                 (segment.type === 'image' ? undefined : segment.lineHeight) ?? segment.textMetrics.height;
             if (lineWidth + segment.textMetrics.width <= maxWidth(segmentHeight)) {
-                if (!growRow(segmentHeight)) {
+                if (!joinRow(segment)) {
                     truncateLastSegment();
                     return result;
                 }
@@ -1419,13 +1428,13 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                     appendLineBreak(result, options.font);
                     lineWidth = imageWidth;
                     totalHeight += imageHeight;
-                    rowHeight = imageHeight;
+                    startRow([segment], imageHeight);
                     result.push(segment);
                     continue;
                 }
 
                 if (preserveText) {
-                    growRow(imageHeight);
+                    joinRow(segment);
                     lineWidth += imageWidth;
                     result.push(segment);
                     continue;

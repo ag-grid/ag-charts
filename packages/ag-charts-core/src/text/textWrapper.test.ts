@@ -999,6 +999,16 @@ describe('measureTextSegments — lineHeight', () => {
         expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
     });
 
+    it('budgets a row by the baseline extents of an inline image and its text', () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 30 };
+        const fitted = fitLabelText(
+            [text('A '), { type: 'image', src: 'x', width: 20, height: 30 } as ImageSegment, text('C DD EE')],
+            { maxWidth: 60, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            font
+        ) as MeasuredSegment[];
+        expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
+    });
+
     it('budgets a wrapped row by a taller segment that follows it', () => {
         const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
         const fitted = fitLabelText(
