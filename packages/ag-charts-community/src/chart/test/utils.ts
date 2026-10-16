@@ -470,6 +470,81 @@ export function getVisibleLabelNodes<TDatum = any>(
     return labelSelection.nodes().filter((node) => node.visible);
 }
 
+interface AxisLayoutInternals {
+    position: string;
+    tickLabelGroupSelection: {
+        nodes(): Iterable<DrawnLabelNode & { fill?: string; rotation: number; textAlign?: string }>;
+    };
+    tickLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
+    gridLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
+    calculateTickLayout(...args: unknown[]): unknown;
+}
+
+interface AxisLineNode {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+}
+
+export interface AxisTickLayout {
+    position: string;
+    labels: {
+        text: string;
+        x: number;
+        y: number;
+        visible: boolean;
+        rotation: number;
+        fill?: string;
+        textAlign?: string;
+    }[];
+    tickLines: AxisLineNode[];
+    gridLines: AxisLineNode[];
+}
+
+const byPosition = (a: { x: number; y: number }, b: { x: number; y: number }) => (a.x === b.x ? a.y - b.y : a.x - b.x);
+const lineByPosition = (a: AxisLineNode, b: AxisLineNode) => (a.x1 === b.x1 ? a.y1 - b.y1 : a.x1 - b.x1);
+
+/**
+ * What each axis drew from its tick layout (labels, tick lines and grid lines), ordered by position so that
+ * two charts compare equal whatever order their nodes were created in.
+ */
+export function getAxisTickLayouts(chartOrProxy: ChartOrProxy<any>): AxisTickLayout[] {
+    const lines = (selection: AxisLayoutInternals['tickLineGroupSelection']) =>
+        Array.from(selection.nodes(), ({ x1, y1, x2, y2 }) => ({ x1, y1, x2, y2 })).sort(lineByPosition);
+    return (deproxy(chartOrProxy).axes as unknown as AxisLayoutInternals[]).map((axis) => ({
+        position: axis.position,
+        labels: Array.from(
+            axis.tickLabelGroupSelection.nodes(),
+            ({ text, x, y, visible, rotation, fill, textAlign }) => ({
+                text,
+                x,
+                y,
+                visible,
+                rotation,
+                fill,
+                textAlign,
+            })
+        ).sort(byPosition),
+        tickLines: lines(axis.tickLineGroupSelection),
+        gridLines: lines(axis.gridLineGroupSelection),
+    }));
+}
+
+/** The label texts of the axis at `position`, in order along the axis. */
+export function getAxisLabelTexts(chartOrProxy: ChartOrProxy<any>, position: string): string[] {
+    const axis = getAxisTickLayouts(chartOrProxy).find((layout) => layout.position === position);
+    expect(axis).toBeDefined();
+    return axis!.labels.map((label) => label.text);
+}
+
+/** Counts the tick layouts the axis at `position` calculates, rather than reuses, from now on. */
+export function spyOnAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string) {
+    const axis = (deproxy(chartOrProxy).axes as unknown as AxisLayoutInternals[]).find((a) => a.position === position);
+    expect(axis).toBeDefined();
+    return vi.spyOn(axis!, 'calculateTickLayout');
+}
+
 /** A series' placed label geometry, enough to measure a label's offset from its marker anchor. */
 export interface PlacedLabelGeometry {
     placedLabelData: { y: number; height: number; datum: { point: { y: number } } }[];
