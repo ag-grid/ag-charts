@@ -545,6 +545,7 @@ describe('PieSeries', () => {
 
         // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
         // (skipAnimations) render of the same options produces, in both directions.
+        // Bespoke: the prepared options are reused for the static render.
         it('sanity: update-data endpoints match static renders', async () => {
             const before = preparedPieOptions();
             const proxy = AgCharts.create(before);

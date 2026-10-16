@@ -158,7 +158,7 @@ describe('CandlestickSeries', () => {
                 },
             }) as AgCartesianChartOptions;
 
-        // Bespoke: the sanity tests reuse the prepared options in `update`, so they create the chart bare.
+        // For `update`; the factory prepares its own copy.
         const preparedCandlestickOptions = () => prepareEnterpriseTestOptions(candlestickOptions());
 
         // The Date key stringifies with a timezone suffix, so match on the leading `Day Mon DD YYYY`.
@@ -192,7 +192,7 @@ describe('CandlestickSeries', () => {
             const data = candleData();
             data[2] = { ...data[2], close: 8, high: 9.5 };
             const { before, trajectory, after } = await captureSnap(candlestickOptions(), () =>
-                chart!.update({ ...candlestickOptions(), data })
+                chart!.update({ ...preparedCandlestickOptions(), data })
             );
             const changed = candleKey(after, 'Tue Jan 03 2023');
             // Anti-vacuity: constancy would pass vacuously if nothing moved.
@@ -211,7 +211,7 @@ describe('CandlestickSeries', () => {
         it('add data: a new candle appears instantly and the layout snaps', async () => {
             const { before, trajectory, after } = await captureSnap(candlestickOptions(), () =>
                 chart!.update({
-                    ...candlestickOptions(),
+                    ...preparedCandlestickOptions(),
                     data: [...candleData(), { date: new Date(2023, 0, 4), low: 2, open: 5, close: 7, high: 9 }],
                 })
             );
@@ -235,7 +235,7 @@ describe('CandlestickSeries', () => {
 
         it('remove data: the last candle disappears instantly and the layout snaps', async () => {
             const { before, trajectory, after } = await captureSnap(candlestickOptions(), () =>
-                chart!.update({ ...candlestickOptions(), data: candleData().slice(0, 2) })
+                chart!.update({ ...preparedCandlestickOptions(), data: candleData().slice(0, 2) })
             );
             expect(candleCount(before)).toBe(3);
             expect(candleCount(after)).toBe(2);

@@ -677,6 +677,7 @@ describe('BubbleSeries', () => {
 
         // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped render
         // of the same options produces. One chart per test — the mock canvas only snapshots the first.
+        // Bespoke: the prepared options are reused for the static render.
         it('sanity: update data endpoints match static renders', async () => {
             const options = preparedBubbleOptions(DATA);
             chart = AgCharts.create(options);

@@ -360,7 +360,7 @@ describe('RadialColumnSeries', () => {
         await compare();
     });
 
-    // Bespoke: the update tests reuse the prepared options in `update`, so they create the chart bare.
+    // Bespoke: these tests reuse their prepared options in `update` or the endpoint check.
     // Only the empty→ready reveal animates (columns grow radially from a shared baseline); data updates, adds and removes fall through to PolarSeries.animateWaitingUpdateReady and snap with no tween.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
@@ -577,13 +577,11 @@ describe('RadialColumnSeries', () => {
                 stackGroup: 'stack',
             })),
         });
-        const signedOptions = (data: Row[]): AgPolarChartOptions => ({
-            ...preparedOptions(data),
-            axes: {
-                angle: { type: 'angle-category' },
-                radius: { type: 'radius-number', min: -10, max: 10, nice: false },
-            },
-        });
+        const signedAxes: AgPolarChartOptions['axes'] = {
+            angle: { type: 'angle-category' },
+            radius: { type: 'radius-number', min: -10, max: 10, nice: false },
+        };
+        const signedOptions = (data: Row[]): AgPolarChartOptions => ({ ...preparedOptions(data), axes: signedAxes });
         const reversedRadiusOptions = (data: Row[] = RC_DATA): AgPolarChartOptions => ({
             ...preparedOptions(data),
             axes: {
@@ -632,17 +630,14 @@ describe('RadialColumnSeries', () => {
         });
 
         it('flip data sign: columns move across the baseline and snap', async () => {
-            const before = signedOptions(RC_DATA);
-            const proxy = AgCharts.create(before);
+            const proxy = await createEnterpriseChart({ ...radialOptions(RC_DATA), axes: signedAxes });
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const {
                 before: beforeSample,
                 trajectory,
                 after,
-            } = await frames.captureSnap(proxy, sampleScene, () =>
-                (proxy as AgChartInstance).update(signedOptions(negativeData))
-            );
+            } = await frames.captureSnap(proxy, sampleScene, () => proxy.update(signedOptions(negativeData)));
 
             const key = `series[0]/path[Q1'22]`;
             expect(
@@ -666,17 +661,14 @@ describe('RadialColumnSeries', () => {
         });
 
         it('reverse radius axis: columns remap and snap', async () => {
-            const before = preparedOptions();
-            const proxy = AgCharts.create(before);
+            const proxy = await createEnterpriseChart(radialOptions());
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const {
                 before: beforeSample,
                 trajectory,
                 after,
-            } = await frames.captureSnap(proxy, sampleScene, () =>
-                (proxy as AgChartInstance).update(reversedRadiusOptions())
-            );
+            } = await frames.captureSnap(proxy, sampleScene, () => proxy.update(reversedRadiusOptions()));
 
             const key = `series[0]/path[Q1'22]`;
             expect(

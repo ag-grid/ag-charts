@@ -207,7 +207,7 @@ describe('OhlcSeries', () => {
                 },
             }) as AgCartesianChartOptions;
 
-        // Bespoke: the sanity tests reuse the prepared options in `update`, so they create the chart bare.
+        // For `update`; the factory prepares its own copy.
         const preparedOhlcOptions = () => prepareEnterpriseTestOptions(ohlcOptions());
 
         // The Date key stringifies with a timezone suffix, so match on the leading `Day Mon DD YYYY`.
@@ -241,7 +241,7 @@ describe('OhlcSeries', () => {
             const data = barData();
             data[2] = { ...data[2], close: 8, high: 9.5 };
             const { before, trajectory, after } = await captureSnap(ohlcOptions(), () =>
-                chart!.update({ ...ohlcOptions(), data })
+                chart!.update({ ...preparedOhlcOptions(), data })
             );
             const changed = barKey(after, 'Tue Jan 03 2023');
             expect(after.get(changed)!.height, 'changed bar grew').toBeGreaterThan(before.get(changed)!.height + 30);
@@ -257,7 +257,7 @@ describe('OhlcSeries', () => {
         it('add data: a new bar appears instantly and the layout snaps', async () => {
             const { before, trajectory, after } = await captureSnap(ohlcOptions(), () =>
                 chart!.update({
-                    ...ohlcOptions(),
+                    ...preparedOhlcOptions(),
                     data: [...barData(), { date: new Date(2023, 0, 4), low: 2, open: 5, close: 7, high: 9 }],
                 })
             );
@@ -276,7 +276,7 @@ describe('OhlcSeries', () => {
 
         it('remove data: the last bar disappears instantly and the layout snaps', async () => {
             const { before, trajectory, after } = await captureSnap(ohlcOptions(), () =>
-                chart!.update({ ...ohlcOptions(), data: barData().slice(0, 2) })
+                chart!.update({ ...preparedOhlcOptions(), data: barData().slice(0, 2) })
             );
             expect(barCount(before)).toBe(3);
             expect(barCount(after)).toBe(2);
