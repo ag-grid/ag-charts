@@ -6,11 +6,14 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    getSwapChainText,
     hoverAction,
     isTooltipVisible,
     prepareFinancialTestOptions,
+    pressKey,
     setupMockCanvas,
     setupMockConsole,
+    tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { testLogger } from 'ag-charts-test';
@@ -157,6 +160,20 @@ describe('priceVolumePreset', () => {
         const ids = deproxy(chart).ctx.chartService.series.map((s) => s.id);
         ids.sort(byName);
         expect(ids).toEqual(['price', 'volume', 'volumeProfileDown', 'volumeProfileUp']);
+    });
+
+    it('focuses the price series before the volume series', async () => {
+        chart = AgCharts.createFinancialChart(
+            prepareFinancialTestOptions({ data: getStockData().slice(0, 40) } as AgFinancialChartOptions)
+        );
+        await waitForChartStability(chart);
+
+        const internal = deproxy(chart);
+        await tabIntoChart(internal);
+        await pressKey(internal, 'ArrowRight');
+        expect(getSwapChainText()).toContain('close');
+        await pressKey(internal, 'ArrowDown');
+        expect(getSwapChainText()).toContain('volume');
     });
 
     it('keeps the preset base theme under a user theme naming no base of its own', async () => {

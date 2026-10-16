@@ -25,6 +25,7 @@ import {
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
     expectSceneTrajectory,
+    expectWarningMessages,
     expectWarningsCalls,
     hoverAction,
     magnitudePair,
@@ -183,6 +184,15 @@ describe('WaterfallSeries', () => {
 
         expect(typeof captured).toBe('bigint');
         expect(captured).toBe(BIG_VALUE);
+    });
+
+    it('rejects focusIndex as a solo series', async () => {
+        chart = await createEnterpriseChart({
+            data: [{ type: 'Revenue', value: 10 }],
+            series: [{ type: 'waterfall', xKey: 'type', yKey: 'value', focusIndex: 0 } as any],
+        });
+
+        expectWarningMessages(['AG Charts - Unknown option `series[0].focusIndex`, ignoring.']);
     });
 
     describe('totalValue (AG-17564)', () => {

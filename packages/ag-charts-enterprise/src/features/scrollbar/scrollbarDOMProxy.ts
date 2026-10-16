@@ -184,7 +184,6 @@ export class ScrollbarDOMProxy {
             domIndex: 0,
             tabIndex: 0,
             ariaLabel: { id: ariaLabelId },
-            role: 'slider',
             parent: this.container,
             classList: ['ag-charts-proxy-scrollbar-slider'],
         });

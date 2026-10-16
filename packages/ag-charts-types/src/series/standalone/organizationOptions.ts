@@ -32,7 +32,7 @@ import type { AgNetworkSeriesTreeLayout } from './networkOptions';
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'focusIndex'>,
         AgOrganizationSeriesOptionsKeys,
         AgOrganizationSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Organization Series. */

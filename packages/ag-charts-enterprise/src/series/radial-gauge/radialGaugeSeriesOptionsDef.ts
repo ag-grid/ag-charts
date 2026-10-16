@@ -140,7 +140,7 @@ export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThem
 };
 
 export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
-    ...without(commonSeriesOptionsDefs, ['listeners']),
+    ...without(commonSeriesOptionsDefs, ['listeners', 'focusIndex']),
     ...radialGaugeSeriesThemeableOptionsDef,
     type: required(constant('radial-gauge')),
     value: required(numericValue),

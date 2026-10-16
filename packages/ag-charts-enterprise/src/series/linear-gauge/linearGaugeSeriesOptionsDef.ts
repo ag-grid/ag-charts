@@ -142,7 +142,7 @@ export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThem
 };
 
 export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
-    ...without(commonSeriesOptionsDefs, ['listeners']),
+    ...without(commonSeriesOptionsDefs, ['listeners', 'focusIndex']),
     ...linearGaugeSeriesThemeableOptionsDef,
     type: required(constant('linear-gauge')),
     value: required(numericValue),

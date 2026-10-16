@@ -36,6 +36,7 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
+    isPlainObject,
     joinFormatted,
     measureLabelText,
     mergeDefaults,
@@ -48,9 +49,12 @@ import type { BBox, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
 import type { PaddingOptions } from 'ag-charts-types';
 
 import { autoSizedLabelFit } from '../util/autoSizedLabelFit';
+import { ItemStylerResolutions } from './itemStylerResolutions';
 
 const {
+    HighlightState,
     SeriesNodePickMode,
+    hasStateStyle,
     computeBarFocusBounds,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
@@ -59,7 +63,6 @@ const {
     valueProperty,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
-    createDatumId,
     addHitTestersToQuadtree,
     findQuadtreeMatch,
     expandLabelBoxExtent,
@@ -116,6 +119,10 @@ type ItemStyle = Pick<NormalisedHeatmapSeriesStyle, 'fill'> &
 interface HeatmapItemStyleContext {
     readonly colorScaleValid: boolean;
     readonly baseStyle: Omit<ItemStyle, 'fill'>;
+    readonly selectionEnabled: boolean;
+    readonly activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined;
+    /** Whether the active highlight is in a state other than none for this series. */
+    readonly highlightActive: boolean;
 }
 
 /** Context object caching expensive lookups for createNodeData(). */
@@ -187,6 +194,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     readonly colorScale = new ColorScale();
+
+    /** Whether the stored cell styles were resolved under an active highlight, so they need a restyle when it ends. */
+    private cellsStyledByHighlight = false;
+
+    private readonly itemStylerResolutions = new ItemStylerResolutions((result) =>
+        this.ctx.optionsGraphService.resolvePartial(['series', `${this.declarationOrder}`], result)
+    );
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -336,6 +350,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
      * Template method hook: Iterates over data and creates/updates node datums.
      */
     protected override populateNodeData(ctx: HeatmapSeriesNodeDatumContext): void {
+        this.cellsStyledByHighlight = ctx.itemStyleContext.highlightActive;
         for (const [datumIndex, datum] of ctx.rawData.entries()) {
             const nodeDatum = upsertNodeDatum(
                 ctx,
@@ -447,9 +462,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     private createItemStyleContext(): HeatmapItemStyleContext {
         const { stroke, strokeWidth, strokeOpacity } = this.options;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         return {
             colorScaleValid: this.isColorScaleValid(),
             baseStyle: { fillOpacity: 1, stroke, strokeWidth, strokeOpacity, opacity: 1 },
+            selectionEnabled: this.isSelectionEnabled(),
+            activeHighlight,
+            highlightActive: this.getHighlightState(activeHighlight, false) !== HighlightState.None,
         };
     }
 
@@ -525,12 +544,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         mutableNode.midPoint.x = x;
         mutableNode.midPoint.y = y;
 
-        mutableNode.style = this.getItemStyle(
-            { datumIndex, datum, colorValue },
-            false,
-            undefined,
-            ctx.itemStyleContext
-        );
+        mutableNode.style = this.getItemStyle({ datumIndex, datum, colorValue }, false, ctx.itemStyleContext);
     }
 
     /**
@@ -646,16 +660,19 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     protected getItemStyle(
         { datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>,
         isHighlight: boolean,
-        highlightState?: _ModuleSupport.HighlightState,
         itemStyleContext: HeatmapItemStyleContext = this.createItemStyleContext()
     ): NormalisedHeatmapSeriesStyle {
         const { options } = this;
         const { itemStyler, colorKey } = options;
         const { missingDataFill } = options.colorScale;
-        const { colorScaleValid, baseStyle } = itemStyleContext;
+        const { colorScaleValid, baseStyle, selectionEnabled, activeHighlight } = itemStyleContext;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const highlightState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        const highlightStyle =
+            highlightState === HighlightState.None
+                ? undefined
+                : this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+        const selectionStyle = selectionEnabled ? this.getSelectionStyle(datumIndex) : undefined;
         let fill: string;
         if (colorScaleValid && colorValue != null) {
             fill = this.colorScale.convert(colorValue);
@@ -666,25 +683,28 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
         // Colour refs are resolved during theme-merge before reaching scene nodes.
         // `baseStyle` is shared across cells — do not mutate it.
-        const style = mergeDefaults(
-            selectionStyle,
-            highlightStyle,
-            { fill },
-            baseStyle
+        // OPTIMIZATION: without a highlight or selection style the merge is just the fill over `baseStyle`.
+        const style = (
+            hasStateStyle(highlightStyle) || hasStateStyle(selectionStyle)
+                ? mergeDefaults(selectionStyle, highlightStyle, { fill }, baseStyle)
+                : { ...baseStyle, fill }
         ) as Required<NormalisedHeatmapSeriesStyle>;
 
         let overrides;
         if (itemStyler != null && datumIndex != null) {
-            overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
+            // OPTIMIZATION: a numeric key avoids building a string per cell; highlight and node styles are distinct.
+            overrides = this.cachedDatumCallback(datumIndex * 2 + (isHighlight ? 1 : 0), () => {
                 const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
-                return this.ctx.optionsGraphService.resolvePartial(
-                    ['series', `${this.declarationOrder}`],
-                    this.callWithContext(itemStyler, params)
-                );
+                return this.itemStylerResolutions.resolve(this.callWithContext(itemStyler, params));
             });
         }
 
-        return overrides ? mergeDefaults(overrides, style) : style;
+        return overrides ? applyOverrides(style, overrides) : style;
+    }
+
+    override resetDatumCallbackCache() {
+        super.resetDatumCallbackCache();
+        this.itemStylerResolutions.clear();
     }
 
     private makeLabelFormatterParams() {
@@ -728,11 +748,24 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         datumSelection: Selection<HeatmapNodeDatum, Rect<HeatmapNodeDatum>>;
         isHighlight: boolean;
     }) {
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const itemStyleContext = this.createItemStyleContext();
+        const { selectionEnabled, highlightActive } = itemStyleContext;
+
+        if (!isHighlight) {
+            // OPTIMIZATION: createNodeData styled every cell; only a highlight, selection or styler needs a restyle.
+            if (
+                !selectionEnabled &&
+                !highlightActive &&
+                !this.cellsStyledByHighlight &&
+                this.options.itemStyler == null
+            ) {
+                return;
+            }
+            this.cellsStyledByHighlight = highlightActive;
+        }
+
         datumSelection.each((_, nodeDatum) => {
-            const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, highlightState, itemStyleContext);
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, itemStyleContext);
         });
     }
 
@@ -1123,7 +1156,27 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             this.isSelectionEnabled() ||
             this.options.itemStyler != null ||
             this.options.label.itemStyler != null ||
-            this.isColorScaleValid()
+            this.hasHighlightStateStyle()
         );
     }
+
+    private hasHighlightStateStyle(): boolean {
+        const { highlight } = this.options;
+        return this.isHighlightEnabled() && hasStateStyle(highlight?.unhighlightedItem);
+    }
+}
+
+/** Equivalent to `mergeDefaults(overrides, style)`, writing into the cell's own `style` unless both sides hold an object. */
+function applyOverrides(
+    style: Required<NormalisedHeatmapSeriesStyle>,
+    overrides: Partial<NormalisedHeatmapSeriesStyle>
+): Required<NormalisedHeatmapSeriesStyle> {
+    const target = style as Record<string, unknown>;
+    for (const key of Object.keys(overrides)) {
+        const value = (overrides as Record<string, unknown>)[key];
+        if (value == null) continue;
+        if (isPlainObject(value) && isPlainObject(target[key])) return mergeDefaults(overrides, style);
+        target[key] = value;
+    }
+    return style;
 }
