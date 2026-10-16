@@ -6,6 +6,7 @@ import {
     findLargestFittingFontSize,
     findLargestFittingStep,
     fontWithSize,
+    measureLabelText,
     resolveMinimumFontSize,
     wrapLines,
 } from 'ag-charts-core';
@@ -259,6 +260,7 @@ export function formatSingleLabel<Meta>(
             const lines = wrapLines(value, {
                 maxWidth: availableWidth,
                 maxHeight: availableHeight,
+                lineHeight: currentFont.lineHeight,
                 font: currentFont,
                 textWrap: props.wrapping,
                 overflow: allowTruncation ? overflowAtFloor(props) : 'hide',
@@ -294,10 +296,16 @@ function formatOverflowingLabel<Meta>(
     const maxWidth = capWidth(props, sizeFitting.width - 2 * padding);
     let lines =
         maxWidth > 0
-            ? wrapLines(value, { maxWidth, font, textWrap: props.wrapping, overflow: overflowAtFloor(props) })
+            ? wrapLines(value, {
+                  maxWidth,
+                  lineHeight: font.lineHeight,
+                  font,
+                  textWrap: props.wrapping,
+                  overflow: overflowAtFloor(props),
+              })
             : [];
     if (lines.length === 0) lines = value.split('\n');
-    const { width, height } = measurer.measureLines(lines);
+    const { width, height } = measureLabelText(lines.join('\n'), font);
     return [{ width, height, text: lines.join('\n'), fontSize, lineHeight }, sizeFitting.meta];
 }
 
@@ -309,7 +317,7 @@ function wrapLabel(
     textWrap?: TextWrap,
     overflow?: OverflowStrategy
 ) {
-    const lines = wrapLines(text, { maxWidth, maxHeight, font, textWrap, overflow });
+    const lines = wrapLines(text, { maxWidth, maxHeight, lineHeight: font.lineHeight, font, textWrap, overflow });
 
     if (lines.length === 0) return;
 

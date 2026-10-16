@@ -964,6 +964,12 @@ describe('measureTextSegments — lineHeight', () => {
         expect(lineHeights([text('A', { lineHeight: 12 })])).toEqual([{ height: 12, ascent: 16, descent: -4 }]);
     });
 
+    it('keeps the natural height of segments without a lineHeight on the line', () => {
+        expect(lineHeights([text('A', { lineHeight: 10 }), text('B', { fontSize: 40 })])).toEqual([
+            { height: 20, ascent: 16, descent: 4 },
+        ]);
+    });
+
     it("inherits the default font's lineHeight in proportion to each segment's fontSize", () => {
         const font = { ...baseFont, fontSize: 10, lineHeight: 15 };
         expect(lineHeights([text('A'), text('\nB', { fontSize: 20 }), text('\nC', { lineHeight: 40 })], font)).toEqual([
