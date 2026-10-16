@@ -182,27 +182,22 @@ describe('RangeAreaSeries', () => {
     describe('node interactions with markers disabled (AG-10226)', () => {
         const seriesNodeClick = vi.fn();
 
-        const createRangeAreaChart = async (low: boolean, high: boolean) => {
-            const options: AgCartesianChartOptions = {
-                ...RANGE_AREA_OPTIONS,
-                series: [
-                    {
-                        type: 'range-area',
-                        xKey: 'month',
-                        yLowKey: 'low',
-                        yHighKey: 'high',
-                        item: {
-                            low: { marker: { enabled: low } },
-                            high: { marker: { enabled: high } },
-                        },
-                        listeners: { seriesNodeClick },
+        const rangeAreaOptions = (low: boolean, high: boolean): AgCartesianChartOptions => ({
+            ...RANGE_AREA_OPTIONS,
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'month',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    item: {
+                        low: { marker: { enabled: low } },
+                        high: { marker: { enabled: high } },
                     },
-                ],
-            };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-        };
+                    listeners: { seriesNodeClick },
+                },
+            ],
+        });
 
         const clickNode = async (month: string) => {
             const series = deproxy(chart).series[0] as any;
@@ -218,7 +213,7 @@ describe('RangeAreaSeries', () => {
         });
 
         it('fires nodeClick when neither side renders markers', async () => {
-            await createRangeAreaChart(false, false);
+            chart = await createEnterpriseChart(rangeAreaOptions(false, false));
             await clickNode('Feb');
 
             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
@@ -226,7 +221,7 @@ describe('RangeAreaSeries', () => {
         });
 
         it('fires nodeClick when only the low side renders markers', async () => {
-            await createRangeAreaChart(true, false);
+            chart = await createEnterpriseChart(rangeAreaOptions(true, false));
             await clickNode('Feb');
 
             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
@@ -234,7 +229,7 @@ describe('RangeAreaSeries', () => {
         });
 
         it('fires nodeClick when only the high side renders markers', async () => {
-            await createRangeAreaChart(false, true);
+            chart = await createEnterpriseChart(rangeAreaOptions(false, true));
             await clickNode('Feb');
 
             expect(seriesNodeClick).toHaveBeenCalledTimes(1);

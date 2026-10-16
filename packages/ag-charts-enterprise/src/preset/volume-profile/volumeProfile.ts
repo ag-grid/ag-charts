@@ -1,5 +1,6 @@
 import { _Theme } from 'ag-charts-community';
 import {
+    type Logger,
     type OptionsDefs,
     arrayOf,
     boolean,
@@ -23,15 +24,22 @@ import type {
     DatumDefault,
 } from 'ag-charts-types';
 
-import { type VolumeProfileDatum, inferVolumeProfileTickSize, normaliseVolumeProfile } from './volumeProfileUtils';
+import {
+    type VolumeProfileDatum,
+    inferVolumeProfileTickSize,
+    normaliseVolumeProfile,
+    warnMissingVolumeProfileKeys,
+} from './volumeProfileUtils';
 
 type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
 
 export function groupVolumeProfile(
     data: DatumDefault[],
     { priceKey = 'price', upKey, downKey }: Pick<AgVolumeProfileOptions, 'priceKey' | 'upKey' | 'downKey'>,
-    tickSize: number | undefined
+    tickSize: number | undefined,
+    logger: Logger
 ) {
+    warnMissingVolumeProfileKeys(data, { priceKey, upKey, downKey }, logger);
     return normaliseVolumeProfile(
         data,
         { priceKey, upKey, downKey },
@@ -39,20 +47,42 @@ export function groupVolumeProfile(
     );
 }
 
+/** Fixed series ids of the two profile series, in both the Volume Profile Chart and the Financial Chart. */
+export const VOLUME_PROFILE_UP_SERIES_ID = 'volumeProfileUp';
+export const VOLUME_PROFILE_DOWN_SERIES_ID = 'volumeProfileDown';
+
+const VOLUME_NUMBER = new Intl.NumberFormat('en-US');
+const formatVolume = (value: number) => VOLUME_NUMBER.format(value);
+
+// The two series share one tooltip, so only the up series adds the range.
+const priceRangeRow = ({ priceLow, priceHigh }: VolumeProfileDatum) => ({
+    label: 'Range',
+    value: `${priceLow}-${priceHigh}`,
+});
+
+const volumeRow = ({ datum, yKey, yName }: { datum: any; yKey: string; yName?: string }) => ({
+    label: yName ?? yKey,
+    value: formatVolume(datum[yKey]),
+});
+
 // Without `levels`, the series read the chart's data, which must then hold the grouped levels.
 export function createVolumeProfileSeries(
     getTheme: () => ChartTheme,
     priceAxisKey: string,
     levels?: VolumeProfileDatum[],
-    selection?: AgVolumeProfileSelectionOptions
+    selection?: AgVolumeProfileSelectionOptions,
+    hoverable = true
 ) {
     const seriesData = levels == null ? {} : { data: levels };
     const seriesSelection = createSeriesSelectionOptions(selection);
+    const seriesHover = hoverable ? undefined : { hoverable: false };
 
     return [
         {
             ...seriesData,
             ...seriesSelection,
+            id: VOLUME_PROFILE_UP_SERIES_ID,
+            ...seriesHover,
             type: 'bar',
             direction: 'horizontal',
             xKey: 'price',
@@ -62,7 +92,6 @@ export function createVolumeProfileSeries(
             xKeyAxis: priceAxisKey,
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
-            fillOpacity: 1,
             // @ts-expect-error undocumented option
             simpleItemStyler: () => ({ fill: getTheme().palette.up?.fill }),
             tooltip: {
@@ -70,7 +99,7 @@ export function createVolumeProfileSeries(
                 renderer: (params) => {
                     return {
                         symbol: { marker: { enabled: false } },
-                        data: [{ label: params.yName ?? params.yKey, value: params.datum[params.yKey] }],
+                        data: [priceRangeRow(params.datum), volumeRow(params)],
                     };
                 },
             },
@@ -78,6 +107,8 @@ export function createVolumeProfileSeries(
         {
             ...seriesData,
             ...seriesSelection,
+            id: VOLUME_PROFILE_DOWN_SERIES_ID,
+            ...seriesHover,
             type: 'bar',
             direction: 'horizontal',
             xKey: 'price',
@@ -87,7 +118,6 @@ export function createVolumeProfileSeries(
             xKeyAxis: priceAxisKey,
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
-            fillOpacity: 1,
             // @ts-expect-error undocumented option
             simpleItemStyler: () => ({ fill: getTheme().palette.down?.fill }),
             tooltip: {
@@ -95,10 +125,7 @@ export function createVolumeProfileSeries(
                 renderer: (params) => {
                     return {
                         symbol: { marker: { enabled: false } },
-                        data: [
-                            { label: params.yName ?? params.yKey, value: params.datum[params.yKey] },
-                            { label: 'Total', value: params.datum.total },
-                        ],
+                        data: [volumeRow(params), { label: 'Total', value: formatVolume(params.datum.total) }],
                     };
                 },
             },
@@ -106,10 +133,23 @@ export function createVolumeProfileSeries(
     ];
 }
 
-/**
- * Selection is opted into by the two profile series alone, never through the chart-level `enabled`, which the theme
- * carries to every series and would make the candles and volume bars selectable in the Financial Chart.
- */
+/** The levels the status bar looks up under the pointer, by the price axis the pointer is read against. */
+export function createVolumeProfileStatusBarOptions(levels: VolumeProfileDatum[], priceAxisKey: string) {
+    if (levels.length === 0) return undefined;
+
+    return {
+        priceAxisKey,
+        levels: levels.map(({ priceLow, priceHigh, upVolume, downVolume, total }) => ({
+            priceLow,
+            priceHigh,
+            up: upVolume,
+            down: downVolume,
+            total,
+        })),
+    };
+}
+
+/** Selection is opted into by the two profile series, never through the chart-level `enabled`. */
 function createSeriesSelectionOptions(selection: AgVolumeProfileSelectionOptions | undefined) {
     if (selection?.enabled !== true) return undefined;
 
@@ -131,7 +171,7 @@ export function createSelectionChartOptions(selection: AgVolumeProfileSelectionO
 
 /** Abbreviates a total with a suffix, such as `1.2K` or `3.4M`. */
 const COMPACT_NUMBER = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
-const formatCompact = ({ value }: { value: number }) => COMPACT_NUMBER.format(value);
+export const formatCompact = ({ value }: { value: number }) => COMPACT_NUMBER.format(value);
 
 export const volumeProfileTotalSegmentOptionsDef: OptionsDefs<AgVolumeProfileTotalSegmentOptions> = {
     enabled: boolean,
@@ -205,7 +245,7 @@ export function createVolumeProfileAxis(
 ): Record<string, AgNumberAxisOptions | AgCategoryAxisOptions> {
     if (!volumeProfile) return {};
 
-    const placedRight = volumeProfile.placement === 'right';
+    const placedRight = volumeProfile.placement !== 'left';
 
     return {
         yVolumeProfile: {
@@ -234,6 +274,7 @@ export function createVolumeProfileAxis(
             line: { enabled: false },
             crosshair: { enabled: false },
             gridLine: { enabled: false },
+            paddingInner: 0,
             // @ts-expect-error undocumented options
             layoutConstraints: {
                 stacked: false,
@@ -243,7 +284,6 @@ export function createVolumeProfileAxis(
             },
             linkZoom: 'y',
             ...createTotalSegmentAxisOptions(volumeProfile.totalSegment, placedRight ? 'right' : 'left'),
-            ...createSelectedBandAxisOptions(volumeProfile.selection),
         } satisfies AgCategoryAxisOptions,
     };
 }

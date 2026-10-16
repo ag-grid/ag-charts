@@ -32,7 +32,7 @@ The following keys are available:
     - Navigator
 - {% kbd "←" /%}{% kbd "→" /%} moves focus between items in a series, or between legend items.
 - {% kbd "↑" /%}{% kbd "↓" /%} moves focus between series in a chart.
-  Please note that datapoints and series are traversed in declared order which may not match the visual display.
+  Please note that datapoints are traversed in declared order which may not match the visual display. Series are traversed in declared order unless a [Series Focus Order](#series-focus-order) is set.
 - {% kbd "PgUp" /%}{% kbd "PgDown" /%} jumps focus backward or forward by a page of data items, scrolling to keep the focused item in view.
 - {% kbd "Home" /%}{% kbd "End" /%} jumps to the first or last data item.
 - {% kbd "↵ Enter" /%} or {% kbd "␣ Space" /%} toggles legend items and triggers any click listeners for the focused item.
@@ -51,6 +51,31 @@ In this example:
 - Pressing ESC when a bar is focused hides its tooltip while focus stays on the bar. Moving to another bar shows its tooltip again.
 - Pressing TAB after all the chart components will move focus to the element below the chart.
 - SHIFT+TAB will move focus into, around and out of the chart in reverse order.
+
+### Series Focus Order
+
+Use `focusIndex` to change the order in which {% kbd "↑" /%}{% kbd "↓" /%} move focus between series, without reordering the `series` array, which also controls drawing order and legend order.
+
+```js format="snippet"
+{
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'volume' },
+        { type: 'line', xKey: 'month', yKey: 'price', focusIndex: 0 },
+    ],
+}
+```
+
+In this snippet, the line series is focused first, even though the bar series is declared first.
+
+- Series with a lower `focusIndex` are focused first. Only the relative order matters, so values do not need to be consecutive.
+- Series without a `focusIndex` are focused after those with one, in the order they are declared.
+- Series with the same `focusIndex` are focused in the order they are declared.
+
+`focusIndex` orders series within the series area only. It does not change where the series area sits in the {% kbd "⇥ Tab" /%} order relative to the other chart components, such as the legend, toolbars and navigator.
+
+`focusIndex` is not available on series types that are the only series in a chart, such as Treemap, Sunburst, Waterfall, Funnel and Sankey.
+
+{% apiReference id="AgBaseSeriesOptions" include=["focusIndex"] /%}
 
 ## Screen Readers (ARIA)
 

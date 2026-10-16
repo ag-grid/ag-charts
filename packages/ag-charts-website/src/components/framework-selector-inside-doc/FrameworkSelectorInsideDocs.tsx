@@ -11,6 +11,7 @@ import { navigate } from 'astro:transitions/client';
 import { useMemo } from 'react';
 
 import styles from './FrameworkSelectorInsideDocs.module.scss';
+import { getFrameworkVersionLinks } from './frameworkVersionLinks';
 
 interface Props {
     path: string;
@@ -29,6 +30,13 @@ export const FrameworkSelectorInsideDocs = ({ path, currentFramework, menuItems 
     const frameworkOption = useMemo(
         () => frameworkOptions.find((o: { value: string }) => o.value === currentFramework) ?? frameworkOptions[0],
         [frameworkOptions, currentFramework]
+    );
+
+    // Plain links beside the picker: its options only mount once it is opened, so without these the
+    // server-rendered page has nothing for a crawler to follow to the other framework versions.
+    const frameworkVersionLinks = useMemo(
+        () => getFrameworkVersionLinks({ path, currentFramework }),
+        [path, currentFramework]
     );
 
     const handleFrameworkChange = (selectedFramework: Framework) => {
@@ -77,6 +85,18 @@ export const FrameworkSelectorInsideDocs = ({ path, currentFramework, menuItems 
                         );
                     }}
                 />
+                <nav className={styles.frameworkVersionLinks} aria-label="Other framework versions of this page">
+                    <ul>
+                        {frameworkVersionLinks.map(({ framework, label, href }) => (
+                            <li key={framework}>
+                                {/* Clipped from view, so not a keyboard stop: the picker is the keyboard route. */}
+                                <a href={href} tabIndex={-1}>
+                                    {label}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
             </div>
         )
     );

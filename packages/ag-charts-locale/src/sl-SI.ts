@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_SL_SI: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'Obseg ${value}',
+    statusBarVolumeProfilePrice: 'Cena',
+    statusBarVolumeProfileUp: 'Navzgor',
+    statusBarVolumeProfileDown: 'Navzdol',
+    statusBarVolumeProfileTotal: 'Skupaj',
     tooltipPaginationStatus: '${index}[number] od ${count}[number]',
 };

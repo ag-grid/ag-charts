@@ -21,6 +21,8 @@ import {
 } from 'ag-charts-core';
 import type { BBox, Node } from 'ag-charts-core';
 
+import { drawPolygonRing } from '../polygonRing';
+
 const { crossLineHitTolerance, getCrossLineValue, validateCrossLineValue } = _ModuleSupport;
 
 /** Polar axes reserve no padding, so `overflow: 'pad-chart'` leaves the label at its configured position. */
@@ -432,19 +434,6 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
         this.innerRadius = innerRadius;
     }
 
-    private drawRadiusPolygon(radius: number, angles: number[], polygon: Path) {
-        for (const [index, angle] of angles.entries()) {
-            const x = radius * Math.cos(angle);
-            const y = radius * Math.sin(angle);
-            if (index === 0) {
-                polygon.path.moveTo(x, y);
-            } else {
-                polygon.path.lineTo(x, y);
-            }
-        }
-        polygon.path.closePath();
-    }
-
     private updateRadiusPolygonNode(visible: boolean) {
         const { gridAngles, polygonNode: polygon, scale, shape, type, innerRadius, outerRadius } = this;
         if (!visible || shape !== 'polygon' || !scale || !gridAngles) {
@@ -457,11 +446,11 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
         const padding = this.getRadiusPadding();
 
         polygon.path.clear(true);
-        this.drawRadiusPolygon(outerRadius - padding, gridAngles, polygon);
+        drawPolygonRing(polygon.path, gridAngles, outerRadius - padding);
 
         const reversedAngles = gridAngles.slice().reverse();
         const innerPolygonRadius = type === 'line' ? outerRadius - padding : innerRadius + padding;
-        this.drawRadiusPolygon(innerPolygonRadius, reversedAngles, polygon);
+        drawPolygonRing(polygon.path, reversedAngles, innerPolygonRadius);
 
         this.setSectorNodeProps(polygon);
     }

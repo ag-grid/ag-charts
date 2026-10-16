@@ -7,6 +7,7 @@ import { AgCharts } from '../../../api/agCharts';
 import { HIGHLIGHT_SHADOW, SERIES_SHADOW } from '../../test/shadowFixtures';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    createChart,
     deproxy,
     extractImageData,
     prepareTestOptions,
@@ -54,9 +55,7 @@ describe('BarSeries highlight shadow', () => {
             highlight: { drawingMode: drawingMode ?? 'cutout' },
             series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', ...series }],
         };
-        prepareTestOptions(options);
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createChart(options));
 
         const [seriesImpl] = chart.series;
         const datum = seriesImpl.contextNodeData.nodeData[0];

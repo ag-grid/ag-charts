@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'ปริมาณ ${value}',
+    statusBarVolumeProfilePrice: 'ราคา',
+    statusBarVolumeProfileUp: 'ขึ้น',
+    statusBarVolumeProfileDown: 'ลง',
+    statusBarVolumeProfileTotal: 'รวม',
     tooltipPaginationStatus: '${index}[number] จาก ${count}[number]',
 };

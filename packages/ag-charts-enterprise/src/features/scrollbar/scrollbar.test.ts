@@ -593,12 +593,18 @@ describe('Scrollbar thumb hoverStyle.strokeWidth', () => {
     afterEach(() => destroyChartRef(chartRef));
 
     it('applies the hover strokeWidth on hover and restores it on un-hover', async () => {
-        chartRef.current = await createEnterpriseChart({
-            data: DATA,
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            scrollbar: { enabled: true, visible: 'always', thumb: { strokeWidth: 1, hoverStyle: { strokeWidth: 3 } } },
-            initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
-        });
+        chartRef.current = deproxy(
+            await createEnterpriseChart({
+                data: DATA,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                scrollbar: {
+                    enabled: true,
+                    visible: 'always',
+                    thumb: { strokeWidth: 1, hoverStyle: { strokeWidth: 3 } },
+                },
+                initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
+            })
+        );
         const scrollbar = chartRef.current.modulesManager.getModule('scrollbar');
         const { thumb } = scrollbar.state.horizontal;
 
@@ -693,8 +699,9 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
     }));
     const LONG_LABEL_INDEX = LONG_LABEL_DATA.findIndex(({ x }) => x === LONG_LABEL);
 
+    // Bespoke: the size must override the default canvas size that `prepareEnterpriseTestOptions` applies, which the
+    // shared `createEnterpriseChart` would re-apply over it.
     async function createSizedChart(options: AgCartesianChartOptions) {
-        // `prepareEnterpriseTestOptions` sizes the chart to the default canvas, so set the size afterwards.
         const proxy = AgCharts.create({
             ...prepareEnterpriseTestOptions(options),
             width: CHART_WIDTH,
@@ -926,13 +933,15 @@ describe('Scrollbar border theme params', () => {
     afterEach(() => destroyChartRef(chartRef));
 
     const create = async (params: object) => {
-        chartRef.current = await createEnterpriseChart({
-            data: DATA,
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            scrollbar: { enabled: true, visible: 'always' },
-            initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
-            theme: { params },
-        });
+        chartRef.current = deproxy(
+            await createEnterpriseChart({
+                data: DATA,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                scrollbar: { enabled: true, visible: 'always' },
+                initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
+                theme: { params },
+            })
+        );
         const scrollbar = chartRef.current.modulesManager.getModule('scrollbar');
         return { scrollbar, ...scrollbar.state.horizontal };
     };

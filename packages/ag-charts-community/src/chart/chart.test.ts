@@ -15,6 +15,7 @@ import type { Node } from 'ag-charts-core';
 import { Caster, classCast } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
+    AgChartInstance,
     AgChartValidationsOptions,
     AgLineSeriesOptions,
     AgPolarChartOptions,
@@ -26,6 +27,7 @@ import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { DataSet } from './data/dataSet';
 import { Marker } from './marker/marker';
+import { BarSeries } from './series/cartesian/barSeries';
 import { LineSeries } from './series/cartesian/lineSeries';
 import {
     MIN_TOOLTIP_HIDE_DELAY,
@@ -182,7 +184,7 @@ describe('Chart', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            return createChart(options);
+            return deproxy(await createChart(options));
         };
 
         const hoverChartNodes = async (
@@ -343,8 +345,8 @@ describe('Chart', () => {
 
     // A markerless series' node is the point on the line where the marker would have been.
     describe(`Markerless Line Series node interactions (AG-10226)`, () => {
-        const createMarkerlessLineChart = async (listeners: any) =>
-            createChart({
+        const markerlessLineChartOptions = (listeners: any) =>
+            ({
                 container: document.body,
                 data: datasets.economy.data,
                 series: [
@@ -356,7 +358,7 @@ describe('Chart', () => {
                         listeners,
                     },
                 ],
-            } as AgCartesianChartOptions);
+            }) as AgCartesianChartOptions;
 
         const nodeCanvasPoint = (chartInstance: Chart, datumIndex: number) => {
             const series = chartInstance.series[0] as any;
@@ -367,7 +369,7 @@ describe('Chart', () => {
 
         it(`should handle nodeClick event at a datum's notional marker position`, async () => {
             const seriesNodeClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await clickAction(canvasX, canvasY)(chart);
@@ -379,7 +381,7 @@ describe('Chart', () => {
 
         it(`should not handle nodeClick event well outside the markerless pick range`, async () => {
             const seriesNodeClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await clickAction(canvasX, canvasY + 60)(chart);
@@ -390,7 +392,7 @@ describe('Chart', () => {
 
         it(`should handle nodeDoubleClick event at a datum's notional marker position`, async () => {
             const seriesNodeDoubleClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeDoubleClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await doubleClickAction(canvasX, canvasY)(chart);
@@ -402,7 +404,7 @@ describe('Chart', () => {
 
         it(`should not handle nodeDoubleClick event well outside the markerless pick range`, async () => {
             const seriesNodeDoubleClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeDoubleClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await doubleClickAction(canvasX, canvasY + 60)(chart);
@@ -513,16 +515,11 @@ describe('Chart', () => {
 
     describe('Chart data change', () => {
         const testDataUpdate = async (testOptions: { seriesOptions: any; getNodes: (chart: Chart) => Node[] }) => {
-            const chartOptions = prepareTestOptions<{
-                data: { year: string; gdp: number; gnp: number }[];
-                series: any[];
-            }>({
+            const chartProxy = (await createChart({
                 data: [],
                 series: [testOptions.seriesOptions],
-            });
-            const chartProxy = AgCharts.create(chartOptions);
+            })) as AgChartProxy;
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(0);
 
             await chartProxy.updateDelta({
@@ -637,6 +634,238 @@ describe('Chart', () => {
             expect(chart.data.data.length).toBe(lengthBeforeMutation);
         });
 
+        describe('updateDelta() node data refresh', () => {
+            const rows = (count: number) =>
+                Array.from({ length: count }, (_, i) => ({ year: `${2000 + i}`, gdp: i + 1, tax: i * 2 }));
+            const barSeries = [{ type: 'bar', xKey: 'year', yKey: 'gdp' }];
+            const axes = {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            };
+            const barStyles = (c: Chart, index: number) =>
+                classCast(c.series[index], BarSeries).contextNodeData?.styles;
+            const barData = (c: Chart, index = 0) =>
+                classCast(c.series[index], BarSeries).contextNodeData?.nodeData ?? [];
+
+            let processData: ReturnType<typeof vi.spyOn>;
+            const spyOnProcessData = (target: Chart) => {
+                processData = vi.spyOn(Object.getPrototypeOf(target), 'processData');
+            };
+            afterEach(() => {
+                processData?.mockRestore();
+            });
+
+            it.each([
+                { name: 'a title on a bar series', options: { series: barSeries } },
+                {
+                    name: 'a title on a line series',
+                    options: { series: [{ type: 'line', xKey: 'year', yKey: 'gdp' }] },
+                },
+                { name: 'a title on a chart with explicit axes', options: { series: barSeries, axes } },
+            ])('does not refresh node data for $name', async ({ options }) => {
+                const chartProxy = AgCharts.create(
+                    prepareTestOptions({ data: rows(8), title: { text: 'Before' }, ...options } as any)
+                );
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+                const dataBefore = chart.data.data;
+
+                spyOnProcessData(chart);
+                await chartProxy.updateDelta({ title: { text: 'After' } });
+                await waitForChartStability(chart);
+
+                expect(processData).not.toHaveBeenCalled();
+                expect(chart.data.data).toBe(dataBefore);
+
+                await chartProxy.updateDelta({ data: rows(9) } as any);
+                await waitForChartStability(chart);
+                expect(processData).toHaveBeenCalled();
+                expect(chart.data.data).toHaveLength(9);
+            });
+
+            it.each([
+                { key: 'subtitle', delta: { subtitle: { text: 'After' } }, withTitle: true },
+                { key: 'footnote', delta: { footnote: { text: 'After' } } },
+                { key: 'padding', delta: { padding: { top: 60, left: 40 } } },
+                { key: 'background', delta: { background: { fill: 'red' } } },
+            ])('does not refresh node data for a $key delta on a chart with axes', async ({ delta, withTitle }) => {
+                const chartProxy = AgCharts.create(
+                    prepareTestOptions({
+                        data: rows(8),
+                        series: barSeries,
+                        axes,
+                        ...(withTitle && { title: { text: 'Before' }, subtitle: { text: 'Before' } }),
+                    } as any)
+                );
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+
+                spyOnProcessData(chart);
+                await chartProxy.updateDelta(delta as any);
+                await waitForChartStability(chart);
+
+                expect(processData).not.toHaveBeenCalled();
+            });
+
+            it('does not refresh node data for a title after a growing data delta', async () => {
+                const chartProxy = AgCharts.create(prepareTestOptions({ data: rows(5), series: barSeries } as any));
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+                await chartProxy.updateDelta({ data: rows(6) } as any);
+                await waitForChartStability(chart);
+
+                spyOnProcessData(chart);
+                await chartProxy.updateDelta({ title: { text: 'After' } });
+                await waitForChartStability(chart);
+
+                expect(processData).not.toHaveBeenCalled();
+            });
+
+            it.each([
+                { name: 'an axis option', delta: { axes: { x: { reverse: true } } } },
+                {
+                    name: 'an axis option alongside a title',
+                    delta: { title: { text: 'After' }, axes: { x: { reverse: true } } },
+                },
+            ])('refreshes node data for $name, as a fresh chart does', async ({ delta }) => {
+                const chartProxy = AgCharts.create(
+                    prepareTestOptions({ data: rows(4), series: barSeries, axes } as any)
+                );
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+                const xBefore = barData(chart).map((d) => d.x);
+
+                spyOnProcessData(chart);
+                await chartProxy.updateDelta(delta as any);
+                await waitForChartStability(chart);
+                expect(processData).toHaveBeenCalled();
+
+                const fresh = deproxy(
+                    await createChart(
+                        prepareTestOptions({
+                            data: rows(4),
+                            series: barSeries,
+                            axes: { ...axes, x: { ...axes.x, reverse: true } },
+                        } as any)
+                    )
+                );
+                try {
+                    const xAfter = barData(chart).map((d) => d.x);
+                    expect(xAfter).not.toEqual(xBefore);
+                    expect(xAfter).toEqual(barData(fresh).map((d) => d.x));
+                } finally {
+                    fresh.destroy();
+                }
+            });
+
+            it('shows the extra row after a growing updateDelta({ data }) with the colours of a fresh chart', async () => {
+                const series = [
+                    { type: 'bar', xKey: 'year', yKey: 'gdp' },
+                    { type: 'bar', xKey: 'year', yKey: 'tax' },
+                    { type: 'line', xKey: 'year', yKey: 'gdp', stroke: 'purple' },
+                ];
+                const chartProxy = AgCharts.create(prepareTestOptions({ data: rows(5), series } as any));
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+
+                await chartProxy.updateDelta({ data: rows(6) } as any);
+                await waitForChartStability(chart);
+
+                const fresh = deproxy(await createChart({ data: rows(6), series } as any));
+                try {
+                    expect(chart.data.data).toHaveLength(6);
+                    for (const index of [0, 1]) {
+                        expect(barData(chart, index)).toHaveLength(6);
+                        expect(barStyles(chart, index)).toEqual(barStyles(fresh, index));
+                    }
+                    expect(barStyles(chart, 0)).not.toEqual(barStyles(chart, 1));
+                    const lineNodes = (c: Chart) => classCast(c.series[2], LineSeries).contextNodeData?.nodeData ?? [];
+                    expect(lineNodes(chart)).toHaveLength(lineNodes(fresh).length);
+                } finally {
+                    fresh.destroy();
+                }
+            });
+
+            it('rebuilds the labels after a context delta, as a fresh chart does', async () => {
+                const options = (p: string) =>
+                    ({
+                        data: rows(3),
+                        context: { p },
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'year',
+                                yKey: 'gdp',
+                                label: {
+                                    enabled: true,
+                                    formatter: ({ value, context }: { value: number; context: { p: string } }) =>
+                                        `${context.p}${value}`,
+                                },
+                            },
+                        ],
+                    }) as any;
+                const chartProxy = AgCharts.create(prepareTestOptions(options('A')));
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+
+                await chartProxy.updateDelta({ context: { p: 'B' } } as any);
+                await waitForChartStability(chart);
+
+                const fresh = deproxy(await createChart(options('B')));
+                try {
+                    const labels = (c: Chart) => barData(c).map((d) => d.label?.text);
+                    expect(labels(chart)).toEqual(['B1', 'B2', 'B3']);
+                    expect(labels(chart)).toEqual(labels(fresh));
+                } finally {
+                    fresh.destroy();
+                }
+            });
+
+            describe('axes predicted from a grown data set', () => {
+                const series = [{ type: 'line', xKey: 'when', yKey: 'gdp' }];
+                const numbers = (count: number) => Array.from({ length: count }, (_, i) => ({ when: i, gdp: i }));
+                const dates = (count: number) =>
+                    Array.from({ length: count }, (_, i) => ({ when: new Date(2020, i, 1), gdp: i }));
+                const axisTypes = (c: Chart) => c.axes.map((axis) => axis.type);
+
+                it('takes on the axes of a grown data set after a same-length type change', async () => {
+                    const chartProxy = AgCharts.create(prepareTestOptions({ data: numbers(5), series } as any));
+                    chart = deproxy(chartProxy);
+                    await waitForChartStability(chart);
+
+                    await chartProxy.updateDelta({ data: dates(5) } as any);
+                    await waitForChartStability(chart);
+                    await chartProxy.updateDelta({ data: dates(6) } as any);
+                    await waitForChartStability(chart);
+
+                    const fresh = deproxy(await createChart({ data: dates(6), series } as any));
+                    try {
+                        expect(axisTypes(chart)).toEqual(axisTypes(fresh));
+                    } finally {
+                        fresh.destroy();
+                    }
+                });
+
+                it('takes on the axes a grown data set predicts, as a fresh chart does', async () => {
+                    const chartProxy = AgCharts.create(
+                        prepareTestOptions({ data: [{ when: 'a', gdp: 1 }], series } as any)
+                    );
+                    chart = deproxy(chartProxy);
+                    await waitForChartStability(chart);
+
+                    await chartProxy.updateDelta({ data: dates(8) } as any);
+                    await waitForChartStability(chart);
+
+                    const fresh = deproxy(await createChart({ data: dates(8), series } as any));
+                    try {
+                        expect(axisTypes(chart)).toEqual(axisTypes(fresh));
+                    } finally {
+                        fresh.destroy();
+                    }
+                });
+            });
+        });
+
         // updateDelta must not reset data accumulated via applyTransaction.
         it('should preserve applyTransaction data when updateDelta changes series options', async () => {
             const initialData = [
@@ -705,15 +934,7 @@ describe('Chart', () => {
     });
 
     describe('Chart data inherited by Series', () => {
-        async function createSeriesTestChart(options: object) {
-            const chartOptions = prepareTestOptions(options);
-            const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
-            chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
-            return { chartProxy, chartOptions };
-        }
-
-        async function updateChart(chartProxy: AgChartProxy, options: object) {
+        async function updateChart(chartProxy: AgChartInstance, options: object) {
             const chartOptions = prepareTestOptions(options);
             await chartProxy.update(chartOptions);
             await waitForChartStability(deproxy(chartProxy));
@@ -722,7 +943,7 @@ describe('Chart', () => {
         it('Chart data inherited only when Series data is not defined ', async () => {
             const moreData = datasets.economy.data;
             const lessData = datasets.economy.data.slice(0, 2);
-            const { chartProxy } = await createSeriesTestChart({
+            const chartProxy = await createChart({
                 data: moreData,
                 series: [
                     {
@@ -738,6 +959,7 @@ describe('Chart', () => {
                     },
                 ],
             });
+            chart = deproxy(chartProxy);
             expect(chart.data).toEqual(DataSet.wrap(moreData, chart.ctx.logger));
             expect(chart.series[0].data).toEqual(DataSet.wrap(moreData, chart.ctx.logger));
             expect(chart.series[1].data).toEqual(DataSet.wrap(lessData, chart.ctx.logger));
@@ -798,7 +1020,7 @@ describe('Chart', () => {
         };
 
         it('dispatches required range ratio based on seriesRect and direction', async () => {
-            chart = await createChart(baseOptions);
+            chart = deproxy(await createChart(baseOptions));
             const chartAny = chart as any;
             let capturedEvent: { requiredRangeRatio: number; requiredRangeDirection: ChartAxisDirection } | undefined;
 
@@ -818,7 +1040,7 @@ describe('Chart', () => {
         });
 
         it('falls back to 0 when the ratio is NaN', async () => {
-            chart = await createChart(baseOptions);
+            chart = deproxy(await createChart(baseOptions));
             const chartAny = chart as any;
             let capturedEvent: { requiredRangeRatio: number } | undefined;
 
@@ -1128,8 +1350,7 @@ describe('Chart', () => {
         });
 
         const createMarkerChart = async (options: AgCartesianChartOptions) => {
-            chart = deproxy(AgCharts.create(prepareTestOptions(options)));
-            await waitForChartStability(chart);
+            chart = deproxy(await createChart(options));
 
             const [node] = classCast(chart.series[0], LineSeries).contextNodeData?.nodeData ?? [];
             expect(node).toBeDefined();
@@ -1229,11 +1450,8 @@ describe('Chart', () => {
 
         async function createChartWithClickListener(options: AgCartesianChartOptions) {
             click = vi.fn();
-            chartInstance = AgCharts.create(
-                prepareTestOptions<AgCartesianChartOptions>({ ...options, listeners: { click } })
-            ) as AgChartProxy;
+            chartInstance = (await createChart({ ...options, listeners: { click } })) as AgChartProxy;
             chart = deproxy(chartInstance);
-            await waitForChartStability(chart);
         }
 
         /**
@@ -2076,7 +2294,7 @@ describe('Chart', () => {
                 displayNullData: true,
             } as any;
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
@@ -2092,6 +2310,7 @@ describe('Chart destroy() / performUpdate() race condition', () => {
         { x: 'C', y: 30 },
     ];
 
+    // Bespoke: no `prepareTestOptions`, so the chart is created with the bare options and the document body as container.
     async function testDestroyRace(seriesType: 'bar' | 'area' | 'line') {
         const proxy = AgCharts.create({
             container: document.body,
@@ -2340,6 +2559,8 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         for (const proxy of created.splice(0)) proxy.destroy();
     });
 
+    // Bespoke: creates synchronously without `prepareTestOptions` or a stability wait, to observe failures raised
+    // during `AgCharts.create` itself.
     // Every chart a test creates, including those a listener creates re-entrantly, so all are destroyed.
     function create(options: AgCartesianChartOptions) {
         const proxy = AgCharts.create(options) as AgChartProxy;

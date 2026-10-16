@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import type { AgChartInstance, AgSelectionChangeEvent, AgSelectionItemIds } from 'ag-charts-community';
 
+import { mirrorSelection } from './chartSelection';
+
 interface ShipmentSelectionOptions<TDatum> {
     /** The workspace's shipment selection, shared with the other chart, the worklist and the clear button. */
     selectedShipmentIds: string[];
@@ -13,14 +15,12 @@ interface ShipmentSelectionOptions<TDatum> {
     itemsFor: (shipmentId: string) => AgSelectionItemIds[];
 }
 
-const itemKey = ({ seriesId, itemId }: AgSelectionItemIds) => `${seriesId}\u0000${String(itemId)}`;
-
 /**
  * Mirrors a chart's own data selection to and from the workspace's shared shipment selection.
  *
- * Each shipment must be exactly one selectable item, so the chart's added and removed items are the
- * shipments the user added and removed. A second selectable mark per shipment breaks that: a plain
- * click on one is reported as removing the other.
+ * A shipment is selected as the one item `itemsFor` returns, so the chart's added and removed items are
+ * the shipments the user added and removed. Another selectable mark for it only selects it: the sync
+ * replaces that mark with the shipment's item, so a Ctrl/Cmd-click on the mark cannot deselect it.
  */
 export function useShipmentSelection<TDatum>({
     selectedShipmentIds,
@@ -43,22 +43,7 @@ export function useShipmentSelection<TDatum>({
     useEffect(() => {
         const chart = chartRef.current;
         if (chart == null) return;
-        let cancelled = false;
-        // A chart remounted by a tab switch has no series to select into until its first update lands.
-        void chart.waitForUpdate().then(() => {
-            if (cancelled) return;
-            const wanted = selectedShipmentIds.flatMap(itemsFor);
-            const current = new Set(Array.from(chart.getSelection(), itemKey));
-            if (wanted.length === current.size && wanted.every((item) => current.has(itemKey(item)))) return;
-            if (wanted.length === 0) {
-                chart.clearSelection();
-            } else {
-                chart.setSelection(wanted);
-            }
-        });
-        return () => {
-            cancelled = true;
-        };
+        return mirrorSelection(chart, selectedShipmentIds.flatMap(itemsFor));
     }, [selectedShipmentIds, itemsFor]);
 
     return { chartRef, onChartSelectionChange };

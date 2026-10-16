@@ -98,7 +98,7 @@ describe('buildChartsLandingPageMarkdown section rendering', () => {
 
     it('resolves FAQ answer links, which are framework-relative Markdoc', () => {
         expect(output).toContain('## Frequently Asked Questions');
-        expect(output).toContain('[AG Charts Enterprise](https://www.ag-grid.com/license-pricing/)');
+        expect(output).toContain('[AG Charts Enterprise](https://www.ag-grid.com/javascript/community-vs-enterprise/)');
     });
 });
 

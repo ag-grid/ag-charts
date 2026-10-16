@@ -33,7 +33,7 @@ import { BBox, Group, Rect, Selection, Text, Transformable } from 'ag-charts-cor
 import type { Node } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { OrganizationNodeTag } from './organizationNode';
 import { OrganizationSeries } from './organizationSeries';
 
@@ -1010,12 +1010,6 @@ describe('OrganizationSeries', () => {
         await compareImageSnapshot(chart, ctx, options);
     };
 
-    async function createChart(options: AgChartOptions): Promise<void> {
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
-    }
-
     function getZoomRatios(c: any) {
         return c.getState()?.zoom as
             { ratioX?: { start?: number; end?: number }; ratioY?: { start?: number; end?: number } } | undefined;
@@ -1651,7 +1645,7 @@ describe('OrganizationSeries', () => {
         }
 
         it('should style the active node exactly as hovering styles it', async () => {
-            await createChart(buildOptions());
+            chart = await createEnterpriseChart(buildOptions());
 
             // Every card shares the default node style, so an untouched sibling is the reference.
             const defaultStyle = cardStyle('cfo');
@@ -1666,7 +1660,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should resolve a numeric item id to its node', async () => {
-            await createChart(buildOptions());
+            chart = await createEnterpriseChart(buildOptions());
             const defaultStyle = cardStyle('cfo');
 
             await setActive(1);
@@ -1675,7 +1669,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should drop the highlight when the active item is cleared', async () => {
-            await createChart(buildOptions());
+            chart = await createEnterpriseChart(buildOptions());
             const defaultStyle = cardStyle('cto');
 
             await setActive('cto');
@@ -1686,7 +1680,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should drop the highlight when the pointer moves over empty space', async () => {
-            await createChart(buildOptions());
+            chart = await createEnterpriseChart(buildOptions());
             const defaultStyle = cardStyle('cto');
 
             await setActive('cto');
@@ -1702,7 +1696,7 @@ describe('OrganizationSeries', () => {
 
         // Organization tooltips are off by default, so a tooltip case has to opt in.
         it('should show the tooltip for the active node', async () => {
-            await createChart(buildOptions({ tooltip: { enabled: true } }));
+            chart = await createEnterpriseChart(buildOptions({ tooltip: { enabled: true } }));
 
             await setActive('cto');
 
@@ -1713,7 +1707,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should hide the tooltip when the active item is cleared', async () => {
-            await createChart(buildOptions({ tooltip: { enabled: true } }));
+            chart = await createEnterpriseChart(buildOptions({ tooltip: { enabled: true } }));
 
             await setActive('cto');
             await setActive(undefined);
@@ -1724,7 +1718,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should move the highlight to a hovered node, leaving the previously active one unstyled', async () => {
-            await createChart(buildOptions());
+            chart = await createEnterpriseChart(buildOptions());
             const defaultStyle = cardStyle('cto');
 
             await setActive('cto');
@@ -1735,7 +1729,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should not style the active node when highlighting is disabled', async () => {
-            await createChart(buildOptions({ highlight: { enabled: false } }));
+            chart = await createEnterpriseChart(buildOptions({ highlight: { enabled: false } }));
             const defaultStyle = cardStyle('cto');
 
             await setActive('cto');
@@ -1744,7 +1738,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should style an active node whose ancestry was collapsed', async () => {
-            await createChart(buildOptions());
+            chart = await createEnterpriseChart(buildOptions());
             const defaultStyle = cardStyle('cfo');
 
             await chart.setState({ version: chart.getState().version, collapsed: ['cto'] });
@@ -3568,7 +3562,7 @@ describe('OrganizationSeries', () => {
         it('should fit and centre the chart when a collapse leaves the held view unreachable', async () => {
             // Collapsing the CTO shrinks the content past the view it was being held at, so the node
             // cannot stay where it was; the whole chart is shown rather than a clipped part of it.
-            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+            chart = await createEnterpriseChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
             await clickItem('Joseph Howe', OrganizationNodeTag.Expander);
             // Guards the snapshot against a click that missed the expander entirely.
@@ -3578,7 +3572,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should hold a node in place when expanding would clip it', async () => {
-            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+            chart = await createEnterpriseChart({ ...TEAM_DIRECTORY_ORG_CHART });
             setZoom(chart, 0.3, 0.7, 0.3, 0.7);
             await waitForChartStability(chart);
             await panToOrigin();
@@ -3592,7 +3586,7 @@ describe('OrganizationSeries', () => {
         it('should fit and centre the chart when a collapse raises the content-fits floor', async () => {
             // The node's centre could still be held here, but only by rescaling the chart around it and
             // leaving the rest of the tree hanging off the edge of the series area; showing all of it wins.
-            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+            chart = await createEnterpriseChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
             await clickItem('Gary Garcia', OrganizationNodeTag.Expander);
             // Guards the snapshot against a click that missed the expander entirely.
@@ -3605,7 +3599,7 @@ describe('OrganizationSeries', () => {
             // Expanding then collapsing the same node returns the content to the bounds it started at,
             // so nothing forces the view to move: the baseline here is the chart's opening view,
             // unchanged. A fallback that fired when it was not needed would re-centre and show up.
-            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+            chart = await createEnterpriseChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
             await clickItem('Jeffrey Brown', OrganizationNodeTag.Expander);
             expect(deproxy(chart).ctx.collapsedManager.isCollapsed('Jeffrey Brown')).toBe(false);
@@ -3670,7 +3664,7 @@ describe('OrganizationSeries', () => {
         ];
 
         it.each(OPTION_CHANGES)('should fit and centre the chart when %s changes', async (_name, change) => {
-            await createChart({ ...SIMPLE_ORG_CHART });
+            chart = await createEnterpriseChart({ ...SIMPLE_ORG_CHART });
 
             const target = withSeries(SIMPLE_ORG_CHART, change);
             prepareEnterpriseTestOptions(target);
@@ -3682,7 +3676,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should fit and centre the chart when its data changes', async () => {
-            await createChart({ ...SIMPLE_ORG_CHART });
+            chart = await createEnterpriseChart({ ...SIMPLE_ORG_CHART });
 
             const data = SIMPLE_ORG_CHART.data!.slice(0, 4);
             await chart.updateDelta({ data });
@@ -3693,7 +3687,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should fit and centre the chart when a chart-level option moves the series area', async () => {
-            await createChart({ ...SIMPLE_ORG_CHART });
+            chart = await createEnterpriseChart({ ...SIMPLE_ORG_CHART });
 
             const target: AgChartOptions = { ...SIMPLE_ORG_CHART, title: { text: 'Leadership team' } };
             prepareEnterpriseTestOptions(target);
@@ -3723,7 +3717,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should discard a pan when the options change', async () => {
-            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+            chart = await createEnterpriseChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
             const ratios = getZoomRatios(chart);
             const xSize = (ratios?.ratioX?.end ?? 0) - (ratios?.ratioX?.start ?? 0);
@@ -3745,7 +3739,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should fit and centre the chart when the collapsed state is set', async () => {
-            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+            chart = await createEnterpriseChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
             const ratios = getZoomRatios(chart);
             const xSize = (ratios?.ratioX?.end ?? 0) - (ratios?.ratioX?.start ?? 0);
@@ -3764,7 +3758,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should fit and centre on an options change that follows a zoom-only restore', async () => {
-            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+            chart = await createEnterpriseChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
             await chart.setState({
                 version: '13.3.0',
@@ -3786,7 +3780,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should keep the zoom a state restores alongside a collapsed change', async () => {
-            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+            chart = await createEnterpriseChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
             await chart.setState({
                 version: '13.3.0',

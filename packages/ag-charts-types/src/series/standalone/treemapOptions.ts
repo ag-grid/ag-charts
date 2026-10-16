@@ -68,7 +68,7 @@ export interface AgTreemapSeriesGroupLayout<TDatum, TContext = ContextDefault> {
     /**
      * Horizontal position of the label.
      *
-     * @deprecated v14.2.0 Use `label.textAlign` instead.
+     * @deprecated v14.3.0 Use `label.textAlign` instead.
      */
     textAlign?: TextAlign;
     /** The distance between the edges of the outer-most title to the edges of the group. */
@@ -127,13 +127,13 @@ export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
     /**
      * Horizontal position of the label.
      *
-     * @deprecated v14.2.0 Use `label.textAlign` and `secondaryLabel.textAlign` instead.
+     * @deprecated v14.3.0 Use `label.textAlign` and `secondaryLabel.textAlign` instead.
      */
     textAlign?: TextAlign;
     /**
      * Vertical position of the label.
      *
-     * @deprecated v14.2.0 Use `label.verticalAlign` and `secondaryLabel.verticalAlign` instead.
+     * @deprecated v14.3.0 Use `label.verticalAlign` and `secondaryLabel.verticalAlign` instead.
      */
     verticalAlign?: VerticalAlign;
     /** Distance between the tile edges and the text. */
@@ -216,7 +216,10 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext
 
 export interface AgTreemapSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend' | 'selection'>,
+        Omit<
+            AgBaseSeriesOptions<TDatum, TContext>,
+            'highlight' | 'highlightStyle' | 'showInLegend' | 'selection' | 'focusIndex'
+        >,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames,
         AgTreemapSeriesThemeableOptions<TDatum, TContext> {

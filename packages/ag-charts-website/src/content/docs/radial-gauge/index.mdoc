@@ -159,6 +159,8 @@ In this configuration:
 - The second label displays a fixed `text` string. This option is only available for inner labels.
 - The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
 
+Set `maxWidth` and `maxHeight` on the first label to limit its size.
+
 ### Segmentation
 
 To split the gauge into segments, set `segmentation.enabled` to `true`.
@@ -346,6 +348,7 @@ In this configuration:
 - `placement` indicates the relative placement to the gauge - either `inside`, `outside`, or `middle`.
 - `size` is the size of the marker, in pixels.
 - `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
+- `label` styles the target text. Set `maxWidth` or `maxHeight` to fit long text, and `collision` to hide a label that overlaps another label.
 
 ## Radial Gauge Chart Examples
 

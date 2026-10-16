@@ -110,6 +110,9 @@ const SIZE_OPTIONS = [
     ['width', 'inWidth'],
 ] as const;
 
+/** Options that change only the layout, which a chart with axes carries to its series through the axes' ranges. */
+const LAYOUT_ONLY_DELTA_KEYS = new Set(['title', 'subtitle', 'footnote', 'padding', 'background']);
+
 /** A chart-like owner of series and axes: the chart itself or the navigator's mini chart. */
 interface SeriesAxesHost {
     series: UnknownSeries[];
@@ -1423,7 +1426,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (transform == null || presetOptions == null) return data;
 
         if (this.seriesData?.source !== data || this.seriesData.options !== presetOptions) {
-            const seriesData = DataSet.wrap(transform(data.data, presetOptions), this.ctx.logger);
+            const seriesData = DataSet.wrap(transform(data.data, presetOptions, this.ctx.logger), this.ctx.logger);
             this.seriesData = { source: data, options: presetOptions, data: seriesData };
         }
         return this.seriesData.data;
@@ -1789,7 +1792,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        if (this.applyAxes(this, newOpts, seriesStatus)) {
+        this.applyAxes(this, newOpts, seriesStatus);
+        if (this.axes.length === 0 || !Object.keys(deltaOptions).every((key) => LAYOUT_ONLY_DELTA_KEYS.has(key))) {
             forceNodeDataRefresh = true;
         }
 
@@ -2116,7 +2120,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     private applyAxes(chart: SeriesAxesHost, options: AgChartOptions, seriesStatus: SeriesChangeType) {
         if (!('axes' in options) || !options.axes) {
-            return false;
+            return;
         }
 
         const axes = options.axes;
@@ -2145,7 +2149,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             axis.userKey = unmappedAxisKeys.get(axis.id) ?? axis.id;
             axis.setPickComputationEnabled(pickComputationEnabled);
         }
-        return true;
     }
 
     private createSeries(seriesOptions: SeriesOptionsTypes): UnknownSeries {

@@ -533,6 +533,7 @@ describe('ChartTheme', () => {
     describe('border theme params', () => {
         const BASE_PARAMS = { borderColor: '#112233', borderWidth: 2 };
 
+        // Bespoke: deliberately skips `prepareTestOptions` so the theme params under test reach the chart unmodified.
         const create = async (params: object, options: Partial<AgCartesianChartOptions> = {}) => {
             chart = deproxy(
                 AgCharts.create({
@@ -592,6 +593,7 @@ describe('ChartTheme', () => {
             legend,
         });
 
+        // Bespoke: deliberately skips `prepareTestOptions` so the options resolve against the unmodified theme.
         const resolvedLegend = async (options: AgCartesianChartOptions) => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
@@ -948,6 +950,7 @@ describe('ChartTheme', () => {
     });
 
     describe('line width alias precedence', () => {
+        // Bespoke: deliberately skips `prepareTestOptions` so the theme under test reaches the chart unmodified.
         async function createChart(
             axisLine: Record<string, unknown> | undefined,
             theme?: AgChartTheme

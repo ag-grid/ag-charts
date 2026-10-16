@@ -22,7 +22,7 @@ import { AgCharts, RangeBarSeriesModule } from './main';
 import { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
 import { PriceVolumePresetModule } from './preset/price-volume/priceVolumePresetModule';
 import { VolumeProfilePresetModule } from './preset/volume-profile/volumeProfilePresetModule';
-import { prepareEnterpriseTestOptions } from './test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from './test/utils';
 
 describe('instance modules', () => {
     setupMockConsole();
@@ -79,19 +79,14 @@ describe('theme defaults for unregistered modules', () => {
         ModuleRegistry.registerModules(registeredModules);
     });
 
-    async function createChart(options: AgCartesianChartOptions) {
-        chart = AgCharts.create(prepareEnterpriseTestOptions({ ...options }));
-        await waitForChartStability(chart);
-    }
-
     it('drops the template crosshair default without reporting CrosshairModule', async () => {
-        await createChart(OPTIONS);
+        chart = await createEnterpriseChart(OPTIONS);
 
         expect(console.error).not.toHaveBeenCalled();
     });
 
     it('reports CrosshairModule when enabled through theme overrides', async () => {
-        await createChart({
+        chart = await createEnterpriseChart({
             ...OPTIONS,
             theme: { overrides: { common: { axes: { number: { crosshair: { enabled: true } } } } } },
         });
@@ -100,7 +95,7 @@ describe('theme defaults for unregistered modules', () => {
     });
 
     it('reports CrosshairModule when enabled through options', async () => {
-        await createChart({
+        chart = await createEnterpriseChart({
             ...OPTIONS,
             axes: {
                 x: { type: 'category' },
@@ -182,15 +177,19 @@ describe('enterprise cartesian axis modules', () => {
 });
 
 describe('preset module dependencies', () => {
-    it.each([
-        ['volume-profile', VolumeProfilePresetModule],
-        ['price-volume', PriceVolumePresetModule],
-    ])('registers the modules behind the total segment and selection with the %s preset', (_name, preset) => {
+    it('registers the modules behind the total segment and selection with the volume-profile preset', () => {
         const scope = new ModuleScope();
-        scope.register(preset);
+        scope.register(VolumeProfilePresetModule);
 
         expect(scope.hasModule('axisInsetValue')).toBe(true);
         expect(scope.hasModule('axisSelectedBand')).toBe(true);
         expect(scope.hasModule('selection')).toBe(true);
+    });
+
+    it('registers the module behind the total segment with the price-volume preset', () => {
+        const scope = new ModuleScope();
+        scope.register(PriceVolumePresetModule);
+
+        expect(scope.hasModule('axisInsetValue')).toBe(true);
     });
 });

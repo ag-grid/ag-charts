@@ -442,6 +442,12 @@ export abstract class Series<
         return true;
     }
 
+    /** Whether pointer hover can pick this series' nodes, for highlights and tooltips alike; clicks still can. */
+    protected isHoverable(): boolean {
+        // Override point for subclasses
+        return true;
+    }
+
     /** Series returning the same group select and deselect their items of a shared category together. */
     public getSelectionGroup(): string | undefined {
         // Override point for subclasses
@@ -1202,6 +1208,7 @@ export abstract class Series<
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
+        if (intent !== 'event' && intent !== 'context-menu' && !this.isHoverable()) return;
 
         // Mini-charts render markerless by construction, so they keep the plain 'exact' semantics.
         const hasPickableNodeShapes = this.chart?.isMiniChart === true || this.hasPickableNodeShapes();

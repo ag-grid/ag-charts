@@ -1,7 +1,6 @@
 import { afterEach, describe } from 'vitest';
 
-import type { AgCartesianChartOptions } from 'ag-charts-community';
-import { type AgChartInstance, type AgChartState, AgCharts } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgChartInstance, AgChartState } from 'ag-charts-community';
 import {
     type MockZoomListener,
     newFreezableMockInferred,
@@ -11,18 +10,13 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 
 describe('ZoomAutoScale', () => {
     setupMockConsole();
     setupMockCanvas();
 
     let chart: AgChartInstance;
-
-    async function createChart<D>(options: AgCartesianChartOptions<D>): Promise<void> {
-        chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-        await waitForChartStability(chart);
-    }
 
     afterEach(() => {
         if (chart != null) {
@@ -63,7 +57,7 @@ describe('ZoomAutoScale', () => {
             },
         };
 
-        await createChart<D>(options);
+        chart = await createEnterpriseChart(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
         expect(zoomListener.mock).toHaveBeenCalledTimes(0);
@@ -102,7 +96,7 @@ describe('ZoomAutoScale', () => {
             },
         };
 
-        await createChart<D>(options);
+        chart = await createEnterpriseChart(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
         expect(zoomListener.mock).toHaveBeenCalledTimes(0);
@@ -147,7 +141,7 @@ describe('ZoomAutoScale', () => {
             },
         };
 
-        await createChart<D>(options);
+        chart = await createEnterpriseChart(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
         expect(zoomListener.mock).toHaveBeenCalledTimes(0);
@@ -187,7 +181,7 @@ describe('ZoomAutoScale', () => {
         };
 
         // Init chart; Expect no zoom at all.
-        await createChart<D>(options);
+        chart = await createEnterpriseChart(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
         expect(state.zoom?.ratioX).toMatchObject({ start: 0, end: 1 });
@@ -246,7 +240,7 @@ describe('ZoomAutoScale', () => {
         };
 
         // Init chart; Expect no zoom at all.
-        await createChart<D>(options);
+        chart = await createEnterpriseChart(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
         expect(state.zoom?.ratioX).toMatchObject({ start: 0, end: 1 });

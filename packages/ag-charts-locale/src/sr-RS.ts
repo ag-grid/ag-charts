@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_SR_RS: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'Обим ${value}',
+    statusBarVolumeProfilePrice: 'Цена',
+    statusBarVolumeProfileUp: 'Горе',
+    statusBarVolumeProfileDown: 'Доле',
+    statusBarVolumeProfileTotal: 'Укупно',
     tooltipPaginationStatus: '${index}[number] од ${count}[number]',
 };

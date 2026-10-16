@@ -283,6 +283,7 @@ export {
     labelHasBox,
     placedLabelTextOffset,
     resolvePlacementLabelBoxExtent,
+    resolvePlacementLabelStyle,
 } from './chart/label';
 export { Marker } from './chart/marker/marker';
 

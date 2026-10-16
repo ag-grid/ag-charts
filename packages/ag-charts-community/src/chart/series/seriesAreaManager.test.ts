@@ -1,10 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import {
+    type Chart,
     createChart,
+    deproxy,
     getCursor,
+    getSwapChainText,
     hoverAction,
     isTooltipVisible,
     pressKey,
@@ -37,7 +40,7 @@ describe('CRT-1122 hover cursor', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Awaited<ReturnType<typeof createChart>>;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         chart?.destroy();
@@ -75,7 +78,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Awaited<ReturnType<typeof createChart>>;
+    let chart: Chart;
 
     afterEach(() => {
         chart?.destroy();
@@ -104,7 +107,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     }
 
     it('hides the tooltip and keeps focus on the datum', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         const announcer = document.activeElement;
 
@@ -119,7 +122,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('shows the tooltip again when focus moves to another datum', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         await pressEscape();
         expect(isTooltipVisible(chart)).toBe(false);
@@ -134,7 +137,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('shows the tooltip again when focus moves to another series', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         await pressEscape();
 
@@ -144,7 +147,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('keeps the tooltip hidden when an arrow key cannot move focus', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         await pressEscape();
 
@@ -154,7 +157,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('keeps the tooltip hidden across a chart redraw', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         await pressEscape();
 
@@ -166,7 +169,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('does not consume Escape when the chart is not keyboard-focused', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
 
         const event = await pressEscape();
 
@@ -175,7 +178,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('does not consume a second Escape once the tooltip is dismissed', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         await pressEscape();
 
@@ -186,7 +189,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('does not consume Escape when the series tooltip is disabled', async () => {
-        chart = await createChart(barOptions({ tooltip: { enabled: false } }));
+        chart = deproxy(await createChart(barOptions({ tooltip: { enabled: false } })));
         await tabIntoChart(chart);
         await pressKey(chart, 'ArrowRight');
         expect(isTooltipVisible(chart)).toBe(false);
@@ -197,7 +200,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('does not dismiss a pointer hover tooltip', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await hoverAction(overBar.x, overBar.y)(chart);
         await waitForChartStability(chart);
         expect(isTooltipVisible(chart)).toBe(true);
@@ -206,5 +209,68 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
 
         expect(event.defaultPrevented).toBe(false);
         expect(isTooltipVisible(chart)).toBe(true);
+    });
+});
+
+describe('focusIndex', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Awaited<ReturnType<typeof createChart>>;
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const names = ['Alpha', 'Bravo', 'Charlie', 'Delta'];
+
+    function focusIndexSeries(focusIndices: Array<number | undefined>): AgBarSeriesOptions[] {
+        return focusIndices.map((focusIndex, i) => ({
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'abcd'[i],
+            yName: names[i],
+            focusIndex,
+        }));
+    }
+
+    function focusIndexOptions(focusIndices: Array<number | undefined>): AgCartesianChartOptions {
+        return { data: [{ month: 'January', a: 1, b: 2, c: 3, d: 4 }], series: focusIndexSeries(focusIndices) };
+    }
+
+    function focusedSeriesName() {
+        const text = getSwapChainText();
+        return names.find((name) => text?.includes(name));
+    }
+
+    async function readFocusOrder() {
+        await tabIntoChart(chart);
+        await pressKey(chart, 'ArrowRight');
+        const order = [focusedSeriesName()];
+        for (let i = 1; i < names.length; i++) {
+            await pressKey(chart, 'ArrowDown');
+            order.push(focusedSeriesName());
+        }
+        return order;
+    }
+
+    it.each([
+        ['follows array order when unset', [undefined, undefined, undefined, undefined], names],
+        ['orders by value, allowing gaps', [30, 10, 40, 20], ['Bravo', 'Delta', 'Alpha', 'Charlie']],
+        ['focuses series with a value first', [undefined, 5, undefined, 1], ['Delta', 'Bravo', 'Alpha', 'Charlie']],
+        ['breaks ties by array order', [1, 0, 1, 0], ['Bravo', 'Delta', 'Alpha', 'Charlie']],
+    ])('%s', async (_name, focusIndices, expected) => {
+        chart = await createChart(focusIndexOptions(focusIndices));
+
+        expect(await readFocusOrder()).toEqual(expected);
+    });
+
+    it('applies a focusIndex change from updateDelta', async () => {
+        chart = await createChart(focusIndexOptions([undefined, undefined, undefined, undefined]));
+
+        await chart.updateDelta({ series: focusIndexSeries([undefined, undefined, undefined, 0]) });
+        await waitForChartStability(chart);
+
+        expect(await readFocusOrder()).toEqual(['Delta', 'Alpha', 'Bravo', 'Charlie']);
     });
 });

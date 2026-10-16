@@ -153,7 +153,7 @@ A label can be configured with the `label` property.
     label: {
         enabled: true,
         placement: 'inside-start',
-        avoidCollisions: true,
+        outsideStyle: { color: { ref: 'textColor' } },
     },
     scale: {
         label: {
@@ -165,8 +165,10 @@ A label can be configured with the `label` property.
 
 In this configuration:
 
-- The label placement in relation to the gauge is configured by the `placement` property.
-- The label is configured to avoid simultaneously overlapping the bar and scale with the `avoidCollisions` property.
+- The label placement in relation to the gauge is configured by the `placement` property. An array of placements is tried in turn until one fits.
+- `insideStyle` and `outsideStyle` style the label according to whether it lands on the bar.
+- A label that does not fit is hidden unless `collision.alwaysShow` is set.
+- `maxWidth` and `maxHeight` limit the size of the label.
 - The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
 
 ### Segmentation
@@ -341,6 +343,7 @@ In this configuration:
 - `placement` indicates the relative placement to the gauge - either `before`, `after`, or `middle`.
 - `size` is the size of the marker, in pixels.
 - `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
+- `label` styles the target text. Set `maxWidth` or `maxHeight` to fit long text, and `collision` to hide a label that overlaps another label.
 
 ## Bullet Series
 

@@ -15,7 +15,6 @@ import {
     CURRENT_QUARTER,
     CURRENT_QUARTER_FULL,
     DEMO_NOW,
-    ON_TIME_TARGET,
     RANGE_PRESETS,
     SUBCATEGORIES,
     SUPPLIER_BY_ID,
@@ -25,6 +24,7 @@ import {
     daysBetween,
     deliveredInRange,
     inRange,
+    materialQualityCost,
     monthBuckets,
     qualityCost,
     scorecard,
@@ -45,6 +45,7 @@ import type {
     BurnUpPoint,
     CommodityManager,
     DateRange,
+    MaterialQualityCost,
     MonthBucket,
     PurchaseOrder,
     QualityCost,
@@ -254,13 +255,6 @@ export function myOrdersScope({ supplierId, subcategory }: OrdersFilter): Orders
 
 // --- her scorecard figures ----------------------------------------------------
 
-/**
- * The window the headline on-time rate is measured over — fixed, because the tile lives on the
- * orders tab, which has no period control. Matches `DEFAULT_PERIOD`, so the headline and the
- * supplier cards quote the same rate as the workspace opens.
- */
-const PERFORMANCE_MONTHS: PeriodMonths = 12;
-
 export interface MySummary {
     /** Spend on her orders raised since 1 January. */
     spendYtd: number;
@@ -272,12 +266,6 @@ export interface MySummary {
     quarterBudgetUsed: number;
     /** Her orders not yet delivered. */
     openOrders: number;
-    /**
-     * Delivered-on-time over delivered, scoped by *delivery* date over `PERFORMANCE_MONTHS` — the
-     * same basis the scorecard measures each supplier on, so the headline and the cards agree.
-     */
-    onTimeRate: number;
-    deliveredCount: number;
     /** Her active shipments flagged at risk or late. */
     atRiskShipments: number;
     /** Every active shipment by status, so the at-risk figure can show what it is drawn from. */
@@ -288,15 +276,11 @@ export interface MySummary {
 }
 
 /**
- * Her KPI figures.
+ * Her headline figures, absolute rather than period-scoped: "how many of my shipments are at risk"
+ * means right now. The orders tab's at-risk tile reads `atRiskShipments` and `shipmentsByStatus`.
  *
- * Every tile here is absolute rather than period-scoped, and each says which window it covers.
- * Three of them are absolute by definition — "how many of my shipments are at risk" means right
- * now. The fourth, on-time delivery, is measured over the same rolling twelve months and on the
- * same delivery-date basis the scorecard uses: reading it off the selected period would put a
- * figure in the headline that no supplier card agrees with, and rest it on the handful of orders
- * that both were placed and landed inside one quarter. The period selector drives the spend views
- * instead — the sunburst, the scorecard's commercial columns, and the grid.
+ * They ignore the period selector, which drives the spend views — the sunburst, the scorecard's
+ * commercial columns, and the grid.
  *
  * All of them read over `scope`, the orders tab's filtered book and freight — see `myOrdersScope`;
  * it defaults to her whole remit.
@@ -315,15 +299,6 @@ export function mySummary(
         if (order.actualDate == null) openOrders += 1;
     }
 
-    // Scoped by delivery date, as `myScorecard` is, or the headline quotes a figure no supplier card agrees with.
-    let delivered = 0;
-    let onTime = 0;
-    for (const order of deliveredInRange(orders, trailingMonths(PERFORMANCE_MONTHS))) {
-        if (order.actualDate == null) continue;
-        delivered += 1;
-        if (order.actualDate <= order.expectedDate) onTime += 1;
-    }
-
     const spendInRange = sumSpend(rangeOrders);
     const spendQuarter = sumSpend(inRange(orders, CURRENT_QUARTER));
 
@@ -336,8 +311,6 @@ export function mySummary(
         spendQuarter,
         quarterBudgetUsed: spendQuarter / MY_BUDGET.quarterly,
         openOrders,
-        onTimeRate: delivered > 0 ? onTime / delivered : 0,
-        deliveredCount: delivered,
         atRiskShipments: shipmentsByStatus['At risk'] + shipmentsByStatus.Late,
         shipmentsByStatus,
         spendInRange,
@@ -376,9 +349,6 @@ export function myAttentionItems(): AttentionItem[] {
             };
         });
 }
-
-/** The on-time target the KPI tile states, re-exported so it and the scorecard agree. */
-export { ON_TIME_TARGET };
 
 // --- her periods --------------------------------------------------------------
 
@@ -487,6 +457,12 @@ export const mySupplierTrend = (months: PeriodMonths): Map<string, SupplierTrend
 /** What her rejected material cost, per supplier, over the selected window. */
 export const myQualityCost = (months: PeriodMonths): QualityCost[] =>
     qualityCost(myDeliveredIn(months), MANAGER.supplierIds);
+
+/** What her rejected material cost, per material, for each of her suppliers over the selected window. */
+export const myMaterialQualityCost = (months: PeriodMonths): Map<string, MaterialQualityCost[]> => {
+    const delivered = myDeliveredIn(months);
+    return new Map(MANAGER.supplierIds.map((supplierId) => [supplierId, materialQualityCost(delivered, supplierId)]));
+};
 
 /**
  * Her committed spend against budget pace, across the whole of the selected window.

@@ -74,6 +74,5 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
         // official data selection API. Do not use.
         selectedKey: string,
         pickOutsideVisibleMinorAxis: boolean,
-        focusPriority: number,
     }),
 };

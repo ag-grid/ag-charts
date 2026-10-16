@@ -2,17 +2,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
-import {
-    createChart,
-    deproxy,
-    expectWarningMessages,
-    prepareTestOptions,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from '../test/utils';
+import { createChart, deproxy, expectWarningMessages, setupMockCanvas, setupMockConsole } from '../test/utils';
 
 // BigInt numeric-axis ticks must render at full precision end-to-end, so these drive a real chart.
 describe('NumberAxis BigInt labels', () => {
@@ -36,23 +27,19 @@ describe('NumberAxis BigInt labels', () => {
             .filter((text): text is string => text != null && text !== '');
     };
 
-    const createLineChart = async (data: unknown[]): Promise<AgChartInstance> => {
-        const options: AgCartesianChartOptions = {
-            data: data as AgCartesianChartOptions['data'],
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-        };
-        prepareTestOptions(options);
-        const instance = AgCharts.create(options);
-        await waitForChartStability(instance);
-        return instance;
-    };
+    const lineOptions = (data: unknown[]): AgCartesianChartOptions => ({
+        data: data as AgCartesianChartOptions['data'],
+        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+    });
 
     it('renders exact labels for a span larger than Number.MAX_SAFE_INTEGER (AC #16)', async () => {
         const span = 10n ** 21n;
-        chart = await createLineChart([
-            { x: 0, y: 0n },
-            { x: 1, y: span },
-        ]);
+        chart = await createChart(
+            lineOptions([
+                { x: 0, y: 0n },
+                { x: 1, y: span },
+            ])
+        );
 
         const labels = yAxisLabelText(chart);
         // 2 × 10^20 — exact only if the tick value reached the formatter as a BigInt.
@@ -62,10 +49,12 @@ describe('NumberAxis BigInt labels', () => {
 
     it('preserves precision past the float64 boundary (AC #15e)', async () => {
         // Odd values above 2^53 are unrepresentable as Number, so exact labels prove the tick stayed a BigInt.
-        chart = await createLineChart([
-            { x: 0, y: 9_007_199_254_740_990n },
-            { x: 1, y: 9_007_199_254_740_995n },
-        ]);
+        chart = await createChart(
+            lineOptions([
+                { x: 0, y: 9_007_199_254_740_990n },
+                { x: 1, y: 9_007_199_254_740_995n },
+            ])
+        );
 
         const labels = yAxisLabelText(chart);
         expect(labels).toContain('9,007,199,254,740,991');
@@ -91,9 +80,7 @@ describe('NumberAxis BigInt labels', () => {
                 },
             },
         };
-        prepareTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
 
         // The custom formatter returns the bigint verbatim, so labels are plain digit strings (no grouping).
         expect(yAxisLabelText(chart)).toContain('1000000000000000000000');
@@ -142,11 +129,13 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
+        if (chart != null) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
     });
 
     // Nine bars spanning 0..11000, as in the reporter's repro.
@@ -162,20 +151,17 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         { x: 11000, value: 2 },
     ];
 
-    const createBarChart = (xAxis: object, chartData: object[] = data) => {
-        const options: AgCartesianChartOptions = {
-            data: chartData as AgCartesianChartOptions['data'],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'value' }],
-            axes: {
-                x: { type: 'number', position: 'bottom', ...xAxis },
-                y: { type: 'number', position: 'left' },
-            },
-        };
-        return createChart(options);
-    };
+    const barOptions = (xAxis: object, chartData: object[] = data): AgCartesianChartOptions => ({
+        data: chartData as AgCartesianChartOptions['data'],
+        series: [{ type: 'bar', xKey: 'x', yKey: 'value' }],
+        axes: {
+            x: { type: 'number', position: 'bottom', ...xAxis },
+            y: { type: 'number', position: 'left' },
+        },
+    });
 
     const xAxis = () => {
-        const axis = (chart.axes as any[]).find((a) => a.direction === 'x');
+        const axis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'x');
         expect(axis).toBeDefined();
         return axis;
     };
@@ -188,7 +174,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
             .filter((text): text is string => text != null && text !== '');
 
     it('keeps the x domain fitted to the data when interval.step is dense', async () => {
-        chart = await createBarChart({ interval: { step: 100 } });
+        chart = await createChart(barOptions({ interval: { step: 100 } }));
 
         // Bars pad the 0..11000 keys by half the 1000 key interval, then the domain snaps to the 100 step.
         expect(xDomain()).toEqual([-500, 11500]);
@@ -197,7 +183,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
     it('keeps the x domain fitted to the data when interval.values is dense', async () => {
         // 116 explicit values at spacing 100 cover the padded data extent.
         const values = Array.from({ length: 116 }, (_, i) => -500 + i * 100);
-        chart = await createBarChart({ interval: { values } });
+        chart = await createChart(barOptions({ interval: { values } }));
 
         // Pinned ticks leave no tick count for the bounds to be niced against, so they stay on the data.
         expect(xDomain()).toEqual([-500, 11500]);
@@ -207,9 +193,11 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         // (-500 + i * 100) / 10000 is spaced 0.01 apart, but adjacent subtractions disagree in the
         // last bits, so an exact comparison would miss the spacing and leave the bounds on [-1, 2].
         const values = Array.from({ length: 116 }, (_, i) => (-500 + i * 100) / 10000);
-        chart = await createBarChart(
-            { interval: { values } },
-            data.map(({ x, value }) => ({ x: x / 10000, value }))
+        chart = await createChart(
+            barOptions(
+                { interval: { values } },
+                data.map(({ x, value }) => ({ x: x / 10000, value }))
+            )
         );
 
         const [d0, d1] = xDomain();
@@ -234,21 +222,24 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         };
         chart = await createChart(options);
 
-        const yAxis = (chart.axes as any[]).find((a) => a.direction === 'y');
+        const yAxis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'y');
         expect(yAxis.scale.domain.map(Number)).toEqual([-150, 50]);
     });
 
     it('still reduces colliding labels when the step is too dense for the scale to honour', async () => {
         // Over an 8000-wide domain this is far more than one tick per pixel, so the scale rejects the
         // step and falls back to automatic ticks driven by the tick count.
-        chart = await createBarChart(
-            {
-                interval: { step: 1 },
-                label: {
-                    formatter: ({ value }: { value: any }) => `an extremely long axis label text for value ${value}`,
+        chart = await createChart(
+            barOptions(
+                {
+                    interval: { step: 1 },
+                    label: {
+                        formatter: ({ value }: { value: any }) =>
+                            `an extremely long axis label text for value ${value}`,
+                    },
                 },
-            },
-            Array.from({ length: 9 }, (_, i) => ({ x: i * 1000, value: i }))
+                Array.from({ length: 9 }, (_, i) => ({ x: i * 1000, value: i }))
+            )
         );
 
         expectWarningMessages([

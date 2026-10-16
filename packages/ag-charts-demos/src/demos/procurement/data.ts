@@ -30,6 +30,7 @@ import type {
     CommodityManager,
     DateRange,
     Material,
+    MaterialQualityCost,
     MonthBucket,
     OnTimePoint,
     Plant,
@@ -813,32 +814,73 @@ export function slipDistributions(orders: PurchaseOrder[], supplierIds: string[]
  * Suppliers with no delivery record in scope are dropped rather than shown as a costless zero.
  */
 export function qualityCost(orders: PurchaseOrder[], supplierIds: string[]): QualityCost[] {
-    const totals = new Map(
-        supplierIds.map((id) => [id, { rejectedValue: 0, delivered: 0, accepted: 0, deliveredCount: 0 }])
+    const owned = new Set(supplierIds);
+    const totals = rejectionTotals(
+        orders.filter((order) => owned.has(order.supplierId)),
+        (order) => order.supplierId
     );
+
+    return supplierIds
+        .filter((id) => totals.has(id))
+        .map((supplierId) => ({
+            supplierId,
+            supplier: SUPPLIER_BY_ID.get(supplierId)!.name,
+            ...totals.get(supplierId)!,
+        }));
+}
+
+/**
+ * What one supplier's rejected material cost, per material, over the delivered orders in scope —
+ * the drill-down beneath that supplier's `qualityCost` row. Materials are in catalogue order, and
+ * those with no delivery record from the supplier are dropped as above.
+ */
+export function materialQualityCost(orders: PurchaseOrder[], supplierId: string): MaterialQualityCost[] {
+    const totals = rejectionTotals(
+        orders.filter((order) => order.supplierId === supplierId),
+        (order) => order.material
+    );
+
+    return MATERIALS.filter((material) => totals.has(material.name)).map((material) => ({
+        material: material.name,
+        subcategory: material.subcategory,
+        ...totals.get(material.name)!,
+    }));
+}
+
+/** Rejected value and accepted rate per key, over the delivered orders only. */
+function rejectionTotals(
+    orders: PurchaseOrder[],
+    keyOf: (order: PurchaseOrder) => string
+): Map<string, Pick<QualityCost, 'rejectedValue' | 'acceptedRate' | 'deliveredCount'>> {
+    const totals = new Map<
+        string,
+        { rejectedValue: number; delivered: number; accepted: number; deliveredCount: number }
+    >();
 
     for (const order of orders) {
         if (order.acceptedQuantity == null) continue;
-        const acc = totals.get(order.supplierId);
-        if (!acc) continue;
+        const key = keyOf(order);
+        let acc = totals.get(key);
+        if (!acc) {
+            acc = { rejectedValue: 0, delivered: 0, accepted: 0, deliveredCount: 0 };
+            totals.set(key, acc);
+        }
         acc.rejectedValue += (order.quantity - order.acceptedQuantity) * order.unitCost;
         acc.delivered += order.quantity;
         acc.accepted += order.acceptedQuantity;
         acc.deliveredCount += 1;
     }
 
-    return supplierIds
-        .filter((id) => totals.get(id)!.deliveredCount > 0)
-        .map((supplierId) => {
-            const acc = totals.get(supplierId)!;
-            return {
-                supplierId,
-                supplier: SUPPLIER_BY_ID.get(supplierId)!.name,
+    return new Map(
+        [...totals].map(([key, acc]) => [
+            key,
+            {
                 rejectedValue: acc.rejectedValue,
                 acceptedRate: acc.delivered > 0 ? acc.accepted / acc.delivered : 1,
                 deliveredCount: acc.deliveredCount,
-            };
-        });
+            },
+        ])
+    );
 }
 
 /**
@@ -1017,6 +1059,5 @@ export function trackShipment(shipment: Shipment, now: number): TrackedShipment 
         progress,
         position: interpolateRoute(shipment.origin, shipment.destination, progress),
         daysToRequired: daysBetween(now, shipment.requiredDate),
-        slackDays: daysBetween(shipment.projectedDate, shipment.requiredDate),
     };
 }

@@ -434,11 +434,11 @@ describe('MapLineSeries', () => {
     }) => {
         const format = (...values: any[]) => values.join(': ');
 
-        const createChart = async (params: {
+        const chartOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): Promise<any> => {
+        }): AgCartesianChartOptions | AgPolarChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
                       renderer(rParams: any) {
@@ -467,10 +467,7 @@ describe('MapLineSeries', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            prepareEnterpriseTestOptions(options);
-            const newChart = deproxy(AgCharts.create(options));
-            await waitForChartStability(newChart);
-            return newChart;
+            return options;
         };
 
         const hoverChartNodes = async (
@@ -520,7 +517,7 @@ describe('MapLineSeries', () => {
         };
 
         it(`should render tooltip correctly`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
             await hoverChartNodes(chart, ({ series, item }) => {
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
@@ -537,36 +534,40 @@ describe('MapLineSeries', () => {
         });
 
         it(`should highlight hovered items`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should highlight hovered items when tooltip is disabled`, async () => {
-            chart = await createChart({ hasTooltip: false });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: false })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: false, onNodeClick });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: false, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 6 }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
     };

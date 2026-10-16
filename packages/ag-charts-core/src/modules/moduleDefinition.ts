@@ -9,6 +9,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { AxisID } from '../identity/idBranding';
+import type { Logger } from '../logging/logger';
 import type { Normalised } from '../options/normalised/normalise';
 import type { OptionsDefs, ValidateParams, ValidationResult } from '../options/validation';
 import type { ScaleType } from '../types/scales';
@@ -85,6 +86,8 @@ export interface SeriesPluginModuleInstance extends ModuleInstance {
     getPropertyDefinitions(opts: PropertyDefinitionOpts): any[] /* PropertyDefinition<unknown>[] */;
     getDomain(direction: any /* ChartAxisDirection */): any[];
     getTooltipParams(): object;
+    /** Writes the plugin's geometry onto a node datum while the series builds it, ahead of its label anchor. */
+    updateNodeDatum?(datum: unknown): void;
 }
 
 export interface ModuleDefinition<
@@ -138,13 +141,18 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     themeTemplate?: ExtensibleTheme;
     /** The public entry point the preset is reached through, named in the missing-module warning. */
     readonly apiName?: string;
+    /** The preset's option defs embed its series defs, so the series it creates need not repeat their advisories. */
+    readonly reportsSeriesAdvisories?: boolean;
 
     // Remove these keys from the compiled theme to treat them as `undefined` with priority over the series theme.
     removeThemeSeriesKeys?: string[];
 
     create(this: void, options: unknown, ...args: any[]): any;
     // Used only by sparklines, types should be normalised to support generic cases
-    processData?(this: void, data: unknown): { data?: unknown[]; series?: Array<{ xKey: string; yKey: string }> };
+    processData?(
+        this: void,
+        data: unknown
+    ): { data?: unknown[]; series?: Array<{ xKey: string; yKey: string }>; datumKey?: string };
 
     // Preset-specific root-level delta keys applicable on the fast path; declaring them here rather than
     // in the community allow-list keeps the fast-path gate free of preset knowledge.
@@ -154,7 +162,7 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     processFastUpdate?(this: void, delta: Record<string, unknown>): Record<string, unknown>;
     // Maps the chart's data to the rows its series read. The options are as of the last slow options setup,
     // so it mustn't read keys the fast path applies.
-    transformSeriesData?(this: void, data: unknown[], options: Omit<TOptions, 'data'>): unknown[];
+    transformSeriesData?(this: void, data: unknown[], options: Omit<TOptions, 'data'>, logger: Logger): unknown[];
 }
 
 export interface AxisModuleDefinition<

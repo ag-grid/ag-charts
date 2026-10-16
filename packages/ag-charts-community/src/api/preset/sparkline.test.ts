@@ -5,6 +5,7 @@ import type { AgChartInstance, AgSparklineOptions } from 'ag-charts-types';
 
 import {
     compareImageSnapshot,
+    deproxy,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -38,6 +39,29 @@ describe('Sparkline Preset', () => {
     };
 
     describe('#__createSparkline', () => {
+        describe('series id', () => {
+            const data = [
+                { x: 0, y: 0.56 },
+                { x: 1, y: -0.81 },
+                { x: 2, y: -0.18 },
+            ];
+            const seriesIdOf = (instance: AgChartInstance<AgSparklineOptions>) => deproxy(instance).series[0].id;
+
+            it.each(['line', 'bar', 'area'] as const)('defaults to "sparkline" for a %s sparkline', async (type) => {
+                const options = prepareSparklineOptions({ type, xKey: 'x', yKey: 'y', data });
+                chart = AgCharts.__createSparkline(options);
+                await waitForChartStability(chart);
+                expect(seriesIdOf(chart)).toBe('sparkline');
+            });
+
+            it('uses the given id', async () => {
+                const options = prepareSparklineOptions({ type: 'line', xKey: 'x', yKey: 'y', data, id: 'my-spark' });
+                chart = AgCharts.__createSparkline(options);
+                await waitForChartStability(chart);
+                expect(seriesIdOf(chart)).toBe('my-spark');
+            });
+        });
+
         it('should render a basic sparkline', async () => {
             const options = prepareSparklineOptions({
                 type: 'line',
@@ -127,11 +151,11 @@ describe('Sparkline Preset', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [undefined] for [LineSeries-1 / xKey] ignored:",
+    "AG Charts - invalid value of type [undefined] for [sparkline / xKey] ignored:",
     "[undefined]",
   ],
   [
-    "AG Charts - invalid value of type [undefined] for [LineSeries-1 / xValue] ignored:",
+    "AG Charts - invalid value of type [undefined] for [sparkline / xValue] ignored:",
     "[undefined]",
   ],
 ]

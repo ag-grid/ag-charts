@@ -34,38 +34,46 @@ describe('Caption', () => {
     describe('#create', () => {
         describe('text align', () => {
             test('left', async () => {
-                chart = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'left' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'left' },
-                });
+                chart = deproxy(
+                    await createChart({
+                        title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
+                        subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'left' },
+                        footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'left' },
+                    })
+                );
                 await compare();
             });
 
             test('center', async () => {
-                chart = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'center' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'center' },
-                });
+                chart = deproxy(
+                    await createChart({
+                        title: { text: 'Monthly Sales Report\n2023', textAlign: 'center' },
+                        subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
+                        footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'center' },
+                    })
+                );
                 await compare();
             });
 
             test('right', async () => {
-                chart = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'right' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'right' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
-                });
+                chart = deproxy(
+                    await createChart({
+                        title: { text: 'Monthly Sales Report\n2023', textAlign: 'right' },
+                        subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'right' },
+                        footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
+                    })
+                );
                 await compare();
             });
 
             test('mixed', async () => {
-                chart = await createChart({
-                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
-                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
-                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
-                });
+                chart = deproxy(
+                    await createChart({
+                        title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
+                        subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
+                        footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
+                    })
+                );
                 await compare();
             });
         });
@@ -74,17 +82,19 @@ describe('Caption', () => {
             test.each(['left', 'center', 'right'] as const)(
                 'aligns explicit and wrapped segment lines to textAlign=%s',
                 async (textAlign) => {
-                    chart = await createChart({
-                        title: {
-                            textAlign,
-                            maxWidth: 260,
-                            maxHeight: 200,
-                            text: [
-                                { text: 'Quarterly revenue by region and sales channel', fontSize: 20 },
-                                { text: '\nfiscal year 2023', fontSize: 11 },
-                            ],
-                        },
-                    });
+                    chart = deproxy(
+                        await createChart({
+                            title: {
+                                textAlign,
+                                maxWidth: 260,
+                                maxHeight: 200,
+                                text: [
+                                    { text: 'Quarterly revenue by region and sales channel', fontSize: 20 },
+                                    { text: '\nfiscal year 2023', fontSize: 11 },
+                                ],
+                            },
+                        })
+                    );
                     await compare();
                 }
             );
@@ -95,29 +105,35 @@ describe('Caption', () => {
                 'This is an extremely long title that should definitely exceed the width of the chart container and be truncated under normal circumstances';
 
             test('truncate: false on title', async () => {
-                chart = await createChart({
-                    title: { text: longText, truncate: false } as any,
-                    subtitle: { text: longText },
-                    footnote: { text: longText },
-                });
+                chart = deproxy(
+                    await createChart({
+                        title: { text: longText, truncate: false } as any,
+                        subtitle: { text: longText },
+                        footnote: { text: longText },
+                    })
+                );
                 await compare();
             });
 
             test('truncate: false on all captions', async () => {
-                chart = await createChart({
-                    title: { text: longText, truncate: false } as any,
-                    subtitle: { text: longText, truncate: false } as any,
-                    footnote: { text: longText, truncate: false } as any,
-                });
+                chart = deproxy(
+                    await createChart({
+                        title: { text: longText, truncate: false } as any,
+                        subtitle: { text: longText, truncate: false } as any,
+                        footnote: { text: longText, truncate: false } as any,
+                    })
+                );
                 await compare();
             });
 
             test('truncate: false with maxWidth', async () => {
-                chart = await createChart({
-                    title: { text: longText, truncate: false, maxWidth: 200 } as any,
-                    subtitle: { text: longText },
-                    footnote: { text: longText },
-                });
+                chart = deproxy(
+                    await createChart({
+                        title: { text: longText, truncate: false, maxWidth: 200 } as any,
+                        subtitle: { text: longText },
+                        footnote: { text: longText },
+                    })
+                );
                 await compare();
             });
         });
@@ -135,9 +151,8 @@ describe('Caption', () => {
         };
 
         async function createTitle(title: AgCartesianChartOptions['title']) {
-            const proxy = AgCharts.create(prepareTestOptions({ ...baseOptions, title })) as AgChartProxy;
+            const proxy = (await createChart({ ...baseOptions, title })) as AgChartProxy;
             const chartInstance = deproxy(proxy);
-            await waitForChartStability(chartInstance);
             return { proxy, caption: chartInstance.title };
         }
 
@@ -168,11 +183,13 @@ describe('Caption', () => {
         });
 
         test('title, subtitle and footnote all shrink rather than truncate', async () => {
-            chart = await createChart({
-                title: { text: titleText, fontSize: 20, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
-                subtitle: { text: titleText, fontSize: 16, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
-                footnote: { text: titleText, fontSize: 14, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
-            });
+            chart = deproxy(
+                await createChart({
+                    title: { text: titleText, fontSize: 20, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
+                    subtitle: { text: titleText, fontSize: 16, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
+                    footnote: { text: titleText, fontSize: 14, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
+                })
+            );
             await compare();
         });
 
@@ -267,36 +284,36 @@ describe('Caption', () => {
 
         describe('visual snapshots', () => {
             test('filled subtitle (reference)', async () => {
-                chart = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
+                chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } }));
                 await compare();
             });
 
             test('empty subtitle reserves the same space as filled', async () => {
-                chart = await createChart({ ...baseOptions, subtitle: { text: '' } });
+                chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: '' } }));
                 await compare();
             });
 
             test('disabled subtitle reclaims the space', async () => {
-                chart = await createChart({ ...baseOptions, subtitle: { enabled: false } });
+                chart = deproxy(await createChart({ ...baseOptions, subtitle: { enabled: false } }));
                 await compare();
             });
 
             test('filled footnote (reference)', async () => {
-                chart = await createChart({ ...baseOptions, footnote: { text: 'Footnote' } });
+                chart = deproxy(await createChart({ ...baseOptions, footnote: { text: 'Footnote' } }));
                 await compare();
             });
 
             test('empty footnote reserves the same space as filled', async () => {
-                chart = await createChart({ ...baseOptions, footnote: { text: '' } });
+                chart = deproxy(await createChart({ ...baseOptions, footnote: { text: '' } }));
                 await compare();
             });
         });
 
         test('empty subtitle and filled subtitle yield the same series-area y', async () => {
-            chart = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
+            chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } }));
             const filledSeriesY = chart.seriesAreaBoundingBox.y;
 
-            chart = await createChart({ ...baseOptions, subtitle: { text: '' } });
+            chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: '' } }));
             const emptySeriesY = chart.seriesAreaBoundingBox.y;
 
             expect(emptySeriesY).toBeCloseTo(filledSeriesY, 0);
@@ -306,17 +323,17 @@ describe('Caption', () => {
         });
 
         test('disabled subtitle reclaims the space', async () => {
-            chart = await createChart({ ...baseOptions, subtitle: { text: '' } });
+            chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: '' } }));
             const enabledEmptySeriesY = chart.seriesAreaBoundingBox.y;
 
-            chart = await createChart({ ...baseOptions, subtitle: { enabled: false } });
+            chart = deproxy(await createChart({ ...baseOptions, subtitle: { enabled: false } }));
             const disabledSeriesY = chart.seriesAreaBoundingBox.y;
 
             expect(disabledSeriesY).toBeLessThan(enabledEmptySeriesY);
         });
 
         test('updating non-empty subtitle to empty preserves layout', async () => {
-            chart = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
+            chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } }));
             const beforeSeriesY = chart.seriesAreaBoundingBox.y;
 
             await (chart as any).update({ ...baseOptions, subtitle: { text: '' } });
@@ -326,10 +343,10 @@ describe('Caption', () => {
         });
 
         test('empty footnote and filled footnote yield the same series-area bottom', async () => {
-            chart = await createChart({ ...baseOptions, footnote: { text: 'Footnote' } });
+            chart = deproxy(await createChart({ ...baseOptions, footnote: { text: 'Footnote' } }));
             const filledSeriesBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
 
-            chart = await createChart({ ...baseOptions, footnote: { text: '' } });
+            chart = deproxy(await createChart({ ...baseOptions, footnote: { text: '' } }));
             const emptySeriesBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
 
             expect(emptySeriesBottom).toBeCloseTo(filledSeriesBottom, 0);
@@ -350,23 +367,25 @@ describe('Caption', () => {
         };
 
         test('left-aligned title is horizontally inset by its padding when unboxed', async () => {
-            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue', textAlign: 'left' } });
+            chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue', textAlign: 'left' } }));
             const withoutPadding = Transformable.toCanvas(chart.title.node).x;
 
-            chart = await createChart({
-                ...seriesOptions,
-                title: { text: 'Revenue', textAlign: 'left', padding: 16 },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', textAlign: 'left', padding: 16 },
+                })
+            );
             const withPadding = Transformable.toCanvas(chart.title.node).x;
 
             expect(withPadding - withoutPadding).toBeCloseTo(16, 0);
         });
 
         test('title padding reserves vertical layout space when unboxed', async () => {
-            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue' } });
+            chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue' } }));
             const withoutPadding = chart.seriesAreaBoundingBox.y;
 
-            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue', padding: 16 } });
+            chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue', padding: 16 } }));
             const withPadding = chart.seriesAreaBoundingBox.y;
 
             expect(withPadding).toBeGreaterThan(withoutPadding);
@@ -389,56 +408,68 @@ describe('Caption', () => {
 
         describe('visual snapshots', () => {
             test('title fill and fillOpacity', async () => {
-                chart = await createChart({
-                    ...seriesOptions,
-                    title: { text: 'Revenue', fill: '#4a90d9', fillOpacity: 0.5 },
-                });
+                chart = deproxy(
+                    await createChart({
+                        ...seriesOptions,
+                        title: { text: 'Revenue', fill: '#4a90d9', fillOpacity: 0.5 },
+                    })
+                );
                 await compare();
             });
 
             test('title border', async () => {
-                chart = await createChart({
-                    ...seriesOptions,
-                    title: { text: 'Revenue', border: { enabled: true, stroke: '#204060', strokeWidth: 2 } },
-                });
+                chart = deproxy(
+                    await createChart({
+                        ...seriesOptions,
+                        title: { text: 'Revenue', border: { enabled: true, stroke: '#204060', strokeWidth: 2 } },
+                    })
+                );
                 await compare();
             });
 
             test('title cornerRadius and object padding', async () => {
-                chart = await createChart({
-                    ...seriesOptions,
-                    title: {
-                        text: 'Revenue',
-                        fill: '#e0e8f0',
-                        cornerRadius: 8,
-                        padding: { top: 6, right: 16, bottom: 6, left: 16 },
-                    },
-                });
+                chart = deproxy(
+                    await createChart({
+                        ...seriesOptions,
+                        title: {
+                            text: 'Revenue',
+                            fill: '#e0e8f0',
+                            cornerRadius: 8,
+                            padding: { top: 6, right: 16, bottom: 6, left: 16 },
+                        },
+                    })
+                );
                 await compare();
             });
 
             test('title numeric padding', async () => {
-                chart = await createChart({
-                    ...seriesOptions,
-                    title: { text: 'Revenue', fill: '#e0e8f0', padding: 20 },
-                });
+                chart = deproxy(
+                    await createChart({
+                        ...seriesOptions,
+                        title: { text: 'Revenue', fill: '#e0e8f0', padding: 20 },
+                    })
+                );
                 await compare();
             });
 
             test('subtitle fill', async () => {
-                chart = await createChart({
-                    ...seriesOptions,
-                    title: { text: 'Revenue' },
-                    subtitle: { text: 'Quarterly', fill: '#f0d0d0' },
-                });
+                chart = deproxy(
+                    await createChart({
+                        ...seriesOptions,
+                        title: { text: 'Revenue' },
+                        subtitle: { text: 'Quarterly', fill: '#f0d0d0' },
+                    })
+                );
                 await compare();
             });
 
             test('footnote fill', async () => {
-                chart = await createChart({
-                    ...seriesOptions,
-                    footnote: { text: 'Source: internal', fill: '#d0f0d0' },
-                });
+                chart = deproxy(
+                    await createChart({
+                        ...seriesOptions,
+                        footnote: { text: 'Source: internal', fill: '#d0f0d0' },
+                    })
+                );
                 await compare();
             });
         });
@@ -446,13 +477,15 @@ describe('Caption', () => {
         // AC4: fill or border with no explicit padding still reserves non-zero inset, so the
         // background box grows the caption bounds rather than clipping the text.
         test('bordered title with no explicit padding grows the caption bbox', async () => {
-            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue' } });
+            chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue' } }));
             const plainBBox = chart.title.node.getBBox();
 
-            chart = await createChart({
-                ...seriesOptions,
-                title: { text: 'Revenue', border: { enabled: true, stroke: '#204060' } },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', border: { enabled: true, stroke: '#204060' } },
+                })
+            );
             const borderedBBox = chart.title.node.getBBox();
 
             expect(borderedBBox.width).toBeGreaterThan(plainBBox.width);
@@ -460,10 +493,10 @@ describe('Caption', () => {
         });
 
         test('fill-only title with no explicit padding grows the caption bbox', async () => {
-            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue' } });
+            chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue' } }));
             const plainBBox = chart.title.node.getBBox();
 
-            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue', fill: '#4a90d9' } });
+            chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue', fill: '#4a90d9' } }));
             const filledBBox = chart.title.node.getBBox();
 
             expect(filledBBox.width).toBeGreaterThan(plainBBox.width);
@@ -472,26 +505,30 @@ describe('Caption', () => {
 
         // TC1: layout reserves space for the box, pushing the series area away from the caption.
         test('boxed title pushes the series area down vs unboxed', async () => {
-            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue' } });
+            chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue' } }));
             const unboxedSeriesY = chart.seriesAreaBoundingBox.y;
 
-            chart = await createChart({
-                ...seriesOptions,
-                title: { text: 'Revenue', fill: '#4a90d9', padding: boxPadding },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', fill: '#4a90d9', padding: boxPadding },
+                })
+            );
             const boxedSeriesY = chart.seriesAreaBoundingBox.y;
 
             expect(boxedSeriesY).toBeGreaterThan(unboxedSeriesY);
         });
 
         test('boxed footnote lifts the series area bottom vs unboxed', async () => {
-            chart = await createChart({ ...seriesOptions, footnote: { text: 'Source' } });
+            chart = deproxy(await createChart({ ...seriesOptions, footnote: { text: 'Source' } }));
             const unboxedBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
 
-            chart = await createChart({
-                ...seriesOptions,
-                footnote: { text: 'Source', fill: '#4a90d9', padding: boxPadding },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    footnote: { text: 'Source', fill: '#4a90d9', padding: boxPadding },
+                })
+            );
             const boxedBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
 
             expect(boxedBottom).toBeLessThan(unboxedBottom);
@@ -500,13 +537,15 @@ describe('Caption', () => {
         // Rich-text/segment captions render the box but their bbox is not grown by the box
         // padding, so the layout reservation is compensated caption-side.
         test('boxed rich-text title reserves box padding in the layout', async () => {
-            chart = await createChart({ ...seriesOptions, title: { text: [{ text: 'Revenue' }] } });
+            chart = deproxy(await createChart({ ...seriesOptions, title: { text: [{ text: 'Revenue' }] } }));
             const unboxedSeriesY = chart.seriesAreaBoundingBox.y;
 
-            chart = await createChart({
-                ...seriesOptions,
-                title: { text: [{ text: 'Revenue' }], fill: '#4a90d9', padding: boxPadding },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    title: { text: [{ text: 'Revenue' }], fill: '#4a90d9', padding: boxPadding },
+                })
+            );
             const boxedSeriesY = chart.seriesAreaBoundingBox.y;
 
             expect(boxedSeriesY).toBeGreaterThan(unboxedSeriesY);
@@ -515,30 +554,38 @@ describe('Caption', () => {
         // A rich-text box does not grow the caption bbox, so the layout compensates — without
         // double-counting the padding against the caption's inset position.
         test('boxed rich-text caption does not double-count box padding vs plain text', async () => {
-            chart = await createChart({
-                ...seriesOptions,
-                footnote: { text: 'Source', fill: '#4a90d9', padding: boxPadding },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    footnote: { text: 'Source', fill: '#4a90d9', padding: boxPadding },
+                })
+            );
             const plainFootBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
 
-            chart = await createChart({
-                ...seriesOptions,
-                footnote: { text: [{ text: 'Source' }], fill: '#4a90d9', padding: boxPadding },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    footnote: { text: [{ text: 'Source' }], fill: '#4a90d9', padding: boxPadding },
+                })
+            );
             const richFootBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
 
             expect(richFootBottom).toBeCloseTo(plainFootBottom, 0);
 
-            chart = await createChart({
-                ...seriesOptions,
-                title: { text: 'Revenue', fill: '#4a90d9', padding: boxPadding },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', fill: '#4a90d9', padding: boxPadding },
+                })
+            );
             const plainTitleY = chart.seriesAreaBoundingBox.y;
 
-            chart = await createChart({
-                ...seriesOptions,
-                title: { text: [{ text: 'Revenue' }], fill: '#4a90d9', padding: boxPadding },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    title: { text: [{ text: 'Revenue' }], fill: '#4a90d9', padding: boxPadding },
+                })
+            );
             const richTitleY = chart.seriesAreaBoundingBox.y;
 
             expect(richTitleY).toBeGreaterThanOrEqual(plainTitleY);
@@ -548,16 +595,25 @@ describe('Caption', () => {
         // The caption layer is sized to node.getBBox(), so a segment bbox omitting the box padding clips
         // the box top. `truncate: false` stops the padded title wrapping to a zero-height bbox here.
         test('boxed rich-text title bbox includes the box like plain text (no clip)', async () => {
-            chart = await createChart({
-                ...seriesOptions,
-                title: { text: 'Revenue', fill: '#4a90d9', padding: boxPadding, truncate: false } as any,
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', fill: '#4a90d9', padding: boxPadding, truncate: false } as any,
+                })
+            );
             const plainBBox = chart.title.node.getBBox();
 
-            chart = await createChart({
-                ...seriesOptions,
-                title: { text: [{ text: 'Revenue' }], fill: '#4a90d9', padding: boxPadding, truncate: false } as any,
-            });
+            chart = deproxy(
+                await createChart({
+                    ...seriesOptions,
+                    title: {
+                        text: [{ text: 'Revenue' }],
+                        fill: '#4a90d9',
+                        padding: boxPadding,
+                        truncate: false,
+                    } as any,
+                })
+            );
             const richBBox = chart.title.node.getBBox();
 
             expect(chart.title.node.y - richBBox.y).toBeCloseTo(boxPadding.top, 0);
@@ -581,10 +637,12 @@ describe('Caption', () => {
         }
 
         test('multi-line footnote proxy bounds match canvas position', async () => {
-            chart = await createChart({
-                title: { text: 'Chart Title' },
-                footnote: { text: 'Source: Test Data\nUpdated: 2026' },
-            });
+            chart = deproxy(
+                await createChart({
+                    title: { text: 'Chart Title' },
+                    footnote: { text: 'Source: Test Data\nUpdated: 2026' },
+                })
+            );
             await compare();
 
             const { footnote } = chart;
@@ -597,11 +655,13 @@ describe('Caption', () => {
         });
 
         test('multi-line captions proxy bounds match canvas position', async () => {
-            chart = await createChart({
-                title: { text: 'Title Line 1\nTitle Line 2' },
-                subtitle: { text: 'Subtitle Line 1\nSubtitle Line 2' },
-                footnote: { text: 'Footnote Line 1\nFootnote Line 2' },
-            });
+            chart = deproxy(
+                await createChart({
+                    title: { text: 'Title Line 1\nTitle Line 2' },
+                    subtitle: { text: 'Subtitle Line 1\nSubtitle Line 2' },
+                    footnote: { text: 'Footnote Line 1\nFootnote Line 2' },
+                })
+            );
             await compare();
 
             assertProxyBoundsMatchCanvas(chart.title);
@@ -678,6 +738,7 @@ describe('Caption', () => {
             imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
         }
 
+        // Bespoke: the image loader must be stubbed before the first render, so it cannot follow `createChart`'s wait.
         async function createStubbedChart(options: AgChartOptions) {
             chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })) as any);
             stubChartImageLoader(chart);
@@ -828,7 +889,7 @@ describe('Caption', () => {
         describe('caption-level listeners', () => {
             test('AC1: clicking the title fires `click` with the title discriminator', async () => {
                 const click = vi.fn();
-                chart = await createChart(chartOptions(withListeners({ click })));
+                chart = deproxy(await createChart(chartOptions(withListeners({ click }))));
 
                 await clickCaption(chart.title);
 
@@ -845,7 +906,7 @@ describe('Caption', () => {
 
             test('AC3: clicking the subtitle fires `click` with the subtitle discriminator', async () => {
                 const click = vi.fn();
-                chart = await createChart(chartOptions(withListeners({ click })));
+                chart = deproxy(await createChart(chartOptions(withListeners({ click }))));
 
                 await clickCaption(chart.subtitle);
 
@@ -857,7 +918,7 @@ describe('Caption', () => {
 
             test('AC3: clicking the footnote fires `click` with the footnote discriminator', async () => {
                 const click = vi.fn();
-                chart = await createChart(chartOptions(withListeners({ click })));
+                chart = deproxy(await createChart(chartOptions(withListeners({ click }))));
 
                 await clickCaption(chart.footnote);
 
@@ -869,7 +930,7 @@ describe('Caption', () => {
 
             test('AC2: double-clicking the footnote fires `doubleClick`', async () => {
                 const doubleClick = vi.fn();
-                chart = await createChart(chartOptions(withListeners({ doubleClick })));
+                chart = deproxy(await createChart(chartOptions(withListeners({ doubleClick }))));
 
                 await clickCaption(chart.footnote, 'dblclick');
 
@@ -883,7 +944,7 @@ describe('Caption', () => {
             test('AC2: a real double-click sequence fires `click` twice and `doubleClick` once', async () => {
                 const click = vi.fn();
                 const doubleClick = vi.fn();
-                chart = await createChart(chartOptions(withListeners({ click, doubleClick })));
+                chart = deproxy(await createChart(chartOptions(withListeners({ click, doubleClick }))));
 
                 await clickCaption(chart.title);
                 await clickCaption(chart.title);
@@ -897,12 +958,14 @@ describe('Caption', () => {
                 const titleClick = vi.fn();
                 const subtitleClick = vi.fn();
                 const footnoteClick = vi.fn();
-                chart = await createChart(
-                    chartOptions({
-                        title: { text: 'Title text', listeners: { click: titleClick } },
-                        subtitle: { text: 'Subtitle text', listeners: { click: subtitleClick } },
-                        footnote: { text: 'Footnote text', listeners: { click: footnoteClick } },
-                    })
+                chart = deproxy(
+                    await createChart(
+                        chartOptions({
+                            title: { text: 'Title text', listeners: { click: titleClick } },
+                            subtitle: { text: 'Subtitle text', listeners: { click: subtitleClick } },
+                            footnote: { text: 'Footnote text', listeners: { click: footnoteClick } },
+                        })
+                    )
                 );
 
                 await clickCaption(chart.subtitle);
@@ -915,7 +978,7 @@ describe('Caption', () => {
             test('the chart `context` is passed to the listener', async () => {
                 const click = vi.fn();
                 const context = { source: 'unit-test' };
-                chart = await createChart(chartOptions({ ...withListeners({ click }), context }));
+                chart = deproxy(await createChart(chartOptions({ ...withListeners({ click }), context })));
 
                 await clickCaption(chart.title);
 
@@ -939,7 +1002,7 @@ describe('Caption', () => {
         describe('chart-level listeners', () => {
             test('AC6: clicking the title fires `captionClick`', async () => {
                 const captionClick = vi.fn();
-                chart = await createChart(chartOptions({ listeners: { captionClick } }));
+                chart = deproxy(await createChart(chartOptions({ listeners: { captionClick } })));
 
                 await clickCaption(chart.title);
 
@@ -951,7 +1014,7 @@ describe('Caption', () => {
 
             test('AC6: clicking the footnote fires the same `captionClick` listener', async () => {
                 const captionClick = vi.fn();
-                chart = await createChart(chartOptions({ listeners: { captionClick } }));
+                chart = deproxy(await createChart(chartOptions({ listeners: { captionClick } })));
 
                 await clickCaption(chart.footnote);
 
@@ -963,7 +1026,7 @@ describe('Caption', () => {
 
             test('AC6: double-clicking a caption fires `captionDoubleClick`', async () => {
                 const captionDoubleClick = vi.fn();
-                chart = await createChart(chartOptions({ listeners: { captionDoubleClick } }));
+                chart = deproxy(await createChart(chartOptions({ listeners: { captionDoubleClick } })));
 
                 await clickCaption(chart.footnote, 'dblclick');
 
@@ -976,7 +1039,9 @@ describe('Caption', () => {
             test('AC6: the chart-level listener fires alongside the caption-level one', async () => {
                 const click = vi.fn();
                 const captionClick = vi.fn();
-                chart = await createChart(chartOptions({ ...withListeners({ click }), listeners: { captionClick } }));
+                chart = deproxy(
+                    await createChart(chartOptions({ ...withListeners({ click }), listeners: { captionClick } }))
+                );
 
                 await clickCaption(chart.title);
 
@@ -990,7 +1055,7 @@ describe('Caption', () => {
             // Control for the negative assertions below: the chart `click` listener really is reachable here.
             test('a click on the chart background does fire the chart `click` listener', async () => {
                 const chartClick = vi.fn();
-                chart = await createChart(chartOptions({ listeners: { click: chartClick } }));
+                chart = deproxy(await createChart(chartOptions({ listeners: { click: chartClick } })));
 
                 chart.ctx.widgets.containerWidget
                     .getElement()
@@ -1003,11 +1068,13 @@ describe('Caption', () => {
             test('AC4: a caption click does not also fire the chart `click` listener', async () => {
                 const captionClickListener = vi.fn();
                 const chartClick = vi.fn();
-                chart = await createChart(
-                    chartOptions({
-                        ...withListeners({ click: captionClickListener }),
-                        listeners: { click: chartClick },
-                    })
+                chart = deproxy(
+                    await createChart(
+                        chartOptions({
+                            ...withListeners({ click: captionClickListener }),
+                            listeners: { click: chartClick },
+                        })
+                    )
                 );
 
                 await clickCaption(chart.title);
@@ -1018,7 +1085,7 @@ describe('Caption', () => {
 
             test('AC5: with no caption listener nothing is fired', async () => {
                 const chartClick = vi.fn();
-                chart = await createChart(chartOptions({ listeners: { click: chartClick } }));
+                chart = deproxy(await createChart(chartOptions({ listeners: { click: chartClick } })));
 
                 await clickCaption(chart.title);
 
@@ -1033,15 +1100,17 @@ describe('Caption', () => {
             // give it the theme's default text and make it a real caption.
             test('an unconfigured subtitle and footnote are not clickable', async () => {
                 const captionClick = vi.fn();
-                chart = await createChart({
-                    data: [
-                        { x: 'Jan', y: 2 },
-                        { x: 'Feb', y: 8 },
-                    ],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    title: { text: 'Title text' },
-                    listeners: { captionClick },
-                });
+                chart = deproxy(
+                    await createChart({
+                        data: [
+                            { x: 'Jan', y: 2 },
+                            { x: 'Feb', y: 8 },
+                        ],
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        title: { text: 'Title text' },
+                        listeners: { captionClick },
+                    })
+                );
 
                 await clickCaptionIfPresent(chart.subtitle);
                 await clickCaptionIfPresent(chart.footnote);
@@ -1054,11 +1123,13 @@ describe('Caption', () => {
 
             test('a disabled caption is not clickable', async () => {
                 const click = vi.fn();
-                chart = await createChart(
-                    chartOptions({
-                        title: { text: 'Title text', enabled: false, listeners: { click } },
-                        subtitle: { text: 'Subtitle text', listeners: { click } },
-                    })
+                chart = deproxy(
+                    await createChart(
+                        chartOptions({
+                            title: { text: 'Title text', enabled: false, listeners: { click } },
+                            subtitle: { text: 'Subtitle text', listeners: { click } },
+                        })
+                    )
                 );
 
                 await clickCaptionIfPresent(chart.title);
@@ -1089,6 +1160,7 @@ describe('AG-13301 layout-driven caption shrinking', () => {
 
     const normaliseSpace = (text: string) => text.replace(/\s+/g, ' ').trim();
 
+    // Bespoke: width/height are applied after `prepareTestOptions`, which `createChart` would overwrite with the defaults.
     async function createSizedChart(width: number, height: number, options: AgCartesianChartOptions) {
         const proxy = AgCharts.create(
             Object.assign(prepareTestOptions({ ...baseOptions, ...options }), { width, height })

@@ -15,6 +15,7 @@ import {
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
+    expectDrawnAtFullRange,
     expectNoAnimation,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
@@ -223,15 +224,6 @@ describe('OhlcSeries', () => {
             return key!;
         };
 
-        // Anti-vacuity: three subpaths over a real pixel height means the bar is drawn at full size,
-        // not parked collapsed at a baseline waiting to grow.
-        const expectDrawnAtFullRange = (sample: SceneGeometrySample, key: string) => {
-            const node = sample.get(key);
-            expect(node, key).toBeDefined();
-            expect(node!.subpaths, `${key} subpaths`).toBe(3);
-            expect(node!.height, `${key} height`).toBeGreaterThan(20);
-        };
-
         const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
@@ -343,14 +335,14 @@ describe('OhlcSeries', () => {
         };
 
         it('defaults to a disabled shadow', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions());
+            const chart: any = deproxy(await createEnterpriseChart(buildOptions()));
 
             expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions());
+            const chart: any = deproxy(await createEnterpriseChart(buildOptions()));
 
             expect(itemNodes(chart)).toHaveLength(4);
             expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
@@ -358,7 +350,7 @@ describe('OhlcSeries', () => {
         });
 
         it('casts the shadow from the stroke of every item, whichever direction', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions(SHADOW));
+            const chart: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
 
             const shapes = itemNodes(chart);
             expect(shapes).toHaveLength(4);
@@ -374,7 +366,7 @@ describe('OhlcSeries', () => {
         });
 
         it('carries the shadow spread to the stroke shadow of every item', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions(SPREAD_SHADOW));
+            const chart: any = deproxy(await createEnterpriseChart(buildOptions(SPREAD_SHADOW)));
 
             expect(itemNodes(chart).length).toBeGreaterThan(0);
 
@@ -673,11 +665,6 @@ describe('OhlcSeries', () => {
             (chart as any) = undefined;
         });
 
-        async function createChart(options: AgChartOptions) {
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-        }
-
         function getCandleCentre(nodeIndex: number) {
             const series = new Caster(deproxy(chart!))
                 .accessProperty('series')
@@ -697,7 +684,7 @@ describe('OhlcSeries', () => {
         }
 
         it('ArrowRight focuses the second candle with numeric time x values', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: Array.from({ length: 20_000 }, (_row, index) => {
                     const base = 100 + 10 * Math.sin(index / 500);
                     return {
@@ -715,7 +702,6 @@ describe('OhlcSeries', () => {
                 ],
                 listeners: { seriesNodeClick },
             });
-            await createChart(options);
 
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowRight');
@@ -730,7 +716,7 @@ describe('OhlcSeries', () => {
         });
 
         it('ArrowRight focuses the second candle with ISO-string x values', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: Array.from({ length: 20_000 }, (_row, index) => {
                     const base = 100 + 10 * Math.sin(index / 500);
                     return {
@@ -748,7 +734,6 @@ describe('OhlcSeries', () => {
                 ],
                 listeners: { seriesNodeClick },
             });
-            await createChart(options);
 
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowRight');
@@ -763,7 +748,7 @@ describe('OhlcSeries', () => {
         });
 
         it('ArrowRight focuses the second candle with bigint x values', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: Array.from({ length: 20_000 }, (_row, index) => {
                     const base = 100 + 10 * Math.sin(index / 500);
                     return {
@@ -781,7 +766,6 @@ describe('OhlcSeries', () => {
                 ],
                 listeners: { seriesNodeClick },
             });
-            await createChart(options);
 
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowRight');

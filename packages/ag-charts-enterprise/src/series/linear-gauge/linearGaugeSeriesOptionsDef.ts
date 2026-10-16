@@ -16,9 +16,11 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    deprecated,
     fillOptionsDef,
     fontOptionsDef,
     greaterThan,
+    labelPlacementStyleDefs,
     lessThan,
     lineDashOptionsDef,
     number,
@@ -28,16 +30,16 @@ import {
     positiveNumber,
     ratio,
     required,
-    seriesLabelOptionsDefs,
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
     undocumentedDefs,
     union,
+    unionOrArray,
     without,
 } from 'ag-charts-core';
 
-import { fillsOptionsDef, gaugeTooltipOptionsDef } from '../gauge-util/gaugeOptionsDefs';
+import { fillsOptionsDef, gaugeTargetLabelOptionsDef, gaugeTooltipOptionsDef } from '../gauge-util/gaugeOptionsDefs';
 
 export const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
     value: required(numericValue),
@@ -50,6 +52,7 @@ export const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
     spacing: positiveNumber,
     size: positiveNumber,
     rotation: number,
+    label: gaugeTargetLabelOptionsDef,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
@@ -107,10 +110,13 @@ export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThem
     },
     label: {
         ...autoSizedLabelOptionsDefs,
+        ...labelPlacementStyleDefs,
         text: string,
         spacing: positiveNumber,
-        avoidCollisions: boolean,
-        placement: union(
+        maxWidth: positiveNumber,
+        maxHeight: positiveNumber,
+        avoidCollisions: deprecated(boolean, 'Use `collision.alwaysShow` instead.'),
+        placement: unionOrArray(
             'inside-start',
             'outside-start',
             'inside-end',
@@ -130,16 +136,13 @@ export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThem
         defaultTarget: {
             ...linearGaugeTargetOptionsDef,
             value: number,
-            label: {
-                ...seriesLabelOptionsDefs,
-                spacing: number,
-            },
+            label: gaugeTargetLabelOptionsDef,
         },
     }),
 };
 
 export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
-    ...without(commonSeriesOptionsDefs, ['listeners']),
+    ...without(commonSeriesOptionsDefs, ['listeners', 'focusIndex']),
     ...linearGaugeSeriesThemeableOptionsDef,
     type: required(constant('linear-gauge')),
     value: required(numericValue),

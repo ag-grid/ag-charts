@@ -15,6 +15,7 @@ import {
     createSelectionChartOptions,
     createTotalSegmentAxisOptions,
     createVolumeProfileSeries,
+    formatCompact,
 } from './volumeProfile';
 
 type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
@@ -71,6 +72,7 @@ function createVolumeAxis() {
         yVolumeProfile: {
             type: 'number',
             position: 'bottom',
+            label: { formatter: formatCompact },
         } satisfies AgNumberAxisOptions,
     };
 }

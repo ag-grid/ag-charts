@@ -25,13 +25,16 @@ import type {
 } from 'ag-charts-types';
 
 import {
-    createSelectionChartOptions,
     createVolumeProfileAxis,
     createVolumeProfileSeries,
+    createVolumeProfileStatusBarOptions,
     groupVolumeProfile,
 } from '../volume-profile/volumeProfile';
+import type { VolumeProfileDatum } from '../volume-profile/volumeProfileUtils';
 
 type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
+
+const PRICE_AXIS_KEY = 'y';
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
 
@@ -104,21 +107,18 @@ export function priceVolume(
     const shownVolumeKey = volume ? volumeKey : undefined;
     const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
 
-    const chartSelection = createSelectionChartOptions(volumeProfile?.selection);
-    // A chart-level `selection` object makes every series selectable, so the price and volume series opt out; only
-    // the Volume Profile series opt in.
-    const seriesSelection = chartSelection === undefined ? undefined : { enabled: false };
+    const profileLevels = volumeProfile && groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize, logger);
 
     return {
         animation: { enabled: false },
         legend: { enabled: false },
         series: [
-            ...createVolumeSeries(getTheme, keys, shownVolumeKey, seriesSelection),
-            ...createPriceVolumeProfileSeries(getTheme, volumeProfile, tickSize),
-            ...createPriceSeries(chartType, keys, logger, seriesSelection),
+            ...createVolumeSeries(getTheme, keys, shownVolumeKey),
+            ...createPriceVolumeProfileSeries(getTheme, profileLevels, volumeProfile),
+            ...createPriceSeries(chartType, keys, logger),
         ],
         axes: {
-            ...createPriceAxis(),
+            ...createPriceAxis(tickSize),
             ...createDateAxis(),
             ...createVolumeAxis(volume),
             ...createVolumeProfileAxis(volumeProfile),
@@ -129,18 +129,22 @@ export function priceVolume(
         ...createAnnotationsOptions(toolbar, themeOverrides, data, dateKey, shownVolumeKey),
         ...createNavigatorOptions(navigator, dateKey, shownVolumeKey),
         ...createRangesOptions(rangeButtons, zoom),
-        ...createStatusBarOptions(statusBar, keys, shownVolumeKey),
+        ...createStatusBarOptions(statusBar, keys, shownVolumeKey, profileLevels),
         ...createSyncOptions(sync),
         ...createZoomOptions(zoom),
-        ...chartSelection,
         ...unusedOpts,
     } satisfies AgCartesianChartOptions<DatumDefault, never>;
 }
 
+/** Fixed series ids, so callbacks have a stable `seriesId`. */
+const PRICE_SERIES_ID = 'price';
+const VOLUME_SERIES_ID = 'volume';
+
 interface PriceSeriesCommon {
+    id: string;
+    focusIndex: number;
     pickOutsideVisibleMinorAxis: boolean;
     tooltip: { enabled: boolean };
-    selection?: { enabled: boolean };
 }
 
 interface PriceSeriesKeys {
@@ -156,20 +160,16 @@ interface PriceSeriesSingleKeys {
     yKey: string;
 }
 
-function createPriceSeries(
-    chartType: AgPriceVolumeChartType,
-    keys: PriceSeriesKeys,
-    logger: Logger,
-    selection: { enabled: boolean } | undefined
-) {
+function createPriceSeries(chartType: AgPriceVolumeChartType, keys: PriceSeriesKeys, logger: Logger) {
     const singleKeys: PriceSeriesSingleKeys = {
         xKey: keys.xKey,
         yKey: keys.closeKey,
     };
     const common: PriceSeriesCommon = {
+        id: PRICE_SERIES_ID,
+        focusIndex: 0,
         tooltip: { enabled: false },
         pickOutsideVisibleMinorAxis: true,
-        ...(selection === undefined ? undefined : { selection }),
     };
 
     switch (chartType) {
@@ -195,8 +195,6 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
     return [
         {
             type: 'ohlc',
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
             ...common,
             ...keys,
         } satisfies AgOhlcSeriesOptions,
@@ -207,8 +205,6 @@ function createPriceSeriesLine(common: PriceSeriesCommon, singleKeys: PriceSerie
     return [
         {
             type: 'line',
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
             ...common,
             ...singleKeys,
         } satisfies AgLineSeriesOptions,
@@ -219,8 +215,6 @@ function createPriceSeriesHLC(common: PriceSeriesCommon, { xKey, highKey, lowKey
     return [
         {
             type: 'hlc',
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
             ...common,
             xKey,
             highKey,
@@ -239,8 +233,6 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
             yHighKey: highKey,
             yLowKey: lowKey,
             tooltip: { range: 'nearest' },
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
         } satisfies AgRangeBarSeriesOptions,
     ];
 }
@@ -249,8 +241,6 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
     return [
         {
             type: 'candlestick',
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
             ...common,
             ...keys,
         } satisfies AgCandlestickSeriesOptions,
@@ -260,26 +250,25 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
 function createVolumeSeries(
     getTheme: () => ChartTheme,
     { xKey, openKey, closeKey }: PriceSeriesKeys,
-    volumeKey: string | undefined,
-    selection: { enabled: boolean } | undefined
+    volumeKey: string | undefined
 ) {
     if (volumeKey == null) return [];
 
     return [
         {
+            id: VOLUME_SERIES_ID,
             type: 'bar',
             xKey,
             yKey: volumeKey,
             yKeyAxis: 'yVolume',
             tooltip: { enabled: false },
-            ...(selection === undefined ? undefined : { selection }),
             grouped: false,
-            // @ts-expect-error undocumented options: simpleItemStyler, focusPriority
+            // @ts-expect-error undocumented option
             simpleItemStyler(datum: DatumDefault) {
                 const { up, down } = getTheme().palette;
                 return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
             },
-            focusPriority: 1,
+            focusIndex: 1,
             highlight: { unhighlightedSeries: { opacity: 1 } },
         } satisfies AgBarSeriesOptions,
     ];
@@ -287,24 +276,22 @@ function createVolumeSeries(
 
 function createPriceVolumeProfileSeries(
     getTheme: () => ChartTheme,
-    volumeProfile: AgVolumeProfileOptions | undefined,
-    tickSize: number | undefined
+    levels: VolumeProfileDatum[] | undefined,
+    volumeProfile: AgVolumeProfileOptions | undefined
 ) {
-    if (volumeProfile == null) return [];
+    if (volumeProfile == null || levels == null) return [];
 
-    const levels = groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize);
-    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, volumeProfile.selection);
+    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, undefined, false);
 }
 
-function createPriceAxis() {
+function createPriceAxis(tickSize: number | undefined) {
+    // `snapInterval` is undocumented; `snap` is themed so that theme overrides can turn snapping off.
+    const crosshair = { enabled: true, snapInterval: tickSize };
     return {
-        y: {
+        [PRICE_AXIS_KEY]: {
             type: 'number',
             position: 'right',
-            crosshair: {
-                enabled: true,
-                snap: false,
-            },
+            crosshair,
             // @ts-expect-error undocumented option
             layoutConstraints: {
                 stacked: false,
@@ -415,7 +402,8 @@ function createRangesOptions(rangeButtons: boolean, zoom: boolean) {
 function createStatusBarOptions(
     statusBar: boolean,
     { openKey, closeKey, highKey, lowKey }: PriceSeriesKeys,
-    volumeKey: string | undefined
+    volumeKey: string | undefined,
+    profileLevels: VolumeProfileDatum[] | undefined
 ) {
     if (!statusBar) return {};
 
@@ -427,6 +415,7 @@ function createStatusBarOptions(
             lowKey,
             closeKey,
             volumeKey,
+            volumeProfile: profileLevels && createVolumeProfileStatusBarOptions(profileLevels, PRICE_AXIS_KEY),
         },
     };
 }

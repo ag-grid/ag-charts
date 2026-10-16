@@ -190,7 +190,7 @@ export function SupplierScorecard({ rows, supplierColors, selectedSupplierId, on
     );
 
     return (
-        <div className="pc-grid-host">
+        <div className="pc-grid-host" data-keeps-selection>
             <AgGridReact<Row>
                 theme={compactGridTheme}
                 rowData={rows}

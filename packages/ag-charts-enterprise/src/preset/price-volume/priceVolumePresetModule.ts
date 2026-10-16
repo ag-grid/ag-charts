@@ -19,13 +19,11 @@ import {
 import type { AgBaseFinancialPresetOptions, AgPriceVolumePreset } from 'ag-charts-types';
 
 import { AxisInsetValueModule } from '../../features/axis-inset-value/axisInsetValueModule';
-import { AxisSelectedBandModule } from '../../features/axis-selected-band/axisSelectedBandModule';
 import { ChartToolbarModule } from '../../features/chart-toolbar/chartToolbarModule';
-import { SelectionModule } from '../../features/data-selection/dataSelectionModule';
 import { StatusBarModule } from '../../features/status-bar/statusBarModule';
 import { CandlestickSeriesModule } from '../../series/candlestick/candlestickModule';
 import { RangeBarSeriesModule } from '../../series/range-bar/rangeBarModule';
-import { volumeProfileSelectionOptionsDef, volumeProfileTotalSegmentOptionsDef } from '../volume-profile/volumeProfile';
+import { volumeProfileTotalSegmentOptionsDef } from '../volume-profile/volumeProfile';
 import { priceVolume } from './priceVolumePreset';
 import { annotationsTheme } from './priceVolumePresetTheme';
 
@@ -48,7 +46,6 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
         placement: union('left', 'right'),
         widthRatio: ratio,
         totalSegment: volumeProfileTotalSegmentOptionsDef,
-        selection: volumeProfileSelectionOptionsDef,
     },
     tickSize: positiveNumberNonZero,
     rangeButtons: boolean,
@@ -79,12 +76,18 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
 
 const NO_UNHIGHLIGHT_THEME = { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } };
 
+// The axis theme is taken from the first series' type, and series themes set `snap` over `common`, so this is applied
+// to every series type the preset can put first.
+const PRICE_AXIS_THEME = {
+    number: { crosshair: { snap: { $if: [{ $preset: 'tickSize' }, true, false] } as any } },
+};
+
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
     type: 'preset',
     name: 'price-volume',
     apiName: 'AgCharts.createFinancialChart',
     enterprise: true,
-    dependencies: [ChartToolbarModule, StatusBarModule, AxisInsetValueModule, AxisSelectedBandModule, SelectionModule],
+    dependencies: [ChartToolbarModule, StatusBarModule, AxisInsetValueModule],
     version: VERSION,
 
     options: priceVolumeOptionsDef,
@@ -98,7 +101,14 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             chartToolbar: {
                 enabled: { $preset: ['toolbar', true] } as any,
             },
-            annotations: { ...annotationsTheme },
+            annotations: {
+                ...annotationsTheme,
+                axesButtons: {
+                    // @ts-expect-error undocumented option
+                    snap: { $path: '/axes/y/crosshair/snap' },
+                    snapInterval: { $path: '/axes/y/crosshair/snapInterval' },
+                },
+            },
             ranges: {
                 enableOutOfRange: true,
                 position: 'bottom-left',
@@ -169,12 +179,14 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             },
         },
         bar: {
+            axes: PRICE_AXIS_THEME,
             series: {
                 fillOpacity: 0.5,
                 highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
         candlestick: {
+            axes: PRICE_AXIS_THEME,
             series: {
                 highlight: NO_UNHIGHLIGHT_THEME,
                 item: {
@@ -191,6 +203,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             },
         },
         line: {
+            axes: PRICE_AXIS_THEME,
             series: {
                 marker: { enabled: false },
                 highlight: {
@@ -210,16 +223,19 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             },
         },
         hlc: {
+            axes: PRICE_AXIS_THEME,
             series: {
                 highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
         ohlc: {
+            axes: PRICE_AXIS_THEME,
             series: {
                 highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
         'range-bar': {
+            axes: PRICE_AXIS_THEME,
             series: {
                 highlight: NO_UNHIGHLIGHT_THEME,
                 fill: {

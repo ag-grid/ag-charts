@@ -656,6 +656,7 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     visible: boolean,
     context: () => true,
     data: array,
+    focusIndex: number,
     ...undocumentedDefs({
         seriesGrouping: defined,
     }),
