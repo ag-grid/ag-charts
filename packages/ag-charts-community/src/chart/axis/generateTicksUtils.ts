@@ -3,7 +3,6 @@ import {
     BandScale,
     DiscreteTimeScale,
     EllipsisChar,
-    type ITextMeasurer,
     type NormalisedTextOrSegments,
     OrdinalTimeScale,
     type ResolvedTextAlign,
@@ -14,7 +13,6 @@ import {
     UnitTimeScale,
     type WrapOptions,
     buildDateFormatter,
-    cachedTextMeasurer,
     compareDates,
     createIdsGenerator,
     dropFirstWhile,
@@ -33,7 +31,7 @@ import {
     isPlainObject,
     isSegmentTruncated,
     isTextTruncated,
-    measureTextSegments,
+    measureLabelText,
     normalizeAngle360FromDegrees,
     toPlainText,
     toTextString,
@@ -207,7 +205,6 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 ): TickDatum[] {
     const { scale, label, tickFormatter, inRange, isVertical, sizeLimit = Infinity } = options;
     const isContinuous = TimeScale.is(scale) || DiscreteTimeScale.is(scale);
-    const measurer = cachedTextMeasurer(label);
     const idGenerator = createIdsGenerator();
     const ticks: TickDatum[] = [];
 
@@ -238,6 +235,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             font: label,
             maxWidth,
             maxHeight,
+            lineHeight: label.lineHeight,
             overflow: label.truncate ? 'ellipsis' : 'hide',
             textWrap: label.wrapping ?? 'never',
         };
@@ -282,9 +280,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 isPrimary,
                 index: i + rawFirstTickIndex,
                 textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
-                textMetrics: isSegmented
-                    ? measureTextSegments(tickLabel, label)
-                    : measurer.measureLines(toTextString(tickLabel)),
+                textMetrics: measureLabelText(tickLabel, label),
                 translation: BandScale.is(scale) ? translation : Math.floor(translation),
             });
         }
@@ -495,8 +491,7 @@ export function timeIntervalMaxLabelSize(
     label: ChartAxisLabel,
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],
-    timeInterval: AgTimeInterval | AgTimeIntervalUnit,
-    textMeasurer: ITextMeasurer
+    timeInterval: AgTimeInterval | AgTimeIntervalUnit
 ) {
     const specifier = labelSpecifier(label.format, timeInterval);
 
@@ -535,7 +530,7 @@ export function timeIntervalMaxLabelSize(
         const labelRange = intervalRange(timeInterval, l0, l1, { limit: 50 });
         for (const date of labelRange) {
             const text = labelFormatter(date);
-            const { width, height } = textMeasurer.measureLines(text);
+            const { width, height } = measureLabelText(text, label);
             maxWidth = Math.max(maxWidth, width + xPadding);
             maxHeight = Math.max(maxHeight, height + yPadding);
         }
@@ -547,7 +542,7 @@ export function timeIntervalMaxLabelSize(
         const yPadding = padding.top + padding.bottom;
         for (const date of hierarchyRange) {
             const text = primaryLabelFormatter(date);
-            const { width, height } = textMeasurer.measureLines(text);
+            const { width, height } = measureLabelText(text, label);
 
             maxWidth = Math.max(maxWidth, width + xPadding);
             maxHeight = Math.max(maxHeight, height + yPadding);

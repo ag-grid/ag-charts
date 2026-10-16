@@ -45,6 +45,7 @@ import {
     isErased,
     isGradientFill,
     isNumberEqual,
+    lineHeightAtSize,
     measureLabelText,
     mergeDefaults,
     resolveMinimumFontSize,
@@ -947,7 +948,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             height: title.bandHeight,
         };
         // The series sized the title to its band, so the engine only places it.
-        const sized = { ...label, fontSize: title.fontSize, minimumFontSize: title.fontSize };
+        const sized = {
+            ...label,
+            fontSize: title.fontSize,
+            lineHeight: lineHeightAtSize(label, title.fontSize),
+            minimumFontSize: title.fontSize,
+        };
         const fit = labelFitDescriptor(
             title.text,
             sized,

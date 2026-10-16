@@ -10,7 +10,6 @@ import {
     TimeScale,
     UnitTimeScale,
     axisLabelsOverlap,
-    cachedTextMeasurer,
     calculateNiceSecondaryAxis,
     countFractionDigits,
     estimateTickCount,
@@ -547,13 +546,7 @@ function createTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<T
 
     const spacing = ticksSpacing(ticks);
     const { label, labelOffset, primaryLabel, domain } = options;
-    const { width, height } = timeIntervalMaxLabelSize(
-        label,
-        primaryLabel,
-        niceDomain ?? domain,
-        timeInterval,
-        cachedTextMeasurer(label)
-    );
+    const { width, height } = timeIntervalMaxLabelSize(label, primaryLabel, niceDomain ?? domain, timeInterval);
 
     const labelData: BoxBounds[] = [];
     for (const translation of [0, spacing]) {
