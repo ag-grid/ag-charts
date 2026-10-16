@@ -740,12 +740,14 @@ describe('Chart', () => {
                 await waitForChartStability(chart);
                 expect(processData).toHaveBeenCalled();
 
-                const fresh = await createChart(
-                    prepareTestOptions({
-                        data: rows(4),
-                        series: barSeries,
-                        axes: { ...axes, x: { ...axes.x, reverse: true } },
-                    } as any)
+                const fresh = deproxy(
+                    await createChart(
+                        prepareTestOptions({
+                            data: rows(4),
+                            series: barSeries,
+                            axes: { ...axes, x: { ...axes.x, reverse: true } },
+                        } as any)
+                    )
                 );
                 try {
                     const xAfter = barData(chart).map((d) => d.x);
@@ -769,7 +771,7 @@ describe('Chart', () => {
                 await chartProxy.updateDelta({ data: rows(6) } as any);
                 await waitForChartStability(chart);
 
-                const fresh = await createChart({ data: rows(6), series } as any);
+                const fresh = deproxy(await createChart({ data: rows(6), series } as any));
                 try {
                     expect(chart.data.data).toHaveLength(6);
                     for (const index of [0, 1]) {
@@ -809,7 +811,7 @@ describe('Chart', () => {
                 await chartProxy.updateDelta({ context: { p: 'B' } } as any);
                 await waitForChartStability(chart);
 
-                const fresh = await createChart(options('B'));
+                const fresh = deproxy(await createChart(options('B')));
                 try {
                     const labels = (c: Chart) => barData(c).map((d) => d.label?.text);
                     expect(labels(chart)).toEqual(['B1', 'B2', 'B3']);
@@ -836,7 +838,7 @@ describe('Chart', () => {
                     await chartProxy.updateDelta({ data: dates(6) } as any);
                     await waitForChartStability(chart);
 
-                    const fresh = await createChart({ data: dates(6), series } as any);
+                    const fresh = deproxy(await createChart({ data: dates(6), series } as any));
                     try {
                         expect(axisTypes(chart)).toEqual(axisTypes(fresh));
                     } finally {
@@ -854,7 +856,7 @@ describe('Chart', () => {
                     await chartProxy.updateDelta({ data: dates(8) } as any);
                     await waitForChartStability(chart);
 
-                    const fresh = await createChart({ data: dates(8), series } as any);
+                    const fresh = deproxy(await createChart({ data: dates(8), series } as any));
                     try {
                         expect(axisTypes(chart)).toEqual(axisTypes(fresh));
                     } finally {
