@@ -5,7 +5,7 @@ import {
     drawnLineHeight,
     findLargestFittingFontSize,
     findLargestFittingStep,
-    fontWithSize,
+    lineHeightAtSize,
     measureLabelText,
     resolveMinimumFontSize,
     wrapLines,
@@ -47,8 +47,8 @@ function capHeight(props: Pick<AgChartLabelFitOptions, 'maxHeight'>, height: num
 
 /** The label's font at `fontSize`, with its `lineHeight` kept in proportion. */
 function labelFontAt(props: AutoSizedBaseLabelOptions, fontSize: number): FontOptions {
-    const { fontFamily, fontStyle, fontWeight, lineHeight } = props;
-    return fontWithSize({ fontFamily, fontStyle, fontWeight, fontSize: props.fontSize, lineHeight }, fontSize);
+    const { fontFamily, fontStyle, fontWeight } = props;
+    return { fontFamily, fontStyle, fontWeight, fontSize, lineHeight: lineHeightAtSize(props, fontSize) };
 }
 
 function overflowAtFloor(props: AgChartAutoSizedBaseLabelOptions<unknown, any>): OverflowStrategy {
@@ -290,8 +290,7 @@ function formatOverflowingLabel<Meta>(
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): [LabelFormatting, Meta] {
     const font = labelFontAt(props, fontSize);
-    const measurer = cachedTextMeasurer(font);
-    const lineHeight = font.lineHeight ?? measurer.lineHeight();
+    const lineHeight = drawnLineHeight(font);
     const sizeFitting = sizeFittingHeight(lineHeight + 2 * padding, true);
     const maxWidth = capWidth(props, sizeFitting.width - 2 * padding);
     let lines =
@@ -305,8 +304,9 @@ function formatOverflowingLabel<Meta>(
               })
             : [];
     if (lines.length === 0) lines = value.split('\n');
-    const { width, height } = measureLabelText(lines.join('\n'), font);
-    return [{ width, height, text: lines.join('\n'), fontSize, lineHeight }, sizeFitting.meta];
+    const text = lines.join('\n');
+    const { width, height } = measureLabelText(text, font);
+    return [{ width, height, text, fontSize, lineHeight }, sizeFitting.meta];
 }
 
 function wrapLabel(

@@ -42,7 +42,7 @@ import type { Path } from 'ag-charts-core';
 import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight, PaddingOptions } from 'ag-charts-types';
 
 import { HierarchyNode, HierarchySeries, toHierarchyHighlightString } from '../hierarchy/hierarchySeries';
-import { autoSizedLabelFit, labelPairBlocks } from '../util/autoSizedLabelFit';
+import { autoSizedLabelFit, labelPairBlocks, styledLabelFont } from '../util/autoSizedLabelFit';
 
 const { fromToMotion, createDatumId, expandLabelBoxExtent, fitLabelToContainer, getLabelStyles } = _ModuleSupport;
 
@@ -783,16 +783,7 @@ export class SunburstSeries extends HierarchySeries<
         if (props.itemStyler == null) return autoSizedLabelFit(text, props, expandLabelBoxExtent(props));
         const path = ['series', `${this.declarationOrder}`, key];
         const style = getLabelStyles(this, node, this.labelFormatterParams(node), props, false, undefined, path);
-        const { fontSize, fontStyle = props.fontStyle, fontWeight = props.fontWeight, lineHeight } = style;
-        const font = {
-            ...props,
-            fontSize,
-            fontStyle,
-            fontWeight,
-            fontFamily: style.fontFamily ?? props.fontFamily,
-            lineHeight,
-        };
-        return autoSizedLabelFit(text, font, expandLabelBoxExtent(style));
+        return autoSizedLabelFit(text, styledLabelFont(props, style), expandLabelBoxExtent(style));
     }
 
     private updateLabelNodes() {

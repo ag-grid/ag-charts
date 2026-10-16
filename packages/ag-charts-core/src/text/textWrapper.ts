@@ -26,6 +26,7 @@ import {
     graphemeSegments,
     guardTextEdges,
     isTextTruncated,
+    lineHeightAtSize,
     preserveArabicJoining,
     toTextString,
     unguardTextEdges,
@@ -485,14 +486,6 @@ export function fontWithSize(font: FontOptions, fontSize: number | undefined): F
     return sized;
 }
 
-/** `font`'s `lineHeight` kept in proportion at `fontSize`, unset when `font` sets none. */
-export function lineHeightAtSize(font: FontOptions, fontSize: number | undefined): number | undefined {
-    const { lineHeight } = font;
-    return lineHeight == null || fontSize == null || fontSize === font.fontSize
-        ? lineHeight
-        : (lineHeight * fontSize) / font.fontSize;
-}
-
 /** The line height `font` is drawn at, as passed to an `itemStyler`. */
 export function drawnLineHeight(font: FontOptions): number {
     return font.lineHeight ?? cachedTextMeasurer(font).lineHeight();
@@ -500,7 +493,7 @@ export function drawnLineHeight(font: FontOptions): number {
 
 /**
  * Reconciles an `itemStyler` result with `font`: a natural line height echoed back stays unset, and a restyled
- * `fontSize` without its own `lineHeight` keeps a set line height in proportion.
+ * `fontSize` without a `lineHeight` of its own (unset or echoed) keeps a set line height in proportion.
  */
 export function stylerLineHeightOverrides<T extends { fontSize?: number; lineHeight?: number }>(
     result: T,
@@ -510,7 +503,8 @@ export function stylerLineHeightOverrides<T extends { fontSize?: number; lineHei
     if (font.lineHeight == null) {
         return result.lineHeight === paramLineHeight ? { ...result, lineHeight: undefined } : result;
     }
-    if (result.lineHeight == null && result.fontSize != null) {
+    const echoed = result.lineHeight == null || result.lineHeight === paramLineHeight;
+    if (echoed && result.fontSize != null) {
         return { ...result, lineHeight: lineHeightAtSize(font, result.fontSize) };
     }
     return result;
@@ -1273,14 +1267,40 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
     // lays it out (baseline extents, lineHeight overrides, inline images), so joining adds only the growth.
     let rowSegments: MeasuredSegment[] = [];
     let rowHeight = 0;
+    // OPTIMIZATION: plain text rows sum their tallest ascent and descent; only rows with an image or a
+    // lineHeight are re-measured.
+    let rowAscent = 0;
+    let rowDescent = 0;
+    let rowNeedsMeasure = false;
     const rowTop = () => totalHeight - rowHeight;
     const maxWidth = (height = 0) => lineMaxWidth(options, rowTop(), rowTop() + height);
-    const rowHeightWith = (segment: MeasuredSegment) =>
-        measureTextSegments([...rowSegments, segment], options.font).height;
+
+    function rowHeightWith(segment: MeasuredSegment): number {
+        const extent = plainRowExtent(segment);
+        if (rowNeedsMeasure || extent == null) {
+            return measureTextSegments([...rowSegments, segment], options.font).height;
+        }
+        return Math.max(rowAscent, extent.ascent) + Math.max(rowDescent, extent.descent);
+    }
+
+    function addToRow(segment: MeasuredSegment) {
+        rowSegments.push(segment);
+        const extent = plainRowExtent(segment);
+        if (extent == null) {
+            rowNeedsMeasure = true;
+        } else {
+            rowAscent = Math.max(rowAscent, extent.ascent);
+            rowDescent = Math.max(rowDescent, extent.descent);
+        }
+    }
 
     function startRow(segments: MeasuredSegment[] = [], height = 0) {
-        rowSegments = segments;
+        rowSegments = [];
         rowHeight = height;
+        rowAscent = 0;
+        rowDescent = 0;
+        rowNeedsMeasure = false;
+        for (const segment of segments) addToRow(segment);
     }
 
     function joinRow(segment: MeasuredSegment, force = preserveText, height = rowHeightWith(segment)): boolean {
@@ -1288,7 +1308,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         if (!force && extra > 0 && totalHeight + extra > maxHeight) return false;
         totalHeight += Math.max(0, extra);
         rowHeight = Math.max(rowHeight, height);
-        rowSegments.push(segment);
+        addToRow(segment);
         return true;
     }
 
@@ -1312,24 +1332,25 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         const segmentLineHeight = lineHeight ?? segment.textMetrics.height;
         // textWrap counts every line at segmentLineHeight, but the first one shares the open row and adds
         // only that row's growth.
-        const budget = () => ({
+        const budget = (rowGrowth: number) => ({
             ...options,
             font: segment,
             lineHeight,
-            maxHeight: maxHeight - totalHeight - (rowHeightWith(segment) - rowHeight) + segmentLineHeight,
+            maxHeight: maxHeight - totalHeight - rowGrowth + segmentLineHeight,
         });
 
         const sharedRowHeight = rowHeightWith(segment);
+        const sharedBudget = budget(sharedRowHeight - rowHeight);
         let wrappedLines = textWrap(
             guardedText,
-            { ...budget(), overflow: 'hide' },
+            { ...sharedBudget, overflow: 'hide' },
             lineWidth,
             rowTop(),
             sharedRowHeight
         );
         if (wrappedLines.length === 0) {
             if (options.textWrap === 'never') {
-                wrappedLines = textWrap(guardedText, budget(), lineWidth, rowTop(), sharedRowHeight);
+                wrappedLines = textWrap(guardedText, sharedBudget, lineWidth, rowTop(), sharedRowHeight);
             } else {
                 const lastSegment = result.at(-1);
                 if (lastSegment && lastSegment.type !== 'image') {
@@ -1337,7 +1358,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                     lineWidth = 0;
                     startRow();
                 }
-                wrappedLines = textWrap(guardedText, budget(), 0, rowTop());
+                wrappedLines = textWrap(guardedText, budget(rowHeightWith(segment) - rowHeight), 0, rowTop());
             }
         }
 
@@ -1405,7 +1426,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         if (lineWidth + width <= maxWidth(height)) {
             lineWidth += width;
             totalHeight += height;
-            startRow([...segments], height);
+            startRow(segments, height);
             result.push(...segments);
             continue;
         }
@@ -1459,6 +1480,14 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
     }
 
     return result;
+}
+
+const NO_EXTENT = { ascent: 0, descent: 0 };
+
+/** The row extent `measureTextSegments` gives a plain text segment; unset when the row must be measured. */
+function plainRowExtent(segment: MeasuredSegment): { ascent: number; descent: number } | undefined {
+    if (segment.type === 'image' || segment.lineHeight != null) return;
+    return segment.text === '' ? NO_EXTENT : segment.textMetrics;
 }
 
 // The renderer only reads a trailing \n on a text segment, so a break after an image needs a synthetic one.

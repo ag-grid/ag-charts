@@ -57,6 +57,17 @@ function quoteFontFamily(fontFamily: string | undefined): string {
     return quoted;
 }
 
+/** `font`'s `lineHeight` kept in proportion at `fontSize`, unset when `font` sets none. */
+export function lineHeightAtSize(
+    font: Pick<FontOptions, 'fontSize' | 'lineHeight'>,
+    fontSize: number | undefined
+): number | undefined {
+    const { lineHeight } = font;
+    return lineHeight == null || fontSize == null || fontSize === font.fontSize
+        ? lineHeight
+        : (lineHeight * fontSize) / font.fontSize;
+}
+
 export function toFontString({ fontSize, fontStyle, fontWeight, fontFamily }: FontOptions) {
     let fontString = '';
     if (fontStyle != null && fontStyle !== 'normal') {

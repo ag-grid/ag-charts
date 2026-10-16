@@ -194,8 +194,14 @@ describe('lineHeight', () => {
             expect(labels.every((label) => label.fontSize === 24 && label.lineHeight == null)).toBe(true);
         });
 
-        it('keeps a set line height in proportion when the itemStyler restyles only fontSize', async () => {
-            await render(barChart({ fontSize: 12, lineHeight: 18, itemStyler: () => ({ fontSize: 24 }) }));
+        it.each([
+            ['restyles only fontSize', () => ({ fontSize: 24 })],
+            [
+                'echoes the line height back',
+                ({ lineHeight }: AgChartLabelStylerParams<unknown, unknown>) => ({ lineHeight, fontSize: 24 }),
+            ],
+        ])('keeps a set line height in proportion when the itemStyler %s', async (_name, itemStyler) => {
+            await render(barChart({ fontSize: 12, lineHeight: 18, itemStyler }));
             const labels = getVisibleLabelNodes(chart!);
             expect(labels.length).toBeGreaterThan(0);
             expect(labels.every((label) => label.fontSize === 24 && label.lineHeight === 36)).toBe(true);

@@ -13,6 +13,7 @@ import {
     UnitTimeScale,
     type WrapOptions,
     buildDateFormatter,
+    cachedTextMeasurer,
     compareDates,
     createIdsGenerator,
     dropFirstWhile,
@@ -205,6 +206,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 ): TickDatum[] {
     const { scale, label, tickFormatter, inRange, isVertical, sizeLimit = Infinity } = options;
     const isContinuous = TimeScale.is(scale) || DiscreteTimeScale.is(scale);
+    const measurer = cachedTextMeasurer(label);
     const idGenerator = createIdsGenerator();
     const ticks: TickDatum[] = [];
 
@@ -280,7 +282,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 isPrimary,
                 index: i + rawFirstTickIndex,
                 textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
-                textMetrics: measureLabelText(tickLabel, label),
+                textMetrics: measureLabelText(tickLabel, label, measurer),
                 translation: BandScale.is(scale) ? translation : Math.floor(translation),
             });
         }
@@ -512,6 +514,7 @@ export function timeIntervalMaxLabelSize(
             ? undefined
             : intervalRange(hierarchy, new Date(domain[0]), new Date(domain.at(-1)!), { extend: true });
 
+    const measurer = cachedTextMeasurer(label);
     let maxWidth = 0;
     let maxHeight = 0;
     if (labelFormatter != null) {
@@ -530,7 +533,7 @@ export function timeIntervalMaxLabelSize(
         const labelRange = intervalRange(timeInterval, l0, l1, { limit: 50 });
         for (const date of labelRange) {
             const text = labelFormatter(date);
-            const { width, height } = measureLabelText(text, label);
+            const { width, height } = measureLabelText(text, label, measurer);
             maxWidth = Math.max(maxWidth, width + xPadding);
             maxHeight = Math.max(maxHeight, height + yPadding);
         }
@@ -540,9 +543,12 @@ export function timeIntervalMaxLabelSize(
         const padding = expandLabelPadding(primaryLabel);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
+        // The estimate uses the axis label's font, at the parent level's line height.
+        const lineHeight = primaryLabel?.lineHeight ?? label.lineHeight;
+        const primaryFont = lineHeight === label.lineHeight ? label : { ...label, lineHeight };
         for (const date of hierarchyRange) {
             const text = primaryLabelFormatter(date);
-            const { width, height } = measureLabelText(text, primaryLabel ?? label);
+            const { width, height } = measureLabelText(text, primaryFont, measurer);
 
             maxWidth = Math.max(maxWidth, width + xPadding);
             maxHeight = Math.max(maxHeight, height + yPadding);

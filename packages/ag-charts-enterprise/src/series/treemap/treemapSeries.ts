@@ -61,7 +61,7 @@ import {
     HierarchySeries,
     toHierarchyHighlightString,
 } from '../hierarchy/hierarchySeries';
-import { autoSizedLabelFit, labelPairBlocks } from '../util/autoSizedLabelFit';
+import { autoSizedLabelFit, labelPairBlocks, styledLabelFont } from '../util/autoSizedLabelFit';
 
 const { createDatumId, SelectionState, expandLabelBoxExtent, getLabelStyles } = _ModuleSupport;
 
@@ -825,16 +825,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         if (props.itemStyler == null) return { label: props, box: expandLabelBoxExtent(props) };
         const path = this.labelPath(node.children.length === 0, tag);
         const style = getLabelStyles(this, node, this.labelFormatterParams(node), props, false, undefined, path);
-        const { fontSize, fontStyle = props.fontStyle, fontWeight = props.fontWeight, lineHeight } = style;
-        const label = {
-            ...props,
-            fontSize,
-            fontStyle,
-            fontWeight,
-            fontFamily: style.fontFamily ?? props.fontFamily,
-            lineHeight,
-        };
-        return { label, box: expandLabelBoxExtent(style) };
+        return { label: styledLabelFont(props, style), box: expandLabelBoxExtent(style) };
     }
 
     private styledLabelFit(

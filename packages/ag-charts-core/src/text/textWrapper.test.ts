@@ -1009,7 +1009,10 @@ describe('measureTextSegments — lineHeight', () => {
         expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
     });
 
-    it('checks wrapped rows against the region band below a taller shared row', () => {
+    it.each([
+        ['checks wrapped rows against the region band below a taller shared row', 'BB CC DD EE FF'],
+        ['admits a segment onto a taller row only where the row band has room', 'BB CC'],
+    ])('%s', (_name, tail) => {
         const font = { ...baseFont, fontSize: 10, lineHeight: 30 };
         const widthAt = (bottom: number) => Math.max(10, 80 - bottom * 0.4);
         const region: FitRegion = {
@@ -1018,27 +1021,7 @@ describe('measureTextSegments — lineHeight', () => {
             extentBelow: 180,
         };
         const fitted = fitLabelText(
-            [text('A', { fontSize: 20 }), text('BB CC DD EE FF')],
-            { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' },
-            font
-        ) as MeasuredSegment[];
-        let top = 0;
-        for (const line of measureTextSegments(fitted, font).lineMetrics) {
-            expect(line.width).toBeLessThanOrEqual(widthAt(top + line.height));
-            top += line.height;
-        }
-    });
-
-    it('admits a segment onto a taller row only where the row band has room', () => {
-        const font = { ...baseFont, fontSize: 10, lineHeight: 30 };
-        const widthAt = (bottom: number) => Math.max(10, 80 - bottom * 0.4);
-        const region: FitRegion = {
-            spanAt: (_top, bottom) => [-widthAt(bottom) / 2, widthAt(bottom) / 2],
-            extentAbove: 0,
-            extentBelow: 180,
-        };
-        const fitted = fitLabelText(
-            [text('A', { fontSize: 20 }), text('BB CC')],
+            [text('A', { fontSize: 20 }), text(tail)],
             { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' },
             font
         ) as MeasuredSegment[];
@@ -1057,6 +1040,28 @@ describe('measureTextSegments — lineHeight', () => {
             font
         ) as MeasuredSegment[];
         expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
+    });
+
+    describe('without a lineHeight', () => {
+        const fit = (segments: TextSegment[], maxWidth: number, maxHeight: number) =>
+            fitLabelText(
+                segments,
+                { maxWidth, maxHeight, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+                baseFont
+            ) as MeasuredSegment[];
+
+        it('counts the row a wrapped segment shares only once', () => {
+            const fitted = fit([text('AAA BBB'), text(' CCC')], 40, 3 * LINE_HEIGHT);
+            expect(fitted.map((segment) => (segment.type === 'image' ? '' : segment.text)).join('')).not.toContain(
+                EllipsisChar
+            );
+            expect(measureTextSegments(fitted, baseFont).lineMetrics).toHaveLength(3);
+        });
+
+        it('counts the open row before a segment wraps below it', () => {
+            const fitted = fit([text('A '), text('BBB CCC')], 40, 2 * LINE_HEIGHT);
+            expect(measureTextSegments(fitted, baseFont).height).toBeLessThanOrEqual(2 * LINE_HEIGHT);
+        });
     });
 
     it("inherits the default font's lineHeight in proportion to each segment's fontSize", () => {

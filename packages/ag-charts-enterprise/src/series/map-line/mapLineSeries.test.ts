@@ -593,31 +593,6 @@ describe('MapLineSeries', () => {
         });
     });
 
-    describe('label lineHeight', () => {
-        it('measures the label box by its lineHeight', async () => {
-            const options: AgChartOptions = {
-                ...SIMPLIFIED_EXAMPLE,
-                series: [
-                    {
-                        type: 'map-line',
-                        idKey: 'name',
-                        labelKey: 'name',
-                        label: {
-                            enabled: true,
-                            fontSize: 12,
-                            lineHeight: 36,
-                            formatter: ({ value }) => `${value}\nsecond`,
-                        },
-                    },
-                ],
-            };
-            chart = deproxy(await createEnterpriseChart(options));
-            const { labelData } = chart.series[0].contextNodeData;
-            expect(labelData.length).toBeGreaterThan(0);
-            expect(labelData.map((datum: any) => datum.label.height)).toEqual(labelData.map(() => 72));
-        });
-    });
-
     describe('AG-17481 size scaling (AC12)', () => {
         const sizeRange = async (seriesOverrides: object): Promise<[number, number]> => {
             const options: AgChartOptions = {

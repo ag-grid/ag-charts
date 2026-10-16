@@ -14,6 +14,12 @@ export interface AutoSizedLabel extends LabelFitOptions, FontOptions {
     readonly collision?: AgChartLabelCollisionOptions;
 }
 
+/** `label` in the font its `itemStyler` resolved to, so the fit reserves room for the restyled text. */
+export function styledLabelFont<T extends FontOptions>(label: T, style: FontOptions): T {
+    const { fontSize, fontStyle = label.fontStyle, fontWeight = label.fontWeight, lineHeight } = style;
+    return { ...label, fontSize, fontStyle, fontWeight, fontFamily: style.fontFamily ?? label.fontFamily, lineHeight };
+}
+
 /**
  * What the placement engine re-fits an auto-sized label's text with. A label that does not fit is hidden,
  * unless `collision.alwaysShow` keeps it, when it is drawn overflowing its item rather than erased.

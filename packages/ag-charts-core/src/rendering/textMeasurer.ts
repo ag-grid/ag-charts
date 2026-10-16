@@ -3,7 +3,7 @@ import type { ImageSegment, Padding, PaddingOptions } from 'ag-charts-types';
 import { isArray } from '../data/typeGuards';
 import type { NormalisedContentSegment, NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { LRUCache } from '../structures/lruCache';
-import { toFontString, toTextString } from '../text/textUtil';
+import { lineHeightAtSize, toFontString, toTextString } from '../text/textUtil';
 import {
     type FontOptions,
     type ITextMeasurer,
@@ -236,10 +236,14 @@ function emptyLine(): SegmentsLineMetrics {
     return { segments: [], width: 0, height: 0, ascent: 0, descent: 0, textAscent: 0, textDescent: 0 };
 }
 
-/** Measured size of a label's text or rich-text segments under the given font. */
-export function measureLabelText(text: NormalisedTextOrSegments, font: FontOptions): { width: number; height: number } {
+/** Measured size of a label's text or rich-text segments under the given font; `measurer` must be `font`'s. */
+export function measureLabelText(
+    text: NormalisedTextOrSegments,
+    font: FontOptions,
+    measurer?: ITextMeasurer
+): { width: number; height: number } {
     if (isArray(text)) return measureTextSegments(text, font);
-    const size = cachedTextMeasurer(font).measureLines(String(text));
+    const size = (measurer ?? cachedTextMeasurer(font)).measureLines(String(text));
     const { lineHeight } = font;
     return lineHeight == null ? size : { width: size.width, height: lineHeight * size.lineMetrics.length };
 }
@@ -321,9 +325,7 @@ export function measureTextSegments(
             fontStyle = defaultFont.fontStyle,
             fontWeight = defaultFont.fontWeight,
             fontFamily = defaultFont.fontFamily,
-            lineHeight = defaultFont.lineHeight == null
-                ? undefined
-                : (defaultFont.lineHeight * fontSize) / defaultFont.fontSize,
+            lineHeight = lineHeightAtSize(defaultFont, fontSize),
             // Consumed by the auto-size search before measuring; a measured segment is spread onto a scene
             // node, which would take it as a property of its own.
             minimumFontSize: _minimumFontSize,

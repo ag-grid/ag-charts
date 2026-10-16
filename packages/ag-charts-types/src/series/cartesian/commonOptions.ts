@@ -287,9 +287,10 @@ export interface TextSegment extends TextOptions {
      */
     verticalAlign?: 'baseline' | 'top' | 'middle' | 'bottom';
     /**
-     * Explicit line height in pixels for the line containing this segment. When several segments on the same
-     * line declare a `lineHeight`, the largest value wins. When omitted, the line uses the natural font line
-     * height of its tallest segment.
+     * Line height in pixels for the line containing this segment, which may be less than the natural height of
+     * its font. When several segments on the same line declare a `lineHeight`, the largest value wins, and the
+     * line is never shorter than a segment on it without one. When omitted, the label's `lineHeight` is used,
+     * scaled to this segment's `fontSize`, or the natural line height when the label sets none.
      */
     lineHeight?: PixelSize;
     /**

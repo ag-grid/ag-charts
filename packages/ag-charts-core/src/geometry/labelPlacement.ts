@@ -4,7 +4,7 @@ import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import type { NormalisedChartLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
 import { type TextMeasurer, cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
-import { EllipsisChar, graphemeSegments, toFontString, toTextString } from '../text/textUtil';
+import { EllipsisChar, graphemeSegments, lineHeightAtSize, toFontString, toTextString } from '../text/textUtil';
 import {
     type LabelFit,
     type RegionAlign,
@@ -14,7 +14,6 @@ import {
     fontWithSize,
     hasRealChars,
     isErased,
-    lineHeightAtSize,
     resolveMinimumFontSize,
 } from '../text/textWrapper';
 import type { Point, SizedPoint } from '../types/scene';
