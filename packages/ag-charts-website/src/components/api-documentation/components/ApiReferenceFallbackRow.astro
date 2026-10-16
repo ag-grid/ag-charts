@@ -30,22 +30,26 @@ const { id, label, member, hideRequired, anchors = [] } = Astro.props;
         {member && <code class={styles.propertyType}>{normalizeType(member.type)}</code>}
         {member?.defaultValue != null && <span class={styles.propertyDefault}>default: {member.defaultValue}</span>}
     </dt>
-    {/* Always rendered: a definition-list group needs both a term and a
-            description, even for undocumented members. */}
+    {
+        /* Always rendered: a definition-list group needs both a term and a
+            description, even for undocumented members. */
+    }
     <dd class="text-secondary">{member && parseJsDocs(member.docs)}</dd>
-    {anchors.length > 0 && (
-        <dd>
-            <dl class={styles.referenceNestedList}>
-                {anchors.map((anchor) => (
-                    <Astro.self
-                        id={anchor.anchorId!}
-                        label={anchor.label}
-                        member={anchor.member}
-                        hideRequired={hideRequired}
-                        anchors={anchor.children}
-                    />
-                ))}
-            </dl>
-        </dd>
-    )}
+    {
+        anchors.length > 0 && (
+            <dd>
+                <dl class={styles.referenceNestedList}>
+                    {anchors.map((anchor) => (
+                        <Astro.self
+                            id={anchor.anchorId!}
+                            label={anchor.label}
+                            member={anchor.member}
+                            hideRequired={hideRequired}
+                            anchors={anchor.children}
+                        />
+                    ))}
+                </dl>
+            </dd>
+        )
+    }
 </div>

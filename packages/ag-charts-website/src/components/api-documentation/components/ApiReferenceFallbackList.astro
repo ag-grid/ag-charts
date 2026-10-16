@@ -22,12 +22,14 @@ const { id, members, hideRequired, anchors = [] } = Astro.props;
 ---
 
 <dl class={styles.referenceList}>
-    {members.map((member) => (
-        <ApiReferenceFallbackRow
-            id={`reference-${id}-${member.name}`}
-            member={member}
-            hideRequired={hideRequired}
-            anchors={anchors.find((anchor) => anchor.member?.name === member.name)?.children}
-        />
-    ))}
+    {
+        members.map((member) => (
+            <ApiReferenceFallbackRow
+                id={`reference-${id}-${member.name}`}
+                member={member}
+                hideRequired={hideRequired}
+                anchors={anchors.find((anchor) => anchor.member?.name === member.name)?.children}
+            />
+        ))
+    }
 </dl>
