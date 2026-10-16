@@ -1532,6 +1532,28 @@ describe('series label fit', () => {
             }
         );
 
+        it.each([['outside-end'], ['inside-center', 'outside-end']])(
+            'reserves no room for a linear-gauge %s label too tall for the room beside the gauge',
+            async (...placement) => {
+                const options = {
+                    type: 'linear-gauge',
+                    direction: 'horizontal',
+                    value: 60,
+                    thickness: 20,
+                    scale: { min: 0, max: 100, label: { enabled: false } },
+                    label: { enabled: true, text: 'Fallback', padding: 8, border: { enabled: true }, placement },
+                };
+                prepareEnterpriseTestOptions(options as AgChartOptions);
+                Object.assign(options, { width: 220, height: 40 });
+                chart = deproxy(AgCharts.createGauge(options as any));
+                await waitForChartStability(chart);
+
+                const { gaugeRect, seriesRect } = chart.series[0];
+                expect(gaugeLabelTexts()).toEqual([]);
+                expect(gaugeRect.width).toBe(seriesRect.width);
+            }
+        );
+
         it('colours linear-gauge labels from insideStyle or outsideStyle by where they land', async () => {
             const label = {
                 enabled: true,

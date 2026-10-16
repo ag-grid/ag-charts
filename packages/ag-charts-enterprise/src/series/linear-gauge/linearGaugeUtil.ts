@@ -501,16 +501,34 @@ function isOutsidePlacement(placement: AgLinearGaugeLabelPlacement) {
     return placement === 'outside-start' || placement === 'outside-end';
 }
 
-/** The placement to set room aside for beside the gauge: the first outside one reached before any placement fits. */
+function fitsLinearGaugeLabel(
+    labelText: NormalisedTextOrSegments,
+    labelDatum: LinearGaugeLabelDatum,
+    placement: AgLinearGaugeLabelPlacement,
+    opts: LinearGaugeLabelOpts,
+    bboxes: LinearGaugeLabelBBoxes
+) {
+    const fitted = layoutLinearGaugeLabel(labelText, labelDatum, placement, false, opts, bboxes);
+    if (fitted == null) {
+        return false;
+    }
+    const { box, region } = fitted;
+    return region == null || boxContains(region, box.x, box.y, box.width, box.height);
+}
+
+/**
+ * The placement to set room aside for: the first in the list that fits, outside ones within the room they would
+ * reserve. When none fits, only an `alwaysShow` label keeps the first placement's room for its overflow fallback.
+ */
 export function reservedLinearGaugeLabelPlacement(
     labelDatum: LinearGaugeLabelDatum,
     labelText: () => NormalisedTextOrSegments | undefined,
     opts: LinearGaugeLabelOpts,
-    bboxes: LinearGaugeLabelBBoxes
+    bboxes: (reserved: AgLinearGaugeLabelPlacement | undefined) => LinearGaugeLabelBBoxes
 ): AgLinearGaugeLabelPlacement | undefined {
-    const { placements } = labelDatum;
+    const { placements, collision } = labelDatum;
     const [first] = placements;
-    if (isOutsidePlacement(first) || isLegacyKeep(labelDatum) || !placements.some(isOutsidePlacement)) {
+    if (isLegacyKeep(labelDatum) || !placements.some(isOutsidePlacement)) {
         return first;
     }
 
@@ -518,17 +536,17 @@ export function reservedLinearGaugeLabelPlacement(
     if (text == null) {
         return first;
     }
-    return placements.find((placement) => {
-        if (isOutsidePlacement(placement)) {
-            return true;
-        }
-        const fitted = layoutLinearGaugeLabel(text, labelDatum, placement, false, opts, bboxes);
-        if (fitted == null) {
-            return false;
-        }
-        const { box, region } = fitted;
-        return region == null || boxContains(region, box.x, box.y, box.width, box.height);
-    });
+    const unreserved = bboxes(undefined);
+    const fitting = placements.find((placement) =>
+        fitsLinearGaugeLabel(
+            text,
+            labelDatum,
+            placement,
+            opts,
+            isOutsidePlacement(placement) ? bboxes(placement) : unreserved
+        )
+    );
+    return fitting ?? (collision?.alwaysShow === true ? first : undefined);
 }
 
 /**
