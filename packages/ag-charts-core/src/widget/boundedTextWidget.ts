@@ -1,9 +1,9 @@
 import { createElement, createSvgElement } from '../dom/domElements';
-import { Widget } from './widget';
+import { AbstractButtonWidget } from './abstractButtonWidget';
 
 // This class represents text that is sized by bounds rather than font size.
 // Its main purpose to tell screenreaders about the bounds & content of text scene nodes.
-export class BoundedTextWidget extends Widget<HTMLDivElement> {
+export class BoundedTextWidget extends AbstractButtonWidget<HTMLDivElement> {
     private readonly svgElement: SVGElement;
     private readonly textElement: SVGTextElement;
 

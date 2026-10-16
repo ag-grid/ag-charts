@@ -7,6 +7,7 @@ import type {
     LabelFit,
     MouseWidgetEvent,
     NormalisedChartCaptionOptions,
+    NormalisedContextMenuOptions,
     NormalisedTextOrSegments,
 } from 'ag-charts-core';
 import {
@@ -74,6 +75,10 @@ export class ChartCaption implements CaptionLike {
 
     get opts(): NormalisedChartCaptionOptions {
         return this.ctx.chartState.getValue('options', this.key) ?? {};
+    }
+
+    get contextMenuOpts(): Pick<NormalisedContextMenuOptions, 'enabled'> {
+        return this.ctx.chartState.getValue('options', 'contextMenu') ?? { enabled: false };
     }
 
     // Members required by CaptionLike. Other field reads go through `opts` at the call site.
@@ -186,12 +191,8 @@ export class ChartCaption implements CaptionLike {
             this.proxyText = proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
             this.proxyTextListeners = [
                 this.proxyText.addListener('contextmenu', (ev) => this.handleContextMenu(moduleCtx, ev)),
-                this.proxyText.addListener('click', (ev) => {
-                    if (this.hasClickListener(moduleCtx)) this.handleClick(moduleCtx, ev);
-                }),
-                this.proxyText.addListener('dblclick', (ev) => {
-                    if (this.hasClickListener(moduleCtx)) this.handleClick(moduleCtx, ev);
-                }),
+                this.proxyText.addListener('click', (ev) => this.handleClick(moduleCtx, ev)),
+                this.proxyText.addListener('dblclick', (ev) => this.handleClick(moduleCtx, ev)),
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
                 this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
                 this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx)),
@@ -199,8 +200,22 @@ export class ChartCaption implements CaptionLike {
             ];
         }
 
-        // Signal interactivity only on captions that actually have a click listener.
-        this.proxyText.setCursor(this.hasClickListener(moduleCtx) ? 'pointer' : undefined);
+        if (this.hasClickListener(moduleCtx)) {
+            // Fully interactive (like a regular button).
+            this.proxyText.setCursor('pointer');
+            this.proxyText.setAriaRole('button');
+            this.proxyText.setTabIndex(0);
+        } else if (this.contextMenuOpts.enabled) {
+            // Partially interactive (can focused on with the screenreader's Browse-mode)
+            this.proxyText.setCursor(undefined);
+            this.proxyText.setAriaRole('button');
+            this.proxyText.setTabIndex(-1);
+        } else {
+            // Non-interactive
+            this.proxyText.setCursor(undefined);
+            this.proxyText.setAriaRole('presentation');
+            this.proxyText.setTabIndex(undefined);
+        }
 
         const textContent = toPlainText(this.text);
         if (textContent !== this.lastProxyTextContent) {
@@ -307,8 +322,7 @@ export class ChartCaption implements CaptionLike {
      * the same `captionType` discriminator.
      */
     private handleClick(moduleCtx: DynamicContext<ChartRegistry>, event: ClickWidgetEvent | DblClickWidgetEvent) {
-        // Keyboard activation of caption listeners is not supported.
-        if (event.device === 'keyboard') return;
+        if (!this.hasClickListener(moduleCtx)) return;
 
         const isDoubleClick = event.type === 'dblclick';
         const params = { event: event.sourceEvent, captionType: this.key, text: this.text ?? '' };
