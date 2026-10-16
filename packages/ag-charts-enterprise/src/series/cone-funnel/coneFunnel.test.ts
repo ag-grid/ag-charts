@@ -6,6 +6,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
@@ -478,8 +479,7 @@ describe('ConeFunnelSeries', () => {
     describe('data-update stage removal', () => {
         const frames = spyOnAnimationFrames();
 
-        const optionsWithData = (data: unknown[]): AgChartOptions =>
-            prepareEnterpriseTestOptions({ ...CONE_FUNNEL_EXAMPLE, data });
+        const optionsWithData = (data: unknown[]): AgChartOptions => ({ ...CONE_FUNNEL_EXAMPLE, data });
 
         it('AG-17796 removes a stage node from the scene when a stage is removed from data', async () => {
             const stages = CONE_FUNNEL_EXAMPLE.data as unknown[];
@@ -495,7 +495,7 @@ describe('ConeFunnelSeries', () => {
             expect(stageNodeCount()).toBe(4);
             expect(connectorNodeCount()).toBe(3);
 
-            await proxy.update(optionsWithData(stages.slice(0, 3)));
+            await proxy.update(prepareEnterpriseTestOptions(optionsWithData(stages.slice(0, 3))));
             await frames.runToEnd(chart);
 
             expect(stageNodeCount()).toBe(3);
@@ -585,13 +585,15 @@ describe('ConeFunnelSeries', () => {
             { group: 'Close', value: 4460 },
         ];
 
-        const animated = (data: object[]): AgChartOptions =>
-            prepareEnterpriseTestOptions({
-                animation: { enabled: true },
-                data,
-                series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value' }],
-                legend: { enabled: true },
-            });
+        const animated = (data: object[]): AgChartOptions => ({
+            animation: { enabled: true },
+            data,
+            series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value' }],
+            legend: { enabled: true },
+        });
+
+        // Bespoke: the sanity test reuses the prepared options in `update`, so it creates the chart bare.
+        const preparedAnimated = (data: object[]) => prepareEnterpriseTestOptions(animated(data));
 
         const isLabelKey = (key: string) => /^series\[0\]\/labels\/text\[/.test(key);
         const expectLabelsStartHidden = (frame0: SceneGeometrySample) => {
@@ -653,9 +655,15 @@ describe('ConeFunnelSeries', () => {
         });
 
         it('animated endpoints match a static render (initial load + data update)', async () => {
-            const opts = animated(DATA);
-            chart = await createEnterpriseChart(opts);
-            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, opts, animated(UPDATED));
+            const opts = preparedAnimated(DATA);
+            chart = AgCharts.create(opts);
+            await expectAnimatedEndpointsMatchStatic(
+                frames,
+                () => ctx.snapshot(),
+                chart,
+                opts,
+                preparedAnimated(UPDATED)
+            );
         });
     });
 });

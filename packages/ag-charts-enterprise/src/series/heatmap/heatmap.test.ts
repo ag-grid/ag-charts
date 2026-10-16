@@ -1144,6 +1144,7 @@ describe('HeatmapSeries', () => {
     });
 
     describe('block-leading image segments (treemap parity)', () => {
+        // Bespoke: the image loader is stubbed between create and first render.
         // A `block: true` image segment renders as in treemap: left of the cell label, text beside it.
         const iconSvg = (letter: string) =>
             `data:image/svg+xml;utf8,${encodeURIComponent(
@@ -1172,27 +1173,27 @@ describe('HeatmapSeries', () => {
         }
 
         it('renders a block-leading image segment in heatmap cell labels', async () => {
-            chart = deproxy(
-                await createEnterpriseChart({
-                    ...EXAMPLE_OPTIONS,
-                    legend: { enabled: false },
-                    series: [
-                        {
-                            type: 'heatmap',
-                            xKey: 'year',
-                            yKey: 'person',
-                            colorKey: 'spending',
-                            label: {
-                                enabled: true,
-                                formatter: ({ datum }) => [
-                                    { type: 'image', url: ICONS[datum.person], width: 20, height: 20, block: true },
-                                    { text: `${datum.spending}` },
-                                ],
-                            },
+            const options = prepareEnterpriseTestOptions({
+                ...EXAMPLE_OPTIONS,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        label: {
+                            enabled: true,
+                            formatter: ({ datum }) => [
+                                { type: 'image', url: ICONS[datum.person], width: 20, height: 20, block: true },
+                                { text: `${datum.spending}` },
+                            ],
                         },
-                    ],
-                })
-            );
+                    },
+                ],
+            });
+
+            chart = deproxy(AgCharts.create(options));
             stubChartImageLoader(chart);
             // The snapshot is the guard: if the series flattened the formatter's segment array to
             // plain text the stubbed image would not render and the baseline would diff.

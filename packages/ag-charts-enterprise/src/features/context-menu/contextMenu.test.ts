@@ -174,8 +174,6 @@ describe('Context Menu', () => {
         cx = CANVAS_WIDTH / 2;
         cy = CANVAS_HEIGHT / 2;
 
-        // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
-        // event is triggered.
         chart = await createEnterpriseChart(options);
     }
 

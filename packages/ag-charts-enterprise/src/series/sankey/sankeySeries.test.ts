@@ -1154,8 +1154,6 @@ describe('SankeySeries', () => {
         const flowKeys = (sample: SceneGeometrySample) =>
             [...sample.keys()].filter((k) => /^series\[0\]\/(rect|path|sector)\[/.test(k));
 
-        // Bespoke: the animation-frame spy has to be in place before the chart's first frame, so the chart cannot be
-        // created through the factory, which awaits stability.
         it('update data: nodes and links snap to their new layout without tweening', async () => {
             const options: AgStandaloneChartOptions = {
                 data: [
@@ -1164,8 +1162,7 @@ describe('SankeySeries', () => {
                 ],
                 series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             const sampler = createSceneGeometrySampler(chart);
             const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
                 chart.updateDelta({

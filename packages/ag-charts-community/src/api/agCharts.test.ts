@@ -228,7 +228,6 @@ describe('AgCharts', () => {
                 ],
             } satisfies AgChartOptions;
 
-            // `createChart` prepares its own copy; the prepared original feeds the `update()` calls below.
             chart = await createChart(options);
             prepareTestOptions(options);
 
@@ -283,7 +282,6 @@ describe('AgCharts', () => {
                 ],
             } satisfies AgChartOptions;
 
-            // `createChart` prepares its own copy; the prepared original feeds the `update()` calls below.
             chart = await createChart(options);
             prepareTestOptions(options);
             const realChart = deproxy(chart);
@@ -322,7 +320,6 @@ describe('AgCharts', () => {
                 theme: { params: { accentColor: '#ff0000' } },
             } satisfies AgChartOptions;
 
-            // `createChart` prepares its own copy; the prepared original feeds the `update()` calls below.
             chart = await createChart(options);
             prepareTestOptions(options);
             const realChart = deproxy(chart);

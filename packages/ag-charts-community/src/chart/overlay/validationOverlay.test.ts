@@ -133,7 +133,6 @@ describe('ValidationOverlay', () => {
             } as AgChartOptions;
             const proxy = await createChart(options);
             chart = deproxy(proxy);
-            // The factory prepares a copy, so prepare the options reused by the update.
             prepareTestOptions(options);
             await chart.waitForUpdate(5000, true);
 
@@ -333,7 +332,6 @@ describe('ValidationOverlay', () => {
             } as AgChartOptions;
             const proxy = await createChart(options);
             chart = deproxy(proxy);
-            // The factory prepares a copy, so prepare the options reused by the update.
             prepareTestOptions(options);
             await chart.waitForUpdate(5000, true);
 

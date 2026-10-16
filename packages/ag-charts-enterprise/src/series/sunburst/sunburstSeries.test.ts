@@ -1059,6 +1059,7 @@ describe('SunburstSeries', () => {
     });
 
     describe('block-leading image segments (treemap parity)', () => {
+        // Bespoke: the image loader is stubbed between create and first render.
         // A `block: true` image segment renders as in treemap: left of the slice label, text beside it.
         const iconSvg = (letter: string) =>
             `data:image/svg+xml;utf8,${encodeURIComponent(
@@ -1117,7 +1118,8 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
             stubChartImageLoader(chart);
             // The snapshot is the guard: if the series flattened the formatter's segment array to
             // plain text the stubbed image would not render and the baseline would diff.
@@ -1279,7 +1281,6 @@ describe('SunburstSeries', () => {
         });
     });
 
-    // Bespoke: these tests sample the animation from the chart's first frame, with animations enabled and prepared options reused by update.
     // Initial load scales the whole sector group up from nothing; a data reshuffle instead SNAPS,
     // with every sector jumping to its new layout on the first frame (no per-sector tween).
     describe('animation -test page actions', () => {
@@ -1316,11 +1317,11 @@ describe('SunburstSeries', () => {
             [...nodes].reverse().map((n) => ({ ...n, children: reversed(n.children) }));
 
         const sunburstOptions = (data: OrgNode[] = ORG_DATA): AgChartOptions =>
-            prepareEnterpriseTestOptions({
+            ({
                 data,
                 series: [{ type: 'sunburst', labelKey: 'name' }],
                 animation: { enabled: true },
-            } as AgChartOptions);
+            }) as AgChartOptions;
 
         const SECTOR = /^series\[0\]\/sector\[/;
         const sectorEntries = (sample: SceneGeometrySample) => [...sample].filter(([key]) => SECTOR.test(key));
@@ -1359,14 +1360,16 @@ describe('SunburstSeries', () => {
 
         // A hierarchy reshuffle snaps at frame 0 (surviving sectors jump to their new positions), so
         // capture with captureSnap rather than captureUpdate's before-anchored flow.
-        const captureReshuffle = (create: AgChartOptions, next: AgChartOptions) => {
-            const proxy = AgCharts.create(create);
+        const captureReshuffle = async (create: AgChartOptions, next: AgChartOptions) => {
+            const proxy = await createEnterpriseChart(create);
             chart = deproxy(proxy);
-            return frames.captureSnap(proxy, createSceneGeometrySampler(proxy), () => proxy.update(next));
+            return frames.captureSnap(proxy, createSceneGeometrySampler(proxy), () =>
+                proxy.update(prepareEnterpriseTestOptions(next))
+            );
         };
 
         it('standalone: initial load scales the sector group up from nothing', async () => {
-            const proxy = AgCharts.create(sunburstOptions());
+            const proxy = await createEnterpriseChart(sunburstOptions());
             chart = deproxy(proxy);
             const sample = createSceneGeometrySampler(proxy);
             const trajectory = await frames.captureAnimationFrames(proxy, sample);
@@ -1414,11 +1417,11 @@ describe('SunburstSeries', () => {
         // After a reshuffle rebuilds the sector tree, highlighting a node from the new tree must bind
         // to that node's live geometry, not a stale sector left over from a recycled instance.
         const withHighlight = (data: OrgNode[]): AgChartOptions =>
-            prepareEnterpriseTestOptions({
+            ({
                 data,
                 series: [{ type: 'sunburst', labelKey: 'name', highlight: { highlightedItem: { fill: 'lime' } } }],
                 animation: { enabled: true },
-            } as AgChartOptions);
+            }) as AgChartOptions;
         const findSectorNode = (series: SunburstSeries, name: string): any => {
             const dfs = (node: any): any =>
                 node?.datum?.name === name ? node : (node?.children ?? []).map(dfs).find(Boolean);
@@ -1430,7 +1433,7 @@ describe('SunburstSeries', () => {
             Array.from((series as any).datumSelection.nodes()).find((s: any) => s.datum === node);
 
         it('highlight through reshuffle: re-highlighting resolves the pointed node, not a stale sector', async () => {
-            const proxy = AgCharts.create(withHighlight(ORG_DATA));
+            const proxy = await createEnterpriseChart(withHighlight(ORG_DATA));
             chart = deproxy(proxy);
             await waitForChartStability(chart);
             const series = chart.series[0] as SunburstSeries;
@@ -1440,7 +1443,7 @@ describe('SunburstSeries', () => {
             await waitForChartStability(chart);
             expect(highlightSector(series)?.datum?.datum?.name).toBe('A2');
 
-            await proxy.update(withHighlight(reversed(ORG_DATA)));
+            await proxy.update(prepareEnterpriseTestOptions(withHighlight(reversed(ORG_DATA))));
             await waitForChartStability(chart);
 
             const b1 = findSectorNode(series, 'B1');
@@ -1460,7 +1463,8 @@ describe('SunburstSeries', () => {
         });
 
         it('sanity: reshuffle endpoints match static renders', async () => {
-            const before = sunburstOptions();
+            // Bespoke: the prepared options are reused by the updates inside `expectAnimatedEndpointsMatchStatic`.
+            const before = prepareEnterpriseTestOptions(sunburstOptions());
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(
@@ -1468,7 +1472,7 @@ describe('SunburstSeries', () => {
                 () => ctx.snapshot(),
                 proxy,
                 before,
-                sunburstOptions(reversed(ORG_DATA))
+                prepareEnterpriseTestOptions(sunburstOptions(reversed(ORG_DATA)))
             );
         });
     });

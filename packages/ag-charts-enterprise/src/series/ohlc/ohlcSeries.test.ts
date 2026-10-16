@@ -1,6 +1,6 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions } from 'ag-charts-community';
+import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -196,7 +196,7 @@ describe('OhlcSeries', () => {
             { date: new Date(2023, 0, 3), low: 1, open: 3, close: 5, high: 6 },
         ];
         const ohlcOptions = (): AgCartesianChartOptions =>
-            prepareEnterpriseTestOptions({
+            ({
                 data: barData(),
                 series: [
                     { type: 'ohlc', xKey: 'date', lowKey: 'low', openKey: 'open', closeKey: 'close', highKey: 'high' },
@@ -206,6 +206,9 @@ describe('OhlcSeries', () => {
                     y: { type: 'number', position: 'left', min: 0, max: 10 },
                 },
             }) as AgCartesianChartOptions;
+
+        // Bespoke: the sanity tests reuse the prepared options in `update`, so they create the chart bare.
+        const preparedOhlcOptions = () => prepareEnterpriseTestOptions(ohlcOptions());
 
         // The Date key stringifies with a timezone suffix, so match on the leading `Day Mon DD YYYY`.
         const barKeys = (sample: SceneGeometrySample) =>
@@ -289,30 +292,30 @@ describe('OhlcSeries', () => {
 
         // One chart per test: the mock canvas only snapshots the first chart created.
         it('sanity: update value endpoints match static renders', async () => {
-            const before = ohlcOptions();
+            const before = preparedOhlcOptions();
             const data = barData();
             data[2] = { ...data[2], close: 8, high: 9.5 };
-            chart = await createEnterpriseChart(before);
+            chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
-                ...ohlcOptions(),
+                ...preparedOhlcOptions(),
                 data,
             });
         });
 
         it('sanity: add data endpoints match static renders', async () => {
-            const before = ohlcOptions();
-            chart = await createEnterpriseChart(before);
+            const before = preparedOhlcOptions();
+            chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
-                ...ohlcOptions(),
+                ...preparedOhlcOptions(),
                 data: [...barData(), { date: new Date(2023, 0, 4), low: 2, open: 5, close: 7, high: 9 }],
             });
         });
 
         it('sanity: remove data endpoints match static renders', async () => {
-            const before = ohlcOptions();
-            chart = await createEnterpriseChart(before);
+            const before = preparedOhlcOptions();
+            chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
-                ...ohlcOptions(),
+                ...preparedOhlcOptions(),
                 data: barData().slice(0, 2),
             });
         });

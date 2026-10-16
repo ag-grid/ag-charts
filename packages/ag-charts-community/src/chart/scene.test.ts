@@ -37,7 +37,6 @@ describe('Scene', () => {
                 legend: { position: 'bottom' },
             };
             chart = await createChart(options);
-            // The factory prepares a copy, so prepare the options reused by the update.
             prepareTestOptions(options);
             await waitForChartStability(chart);
 
@@ -68,7 +67,6 @@ describe('Scene', () => {
                 },
             };
             chart = await createChart(options);
-            // The factory prepares a copy, so prepare the options reused by the update.
             prepareTestOptions(options);
             await waitForChartStability(chart);
 

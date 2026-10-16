@@ -201,14 +201,14 @@ describe('label itemStyler participates in placement', () => {
 
         const styledPlacements = async (type: string, placement: string[], extra: object = {}) => {
             const seen = new Set<string>();
-            const options = prepareEnterpriseTestOptions(seriesChart(type, placement, extra, seen) as AgChartOptions);
+            const options = seriesChart(type, placement, extra, seen) as AgChartOptions;
             chart = await createEnterpriseChart(options);
             expect(placementLabelData().length).toBeGreaterThan(0);
             expect(seen.size).toBeGreaterThan(0);
             // The second pass is the route that resolves a styled box from a placement already mapped into
             // the bar vocabulary, so it must be seen calling the styler in its own right.
             seen.clear();
-            await chart.update(options);
+            await chart.update(prepareEnterpriseTestOptions(options));
             await waitForChartStability(chart);
             expect(placementLabelData().length).toBeGreaterThan(0);
             expect(seen.size).toBeGreaterThan(0);

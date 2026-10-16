@@ -10,7 +10,7 @@ type TSeries = {
     legendItemName?: string;
 };
 type TestLegendItemNameOptions = {
-    create: (opts: AgChartOptions) => AgChartInstance | Promise<AgChartInstance>;
+    create: (opts: AgChartOptions) => Promise<AgChartInstance>;
     compare: () => Promise<void>;
     chartOptions: AgChartOptions & { series: TSeries[] };
 };
@@ -25,7 +25,6 @@ export function testLegendItemName(testOptions: TestLegendItemNameOptions) {
     });
 
     describe('alfa-bravo-charlie', () => {
-        let chart: AgChartInstance;
         let chartOptions: typeof testOptions.chartOptions;
 
         beforeEach(async () => {
@@ -34,8 +33,7 @@ export function testLegendItemName(testOptions: TestLegendItemNameOptions) {
             chartOptions.series[1].legendItemName = 'Bravo';
             chartOptions.series[2].legendItemName = 'Charlie';
 
-            chart = await testOptions.create(chartOptions);
-            await waitForChartStability(chart);
+            await testOptions.create(chartOptions);
         });
 
         test('a11y text', () => {
@@ -64,7 +62,6 @@ export function testLegendItemName(testOptions: TestLegendItemNameOptions) {
 
             resetMockConsole();
             chart = await testOptions.create(chartOptions);
-            await waitForChartStability(chart);
 
             expectWarningMessages([
                 `AG Charts - legend item '1' has multiple fill colours, this may cause unexpected behaviour.`,

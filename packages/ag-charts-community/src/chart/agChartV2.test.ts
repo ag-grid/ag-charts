@@ -30,6 +30,7 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     },
 };
 
+// Bespoke: the bare creates attach the chart to the per-test `container` rather than the default body, which `createChart` cannot do; some also set a size after preparation.
 describe('AgChartV2', () => {
     setupMockConsole();
 
@@ -75,7 +76,6 @@ describe('AgChartV2', () => {
     };
 
     describe('#create', () => {
-        // Bespoke: the chart is attached to the per-test `container` rather than the default body, which `createChart` cannot do.
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
@@ -116,7 +116,6 @@ describe('AgChartV2', () => {
             }));
             const snapshots: any[] = [];
 
-            // Created from the unprepared options, as `createChart` prepares its own copy; the prepared ones feed `update()`.
             chart = await createChart(exampleCycle[0]);
             for (const opts of exampleCycle) {
                 prepareTestOptions(opts);
@@ -166,7 +165,6 @@ describe('AgChartV2', () => {
                 axes: mapValues(axes ?? {}, (a) => adjustPosition(a, idx)),
             }));
 
-            // Created from the unprepared options, as `createChart` prepares its own copy; the prepared ones feed `update()`.
             chart = await createChart(exampleCycle[0]);
             for (const opts of exampleCycle) {
                 prepareTestOptions(opts);
@@ -208,7 +206,6 @@ describe('AgChartV2', () => {
                 return opts;
             };
 
-            // Bespoke: the size is set after preparation, so `createChart` would override it.
             it('does not let a resize skip the entry animation after a series-type switch', async () => {
                 chart = AgCharts.create(barOptions());
                 await waitForChartStability(chart);
@@ -233,7 +230,6 @@ describe('AgChartV2', () => {
     });
 
     describe('#getImageDataURL', () => {
-        // Bespoke: the chart is attached to the per-test `container`, and one test sets its size after preparation.
         it('should correctly download a stacked bar chart (AG-12985)', async () => {
             const options: AgChartOptions = { ...examples.STACKED_BAR_CHART_EXAMPLE };
             prepareTestOptions(options, container);
@@ -264,7 +260,6 @@ describe('AgChartV2', () => {
     });
 
     describe('#getState', () => {
-        // Bespoke: the chart is attached to the per-test `container` rather than the default body.
         it('omits legend state when legend is disabled', async () => {
             const options: AgChartOptions = {
                 legend: { enabled: false },
@@ -313,7 +308,6 @@ describe('AgChartV2', () => {
     });
 
     describe('AG-16360', () => {
-        // Bespoke: the chart is attached to the per-test `container` rather than the default body.
         beforeEach(async () => {
             const options: AgChartOptions = {
                 legend: {},
@@ -386,7 +380,6 @@ describe('AgChartV2', () => {
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
         });
 
-        // Bespoke: the chart is attached to the per-test `container` rather than the default body.
         it('should drop a subtitle omitted from a full update()', async () => {
             const initial = withSubtitle();
             prepareTestOptions(initial, container);

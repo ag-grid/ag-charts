@@ -661,7 +661,6 @@ describe('Legend', () => {
 
             const chartInstance = await createChart(options);
             chart = deproxy(chartInstance);
-            // The factory prepares a copy, so prepare the options reused by updateDelta.
             prepareTestOptions(options);
             await compare(chart);
 
@@ -813,7 +812,6 @@ describe('Legend', () => {
 
             const chartInstance = await createChart(options);
             chart = deproxy(chartInstance);
-            // The factory prepares a copy, so prepare the options reused by updateDelta.
             prepareTestOptions(options);
             await waitForChartStability(chart);
 
@@ -851,7 +849,6 @@ describe('Legend', () => {
 
             const chartInstance = await createChart(options);
             chart = deproxy(chartInstance);
-            // The factory prepares a copy, so prepare the options reused by updateDelta.
             prepareTestOptions(options);
             await waitForChartStability(chart);
 
@@ -886,7 +883,6 @@ describe('Legend', () => {
 
             const chartInstance = await createChart(options);
             chart = deproxy(chartInstance);
-            // The factory prepares a copy, so prepare the options reused by updateDelta.
             prepareTestOptions(options);
             await waitForChartStability(chart);
 
@@ -926,7 +922,6 @@ describe('Legend', () => {
 
             const chartInstance = await createChart(options);
             chart = deproxy(chartInstance);
-            // The factory prepares a copy, so prepare the options reused by updateDelta.
             prepareTestOptions(options);
             await waitForChartStability(chart);
 

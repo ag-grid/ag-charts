@@ -227,19 +227,21 @@ describe('RadialBarSeries', () => {
             { quarter: `Q4'22`, air: 3.48, winds: 3.56 },
         ];
         // Pinned angle axis: value→angle scaling stays fixed across data mutations, so only the radius bands re-layout.
-        const radialBarOptions = (data: Row[] = RB_DATA): AgPolarChartOptions =>
-            prepareEnterpriseTestOptions<AgPolarChartOptions>({
-                data: [...data],
-                series: [
-                    { type: 'radial-bar', angleKey: 'air', radiusKey: 'quarter' },
-                    { type: 'radial-bar', angleKey: 'winds', radiusKey: 'quarter' },
-                ],
-                axes: {
-                    angle: { type: 'angle-number', min: 0, max: 10, nice: false },
-                    radius: { type: 'radius-category' },
-                },
-                legend: { enabled: true },
-            });
+        const radialBarOptions = (data: Row[] = RB_DATA): AgPolarChartOptions => ({
+            data: [...data],
+            series: [
+                { type: 'radial-bar', angleKey: 'air', radiusKey: 'quarter' },
+                { type: 'radial-bar', angleKey: 'winds', radiusKey: 'quarter' },
+            ],
+            axes: {
+                angle: { type: 'angle-number', min: 0, max: 10, nice: false },
+                radius: { type: 'radius-category' },
+            },
+            legend: { enabled: true },
+        });
+        // Bespoke: the update tests below reuse the prepared options in `update`, so they create the chart bare.
+        const preparedOptions = (data?: Row[]) =>
+            prepareEnterpriseTestOptions<AgPolarChartOptions>(radialBarOptions(data));
         const grow = (data: Row[]) => data.map((d) => ({ ...d, air: d.air * 1.8 }));
 
         const sectorEntries = (sample: SceneGeometrySample) =>
@@ -262,10 +264,8 @@ describe('RadialBarSeries', () => {
             }
         };
 
-        // Bespoke: the animation-frame spy has to be in place before the chart's first frame, so these charts cannot
-        // be created through the factory, which awaits stability.
         it('initial load: each bar sweeps its span from a shared start-angle anchor', async () => {
-            const proxy = AgCharts.create(radialBarOptions());
+            const proxy = await createEnterpriseChart(radialBarOptions());
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
@@ -321,7 +321,7 @@ describe('RadialBarSeries', () => {
         });
 
         it('update data: value changes snap into place without a tween', async () => {
-            const options = radialBarOptions();
+            const options = preparedOptions();
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -334,7 +334,7 @@ describe('RadialBarSeries', () => {
         });
 
         it('add data: new bars appear fully formed without animating in', async () => {
-            const options = radialBarOptions();
+            const options = preparedOptions();
             const proxy = AgCharts.create({ ...options, data: RB_DATA.slice(0, 3) } as AgPolarChartOptions);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -348,7 +348,7 @@ describe('RadialBarSeries', () => {
         });
 
         it('remove data: dropped bars disappear without collapsing', async () => {
-            const options = radialBarOptions();
+            const options = preparedOptions();
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -362,7 +362,7 @@ describe('RadialBarSeries', () => {
         });
 
         it('sanity: update-data endpoints match static renders', async () => {
-            const before = radialBarOptions();
+            const before = preparedOptions();
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
@@ -372,17 +372,17 @@ describe('RadialBarSeries', () => {
         });
 
         it('sanity: add-data endpoints match static renders', async () => {
-            const before = { ...radialBarOptions(), data: RB_DATA.slice(0, 3) } as AgPolarChartOptions;
+            const before = { ...preparedOptions(), data: RB_DATA.slice(0, 3) } as AgPolarChartOptions;
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
-                ...radialBarOptions(),
+                ...preparedOptions(),
                 data: [...RB_DATA],
             });
         });
 
         it('sanity: remove-data endpoints match static renders', async () => {
-            const before = radialBarOptions();
+            const before = preparedOptions();
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
@@ -778,10 +778,7 @@ describe('RadialBarSeries', () => {
         };
 
         it('should render updated data in the itemStyler specified colors', async () => {
-            const options = { ...TEST_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-            // Bespoke: the update is applied straight after creation, before the chart has stabilised.
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart({ ...TEST_OPTIONS });
             await chart.updateDelta({ data: DATA2 });
             await compare();
         });

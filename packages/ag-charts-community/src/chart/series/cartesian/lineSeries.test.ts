@@ -243,18 +243,14 @@ describe('LineSeries', () => {
     describe('animation frame-trajectory (spike)', () => {
         const frames = spyOnAnimationFrames();
 
-        // Bespoke: every bare create in this suite captures animation frames from the chart's first frame,
-        // so it must not be created through the factory, which awaits stability first.
         it('CASE 3: line data-update morphs the path per-station monotonically', async () => {
-            const options: AgChartOptions = prepareTestOptions({
+            chart = await createChart({
                 data: [
                     { x: 0, y: 90 },
                     { x: 1, y: 50 }, // B is the domain floor, so dropping it grows the extent downward
                 ],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
             });
-
-            chart = AgCharts.create(options);
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
             const before = sampleScene();
@@ -301,6 +297,8 @@ describe('LineSeries', () => {
     });
 
     // One CASE per control on the line-series-test page, in standalone and integrated modes.
+    // Bespoke: the option builders return prepared options that the tests also pass to `update`, so charts are created
+    // bare rather than preparing the same options twice.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -342,8 +340,6 @@ describe('LineSeries', () => {
 
         // Line markers snap to their new target instead of position-tweening, so captureUpdate's whole-scene
         // endpoint check trips on that frame-0 snap; these CASEs hand-roll the capture and pin only what tweens.
-        // Bespoke: every bare create in this suite captures animation frames from the chart's first frame,
-        // so it must not be created through the factory, which awaits stability first.
         const captureFrom = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);

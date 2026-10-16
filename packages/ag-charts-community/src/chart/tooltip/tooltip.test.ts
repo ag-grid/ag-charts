@@ -130,7 +130,6 @@ describe('Tooltip', () => {
             opts.series = [{ type: 'line', xKey: 'step', yKey: 'voltage' }];
 
             chart = (await createChart(opts)) as AgChartProxy;
-            // The factory prepares a copy, so prepare the options reused by the updates.
             prepareTestOptions(opts);
             await waitForChartStability(chart);
 

@@ -293,7 +293,6 @@ describe('BoxPlotSeries', () => {
         await compareSnapshot(await createEnterpriseChart(options));
     });
 
-    // Bespoke: the animation trajectory is captured from the chart's first frame, before it settles.
     // Each box grows vertically about its median: scalingY sweeps 0 -> 1 while scalingX holds.
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
@@ -302,10 +301,7 @@ describe('BoxPlotSeries', () => {
             [...sample.keys()].filter((key) => /^series\[0\]\/path\[/.test(key));
 
         it('boxes grow from the median (scalingY 0 -> 1, scalingX constant) on the initial reveal', async () => {
-            const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            const proxy = AgCharts.create(options);
+            const proxy = await createEnterpriseChart({ ...BOX_PLOT_BAR_OPTIONS });
             const sampler = createSceneGeometrySampler(proxy);
             const trajectory = await frames.captureAnimationFrames(proxy, sampler);
             await frames.runToEnd(proxy);
@@ -341,6 +337,7 @@ describe('BoxPlotSeries', () => {
                 data: BOX_PLOT_BAR_OPTIONS.data!.map((d: any) => ({ ...d, min: d.min - 0.5, max: d.max + 0.5 })),
             };
 
+            // Bespoke: the prepared options are reused by the update inside `expectAnimatedEndpointsMatchStatic`.
             const chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, widened);
 

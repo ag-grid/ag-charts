@@ -71,7 +71,6 @@ describe('Gallery Examples', () => {
             beforeEach(async () => {
                 options = { ...example.options };
                 chart = await createChart(options);
-                // The factory prepares a copy, so prepare the options reused by the updates.
                 prepareTestOptions(options);
                 await waitForChartStability(chart);
             });

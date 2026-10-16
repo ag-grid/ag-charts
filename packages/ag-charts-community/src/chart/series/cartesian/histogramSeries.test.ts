@@ -870,6 +870,7 @@ describe('HistogramSeries', () => {
 
     // One CASE per transition the histogram-series-test page exercises; bins are Rects that reveal
     // from the value baseline, mirroring the bar suite's patterns.
+    // Bespoke: the binning-change and sanity tests pass prepared options that are reused by `update`.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -906,8 +907,9 @@ describe('HistogramSeries', () => {
             if (mode != null) {
                 (options as AgChartOptions & { mode: string }).mode = mode;
             }
-            return prepareTestOptions(options);
+            return options;
         };
+        const preparedHistogramOptions = () => prepareTestOptions(histogramOptions());
 
         const rectCount = (sample: SceneGeometrySample) =>
             [...sample.keys()].filter((k) => /^series\[\d+\]\/rect/.test(k)).length;
@@ -949,18 +951,15 @@ describe('HistogramSeries', () => {
         it('auto-binning: a data update that shifts the extent re-bins and grows from the baseline', async () => {
             // The axis views are pinned so only the bins move; an unpinned axis would drown the bin
             // reveal in tick animation.
-            const autoOptions = (data: number[]): AgCartesianChartOptions =>
-                prepareTestOptions({
-                    data: data.map((x) => ({ x })),
-                    series: [{ type: 'histogram', xKey: 'x', label: { enabled: false } }],
-                    axes: {
-                        x: { type: 'number', position: 'bottom', min: 0, max: 60 },
-                        y: { type: 'number', position: 'left', min: 0, max: 10 },
-                    },
-                });
-            // Bespoke: every bare create in this suite captures animation frames from the chart's first frame,
-            // so it must not be created through the factory, which awaits stability first.
-            const proxy = AgCharts.create(autoOptions(DATA_A));
+            const autoOptions = (data: number[]): AgCartesianChartOptions => ({
+                data: data.map((x) => ({ x })),
+                series: [{ type: 'histogram', xKey: 'x', label: { enabled: false } }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 60 },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                },
+            });
+            const proxy = await createChart(autoOptions(DATA_A));
             chart = proxy;
             const sampleScene = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
@@ -999,7 +998,7 @@ describe('HistogramSeries', () => {
 
         // "Reset"/initial render — bins reveal from the baseline.
         it('initial load: bins reveal from the baseline', async () => {
-            chart = AgCharts.create(histogramOptions());
+            chart = await createChart(histogramOptions());
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectAllBinsStartCollapsed(trajectory[0]);
@@ -1011,8 +1010,7 @@ describe('HistogramSeries', () => {
 
         // Same bins, new totals: bar heights reflow during the update phase while the bands hold.
         it('data update: bin heights reflow toward their new totals during the update phase', async () => {
-            const options = histogramOptions();
-            const proxy = AgCharts.create(options);
+            const proxy = await createChart(histogramOptions());
             chart = proxy;
             const sampleScene = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
@@ -1038,7 +1036,7 @@ describe('HistogramSeries', () => {
 
         // A new bin set replaces the old one: the old rects drop and the fresh set snaps in collapsed then grows.
         it('binning change: a new bin set snaps in collapsed then grows from the baseline', async () => {
-            const options = histogramOptions();
+            const options = preparedHistogramOptions();
             const proxy = AgCharts.create(options);
             chart = proxy;
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -1059,7 +1057,7 @@ describe('HistogramSeries', () => {
 
         // Integrated mode: the initial load must reveal from the baseline exactly as standalone does.
         it('integrated mode: initial load reveals bins from the baseline', async () => {
-            chart = AgCharts.create(histogramOptions('integrated'));
+            chart = await createChart(histogramOptions('integrated'));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectAllBinsStartCollapsed(trajectory[0]);
@@ -1071,7 +1069,7 @@ describe('HistogramSeries', () => {
 
         // The animated route must settle at exactly the pixels a snapped render of the same options produces.
         it('sanity: data update endpoints match static renders', async () => {
-            const options = histogramOptions();
+            const options = preparedHistogramOptions();
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -1080,7 +1078,7 @@ describe('HistogramSeries', () => {
         });
 
         it('sanity: binning change endpoints match static renders', async () => {
-            const options = histogramOptions();
+            const options = preparedHistogramOptions();
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,

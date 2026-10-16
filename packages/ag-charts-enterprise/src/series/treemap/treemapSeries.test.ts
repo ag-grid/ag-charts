@@ -356,6 +356,7 @@ describe('TreemapSeries', () => {
         });
 
         describe('block-leading image segments', () => {
+            // Bespoke: the image loader is stubbed between create and first render.
             // Vector paths rather than <text> keep glyph rendering identical across OS font sets.
             const LETTER_PATHS: Record<string, string> = {
                 A: 'M13 25L18 11L23 25M15.5 19.5L20.5 19.5',
@@ -436,7 +437,6 @@ describe('TreemapSeries', () => {
                         ],
                     };
                     prepareEnterpriseTestOptions(options);
-                    // Bespoke: the image loader is stubbed before the first render.
                     chart = deproxy(AgCharts.create(options));
                     stubChartImageLoader(chart);
                     await compare();
@@ -1380,15 +1380,12 @@ describe('TreemapSeries', () => {
             ],
         }));
 
-        const treemapOptions = (data: any[], series: any = {}): AgChartOptions => {
-            const options = {
+        const treemapOptions = (data: any[], series: any = {}): AgChartOptions =>
+            ({
                 data,
                 series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size', ...series }],
                 animation: { enabled: false },
-            } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
-            return options;
-        };
+            }) as AgChartOptions;
 
         const renderSeries = async (data: any[], series: any = {}) => {
             chart = deproxy(await createEnterpriseChart(treemapOptions(data, series)));
@@ -1491,7 +1488,9 @@ describe('TreemapSeries', () => {
             chart = deproxy(proxy);
             expect(fillOf(chart.series[0], 'A')).toBe('#ff0000');
 
-            await proxy.update(treemapOptions(DEEP_DATA, { group: { fills: ['#123456', '#654321'] } }));
+            await proxy.update(
+                prepareEnterpriseTestOptions(treemapOptions(DEEP_DATA, { group: { fills: ['#123456', '#654321'] } }))
+            );
             await waitForChartStability(chart);
 
             const styles = stylesByName(chart.series[0]);
@@ -1990,6 +1989,7 @@ describe('TreemapSeries', () => {
     });
 
     describe('AG-17926 zero-area tiles do not consume layout space', () => {
+        // Bespoke: the size is set after preparation.
         // One large group dwarfs many small groups so each small group's box shrinks below its own
         // padding and can lay out no child — the content-less group tile this suite must not render.
         const skewedGroups = () => {
@@ -2045,7 +2045,6 @@ describe('TreemapSeries', () => {
         };
 
         it('renders no content-less group tiles at large scale', async () => {
-            // Bespoke: the size is set after preparation.
             const proxy = AgCharts.create(treemapAt(1600, 1200));
             chart = deproxy(proxy);
             await waitForChartStability(chart);
@@ -2175,11 +2174,11 @@ describe('TreemapSeries', () => {
             [...nodes].reverse().map((n) => ({ ...n, children: n.children ? reversed(n.children) : undefined }));
 
         const treemapOptions = (data: OrgNode[] = ORG_DATA): AgChartOptions =>
-            prepareEnterpriseTestOptions({
+            ({
                 data,
                 series: [{ type: 'treemap', labelKey: 'title', sizeKey: 'total' }],
                 animation: { enabled: true },
-            } as AgChartOptions);
+            }) as AgChartOptions;
 
         const RECT = /^series\[0\]\/rect\[/;
         const rectEntries = (sample: SceneGeometrySample) => [...sample].filter(([key]) => RECT.test(key));
@@ -2224,15 +2223,16 @@ describe('TreemapSeries', () => {
             }).length;
 
         // Reshuffle snaps at frame 0, so use captureSnap rather than captureUpdate's before-anchored flow.
-        const captureReshuffle = (create: AgChartOptions, next: AgChartOptions) => {
-            // Bespoke: the frame spy and sampler attach before the first render.
-            const proxy = AgCharts.create(create);
+        const captureReshuffle = async (create: AgChartOptions, next: AgChartOptions) => {
+            const proxy = await createEnterpriseChart(create);
             chart = deproxy(proxy);
-            return frames.captureSnap(proxy, createSceneGeometrySampler(proxy), () => proxy.update(next));
+            return frames.captureSnap(proxy, createSceneGeometrySampler(proxy), () =>
+                proxy.update(prepareEnterpriseTestOptions(next))
+            );
         };
 
         it('standalone: initial load snaps the full tile layout with no reveal animation', async () => {
-            const proxy = AgCharts.create(treemapOptions());
+            const proxy = await createEnterpriseChart(treemapOptions());
             chart = deproxy(proxy);
             const sample = createSceneGeometrySampler(proxy);
             const trajectory = await frames.captureAnimationFrames(proxy, sample);
@@ -2271,7 +2271,7 @@ describe('TreemapSeries', () => {
 
         // After a reshuffle rebuilds the tile tree, highlighting a node from the new tree must bind to that node's live tile, not a stale recycled rect.
         const withHighlight = (data: OrgNode[]): AgChartOptions =>
-            prepareEnterpriseTestOptions({
+            ({
                 data,
                 series: [
                     {
@@ -2282,7 +2282,7 @@ describe('TreemapSeries', () => {
                     },
                 ],
                 animation: { enabled: true },
-            } as AgChartOptions);
+            }) as AgChartOptions;
         const findTileNode = (series: TreemapSeries, title: string): any => {
             const dfs = (node: any): any =>
                 node?.datum?.title === title ? node : (node?.children ?? []).map(dfs).find(Boolean);
@@ -2302,7 +2302,7 @@ describe('TreemapSeries', () => {
             await waitForChartStability(chart);
             expect(highlightTile(series)?.datum?.datum?.title).toBe('A2');
 
-            await proxy.update(withHighlight(reversed(ORG_DATA)));
+            await proxy.update(prepareEnterpriseTestOptions(withHighlight(reversed(ORG_DATA))));
             await waitForChartStability(chart);
 
             const b1 = findTileNode(series, 'B1');
@@ -2323,7 +2323,8 @@ describe('TreemapSeries', () => {
         });
 
         it('sanity: reshuffle endpoints match static renders', async () => {
-            const before = treemapOptions();
+            // Bespoke: the prepared options are reused by the updates inside `expectAnimatedEndpointsMatchStatic`.
+            const before = prepareEnterpriseTestOptions(treemapOptions());
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(
@@ -2331,7 +2332,7 @@ describe('TreemapSeries', () => {
                 () => ctx.snapshot(),
                 proxy,
                 before,
-                treemapOptions(reversed(ORG_DATA))
+                prepareEnterpriseTestOptions(treemapOptions(reversed(ORG_DATA)))
             );
         });
     });

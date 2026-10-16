@@ -561,7 +561,7 @@ describe('BarSeries', () => {
                     options.series = reducedSeries;
                 }
 
-                // Bespoke: the animation-manager spy sets the ratio before create, then `options` is reused by `chart.update`.
+                // Bespoke: the prepared `options` are reused by `chart.update`.
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
@@ -597,14 +597,13 @@ describe('BarSeries', () => {
                     y: { type: 'number', position: 'left', min: 0, max: 100 },
                 },
             };
-            return prepareTestOptions(options);
+            return options;
         };
 
         // CASE 1 — non-scale-affecting data update on a vertical (column) series. The changed bar should
         // grow/shrink in one dimension only, while sibling bars and the changed bar's x/width stay put.
         it('CASE 1: column data-update animates height only, monotonically, without disturbing siblings', async () => {
-            // Bespoke: the animation-frame spy drives the first frames, so stability must not be awaited at create (all bare creates in this suite).
-            chart = AgCharts.create(
+            chart = await createChart(
                 columnOptions([
                     { x: 'A', y: 100 },
                     { x: 'B', y: 40 },
@@ -645,7 +644,7 @@ describe('BarSeries', () => {
         // sibling HEIGHTS and the whole value axis must not move.
         it('CASE 2: added bar grows in and removed bar collapses, monotonically', async () => {
             // ADD: A,B,C -> A,B,C,D.
-            chart = AgCharts.create(
+            chart = await createChart(
                 columnOptions([
                     { x: 'A', y: 100 },
                     { x: 'B', y: 40 },
@@ -734,7 +733,7 @@ describe('BarSeries', () => {
                     y: { type: 'number', position: 'left', min: 0 },
                 },
             };
-            chart = AgCharts.create(prepareTestOptions(options));
+            chart = await createChart(options);
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
             const before = sampleScene();
@@ -818,6 +817,7 @@ describe('BarSeries', () => {
             const options: AgChartOptions = { ...examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 };
             prepareTestOptions(options);
             const allSeries = options.series!;
+            // Bespoke: the prepared `options` are reused by `chart.update`.
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
@@ -862,16 +862,17 @@ describe('BarSeries', () => {
             if (mode != null) {
                 (options as AgChartOptions & { mode: string }).mode = mode;
             }
-            return prepareTestOptions(options);
+            return options;
         };
+        // Bespoke: the bare creates in this suite pass prepared options that are reused by a later `chart.update`.
+        const preparedGroupedOptions = (mode?: 'integrated') => prepareTestOptions(groupedOptions(mode));
 
         const rectCount = (sample: SceneGeometrySample) =>
             [...sample.keys()].filter((k) => /^series\[\d+\]\/rect/.test(k)).length;
 
-        const groupedCategoryOptions = () => {
-            const options: AgChartOptions = { ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE };
-            return prepareTestOptions(options);
-        };
+        const groupedCategoryOptions = (): AgChartOptions => ({
+            ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
+        });
 
         // The initial-load reveal: bars grow from the baseline along the value axis while their
         // bands land immediately (the crisp-pixel snap moves band coords by <1px, so 'bounded').
@@ -921,9 +922,8 @@ describe('BarSeries', () => {
 
         // "Remove Series" — only the survivors' reflow is observable (the removed series' exit is not).
         it('remove series: surviving bars widen monotonically into the vacated band', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             const allSeries = options.series!;
-            // Bespoke: the animation-frame spy drives the first frames, so stability must not be awaited at create (all bare creates in this suite).
             chart = AgCharts.create(options);
             const sampleScene = createSceneGeometrySampler(chart);
 
@@ -944,7 +944,7 @@ describe('BarSeries', () => {
 
         // "Add Series" — survivors narrow; the entering series fades in at full size.
         it('add series: existing bars narrow and entering bars fade in at full size', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             const allSeries = options.series!;
             options.series = allSeries.slice(0, 2);
             chart = AgCharts.create(options);
@@ -982,8 +982,7 @@ describe('BarSeries', () => {
 
         // "Randomise" — bars tween height only; bands and axes hold because the domain is pinned.
         it('randomise: all bars tween height only, monotonically toward their new values', async () => {
-            const options = groupedOptions();
-            chart = AgCharts.create(options);
+            chart = await createChart(groupedOptions());
             const sampleScene = createSceneGeometrySampler(chart);
 
             const { trajectory } = await frames.captureUpdate(chart, sampleScene, () =>
@@ -1004,8 +1003,7 @@ describe('BarSeries', () => {
 
         // "Remove Data" — leaving bars collapse while the surviving band widens to fill the axis.
         it('remove data: last category collapses and the surviving band widens', async () => {
-            const options = groupedOptions();
-            chart = AgCharts.create(options);
+            chart = await createChart(groupedOptions());
             const sampleScene = createSceneGeometrySampler(chart);
 
             const { trajectory, after } = await frames.captureUpdate(chart, sampleScene, () =>
@@ -1039,7 +1037,7 @@ describe('BarSeries', () => {
                 return sample.get(matches[0])!;
             };
 
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             const allSeries = options.series! as AgBarSeriesOptions[];
             chart = AgCharts.create(options);
             const sampleScene = createSceneGeometrySampler(chart);
@@ -1075,7 +1073,7 @@ describe('BarSeries', () => {
 
         // A direction flip re-creates the series: widths re-reveal from the left baseline.
         it('switch direction: bars re-reveal along the new value axis', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             // Default axes: explicit positions cannot follow the direction flip.
             delete options.axes;
             const allSeries = options.series! as AgBarSeriesOptions[];
@@ -1093,7 +1091,7 @@ describe('BarSeries', () => {
 
         // Integrated mode: initial load must animate exactly as standalone does.
         it('integrated mode: initial load reveals bars from the baseline', async () => {
-            chart = AgCharts.create(groupedOptions('integrated'));
+            chart = await createChart(groupedOptions('integrated'));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectSceneTrajectory(trajectory, revealFromBaseline('height'));
@@ -1103,8 +1101,7 @@ describe('BarSeries', () => {
         // Integrated chart-type switches call resetAnimations() first: bars must re-grow from the
         // baseline instead of tweening from their old heights.
         it('integrated mode: resetAnimations before a data update replays the initial reveal', async () => {
-            const options = groupedOptions('integrated');
-            chart = AgCharts.create(options);
+            chart = await createChart(groupedOptions('integrated'));
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
 
@@ -1124,7 +1121,7 @@ describe('BarSeries', () => {
 
         // A legend move must always snap: the product skips the batch when the layout rect changes.
         it('integrated mode: legend move snaps without tweening', async () => {
-            const options = groupedOptions('integrated');
+            const options = preparedGroupedOptions('integrated');
             options.legend = { position: 'bottom' };
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
@@ -1142,7 +1139,7 @@ describe('BarSeries', () => {
         // The create-time reveal in standalone mode (the integrated variants below re-run it via
         // resetAnimations; this pins the plain first render).
         it('standalone: initial load reveals bars from the baseline', async () => {
-            chart = AgCharts.create(groupedOptions());
+            chart = await createChart(groupedOptions());
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectSceneTrajectory(trajectory, revealFromBaseline('height'));
@@ -1151,7 +1148,7 @@ describe('BarSeries', () => {
 
         // The grouped-category axis is what AG Grid integrated charts use for row groups.
         it('integrated mode: grouped-category chart reveals bars from the baseline on initial load', async () => {
-            chart = AgCharts.create(groupedCategoryOptions());
+            chart = await createChart(groupedCategoryOptions());
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectSceneTrajectory(trajectory, revealFromBaseline('height', { progresses: false }));
@@ -1159,7 +1156,7 @@ describe('BarSeries', () => {
 
         // Standalone has no skipAnimations() call — the layout-rect-change skip must cover it.
         it('standalone: legend move snaps without tweening', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             options.legend = { position: 'bottom' };
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
@@ -1174,7 +1171,7 @@ describe('BarSeries', () => {
 
         // "Change Theme" — a restyle, not a data change: like the legend move it must snap.
         it('standalone: theme change snaps without tweening', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             options.theme = 'ag-default';
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
@@ -1192,7 +1189,7 @@ describe('BarSeries', () => {
         // Grouped-category data updates snap (no tween runs); the contract is post-snap alignment
         // of labels and bars within the reflowed bands.
         it('integrated mode: grouped-category remove data snaps with labels aligned to their bands', async () => {
-            chart = AgCharts.create(groupedCategoryOptions());
+            chart = await createChart(groupedCategoryOptions());
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
 
@@ -1254,7 +1251,7 @@ describe('BarSeries', () => {
 
         // Two-beat exit: toggled-off bars collapse to the baseline, then survivors widen into the vacated band.
         it('legend hide: toggled-off bars collapse to the baseline before survivors widen', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             const { trajectory, after } = await captureToggle(options, () =>
                 chart.update({
                     ...options,
@@ -1277,7 +1274,7 @@ describe('BarSeries', () => {
         // "Toggle series back on" — the exit in reverse: survivors narrow to re-make room (update
         // phase), then the re-shown bars grow back from the baseline (add phase) — a grow, not a fade.
         it('legend show: survivors narrow before the re-shown bars grow from the baseline', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             const hidden = {
                 ...options,
                 series: options.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
@@ -1361,7 +1358,7 @@ describe('BarSeries', () => {
         // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
         // render of the same options produces (see expectAnimatedEndpointsMatchStatic).
         it('sanity: randomise endpoints match static renders', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -1373,7 +1370,7 @@ describe('BarSeries', () => {
         });
 
         it('sanity: remove series endpoints match static renders', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -1391,7 +1388,7 @@ describe('BarSeries', () => {
         // Meta-tests: the endpoint guard must fail loudly in both comparison directions.
         describe('endpoint sanity guard validation', () => {
             it('rejects when a static render diverges from the animated settle', async () => {
-                const options = groupedOptions();
+                const options = preparedGroupedOptions();
                 chart = AgCharts.create(options);
                 const divergedStart = {
                     ...options,
@@ -1409,7 +1406,7 @@ describe('BarSeries', () => {
             });
 
             it('rejects a transition that changes no pixels', async () => {
-                const options = groupedOptions();
+                const options = preparedGroupedOptions();
                 chart = AgCharts.create(options);
                 await expect(
                     expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, { ...options })
@@ -1441,7 +1438,7 @@ describe('BarSeries', () => {
             };
             prepareTestOptions(options);
 
-            // Bespoke: the animation-manager spy ratio changes mid-test and `options` is reused by `chart.update`.
+            // Bespoke: the prepared `options` are reused by `chart.update`.
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 

@@ -284,19 +284,21 @@ describe('NightingaleSeries', () => {
             { quarter: `Q4'22`, air: 3.48, winds: 3.56 },
         ];
         // A pinned radius axis keeps the scaling fixed across data mutations, so only the marks move.
-        const nightingaleOptions = (data: Row[] = NG_DATA): AgPolarChartOptions =>
-            prepareEnterpriseTestOptions<AgPolarChartOptions>({
-                data: [...data],
-                series: [
-                    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'air', radiusName: 'Air' },
-                    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'winds', radiusName: 'Winds' },
-                ],
-                axes: {
-                    angle: { type: 'angle-category' },
-                    radius: { type: 'radius-number', min: 0, max: 10, nice: false },
-                },
-                legend: { enabled: true },
-            });
+        const nightingaleOptions = (data: Row[] = NG_DATA): AgPolarChartOptions => ({
+            data: [...data],
+            series: [
+                { type: 'nightingale', angleKey: 'quarter', radiusKey: 'air', radiusName: 'Air' },
+                { type: 'nightingale', angleKey: 'quarter', radiusKey: 'winds', radiusName: 'Winds' },
+            ],
+            axes: {
+                angle: { type: 'angle-category' },
+                radius: { type: 'radius-number', min: 0, max: 10, nice: false },
+            },
+            legend: { enabled: true },
+        });
+        // Bespoke: the update tests below reuse the prepared options in `update`, so they create the chart bare.
+        const preparedOptions = (data?: Row[]) =>
+            prepareEnterpriseTestOptions<AgPolarChartOptions>(nightingaleOptions(data));
         const grow = (data: Row[]) => data.map((d) => ({ ...d, air: d.air * 1.8 }));
 
         const sectorEntries = (sample: SceneGeometrySample) =>
@@ -316,10 +318,8 @@ describe('NightingaleSeries', () => {
             }
         };
 
-        // Bespoke: the animation-frame spy has to be in place before the chart's first frame, so these charts cannot
-        // be created through the factory, which awaits stability.
         it('initial load: every wedge grows radially from a collapsed centre', async () => {
-            const proxy = AgCharts.create(nightingaleOptions());
+            const proxy = await createEnterpriseChart(nightingaleOptions());
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
@@ -378,7 +378,7 @@ describe('NightingaleSeries', () => {
         });
 
         it('update data: value changes snap into place without a tween', async () => {
-            const options = nightingaleOptions();
+            const options = preparedOptions();
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -391,7 +391,7 @@ describe('NightingaleSeries', () => {
         });
 
         it('add data: new wedges appear fully formed without animating in', async () => {
-            const options = nightingaleOptions();
+            const options = preparedOptions();
             const proxy = AgCharts.create({ ...options, data: NG_DATA.slice(0, 3) } as AgPolarChartOptions);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -405,7 +405,7 @@ describe('NightingaleSeries', () => {
         });
 
         it('remove data: dropped wedges disappear without collapsing', async () => {
-            const options = nightingaleOptions();
+            const options = preparedOptions();
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -419,7 +419,7 @@ describe('NightingaleSeries', () => {
         });
 
         it('sanity: update-data endpoints match static renders', async () => {
-            const before = nightingaleOptions();
+            const before = preparedOptions();
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
@@ -429,17 +429,17 @@ describe('NightingaleSeries', () => {
         });
 
         it('sanity: add-data endpoints match static renders', async () => {
-            const before = { ...nightingaleOptions(), data: NG_DATA.slice(0, 3) } as AgPolarChartOptions;
+            const before = { ...preparedOptions(), data: NG_DATA.slice(0, 3) } as AgPolarChartOptions;
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
-                ...nightingaleOptions(),
+                ...preparedOptions(),
                 data: [...NG_DATA],
             });
         });
 
         it('sanity: remove-data endpoints match static renders', async () => {
-            const before = nightingaleOptions();
+            const before = preparedOptions();
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {

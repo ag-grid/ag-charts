@@ -89,18 +89,19 @@ describe('PieSeries', () => {
 
         type MarketRow = { os: string; share: number };
 
-        const pieOptions = (data: MarketRow[] = DATA_MARKET_SHARE): AgPolarChartOptions =>
-            prepareTestOptions({
-                data: [...data],
-                series: [{ type: 'pie', angleKey: 'share', calloutLabelKey: 'os' }],
-                legend: { enabled: true },
-            });
-        const donutOptions = (data: MarketRow[] = DATA_MARKET_SHARE): AgPolarChartOptions =>
-            prepareTestOptions({
-                data: [...data],
-                series: [{ type: 'donut', angleKey: 'share', calloutLabelKey: 'os', innerRadiusRatio: 0.6 }],
-                legend: { enabled: true },
-            });
+        const pieOptions = (data: MarketRow[] = DATA_MARKET_SHARE): AgPolarChartOptions => ({
+            data: [...data],
+            series: [{ type: 'pie', angleKey: 'share', calloutLabelKey: 'os' }],
+            legend: { enabled: true },
+        });
+        const donutOptions = (data: MarketRow[] = DATA_MARKET_SHARE): AgPolarChartOptions => ({
+            data: [...data],
+            series: [{ type: 'donut', angleKey: 'share', calloutLabelKey: 'os', innerRadiusRatio: 0.6 }],
+            legend: { enabled: true },
+        });
+        // Prepared copies, for options handed to `update` or reused by the endpoint guards.
+        const preparedPieOptions = (data?: MarketRow[]) => prepareTestOptions(pieOptions(data));
+        const preparedDonutOptions = (data?: MarketRow[]) => prepareTestOptions(donutOptions(data));
 
         const dropLastTwo = (data: MarketRow[]) => data.slice(0, data.length - 2);
         const doubleIos = (data: MarketRow[]) => data.map((d) => (d.os === 'iOS' ? { ...d, share: d.share * 2 } : d));
@@ -169,14 +170,12 @@ describe('PieSeries', () => {
 
         // Callout labels snap to opacity 0 at frame 0, which trips captureUpdate's whole-scene start
         // anchor, so only the end anchor is kept. `setup` establishes an extra settled pre-state.
-        // Bespoke: every bare create in this suite captures the animation frames from the chart's first frame,
-        // so it must not be created through the factory, which awaits stability first.
         const captureFrom = async (
             create: AgPolarChartOptions,
             action: (proxy: AgChartInstance) => void | Promise<void>,
             setup?: (proxy: AgChartInstance) => void | Promise<void>
         ) => {
-            const proxy = AgCharts.create(create);
+            const proxy = await createChart(create);
             chart = deproxy(proxy);
             if (setup != null) {
                 await frames.runToEnd(proxy);
@@ -193,7 +192,7 @@ describe('PieSeries', () => {
         // Initial-load reveal: each sector sweeps its span from 0 to target while the radii hold; the
         // callouts and labels fade in as the sweep completes.
         it('standalone: initial load sweeps each sector span to a full circle', async () => {
-            const proxy = AgCharts.create(pieOptions());
+            const proxy = await createChart(pieOptions());
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
@@ -235,7 +234,7 @@ describe('PieSeries', () => {
         // survivors grow to fill the vacated sweep and the pie's outer radius grows into the freed room.
         it('remove data: dropped sectors collapse while survivors grow to fill the circle', async () => {
             const { before, trajectory, after } = await captureFrom(pieOptions(), (proxy) =>
-                proxy.update(pieOptions(dropLastTwo(DATA_MARKET_SHARE)))
+                proxy.update(preparedPieOptions(dropLastTwo(DATA_MARKET_SHARE)))
             );
             expect(sectorCount(before)).toBe(6);
             expect(sectorCount(after)).toBe(4);
@@ -274,7 +273,7 @@ describe('PieSeries', () => {
         });
 
         it('remove data: dropped sectors keep their fill while they collapse', async () => {
-            const proxy = AgCharts.create(pieOptions());
+            const proxy = await createChart(pieOptions());
             chart = deproxy(proxy);
             await frames.runToEnd(proxy);
 
@@ -295,7 +294,7 @@ describe('PieSeries', () => {
             const settledFills = fillsByIndex();
             expect(settledFills.size).toBe(6);
 
-            await proxy.update(pieOptions(dropLastTwo(DATA_MARKET_SHARE)));
+            await proxy.update(preparedPieOptions(dropLastTwo(DATA_MARKET_SHARE)));
             const trajectory = await frames.captureAnimationFrames(proxy, fillsByIndex);
 
             const collapsing = trajectory.filter((fills) => fills.size === 6);
@@ -312,7 +311,7 @@ describe('PieSeries', () => {
         it('add data: new sectors grow from zero while survivors shrink to make room', async () => {
             const { before, trajectory, after } = await captureFrom(
                 pieOptions(dropLastTwo(DATA_MARKET_SHARE)),
-                (proxy) => proxy.update(pieOptions())
+                (proxy) => proxy.update(preparedPieOptions())
             );
             expect(sectorCount(before)).toBe(4);
             expect(sectorCount(after)).toBe(6);
@@ -354,7 +353,7 @@ describe('PieSeries', () => {
         // checks below, since per-frame angle steps sit under monotonicTol.
         it('update data: doubling iOS grows its sector while the rest shrink proportionally', async () => {
             const { trajectory } = await captureFrom(pieOptions(), (proxy) =>
-                proxy.update(pieOptions(doubleIos(DATA_MARKET_SHARE)))
+                proxy.update(preparedPieOptions(doubleIos(DATA_MARKET_SHARE)))
             );
             expectSceneTrajectory(
                 trajectory,
@@ -466,7 +465,7 @@ describe('PieSeries', () => {
         // Donut initial load: identical span sweep to the pie, but with a persistent cutout — the inner
         // and outer radii hold at their donut values throughout, so only the angular span animates.
         it('donut: initial load sweeps spans while the cutout radii hold', async () => {
-            const proxy = AgCharts.create(donutOptions());
+            const proxy = await createChart(donutOptions());
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
@@ -505,7 +504,7 @@ describe('PieSeries', () => {
         // and outer radii tween by a small margin (progresses/bounded) without ever collapsing the hole.
         it('donut: updating data reshapes spans while the cutout survives', async () => {
             const { trajectory } = await captureFrom(donutOptions(), (proxy) =>
-                proxy.update(donutOptions(doubleIos(DATA_MARKET_SHARE)))
+                proxy.update(preparedDonutOptions(doubleIos(DATA_MARKET_SHARE)))
             );
             const cutoutTweens: SceneNodeExpectation = {
                 innerRadius: { during: 'update', expect: ['progresses', 'bounded'] },
@@ -547,7 +546,7 @@ describe('PieSeries', () => {
         // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
         // (skipAnimations) render of the same options produces, in both directions.
         it('sanity: update-data endpoints match static renders', async () => {
-            const before = pieOptions();
+            const before = preparedPieOptions();
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
@@ -557,7 +556,7 @@ describe('PieSeries', () => {
         });
 
         it('sanity: remove-data endpoints match static renders', async () => {
-            const before = pieOptions();
+            const before = preparedPieOptions();
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
@@ -567,7 +566,7 @@ describe('PieSeries', () => {
         });
 
         it('sanity: add-data endpoints match static renders', async () => {
-            const before = pieOptions(dropLastTwo(DATA_MARKET_SHARE));
+            const before = preparedPieOptions(dropLastTwo(DATA_MARKET_SHARE));
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {

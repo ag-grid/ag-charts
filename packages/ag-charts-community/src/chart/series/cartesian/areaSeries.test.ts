@@ -422,6 +422,8 @@ describe('AreaSeries', () => {
 
     // Area paints two nodes per series — a fill polygon (background group) and a top-edge stroke — so
     // every path assertion must resolve and pin both keys.
+    // Bespoke: the option builders return prepared options that the tests also pass to `update`, so charts are created
+    // bare rather than preparing the same options twice.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -507,7 +509,6 @@ describe('AreaSeries', () => {
         // Area markers snap to their new position at frame 0, which trips captureUpdate's whole-scene
         // start anchor — hence the hand-rolled capture that pins only what genuinely tweens.
         const captureFrom = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
-            // Bespoke: the animation-frame spy drives the first frames, so stability must not be awaited at create (all bare creates in this suite).
             chart = AgCharts.create(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };

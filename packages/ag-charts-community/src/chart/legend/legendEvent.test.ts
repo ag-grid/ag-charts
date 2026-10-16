@@ -208,7 +208,6 @@ describe('LegendEvent', () => {
             const opts = { ...OPTIONS, listeners: { seriesVisibilityChange } };
             const apiChart = await createChart(opts);
             chart = apiChart;
-            // The factory prepares a copy, so prepare the options reused by the update.
             prepareTestOptions(opts);
             await waitForChartStability(chart);
             await apiChart.update({
@@ -249,7 +248,6 @@ describe('LegendEvent', () => {
             } as AgChartOptions;
             const apiChart = await createChart(opts);
             chart = apiChart;
-            // The factory prepares a copy, so prepare the options reused by the update.
             prepareTestOptions(opts);
             await waitForChartStability(chart);
 

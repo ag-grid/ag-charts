@@ -512,15 +512,16 @@ describe('BubbleSeries', () => {
 
         // Pinned x/y domains make every data mutation below provably non-scale-affecting: within
         // [0,6] x [0,200] the markers reposition, resize, or enter/leave without moving the axes.
-        const bubbleOptions = (data: Array<{ x: number; y: number; s: number }>): AgCartesianChartOptions =>
-            prepareTestOptions({
-                data,
-                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', minSize: 10, maxSize: 40 }],
-                axes: {
-                    x: { type: 'number', position: 'bottom', min: 0, max: 6 },
-                    y: { type: 'number', position: 'left', min: 0, max: 200 },
-                },
-            });
+        const bubbleOptions = (data: Array<{ x: number; y: number; s: number }>): AgCartesianChartOptions => ({
+            data,
+            series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', minSize: 10, maxSize: 40 }],
+            axes: {
+                x: { type: 'number', position: 'bottom', min: 0, max: 6 },
+                y: { type: 'number', position: 'left', min: 0, max: 200 },
+            },
+        });
+        const preparedBubbleOptions = (data: Array<{ x: number; y: number; s: number }>) =>
+            prepareTestOptions(bubbleOptions(data));
 
         const DATA = [
             { x: 1, y: 40, s: 5 },
@@ -548,10 +549,8 @@ describe('BubbleSeries', () => {
 
         // Only the initial load animates, so updates SNAP; a data update also re-keys the marker nodes,
         // so constancy is asserted over the trajectory rather than before->after.
-        // Bespoke: every bare create in this suite captures animation frames from the chart's first frame,
-        // so it must not be created through the factory, which awaits stability first.
-        const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
-            chart = AgCharts.create(options);
+        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+            chart = await createChart(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
@@ -564,15 +563,15 @@ describe('BubbleSeries', () => {
                 { x: 2, y: -40, s: 15 },
                 { x: 5, y: 90, s: 25 },
             ];
-            const options = prepareTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: NEG,
                 series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', minSize: 10, maxSize: 40 }],
                 axes: {
                     x: { type: 'number', position: 'bottom', min: -6, max: 6 },
                     y: { type: 'number', position: 'left', min: -100, max: 100 },
                 },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createChart(options);
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             await frames.runToEnd(chart);
@@ -611,7 +610,7 @@ describe('BubbleSeries', () => {
         // Initial load scales every marker in from zero to its own sizeKey radius at opacity 1 — a
         // scale-in, not a fade.
         it('initial load: markers scale in to their sizeKey-mapped radii', async () => {
-            chart = AgCharts.create(bubbleOptions(DATA));
+            chart = await createChart(bubbleOptions(DATA));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             // Anti-vacuity: markers start collapsed yet fully opaque on frame 0, so `opacity: constant` is
@@ -679,7 +678,7 @@ describe('BubbleSeries', () => {
         // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped render
         // of the same options produces. One chart per test — the mock canvas only snapshots the first.
         it('sanity: update data endpoints match static renders', async () => {
-            const options = bubbleOptions(DATA);
+            const options = preparedBubbleOptions(DATA);
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -688,7 +687,7 @@ describe('BubbleSeries', () => {
         });
 
         it('sanity: remove points endpoints match static renders', async () => {
-            const options = bubbleOptions(DATA);
+            const options = preparedBubbleOptions(DATA);
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,

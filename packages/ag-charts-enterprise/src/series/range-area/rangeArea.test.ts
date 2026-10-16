@@ -505,7 +505,6 @@ describe('RangeAreaSeries', () => {
         await compare();
     });
 
-    // Bespoke: these tests sample the animation from the chart's first frame, so they cannot await stability on create.
     // Initial load: the band and its stroke lines reveal via a left-to-right clip swipe, markers scale in from zero, labels fade in.
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
@@ -517,11 +516,7 @@ describe('RangeAreaSeries', () => {
         });
 
         it('reveal by a left-to-right swipe with markers scaling in on the initial load', async () => {
-            const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            const proxy = AgCharts.create(options);
-            chart = deproxy(proxy);
+            chart = deproxy(await createEnterpriseChart({ ...RANGE_AREA_OPTIONS } as AgChartOptions));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -584,6 +579,7 @@ describe('RangeAreaSeries', () => {
                 data: CATEGORY_DATA.map((d) => ({ ...d, low: d.low - 1, high: d.high + 1 })),
             };
 
+            // Bespoke: the prepared options are reused by the update inside `expectAnimatedEndpointsMatchStatic`.
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, widened);
         });

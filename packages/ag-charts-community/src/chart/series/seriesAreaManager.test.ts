@@ -216,7 +216,7 @@ describe('focusIndex', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Awaited<ReturnType<typeof createChart>>;
+    let chart: Chart;
 
     afterEach(() => {
         chart?.destroy();
@@ -260,13 +260,13 @@ describe('focusIndex', () => {
         ['focuses series with a value first', [undefined, 5, undefined, 1], ['Delta', 'Bravo', 'Alpha', 'Charlie']],
         ['breaks ties by array order', [1, 0, 1, 0], ['Bravo', 'Delta', 'Alpha', 'Charlie']],
     ])('%s', async (_name, focusIndices, expected) => {
-        chart = await createChart(focusIndexOptions(focusIndices));
+        chart = deproxy(await createChart(focusIndexOptions(focusIndices)));
 
         expect(await readFocusOrder()).toEqual(expected);
     });
 
     it('applies a focusIndex change from updateDelta', async () => {
-        chart = await createChart(focusIndexOptions([undefined, undefined, undefined, undefined]));
+        chart = deproxy(await createChart(focusIndexOptions([undefined, undefined, undefined, undefined])));
 
         await chart.publicApi!.updateDelta({ series: focusIndexSeries([undefined, undefined, undefined, 0]) });
         await waitForChartStability(chart);

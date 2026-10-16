@@ -993,7 +993,6 @@ describe('Chart', () => {
                 ],
             };
             agChartInstance = await createChart(options);
-            // `createChart` prepares its own copy; the prepared original feeds the `update()` calls below.
             prepareTestOptions(options);
             chart = deproxy(agChartInstance);
         });
@@ -1385,7 +1384,6 @@ describe('Chart', () => {
                 },
             };
             const agChartInstance = await createChart(options);
-            // `createChart` prepares its own copy; the prepared original feeds the `update()` calls below.
             prepareTestOptions(options);
             chart = deproxy(agChartInstance);
 
@@ -2279,7 +2277,7 @@ describe('validations.issueRaised', () => {
         const issueRaised = vi.fn();
         const thrownError = new Error('processData boom');
 
-        // Bespoke: unprepared options with the document body as container, which `createChart` would override.
+        // Bespoke: unprepared options, which `createChart` would prepare.
         const proxy = AgCharts.create({
             container: document.body,
             data: [

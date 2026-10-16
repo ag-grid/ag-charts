@@ -205,23 +205,23 @@ describe('RadarLineSeries', () => {
         const DATA_2 = [{ category: 'cat 10', iphone: 18, mac: 27 }, ...DATA_1];
 
         // radiusMax pins the radius domain so a legend toggle can't rescale the surviving series.
-        const radarOptions = (data: typeof DATA_1, radiusMax?: number): AgPolarChartOptions =>
-            prepareEnterpriseTestOptions<AgPolarChartOptions>({
-                animation: { enabled: true },
-                data: [...data],
-                series: [
-                    { type: 'radar-line', angleKey: 'category', radiusKey: 'iphone' },
-                    { type: 'radar-line', angleKey: 'category', radiusKey: 'mac' },
-                ],
-                axes:
-                    radiusMax == null
-                        ? undefined
-                        : {
-                              angle: { type: 'angle-category' },
-                              radius: { type: 'radius-number', min: 0, max: radiusMax },
-                          },
-                legend: { enabled: true },
-            });
+        const radarOptions = (data: typeof DATA_1, radiusMax?: number): AgPolarChartOptions => ({
+            animation: { enabled: true },
+            data: [...data],
+            series: [
+                { type: 'radar-line', angleKey: 'category', radiusKey: 'iphone' },
+                { type: 'radar-line', angleKey: 'category', radiusKey: 'mac' },
+            ],
+            axes:
+                radiusMax == null
+                    ? undefined
+                    : {
+                          angle: { type: 'angle-category' },
+                          radius: { type: 'radius-number', min: 0, max: radiusMax },
+                      },
+            legend: { enabled: true },
+        });
+        const preparedRadarOptions = (data: typeof DATA_1) => prepareEnterpriseTestOptions(radarOptions(data));
 
         const pathKeys = (sample: SceneGeometrySample) =>
             [...sample.keys()].filter((k) => /^series\[\d+\]\/path/.test(k));
@@ -251,10 +251,8 @@ describe('RadarLineSeries', () => {
             settlesAt: 1,
         };
 
-        // Bespoke: the animation-frame spy has to be in place before the chart's first frame, so these charts cannot
-        // be created through the factory, which awaits stability.
         it('initial reveal: the line grows out from the centre and markers fade in', async () => {
-            const proxy = AgCharts.create(radarOptions(DATA_1));
+            const proxy = await createEnterpriseChart(radarOptions(DATA_1));
             chart = deproxy(proxy);
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
@@ -307,12 +305,12 @@ describe('RadarLineSeries', () => {
         });
 
         it('data swap: reshapes to the new categories without tweening', async () => {
-            const proxy = AgCharts.create(radarOptions(DATA_1));
+            const proxy = await createEnterpriseChart(radarOptions(DATA_1));
             chart = deproxy(proxy);
             const { before, trajectory, after } = await frames.captureSnap(
                 chart,
                 createSceneGeometrySampler(chart),
-                () => proxy.update(radarOptions(DATA_2))
+                () => proxy.update(preparedRadarOptions(DATA_2))
             );
 
             expect(markerKeyCount(before, 0), 'series[0] markers before swap').toBe(4);
@@ -324,12 +322,12 @@ describe('RadarLineSeries', () => {
         });
 
         it('data swap (remove): drops a category without tweening', async () => {
-            const proxy = AgCharts.create(radarOptions(DATA_2));
+            const proxy = await createEnterpriseChart(radarOptions(DATA_2));
             chart = deproxy(proxy);
             const { before, trajectory, after } = await frames.captureSnap(
                 chart,
                 createSceneGeometrySampler(chart),
-                () => proxy.update(radarOptions(DATA_1))
+                () => proxy.update(preparedRadarOptions(DATA_1))
             );
 
             expect(markerKeyCount(before, 0), 'series[0] markers before remove').toBe(5);
@@ -339,7 +337,7 @@ describe('RadarLineSeries', () => {
         });
 
         it('legend toggle: the series snaps out and back in without tweening', async () => {
-            const proxy = AgCharts.create(radarOptions(DATA_1, 150));
+            const proxy = await createEnterpriseChart(radarOptions(DATA_1, 150));
             chart = deproxy(proxy);
             await frames.runToEnd(chart);
             const sampler = createSceneGeometrySampler(chart);
@@ -384,8 +382,9 @@ describe('RadarLineSeries', () => {
         });
 
         it('animated endpoints match a static render (reveal + data swap)', async () => {
-            const before = radarOptions(DATA_1);
-            const after = radarOptions(DATA_2);
+            const before = preparedRadarOptions(DATA_1);
+            const after = preparedRadarOptions(DATA_2);
+            // Bespoke: the prepared options are reused by the updates inside `expectAnimatedEndpointsMatchStatic`.
             chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, after);
         });

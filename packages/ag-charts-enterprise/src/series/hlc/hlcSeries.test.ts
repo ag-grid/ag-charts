@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
     type AgCartesianChartOptions,
     type AgChartOptions,
+    AgCharts,
     type AgHlcSeriesItemStylerParams,
     type AgHlcSeriesStyle,
     type AgHlcSeriesStylerParams,
@@ -641,6 +642,7 @@ describe('HlcSeries', () => {
         });
     });
 
+    // Bespoke: the endpoint tests reuse the prepared options in `update`, so they create the chart bare.
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
 
@@ -677,11 +679,12 @@ describe('HlcSeries', () => {
                 data: DATA.map((d) => ({ ...d, low: d.low - 2, high: d.high + 2 })),
             };
 
-            chart = await createEnterpriseChart(options);
+            chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, widened);
         });
     });
 
+    // Bespoke: the endpoint test reuses the prepared options in `update`, so it creates the chart bare.
     describe('data update animation', () => {
         const frames = spyOnAnimationFrames();
         const appended = (close: number): AgChartOptions =>
@@ -713,7 +716,7 @@ describe('HlcSeries', () => {
 
         it('settles at a static render when an out-of-range close arrives', async () => {
             const before = prepareEnterpriseTestOptions(HLC_OPTIONS);
-            chart = await createEnterpriseChart(before);
+            chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, appended(130));
         });
     });

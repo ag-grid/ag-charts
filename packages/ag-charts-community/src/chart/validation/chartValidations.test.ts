@@ -641,14 +641,17 @@ describe('ChartValidations - chart integration', () => {
     };
 
     function options(extra: Partial<AgCartesianChartOptions>): AgCartesianChartOptions {
-        return prepareTestOptions({
+        return {
             width: 400,
             height: 300,
             data,
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             ...extra,
-        } as AgCartesianChartOptions);
+        } as AgCartesianChartOptions;
     }
+
+    // `update` does not prepare its options the way the chart factories do.
+    const updatedOptions = (extra: Partial<AgCartesianChartOptions>) => prepareTestOptions(options(extra));
 
     it('reports a series callback exception as a warning to the overlay and the listener, matching the console', async () => {
         const issueRaised = vi.fn();
@@ -679,7 +682,7 @@ describe('ChartValidations - chart integration', () => {
         try {
             await expect(
                 proxy.update(
-                    options({
+                    updatedOptions({
                         series: [
                             {
                                 type: 'bar',
@@ -908,7 +911,7 @@ describe('ChartValidations - chart integration', () => {
         await proxy.waitForUpdate();
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(2);
 
-        await proxy.update(options({ data, series: [series], validations: { showOverlayOn: ['warning'] } }));
+        await proxy.update(updatedOptions({ data, series: [series], validations: { showOverlayOn: ['warning'] } }));
 
         expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
         expectWarningsCalls().toHaveLength(2);
@@ -952,7 +955,9 @@ describe('ChartValidations - chart integration', () => {
         await waitForChartStability(chart);
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
 
-        await proxy.update(options({ data: [...data], series: [series], validations: { showOverlayOn: ['warning'] } }));
+        await proxy.update(
+            updatedOptions({ data: [...data], series: [series], validations: { showOverlayOn: ['warning'] } })
+        );
 
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
         expectWarningsCalls().toHaveLength(1);
@@ -981,7 +986,7 @@ describe('ChartValidations - chart integration', () => {
         await proxy.waitForUpdate();
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
 
-        await proxy.update(options({ validations: { showOverlayOn: ['warning'] } }));
+        await proxy.update(updatedOptions({ validations: { showOverlayOn: ['warning'] } }));
 
         expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
         expectWarningsCalls().toHaveLength(1);
@@ -1013,7 +1018,7 @@ describe('ChartValidations - chart integration', () => {
         await proxy.waitForUpdate();
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
 
-        await proxy.update(options({ series: [series], validations: { showOverlayOn: ['warning'] } }));
+        await proxy.update(updatedOptions({ series: [series], validations: { showOverlayOn: ['warning'] } }));
 
         expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
         expectWarningsCalls().toHaveLength(1);
@@ -1028,7 +1033,7 @@ describe('ChartValidations - chart integration', () => {
         try {
             await expect(
                 proxy.update(
-                    options({
+                    updatedOptions({
                         series: [{ type: 'bar', xKey: 'x', yKey: 'missing' }],
                         validations: { showOverlayOn: ['warning'], throwOn: ['warning'] },
                     })

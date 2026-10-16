@@ -6,7 +6,6 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
@@ -950,13 +949,8 @@ describe('MapMarkerSeries', () => {
         const markerKeys = (sample: ReadonlyMap<string, unknown>) =>
             [...sample.keys()].filter((key) => /^series\[1\]\/marker\[/.test(key));
 
-        // Bespoke: the animation-frame spy has to be in place before the chart's first frame, so the chart cannot
-        // be created through the factory, which awaits stability.
         it('markers scale in from a point (width/height 0 -> full) on the initial reveal', async () => {
-            const options = mapOptions(ukData);
-            prepareEnterpriseTestOptions(options);
-
-            const proxy = AgCharts.create(options);
+            const proxy = await createEnterpriseChart(mapOptions(ukData));
             const sampler = createSceneGeometrySampler(proxy);
             const trajectory = await frames.captureAnimationFrames(proxy, sampler);
             await frames.runToEnd(proxy);
@@ -1002,10 +996,7 @@ describe('MapMarkerSeries', () => {
         // The enter-scale animation only runs on the initial empty->ready reveal, so markers entering
         // on a data update appear at full size.
         it('entering markers appear at full size on a data update, no scale-in (AG-17797)', async () => {
-            const options = mapOptions(ukData.slice(0, 1));
-            prepareEnterpriseTestOptions(options);
-
-            const proxy = AgCharts.create(options);
+            const proxy = await createEnterpriseChart(mapOptions(ukData.slice(0, 1)));
             const sampler = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampler, () =>
                 proxy.update(prepareEnterpriseTestOptions(mapOptions(ukData)))

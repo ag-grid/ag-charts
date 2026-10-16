@@ -52,9 +52,7 @@ const cases: PresenceCase[] = [
     { name: 'ScatterSeries without missingDataFill', seriesType: 'scatter', missingDataFill: undefined },
 ];
 
-// `colorKey` is enterprise-gated on these community series options, so tests must create the chart with
-// `createEnterpriseChart` (which applies `prepareEnterpriseTestOptions`) or the option is cleared and the code path is
-// never hit.
+// `colorKey` is enterprise-gated here, so create the chart with `createEnterpriseChart` or the option is cleared.
 describe('colorScale.missingDataFill - bubble/scatter', () => {
     setupMockConsole();
     setupMockCanvas();

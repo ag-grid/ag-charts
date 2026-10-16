@@ -203,14 +203,8 @@ describe('RadarAreaSeries', () => {
         const pathKeys = (sample: ReadonlyMap<string, unknown>) =>
             [...sample.keys()].filter((key) => /^series\[\d+\]\/path\[/.test(key));
 
-        // Bespoke: the animation-frame spy has to be in place before the chart's first frame, so these charts cannot
-        // be created through the factory, which awaits stability.
         it('series grow from the polar centre (path bbox 0 -> full, labels fade in) on the initial reveal', async () => {
-            const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            const proxy = AgCharts.create(options);
-            chart = deproxy(proxy);
+            chart = deproxy(await createEnterpriseChart({ ...EXAMPLE_OPTIONS }));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -269,6 +263,7 @@ describe('RadarAreaSeries', () => {
                 data: EXAMPLE_OPTIONS.data!.map((d) => ({ ...d, gradeA: d.gradeA * 0.5, gradeB: d.gradeB * 1.2 })),
             };
 
+            // Bespoke: the prepared options are reused by the update inside `expectAnimatedEndpointsMatchStatic`.
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, rescaled);
         });

@@ -6,6 +6,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     BIG,
     type Chart,
@@ -684,13 +685,15 @@ describe('PyramidSeries', () => {
             { group: 'Close', value: 4460 },
         ];
 
-        const animated = (data: object[]): AgChartOptions =>
-            prepareEnterpriseTestOptions({
-                animation: { enabled: true },
-                data,
-                series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }],
-                legend: { enabled: true },
-            });
+        const animated = (data: object[]): AgChartOptions => ({
+            animation: { enabled: true },
+            data,
+            series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }],
+            legend: { enabled: true },
+        });
+
+        // Bespoke: the sanity test reuses the prepared options in `update`, so it creates the chart bare.
+        const preparedAnimated = (data: object[]) => prepareEnterpriseTestOptions(animated(data));
 
         // Item labels are keyed by their numeric value; only item labels fade, so the guard targets those keys.
         const isItemLabelKey = (key: string) => /^series\[0\]\/text\[\d/.test(key);
@@ -750,9 +753,15 @@ describe('PyramidSeries', () => {
         });
 
         it('animated endpoints match a static render (initial load + data update)', async () => {
-            const opts = animated(DATA);
-            chart = await createEnterpriseChart(opts);
-            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, opts, animated(UPDATED));
+            const opts = preparedAnimated(DATA);
+            chart = AgCharts.create(opts);
+            await expectAnimatedEndpointsMatchStatic(
+                frames,
+                () => ctx.snapshot(),
+                chart,
+                opts,
+                preparedAnimated(UPDATED)
+            );
         });
     });
 });

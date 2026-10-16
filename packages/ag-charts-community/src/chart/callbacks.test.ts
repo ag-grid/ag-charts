@@ -617,7 +617,6 @@ describe('callback cache', () => {
         chart = await createChart(opts);
         await compare('AG-10112-reevaluate-Spain');
 
-        // The factory prepares a copy of `opts`, so prepare the options reused for each update here.
         selectedCountry = 'UK';
         await chart.update(prepareTestOptions({ ...opts }));
         await compare('AG-10112-reevaluate-UK');

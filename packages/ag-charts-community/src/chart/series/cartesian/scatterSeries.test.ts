@@ -526,15 +526,16 @@ describe('ScatterSeries', () => {
         const scatterOptions = (
             data: Array<{ x: number; y: number }>,
             seriesOverrides: object = {}
-        ): AgCartesianChartOptions =>
-            prepareTestOptions({
-                data,
-                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 20, ...seriesOverrides }],
-                axes: {
-                    x: { type: 'number', position: 'bottom', min: 0, max: 6 },
-                    y: { type: 'number', position: 'left', min: 0, max: 200 },
-                },
-            });
+        ): AgCartesianChartOptions => ({
+            data,
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 20, ...seriesOverrides }],
+            axes: {
+                x: { type: 'number', position: 'bottom', min: 0, max: 6 },
+                y: { type: 'number', position: 'left', min: 0, max: 200 },
+            },
+        });
+        const preparedScatterOptions = (data: Array<{ x: number; y: number }>) =>
+            prepareTestOptions(scatterOptions(data));
 
         const DATA = [
             { x: 1, y: 40 },
@@ -557,17 +558,15 @@ describe('ScatterSeries', () => {
 
         // Scatter skips the animation batch on every data update (only the initial load animates), so
         // updates SNAP.
-        // Bespoke: every bare create in this suite captures animation frames from the chart's first frame,
-        // so it must not be created through the factory, which awaits stability first.
-        const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
-            chart = AgCharts.create(options);
+        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+            chart = await createChart(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
         // Markers scale in from zero size during the `initial` phase — their bbox edges slide out from the
         // fixed scaling centre — while the labels fade in during `trailing`; marker opacity holds at 1.
         it('initial load: markers scale in and labels fade in', async () => {
-            chart = AgCharts.create(scatterOptions(DATA, { labelKey: 'x', label: { enabled: true } }));
+            chart = await createChart(scatterOptions(DATA, { labelKey: 'x', label: { enabled: true } }));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             // Anti-vacuity: every marker starts collapsed but fully opaque (a scale-in, not a fade) and
@@ -636,8 +635,9 @@ describe('ScatterSeries', () => {
 
         // The animated route must settle at exactly the pixels a snapped render produces. One chart per
         // test — the mock canvas only snapshots the first chart created.
+        // Bespoke: the prepared options are reused by the updates inside `expectAnimatedEndpointsMatchStatic`.
         it('sanity: update data endpoints match static renders', async () => {
-            const options = scatterOptions(DATA);
+            const options = preparedScatterOptions(DATA);
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -646,7 +646,7 @@ describe('ScatterSeries', () => {
         });
 
         it('sanity: add point endpoints match static renders', async () => {
-            const options = scatterOptions(DATA);
+            const options = preparedScatterOptions(DATA);
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,

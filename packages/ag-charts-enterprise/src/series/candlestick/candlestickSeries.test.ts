@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions } from 'ag-charts-community';
+import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     type SceneGeometrySample,
@@ -140,7 +140,7 @@ describe('CandlestickSeries', () => {
             { date: new Date(2023, 0, 3), low: 1, open: 3, close: 5, high: 6 },
         ];
         const candlestickOptions = (): AgCartesianChartOptions =>
-            prepareEnterpriseTestOptions({
+            ({
                 data: candleData(),
                 series: [
                     {
@@ -157,6 +157,9 @@ describe('CandlestickSeries', () => {
                     y: { type: 'number', position: 'left', min: 0, max: 10 },
                 },
             }) as AgCartesianChartOptions;
+
+        // Bespoke: the sanity tests reuse the prepared options in `update`, so they create the chart bare.
+        const preparedCandlestickOptions = () => prepareEnterpriseTestOptions(candlestickOptions());
 
         // The Date key stringifies with a timezone suffix, so match on the leading `Day Mon DD YYYY`.
         const candleKeys = (sample: SceneGeometrySample) =>
@@ -253,30 +256,30 @@ describe('CandlestickSeries', () => {
 
         // One chart per test: the mock canvas only snapshots the first chart created.
         it('sanity: update value endpoints match static renders', async () => {
-            const before = candlestickOptions();
+            const before = preparedCandlestickOptions();
             const data = candleData();
             data[2] = { ...data[2], close: 8, high: 9.5 };
-            chart = await createEnterpriseChart(before);
+            chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
-                ...candlestickOptions(),
+                ...preparedCandlestickOptions(),
                 data,
             });
         });
 
         it('sanity: add data endpoints match static renders', async () => {
-            const before = candlestickOptions();
-            chart = await createEnterpriseChart(before);
+            const before = preparedCandlestickOptions();
+            chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
-                ...candlestickOptions(),
+                ...preparedCandlestickOptions(),
                 data: [...candleData(), { date: new Date(2023, 0, 4), low: 2, open: 5, close: 7, high: 9 }],
             });
         });
 
         it('sanity: remove data endpoints match static renders', async () => {
-            const before = candlestickOptions();
-            chart = await createEnterpriseChart(before);
+            const before = preparedCandlestickOptions();
+            chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
-                ...candlestickOptions(),
+                ...preparedCandlestickOptions(),
                 data: candleData().slice(0, 2),
             });
         });

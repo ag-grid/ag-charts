@@ -993,6 +993,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
 };
 
 describe('OrganizationSeries', () => {
+    // Bespoke: the bare creates here apply `setState` straight after creation, or set a size after preparation.
     setupMockConsole();
     let chart: any;
 
@@ -1170,7 +1171,6 @@ describe('OrganizationSeries', () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
-            // Bespoke: setState is applied before the chart settles.
             chart = AgCharts.create(options);
             await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
             await compare();
@@ -1204,7 +1204,6 @@ describe('OrganizationSeries', () => {
             const options: AgChartOptions = { ...NUMERIC_ID_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
-            // Bespoke: setState is applied before the chart settles.
             chart = AgCharts.create(options);
             await chart.setState({ version: '13.3.0', collapsed: [2] });
             await waitForChartStability(chart);
@@ -1263,7 +1262,6 @@ describe('OrganizationSeries', () => {
                 const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
                 prepareEnterpriseTestOptions(options);
 
-                // Bespoke: setState is applied before the chart settles.
                 chart = AgCharts.create(options);
                 await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
 
@@ -3606,7 +3604,6 @@ describe('OrganizationSeries', () => {
         it('should fit and centre the chart when the chart is resized', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
-            // Bespoke: the size is set after preparation.
             Object.assign(options, { width: 560, height: 420 });
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
@@ -3838,9 +3835,7 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-            // Bespoke: the frame spy and sampler attach before the first render.
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             const sampler = createSceneGeometrySampler(chart);
             const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
                 chart.updateDelta({
