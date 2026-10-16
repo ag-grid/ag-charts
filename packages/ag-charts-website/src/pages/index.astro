@@ -12,6 +12,7 @@ import { LandingPageSection } from '@ag-website-shared/components/landing-pages/
 import { LandingPageFAQ } from '@ag-website-shared/components/landing-pages/LandingPageFAQ';
 import { renderFAQAnswers } from '@ag-website-shared/components/landing-pages/renderFAQAnswers';
 import { LandingPageFWSelector } from '@ag-website-shared/components/landing-pages/LandingPageFWSelector';
+import { FrameworkLinks } from '@components/framework-links/FrameworkLinks';
 import ImageCarousel from '../components/homepage/components/hero/ImageCarousel';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { Version } from '@ag-website-shared/components/whats-new/components/Version';
@@ -116,7 +117,12 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
             <div class={styles.gallerySectionCtas}>
                 {
                     sections.gallery.ctas.map((cta) => (
-                        <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
+                        <a
+                            id={cta.id}
+                            href={urlWithBaseUrl(cta.url)}
+                            class="button-tertiary"
+                            data-framework-link={cta.followsFramework || undefined}
+                        >
                             {cta.title} <Icon name="chevronRight" />
                         </a>
                     ))
@@ -231,6 +237,7 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
             <LandingPageFAQ client:load FAQData={renderedFAQData} />
         </LandingPageSection>
     </div>
+    <FrameworkLinks client:idle />
 </Layout>
 
 {

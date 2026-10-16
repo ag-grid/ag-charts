@@ -72,6 +72,7 @@ import ComparisonTable from './sections/comparison/ComparisonTable';
 
 // Site-specific components
 import { CustomerLogos } from '@components/customer-logos/CustomerLogos';
+import { FrameworkLinks } from '@components/framework-links/FrameworkLinks';
 
 interface Props {
     content: LandingPageContent;
@@ -332,4 +333,5 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
             }
         })
     }
+    {content.analyticsPrefix === 'enterprise-charts' && <FrameworkLinks client:idle />}
 </Layout>

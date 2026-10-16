@@ -282,6 +282,8 @@ const homepageSectionCta = z.object({
     title: z.string(),
     url: z.string(),
     id: z.string(),
+    /** The url is for the default framework, and should follow the visitor's framework instead. */
+    followsFramework: z.boolean().optional(),
 });
 
 // Homepage marketing copy (index.astro). The bespoke interactive islands stay inline in the
