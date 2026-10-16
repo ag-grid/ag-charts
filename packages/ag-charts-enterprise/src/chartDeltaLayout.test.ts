@@ -14,12 +14,21 @@ const FLOWS = [
     { from: 'B', to: 'D', size: 5 },
 ];
 
+const SECTORS = ['a', 'b', 'c', 'd'].map((label, i) => ({ label, value: i + 2 }));
+
 const numericNodeData = (chart: any) =>
     chart.series.map((s: any) =>
-        (s.contextNodeData?.nodeData ?? []).map((d: Record<string, unknown>) =>
+        (s.contextNodeData?.nodeData ?? s.nodeData ?? []).map((d: Record<string, unknown>) =>
             Object.fromEntries(Object.entries(d).filter(([, value]) => typeof value === 'number'))
         )
     );
+
+// The polar series' radius is derived from the series rect, so it is read alongside the node data.
+const polarGeometry = (chart: any) => ({
+    radius: chart.series.map((s: any) => s.radius),
+    centre: chart.series.map((s: any) => [s.centerX, s.centerY]),
+    nodeData: numericNodeData(chart),
+});
 
 const MULTI_LINE_TITLE = { title: { text: 'A\nmulti-line\ntitle' } };
 const PADDING = { padding: { top: 120, left: 100 } };
@@ -69,6 +78,21 @@ describe('updateDelta() layout keys', () => {
             expect((nodeData as unknown[][])[0].length).toBeGreaterThan(0);
         });
 
+        it.each([
+            { type: 'pie', delta: PADDING },
+            { type: 'pie', delta: MULTI_LINE_TITLE },
+            { type: 'donut', delta: PADDING },
+            { type: 'donut', delta: MULTI_LINE_TITLE },
+        ])('sizes a $type series as a fresh chart does after $delta', async ({ type, delta }) => {
+            const { nodeData } = (await expectDeltaToMatchFreshChart(
+                { data: SECTORS, series: [{ type, angleKey: 'value' }] },
+                delta,
+                polarGeometry
+            )) as ReturnType<typeof polarGeometry>;
+            expect((nodeData[0][0] as { outerRadius: number }).outerRadius).toBeGreaterThan(0);
+            expect(nodeData[0].length).toBeGreaterThan(0);
+        });
+
         it.each([PADDING, MULTI_LINE_TITLE])(
             'projects map-shape series as a fresh chart does after %o',
             async (delta) => {
@@ -95,6 +119,26 @@ describe('updateDelta() layout keys', () => {
                 (c) => c.series[0].contextNodeData.nodeData.map((d: any) => [d.x, d.y, d.width, d.height])
             );
             expect((geometry as unknown[]).length).toBeGreaterThan(0);
+        });
+
+        it.each([
+            { type: 'radar-line', series: { angleKey: 'label', radiusKey: 'value' } },
+            { type: 'radar-area', series: { angleKey: 'label', radiusKey: 'value' } },
+            { type: 'nightingale', series: { angleKey: 'label', radiusKey: 'value' } },
+            { type: 'radial-bar', series: { angleKey: 'value', radiusKey: 'label' } },
+            { type: 'radial-column', series: { angleKey: 'label', radiusKey: 'value' } },
+        ])('sizes a $type series as a fresh chart does after a title or padding delta', async ({ type, series }) => {
+            for (const delta of [MULTI_LINE_TITLE, PADDING]) {
+                const { radius, nodeData } = (await expectDeltaToMatchFreshChart(
+                    { data: SECTORS, series: [{ type, ...series }] },
+                    delta,
+                    polarGeometry
+                )) as ReturnType<typeof polarGeometry>;
+                expect(radius[0]).toBeGreaterThan(0);
+                expect(nodeData[0].length).toBeGreaterThan(0);
+                chart.destroy();
+                fresh.destroy();
+            }
         });
     });
 });

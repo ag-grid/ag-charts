@@ -6119,6 +6119,51 @@ describe('ChartOptions', () => {
                 // The shape key follows the slow pass, so further growth stays on the fast path.
                 expect(grownAgain.revalidated).toBe(false);
             });
+
+            it.each([
+                { name: 'numbers', data: Array.from({ length: 50 }, (_, i) => i) },
+                { name: 'tuples', data: Array.from({ length: 50 }, (_, i) => [i, i * 2]) },
+                { name: 'leading nulls', data: [null, undefined, ...Array.from({ length: 48 }, (_, i) => i)] },
+                { name: 'only nulls', data: Array.from({ length: 50 }, () => null) },
+            ])('transforms the rows of a sparkline created from $name at most once', ({ data }) => {
+                __clearStructuralCacheForTests();
+                const presetDef = ModuleRegistry.getPresetModule('sparkline') as {
+                    processData: (data: any[]) => unknown;
+                };
+                const processData = vi.spyOn(presetDef, 'processData');
+                const create = () =>
+                    new ChartOptions(undefined, { type: 'line', data } as AgChartOptions, {}, {}, SPARKLINE_METADATA);
+                // Calls through the definition that see every row, rather than the shape key's one-row sample.
+                const wholeTransforms = () => processData.mock.calls.filter(([sample]) => sample.length > 1).length;
+                try {
+                    // The preset's own `create` transforms the rows directly, so a cache miss adds no call here.
+                    create();
+                    expect(processData).toHaveBeenCalled();
+                    expect(wholeTransforms()).toBe(0);
+
+                    // A cache hit skips `create` and transforms the rows once to restore this chart's data.
+                    create();
+                    expect(wholeTransforms()).toBe(1);
+                } finally {
+                    processData.mockRestore();
+                }
+            });
+
+            it('keeps a grown sparkline on the fast path when its leading rows are null', () => {
+                const metadata = SPARKLINE_METADATA;
+                const rowsOf = (count: number) => [null, ...Array.from({ length: count }, (_, i) => i + 1)];
+                const base = new ChartOptions(
+                    undefined,
+                    { type: 'line', data: rowsOf(3) } as AgChartOptions,
+                    {},
+                    {},
+                    metadata
+                );
+
+                const updated = applyDelta(base, { data: rowsOf(4) }, metadata);
+
+                expect(updated.revalidated).toBe(false);
+            });
         });
 
         describe('`data` that is not an array', () => {

@@ -460,7 +460,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 }
                 this.predictedAxesKey = this.predictedAxesKeyOf(processedOptions);
                 if (presetDef?.processData != null) {
-                    this.presetShapeKey = ChartOptions.shapeKeyOf(presetDef.processData(this.userOptions.data));
+                    this.presetShapeKey = ChartOptions.shapeKeyOf(
+                        presetDef.processData(ChartOptions.shapeSample(this.userOptions.data))
+                    );
                 }
             }
         } catch (error) {
@@ -1981,6 +1983,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const { processedOptions: baseOptions } = baseChartOptions;
         const rows = presetUpdate?.data ?? data;
         return this.predictedAxesKeyOf(baseOptions, rows) !== baseChartOptions.predictedAxesKey;
+    }
+
+    /**
+     * A preset derives its `series` and `datumKey` from the first non-null row alone, so the shape key is read from
+     * that row rather than from a transform of every row.
+     */
+    private static shapeSample(data: unknown) {
+        if (!isArray(data) || data.length === 0) return data;
+        return [data.find((row) => row != null) ?? null];
     }
 
     private static shapeKeyOf({ series, datumKey }: PresetDataUpdate) {
