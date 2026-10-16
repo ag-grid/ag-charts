@@ -1281,6 +1281,16 @@ describe('AG-13301 layout-driven caption shrinking', () => {
             proxy.destroy();
         });
 
+        it('keeps a segment taller than the height budget at its inherited lineHeight', async () => {
+            const { proxy, chart } = await createSizedChart(420, 320, {
+                title: { text: [{ text: 'Large', fontSize: 40 }], fontSize: 20, lineHeight: 30 },
+            });
+
+            const fitted = chart.title.node.text as Array<{ text: string }>;
+            expect(fitted.map((s) => s.text).join('')).toBe('Large');
+            proxy.destroy();
+        });
+
         test('a segmented title that fits keeps every configured segment size', async () => {
             const shortSegments = [
                 { text: '2025 ', color: 'dodgerblue' },

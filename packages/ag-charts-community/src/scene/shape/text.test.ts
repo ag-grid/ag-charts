@@ -1007,6 +1007,12 @@ describe('Text', () => {
             expect(textMeasurerA.measureText('Hello world!')).toMatchSnapshot();
             expect(textMeasurerB.measureText('Hello world!')).toMatchSnapshot();
         });
+
+        it('measures plain text by the font lineHeight when no lineHeight option is given', () => {
+            const font = { fontSize: 12, fontFamily: 'Verdana', lineHeight: 36 };
+            expect(Text.measureBBox('A\nB', 0, 0, { font, textBaseline: 'top' }).height).toBe(72);
+            expect(Text.measureBBox('A\nB', 0, 0, { font, lineHeight: 20, textBaseline: 'top' }).height).toBe(40);
+        });
     });
 
     // A number beside RTL text reorders to `5-` in either paragraph direction, so the marks are

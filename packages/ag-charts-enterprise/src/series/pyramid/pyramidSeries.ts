@@ -32,7 +32,6 @@ import {
     bakedLabelObstacles,
     barLabelPropsRouteThroughEngine,
     buildBarPositionedLabelDatum,
-    cachedTextMeasurer,
     cycledValue,
     fontWithSize,
     isArray,
@@ -42,7 +41,6 @@ import {
     resolveLabelFit,
     toNumber,
     toPlainText,
-    toTextString,
     trapezoidBandRect,
     trapezoidBox,
     trapezoidFitRegion,
@@ -311,7 +309,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData).domain;
 
         const isRtl = this.ctx.domManager.isRtl;
-        const textMeasurer = cachedTextMeasurer(stageLabel);
         const placeLeft = (stageLabel.placement === 'after') === isRtl;
 
         let textAlign: CanvasTextAlign;
@@ -354,7 +351,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const { width, height } = isArray(text)
                 ? measureTextSegments(text, label)
-                : textMeasurer.measureLines(toTextString(text));
+                : measureLabelText(text, stageLabel);
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 

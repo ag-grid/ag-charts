@@ -634,6 +634,33 @@ describe('PyramidSeries', () => {
         await compare();
     });
 
+    describe('stageLabel lineHeight', () => {
+        it('reserves room for the stage labels by their lineHeight', async () => {
+            const seriesHeight = async (lineHeight?: number) => {
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        ...PYRAMID_EXAMPLE,
+                        series: [
+                            {
+                                type: 'pyramid',
+                                stageKey: 'group',
+                                valueKey: 'value',
+                                direction: 'horizontal',
+                                stageLabel: { enabled: true, fontSize: 12, lineHeight },
+                            },
+                        ],
+                    } as AgChartOptions)
+                );
+                const heights: number[] = [];
+                chart.series[0].datumSelection.each((node: any) => heights.push(node.getBBox().height));
+                chart.destroy();
+                return Math.max(...heights);
+            };
+
+            expect((await seriesHeight()) - (await seriesHeight(60))).toBeGreaterThan(30);
+        });
+    });
+
     describe('object-valued category data', () => {
         it('should resolve object-valued stage data without a data-type warning', async () => {
             const stage = (label: string) => ({ id: label, label, toString: () => label });

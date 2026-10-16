@@ -931,6 +931,13 @@ describe('TreemapSeries', () => {
             expect(fruit.label.fontSize).toBeLessThan(20);
         });
 
+        it('sizes the group header by the lineHeight of the whole wrapped label', async () => {
+            await render({ maxWidth: 100, maxHeight: 70, lineHeight: 40 });
+            const [fruit] = groups();
+            expect(fruit.label.text.split('\n')).toHaveLength(1);
+            expect(fruit.padding.top).toBeGreaterThanOrEqual(chart.series[0].options.group.padding + 70);
+        });
+
         it('hides a multi-line group label taller than maxHeight when it cannot wrap', async () => {
             await render({ wrapping: 'never', maxHeight: 20 }, groupData('Fresh\nfruit\nand nuts'));
             expect(groups()[0].label).toBeUndefined();

@@ -34,10 +34,10 @@ import {
     type WrapOptions,
     boxCrossesSegment,
     boxOverlapsSector,
-    cachedTextMeasurer,
     canRenderTextOffscreen,
     clockwiseAngles,
     cycledValue,
+    drawnLineHeight,
     extractDomain,
     findLargestFontSizeDescending,
     fitLabelTextAutoSize,
@@ -172,7 +172,7 @@ function fitSectorLabelToWedge(
     layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
 ): PlacedSectorLabel {
     const place = (sized: FontOptions, atFloor: boolean, inset: number, block: BlockSize | undefined) => {
-        const lineHeight = cachedTextMeasurer(sized).lineHeight();
+        const lineHeight = drawnLineHeight(sized);
         const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
         const region = insetFitRegion(
             probedFitRegion(
@@ -255,12 +255,12 @@ function fitSectorLabelToWedge(
     // Wedge clearance is not monotonic in the font size — a smaller size can reflow the text into a wider
     // block — so the ladder is scanned down rather than bisected, which could step past the largest fit.
     // Measured at the smallest line height in play, so it bounds the room at every size on the ladder.
-    const room = sectorLabelRoom(anchor, sector, cachedTextMeasurer(fontWithSize(font, floor)).lineHeight());
+    const room = sectorLabelRoom(anchor, sector, drawnLineHeight(fontWithSize(font, floor)));
     const found = findLargestFontSizeDescending(floor, font.fontSize, (fontSize, atFloor) => {
         const sized = fontWithSize(font, fontSize);
         // The wedge cannot hold more text than it has room for, whether measured by the area the text
         // covers or by the lines the wedge can stack, so an oversized rung goes without being placed.
-        const lineHeight = cachedTextMeasurer(sized).lineHeight();
+        const lineHeight = drawnLineHeight(sized);
         const advance = measureLabelText(text, sized).width;
         if (!atFloor && (advance * lineHeight > room.area || advance > room.capacityAt(lineHeight))) {
             return undefined;

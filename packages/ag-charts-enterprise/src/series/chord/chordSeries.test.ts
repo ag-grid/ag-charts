@@ -591,6 +591,25 @@ describe('ChordSeries', () => {
         });
     });
 
+    describe('label lineHeight', () => {
+        const nodeNames = Array.from({ length: 12 }, (_, i) => `Node ${i}`);
+        const labelCount = async (label: object) => {
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: nodeNames.map((from, i) => ({ from, to: nodeNames[(i + 1) % nodeNames.length], size: 1 })),
+                    series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
+                })
+            );
+            return chart.series[0].labelSelection.nodes().length;
+        };
+
+        it('hides labels whose lineHeight overlaps their neighbours', async () => {
+            expect(await labelCount({})).toBe(nodeNames.length);
+            chart.destroy();
+            expect(await labelCount({ lineHeight: 200 })).toBeLessThan(nodeNames.length);
+        });
+    });
+
     test('AG-8290 label boxing', async () => {
         const options = prepareEnterpriseTestOptions({
             data: [

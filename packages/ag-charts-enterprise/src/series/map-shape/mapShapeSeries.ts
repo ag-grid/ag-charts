@@ -6,7 +6,6 @@ import type {
     FeatureCollection,
     FontOptions,
     Geometry,
-    ITextMeasurer,
     LabelFit,
     Node,
     NormalisedMapShapeSeriesLabelOptions,
@@ -23,7 +22,6 @@ import {
     PointerEvents,
     Selection,
     Text,
-    cachedTextMeasurer,
     configureColorScale,
     findDiscreteColorBinLabel,
     fitLabelTextToRegionAutoSize,
@@ -33,6 +31,7 @@ import {
     isArray,
     keptCharacters,
     lineHeightAtSize,
+    measureLabelText,
     measureTextSegments,
     mergeDefaults,
     resolveLabelFit,
@@ -322,7 +321,7 @@ export class MapShapeSeries
     private getLabelLayout(
         datum: any,
         labelValue: string | undefined,
-        measurer: ITextMeasurer,
+        font: FontOptions,
         geometry: Geometry | undefined,
         previousLabelLayout: LabelLayout | undefined
     ): LabelLayout | undefined {
@@ -344,7 +343,7 @@ export class MapShapeSeries
 
         const baseSize = isArray(labelText)
             ? measureTextSegments(labelText, label)
-            : measurer.measureLines(String(labelText));
+            : measureLabelText(String(labelText), font);
         const aspectRatio = (baseSize.width + 2 * padding) / (baseSize.height + 2 * padding);
 
         if (
@@ -485,7 +484,6 @@ export class MapShapeSeries
         const columns = this.resolveShapeDataColumns(processedData);
 
         const labelFitting = resolveLabelFitting(label, this.getLabelLayoutFont(), options.padding);
-        const measurer = cachedTextMeasurer(labelFitting.font);
 
         const labelLayouts = new Map<string, LabelLayout>();
         this.previousLabelLayouts = labelLayouts;
@@ -514,7 +512,7 @@ export class MapShapeSeries
             const labelLayout = this.getLabelLayout(
                 datum,
                 dataValues.labelValue,
-                measurer,
+                labelFitting.font,
                 geometry,
                 previousLabelLayouts?.get(dataValues.idValue)
             );

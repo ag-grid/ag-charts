@@ -965,11 +965,12 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
 
 function lastLineMaxWidth(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
     const { lineMetrics } = measurer.measureLines(lines);
+    const heightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
     let top = 0;
     for (let i = 0; i < lineMetrics.length - 1; i += 1) {
-        top += lineMetrics[i].height;
+        top += heightAt(i);
     }
-    return lineMaxWidth(options, top, top + lineMetrics.at(-1)!.height);
+    return lineMaxWidth(options, top, top + heightAt(lineMetrics.length - 1));
 }
 
 function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {

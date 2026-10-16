@@ -216,7 +216,8 @@ export class Text<D = unknown> extends Shape<D> {
 
             return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
         } else {
-            return Text.computeBBox(toTextString(text).split(LineSplitter), x, y, options);
+            const lineHeight = options.lineHeight ?? options.font.lineHeight;
+            return Text.computeBBox(toTextString(text).split(LineSplitter), x, y, { ...options, lineHeight });
         }
     }
 

@@ -542,7 +542,7 @@ export function timeIntervalMaxLabelSize(
         const yPadding = padding.top + padding.bottom;
         for (const date of hierarchyRange) {
             const text = primaryLabelFormatter(date);
-            const { width, height } = measureLabelText(text, label);
+            const { width, height } = measureLabelText(text, primaryLabel ?? label);
 
             maxWidth = Math.max(maxWidth, width + xPadding);
             maxHeight = Math.max(maxHeight, height + yPadding);

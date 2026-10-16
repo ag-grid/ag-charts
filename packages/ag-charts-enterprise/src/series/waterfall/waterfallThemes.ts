@@ -101,7 +101,13 @@ function itemTheme(
             fontStyle: inherited('fontStyle'),
             fontWeight: inherited('fontWeight'),
             fontSize: inherited('fontSize'),
-            lineHeight: inherited('lineHeight'),
+            lineHeight: {
+                $isUserOption: [
+                    seriesLabelPath('lineHeight'),
+                    inherited('lineHeight'),
+                    themeLineHeight('seriesLabelLineHeight'),
+                ],
+            },
             fontFamily: inherited('fontFamily'),
             format: inherited('format'),
             formatter: inherited('formatter'),

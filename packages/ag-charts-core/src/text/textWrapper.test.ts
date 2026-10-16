@@ -436,6 +436,13 @@ describe('wrapLines', () => {
             const lastLine = result.at(-1)!;
             expect(lastLine).toBe('G');
         });
+
+        it('should place the last line by its lineHeight when the width varies down the block', () => {
+            const maxWidthAt = (top: number) => (top >= 100 ? 20 : 90);
+            const options = { font, maxWidth: 90, maxWidthAt };
+            expect(wrapLines('AA BB CC DD EE FF G', options).at(-1)).toBe('FF G');
+            expect(wrapLines('AA BB CC DD EE FF G', { ...options, lineHeight: 60 }).at(-1)).toBe('G');
+        });
     });
 
     describe('overflow: hide', () => {

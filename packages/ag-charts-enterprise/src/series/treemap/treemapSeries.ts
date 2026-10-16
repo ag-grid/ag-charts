@@ -34,7 +34,6 @@ import {
     Selection,
     Text,
     Transformable,
-    cachedTextMeasurer,
     cycledValue,
     drawnLineHeight,
     findDiscreteColorBinLabel,
@@ -51,7 +50,7 @@ import {
     resolveMinimumFontSize,
     resolveTextAlign,
     toPlainText,
-    wrapLines,
+    wrapText,
 } from 'ag-charts-core';
 import type { PaddingOptions } from 'ag-charts-types';
 
@@ -234,7 +233,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
         const width = Math.min(bbox.width - 2 * padding, label.maxWidth ?? Infinity);
         // One line at the floor size always fits, however small the one-third cap.
-        const floorLineHeight = cachedTextMeasurer(fontWithSize(label, floorFontSize)).lineHeight();
+        const floorLineHeight = drawnLineHeight(fontWithSize(label, floorFontSize));
         const height = Math.min(maxHeight, Math.max(heightCap, floorLineHeight));
         const { policy, fitOverflow } = labelFitDescriptor(labelValue, label, width);
         const bounded = { ...policy, maxWidth: width, maxHeight: height };
@@ -255,8 +254,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         if (fitted == null) return;
         const { labelHeight } = fitted;
 
-        const natural = cachedTextMeasurer(label).measureLines(
-            wrapLines(labelValue, { maxWidth: width, font: label, textWrap: label.wrapping })
+        const natural = measureLabelText(
+            wrapText(labelValue, { maxWidth: width, font: label, textWrap: label.wrapping }),
+            label
         );
         const bandHeight = Math.max(labelHeight, Math.min(Math.max(natural.height, fontSize), height));
         return { ...fitted, bandHeight };

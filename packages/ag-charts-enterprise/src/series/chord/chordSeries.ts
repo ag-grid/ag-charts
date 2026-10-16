@@ -13,6 +13,7 @@ import {
     evaluateBezier,
     fitLabelText,
     isBetweenAngles,
+    measureLabelText,
     mergeDefaults,
     normalizeAngle360,
     resolveLabelFit,
@@ -354,9 +355,8 @@ export class ChordSeries extends FlowProportionSeries<
 
         let minAngle = Infinity;
         let maxAngle = -Infinity;
-        const labelMeasurer = cachedTextMeasurer(options.label);
         labelData = labelData.filter((label) => {
-            const labelHeight = labelMeasurer.measureLines(label.text).height;
+            const labelHeight = measureLabelText(label.text, options.label).height;
             const da = Math.atan2(labelHeight / 2, label.radius);
 
             const a0 = label.angle - da;

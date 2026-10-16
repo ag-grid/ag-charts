@@ -332,4 +332,11 @@ describe('tick label lineHeight', () => {
         const domain = [new Date(2024, 0, 1), new Date(2024, 0, 10)];
         expect(timeIntervalMaxLabelSize(label, undefined, domain, 'day').height).toBe(40);
     });
+
+    it('measures parent level time labels by their own lineHeight', () => {
+        const label = { enabled: true, fontSize: 12, lineHeight: 15, format: '%d' } as any;
+        const primaryLabel = { enabled: true, fontSize: 12, lineHeight: 60, format: '%b' } as any;
+        const domain = [new Date(2024, 0, 1), new Date(2024, 2, 10)];
+        expect(timeIntervalMaxLabelSize(label, primaryLabel, domain, 'day').height).toBe(60);
+    });
 });

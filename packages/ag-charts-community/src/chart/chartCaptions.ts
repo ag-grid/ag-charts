@@ -1,6 +1,7 @@
 import type { BBox, DynamicContext, ResolvedTextAlign } from 'ag-charts-core';
 import {
     cachedTextMeasurer,
+    drawnLineHeight,
     fontWithSize,
     isArray,
     labelTextAtShrinkRatio,
@@ -102,10 +103,12 @@ export class ChartCaptions {
         // size the floor is a budget the text already fits, so nothing would ever shrink.
         const floor = labelTextAtShrinkRatio(text, opts.minimumFontSize, font, 0);
         const floorFont = fontWithSize(font, floor.fontSize);
-        const { lineMetrics } = isArray(floor.text)
-            ? measureTextSegments(floor.text, floorFont)
-            : cachedTextMeasurer(floorFont).measureLines(toTextString(floor.text));
-        const containerHeight = Math.max(floorFont.lineHeight ?? lineMetrics[0].height, maxHeight);
+        // Segment metrics already carry their line heights.
+        const floorLineHeight = isArray(floor.text)
+            ? measureTextSegments(floor.text, floorFont).lineMetrics[0].height
+            : (floorFont.lineHeight ??
+              cachedTextMeasurer(floorFont).measureLines(toTextString(floor.text)).lineMetrics[0].height);
+        const containerHeight = Math.max(floorLineHeight, maxHeight);
         caption.computeTextWrap(layoutBox.width, containerHeight);
     }
 
@@ -118,7 +121,7 @@ export class ChartCaptions {
 
         // Text reports a zero-height bbox for empty text; reserve a line so the caption still takes space.
         if (bbox.height === 0) {
-            bbox.height = cachedTextMeasurer(captionFont(opts)).lineHeight();
+            bbox.height = drawnLineHeight(captionFont(opts));
             if (vAlign === 'bottom') bbox.y -= bbox.height;
         }
 

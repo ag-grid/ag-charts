@@ -11,7 +11,6 @@ import type {
 } from 'ag-charts-core';
 import {
     ColorScale,
-    type ITextMeasurer,
     type LabelFit,
     LinearScale,
     type NormalisedChartLabelStyleOptions,
@@ -23,11 +22,11 @@ import {
     Selection,
     Text,
     Transformable,
-    cachedTextMeasurer,
     configureColorScale,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
+    measureLabelText,
     mergeDefaults,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
@@ -272,7 +271,6 @@ export class MapLineSeries
         idValue: string | undefined,
         labelValue: string | undefined,
         projectedGeometry: Geometry | undefined,
-        measurer: ITextMeasurer,
         labelFit: LabelFit | undefined,
         labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number }
     ): MapLineNodeLabelDatum | undefined {
@@ -302,7 +300,7 @@ export class MapLineSeries
         if (labelCenter == null) return;
 
         const [x, y] = labelCenter.point;
-        const text = measurer.measureLines(String(fittedText));
+        const text = measureLabelText(fittedText, labelStyle);
         // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
         const box = expandLabelBoxExtent(labelStyle);
         const width = text.width + box.left + box.right;
@@ -406,7 +404,6 @@ export class MapLineSeries
             false,
             undefined
         );
-        const measurer = cachedTextMeasurer(labelStyle);
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
 
         const projectedGeometries = this.prepareProjectedLineGeometries(
@@ -439,7 +436,6 @@ export class MapLineSeries
                 dataValues.idValue,
                 dataValues.labelValue,
                 projectedGeometry,
-                measurer,
                 labelFit,
                 labelStyle
             );
