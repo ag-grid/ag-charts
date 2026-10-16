@@ -2154,6 +2154,18 @@ describe('HeatmapSeries', () => {
             };
         }
 
+        // Asserts that only the updated cells' datums were rebuilt, so a test that uses it is on the incremental path.
+        async function transactIncrementally(update: Cell[]) {
+            expect(update.length).toBeLessThan(GRID.length);
+            const spy = spyOnCellRebuilds();
+            try {
+                await transact({ update });
+                expect(spy.datums).toHaveBeenCalledTimes(update.length);
+            } finally {
+                spy.restore();
+            }
+        }
+
         it('rebuilds and restyles only the updated cell', async () => {
             await create(GRID);
             const before = cells(chart);
@@ -2290,19 +2302,27 @@ describe('HeatmapSeries', () => {
         });
 
         it('re-evaluates an itemStyler for the updated cell only', async () => {
-            const itemStyler = ({ datum }: { datum: Cell }) =>
-                (datum.v ?? 0) > 6 ? { stroke: 'black', strokeWidth: 3 } : {};
+            const stylerCalls: string[] = [];
+            const itemStyler = ({ datum }: { datum: Cell }) => {
+                stylerCalls.push(datum.id);
+                return (datum.v ?? 0) > 6 ? { stroke: 'black', strokeWidth: 3 } : {};
+            };
             await create(GRID, { itemStyler });
             const strokeWidths = () => cells(chart).map((cell) => cell.strokeWidth);
             const before = strokeWidths();
 
-            await transact({ update: [UPDATED('0:0', 9)] });
-            await transact({ update: [UPDATED('3:2', 0)] });
+            // Both values stay inside the 0..11 extent, so each transaction takes the incremental path.
+            stylerCalls.length = 0;
+            await transactIncrementally([UPDATED('1:1', 8)]);
+            expect(new Set(stylerCalls)).toEqual(new Set(['1:1']));
 
-            const data = withUpdates(UPDATED('0:0', 9), UPDATED('3:2', 0));
-            const expected = await freshCells(data, { itemStyler });
+            stylerCalls.length = 0;
+            await transactIncrementally([UPDATED('2:1', 3)]);
+            expect(new Set(stylerCalls)).toEqual(new Set(['2:1']));
+
+            const data = withUpdates(UPDATED('1:1', 8), UPDATED('2:1', 3));
             expect(strokeWidths()).not.toEqual(before);
-            expect(cells(chart)).toEqual(expected);
+            expect(cells(chart)).toEqual(await freshCells(data, { itemStyler }));
         });
 
         it('keeps the highlight styling of a hovered cell while another cell updates', async () => {
@@ -2311,13 +2331,13 @@ describe('HeatmapSeries', () => {
             await hoverDatumByIndex(chart, 0, 0);
             expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.4));
 
-            await transact({ update: [UPDATED('2:2', 8)] });
+            await transact({ update: [UPDATED('2:2', 5)] });
 
             expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.4));
 
             await hoverAction(1, 1)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
-            expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('2:2', 8)), series));
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('2:2', 5)), series));
         });
 
         it('undims every cell when the highlight ends in the same update as a transaction', async () => {
@@ -2330,10 +2350,10 @@ describe('HeatmapSeries', () => {
             expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.4));
 
             highlightManager.updateHighlight('test');
-            await transact({ update: [UPDATED('2:2', 8)] });
+            await transact({ update: [UPDATED('2:2', 5)] });
 
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
-            expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('2:2', 8)), series));
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('2:2', 5)), series));
             expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(1));
         });
 
@@ -2359,14 +2379,14 @@ describe('HeatmapSeries', () => {
 
         it('picks and shows the tooltip of an updated cell', async () => {
             await create(GRID);
-            await transact({ update: [UPDATED('2:1', 100)] });
+            await transactIncrementally([UPDATED('2:1', 9.5)]);
             const datumIndex = GRID.findIndex((cell) => cell.id === '2:1');
 
             await hoverDatumByIndex(chart, 0, datumIndex);
 
             expect(isTooltipVisible(chart)).toBe(true);
             expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
-            expect(JSON.stringify(heatmap(chart).getTooltipContent(datumIndex))).toContain('100');
+            expect(JSON.stringify(heatmap(chart).getTooltipContent(datumIndex))).toContain('9.5');
         });
 
         it('stops picking a cell that the update left without a colour value', async () => {
@@ -2383,15 +2403,29 @@ describe('HeatmapSeries', () => {
 
         describe('against the changed fraction', () => {
             const ids = GRID.map((cell) => cell.id);
+            // 0:0 holds the only minimum (0) and 3:2 the only maximum (11). Leaving both where they are and moving
+            // every other value within 1..10 keeps the colour domain, so only the cells themselves change.
+            const inner = ids.filter((id) => id !== '0:0' && id !== '3:2');
+            const moveWithinExtent = (id: string, i: number) => {
+                const { v } = GRID.find((cell) => cell.id === id)!;
+                return UPDATED(id, v === 0 || v === 11 ? v : 1 + ((v! + i + 3) % 10));
+            };
 
             it.each([
                 ['one cell', 1],
                 ['a quarter of the cells', 3],
                 ['half of the cells', 6],
-                ['every cell', GRID.length],
             ])('matches a fresh render when the update changes %s', async (_name, count) => {
                 await create(GRID);
-                const updates = ids.slice(0, count).map((id, i) => UPDATED(id, 40 + i));
+                const updates = inner.slice(0, count).map(moveWithinExtent);
+                await transactIncrementally(updates);
+
+                expect(cells(chart)).toEqual(await freshCells(withUpdates(...updates)));
+            });
+
+            it('matches a fresh render when the update changes every cell', async () => {
+                await create(GRID);
+                const updates = ids.map(moveWithinExtent);
                 await transact({ update: updates });
 
                 expect(cells(chart)).toEqual(await freshCells(withUpdates(...updates)));
@@ -2399,9 +2433,6 @@ describe('HeatmapSeries', () => {
 
             it('rebuilds only the updated cells whatever fraction changes', async () => {
                 await create(GRID);
-                // 0:0 holds the only minimum (0) and 3:2 the only maximum (11); leaving both alone and
-                // staying within 1..10 keeps the colour domain where it was, so only the cells themselves change.
-                const inner = ids.filter((id) => id !== '0:0' && id !== '3:2');
                 const counts: number[] = [];
 
                 for (const count of [1, 3, 6]) {
@@ -2417,6 +2448,55 @@ describe('HeatmapSeries', () => {
                 }
 
                 expect(counts).toEqual([1, 3, 6]);
+            });
+        });
+
+        // Each case stays inside the colour extent, so the guard under test is the only reason to rebuild everything.
+        describe('falls back to a full rebuild', () => {
+            it('restyles and repaints every cell when a selection lands in the same frame as the update', async () => {
+                const selection = { enabled: true, unselectedItem: { opacity: 0.3 }, selectedItem: { fill: 'lime' } };
+                await create(GRID, { ...NO_TOOLTIP, selection });
+                const series = heatmap(chart);
+
+                chart.publicApi.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(0) }]);
+                await transactIncrementally([UPDATED('2:2', 5)]);
+
+                const painted = cells(chart);
+                expect(painted.map((cell) => cell.opacity)).toEqual(GRID.map((_, i) => (i === 0 ? 1 : 0.3)));
+                expect(painted[0].fill).toBe('lime');
+            });
+
+            it('rebuilds every cell when a second update lands in the same frame as the transaction', async () => {
+                await create(GRID);
+
+                const transaction = chart.publicApi.applyTransaction({ update: [UPDATED('1:1', 8)] });
+                chart.publicApi.updateDelta({ series: [{ ...buildOptions(GRID).series[0], cornerRadius: 6 }] });
+                await transaction;
+                await waitForChartStability(chart);
+
+                expect(rects(chart).map((rect) => rect.topLeftCornerRadius)).toEqual(Array(GRID.length).fill(6));
+                expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('1:1', 8)), { cornerRadius: 6 }));
+            });
+
+            it('rebuilds every cell when an options change follows a transaction without new data', async () => {
+                await create(GRID);
+                await transact({ update: [UPDATED('1:1', 8)] });
+
+                chart.publicApi.updateDelta({ series: [{ ...buildOptions(GRID).series[0], cornerRadius: 6 }] });
+                await waitForChartStability(chart);
+
+                expect(rects(chart).map((rect) => rect.topLeftCornerRadius)).toEqual(Array(GRID.length).fill(6));
+            });
+
+            it('rebuilds every cell when two transactions land in the same frame', async () => {
+                await create(GRID);
+
+                const first = chart.publicApi.applyTransaction({ update: [UPDATED('1:1', 8)] });
+                const second = chart.publicApi.applyTransaction({ update: [UPDATED('2:1', 3)] });
+                await Promise.all([first, second]);
+                await waitForChartStability(chart);
+
+                expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('1:1', 8), UPDATED('2:1', 3))));
             });
         });
 
@@ -2560,8 +2640,8 @@ describe('HeatmapSeries', () => {
             it('paints the fills of a fresh chart after cells are updated', async () => {
                 await create(GRID);
                 const original = paintedColours(chart);
-                const updates = [UPDATED('0:0', 9), UPDATED('2:1', 3)];
-                await transact({ update: updates });
+                const updates = [UPDATED('1:1', 8), UPDATED('2:1', 3)];
+                await transactIncrementally(updates);
 
                 expect(paintedColours(chart)).not.toEqual(original);
                 await expectPaintedLikeFresh(withUpdates(...updates));
@@ -2593,14 +2673,16 @@ describe('HeatmapSeries', () => {
             it('shows the new value on the updated cell and keeps the rest', async () => {
                 await create(GRID, series);
                 const before = labelTexts(chart);
+                expect(before).toHaveLength(GRID.length);
 
-                await transact({ update: [UPDATED('1:1', 77)] });
+                // Inside the colour extent, so only the labels guard sends this update down the full rebuild.
+                await transact({ update: [UPDATED('1:1', 8)] });
 
                 const after = labelTexts(chart);
-                expect(after).not.toEqual(before);
+                expect(after).toHaveLength(GRID.length);
                 expect(after.filter((text, i) => text !== before[i])).toHaveLength(1);
 
-                const reference = deproxy(AgCharts.create(buildOptions(withUpdates(UPDATED('1:1', 77)), series)));
+                const reference = deproxy(AgCharts.create(buildOptions(withUpdates(UPDATED('1:1', 8)), series)));
                 await waitForChartStability(reference);
                 expect(after).toEqual(labelTexts(reference));
                 reference.destroy();
@@ -2608,20 +2690,21 @@ describe('HeatmapSeries', () => {
         });
 
         describe('tooltip and picking', () => {
+            const nodeFor = (datumIndex: number) =>
+                heatmap(chart)
+                    .getNodeData()
+                    ?.find((n) => n.datumIndex === datumIndex);
+
             it('picks a cell that the update did not touch with its original value', async () => {
                 await create(GRID);
-                await transact({ update: [UPDATED('2:1', 100)] });
+                await transactIncrementally([UPDATED('2:1', 9.5)]);
                 const datumIndex = GRID.findIndex((cell) => cell.id === '0:0');
 
                 await hoverDatumByIndex(chart, 0, datumIndex);
 
                 expect(isTooltipVisible(chart)).toBe(true);
                 expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
-                expect(
-                    heatmap(chart)
-                        .getNodeData()
-                        ?.find((n) => n.datumIndex === datumIndex)?.colorValue
-                ).toBe(0);
+                expect(nodeFor(datumIndex)?.colorValue).toBe(0);
             });
 
             it('shows the new value when the hovered cell itself is updated', async () => {
@@ -2630,33 +2713,41 @@ describe('HeatmapSeries', () => {
                 await hoverDatumByIndex(chart, 0, datumIndex);
                 expect(isTooltipVisible(chart)).toBe(true);
 
-                await transact({ update: [UPDATED('1:1', 321)] });
+                await transact({ update: [UPDATED('1:1', 8.5)] });
 
-                expect(
-                    heatmap(chart)
-                        .getNodeData()
-                        ?.find((n) => n.datumIndex === datumIndex)?.colorValue
-                ).toBe(321);
-                expect(JSON.stringify(heatmap(chart).getTooltipContent(datumIndex))).toContain('321');
+                expect(nodeFor(datumIndex)?.colorValue).toBe(8.5);
+                expect(JSON.stringify(heatmap(chart).getTooltipContent(datumIndex))).toContain('8.5');
             });
 
             it('picks the moved cell at its new position and not its old one', async () => {
-                await create(GRID);
-                const datumIndex = GRID.findIndex((cell) => cell.id === '1:1');
-                const moved = UPDATED('1:1', 7, { x: 'X3', y: 'Y0' });
-                await transact({ update: [moved] });
+                // 3:1 is left out so the moved cell has an empty slot, and 2:2 is late enough in the data to keep the categories in order.
+                const data = GRID.filter((cell) => cell.id !== '3:1');
+                await create(data);
+                const datumIndex = data.findIndex((cell) => cell.id === '2:2');
+                const { x: oldX, y: oldY } = nodeFor(datumIndex)!.point;
+                const moved = UPDATED('2:2', 7, { x: 'X3', y: 'Y1' });
 
-                const node = heatmap(chart)
-                    .getNodeData()
-                    ?.find((n) => n.datumIndex === datumIndex);
-                const target = GRID.findIndex((cell) => cell.id === '3:0');
-                const targetNode = heatmap(chart)
-                    .getNodeData()
-                    ?.find((n) => n.datumIndex === target);
+                const spy = spyOnCellRebuilds();
+                try {
+                    await transact({ update: [moved] });
+                    expect(spy.datums).toHaveBeenCalledTimes(1);
+                } finally {
+                    spy.restore();
+                }
 
-                // The moved cell now shares X3/Y0 with cell 3:0, so it sits on top of that cell's position.
-                expect(node?.point).toEqual(targetNode?.point);
-                expect(cells(chart)).toEqual(await freshCells(withUpdates(moved)));
+                const newPoint = nodeFor(datumIndex)!.point;
+                expect(newPoint).not.toEqual({ x: oldX, y: oldY });
+
+                await hoverDatumByIndex(chart, 0, datumIndex);
+                expect(isTooltipVisible(chart)).toBe(true);
+                expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
+
+                // The old slot is empty now, so hovering it must not pick the moved cell.
+                const { canvasX, canvasY } = Transformable.toCanvasPoint(heatmap(chart).contentGroup, oldX, oldY);
+                await hoverAction(canvasX, canvasY)(chart);
+                await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+                expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).not.toBe(datumIndex);
+                expect(cells(chart)).toEqual(await freshCells(data.map((cell) => (cell.id === '2:2' ? moved : cell))));
             });
         });
     });
