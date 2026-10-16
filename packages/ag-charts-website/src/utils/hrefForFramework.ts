@@ -3,23 +3,12 @@ import { getFrameworkPath } from '@components/docs/utils/urlPaths';
 import { FRAMEWORKS } from '@constants';
 
 /**
- * Point a link to a framework docs page (`/charts/react/<pageName>/`) at `framework`'s copy of that
- * page. Links that are not to `pageName` under a framework path are returned as they came in, and
- * the base URL, any query and any hash are kept.
- *
- * `pageName` is a docs page slug such as `community-vs-enterprise`.
+ * Point a link to a framework docs page (`/charts/react/<page>/`, whatever the site's base path)
+ * at `framework`'s copy of that page. Links with no framework path are returned as they came in,
+ * and the base URL, any query and any hash are kept.
  */
-export function hrefForFramework({
-    href,
-    pageName,
-    framework,
-}: {
-    href: string;
-    pageName: string;
-    framework: Framework;
-}): string {
+export function hrefForFramework({ href, framework }: { href: string; framework: Framework }): string {
     const frameworkPaths = FRAMEWORKS.map(getFrameworkPath).join('|');
-    const pageLink = new RegExp(`/(?:${frameworkPaths})/${pageName}/`);
 
-    return href.replace(pageLink, `/${getFrameworkPath(framework)}/${pageName}/`);
+    return href.replace(new RegExp(`/(?:${frameworkPaths})/`), `/${getFrameworkPath(framework)}/`);
 }
