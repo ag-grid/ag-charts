@@ -211,6 +211,22 @@ describe('ChartValidations', () => {
             expect(validations.getVisibleIssues().warning).toEqual([warningIssue]);
         });
 
+        it("a cycle keeps the issues of the data pass, which only a data pass retires, and replaces the cycle's", () => {
+            const { logger, validations } = build();
+            validations.setShowOverlayOn(['warning']);
+            validations.beginCycle([warningIssue]);
+            validations.beginPass('data');
+            logger.warnOnce('missing key');
+            validations.endPass('data');
+
+            validations.beginCycle([]);
+            expect(validations.getVisibleIssues().warning.map((issue) => issue.message)).toEqual(['missing key']);
+
+            validations.beginPass('data');
+            validations.endPass('data');
+            expect(validations.hasVisibleIssues()).toBe(false);
+        });
+
         it('a pass keeps an issue of its phase that it re-raises', () => {
             const { logger, validations, changes } = build();
             validations.setShowOverlayOn(['warning']);
@@ -953,6 +969,46 @@ describe('ChartValidations - chart integration', () => {
         await proxy.update(options({ data: [...data], series: [series], validations: { showOverlayOn: ['warning'] } }));
 
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it.each([
+        { name: 'a title', delta: { title: { text: 'After' } } },
+        { name: 'the same title again', delta: { title: { text: 'Before' } } },
+        { name: 'a padding', delta: { padding: { top: 20 } } },
+    ])('keeps a missing-key warning across $name delta, which does not re-run the data pass', async ({ delta }) => {
+        const proxy = AgCharts.create(
+            options({
+                data: [{ x: 'A' }, { x: 'B' }],
+                title: { text: 'Before' },
+                validations: { showOverlayOn: ['warning'] },
+            })
+        ) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+
+        await proxy.updateDelta(delta);
+        await waitForChartStability(chart);
+
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('drops a missing-key warning once a delta supplies the data with the key', async () => {
+        const proxy = AgCharts.create(
+            options({ data: [{ x: 'A' }, { x: 'B' }], validations: { showOverlayOn: ['warning'] } })
+        ) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        await proxy.updateDelta({ title: { text: 'After' } });
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+
+        await proxy.updateDelta({ data });
+        await waitForChartStability(chart);
+
+        expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
         expectWarningsCalls().toHaveLength(1);
     });
 

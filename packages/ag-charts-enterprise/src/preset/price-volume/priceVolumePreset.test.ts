@@ -221,6 +221,18 @@ describe('priceVolumePreset', () => {
         expect(bigintVolume).toBe(numberVolume);
     });
 
+    it('re-points the annotations data at the grown data of an updateDelta()', async () => {
+        const rows = getStockData();
+        chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data: rows.slice(0, 50) }));
+        await waitForChartStability(chart);
+
+        await chart.updateDelta({ data: rows.slice(0, 60) });
+        await waitForChartStability(chart);
+
+        const { processedOptions } = deproxy(chart).chartOptions;
+        expect((processedOptions as { annotations?: { data?: unknown[] } }).annotations?.data).toHaveLength(60);
+    });
+
     describe('#createFinancialChart', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',

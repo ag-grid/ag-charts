@@ -71,6 +71,13 @@ function prepareOptions<T extends AgChartOptions>(userOptions: T, logger?: Logge
     return chartOptions.processedOptions;
 }
 
+const SPARKLINE_METADATA: ConstructorParameters<typeof ChartOptions>[4] = {
+    presetType: 'sparkline',
+    pool: true,
+    domMode: 'minimal',
+    withDragInterpretation: false,
+};
+
 // Mirrors AgCharts.__createSparkline() -> createOrUpdate(): no base options, the user options as the
 // new options, and the sparkline preset metadata.
 function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logger): AgChartOptions {
@@ -79,7 +86,7 @@ function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logge
         userOptions as AgChartOptions,
         {},
         {},
-        { presetType: 'sparkline', pool: true, domMode: 'minimal', withDragInterpretation: false },
+        SPARKLINE_METADATA,
         undefined,
         false,
         false,
@@ -5900,6 +5907,377 @@ describe('ChartOptions', () => {
                 severity: 'warning',
                 message:
                     'Option `validations.issueRaised` cannot be set to `"not-a-function"`; expecting a function, ignoring.',
+            });
+        });
+    });
+
+    describe('delta updates', () => {
+        const rows = (count: number) =>
+            Array.from({ length: count }, (_, i) => ({ id: `r${i}`, x: `c${i}`, y: i * 2 + 1, z: i }));
+
+        const createBase = (userOptions: AgChartOptions) =>
+            new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {});
+        const applyDelta = (
+            base: ChartOptions,
+            delta: object,
+            metadata: ConstructorParameters<typeof ChartOptions>[4] = {}
+        ) => new ChartOptions(base, {} as AgChartOptions, {}, {}, metadata, delta as any);
+
+        // The container is a per-instance element, so it is left out when comparing options.
+        const strip = (options: any) => ({ ...options, container: undefined });
+
+        // A tuple's value is read from its `datum`, which a number row doesn't have.
+        const tooltipOf = (chartOptions: ChartOptions) => {
+            const { renderer } = (chartOptions.processedOptions.series?.[0] as any).tooltip;
+            const datum = (chartOptions.processedOptions.data as any[])[3];
+            return renderer({ datum, xKey: 'x', yKey: 'y' });
+        };
+
+        describe('growing `data`', () => {
+            it.each([
+                {
+                    name: 'a bar series',
+                    options: { series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] },
+                },
+                {
+                    name: 'a bar series keyed by dataIdKey',
+                    options: { dataIdKey: 'id', series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] },
+                },
+                {
+                    name: 'multiple series with their own fills',
+                    options: {
+                        series: [
+                            { type: 'line', xKey: 'x', yKey: 'y' },
+                            { type: 'line', xKey: 'x', yKey: 'z' },
+                            { type: 'bar', xKey: 'x', yKey: 'z', fill: 'red' },
+                        ],
+                    },
+                },
+                {
+                    name: 'a pie series with more sectors than palette colours',
+                    options: { series: [{ type: 'pie', angleKey: 'y', sectorLabelKey: 'x' }] },
+                },
+                {
+                    name: 'a donut series with a cycled fill palette',
+                    options: {
+                        series: [{ type: 'donut', angleKey: 'y', fills: ['red', 'green', 'blue'] }],
+                    },
+                },
+            ])('takes the fast path and matches a fresh pass for $name', ({ options }) => {
+                const base = createBase({ ...options, data: rows(4) } as AgChartOptions);
+                const grown = rows(20);
+
+                const updated = applyDelta(base, { data: grown });
+                const fresh = createBase({ ...options, data: grown } as AgChartOptions);
+
+                // `revalidated` is false only when the fast path carried the previous pass forward.
+                expect(updated.revalidated).toBe(false);
+                expect(updated.processedOptions.data).toEqual(grown);
+                expect(strip(updated.processedOptions)).toEqual(strip(fresh.processedOptions));
+            });
+
+            it('stays on the fast path through consecutive growing deltas of dated rows', () => {
+                const dated = (count: number) =>
+                    Array.from({ length: count }, (_, i) => ({ when: new Date(2020, i, 1), gdp: i }));
+                const base = createBase({
+                    data: dated(5),
+                    series: [{ type: 'line', xKey: 'when', yKey: 'gdp' }],
+                } as AgChartOptions);
+
+                const first = applyDelta(base, { data: dated(6) });
+                const second = applyDelta(first, { data: dated(7) });
+                const third = applyDelta(second, { data: dated(8) });
+
+                expect([first, second, third].map((options) => options.revalidated)).toEqual([false, false, false]);
+                expect(third.processedOptions.data).toHaveLength(8);
+            });
+
+            it('takes the fast path for a shrinking data set', () => {
+                const base = createBase({
+                    data: rows(20),
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+
+                const updated = applyDelta(base, { data: rows(3) });
+
+                expect(updated.revalidated).toBe(false);
+                expect(updated.processedOptions.data).toHaveLength(3);
+            });
+
+            it.each([
+                { name: 'filling an empty data set', from: 0, to: 5 },
+                { name: 'emptying a data set', from: 5, to: 0 },
+            ])('keeps the slow path when $name, which changes the predicted axes', ({ from, to }) => {
+                const base = createBase({
+                    data: rows(from),
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+
+                const updated = applyDelta(base, { data: rows(to) });
+
+                expect(updated.revalidated).toBe(true);
+                expect(updated.processedOptions.data).toHaveLength(to);
+            });
+
+            it("predicts a sparkline's axes from its transformed rows, so dated pairs stay on the fast path", () => {
+                const pairs = (count: number) =>
+                    Array.from({ length: count }, (_, i) => [new Date(2020, i, 1), i] as [Date, number]);
+                const base = new ChartOptions(
+                    undefined,
+                    { type: 'line', data: pairs(3) } as AgChartOptions,
+                    {},
+                    {},
+                    SPARKLINE_METADATA
+                );
+
+                const updated = applyDelta(base, { data: pairs(7) }, SPARKLINE_METADATA);
+
+                expect(updated.revalidated).toBe(false);
+                expect(updated.processedOptions.data).toHaveLength(7);
+            });
+
+            it('keeps a sparkline on the fast path when its data grows', () => {
+                const base = new ChartOptions(
+                    undefined,
+                    { type: 'line', data: [1, 2, 3] } as AgChartOptions,
+                    {},
+                    {},
+                    SPARKLINE_METADATA
+                );
+
+                const updated = applyDelta(base, { data: [1, 2, 3, 4, 5, 6, 7] }, SPARKLINE_METADATA);
+
+                expect(updated.revalidated).toBe(false);
+                expect(updated.processedOptions.data).toHaveLength(7);
+            });
+
+            it('keeps the preset data transform on a sparkline whose data grows', () => {
+                const metadata = SPARKLINE_METADATA;
+                const options = { type: 'line', data: [1, 2, 3] } as AgChartOptions;
+                const base = new ChartOptions(undefined, options, {}, {}, metadata);
+
+                const updated = applyDelta(base, { data: [1, 2, 3, 4, 5] }, metadata);
+                const fresh = new ChartOptions(
+                    undefined,
+                    { ...options, data: [1, 2, 3, 4, 5] } as AgChartOptions,
+                    {},
+                    {},
+                    metadata
+                );
+
+                expect(updated.processedOptions.data).toEqual([
+                    { x: 0, y: 1 },
+                    { x: 1, y: 2 },
+                    { x: 2, y: 3 },
+                    { x: 3, y: 4 },
+                    { x: 4, y: 5 },
+                ]);
+                expect(strip(updated.processedOptions)).toEqual(strip(fresh.processedOptions));
+            });
+
+            it('re-derives the tooltip of a sparkline whose rows change shape along with their count', () => {
+                const metadata = SPARKLINE_METADATA;
+                const options = { type: 'line', data: [1, 2, 3] } as AgChartOptions;
+                const tuples = [1, 2, 3, 4, 5].map((v) => [v, v * 2]);
+                const base = new ChartOptions(undefined, options, {}, {}, metadata);
+
+                const updated = applyDelta(base, { data: tuples }, metadata);
+                const fresh = new ChartOptions(
+                    undefined,
+                    { ...options, data: tuples } as AgChartOptions,
+                    {},
+                    {},
+                    metadata
+                );
+
+                expect(updated.revalidated).toBe(true);
+                expect(tooltipOf(updated)).toEqual(tooltipOf(fresh));
+            });
+        });
+
+        describe('a sparkline whose shape changes', () => {
+            it('re-derives the tooltip of a sparkline that changes shape in a same-length delta, then grows', () => {
+                const metadata = SPARKLINE_METADATA;
+                const options = { type: 'line', data: [1, 2, 3] } as AgChartOptions;
+                const tuples = (count: number) => Array.from({ length: count }, (_, i) => [i + 1, i + 2]);
+                const base = new ChartOptions(undefined, options, {}, {}, metadata);
+
+                const sameLength = applyDelta(base, { data: tuples(3) }, metadata);
+                const grown = applyDelta(sameLength, { data: tuples(4) }, metadata);
+                const grownAgain = applyDelta(grown, { data: tuples(5) }, metadata);
+                const fresh = new ChartOptions(
+                    undefined,
+                    { ...options, data: tuples(4) } as AgChartOptions,
+                    {},
+                    {},
+                    metadata
+                );
+
+                expect(sameLength.revalidated).toBe(false);
+                expect(grown.revalidated).toBe(true);
+                expect(tooltipOf(grown)).toEqual(tooltipOf(fresh));
+                // The shape key follows the slow pass, so further growth stays on the fast path.
+                expect(grownAgain.revalidated).toBe(false);
+            });
+
+            it.each([
+                { name: 'numbers', data: Array.from({ length: 50 }, (_, i) => i) },
+                { name: 'tuples', data: Array.from({ length: 50 }, (_, i) => [i, i * 2]) },
+                { name: 'leading nulls', data: [null, undefined, ...Array.from({ length: 48 }, (_, i) => i)] },
+                { name: 'only nulls', data: Array.from({ length: 50 }, () => null) },
+            ])('transforms the rows of a sparkline created from $name at most once', ({ data }) => {
+                __clearStructuralCacheForTests();
+                const presetDef = ModuleRegistry.getPresetModule('sparkline') as {
+                    processData: (data: any[]) => unknown;
+                };
+                const processData = vi.spyOn(presetDef, 'processData');
+                const create = () =>
+                    new ChartOptions(undefined, { type: 'line', data } as AgChartOptions, {}, {}, SPARKLINE_METADATA);
+                // Calls through the definition that see every row, rather than the shape key's one-row sample.
+                const wholeTransforms = () => processData.mock.calls.filter(([sample]) => sample.length > 1).length;
+                try {
+                    // The preset's own `create` transforms the rows directly, so a cache miss adds no call here.
+                    create();
+                    expect(processData).toHaveBeenCalled();
+                    expect(wholeTransforms()).toBe(0);
+
+                    // A cache hit skips `create` and transforms the rows once to restore this chart's data.
+                    create();
+                    expect(wholeTransforms()).toBe(1);
+                } finally {
+                    processData.mockRestore();
+                }
+            });
+
+            it('keeps a grown sparkline on the fast path when its leading rows are null', () => {
+                const metadata = SPARKLINE_METADATA;
+                const rowsOf = (count: number) => [null, ...Array.from({ length: count }, (_, i) => i + 1)];
+                const base = new ChartOptions(
+                    undefined,
+                    { type: 'line', data: rowsOf(3) } as AgChartOptions,
+                    {},
+                    {},
+                    metadata
+                );
+
+                const updated = applyDelta(base, { data: rowsOf(4) }, metadata);
+
+                expect(updated.revalidated).toBe(false);
+            });
+        });
+
+        describe('`data` that is not an array', () => {
+            it.each([
+                { name: 'a string', data: 'foo' },
+                { name: 'an object', data: {} },
+                { name: 'null', data: null },
+            ])('validates $name on the slow path', ({ data }) => {
+                const base = createBase({
+                    data: rows(4),
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+
+                const updated = applyDelta(base, { data });
+
+                expect(updated.revalidated).toBe(true);
+                expect(updated.processedOptions.data).not.toBe(data);
+            });
+        });
+
+        describe('deltas that do not pass `data`', () => {
+            const options = {
+                data: rows(10),
+                title: { text: 'Before' },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            } as AgChartOptions;
+
+            it.each([
+                { name: 'a title', delta: { title: { text: 'After' } } },
+                { name: 'a series colour', delta: { series: [{ type: 'bar', xKey: 'x', yKey: 'y', fill: 'red' }] } },
+            ])('does not report a data change for $name', ({ delta }) => {
+                const base = createBase(options);
+
+                const updated = applyDelta(base, delta);
+
+                // The slow path ran, so the options were rebuilt around the unchanged data.
+                expect(updated.revalidated).toBe(true);
+                expect(updated.userOptions.data).toBe(base.userOptions.data);
+                expect(updated.processedOptions.data).toBe(base.processedOptions.data);
+                expect(updated.diffOptions(base)).not.toHaveProperty('data');
+            });
+
+            it('keeps the previous series data when the series are not in the delta', () => {
+                const base = createBase({
+                    title: { text: 'Before' },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', data: rows(5) }],
+                } as AgChartOptions);
+
+                const updated = applyDelta(base, { title: { text: 'After' } });
+
+                const seriesData = (chartOptions: ChartOptions) =>
+                    (chartOptions.processedOptions.series?.[0] as { data?: unknown } | undefined)?.data;
+                expect(seriesData(updated)).toBe(seriesData(base));
+                expect(updated.diffOptions(base)).toEqual({ title: { text: 'After' } });
+            });
+
+            it('does not report the preset data of a sparkline as changed', () => {
+                const metadata = SPARKLINE_METADATA;
+                const base = new ChartOptions(
+                    undefined,
+                    { type: 'line', data: [1, 2, 3] } as AgChartOptions,
+                    {},
+                    {},
+                    metadata
+                );
+
+                const updated = applyDelta(base, { title: { text: 'After' } }, metadata);
+
+                expect(updated.diffOptions(base)).not.toHaveProperty('data');
+            });
+
+            it('still reports data the delta passes', () => {
+                const base = createBase(options);
+                const data = rows(10);
+
+                const updated = applyDelta(base, { data });
+
+                expect(updated.processedOptions.data).toEqual(data);
+                expect(updated.diffOptions(base)).toHaveProperty('data');
+            });
+
+            it('treats `data` inside a series delta as data the caller passed', () => {
+                const base = createBase({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', data: rows(5) }],
+                } as AgChartOptions);
+                const seriesData = rows(6);
+
+                const updated = applyDelta(base, {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', data: seriesData }],
+                });
+
+                const processed = updated.processedOptions.series?.[0] as { data?: unknown };
+                expect(processed.data).toEqual(rows(6));
+                expect(processed.data).not.toBe((base.processedOptions.series?.[0] as { data?: unknown }).data);
+                expect((updated.userOptions.series?.[0] as { data?: unknown }).data).not.toBe(seriesData);
+            });
+
+            it('does not read `data` inside `context` as a data change', () => {
+                const base = createBase(options);
+
+                const updated = applyDelta(base, { context: { data: rows(2) } });
+
+                expect(updated.userOptions.data).toBe(base.userOptions.data);
+                expect(updated.diffOptions(base)).not.toHaveProperty('data');
+            });
+
+            it('does not let later deltas mutate the data the caller passed', () => {
+                const data = rows(3);
+                const base = createBase({ ...options, data } as AgChartOptions);
+
+                const updated = applyDelta(base, { title: { text: 'After' } });
+                (updated.userOptions.data as unknown[]).push({ id: 'extra' });
+
+                expect(data).toEqual(rows(3));
             });
         });
     });
