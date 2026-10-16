@@ -1828,6 +1828,37 @@ export function expectSceneSamplesMatch(actual: SceneGeometrySample, expected: S
 }
 
 /**
+ * Redraws `chart` with `data`, which must equal the data it already shows, and asserts that no pixel changed. Series 0
+ * must have node data of the given crispness; non-crisp bars must also keep their node geometry, while crisp bars
+ * snap at render so only their pixels are compared. Call it once the chart has stabilised.
+ */
+export async function expectRedrawWithSameDataIsStable(
+    chart: AgChartInstance,
+    canvasCtx: Pick<ReturnType<typeof setupMockCanvas>, 'snapshot'>,
+    data: unknown[],
+    { crisp }: { crisp: boolean }
+): Promise<void> {
+    const nodeData = (getSeriesAggregationInternals(chart).contextNodeData?.nodeData ?? []) as ReadonlyArray<{
+        crisp: boolean;
+    }>;
+    expect(nodeData.length).toBeGreaterThan(0);
+    expect(nodeData.every((d) => d.crisp === crisp)).toBe(true);
+
+    const sampleScene = createSceneGeometrySampler(chart);
+    const before = crisp ? undefined : sampleScene();
+    const beforeImage = canvasCtx.snapshot();
+    expectNonBlank(beforeImage);
+
+    await chart.updateDelta({ data });
+    await waitForChartStability(chart);
+
+    expect(canvasCtx.snapshot()).toMatchImage(beforeImage);
+    if (before) {
+        expectSceneSamplesMatch(sampleScene(), before, 0);
+    }
+}
+
+/**
  * A cross-node check evaluated on every captured frame — for relationships no per-node/per-property
  * expectation can express (e.g. "stacked layer N's far edge equals layer N+1's near edge on every
  * frame"). Return a message to fail, undefined to pass; only the first failing frame per invariant is

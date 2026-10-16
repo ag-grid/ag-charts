@@ -57,10 +57,12 @@ import {
     expectBarCentresOnCategoryGridlines,
     expectBarCentresRenderedOnCategoryGridlines,
     expectNoAnimation,
+    expectRedrawWithSameDataIsStable,
     expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
+    getSeriesAggregationInternals,
     getSwapChainText,
     hoverAction,
     mixinReversedAxesCases,
@@ -4777,4 +4779,107 @@ describe('BarSeries category/gridline pixel alignment', () => {
             }
         }
     }
+});
+
+describe('BarSeries redraw with identical data', () => {
+    const ctx = setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const makeData = (count: number) =>
+        Array.from({ length: count }, (_, i) => ({
+            cat: `C${i}`,
+            value: i % 3 === 0 ? -(5 + (i % 17)) : 10 + (i % 17),
+        }));
+
+    const createBarChart = async (
+        count: number,
+        {
+            width = 800,
+            dpr = 2,
+            ...series
+        }: { width?: number; dpr?: number; crisp?: boolean; direction?: 'horizontal' } = {}
+    ) => {
+        const horizontal = series.direction === 'horizontal';
+        const options: any = prepareTestOptions({
+            data: makeData(count),
+            animation: { enabled: false },
+            series: [{ type: 'bar', xKey: 'cat', yKey: 'value', ...series }],
+            legend: { enabled: false },
+            axes: {
+                x: { type: 'category', position: horizontal ? 'left' : 'bottom' },
+                y: { type: 'number', position: horizontal ? 'bottom' : 'left' },
+            },
+        });
+        options.overrideDevicePixelRatio = dpr;
+        options.width = width;
+        options.height = 600;
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        return chart;
+    };
+
+    const getNodeDataXs = (c: AgChartInstance) =>
+        ((getSeriesAggregationInternals(c).contextNodeData?.nodeData ?? []) as ReadonlyArray<{ x: number }>)
+            .map((d) => d.x)
+            .sort((a, b) => a - b);
+
+    const getRectXs = (c: AgChartInstance) =>
+        [...createSceneGeometrySampler(c)()]
+            .filter(([key]) => key.startsWith('series[0]/rect'))
+            .map(([, { x }]) => x)
+            .sort((a, b) => a - b);
+
+    const NON_CRISP = [
+        { name: '50 bars, crisp: false', count: 50, options: { crisp: false } },
+        { name: '500 bars, crisp auto', count: 500, options: { width: 1600 } },
+        { name: '50 horizontal bars, crisp: false', count: 50, options: { crisp: false, direction: 'horizontal' } },
+    ] as const;
+
+    for (const { name, count, options } of NON_CRISP) {
+        it(`changes no pixels or node geometry for non-crisp bars (${name})`, async () => {
+            const c = await createBarChart(count, options);
+
+            await expectRedrawWithSameDataIsStable(c, ctx, makeData(count), { crisp: false });
+        });
+    }
+
+    // Crisp bars at dpr 2 change pixels on redraw (a separate known gap), so these controls run at dpr 1.
+    for (const { name, count, options } of [
+        { name: '50 bars, crisp: true, dpr 1', count: 50, options: { crisp: true, dpr: 1 } },
+        { name: '5 wide bars, crisp auto, dpr 1', count: 5, options: { dpr: 1 } },
+    ]) {
+        it(`changes no pixels for crisp bars (${name})`, async () => {
+            const c = await createBarChart(count, options);
+
+            await expectRedrawWithSameDataIsStable(c, ctx, makeData(count), { crisp: true });
+        });
+    }
+
+    it('draws non-crisp bars at their exact x on the first frame', async () => {
+        const c = await createBarChart(50, { crisp: false });
+        const expected = getNodeDataXs(c);
+        expect(expected.some((x) => Math.abs(x * 2 - Math.round(x * 2)) > 1e-3)).toBe(true);
+
+        const actual = getRectXs(c);
+        expect(actual).toHaveLength(expected.length);
+        for (const [i, x] of actual.entries()) {
+            expect(x).toBeCloseTo(expected[i], 6);
+        }
+    });
+
+    it('still snaps crisp bars on the first frame', async () => {
+        const c = await createBarChart(50, { crisp: true });
+        const expected = getNodeDataXs(c);
+
+        const actual = getRectXs(c);
+        expect(actual).toHaveLength(expected.length);
+        expect(actual.some((x, i) => Math.abs(x - expected[i]) > 1e-3)).toBe(true);
+    });
 });
