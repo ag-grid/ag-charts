@@ -24,7 +24,7 @@ describe('series label lineHeight', () => {
         enabled: true,
         fontSize: 12,
         lineHeight: 36,
-        formatter: ({ value }: { value: unknown }) => `${value}\nsecond`,
+        formatter: ({ value }: { value: string }) => `${value}\nsecond`,
     };
 
     it.each([
