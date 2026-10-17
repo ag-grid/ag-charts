@@ -14,7 +14,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const xyData = (ys: number[], key = 'y') => ys.map((y, x) => ({ x, [key]: y }));
 
@@ -520,6 +520,18 @@ describe('Navigator', () => {
             await chart.update(prepareEnterpriseTestOptions(options(false)));
             await waitForChartStability(chart);
             expect(placementsOnAxis()).toEqual(['top', 'top', 'top']);
+        });
+    });
+
+    describe('mini chart axis padding', () => {
+        it('reserves room for the axis labels by their lineHeight', async () => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                navigator: { enabled: true, miniChart: { enabled: true, label: { enabled: true, lineHeight: 60 } } },
+            };
+            chart = await createEnterpriseChart(options);
+            const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
+            expect(navigator.miniChart.computeAxisPadding().bottom).toBeGreaterThanOrEqual(60);
         });
     });
 

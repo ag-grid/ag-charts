@@ -6,7 +6,13 @@ import type {
     Operation,
     WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth, undocumentedThemeOptions } from 'ag-charts-core';
+import {
+    FONT_SIZE_RATIO,
+    themeBorderColor,
+    themeBorderWidth,
+    themeLineHeight,
+    undocumentedThemeOptions,
+} from 'ag-charts-core';
 
 const DAY = 1000 * 60 * 60 * 24;
 const MONTH = DAY * 30;
@@ -35,6 +41,7 @@ const stylesTheme: WithThemeParams<AgRangesOptions> = {
     fill: { $ref: 'buttonBackgroundColor' },
     fillOpacity: 1,
     fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'chromeFontSize'] },
+    lineHeight: themeLineHeight('chromeLineHeight'),
     fontFamily: { $ref: 'chromeFontFamily' },
     fontWeight: { $ref: 'chromeFontWeight' },
     padding: { $shallow: { top: 6, right: 9, bottom: 6, left: 9 } } as any,
@@ -57,6 +64,7 @@ const componentTheme: WithThemeParams<AgRangesButtonStyles> = {
     fill: { $path: '../fill' },
     fillOpacity: { $path: '../fillOpacity' },
     fontSize: { $path: '../fontSize' },
+    lineHeight: { $isUserOption: ['../lineHeight', { $path: '../lineHeight' }, themeLineHeight('chromeLineHeight')] },
     fontFamily: { $path: '../fontFamily' },
     fontWeight: { $path: '../fontWeight' },
     padding: { $path: '../padding' },

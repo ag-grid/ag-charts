@@ -7,6 +7,8 @@ import {
     CHARTS_PARAM_DEFAULTS,
     PUBLIC_PARAM_NAMES,
     TOGGLE_ONLY_BORDER_PARAMS,
+    UNSET_BY_DEFAULT_PARAMS,
+    chartsParamType,
     getPalette,
     getStackParams,
     toStackParamValue,
@@ -27,14 +29,22 @@ const STOCK_THEMES = Object.entries(_Theme.themes) as [
 describe('AG Charts param translation', () => {
     it('translates every public param default to a value the theming engine accepts', () => {
         const rejected = PUBLIC_PARAM_NAMES.filter(
-            (property) => paramValueToCss(property, CHARTS_PARAM_DEFAULTS[property], null) === false
+            (property) =>
+                !UNSET_BY_DEFAULT_PARAMS.has(property) &&
+                paramValueToCss(property, CHARTS_PARAM_DEFAULTS[property], null) === false
         );
         expect(rejected).toEqual([]);
     });
 
     it('drops no param on the way through', () => {
         const dropped = PUBLIC_PARAM_NAMES.filter((property) => CHARTS_PARAM_DEFAULTS[property] === undefined);
-        expect(dropped).toEqual([]);
+        expect(dropped).toEqual([...UNSET_BY_DEFAULT_PARAMS]);
+    });
+
+    it('edits line heights as ratios', () => {
+        const lineHeights = PUBLIC_PARAM_NAMES.filter((property) => /lineHeight$/i.test(property));
+        expect(lineHeights.length).toBeGreaterThan(1);
+        expect(lineHeights.filter((property) => chartsParamType(property) !== 'ratio')).toEqual([]);
     });
 
     it('handles every operation AG Charts uses in its param defaults', () => {

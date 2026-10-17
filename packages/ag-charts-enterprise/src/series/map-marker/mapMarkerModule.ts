@@ -12,6 +12,7 @@ import {
     type SeriesModuleDefinition,
     ValidationError,
     fillThemeTemplate,
+    themeLineHeight,
     undocumentedThemeOptions,
     validate,
 } from 'ag-charts-core';
@@ -54,6 +55,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
                 enabled: false,
                 placement: 'bottom',
                 fontSize: { $ref: 'seriesLabelFontSize' },
+                lineHeight: themeLineHeight('seriesLabelLineHeight'),
                 fontFamily: { $ref: 'seriesLabelFontFamily' },
                 fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },

@@ -436,6 +436,13 @@ describe('wrapLines', () => {
             const lastLine = result.at(-1)!;
             expect(lastLine).toBe('G');
         });
+
+        it('should place the last line by its lineHeight when the width varies down the block', () => {
+            const maxWidthAt = (top: number) => (top >= 100 ? 20 : 90);
+            const options = { font, maxWidth: 90, maxWidthAt };
+            expect(wrapLines('AA BB CC DD EE FF G', options).at(-1)).toBe('FF G');
+            expect(wrapLines('AA BB CC DD EE FF G', { ...options, lineHeight: 60 }).at(-1)).toBe('G');
+        });
     });
 
     describe('overflow: hide', () => {
@@ -945,6 +952,125 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
 
         expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
         expect(textOf(result).replace(/\s+/g, ' ').trim()).toBe('AB CD EF');
+    });
+});
+
+describe('measureTextSegments — lineHeight', () => {
+    const lineHeights = (segments: TextSegment[], font: FontOptions = baseFont) =>
+        measureTextSegments(segments, font).lineMetrics.map(({ height, ascent, descent }) => ({
+            height,
+            ascent,
+            descent,
+        }));
+
+    it('spaces each line by its largest segment lineHeight, even below the natural height', () => {
+        expect(lineHeights([text('A', { lineHeight: 30 }), text('B', { lineHeight: 24 }), text('\nC')])).toEqual([
+            { height: 30, ascent: 16, descent: 14 },
+            { height: 20, ascent: 16, descent: 4 },
+        ]);
+        expect(lineHeights([text('A', { lineHeight: 12 })])).toEqual([{ height: 12, ascent: 16, descent: -4 }]);
+    });
+
+    it('keeps the natural height of segments without a lineHeight on the line', () => {
+        expect(lineHeights([text('A', { lineHeight: 10 }), text('B', { fontSize: 40 })])).toEqual([
+            { height: 20, ascent: 16, descent: 4 },
+        ]);
+    });
+
+    it('wraps a segment to the height of its inherited lineHeight', () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
+        const fitted = fitLabelText(
+            [text('AAAA BBBB CCCC', { fontSize: 20 })],
+            { maxWidth: 50, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            font
+        ) as MeasuredSegment[];
+        const { height, lineMetrics } = measureTextSegments(fitted, font);
+        expect(lineMetrics).toHaveLength(1);
+        expect(height).toBe(40);
+    });
+
+    it('budgets the first wrapped row by the taller segment already on it', () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
+        const fitted = fitLabelText(
+            [text('A ', { fontSize: 30 }), text('BBB CCC DDD', { fontSize: 10 })],
+            { maxWidth: 60, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            font
+        ) as MeasuredSegment[];
+        expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
+    });
+
+    it('budgets a row by the baseline extents of an inline image and its text', () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 30 };
+        const fitted = fitLabelText(
+            [text('A '), { type: 'image', src: 'x', width: 20, height: 30 } as ImageSegment, text('C DD EE')],
+            { maxWidth: 60, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            font
+        ) as MeasuredSegment[];
+        expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
+    });
+
+    it.each([
+        ['checks wrapped rows against the region band below a taller shared row', 'BB CC DD EE FF'],
+        ['admits a segment onto a taller row only where the row band has room', 'BB CC'],
+    ])('%s', (_name, tail) => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 30 };
+        const widthAt = (bottom: number) => Math.max(10, 80 - bottom * 0.4);
+        const region: FitRegion = {
+            spanAt: (_top, bottom) => [-widthAt(bottom) / 2, widthAt(bottom) / 2],
+            extentAbove: 0,
+            extentBelow: 180,
+        };
+        const fitted = fitLabelText(
+            [text('A', { fontSize: 20 }), text(tail)],
+            { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            font
+        ) as MeasuredSegment[];
+        let top = 0;
+        for (const line of measureTextSegments(fitted, font).lineMetrics) {
+            expect(line.width).toBeLessThanOrEqual(widthAt(top + line.height));
+            top += line.height;
+        }
+    });
+
+    it('budgets a wrapped row by a taller segment that follows it', () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
+        const fitted = fitLabelText(
+            [text('AAA BBB'), text('C', { fontSize: 30 }), text('\nD')],
+            { maxWidth: 60, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            font
+        ) as MeasuredSegment[];
+        expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
+    });
+
+    describe('without a lineHeight', () => {
+        const fit = (segments: TextSegment[], maxWidth: number, maxHeight: number) =>
+            fitLabelText(
+                segments,
+                { maxWidth, maxHeight, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+                baseFont
+            ) as MeasuredSegment[];
+
+        it('counts the row a wrapped segment shares only once', () => {
+            const fitted = fit([text('AAA BBB'), text(' CCC')], 40, 3 * LINE_HEIGHT);
+            expect(fitted.map((segment) => (segment.type === 'image' ? '' : segment.text)).join('')).not.toContain(
+                EllipsisChar
+            );
+            expect(measureTextSegments(fitted, baseFont).lineMetrics).toHaveLength(3);
+        });
+
+        it('counts the open row before a segment wraps below it', () => {
+            const fitted = fit([text('A '), text('BBB CCC')], 40, 2 * LINE_HEIGHT);
+            expect(measureTextSegments(fitted, baseFont).height).toBeLessThanOrEqual(2 * LINE_HEIGHT);
+        });
+    });
+
+    it("inherits the default font's lineHeight in proportion to each segment's fontSize", () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 15 };
+        expect(lineHeights([text('A'), text('\nB', { fontSize: 20 }), text('\nC', { lineHeight: 40 })], font)).toEqual([
+            { height: 15, ascent: 16, descent: -1 },
+            { height: 30, ascent: 16, descent: 14 },
+            { height: 40, ascent: 16, descent: 24 },
+        ]);
     });
 });
 

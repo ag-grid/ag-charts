@@ -113,6 +113,8 @@ export interface AgChartCaptionOptions<TContext = ContextDefault> extends LabelB
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the text. */
     fontSize?: FontSize;
+    /** The line height in pixels to use for the text. Defaults to the natural line height of the font. */
+    lineHeight?: PixelSize;
     /** The font family to use for the text. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
     /** The colour to use for the text. A colour string, or a theme-colour reference object. */

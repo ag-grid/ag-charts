@@ -2656,6 +2656,16 @@ describe('OrganizationSeries', () => {
             labels: [{ key: 'location' }],
         };
 
+        it('clips a wrapped tier to maxHeight by its lineHeight', async () => {
+            const node = (lineHeight?: number): OrgNodeOptions => ({
+                maxWidth: 200,
+                maxHeight: 100,
+                title: { key: 'name', lineHeight },
+            });
+            expect(titleOf((await render(node())).texts)).toContain('\n');
+            expect(titleOf((await render(node(60))).texts)).toBe('Alexandra…');
+        });
+
         it('should default to truncate: true and collision { threshold: 0, alwaysShow: false } on every tier', async () => {
             const { series } = await render(BASE_NODE);
             const { title, subtitle, labels } = series.options.node;

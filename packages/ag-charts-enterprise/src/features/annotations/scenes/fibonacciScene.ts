@@ -200,7 +200,7 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
             strokeWidth,
             rangeStroke,
             isMultiColor,
-            label: { fontFamily, fontSize, fontStyle, fontWeight, color },
+            label: { fontFamily, fontSize, fontStyle, fontWeight, lineHeight, color },
         } = trendLineProperties;
 
         const labelProperties = {
@@ -208,6 +208,7 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
             fontSize,
             fontStyle,
             fontWeight,
+            lineHeight,
         };
 
         const withinBounds = this.checkWithinBounds(xAxis, labelProperties, isRtl, this.labelsGroupSelection.at(0));

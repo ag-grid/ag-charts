@@ -48,7 +48,16 @@ export class AxisLabelScene extends Group {
     }
 
     private updateLabel({ value, styles, context }: UpdateOpts) {
-        const { fontWeight, fontSize, fontStyle, fontFamily, textAlign, color = 'white', formatter } = styles;
+        const {
+            fontWeight,
+            fontSize,
+            fontStyle,
+            fontFamily,
+            lineHeight,
+            textAlign,
+            color = 'white',
+            formatter,
+        } = styles;
         const text = formatter ? formatter({ value }) : context.formatScaleValue(value, 'annotation-label');
 
         this.label.setProperties({
@@ -56,6 +65,7 @@ export class AxisLabelScene extends Group {
             fontSize,
             fontStyle,
             fontFamily,
+            lineHeight,
             textAlign,
             fill: color,
             text,

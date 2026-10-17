@@ -193,6 +193,7 @@ export class AxisInsetValue extends AbstractModuleInstance {
             node.fontSize = fontSize;
             node.fontStyle = font.fontStyle;
             node.fontWeight = font.fontWeight;
+            node.lineHeight = font.lineHeight;
             node.textAlign = 'center';
             node.textBaseline = 'middle';
             // `visible` already admits a row thinner than a full line, so only the width truncates.
@@ -266,6 +267,7 @@ export class AxisInsetValue extends AbstractModuleInstance {
             fontSize: label?.fontSize ?? DEFAULT_FONT_SIZE,
             fontStyle: label?.fontStyle,
             fontWeight: label?.fontWeight,
+            lineHeight: label?.lineHeight,
         };
     }
 

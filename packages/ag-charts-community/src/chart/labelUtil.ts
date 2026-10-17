@@ -35,6 +35,7 @@ import {
     type NormalisedCollisionFreeSeriesLabelOptions,
     type NormalisedSeriesLabelOptions,
     barLabelObstacles,
+    drawnLineHeight,
     fitLabelTextOrOverflow,
     fitLabelTextOrOverflowAutoSize,
     fontWithSize,
@@ -46,6 +47,7 @@ import {
     isBoxInSector,
     isPointInSector,
     isRotatable,
+    lineHeightAtSize,
     measureLabelText,
     mergeDefaults,
     orientationAngles,
@@ -54,6 +56,7 @@ import {
     rotatedGlyphDrift,
     rotatedLabelInset,
     sectorLabelContainer,
+    stylerLineHeightOverrides,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type {
@@ -795,6 +798,7 @@ export function getLabelStyles<TParams>(
             fontSize: resolvedLabel.fontSize,
             fontStyle: resolvedLabel.fontStyle,
             fontWeight: resolvedLabel.fontWeight,
+            lineHeight: resolvedLabel.lineHeight,
             itemId,
             itemType: nodeDatum?.itemType,
             seriesId: series.id,
@@ -806,10 +810,12 @@ export function getLabelStyles<TParams>(
             selectionState: series.getSelectionStateString(nodeDatum?.datumIndex),
             candidateState: series.getCandidateStateString(nodeDatum?.datumIndex),
         };
+        const lineHeight = drawnLineHeight(resolvedLabel);
+        const stylerOutput = series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams, lineHeight });
         const stylerResult =
             series.ctx.optionsGraphService.resolvePartial(
                 labelPath,
-                series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
+                stylerOutput && stylerLineHeightOverrides(stylerOutput, resolvedLabel, lineHeight),
                 { pick: false }
             ) ?? {};
 
@@ -874,6 +880,7 @@ export function updateLabelNode<TParams>(
         // the shared `Label` instance itself.
         if (labelDatum.fittedFontSize != null) {
             textNode.fontSize = labelDatum.fittedFontSize;
+            textNode.lineHeight = lineHeightAtSize(style, labelDatum.fittedFontSize);
         }
         textNode.setBoxing(style);
         if (isRotatable(textNode)) {

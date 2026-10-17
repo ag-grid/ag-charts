@@ -79,6 +79,7 @@ export class TextInput {
         textArea.style.fontFamily = opts.styles?.fontFamily ?? 'inherit';
         textArea.style.fontSize = opts.styles?.fontSize == null ? 'inherit' : `${opts.styles.fontSize}px`;
         textArea.style.fontStyle = opts.styles?.fontStyle ?? 'inherit';
+        textArea.style.lineHeight = opts.styles?.lineHeight == null ? '' : `${opts.styles.lineHeight}px`;
         textArea.style.fontWeight =
             typeof opts.styles?.fontWeight === 'number'
                 ? `${opts.styles.fontWeight}`
@@ -120,9 +121,11 @@ export class TextInput {
         (this.element.firstElementChild as HTMLDivElement).style.color = color;
     }
 
-    public updateFontSize(fontSize: number) {
-        if (!this.element.firstElementChild) return;
-        (this.element.firstElementChild as HTMLDivElement).style.fontSize = `${fontSize}px`;
+    public updateFontSize(fontSize: number, lineHeight: number | undefined) {
+        const textArea = this.element.firstElementChild as HTMLDivElement | null;
+        if (!textArea) return;
+        textArea.style.fontSize = `${fontSize}px`;
+        textArea.style.lineHeight = lineHeight == null ? '' : `${lineHeight}px`;
         this.updatePosition();
         return this.getBBox();
     }

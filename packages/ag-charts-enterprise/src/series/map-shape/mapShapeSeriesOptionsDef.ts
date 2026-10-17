@@ -42,7 +42,6 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
         ...seriesLabelOptionsDefs,
         ...labelFitOptionsDefs,
         ...labelAutoFontSizeOptionsDefs,
-        lineHeight: positiveNumber,
         overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
     },
     tooltip: tooltipOptionsDefs,

@@ -156,6 +156,7 @@ function setProperties(
         fontSize: textProperties.fontSize,
         fontStyle: textProperties.fontStyle,
         fontWeight: textProperties.fontWeight,
+        lineHeight: textProperties.lineHeight,
         textAlign: textProperties.alignment,
         textBaseline: textBaseline,
     });

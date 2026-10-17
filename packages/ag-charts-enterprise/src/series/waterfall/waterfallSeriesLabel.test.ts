@@ -373,6 +373,32 @@ describe('waterfall series-level label', () => {
         });
     });
 
+    describe('lineHeight', () => {
+        const theme = { params: { lineHeight: 1.5 } };
+
+        it('derives each bar type from its own fontSize unless the series label sets one', () => {
+            const labels = resolveLabels(
+                { label: { enabled: true, fontSize: 10 }, item: { positive: { label: { fontSize: 20 } } } },
+                theme
+            );
+
+            expect(labels.positive.lineHeight).toBe(30);
+            expect(labels.negative.lineHeight).toBe(15);
+            expect(labels.total.lineHeight).toBe(15);
+        });
+
+        it('copies a lineHeight set on the series label to every bar type', () => {
+            const labels = resolveLabels(
+                { label: { enabled: true, lineHeight: 18 }, item: { positive: { label: { fontSize: 20 } } } },
+                theme
+            );
+
+            for (const itemType of ITEM_TYPES) {
+                expect(labels[itemType].lineHeight).toBe(18);
+            }
+        });
+    });
+
     describe('user theme', () => {
         // The ticket fixes user `item.<type>.label` over user `series.label`, but is silent on a user
         // theme's item label versus an inline series label. Theme-space resolution ranks the whole

@@ -29,6 +29,7 @@ export function applyTextStyles(node: Text, styles: FontOptions & { color: CssCo
     node.fontSize = styles.fontSize;
     node.fontStyle = styles.fontStyle;
     node.fontWeight = styles.fontWeight;
+    node.lineHeight = styles.lineHeight;
     node.textAlign = styles.textAlign;
     node.textBaseline = 'top';
 }

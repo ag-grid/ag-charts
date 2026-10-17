@@ -151,6 +151,24 @@ const myTheme = {
 - `<element>Border` - `boolean` to toggle, or `{ width, color }` to override. `color` accepts a [colour reference](#colour-references).
 - `<element>BorderRadius` - corner radius, inheriting from `borderRadius`.
 
+### Line Height
+
+Text uses the natural line height of its font unless a line height is set.
+
+Set `lineHeight` to a ratio of the font size, for example `1.5`. Each text element multiplies the ratio by its own font size, so the spacing stays in proportion when a font size changes. Element parameters such as `axisLabelLineHeight` and `titleLineHeight` override it for one element.
+
+```js format="snippet"
+const myTheme = {
+    params: {
+        lineHeight: 1.5,
+        titleLineHeight: 1.2,
+    },
+};
+```
+
+- The `lineHeight` option beside each `fontSize` in the chart options takes a value in pixels, and takes precedence over the theme parameters.
+- A label that shrinks towards its `minimumFontSize` keeps its line height in proportion to its font size.
+
 ## Overrides
 
 The `overrides` object is similar in its structure to the chart's options and is used as follows:

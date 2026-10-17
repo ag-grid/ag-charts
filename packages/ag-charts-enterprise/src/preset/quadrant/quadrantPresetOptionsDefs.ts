@@ -32,6 +32,7 @@ const regionLabelOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChar
     enabled: defined,
     fontFamily: defined,
     fontSize: defined,
+    lineHeight: defined,
     fontStyle: defined,
     fontWeight: defined,
     fill: defined,

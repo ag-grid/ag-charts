@@ -1,6 +1,7 @@
 import { getSequentialColors } from 'ag-charts-core';
 import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
+import type { ThemeParamDefaults } from './chartTheme';
 import { DarkTheme } from './darkTheme';
 
 const FINANCIAL_DARK_FILLS = {
@@ -48,7 +49,7 @@ export class FinancialDark extends DarkTheme {
         };
     }
 
-    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
+    override getThemeParameters(): ThemeParamDefaults<WithThemeParams<AgChartAllThemeParams>> {
         return {
             ...super.getThemeParameters(),
             chartPadding: 0,

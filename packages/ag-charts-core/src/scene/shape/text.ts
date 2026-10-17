@@ -216,7 +216,8 @@ export class Text<D = unknown> extends Shape<D> {
 
             return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
         } else {
-            return Text.computeBBox(toTextString(text).split(LineSplitter), x, y, options);
+            const lineHeight = options.lineHeight ?? options.font.lineHeight;
+            return Text.computeBBox(toTextString(text).split(LineSplitter), x, y, { ...options, lineHeight });
         }
     }
 
@@ -335,8 +336,14 @@ export class Text<D = unknown> extends Shape<D> {
             return bbox;
         }
         const isRtl = this.scene?.isRtl;
-        const { x, y, lines, textBaseline, textAlign } = this;
-        const measuredTextBounds = Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign, isRtl });
+        const { x, y, lines, lineHeight, textBaseline, textAlign } = this;
+        const measuredTextBounds = Text.computeBBox(lines, x, y, {
+            font: this,
+            lineHeight,
+            textBaseline,
+            textAlign,
+            isRtl,
+        });
         if (this.boxing != null) measuredTextBounds.grow(this.boxPadding);
         return measuredTextBounds;
     }
@@ -362,15 +369,18 @@ export class Text<D = unknown> extends Shape<D> {
         const padding = this.boxing == null ? undefined : resolvePadding(this.boxPadding);
         const isRtl = this.scene?.isRtl;
         const last = lineMetrics.length - 1;
+        // Segment metrics already carry their line heights.
+        const rowHeight = isArray(this.text) ? undefined : this.lineHeight;
         let top = bbox.y + (padding?.top ?? 0);
         return lineMetrics.map((line, index) => {
+            const height = rowHeight ?? line.height;
             const box = new BBox(
                 this.x - Text.calcLeftOffset(line.width, this.textAlign, isRtl),
                 top,
                 line.width,
-                line.height
+                height
             );
-            top += line.height;
+            top += height;
             if (padding != null) {
                 box.grow({
                     left: padding.left,
@@ -557,7 +567,8 @@ export class Text<D = unknown> extends Shape<D> {
                 continue;
             }
 
-            const { color, textMetrics, verticalAlign, ...segment } = measured;
+            // The line metrics already space rows by `lineHeight`; on a one-line node it would shift the bbox.
+            const { color, textMetrics, verticalAlign, lineHeight: _lineHeight, ...segment } = measured;
             const textNode = node as Text;
             const segmentBaseline: CanvasTextBaseline = toCanvasTextBaseline(verticalAlign) ?? 'alphabetic';
             textNode.x = lineLeft + offsetX;
@@ -796,6 +807,7 @@ export class Text<D = unknown> extends Shape<D> {
         this.fontSize = props.fontSize;
         this.fontStyle = props.fontStyle;
         this.fontWeight = props.fontWeight;
+        this.lineHeight = props.lineHeight;
     }
 
     setAlign(props: { textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }) {

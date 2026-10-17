@@ -454,6 +454,8 @@ export function repeat<T>(value: T, count: number): T[] {
 export interface DrawnLabelNode<TDatum = any> {
     visible: boolean;
     text: string;
+    fontSize: number;
+    lineHeight?: number;
     x: number;
     y: number;
     datum: TDatum;

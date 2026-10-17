@@ -116,6 +116,7 @@ function wrapTextTier(
 
     const options: WrapOptions = {
         font: tierStyles,
+        lineHeight: tierStyles.lineHeight,
         maxWidth: tierWidth,
         maxHeight: Number.isFinite(tierHeight) ? tierHeight : undefined,
         textWrap: tierStyles.wrapping,

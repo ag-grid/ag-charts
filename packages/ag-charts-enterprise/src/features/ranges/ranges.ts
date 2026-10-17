@@ -297,7 +297,7 @@ export class Ranges extends AbstractModuleInstance {
             this.buttonsToolbar?.removeClass('ag-charts-range-buttons--gapped');
         }
 
-        const numericKeys = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'strokeWidth'];
+        const numericKeys = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'strokeWidth', 'lineHeight'];
         const button = resolveStyles(opts.button);
         const dropdown = resolveStyles(opts.dropdown);
         // `minSize` is undocumented but emitted by rangesTheme/priceVolumePreset (theme: 0, preset: 34).
@@ -378,6 +378,7 @@ export class Ranges extends AbstractModuleInstance {
             fontSize: component.fontSize,
             fontFamily: component.fontFamily,
             fontWeight: component.fontWeight,
+            lineHeight: component.lineHeight,
             stroke: component.stroke,
             strokeWidth: component.strokeWidth,
             textColor: component.textColor,

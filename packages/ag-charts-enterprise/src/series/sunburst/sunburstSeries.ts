@@ -28,8 +28,8 @@ import {
     Selection,
     Text,
     TransformableText,
-    cachedTextMeasurer,
     cycledValue,
+    drawnLineHeight,
     findDiscreteColorBinLabel,
     fontWithSize,
     formatValue,
@@ -42,7 +42,7 @@ import type { Path } from 'ag-charts-core';
 import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight, PaddingOptions } from 'ag-charts-types';
 
 import { HierarchyNode, HierarchySeries, toHierarchyHighlightString } from '../hierarchy/hierarchySeries';
-import { autoSizedLabelFit, labelPairBlocks } from '../util/autoSizedLabelFit';
+import { autoSizedLabelFit, labelPairBlocks, styledLabelFont } from '../util/autoSizedLabelFit';
 
 const { fromToMotion, createDatumId, expandLabelBoxExtent, fitLabelToContainer, getLabelStyles } = _ModuleSupport;
 
@@ -588,12 +588,10 @@ export class SunburstSeries extends HierarchySeries<
         if (ring == null) return;
         const { label, secondaryLabel } = this.options;
         const primary =
-            label.enabled && labelText != null
-                ? autoSizedLabelFit(labelText, label, this.labelBoxExtent(node, label))
-                : undefined;
+            label.enabled && labelText != null ? this.styledLabelFit(node, labelText, label, 'label') : undefined;
         const secondary =
             secondaryLabel.enabled && secondaryLabelText != null
-                ? autoSizedLabelFit(secondaryLabelText, secondaryLabel, this.labelBoxExtent(node, secondaryLabel))
+                ? this.styledLabelFit(node, secondaryLabelText, secondaryLabel, 'secondaryLabel')
                 : undefined;
         const fit = primary ?? secondary;
         if (fit == null) return;
@@ -731,12 +729,16 @@ export class SunburstSeries extends HierarchySeries<
             if (fitted == null) continue;
             const primary = tag === TextNodeTag.Primary;
             const props = primary ? this.options.label : this.options.secondaryLabel;
-            const box = labelStack?.blocks[index].fit.boxPadding ?? expandLabelBoxExtent(props);
-            const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = props;
+            const blockFit = labelStack?.blocks[index].fit;
+            const font = blockFit?.font ?? props;
+            const box = blockFit?.boxPadding ?? expandLabelBoxExtent(props);
+            const { fontStyle = 'normal', fontFamily = props.fontFamily, fontWeight = 'normal' } = font;
+            const { color = 'black' } = props;
+            const fittedFont = fontWithSize(font, fitted.fontSize);
             const layout: LabelLayout = {
                 text: fitted.text,
                 fontSize: fitted.fontSize,
-                lineHeight: props.lineHeight ?? cachedTextMeasurer(fontWithSize(props, fitted.fontSize)).lineHeight(),
+                lineHeight: drawnLineHeight(fittedFont),
                 fontStyle,
                 fontFamily,
                 fontWeight,
@@ -771,15 +773,17 @@ export class SunburstSeries extends HierarchySeries<
         };
     }
 
-    /** The drawn box around a label at rest, so the fit reserves room for an `itemStyler`'s padding and border. */
-    private labelBoxExtent(
+    /** Fits the label at rest in its `itemStyler`'s font and box, so restyled text keeps its room. */
+    private styledLabelFit(
         node: SunburstNode,
-        props: NormalisedSunburstSeriesOwnOptions['label'] | NormalisedSunburstSeriesOwnOptions['secondaryLabel']
+        text: NormalisedTextOrSegments,
+        props: NormalisedSunburstSeriesOwnOptions['label'] | NormalisedSunburstSeriesOwnOptions['secondaryLabel'],
+        key: 'label' | 'secondaryLabel'
     ) {
-        if (props.itemStyler == null) return expandLabelBoxExtent(props);
-        return expandLabelBoxExtent(
-            getLabelStyles(this, node, this.labelFormatterParams(node), props, false, undefined)
-        );
+        if (props.itemStyler == null) return autoSizedLabelFit(text, props, expandLabelBoxExtent(props));
+        const path = ['series', `${this.declarationOrder}`, key];
+        const style = getLabelStyles(this, node, this.labelFormatterParams(node), props, false, undefined, path);
+        return autoSizedLabelFit(text, styledLabelFont(props, style), expandLabelBoxExtent(style));
     }
 
     private updateLabelNodes() {
@@ -867,11 +871,12 @@ export class SunburstSeries extends HierarchySeries<
         const extent = radius * Math.SQRT2;
         const box = { width: extent, height: extent };
         this.innerLabelsSelection.each((text, datum) => {
-            const { fontStyle, fontWeight, fontSize, fontFamily, color } = datum;
+            const { fontStyle, fontWeight, fontSize, fontFamily, lineHeight, color } = datum;
             text.fontStyle = fontStyle;
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
             text.fontFamily = fontFamily;
+            text.lineHeight = lineHeight;
             text.text = fitLabelToContainer(datum.text, undefined, datum, box);
             text.x = 0;
             text.y = 0;

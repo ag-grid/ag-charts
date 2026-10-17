@@ -2,8 +2,11 @@ import {
     type FontOptions,
     type NormalisedTextOrSegments,
     cachedTextMeasurer,
+    drawnLineHeight,
     findLargestFittingFontSize,
     findLargestFittingStep,
+    lineHeightAtSize,
+    measureLabelText,
     resolveMinimumFontSize,
     wrapLines,
 } from 'ag-charts-core';
@@ -40,6 +43,12 @@ function capWidth(props: Pick<AgChartLabelFitOptions, 'maxWidth'>, width: number
 
 function capHeight(props: Pick<AgChartLabelFitOptions, 'maxHeight'>, height: number) {
     return props.maxHeight == null ? height : Math.min(height, props.maxHeight);
+}
+
+/** The label's font at `fontSize`, with its `lineHeight` kept in proportion. */
+function labelFontAt(props: AutoSizedBaseLabelOptions, fontSize: number): FontOptions {
+    const { fontFamily, fontStyle, fontWeight } = props;
+    return { fontFamily, fontStyle, fontWeight, fontSize, lineHeight: lineHeightAtSize(props, fontSize) };
 }
 
 function overflowAtFloor(props: AgChartAutoSizedBaseLabelOptions<unknown, any>): OverflowStrategy {
@@ -156,18 +165,6 @@ export function formatStackedLabels<Meta>(
 
     if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust, false).height - heightAdjust) return;
 
-    const labelTextSizeProps = {
-        fontFamily: labelProps.fontFamily,
-        fontStyle: labelProps.fontStyle,
-        fontWeight: labelProps.fontWeight,
-    };
-
-    const secondaryLabelTextSizeProps = {
-        fontFamily: secondaryLabelProps.fontFamily,
-        fontStyle: secondaryLabelProps.fontStyle,
-        fontWeight: secondaryLabelProps.fontWeight,
-    };
-
     // The font size candidates will repeat some font sizes, so cache the results, so we don't do extra text measuring
     let label: LabelFormatting | undefined;
     let secondaryLabel: LabelFormatting | undefined;
@@ -175,10 +172,10 @@ export function formatStackedLabels<Meta>(
     return findLargestFittingStep<StackedLabelFormatting<Meta>>(fontSizeCandidates.length, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
-        const labelFont = { ...labelTextSizeProps, fontSize: labelFontSize };
-        const secondaryLabelFont = { ...secondaryLabelTextSizeProps, fontSize: secondaryLabelFontSize };
-        const labelLineHeight = cachedTextMeasurer(labelFont).lineHeight();
-        const secondaryLabelLineHeight = cachedTextMeasurer(secondaryLabelFont).lineHeight();
+        const labelFont = labelFontAt(labelProps, labelFontSize);
+        const secondaryLabelFont = labelFontAt(secondaryLabelProps, secondaryLabelFontSize);
+        const labelLineHeight = drawnLineHeight(labelFont);
+        const secondaryLabelLineHeight = drawnLineHeight(secondaryLabelFont);
         const sizeFitting = sizeFittingHeight(
             labelLineHeight + secondaryLabelLineHeight + heightAdjust,
             allowTruncation
@@ -192,7 +189,6 @@ export function formatStackedLabels<Meta>(
         const labelHeight = capHeight(labelProps, availableHeight);
         if (label?.fontSize !== labelFontSize) {
             label = wrapLabel(
-                labelProps,
                 labelValue,
                 labelWidth,
                 labelHeight,
@@ -208,7 +204,6 @@ export function formatStackedLabels<Meta>(
         const secondaryLabelHeight = capHeight(secondaryLabelProps, availableHeight);
         if (secondaryLabel?.fontSize !== secondaryLabelFontSize) {
             secondaryLabel = wrapLabel(
-                secondaryLabelProps,
                 secondaryLabelValue,
                 secondaryLabelWidth,
                 secondaryLabelHeight,
@@ -249,19 +244,13 @@ export function formatSingleLabel<Meta>(
     const sizeAdjust = 2 * padding;
     const minimumFontSize = resolveMinimumFontSize(props.minimumFontSize, props.fontSize);
 
-    const textSizeProps = {
-        fontFamily: props.fontFamily,
-        fontStyle: props.fontStyle,
-        fontWeight: props.fontWeight,
-    };
-
     const fitted = findLargestFittingFontSize<[LabelFormatting, Meta]>(
         minimumFontSize,
         props.fontSize,
         (fontSize, allowTruncation) => {
-            const currentFont = { ...textSizeProps, fontSize };
+            const currentFont = labelFontAt(props, fontSize);
             const measurer = cachedTextMeasurer(currentFont);
-            const lineHeight = props.lineHeight ?? measurer.lineHeight();
+            const lineHeight = currentFont.lineHeight ?? measurer.lineHeight();
             const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust, allowTruncation);
             const availableWidth = capWidth(props, sizeFitting.width - sizeAdjust);
             const availableHeight = capHeight(props, sizeFitting.height - sizeAdjust);
@@ -271,7 +260,7 @@ export function formatSingleLabel<Meta>(
             const lines = wrapLines(value, {
                 maxWidth: availableWidth,
                 maxHeight: availableHeight,
-                lineHeight: props.lineHeight,
+                lineHeight: currentFont.lineHeight,
                 font: currentFont,
                 textWrap: props.wrapping,
                 overflow: allowTruncation ? overflowAtFloor(props) : 'hide',
@@ -300,22 +289,27 @@ function formatOverflowingLabel<Meta>(
     padding: number,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): [LabelFormatting, Meta] {
-    const font = { fontFamily: props.fontFamily, fontStyle: props.fontStyle, fontWeight: props.fontWeight, fontSize };
-    const measurer = cachedTextMeasurer(font);
-    const lineHeight = props.lineHeight ?? measurer.lineHeight();
+    const font = labelFontAt(props, fontSize);
+    const lineHeight = drawnLineHeight(font);
     const sizeFitting = sizeFittingHeight(lineHeight + 2 * padding, true);
     const maxWidth = capWidth(props, sizeFitting.width - 2 * padding);
     let lines =
         maxWidth > 0
-            ? wrapLines(value, { maxWidth, font, textWrap: props.wrapping, overflow: overflowAtFloor(props) })
+            ? wrapLines(value, {
+                  maxWidth,
+                  lineHeight: font.lineHeight,
+                  font,
+                  textWrap: props.wrapping,
+                  overflow: overflowAtFloor(props),
+              })
             : [];
     if (lines.length === 0) lines = value.split('\n');
-    const { width, height } = measurer.measureLines(lines);
-    return [{ width, height, text: lines.join('\n'), fontSize, lineHeight }, sizeFitting.meta];
+    const text = lines.join('\n');
+    const { width, height } = measureLabelText(text, font);
+    return [{ width, height, text, fontSize, lineHeight }, sizeFitting.meta];
 }
 
 function wrapLabel(
-    props: AgChartAutoSizedLabelOptions<any, any>,
     text: string,
     maxWidth: number,
     maxHeight: number,
@@ -323,12 +317,12 @@ function wrapLabel(
     textWrap?: TextWrap,
     overflow?: OverflowStrategy
 ) {
-    const lines = wrapLines(text, { maxWidth, maxHeight, font, textWrap, overflow });
+    const lines = wrapLines(text, { maxWidth, maxHeight, lineHeight: font.lineHeight, font, textWrap, overflow });
 
     if (lines.length === 0) return;
 
     const measurer = cachedTextMeasurer(font);
-    const lineHeight = props.lineHeight ?? measurer.lineHeight();
+    const lineHeight = font.lineHeight ?? measurer.lineHeight();
     const { width } = measurer.measureLines(lines);
 
     return {

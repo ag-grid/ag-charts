@@ -22,8 +22,11 @@ import {
     type TextMeasurer,
     Transformable,
     cachedTextMeasurer,
+    drawnLineHeight,
     fitLabelTextAutoSize,
     fontWithSize,
+    lineHeightAtSize,
+    measureLabelText,
     mergeDefaults,
     resolveCollideWith,
     toPlainText,
@@ -668,7 +671,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         if (!leading && !trailing) {
             // A label may run past its column into the room clear of nodes; neighbouring labels are the engine's job.
-            const lineHeight = this.labelMeasurer(font, font.fontSize).lineHeight();
+            const lineHeight = drawnLineHeight(font);
             let halfHeight = lineHeight;
             for (let attempt = 0; attempt < 3; attempt++) {
                 const room = this.getClearLabelRoom(nodeGraph, node, x, textAlign, y - halfHeight, y + halfHeight);
@@ -676,7 +679,7 @@ export class SankeySeries extends FlowProportionSeries<
                 if (candidate.text === '') break;
                 fitted = candidate;
                 if (!candidate.text.includes('\n')) break;
-                const { height } = this.labelMeasurer(font, candidate.fontSize).measureLines(candidate.text);
+                const { height } = measureLabelText(candidate.text, fontWithSize(font, candidate.fontSize));
                 const wrappedHalfHeight = (height + lineHeight) / 2;
                 if (wrappedHalfHeight <= halfHeight) break;
                 halfHeight = wrappedHalfHeight;
@@ -695,7 +698,7 @@ export class SankeySeries extends FlowProportionSeries<
         const { text, room } = fitted;
         if (text === '') return;
 
-        const { width, height } = this.labelMeasurer(font, fitted.fontSize).measureLines(text);
+        const { width, height } = measureLabelText(text, fontWithSize(font, fitted.fontSize));
         // Even a lone ellipsis can be wider than the room left, and must not be drawn over a node.
         if (width > Math.max(room, 0) + 0.5) return;
 
@@ -771,7 +774,7 @@ export class SankeySeries extends FlowProportionSeries<
         const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
         const room = 2 * Math.min(y, seriesRectHeight - y);
         const firstLine = text.split('\n', 1)[0];
-        return Math.max(room, this.labelMeasurer(font, undefined).measureLines(firstLine).height);
+        return Math.max(room, measureLabelText(firstLine, font).height);
     }
 
     override getLabelData(): PointLabelDatum[] {
@@ -1033,6 +1036,7 @@ export class SankeySeries extends FlowProportionSeries<
             label.fontWeight = fontWeight;
             label.fontSize = fittedFontSize ?? fontSize;
             label.fontFamily = fontFamily;
+            label.lineHeight = lineHeightAtSize(style, fittedFontSize);
             label.textAlign = textAlign;
             label.textBaseline = 'middle';
             const opacity = highlightStyle.opacity ?? 1;

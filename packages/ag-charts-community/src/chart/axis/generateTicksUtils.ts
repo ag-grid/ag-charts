@@ -3,7 +3,6 @@ import {
     BandScale,
     DiscreteTimeScale,
     EllipsisChar,
-    type ITextMeasurer,
     type NormalisedTextOrSegments,
     OrdinalTimeScale,
     type ResolvedTextAlign,
@@ -33,7 +32,7 @@ import {
     isPlainObject,
     isSegmentTruncated,
     isTextTruncated,
-    measureTextSegments,
+    measureLabelText,
     normalizeAngle360FromDegrees,
     toPlainText,
     toTextString,
@@ -238,6 +237,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             font: label,
             maxWidth,
             maxHeight,
+            lineHeight: label.lineHeight,
             overflow: label.truncate ? 'ellipsis' : 'hide',
             textWrap: label.wrapping ?? 'never',
         };
@@ -282,9 +282,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 isPrimary,
                 index: i + rawFirstTickIndex,
                 textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
-                textMetrics: isSegmented
-                    ? measureTextSegments(tickLabel, label)
-                    : measurer.measureLines(toTextString(tickLabel)),
+                textMetrics: measureLabelText(tickLabel, label, measurer),
                 translation: BandScale.is(scale) ? translation : Math.floor(translation),
             });
         }
@@ -495,8 +493,7 @@ export function timeIntervalMaxLabelSize(
     label: ChartAxisLabel,
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],
-    timeInterval: AgTimeInterval | AgTimeIntervalUnit,
-    textMeasurer: ITextMeasurer
+    timeInterval: AgTimeInterval | AgTimeIntervalUnit
 ) {
     const specifier = labelSpecifier(label.format, timeInterval);
 
@@ -517,6 +514,7 @@ export function timeIntervalMaxLabelSize(
             ? undefined
             : intervalRange(hierarchy, new Date(domain[0]), new Date(domain.at(-1)!), { extend: true });
 
+    const measurer = cachedTextMeasurer(label);
     let maxWidth = 0;
     let maxHeight = 0;
     if (labelFormatter != null) {
@@ -535,7 +533,7 @@ export function timeIntervalMaxLabelSize(
         const labelRange = intervalRange(timeInterval, l0, l1, { limit: 50 });
         for (const date of labelRange) {
             const text = labelFormatter(date);
-            const { width, height } = textMeasurer.measureLines(text);
+            const { width, height } = measureLabelText(text, label, measurer);
             maxWidth = Math.max(maxWidth, width + xPadding);
             maxHeight = Math.max(maxHeight, height + yPadding);
         }
@@ -545,9 +543,12 @@ export function timeIntervalMaxLabelSize(
         const padding = expandLabelPadding(primaryLabel);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
+        // The estimate uses the axis label's font, at the parent level's line height.
+        const lineHeight = primaryLabel?.lineHeight ?? label.lineHeight;
+        const primaryFont = lineHeight === label.lineHeight ? label : { ...label, lineHeight };
         for (const date of hierarchyRange) {
             const text = primaryLabelFormatter(date);
-            const { width, height } = textMeasurer.measureLines(text);
+            const { width, height } = measureLabelText(text, primaryFont, measurer);
 
             maxWidth = Math.max(maxWidth, width + xPadding);
             maxHeight = Math.max(maxHeight, height + yPadding);

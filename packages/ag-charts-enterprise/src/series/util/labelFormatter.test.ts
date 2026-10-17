@@ -187,6 +187,26 @@ describe('label formatter', () => {
             expect(String(format.text).split('\n')).toHaveLength(2);
             expect(format.height).toBe(60);
         });
+
+        it('truncates to the lines that fit at the lineHeight', () => {
+            const [format] = formatSingleLabel(
+                'Alpha\nBravo',
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 20,
+                    minimumFontSize: 20,
+                    lineHeight: 40,
+                    maxHeight: 50,
+                    wrapping: 'on-space',
+                    truncate: true,
+                },
+                { padding: 0 },
+                () => ({ width: 1000, height: 1000, meta: undefined })
+            )!;
+            expect(String(format.text).split('\n')).toHaveLength(1);
+            expect(format.height).toBe(40);
+        });
     });
 
     describe('formatStackedLabels', () => {

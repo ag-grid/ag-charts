@@ -1,5 +1,6 @@
 import {
     type FontOptions,
+    type LabelFit,
     type LabelFitDescriptor,
     type LabelFitOptions,
     type LabelStackBlock,
@@ -10,8 +11,13 @@ import type { AgChartLabelCollisionOptions, PaddingOptions } from 'ag-charts-typ
 
 /** The options of a label fitted to the item it sits in: a heatmap cell, treemap tile or sunburst sector. */
 export interface AutoSizedLabel extends LabelFitOptions, FontOptions {
-    readonly lineHeight?: number;
     readonly collision?: AgChartLabelCollisionOptions;
+}
+
+/** `label` in the font its `itemStyler` resolved to, so the fit reserves room for the restyled text. */
+export function styledLabelFont<T extends FontOptions>(label: T, style: FontOptions): T {
+    const { fontSize, fontStyle = label.fontStyle, fontWeight = label.fontWeight, lineHeight } = style;
+    return { ...label, fontSize, fontStyle, fontWeight, fontFamily: style.fontFamily ?? label.fontFamily, lineHeight };
 }
 
 /**
@@ -24,17 +30,14 @@ export function autoSizedLabelFit(
     boxPadding: Required<PaddingOptions>
 ): LabelFitDescriptor {
     const alwaysShow = label.collision?.alwaysShow === true;
-    const { lineHeight } = label;
-    const policy = { ...resolveLabelFit(label, !alwaysShow), lineHeight };
+    const policy: LabelFit = resolveLabelFit(label, !alwaysShow) ?? {};
     return {
         text,
         policy,
         font: label,
         boxPadding,
         boundByRegion: true,
-        fitOverflow: alwaysShow
-            ? { wrapping: label.wrapping, overflowStrategy: policy.overflowStrategy, lineHeight }
-            : undefined,
+        fitOverflow: alwaysShow ? { wrapping: label.wrapping, overflowStrategy: policy.overflowStrategy } : undefined,
     };
 }
 

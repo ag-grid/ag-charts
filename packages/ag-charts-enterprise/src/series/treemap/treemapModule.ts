@@ -13,6 +13,7 @@ import {
     type SeriesModuleDefinition,
     cycledFillThemeTemplate,
     seriesLabelFontWeightOr,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
@@ -54,6 +55,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     fontStyle: undefined,
                     fontWeight: { $ref: 'seriesLabelFontWeight' },
                     fontSize: { $ref: 'seriesLabelFontSize' },
+                    lineHeight: themeLineHeight('seriesLabelLineHeight'),
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     ...LABEL_OVERFLOW_DEFAULTS,
                     collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
@@ -89,6 +91,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     fontStyle: undefined,
                     fontWeight: { $ref: 'seriesLabelFontWeight' },
                     fontSize: { $rem: [1.5, 'seriesLabelFontSize'] },
+                    lineHeight: themeLineHeight('seriesLabelLineHeight'),
                     minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'on-space',
@@ -104,6 +107,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     fontStyle: undefined,
                     fontWeight: seriesLabelFontWeightOr(undefined),
                     fontSize: { $ref: 'seriesLabelFontSize' },
+                    lineHeight: themeLineHeight('seriesLabelLineHeight'),
                     minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'never',

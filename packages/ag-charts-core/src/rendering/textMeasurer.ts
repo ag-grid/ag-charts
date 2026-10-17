@@ -3,7 +3,7 @@ import type { ImageSegment, Padding, PaddingOptions } from 'ag-charts-types';
 import { isArray } from '../data/typeGuards';
 import type { NormalisedContentSegment, NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { LRUCache } from '../structures/lruCache';
-import { toFontString, toTextString } from '../text/textUtil';
+import { lineHeightAtSize, toFontString, toTextString } from '../text/textUtil';
 import {
     type FontOptions,
     type ITextMeasurer,
@@ -236,9 +236,16 @@ function emptyLine(): SegmentsLineMetrics {
     return { segments: [], width: 0, height: 0, ascent: 0, descent: 0, textAscent: 0, textDescent: 0 };
 }
 
-/** Measured size of a label's text or rich-text segments under the given font. */
-export function measureLabelText(text: NormalisedTextOrSegments, font: FontOptions): { width: number; height: number } {
-    return isArray(text) ? measureTextSegments(text, font) : cachedTextMeasurer(font).measureLines(String(text));
+/** Measured size of a label's text or rich-text segments under the given font; `measurer` must be `font`'s. */
+export function measureLabelText(
+    text: NormalisedTextOrSegments,
+    font: FontOptions,
+    measurer?: ITextMeasurer
+): { width: number; height: number } {
+    if (isArray(text)) return measureTextSegments(text, font);
+    const size = (measurer ?? cachedTextMeasurer(font)).measureLines(String(text));
+    const { lineHeight } = font;
+    return lineHeight == null ? size : { width: size.width, height: lineHeight * size.lineMetrics.length };
 }
 
 export function measureTextSegments(
@@ -247,6 +254,10 @@ export function measureTextSegments(
 ): MultilineSegmentsMetricsBox {
     let currentLine = emptyLine();
     const lineMetrics: SegmentsLineMetrics[] = [currentLine];
+    // Largest `lineHeight` declared on each line, indexed alongside `lineMetrics`.
+    const lineHeights: Array<number | undefined> = [];
+    // Tallest natural height among each line's segments without a `lineHeight`.
+    const naturalHeights: Array<number | undefined> = [];
     let currentLineUncommitted = false;
 
     // Tracks the currently-open block row. `startLineIndex` is the index of the marker line in
@@ -314,7 +325,7 @@ export function measureTextSegments(
             fontStyle = defaultFont.fontStyle,
             fontWeight = defaultFont.fontWeight,
             fontFamily = defaultFont.fontFamily,
-            lineHeight,
+            lineHeight = lineHeightAtSize(defaultFont, fontSize),
             // Consumed by the auto-size search before measuring; a measured segment is spread onto a scene
             // node, which would take it as a property of its own.
             minimumFontSize: _minimumFontSize,
@@ -336,13 +347,13 @@ export function measureTextSegments(
                 currentLine.ascent = Math.max(currentLine.ascent, textMetrics.ascent);
                 currentLine.descent = Math.max(currentLine.descent, textMetrics.descent);
                 currentLine.height = Math.max(currentLine.height, currentLine.ascent + currentLine.descent);
-                if (typeof lineHeight === 'number' && lineHeight > currentLine.height) {
-                    // Extra space is distributed to descent so the baseline-anchored layout in the
-                    // renderer (alphabetic) keeps following lines spaced by the override.
-                    currentLine.descent = lineHeight - currentLine.ascent;
-                    currentLine.height = lineHeight;
+                const index = lineMetrics.length - 1;
+                if (lineHeight == null) {
+                    naturalHeights[index] = Math.max(naturalHeights[index] ?? 0, textMetrics.height);
+                } else {
+                    lineHeights[index] = Math.max(lineHeights[index] ?? 0, lineHeight);
                 }
-                currentLine.segments.push({ ...font, ...rest, text: textLine, textMetrics });
+                currentLine.segments.push({ ...font, ...rest, lineHeight, text: textLine, textMetrics });
                 currentLineUncommitted = false;
             }
         }
@@ -352,7 +363,14 @@ export function measureTextSegments(
 
     // Grow each line to contain its inline images: the text-only ascent/descent are captured first, then
     // each image box is placed per its verticalAlign and the line's ascent/descent expanded to fit.
-    for (const line of lineMetrics) {
+    for (const [index, line] of lineMetrics.entries()) {
+        const override = lineHeights[index];
+        if (override != null) {
+            const lineHeight = Math.max(override, naturalHeights[index] ?? 0);
+            // Extra space goes to descent so the baseline-anchored renderer spaces following lines by the override.
+            line.descent = lineHeight - line.ascent;
+            line.height = lineHeight;
+        }
         line.textAscent = line.ascent;
         line.textDescent = line.descent;
         for (const seg of line.segments) {

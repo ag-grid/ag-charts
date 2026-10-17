@@ -2452,6 +2452,44 @@ describe('placeLabels per-candidate fit', () => {
             expect(placed.y).toBe(140);
         });
 
+        it.each([undefined, 30])(
+            'keeps one truncated line in a container shorter than it (lineHeight %s)',
+            (lineHeight) => {
+                const font = { ...FONT, lineHeight };
+                const container = { width: 34, height: 10 };
+                const placed = placeLabels(
+                    new Map([
+                        [
+                            's',
+                            seriesLabels([
+                                buildBarPositionedLabelDatum(
+                                    TEXT,
+                                    50,
+                                    20,
+                                    [
+                                        {
+                                            box: { x: 25, y: 45, width: 50, height: 10 },
+                                            fitTo: { container, anchor, padding },
+                                        },
+                                    ],
+                                    target(),
+                                    { x: 33, y: 45, width: 34, height: 10 },
+                                    true,
+                                    {},
+                                    0,
+                                    false,
+                                    { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font }
+                                ),
+                            ]),
+                        ],
+                    ]),
+                    bounds,
+                    0
+                ).get('s')![0];
+                expect(placed.text).toBe('WW…');
+            }
+        );
+
         describe('nudging along the bar', () => {
             const region = { x: 20, y: 20, width: 60, height: 60 };
             const placeNudged = (obstacle: LabelObstacle) =>

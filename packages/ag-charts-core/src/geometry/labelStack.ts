@@ -2,10 +2,11 @@ import type { PaddingOptions } from 'ag-charts-types';
 
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
-import { cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
+import { measureLabelText } from '../rendering/textMeasurer';
 import {
     type LabelFit,
     type RegionAlign,
+    drawnLineHeight,
     findLargestFittingStep,
     fitLabelText,
     fontWithSize,
@@ -183,8 +184,8 @@ function fitStackAtSizes(
         let estimate = spacing * (included.length - 1);
         for (let i = 0; i < included.length; i++) {
             const { fit } = blocks[included[i]];
-            const lineHeight =
-                fit.policy.lineHeight ?? cachedTextMeasurer(fontWithSize(fit.font, sizes[i])).lineHeight();
+            const font = fontWithSize(fit.font, sizes[i]);
+            const lineHeight = drawnLineHeight(font);
             estimate += lineHeight + boxHeight(fit.boxPadding);
         }
         maxWidth = Math.min(maxWidth, shapeWidthAt(shape, shapeAlign, estimate));
@@ -232,7 +233,6 @@ function fitBlocksToWidth(
             maxHeight: Math.max(0, glyphHeight),
             wrapping: policy.wrapping,
             overflowStrategy,
-            lineHeight: policy.lineHeight,
         };
         let fittedText = glyphWidth <= 0 || glyphHeight <= 0 ? '' : fitLabelText(text, blockFit, font);
         // A bare ellipsis reads as an artefact rather than a label.
