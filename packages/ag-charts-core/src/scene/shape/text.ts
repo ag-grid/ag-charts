@@ -332,9 +332,11 @@ export class Text<D = unknown> extends Shape<D> {
             // Segments are laid out from a top-left origin, so the anchor only coincides with the
             // box top under a `'top'` baseline; every other baseline moves the block against it.
             bbox.y = this.y - Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
-            // Child glyph boxes don't carry the rows' line heights.
-            if (this.lineHeight != null || lineMetrics.some((line) => Text.hasSegmentLineHeight(line)))
+            // Child glyph boxes don't carry the rows' line heights, which centre on a middle anchor.
+            if (this.lineHeight != null || lineMetrics.some((line) => Text.hasSegmentLineHeight(line))) {
                 bbox.height = height;
+                if (this.textBaseline === 'middle') bbox.y = this.y - height / 2;
+            }
             if (this.boxing != null) bbox.grow(this.boxPadding);
             return bbox;
         }

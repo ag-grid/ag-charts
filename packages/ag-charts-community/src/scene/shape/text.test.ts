@@ -1017,12 +1017,17 @@ describe('Text', () => {
         describe('rich text', () => {
             const mockScene = setUpMockScene(canvasCtx);
 
-            it.each(['A', 'A\nB'])('reports the measured height of %j in its scene bounds', (text) => {
+            it.each([
+                ['A', 'top'],
+                ['A\nB', 'top'],
+                ['A', 'middle'],
+                ['A\nB', 'middle'],
+            ] as const)('reports the measured bounds of %j at a %s baseline', (text, textBaseline) => {
                 const font = { fontSize: 12, fontFamily: 'Verdana', lineHeight: 36 };
-                const node = Object.assign(new Text(), font, { text: [{ text }], textBaseline: 'top' as const });
+                const node = Object.assign(new Text(), font, { text: [{ text }], textBaseline });
                 node.setScene(mockScene);
-                const measured = Text.measureBBox([{ text }], 0, 0, { font, textBaseline: 'top' });
-                expect(node.getBBox().height).toBe(measured.height);
+                const { y, height } = Text.measureBBox([{ text }], 0, 0, { font, textBaseline });
+                expect(node.getBBox()).toMatchObject({ y, height });
             });
         });
     });
