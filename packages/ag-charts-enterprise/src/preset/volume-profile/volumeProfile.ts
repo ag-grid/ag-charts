@@ -98,7 +98,7 @@ export function createVolumeProfileSeries(
                 enabled: true,
                 renderer: (params) => {
                     return {
-                        symbol: { marker: { enabled: false } },
+                        symbol: { marker: { fill: getTheme().palette.up?.fill } },
                         data: [priceRangeRow(params.datum), volumeRow(params)],
                     };
                 },
@@ -124,7 +124,7 @@ export function createVolumeProfileSeries(
                 enabled: true,
                 renderer: (params) => {
                     return {
-                        symbol: { marker: { enabled: false } },
+                        symbol: { marker: { fill: getTheme().palette.down?.fill } },
                         data: [volumeRow(params), { label: 'Total', value: formatVolume(params.datum.total) }],
                     };
                 },
@@ -173,11 +173,20 @@ export function createSelectionChartOptions(selection: AgVolumeProfileSelectionO
 const COMPACT_NUMBER = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
 export const formatCompact = ({ value }: { value: number }) => COMPACT_NUMBER.format(value);
 
+/** As `formatCompact`, but always with one decimal place so the totals line up, such as `1.0K` or `12.0M`. */
+const FIXED_COMPACT_NUMBER = new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+});
+const formatFixedCompact = ({ value }: { value: number }) => FIXED_COMPACT_NUMBER.format(value);
+
 export const volumeProfileTotalSegmentOptionsDef: OptionsDefs<AgVolumeProfileTotalSegmentOptions> = {
     enabled: boolean,
     fill: color,
     width: positiveNumber,
     minWidth: positiveNumber,
+    gap: positiveNumber,
     label: {
         enabled: boolean,
         ...fontOptionsDef,
@@ -210,7 +219,7 @@ export function createTotalSegmentAxisOptions(
 ) {
     if (totalSegment?.enabled !== true) return undefined;
 
-    const { fill, width, minWidth, label } = totalSegment;
+    const { fill, width, minWidth, gap, label } = totalSegment;
     const { formatter, ...labelOptions } = label ?? {};
 
     return {
@@ -219,6 +228,7 @@ export function createTotalSegmentAxisOptions(
             position,
             width,
             minWidth,
+            gap,
             fill,
             categoryKey: 'price',
             valueKey: 'total',
@@ -227,7 +237,7 @@ export function createTotalSegmentAxisOptions(
                 formatter: formatter
                     ? (params: { category: unknown; value: number; datum: any }) =>
                           formatter({ value: params.value, price: params.category, datum: params.datum })
-                    : formatCompact,
+                    : formatFixedCompact,
             },
         },
     };

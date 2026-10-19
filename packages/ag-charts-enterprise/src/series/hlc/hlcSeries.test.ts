@@ -642,13 +642,12 @@ describe('HlcSeries', () => {
         });
     });
 
+    // Bespoke: the endpoint tests reuse the prepared options in `update`, so they create the chart bare.
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
 
         it('reveals the bands and strokes by a left-to-right swipe with markers scaling in', async () => {
-            const options = prepareEnterpriseTestOptions(withSeries({ marker: { enabled: true } }));
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(withSeries({ marker: { enabled: true } })));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -685,6 +684,7 @@ describe('HlcSeries', () => {
         });
     });
 
+    // Bespoke: the endpoint test reuses the prepared options in `update`, so it creates the chart bare.
     describe('data update animation', () => {
         const frames = spyOnAnimationFrames();
         const appended = (close: number): AgChartOptions =>
@@ -694,8 +694,7 @@ describe('HlcSeries', () => {
             });
 
         it('keeps both bands between the high and low lines while a datum with an out-of-range close arrives', async () => {
-            const options = prepareEnterpriseTestOptions(HLC_OPTIONS);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(HLC_OPTIONS);
             const { trajectory } = await frames.captureSnap(chart, createSceneGeometrySampler(chart), () =>
                 chart.update(appended(130))
             );

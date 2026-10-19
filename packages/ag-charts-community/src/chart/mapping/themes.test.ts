@@ -127,6 +127,8 @@ describe('themes.ts', () => {
             ],
         };
 
+        // Bespoke: each chart sets `theme` after preparation (some invalid on purpose) and asserts the warnings it raises,
+        // which `createChart` would hide by re-preparing the theme.
         it('should show 1 warning for invalid theme type', async () => {
             const chart = AgCharts.create({
                 ...opts,

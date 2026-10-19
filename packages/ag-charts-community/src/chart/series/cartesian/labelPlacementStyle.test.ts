@@ -2,16 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance } from 'ag-charts-types';
 
-import { AgCharts } from '../../../api/agCharts';
-import {
-    compareImageSnapshot,
-    createChart,
-    deproxy,
-    prepareTestOptions,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from '../../test/utils';
+import { compareImageSnapshot, createChart, deproxy, setupMockCanvas, setupMockConsole } from '../../test/utils';
 
 // Bar represents the authored (`inside-*`/`outside-*`) placement family, bubble the resolved
 // (`inside` vs directional) marker family, so between them they cover both ways placement is decided.
@@ -167,9 +158,7 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
                     ...barOptions({ placement }),
                     theme: { overrides: { bar: { series: { label: { color: 'rgb(190, 55, 55)' } } } } },
                 };
-                prepareTestOptions(options as any);
-                chart = AgCharts.create(options as any);
-                await waitForChartStability(chart);
+                chart = await createChart(options as any);
                 expect(firstVisibleLabelStyle().color).toBe('rgb(190, 55, 55)');
             }
         );

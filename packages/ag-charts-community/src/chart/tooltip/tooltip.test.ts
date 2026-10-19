@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { type AgChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import type { AgChartProxy, Chart } from '../test/utils';
 import {
     compareImageSnapshot,
@@ -115,7 +114,7 @@ describe('Tooltip', () => {
     describe('Realtime', () => {
         it('should update tooltip correctly', async () => {
             // The tooltip should update when the mouse stays in place but the data is updated.
-            const opts: AgChartOptions = prepareTestOptions({});
+            const opts: AgChartOptions = {};
             opts.data = [
                 { step: 0, voltage: 1.362460821419385 },
                 { step: 1, voltage: 1.3072694395877953 },
@@ -130,7 +129,8 @@ describe('Tooltip', () => {
             ];
             opts.series = [{ type: 'line', xKey: 'step', yKey: 'voltage' }];
 
-            chart = AgCharts.create(opts) as AgChartProxy;
+            chart = (await createChart(opts)) as AgChartProxy;
+            prepareTestOptions(opts);
             await waitForChartStability(chart);
 
             const nextValue = async (step: number, voltage: number) => {
@@ -524,7 +524,6 @@ describe('Tooltip', () => {
                 },
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
             });
-            await waitForChartStability(chart);
 
             // Verify formatter was called with actual null value (not string "null")
             expect(formatterMock).toHaveBeenCalledWith(expect.objectContaining({ value: null }));
@@ -694,7 +693,6 @@ describe('Tooltip', () => {
             };
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             // Manually show tooltip
             chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 }, [
@@ -729,7 +727,6 @@ describe('Tooltip', () => {
             };
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             // Only fake setTimeout/clearTimeout: faking requestAnimationFrame breaks jsdom's rAF permanently, as
             // vi.useRealTimers() cannot restore it. The tooltip delay uses setTimeout.
@@ -776,7 +773,6 @@ describe('Tooltip', () => {
             };
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
@@ -829,7 +825,6 @@ describe('Tooltip', () => {
             };
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
@@ -883,7 +878,6 @@ describe('Tooltip', () => {
             };
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 

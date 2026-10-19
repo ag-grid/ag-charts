@@ -23,8 +23,9 @@ import {
     waitForChartStabilityUntil,
 } from 'ag-charts-community-test';
 import { isDate } from 'ag-charts-core';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 // Crosshair and exact-range tooltip are disabled so highlight styling — which races with the
 // clickAction and data-update handling — cannot vary between runs.
@@ -133,15 +134,13 @@ describe('DataSource', () => {
             dataSource: { ...baseOptions.dataSource, ...(dataSourceOptions ?? {}) } as AgChartOptions['dataSource'],
         };
 
-        prepareEnterpriseTestOptions(options);
-        cx = options.width! / 2;
-        cy = options.height! / 2;
+        cx = CANVAS_WIDTH / 2;
+        cy = CANVAS_HEIGHT / 2;
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
 
         // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
         // event is triggered.
-        await waitForChartStability(chart);
         await clickAction(cx, cy)(chart);
     }
 
@@ -942,6 +941,7 @@ describe('DataSource', () => {
                 },
             };
             prepareEnterpriseTestOptions(pieOptions);
+            // Bespoke: waits for the loaded data rather than `waitForChartStability`.
             chart = AgCharts.create(pieOptions);
             await waitForChartStabilityUntil(chart, () => chart.chart.data.data.length === 2, 'the initial load');
 

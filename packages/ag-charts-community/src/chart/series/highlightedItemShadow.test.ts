@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Group, Rect, Sector, Shape } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import { Marker } from '../marker/marker';
 import { HIGHLIGHT_SHADOW, SERIES_SHADOW, legendHighlight } from '../test/shadowFixtures';
 import {
@@ -391,8 +390,8 @@ describe('highlightedItem.shadow', () => {
                 series: [testCase.series(SERIES_SHADOW, {})],
             } as AgChartOptions;
             // `options` is returned and reused for a later update, so it keeps the prepared test theme and size.
-            prepareTestOptions(options);
             const proxy = await createChart(options);
+            prepareTestOptions(options);
             chart = deproxy(proxy);
 
             const [series] = chart.series;
@@ -492,9 +491,7 @@ describe('highlightedItem.shadow', () => {
                     },
                 ],
             };
-            prepareTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createChart(options));
 
             const [series] = chart.series;
             expectWarningMessages([

@@ -8,7 +8,6 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     GALLERY_EXAMPLES,
@@ -28,7 +27,7 @@ import {
 import { Transformable } from 'ag-charts-core';
 
 import { describeFlowProportionShadow, flowProportionShadowOptions } from '../../test/flowProportionShadowTests';
-import { SMALL_SHADOW, createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
+import { SMALL_SHADOW, createEnterpriseChart } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
 describe('ChordSeries', () => {
@@ -58,9 +57,7 @@ describe('ChordSeries', () => {
             ],
             series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
         };
-        prepareEnterpriseTestOptions(options);
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
     });
 
     describe('Series', () => {
@@ -77,9 +74,8 @@ describe('ChordSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -103,9 +99,8 @@ describe('ChordSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -131,9 +126,8 @@ describe('ChordSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -153,10 +147,8 @@ describe('ChordSeries', () => {
                 link: SMALL_SHADOW,
                 node: SMALL_SHADOW,
             });
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const node = chart.series[0].contextNodeData.nodeData.find(
                 (n: any) => n.type === FlowProportionDatumType.Node
@@ -175,18 +167,15 @@ describe('ChordSeries', () => {
 
         it('should render a complex chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render highlight of node', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const node = chart.series[0].contextNodeData.nodeData.find(
                 (n: any) => n.type === FlowProportionDatumType.Node
@@ -199,10 +188,8 @@ describe('ChordSeries', () => {
 
         it('should render highlight of link', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const node = chart.series[0].contextNodeData.nodeData.find(
                 (n: any) => n.type === FlowProportionDatumType.Link
@@ -230,10 +217,8 @@ describe('ChordSeries', () => {
                 data: DATA,
                 series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expect(getNodeItemIds(chart)).toEqual(['A', 'B', 'C']);
         });
@@ -244,10 +229,8 @@ describe('ChordSeries', () => {
                 data: DATA,
                 series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size', getItemId }],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expect(getNodeItemIds(chart)).toEqual(['node:A', 'node:B', 'node:C']);
             expect(getItemId).toHaveBeenCalledWith(expect.objectContaining({ nodeName: 'A' }));
@@ -260,10 +243,8 @@ describe('ChordSeries', () => {
                 data: DATA,
                 series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size', context, getItemId }],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expect(getNodeItemIds(chart)).toEqual(['acme:A', 'acme:B', 'acme:C']);
         });
@@ -486,9 +467,8 @@ describe('ChordSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -519,9 +499,8 @@ describe('ChordSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -551,9 +530,8 @@ describe('ChordSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -584,15 +562,14 @@ describe('ChordSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
 
     test('AG-8290 label boxing', async () => {
-        const options = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: [
                 { from: 'Asia', to: 'Europe', size: 20 },
                 { from: 'Asia', to: 'Americas', size: 19 },
@@ -628,9 +605,9 @@ describe('ChordSeries', () => {
                     },
                 },
             ],
-        });
+        };
 
-        chart = deproxy(AgCharts.create(options));
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -661,10 +638,8 @@ describe('ChordSeries', () => {
                 },
             ],
         } as AgChartOptions;
-        prepareEnterpriseTestOptions(options);
 
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(options));
 
         const linkNode = chart.series[0].contextNodeData.nodeData.find(
             (n: any) => n.type === FlowProportionDatumType.Link
@@ -694,8 +669,7 @@ describe('ChordSeries', () => {
                 ],
                 series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             const sampler = createSceneGeometrySampler(chart);
             const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
                 chart.updateDelta({

@@ -1,7 +1,7 @@
 import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     deproxy,
     legendHighlight,
@@ -12,13 +12,7 @@ import {
 import { RadialColumnShape, Rect, Sector } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
-import {
-    HIERARCHY_SHADOW_DATA,
-    HIGHLIGHT_SHADOW,
-    SHADOW,
-    collectShapes,
-    prepareEnterpriseTestOptions,
-} from '../test/utils';
+import { HIERARCHY_SHADOW_DATA, HIGHLIGHT_SHADOW, SHADOW, collectShapes, createEnterpriseChart } from '../test/utils';
 import { BoxPlotNode } from './box-plot/boxPlotNode';
 import { CandlestickNode } from './candlestick/candlestickNode';
 import { ChordLink } from './chord/chordLink';
@@ -442,9 +436,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
             ...testCase.chartOptions,
             series: [testCase.series(shadow, highlight)],
         } as AgChartOptions;
-        prepareEnterpriseTestOptions(options);
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(options));
 
         const [series] = chart.series;
         const { inPlace: inPlaceBefore } = layersOf(testCase, series);
@@ -672,9 +664,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
                 ...testCase.chartOptions,
                 series: [testCase.series(shadow, {})],
             } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             return canvasCtx
                 .getActiveOffscreenCanvasInstances()
                 .filter((canvas) => !before.has(canvas) && canvas.width > 0).length;
@@ -745,9 +735,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
                     shadow: SHADOW,
                 })),
             } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const [hoveredSeries, otherSeries] = chart.series;
             chart.ctx.highlightManager.updateHighlight(chart.id, hoveredSeries.getNodeData()[0]);

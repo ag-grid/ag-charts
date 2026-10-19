@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
 
-import { type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import {
     compareImageSnapshot,
     scrollAction,
@@ -8,8 +8,9 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 
 describe('BarSeries', () => {
     setupMockConsole();
@@ -64,11 +65,10 @@ describe('BarSeries', () => {
                 },
             };
 
-            chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-            const cx = options.width! / 2;
-            const cy = options.height! / 2;
+            chart = await createEnterpriseChart(options);
+            const cx = CANVAS_WIDTH / 2;
+            const cy = CANVAS_HEIGHT / 2;
 
-            await waitForChartStability(chart);
             await scrollAction(cx, cy, -1.25)(chart);
             await waitForChartStability(chart);
 

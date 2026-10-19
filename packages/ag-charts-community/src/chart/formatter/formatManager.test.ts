@@ -2,14 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgPolarChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
+    createChart,
     deproxy,
     expectWarningsCalls,
     hoverAction,
-    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -54,9 +53,7 @@ describe('Format Manager', () => {
             formatter: (params) => params.source,
         };
 
-        chart = AgCharts.create(prepareTestOptions(options));
-
-        await waitForChartStability(chart);
+        chart = await createChart(options);
 
         await compare();
     });
@@ -86,9 +83,7 @@ describe('Format Manager', () => {
             },
         };
 
-        chart = AgCharts.create(prepareTestOptions(options));
-
-        await waitForChartStability(chart);
+        chart = await createChart(options);
 
         expect(xFormatter.mock.calls.at(0)?.at(0)).toEqual({
             boundSeries: [
@@ -171,9 +166,7 @@ describe('Format Manager', () => {
             formatter: (params) => `${String(params.value)} (${params.source})`,
         };
 
-        chart = AgCharts.create(prepareTestOptions(options));
-
-        await waitForChartStability(chart);
+        chart = await createChart(options);
 
         await compare();
     });
@@ -207,9 +200,7 @@ describe('Format Manager', () => {
             },
         };
 
-        chart = AgCharts.create(prepareTestOptions(options));
-
-        await waitForChartStability(chart);
+        chart = await createChart(options);
 
         await compare();
     });
@@ -243,8 +234,7 @@ describe('Format Manager', () => {
             },
         };
 
-        chart = AgCharts.create(prepareTestOptions(options));
-        await waitForChartStability(chart);
+        chart = await createChart(options);
 
         await hoverAction(250, 150)(chart);
         await waitForChartStability(chart);
@@ -275,8 +265,7 @@ describe('Format Manager', () => {
             },
         };
 
-        chart = AgCharts.create(prepareTestOptions(options));
-        await waitForChartStability(chart);
+        chart = await createChart(options);
 
         // Verify the formatter receives the actual object, not "[object Object]"
         const firstCall = xFormatter.mock.calls.at(0)?.at(0);
@@ -340,8 +329,7 @@ describe('Format Manager', () => {
                         formatter: { x: xFormatter },
                     };
 
-                    chart = AgCharts.create(prepareTestOptions(options));
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
 
                     if (expectWarning) {
                         const valueType = nullValue === null ? 'object' : 'undefined';
@@ -387,8 +375,7 @@ describe('Format Manager', () => {
                     },
                 };
 
-                chart = AgCharts.create(prepareTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 expect(axisFormatter).toHaveBeenCalledWith(expect.objectContaining({ value: null }));
             });
@@ -406,8 +393,7 @@ describe('Format Manager', () => {
                     formatter: { x: xFormatter },
                 };
 
-                chart = AgCharts.create(prepareTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 const callWithDomain = xFormatter.mock.calls.find(
                     (c) => Array.isArray(c[0]?.domain) && c[0].domain.length === 3
@@ -436,8 +422,7 @@ describe('Format Manager', () => {
                         formatter: { x: xFormatter },
                     };
 
-                    chart = AgCharts.create(prepareTestOptions(options));
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
 
                     if (expectWarning) {
                         const valueType = nullValue === null ? 'object' : 'undefined';
@@ -477,8 +462,7 @@ describe('Format Manager', () => {
                     formatter: { x: xFormatter },
                 };
 
-                chart = AgCharts.create(prepareTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 const callWithDomain = xFormatter.mock.calls.find(
                     (c) => Array.isArray(c[0]?.domain) && c[0].domain.length === 3
@@ -504,8 +488,7 @@ describe('Format Manager', () => {
                     formatter: { x: xFormatter },
                 };
 
-                chart = AgCharts.create(prepareTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 await hoverAction(200, 200)(chart);
                 await waitForChartStability(chart);
@@ -532,8 +515,7 @@ describe('Format Manager', () => {
                     formatter: { x: xFormatter },
                 };
 
-                chart = AgCharts.create(prepareTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 await hoverAction(200, 200)(chart);
                 await waitForChartStability(chart);
@@ -565,8 +547,7 @@ describe('Format Manager', () => {
                     ],
                 };
 
-                chart = AgCharts.create(prepareTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 expect(labelFormatter).toHaveBeenCalledTimes(2);
                 const formatterDatums = labelFormatter.mock.calls.map((c: any[]) => c[0].datum?.product);
@@ -595,8 +576,7 @@ describe('Format Manager', () => {
                         series: [{ type, legendItemKey, angleKey } as any],
                     };
 
-                    chart = AgCharts.create(prepareTestOptions(options));
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
 
                     // Pie/donut emit warnings for both legendItemKey and legendItemValue
                     expectWarningsCalls().toEqual([
@@ -620,8 +600,7 @@ describe('Format Manager', () => {
                         series: [{ type, legendItemKey, angleKey, allowNullKeys: true } as any],
                     };
 
-                    chart = AgCharts.create(prepareTestOptions(options));
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
 
                     expectWarningsCalls().toEqual([]);
                 });
@@ -637,8 +616,7 @@ describe('Format Manager', () => {
                         series: [{ type, legendItemKey, angleKey } as any],
                     };
 
-                    chart = AgCharts.create(prepareTestOptions(options));
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
 
                     // Pie/donut emit warnings for both legendItemKey and legendItemValue
                     expectWarningsCalls().toEqual([
@@ -662,8 +640,7 @@ describe('Format Manager', () => {
                         series: [{ type, legendItemKey, angleKey, allowNullKeys: true } as any],
                     };
 
-                    chart = AgCharts.create(prepareTestOptions(options));
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
 
                     expectWarningsCalls().toEqual([]);
                 });

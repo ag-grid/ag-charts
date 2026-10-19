@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import { mixinDerivedCases } from '../test/axisTestCases';
 import * as axesExamples from '../test/examples-axes';
@@ -11,7 +10,6 @@ import {
     compareImageSnapshot,
     createChart,
     deproxy,
-    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
 } from '../test/utils';
@@ -134,8 +132,7 @@ describe('Log Axis interval property handling', () => {
             },
         };
 
-        prepareTestOptions(options);
-        const apiChart = AgCharts.create(options);
+        const apiChart = await createChart(options);
         chart = deproxy(apiChart);
 
         // Update to log axis without interval property

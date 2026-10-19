@@ -1,16 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { type AgCartesianChartOptions, type AgChartInstance, AgCharts } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     deproxy,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 
 describe('BarSeries', () => {
     setupMockConsole();
@@ -51,11 +50,7 @@ describe('BarSeries', () => {
         };
 
         beforeEach(async () => {
-            chart = AgCharts.create(
-                prepareEnterpriseTestOptions({ ...options, animation: { enabled: true, duration: 10_000 } })
-            );
-
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart({ ...options, animation: { enabled: true, duration: 10_000 } });
         });
 
         it('should initially animate', () => {
@@ -171,8 +166,7 @@ describe('BarSeries', () => {
                     },
                     scrollbar: { enabled: true },
                 };
-                prepareEnterpriseTestOptions(options);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await compare();
             });
         });
@@ -210,8 +204,7 @@ describe('BarSeries', () => {
                     },
                     scrollbar: { enabled: true },
                 };
-                prepareEnterpriseTestOptions(options);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await compare();
             });
         });
@@ -265,8 +258,7 @@ describe('BarSeries', () => {
                     },
                 },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });

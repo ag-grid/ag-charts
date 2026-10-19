@@ -471,7 +471,7 @@ describe('Time Axis Examples', () => {
 
     it('should handle a single value', async () => {
         const options = { ...BASIC_TIME_AXIS_EXAMPLE, data: BASIC_TIME_AXIS_EXAMPLE.data!.slice(0, 1) };
-        chart = deproxy(await createChart(options));
+        chart = await createChart(options);
         await compare();
     });
 
@@ -500,7 +500,7 @@ describe('Time Axis Examples', () => {
                 y: { type: 'number', position: 'left' },
             },
         };
-        chart = deproxy(await createChart(options));
+        chart = await createChart(options);
         await compare();
     });
 
@@ -536,7 +536,7 @@ describe('Time Axis Examples', () => {
                 y: { type: 'number', position: 'left' },
             },
         };
-        chart = deproxy(await createChart(options));
+        chart = await createChart(options);
         await compare();
     });
 
@@ -658,7 +658,7 @@ describe('Time Axis Examples', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            chart = deproxy(await createChart(options));
+            chart = await createChart(options);
             await compare();
         });
     });

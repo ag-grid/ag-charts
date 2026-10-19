@@ -486,6 +486,8 @@ const invalidValueScenarios: Scenario[] = [
     },
 ];
 
+// Bespoke: the bare `AgCharts.create` calls in this suite set the width or height after preparation, which `createChart`
+// would overwrite with the default, or skip preparation to take the auto-size path.
 describe('CartesianAxis', () => {
     setupMockConsole();
     const compare = async (snapshotId: string) => {
@@ -989,9 +991,7 @@ describe('CartesianAxis', () => {
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 };
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 expectWarningsCalls().toHaveLength(0);
             });
 
@@ -1005,9 +1005,7 @@ describe('CartesianAxis', () => {
                     },
                     series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
                 };
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 const chartInstance = deproxy(chart as any) as any;
                 const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
@@ -1069,8 +1067,7 @@ describe('CartesianAxis', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare('cartesian-axis-rotated-category-label-wrap');
         });
     });
@@ -1181,8 +1178,7 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare('cartesian-axis-title-max-width');
         });
 
@@ -1205,8 +1201,7 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare('cartesian-axis-title-max-height');
         });
 
@@ -1276,8 +1271,7 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare('cartesian-axis-title-wrap-hyphenate');
         });
 
@@ -1300,8 +1294,7 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare('cartesian-axis-title-wrap-on-space');
         });
     });
@@ -1497,9 +1490,7 @@ describe('CartesianAxis', () => {
                 seriesArea: { padding: { right: 600 } },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const chartInstance = deproxy(chart as any) as any;
             const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
@@ -1531,7 +1522,6 @@ describe('CartesianAxis', () => {
             await waitForChartStability(chart);
         };
 
-        // Bespoke: skips `prepareTestOptions` so the chart has no explicit width/height and takes the auto-size path.
         const createAutoSizedChart = () => {
             const options: AgCartesianChartOptions = {
                 container,
@@ -1633,9 +1623,7 @@ describe('CartesianAxis', () => {
 
         it('removes the label nodes when labels are disabled at runtime', async () => {
             const options = baseOptions(true);
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expect(bottomAxisLabelNodes().length).toBeGreaterThan(0);
 
@@ -1649,9 +1637,7 @@ describe('CartesianAxis', () => {
 
         it('renders no label nodes when labels are disabled from the initial options', async () => {
             const options = baseOptions(false);
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expect(bottomAxisLabelNodes()).toHaveLength(0);
         });
@@ -1828,9 +1814,7 @@ describe('CartesianAxis', () => {
     describe('axis label textAlign', () => {
         it('computes "left" as the natural alignment for an unconfigured right-positioned axis', async () => {
             const options = rightAxisOptions();
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const nodes = getRightAxisLabelNodes(chart);
             expect(nodes.map((n) => n.datum.text).sort((a: string, b: string) => a.localeCompare(b))).toEqual([
@@ -1845,9 +1829,7 @@ describe('CartesianAxis', () => {
 
         it('AC1: "right" textAlign flushes label right edges while left edges keep differing', async () => {
             const options = rightAxisOptions({ textAlign: 'right' });
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const nodes = getRightAxisLabelNodes(chart);
             expect(nodes.map((n) => n.datum.text).sort((a: string, b: string) => a.localeCompare(b))).toEqual([
@@ -1868,9 +1850,7 @@ describe('CartesianAxis', () => {
 
         it('AC1: "right" textAlign keeps every label clear of the plot area', async () => {
             const options = rightAxisOptions({ textAlign: 'right' });
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const nodes = getRightAxisLabelNodes(chart);
             const seriesRect = getSeriesRect(chart);
@@ -1884,18 +1864,14 @@ describe('CartesianAxis', () => {
 
         it("AC2: textAlign matching the axis's natural alignment produces identical anchors", async () => {
             const naturalOptions = rightAxisOptions();
-            prepareTestOptions(naturalOptions);
-            chart = AgCharts.create(naturalOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(naturalOptions);
             const naturalAnchors = captureAnchorsByText(getRightAxisLabelNodes(chart));
 
             chart.destroy();
             (chart as unknown) = undefined;
 
             const explicitOptions = rightAxisOptions({ textAlign: 'left' });
-            prepareTestOptions(explicitOptions);
-            chart = AgCharts.create(explicitOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(explicitOptions);
             const explicitNodes = getRightAxisLabelNodes(chart);
 
             expect(explicitNodes.length).toBe(naturalAnchors.size);
@@ -1909,9 +1885,7 @@ describe('CartesianAxis', () => {
 
         it('TC1: a rotated label aligns within its own bounding box, clear of the series area', async () => {
             const options = rightAxisOptions({ rotation: 45, textAlign: 'right' });
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const nodes = getRightAxisLabelNodes(chart);
             expect(nodes.length).toBe(3);
@@ -2114,9 +2088,7 @@ describe('CartesianAxis', () => {
                 });
 
                 const naturalOptions = continuousOptions();
-                prepareTestOptions(naturalOptions);
-                chart = AgCharts.create(naturalOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(naturalOptions);
                 const tickAnchors = captureAnchorsByText(getAxisLabelNodes(chart, 'bottom'));
                 expect(tickAnchors.size).toBeGreaterThan(1);
 
@@ -2124,9 +2096,7 @@ describe('CartesianAxis', () => {
                 (chart as unknown) = undefined;
 
                 const alignedOptions = continuousOptions({ textAlign: 'right' });
-                prepareTestOptions(alignedOptions);
-                chart = AgCharts.create(alignedOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(alignedOptions);
 
                 for (const node of getAxisLabelNodes(chart, 'bottom')) {
                     const natural = tickAnchors.get(node.datum.text);
@@ -2182,9 +2152,7 @@ describe('CartesianAxis', () => {
                 },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const nodes = getAxisLabelNodes(chart, 'top');
             expect(nodes.length).toBe(3);
@@ -2215,9 +2183,7 @@ describe('CartesianAxis', () => {
                 right: rightAxisOptions,
             }[position];
             const options = factory();
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const nodes = getAxisLabelNodes(chart, position);
             expect(nodes.length).toBeGreaterThan(0);
@@ -2231,9 +2197,7 @@ describe('CartesianAxis', () => {
 
             it('flushes glyph edges while the opposite edges keep differing', async () => {
                 const naturalOptions = wrappedBottomAxisOptions();
-                prepareTestOptions(naturalOptions);
-                chart = AgCharts.create(naturalOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(naturalOptions);
                 const naturalHeights = measuredHeights(getAxisLabelNodes(chart, 'bottom'));
                 // Anti-vacuous: the fixture's unequal word counts must produce a genuine spread of
                 // wrapped label heights, otherwise a flush edge would hold trivially for any align.
@@ -2243,9 +2207,7 @@ describe('CartesianAxis', () => {
                 (chart as unknown) = undefined;
 
                 const bottomOptions = wrappedBottomAxisOptions({ verticalAlign: 'bottom' });
-                prepareTestOptions(bottomOptions);
-                chart = AgCharts.create(bottomOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(bottomOptions);
                 const bottomNodes = getAxisLabelNodes(chart, 'bottom');
                 const bottomBoxes = bottomNodes.map((n) => Transformable.toCanvas(n));
                 const bottomEdges = bottomBoxes.map((b) => b.y + b.height);
@@ -2259,9 +2221,7 @@ describe('CartesianAxis', () => {
                 (chart as unknown) = undefined;
 
                 const topOptions = wrappedBottomAxisOptions({ verticalAlign: 'top' });
-                prepareTestOptions(topOptions);
-                chart = AgCharts.create(topOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(topOptions);
                 const topNodes = getAxisLabelNodes(chart, 'bottom');
                 const topBoxes = topNodes.map((n) => Transformable.toCanvas(n));
                 const topEdges = topBoxes.map((b) => b.y);
@@ -2294,9 +2254,7 @@ describe('CartesianAxis', () => {
                 };
 
                 const naturalOptions = segmentedOptions();
-                prepareTestOptions(naturalOptions);
-                chart = AgCharts.create(naturalOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(naturalOptions);
                 const naturalHeights = measuredHeights(getAxisLabelNodes(chart, 'bottom'));
                 expect(Math.max(...naturalHeights) - Math.min(...naturalHeights)).toBeGreaterThan(1);
 
@@ -2304,9 +2262,7 @@ describe('CartesianAxis', () => {
                 (chart as unknown) = undefined;
 
                 const bottomOptions = segmentedOptions({ verticalAlign: 'bottom' });
-                prepareTestOptions(bottomOptions);
-                chart = AgCharts.create(bottomOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(bottomOptions);
                 const nodes = getAxisLabelNodes(chart, 'bottom');
                 const boxes = nodes.map((n) => Transformable.toCanvas(n));
                 const bottomEdges = boxes.map((b) => b.y + b.height);
@@ -2334,9 +2290,7 @@ describe('CartesianAxis', () => {
                         (chart as unknown) = undefined;
                     }
                     const options = factory({ verticalAlign });
-                    prepareTestOptions(options);
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
 
                     const nodes = getAxisLabelNodes(chart, position);
                     expect(nodes.length).toBeGreaterThan(0);
@@ -2384,9 +2338,7 @@ describe('CartesianAxis', () => {
             const bottomEdge = (box: { y: number; height: number }) => box.y + box.height;
 
             const topOptions = rightAxisOptions({ verticalAlign: 'top' });
-            prepareTestOptions(topOptions);
-            chart = AgCharts.create(topOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(topOptions);
             const topNodes = getRightAxisLabelNodes(chart);
             const topOffset = groupOffsetY(topNodes, topEdge);
             for (const node of topNodes) {
@@ -2402,9 +2354,7 @@ describe('CartesianAxis', () => {
             (chart as unknown) = undefined;
 
             const bottomOptions = rightAxisOptions({ verticalAlign: 'bottom' });
-            prepareTestOptions(bottomOptions);
-            chart = AgCharts.create(bottomOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(bottomOptions);
             const bottomNodes = getRightAxisLabelNodes(chart);
             const bottomOffset = groupOffsetY(bottomNodes, bottomEdge);
             for (const node of bottomNodes) {
@@ -2418,9 +2368,7 @@ describe('CartesianAxis', () => {
 
         it("AC1: 'middle' on a horizontal axis centres the glyph box within the reserved band", async () => {
             const topAlignOptions = wrappedBottomAxisOptions({ verticalAlign: 'top' });
-            prepareTestOptions(topAlignOptions);
-            chart = AgCharts.create(topAlignOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(topAlignOptions);
             const topBoxes = getAxisLabelNodes(chart, 'bottom').map((n) => Transformable.toCanvas(n));
             const bandTop = Math.min(...topBoxes.map((b) => b.y));
 
@@ -2428,9 +2376,7 @@ describe('CartesianAxis', () => {
             (chart as unknown) = undefined;
 
             const bottomAlignOptions = wrappedBottomAxisOptions({ verticalAlign: 'bottom' });
-            prepareTestOptions(bottomAlignOptions);
-            chart = AgCharts.create(bottomAlignOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(bottomAlignOptions);
             const bottomBoxes = getAxisLabelNodes(chart, 'bottom').map((n) => Transformable.toCanvas(n));
             const bandBottom = Math.max(...bottomBoxes.map((b) => b.y + b.height));
 
@@ -2438,9 +2384,7 @@ describe('CartesianAxis', () => {
             (chart as unknown) = undefined;
 
             const middleOptions = wrappedBottomAxisOptions({ verticalAlign: 'middle' });
-            prepareTestOptions(middleOptions);
-            chart = AgCharts.create(middleOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(middleOptions);
             const middleBoxes = getAxisLabelNodes(chart, 'bottom').map((n) => Transformable.toCanvas(n));
             const bandCentre = (bandTop + bandBottom) / 2;
             for (const box of middleBoxes) {
@@ -2509,9 +2453,7 @@ describe('CartesianAxis', () => {
                 'produces byte-identical datums for a "%s" scale at position "%s"',
                 async (scaleType, position) => {
                     const omittedOptions = scaleOptions(scaleType, position);
-                    prepareTestOptions(omittedOptions);
-                    chart = AgCharts.create(omittedOptions);
-                    await waitForChartStability(chart);
+                    chart = await createChart(omittedOptions);
                     const omittedAnchors = captureAnchorsByTickId(getAxisLabelNodes(chart, position));
                     expect(omittedAnchors.size).toBeGreaterThan(0);
 
@@ -2519,9 +2461,7 @@ describe('CartesianAxis', () => {
                     (chart as unknown) = undefined;
 
                     const explicitOptions = scaleOptions(scaleType, position, { verticalAlign: undefined });
-                    prepareTestOptions(explicitOptions);
-                    chart = AgCharts.create(explicitOptions);
-                    await waitForChartStability(chart);
+                    chart = await createChart(explicitOptions);
                     const explicitNodes = getAxisLabelNodes(chart, position);
 
                     expect(explicitNodes.length).toBe(omittedAnchors.size);
@@ -2536,9 +2476,7 @@ describe('CartesianAxis', () => {
 
         it('TC1: rotation 45 on a bottom axis follows the rotated glyph box, clear of the series area', async () => {
             const options = bottomAxisOptions({ rotation: 45, verticalAlign: 'bottom' });
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const nodes = getAxisLabelNodes(chart, 'bottom');
             expect(nodes.length).toBe(3);
@@ -2555,7 +2493,6 @@ describe('CartesianAxis', () => {
             }
         });
 
-        // Bespoke: `width` is applied after `prepareTestOptions`, which `createChart` would overwrite with the default.
         const renderChart = async (options: AgCartesianChartOptions, width?: number) => {
             if (chart != null) {
                 chart.destroy();

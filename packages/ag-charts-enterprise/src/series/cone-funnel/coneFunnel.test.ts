@@ -78,18 +78,15 @@ describe('ConeFunnelSeries', () => {
     describe('Series Highlighting', () => {
         it('should render a chart', async () => {
             const options: AgChartOptions = { ...CONE_FUNNEL_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render highlight of node', async () => {
             const options: AgChartOptions = { ...CONE_FUNNEL_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const node = chart.series[0].contextNodeData.nodeData[0];
 
@@ -302,12 +299,10 @@ describe('ConeFunnelSeries', () => {
                 ...CONE_FUNNEL_EXAMPLE,
                 series: [{ ...CONE_FUNNEL_EXAMPLE.series![0], shadow }],
             } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
             return options;
         };
         const create = async (shadow?: typeof SHADOW) => {
-            chart = deproxy(AgCharts.create(buildOptions(shadow)));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(buildOptions(shadow)));
             return chart.series[0];
         };
         const nodesOf = (series: any, selection: string): any[] => series[selection].nodes();
@@ -346,8 +341,7 @@ describe('ConeFunnelSeries', () => {
         it('keeps the connector shadow when the connectors are stroked with no fill', async () => {
             const options = buildOptions(SHADOW);
             Object.assign(options.series![0], { fillOpacity: 0, strokes: ['navy'], strokeWidth: 3 });
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const connectors = nodesOf(chart.series[0], 'connectorSelection');
             expect(connectors).toHaveLength(3);
@@ -382,9 +376,8 @@ describe('ConeFunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -412,9 +405,8 @@ describe('ConeFunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -443,15 +435,14 @@ describe('ConeFunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
 
     test('AG-8290 label boxing', async () => {
-        const options = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: [
                 { group: 'Close', value: 4460 },
                 { group: 'Propose', value: 7260 },
@@ -480,21 +471,20 @@ describe('ConeFunnelSeries', () => {
                     },
                 },
             ],
-        });
-        chart = deproxy(AgCharts.create(options));
+        };
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
     describe('data-update stage removal', () => {
         const frames = spyOnAnimationFrames();
 
-        const optionsWithData = (data: unknown[]): AgChartOptions =>
-            prepareEnterpriseTestOptions({ ...CONE_FUNNEL_EXAMPLE, data });
+        const optionsWithData = (data: unknown[]): AgChartOptions => ({ ...CONE_FUNNEL_EXAMPLE, data });
 
         it('AG-17796 removes a stage node from the scene when a stage is removed from data', async () => {
             const stages = CONE_FUNNEL_EXAMPLE.data as unknown[];
 
-            const proxy = AgCharts.create(optionsWithData(stages));
+            const proxy = await createEnterpriseChart(optionsWithData(stages));
             chart = deproxy(proxy);
             await frames.runToEnd(chart);
 
@@ -505,7 +495,7 @@ describe('ConeFunnelSeries', () => {
             expect(stageNodeCount()).toBe(4);
             expect(connectorNodeCount()).toBe(3);
 
-            await proxy.update(optionsWithData(stages.slice(0, 3)));
+            await proxy.update(prepareEnterpriseTestOptions(optionsWithData(stages.slice(0, 3))));
             await frames.runToEnd(chart);
 
             expect(stageNodeCount()).toBe(3);
@@ -524,10 +514,8 @@ describe('ConeFunnelSeries', () => {
                 ],
                 series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value' }],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -542,10 +530,8 @@ describe('ConeFunnelSeries', () => {
                 data: CONE_FUNNEL_EXAMPLE.data,
                 series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value', stageLabel: { placement } }],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             return chart.axes.y.position;
         };
 
@@ -577,10 +563,8 @@ describe('ConeFunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -601,13 +585,15 @@ describe('ConeFunnelSeries', () => {
             { group: 'Close', value: 4460 },
         ];
 
-        const animated = (data: object[]): AgChartOptions =>
-            prepareEnterpriseTestOptions({
-                animation: { enabled: true },
-                data,
-                series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value' }],
-                legend: { enabled: true },
-            });
+        const animated = (data: object[]): AgChartOptions => ({
+            animation: { enabled: true },
+            data,
+            series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value' }],
+            legend: { enabled: true },
+        });
+
+        // Bespoke: the sanity test reuses the prepared options in `update`, so it creates the chart bare.
+        const preparedAnimated = (data: object[]) => prepareEnterpriseTestOptions(animated(data));
 
         const isLabelKey = (key: string) => /^series\[0\]\/labels\/text\[/.test(key);
         const expectLabelsStartHidden = (frame0: SceneGeometrySample) => {
@@ -621,7 +607,7 @@ describe('ConeFunnelSeries', () => {
         };
 
         it('initial load: connectors fan out and labels fade in while the stage lines snap', async () => {
-            chart = deproxy(AgCharts.create(animated(DATA)));
+            chart = deproxy(await createEnterpriseChart(animated(DATA)));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -645,7 +631,7 @@ describe('ConeFunnelSeries', () => {
 
         // captureSnap because the line/connector snaps trip captureUpdate's start anchor.
         it('data update: labels re-fade while the lines and connectors snap', async () => {
-            const proxy = AgCharts.create(animated(DATA));
+            const proxy = await createEnterpriseChart(animated(DATA));
             chart = deproxy(proxy);
             const sampler = createSceneGeometrySampler(chart);
             const { trajectory, before, after } = await frames.captureSnap(chart, sampler, () =>
@@ -669,9 +655,15 @@ describe('ConeFunnelSeries', () => {
         });
 
         it('animated endpoints match a static render (initial load + data update)', async () => {
-            const opts = animated(DATA);
+            const opts = preparedAnimated(DATA);
             chart = AgCharts.create(opts);
-            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, opts, animated(UPDATED));
+            await expectAnimatedEndpointsMatchStatic(
+                frames,
+                () => ctx.snapshot(),
+                chart,
+                opts,
+                preparedAnimated(UPDATED)
+            );
         });
     });
 });

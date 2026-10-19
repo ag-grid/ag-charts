@@ -39,15 +39,22 @@ describe('volume profile levels', () => {
 });
 
 describe('volume profile tooltips', () => {
-    const getTheme = () => ({ palette: {} }) as unknown as ChartTheme;
+    const getTheme = () =>
+        ({ palette: { up: { fill: '#112233' }, down: { fill: '#445566' } } }) as unknown as ChartTheme;
     const [upSeries, downSeries] = createVolumeProfileSeries(getTheme, 'x');
 
     const [level] = normaliseVolumeProfile([{ price: 150, up: 56617298, down: 68115020 }], KEYS, 10);
 
-    const render = (series: typeof upSeries) => {
+    const renderTooltip = (series: typeof upSeries) => {
         const { yKey, yName } = series;
-        return series.tooltip.renderer({ datum: level, yKey, yName } as any).data;
+        return series.tooltip.renderer({ datum: level, yKey, yName } as any);
     };
+    const render = (series: typeof upSeries) => renderTooltip(series).data;
+
+    it('should mark each tooltip with the colour of its series', () => {
+        expect(renderTooltip(upSeries).symbol).toEqual({ marker: { fill: '#112233' } });
+        expect(renderTooltip(downSeries).symbol).toEqual({ marker: { fill: '#445566' } });
+    });
 
     it('should give the range a level covers beside its up volume', () => {
         expect(render(upSeries)).toEqual([

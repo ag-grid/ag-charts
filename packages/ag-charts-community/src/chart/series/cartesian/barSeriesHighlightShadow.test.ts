@@ -3,14 +3,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Group, Shape } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../../api/agCharts';
 import { HIGHLIGHT_SHADOW, SERIES_SHADOW } from '../../test/shadowFixtures';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
     deproxy,
     extractImageData,
-    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -74,9 +72,7 @@ describe('BarSeries highlight shadow', () => {
             animation: { enabled: false },
             series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', shadow: SERIES_SHADOW }],
         };
-        prepareTestOptions(options);
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createChart(options));
 
         const bars = shapes(chart.series[0].contentGroup);
         expect(bars).toHaveLength(DATA.length);
@@ -158,9 +154,7 @@ describe('BarSeries highlight shadow', () => {
                 animation: { enabled: false },
                 series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', shadow: SPREAD_SHADOW }],
             };
-            prepareTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });

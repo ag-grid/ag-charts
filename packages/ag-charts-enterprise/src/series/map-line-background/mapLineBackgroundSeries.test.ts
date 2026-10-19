@@ -1,10 +1,9 @@
 import { afterEach, describe, it } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
-import { compareImageSnapshot, deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import { compareImageSnapshot, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 import { ukRoadData } from '../map-test/ukRoadData';
 import ukRoadTopology from '../map-test/ukRoadTopology.json';
 
@@ -20,10 +19,10 @@ const SIMPLIFIED_EXAMPLE: AgChartOptions = {
 
 describe('MapLineBackgroundSeries', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -38,9 +37,8 @@ describe('MapLineBackgroundSeries', () => {
     describe('Simple Chart', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });

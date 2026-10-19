@@ -83,8 +83,11 @@ export class AxisInsetValue extends AbstractModuleInstance {
             ctx.scene.attachNode(this.group),
             ctx.layoutManager.registerElement(LayoutElement.SeriesInset, (layout) => {
                 const { enabled, position } = this.options ?? {};
-                if (enabled && position != null) {
-                    layout.seriesInsets[position] = this.resolveWidth();
+                if (!enabled || position == null || !this.isParallel(position)) return;
+
+                const width = this.resolveWidth();
+                if (width > 0) {
+                    layout.seriesInsets[position] = width + this.resolveGap();
                 }
             }),
             // Text measured before a web font loads is narrower than the font that replaces it.
@@ -116,19 +119,16 @@ export class AxisInsetValue extends AbstractModuleInstance {
         }
         const width = this.resolveWidth();
 
-        // The blocks sit along the axis' own direction, so the strip must run parallel to it.
         const horizontal = position === 'top' || position === 'bottom';
-        const direction = this.axisCtx.direction;
-        const parallel = direction === (horizontal ? ChartAxisDirection.X : ChartAxisDirection.Y);
         const length = horizontal ? seriesRect.width : seriesRect.height;
-        if (!parallel || width <= 0 || length <= 0) {
+        if (!this.isParallel(position) || width <= 0 || length <= 0) {
             this.hide();
             return;
         }
 
         const blocks = this.collectBlocks();
         this.group.visible = true;
-        const strip = this.stripOrigin(position, width, seriesRect);
+        const strip = this.stripOrigin(position, width, this.resolveGap(), seriesRect);
         this.group.translationX = strip.x;
         this.group.translationY = strip.y;
         // setClipRect takes canvas coordinates, so the clip follows the group's translation.
@@ -158,13 +158,13 @@ export class AxisInsetValue extends AbstractModuleInstance {
         this.updateLabels(horizontal, width);
     }
 
-    /** The top-left corner of the strip, which abuts the series area on the side given by `position`. */
-    private stripOrigin(position: AgCartesianAxisPosition, width: number, rect: BBox) {
+    /** The top-left corner of the strip, which sits `gap` pixels from the series area on the side given by `position`. */
+    private stripOrigin(position: AgCartesianAxisPosition, width: number, gap: number, rect: BBox) {
         const origins: Record<AgCartesianAxisPosition, { x: number; y: number }> = {
-            left: { x: rect.x - width, y: rect.y },
-            right: { x: rect.x + rect.width, y: rect.y },
-            top: { x: rect.x, y: rect.y - width },
-            bottom: { x: rect.x, y: rect.y + rect.height },
+            left: { x: rect.x - width - gap, y: rect.y },
+            right: { x: rect.x + rect.width + gap, y: rect.y },
+            top: { x: rect.x, y: rect.y - width - gap },
+            bottom: { x: rect.x, y: rect.y + rect.height + gap },
         };
         const { x, y } = origins[position];
         return { x: Math.round(x), y: Math.round(y) };
@@ -182,6 +182,11 @@ export class AxisInsetValue extends AbstractModuleInstance {
         const font = this.labelFont();
         const fontSize = label?.fontSize ?? DEFAULT_FONT_SIZE;
 
+        // Text across the strip hugs the side facing the series area; along the axis it is centred in its block.
+        const facingSeries = this.options?.position === 'left' ? 'right' : 'left';
+        const textAlign = horizontal ? 'center' : facingSeries;
+        const textX = facingSeries === 'right' ? width - padding : padding;
+
         this.labelSelection.each((node, block) => {
             const thickness = block.end - block.start;
             const visible = label?.enabled !== false && thickness >= Math.max(fontSize, MIN_LABEL_THICKNESS_PX);
@@ -193,16 +198,27 @@ export class AxisInsetValue extends AbstractModuleInstance {
             node.fontSize = fontSize;
             node.fontStyle = font.fontStyle;
             node.fontWeight = font.fontWeight;
-            node.textAlign = 'center';
+            node.textAlign = textAlign;
             node.textBaseline = 'middle';
             // `visible` already admits a row thinner than a full line, so only the width truncates.
             node.text = fitLabelToContainer(block.text, { wrapping: 'never', overflowStrategy: 'ellipsis' }, font, {
                 width: Math.max(horizontal ? thickness : width - padding * 2, 0),
                 height: Infinity,
             });
-            node.x = horizontal ? block.start + thickness / 2 : width / 2;
+            node.x = horizontal ? block.start + thickness / 2 : textX;
             node.y = horizontal ? width / 2 : block.start + thickness / 2;
         });
+    }
+
+    /** The blocks sit along the axis' own direction, so the strip must run parallel to it, or nothing is drawn or reserved. */
+    private isParallel(position: NonNullable<AxisInsetValueOptions['position']>): boolean {
+        const horizontal = position === 'top' || position === 'bottom';
+        return this.axisCtx.direction === (horizontal ? ChartAxisDirection.X : ChartAxisDirection.Y);
+    }
+
+    /** The empty space kept between the strip and the series area, in pixels. */
+    private resolveGap(): number {
+        return Math.max(this.options?.gap ?? 0, 0);
     }
 
     /** The strip thickness: `width` when given, else the widest label's width, but at least `minWidth`. */

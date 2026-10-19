@@ -1,14 +1,12 @@
 import { afterEach, describe, it } from 'vitest';
 
-import { AgCharts } from '../api/agCharts';
 import type { ChartOrProxy } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
-    prepareTestOptions,
+    createChart,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from './test/utils';
 
 const INTEGRATED_THEME = {
@@ -134,10 +132,7 @@ describe('Integrated Charts Cross Filtering', () => {
                 },
             ],
         };
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
         await compare();
     });
 
@@ -190,10 +185,7 @@ describe('Integrated Charts Cross Filtering', () => {
                 },
             ],
         };
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
         await compare();
     });
 
@@ -231,10 +223,7 @@ describe('Integrated Charts Cross Filtering', () => {
                 },
             ],
         };
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
         await compare();
     });
 });
