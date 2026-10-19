@@ -1596,6 +1596,10 @@ describe('CartesianAxis', () => {
             return line![along];
         };
 
+        // A sweep that never resizes the chart would pass every stability check below, so each one asserts the series
+        // rect followed the container.
+        const expectResized = (sizes: number[]) => expect(new Set(sizes).size).toBeGreaterThan(1);
+
         const createAutoSizedChart = () => {
             const options: AgCartesianChartOptions = {
                 container,
@@ -1613,11 +1617,14 @@ describe('CartesianAxis', () => {
             createAutoSizedChart();
 
             const positions = new Set<number>();
+            const sizes: number[] = [];
             for (let width = 300; width <= 320; width++) {
                 await resizeTo(width, 200);
                 positions.add(axisLinePosition('bottom', 'translationY'));
+                sizes.push(getSeriesRect(chart).width);
             }
 
+            expectResized(sizes);
             expect(positions.size).toBe(1);
         });
 
@@ -1625,11 +1632,14 @@ describe('CartesianAxis', () => {
             createAutoSizedChart();
 
             const positions = new Set<number>();
+            const sizes: number[] = [];
             for (let height = 300; height <= 320; height++) {
                 await resizeTo(400, height);
                 positions.add(axisLinePosition('left', 'translationX'));
+                sizes.push(getSeriesRect(chart).height);
             }
 
+            expectResized(sizes);
             expect(positions.size).toBe(1);
         });
 
@@ -1651,11 +1661,14 @@ describe('CartesianAxis', () => {
             createAutoSizedChart();
 
             const positions: number[] = [];
+            const sizes: number[] = [];
             for (let width = 300; width <= 320; width++) {
                 await resizeTo(width, 200);
                 positions.push(axisLinePosition('left', 'translationX'));
+                sizes.push(getSeriesRect(chart).width);
             }
 
+            expectResized(sizes);
             expect(directionReversals(positions)).toBe(0);
         });
 
@@ -1663,11 +1676,14 @@ describe('CartesianAxis', () => {
             createAutoSizedChart();
 
             const positions: number[] = [];
+            const sizes: number[] = [];
             for (let height = 300; height <= 320; height++) {
                 await resizeTo(400, height);
                 positions.push(axisLinePosition('bottom', 'translationY'));
+                sizes.push(getSeriesRect(chart).height);
             }
 
+            expectResized(sizes);
             expect(directionReversals(positions)).toBe(0);
         });
     });
