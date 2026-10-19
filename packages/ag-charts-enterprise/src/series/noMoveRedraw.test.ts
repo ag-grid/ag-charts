@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { type AgCartesianChartOptions, type AgChartInstance } from 'ag-charts-community';
+import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, type AgChartInstance } from 'ag-charts-community';
 import { deproxy, measureRedrawWork, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
 
-import { createEnterpriseChart } from '../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
 
 type Row = Record<string, number | string>;
 
@@ -144,4 +144,189 @@ describe('rect series redraw where nothing moves', () => {
             });
         });
     }
+});
+
+interface StyleCase {
+    name: string;
+    rows: (shift: number) => Row[];
+    options: (series: object, data: Row[]) => AgCartesianChartOptions;
+    base: object;
+    /** Changes that only restyle: the bars stay exactly where they are. */
+    restyles: [string, object][];
+}
+
+// Few enough items for the fills to show between any strokes.
+const STYLE_COUNT = 30;
+const NO_STROKE = { strokeWidth: 0 };
+
+const STYLE_CASES: StyleCase[] = [
+    {
+        name: 'range-bar',
+        rows: (shift) => rangeRows(STYLE_COUNT, shift),
+        base: { type: 'range-bar', xKey: 'category', yLowKey: 'low', yHighKey: 'high', fill: '#2e86de', ...NO_STROKE },
+        options: (series, data) => ({
+            data,
+            series: [series as AgCartesianSeriesOptions],
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+        }),
+        restyles: [
+            ['fill', { fill: '#e67e22' }],
+            ['fillOpacity', { fillOpacity: 0.4 }],
+        ],
+    },
+    {
+        name: 'waterfall',
+        rows: (shift) => valueRows(STYLE_COUNT, shift),
+        base: {
+            type: 'waterfall',
+            xKey: 'category',
+            yKey: 'value',
+            item: { positive: { fill: '#2e86de', ...NO_STROKE }, negative: { fill: '#c0392b', ...NO_STROKE } },
+        },
+        options: (series, data) => ({
+            data,
+            series: [series as AgCartesianSeriesOptions],
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+        }),
+        restyles: [
+            [
+                'positive fill',
+                { item: { positive: { fill: '#27ae60', ...NO_STROKE }, negative: { fill: '#c0392b', ...NO_STROKE } } },
+            ],
+            [
+                'negative fillOpacity',
+                {
+                    item: {
+                        positive: { fill: '#2e86de', ...NO_STROKE },
+                        negative: { fill: '#c0392b', fillOpacity: 0.3, ...NO_STROKE },
+                    },
+                },
+            ],
+        ],
+    },
+];
+
+describe('rect series restyle where nothing moves', () => {
+    const ctx = setupMockCanvas();
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    for (const styleCase of STYLE_CASES) {
+        describe(styleCase.name, () => {
+            const make = (series: object, shift = 0) =>
+                prepareEnterpriseTestOptions({
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    ...styleCase.options(series, styleCase.rows(shift)),
+                } as AgCartesianChartOptions);
+
+            // Renders the changed series fresh, moves the same chart back to the base series, then applies the change as
+            // a delta: it has to end where the fresh render was.
+            for (const [name, change] of styleCase.restyles) {
+                it(`paints a colour-only change to ${name} as a fresh render would`, async () => {
+                    chart = await createEnterpriseChart(make({ ...styleCase.base, ...change }));
+                    const expected = ctx.snapshot();
+
+                    await chart.update(make(styleCase.base));
+                    await waitForChartStability(chart);
+                    const started = ctx.snapshot();
+                    const c = chart;
+
+                    await c.updateDelta({ series: [{ ...styleCase.base, ...change }] } as any);
+                    await waitForChartStability(c);
+
+                    (expect(ctx.snapshot()) as any).not.toMatchImage(started, { writeDiff: false });
+                    expect(ctx.snapshot()).toMatchImage(expected);
+                });
+            }
+
+            it('moves the bars to the same pixels as a fresh render', async () => {
+                chart = await createEnterpriseChart(make(styleCase.base, 4));
+                const expected = ctx.snapshot();
+
+                await chart.update(make(styleCase.base));
+                await waitForChartStability(chart);
+                const started = ctx.snapshot();
+                const c = chart;
+
+                const work = await measureRedrawWork(c, () => c.updateDelta({ data: styleCase.rows(4) }));
+
+                expect(work.nodeDataBuilds).toBe(1);
+                (expect(ctx.snapshot()) as any).not.toMatchImage(started, { writeDiff: false });
+                expect(ctx.snapshot()).toMatchImage(expected);
+            });
+
+            it('moves the bars after redraws that did not move them', async () => {
+                chart = await createEnterpriseChart(make(styleCase.base, 4));
+                const expected = ctx.snapshot();
+                await chart.update(make(styleCase.base));
+                await waitForChartStability(chart);
+                const c = chart;
+
+                for (let i = 0; i < 3; i++) {
+                    const work = await measureRedrawWork(c, () => c.updateDelta({ data: styleCase.rows(0) }));
+                    expect(work.nodeDataBuilds).toBe(0);
+                }
+                await c.updateDelta({ data: styleCase.rows(4) });
+                await waitForChartStability(c);
+
+                expect(ctx.snapshot()).toMatchImage(expected);
+            });
+        });
+    }
+
+    describe('heatmap', () => {
+        const make = (series: object, shift = 0) =>
+            prepareEnterpriseTestOptions({
+                animation: { enabled: false },
+                legend: { enabled: false },
+                data: heatmapRows(STYLE_COUNT * 3, shift),
+                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'level', ...series }],
+            } as AgCartesianChartOptions);
+
+        const scale = (...colors: string[]) => ({ colorScale: { fills: colors.map((color) => ({ color })) } });
+        const base = scale('#2e86de', '#c0392b');
+
+        it.each([
+            ['colorScale', scale('#27ae60', '#f1c40f')],
+            ['stroke', { stroke: '#222222', strokeWidth: 2 }],
+        ])('paints a change to %s as a fresh render would', async (_name, change) => {
+            chart = await createEnterpriseChart(make({ ...base, ...change }));
+            const expected = ctx.snapshot();
+
+            await chart.update(make(base));
+            await waitForChartStability(chart);
+            const started = ctx.snapshot();
+            const c = chart;
+
+            await c.updateDelta({
+                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'level', ...base, ...change }],
+            } as any);
+            await waitForChartStability(c);
+
+            (expect(ctx.snapshot()) as any).not.toMatchImage(started, { writeDiff: false });
+            expect(ctx.snapshot()).toMatchImage(expected);
+        });
+
+        it('paints the same data again, over and over, as a fresh render would', async () => {
+            chart = await createEnterpriseChart(make(base, 2));
+            const expected = ctx.snapshot();
+
+            await chart.update(make(base));
+            await waitForChartStability(chart);
+            const c = chart;
+            for (let i = 0; i < 3; i++) {
+                await c.updateDelta({ data: heatmapRows(STYLE_COUNT * 3, 0) });
+                await waitForChartStability(c);
+            }
+            await c.updateDelta({ data: heatmapRows(STYLE_COUNT * 3, 2) });
+            await waitForChartStability(c);
+
+            expect(ctx.snapshot()).toMatchImage(expected);
+        });
+    });
 });
