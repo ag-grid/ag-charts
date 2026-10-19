@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, test, vi } from 'vitest';
 
-import type { AgChartOptions, AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-community';
+import type { AgChartInstance, AgChartOptions, AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     clickAction,
@@ -16,10 +16,10 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection, Transformable } from 'ag-charts-core';
-import { Caster } from 'ag-charts-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster } from 'ag-charts-test';
 
 import { pointOnPolarCrossLine, polarCanvasPoint, polarCrossLineAt } from '../../test/polarCrossLines';
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
 describe('Context Menu', () => {
@@ -27,7 +27,7 @@ describe('Context Menu', () => {
     setupMockCanvas();
     setupMockPointerEvent();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
         data: [
@@ -163,27 +163,19 @@ describe('Context Menu', () => {
         return { x: x + width / 2, y: y + height / 2 };
     }
 
-    let cx: number = 0;
-    let cy: number = 0;
+    const cx = CANVAS_WIDTH / 2;
+    const cy = CANVAS_HEIGHT / 2;
 
-    async function prepareChart(contextMenuOptions?: AgChartOptions['contextMenu'], baseOptions = EXAMPLE_OPTIONS) {
-        const options: AgChartOptions = {
-            ...baseOptions,
-            contextMenu: { ...baseOptions.contextMenu, ...(contextMenuOptions ?? {}) },
-        };
-        prepareEnterpriseTestOptions(options);
-        cx = options.width! / 2;
-        cy = options.height! / 2;
-
-        chart = AgCharts.create(options);
-
-        // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
-        // event is triggered.
-        await waitForChartStability(chart);
-    }
+    const chartOptions = (
+        contextMenuOptions?: AgChartOptions['contextMenu'],
+        baseOptions: AgChartOptions = EXAMPLE_OPTIONS
+    ): AgChartOptions => ({
+        ...baseOptions,
+        contextMenu: { ...baseOptions.contextMenu, ...(contextMenuOptions ?? {}) },
+    });
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -195,18 +187,18 @@ describe('Context Menu', () => {
     };
 
     it('should initially be hidden', async () => {
-        await prepareChart();
+        chart = await createEnterpriseChart(chartOptions());
         await compare();
     });
 
     describe('should show the default actions', () => {
         test('mouse', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await compare();
         });
         test('touch', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             await longTapAction(cx, cy)(chart);
             await compare();
         });
@@ -214,12 +206,12 @@ describe('Context Menu', () => {
 
     describe('should show the legend actions', () => {
         test('mouse', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(410, 575)(chart);
             await compare();
         });
         test('touch', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             await longTapAction(410, 575)(chart);
             await compare();
         });
@@ -227,7 +219,7 @@ describe('Context Menu', () => {
 
     describe('legend highlight state', () => {
         test('clears highlight when opening menu', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             const chartInstance = deproxy(chart);
             const highlightManager = chartInstance.ctx.highlightManager;
             const legendBBox = computeLegendBBox(chartInstance);
@@ -245,7 +237,7 @@ describe('Context Menu', () => {
         });
 
         test('does not leave highlight after toggling visibility', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             const chartInstance = deproxy(chart);
             const highlightManager = chartInstance.ctx.highlightManager;
             const legendBBox = computeLegendBBox(chartInstance);
@@ -283,7 +275,7 @@ describe('Context Menu', () => {
 
         it('passes the bin source rows to getItems as datums', async () => {
             const getItems = vi.fn((_params: any) => []);
-            await prepareChart({ enabled: true, getItems }, HISTOGRAM_OPTIONS);
+            chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }, HISTOGRAM_OPTIONS));
 
             const { canvasX: x, canvasY: y } = nodeCanvasPoint(0);
             await contextMenuAction(x, y)(chart);
@@ -299,7 +291,7 @@ describe('Context Menu', () => {
 
         it('leaves datums undefined for a 1:1 series node', async () => {
             const getItems = vi.fn((_params: any) => []);
-            await prepareChart({ enabled: true, getItems });
+            chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }));
 
             const { canvasX: x, canvasY: y } = nodeCanvasPoint(3);
             await contextMenuAction(x, y)(chart);
@@ -321,7 +313,7 @@ describe('Context Menu', () => {
         it('surfaces series-node items carrying the picked datum', async () => {
             const action = vi.fn();
             const items: AgContextMenuItem[] = [{ type: 'action', label: 'Node Item', showOn: 'series-node', action }];
-            await prepareChart({ enabled: true, items }, MARKERLESS_LINE_OPTIONS);
+            chart = await createEnterpriseChart(chartOptions({ enabled: true, items }, MARKERLESS_LINE_OPTIONS));
 
             const { canvasX: x, canvasY: y } = datumCanvasPoint(4);
             await contextMenuAction(x, y)(chart);
@@ -344,7 +336,7 @@ describe('Context Menu', () => {
 
         it('passes the picked datum to getItems under the series-node scope', async () => {
             const getItems = vi.fn((_params: any) => []);
-            await prepareChart({ enabled: true, getItems }, MARKERLESS_LINE_OPTIONS);
+            chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }, MARKERLESS_LINE_OPTIONS));
 
             const { canvasX: x, canvasY: y } = datumCanvasPoint(4);
             await contextMenuAction(x, y)(chart);
@@ -359,15 +351,17 @@ describe('Context Menu', () => {
 
     describe('legend-item without toggleSeries (AG-17832)', () => {
         test('shows legend-item items when toggleSeries is false', async () => {
-            await prepareChart(
-                {
-                    enabled: true,
-                    items: [
-                        { type: 'action', label: 'Always Item', showOn: 'always', action: () => {} },
-                        { type: 'action', label: 'Legend Item', showOn: 'legend-item', action: () => {} },
-                    ],
-                },
-                { ...EXAMPLE_OPTIONS, legend: { toggleSeries: false } }
+            chart = await createEnterpriseChart(
+                chartOptions(
+                    {
+                        enabled: true,
+                        items: [
+                            { type: 'action', label: 'Always Item', showOn: 'always', action: () => {} },
+                            { type: 'action', label: 'Legend Item', showOn: 'legend-item', action: () => {} },
+                        ],
+                    },
+                    { ...EXAMPLE_OPTIONS, legend: { toggleSeries: false } }
+                )
             );
 
             const chartInstance = deproxy(chart);
@@ -400,6 +394,7 @@ describe('Context Menu', () => {
             ],
         };
         subsubmenu.items = contextMenu.items;
+        // Bespoke: the warnings are asserted synchronously, before the chart has settled.
         chart = AgCharts.create(prepareEnterpriseTestOptions({ ...EXAMPLE_OPTIONS, contextMenu }));
         expectWarningsCalls().toMatchSnapshot();
     });
@@ -419,7 +414,9 @@ describe('Context Menu', () => {
             getItems = vi.fn(({ defaultItems }) => defaultItems);
             xAxisClick = vi.fn();
             yAxisClick = vi.fn();
-            await prepareChart({ enabled: true, getItems }, coordinatesOptions({ xAxisClick, yAxisClick }));
+            chart = await createEnterpriseChart(
+                chartOptions({ enabled: true, getItems }, coordinatesOptions({ xAxisClick, yAxisClick }))
+            );
         });
 
         // A few pixels of coordinate-frame error is enough to shift these values, and the default `closeTo`
@@ -493,21 +490,23 @@ describe('Context Menu', () => {
             getItems = vi.fn(({ defaultItems }) => defaultItems);
             // A `crossAt` axis is annotated onto the menu by the series area rather than its own proxy region:
             // a separate path from `coordinates`, and the only one applying `crossAxisTranslation`.
-            await prepareChart(
-                { enabled: true, getItems },
-                {
-                    data: Array.from({ length: 4 }, (_, i) => ({ x: i / 5, y: i * 2 - 3 })),
-                    axes: {
-                        x: {
-                            type: 'number',
-                            crossAt: { value: 0 },
-                            label: { format: '#{0.9f}', avoidCollisions: false, rotation: 0 },
+            chart = await createEnterpriseChart(
+                chartOptions(
+                    { enabled: true, getItems },
+                    {
+                        data: Array.from({ length: 4 }, (_, i) => ({ x: i / 5, y: i * 2 - 3 })),
+                        axes: {
+                            x: {
+                                type: 'number',
+                                crossAt: { value: 0 },
+                                label: { format: '#{0.9f}', avoidCollisions: false, rotation: 0 },
+                            },
+                            y: { type: 'number' },
                         },
-                        y: { type: 'number' },
-                    },
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    contextMenu: { enabled: true },
-                }
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        contextMenu: { enabled: true },
+                    }
+                )
             );
         });
 
@@ -536,7 +535,7 @@ describe('Context Menu', () => {
 
         beforeEach(async () => {
             getItems = vi.fn(({ defaultItems }) => defaultItems);
-            await prepareChart({ enabled: true, getItems }, CROSS_LINE_OPTIONS);
+            chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }, CROSS_LINE_OPTIONS));
         });
 
         const threshold = expect.objectContaining({
@@ -598,7 +597,7 @@ describe('Context Menu', () => {
         });
 
         test('right-clicking a marker on the cross line offers the series node first', async () => {
-            await prepareChart({ enabled: true, getItems }, overlapOptions());
+            chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }, overlapOptions()));
             const { canvasX, canvasY } = datumCanvasPoint(1);
             await contextMenuAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
@@ -613,7 +612,7 @@ describe('Context Menu', () => {
         });
 
         test('right-clicking the cross line away from a marker within `nodeClickRange` offers the cross line first', async () => {
-            await prepareChart({ enabled: true, getItems }, overlapOptions('nearest'));
+            chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }, overlapOptions('nearest')));
             const { canvasX, canvasY } = datumCanvasPoint(1);
             await contextMenuAction(canvasX, canvasY - 30)(chart);
             await waitForChartStability(chart);
@@ -664,7 +663,7 @@ describe('Context Menu', () => {
         async function openMenu({ showOn, baseOptions, point, open }: OpenMenuOpts) {
             const action = vi.fn();
             const getItems = vi.fn((params: any) => [...params.defaultItems, probeItem(showOn, action)]);
-            await prepareChart({ enabled: true, getItems }, baseOptions);
+            chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }, baseOptions));
 
             const { x, y } = point();
             await (open ?? ((px: number, py: number) => contextMenuAction(px, py)(chart)))(x, y);
@@ -824,9 +823,11 @@ describe('Context Menu', () => {
         test('the built-in visibility toggle reports the opening event to legendItemClick', async () => {
             const legendItemClick = vi.fn();
             const getItems = vi.fn((params: any) => params.defaultItems);
-            await prepareChart(
-                { enabled: true, getItems },
-                { ...EXAMPLE_OPTIONS, legend: { listeners: { legendItemClick } } }
+            chart = await createEnterpriseChart(
+                chartOptions(
+                    { enabled: true, getItems },
+                    { ...EXAMPLE_OPTIONS, legend: { listeners: { legendItemClick } } }
+                )
             );
 
             const { x, y } = legendItemPoint();
@@ -847,17 +848,19 @@ describe('Context Menu', () => {
             const legendItemDoubleClick = vi.fn();
             const getItems = vi.fn((params: any) => params.defaultItems);
             // `toggle-other-series` is hidden unless the chart has more than one series.
-            await prepareChart(
-                { enabled: true, getItems },
-                {
-                    ...EXAMPLE_OPTIONS,
-                    data: EXAMPLE_OPTIONS.data!.map((datum: any) => ({ ...datum, y2: datum.y / 2 })),
-                    series: [
-                        { type: 'bar', xKey: 'x', yKey: 'y' },
-                        { type: 'bar', xKey: 'x', yKey: 'y2' },
-                    ],
-                    legend: { listeners: { legendItemDoubleClick } },
-                }
+            chart = await createEnterpriseChart(
+                chartOptions(
+                    { enabled: true, getItems },
+                    {
+                        ...EXAMPLE_OPTIONS,
+                        data: EXAMPLE_OPTIONS.data!.map((datum: any) => ({ ...datum, y2: datum.y / 2 })),
+                        series: [
+                            { type: 'bar', xKey: 'x', yKey: 'y' },
+                            { type: 'bar', xKey: 'x', yKey: 'y2' },
+                        ],
+                        legend: { listeners: { legendItemDoubleClick } },
+                    }
+                )
             );
 
             const { x, y } = legendItemPoint();
@@ -880,32 +883,34 @@ describe('Context Menu', () => {
 
         beforeEach(async () => {
             getItems = vi.fn(({ defaultItems }) => defaultItems);
-            await prepareChart(
-                { enabled: true, getItems },
-                {
-                    data: [
-                        { q: 'Q1', v: 2 },
-                        { q: 'Q2', v: 4 },
-                        { q: 'Q3', v: 6 },
-                        { q: 'Q4', v: 8 },
-                    ],
-                    series: [{ type: 'radar-line', angleKey: 'q', radiusKey: 'v' }],
-                    axes: {
-                        angle: {
-                            type: 'angle-category',
-                            shape: 'circle',
-                            crossLines: [{ id: 'band', type: 'range', range: ['Q2', 'Q3'] }],
+            chart = await createEnterpriseChart(
+                chartOptions(
+                    { enabled: true, getItems },
+                    {
+                        data: [
+                            { q: 'Q1', v: 2 },
+                            { q: 'Q2', v: 4 },
+                            { q: 'Q3', v: 6 },
+                            { q: 'Q4', v: 8 },
+                        ],
+                        series: [{ type: 'radar-line', angleKey: 'q', radiusKey: 'v' }],
+                        axes: {
+                            angle: {
+                                type: 'angle-category',
+                                shape: 'circle',
+                                crossLines: [{ id: 'band', type: 'range', range: ['Q2', 'Q3'] }],
+                            },
+                            radius: {
+                                type: 'radius-number',
+                                shape: 'circle',
+                                min: 0,
+                                max: 10,
+                                crossLines: [{ id: 'threshold', type: 'line', value: 5 }],
+                            },
                         },
-                        radius: {
-                            type: 'radius-number',
-                            shape: 'circle',
-                            min: 0,
-                            max: 10,
-                            crossLines: [{ id: 'threshold', type: 'line', value: 5 }],
-                        },
-                    },
-                    contextMenu: { enabled: true },
-                }
+                        contextMenu: { enabled: true },
+                    }
+                )
             );
         });
 
@@ -982,7 +987,7 @@ describe('Context Menu', () => {
                 ...params.defaultItems,
                 { type: 'action', label: 'Probe Item', action },
             ]);
-            await prepareChart({ enabled: true, getItems, ...contextMenu }, baseOptions);
+            chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems, ...contextMenu }, baseOptions));
             return { getItems, action };
         }
 

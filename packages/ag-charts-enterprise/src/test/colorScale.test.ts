@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
     type AgBubbleSeriesOptions,
+    type AgChartInstance,
     type AgChartOptions,
-    AgCharts,
     type AgScatterSeriesOptions,
 } from 'ag-charts-community';
 import {
@@ -18,7 +18,7 @@ import {
 
 import { ukData } from '../series/map-test/ukData';
 import ukTopology from '../series/map-test/ukTopology.json';
-import { prepareEnterpriseTestOptions } from './utils';
+import { createEnterpriseChart } from './utils';
 
 interface ColorScaleSeriesLike {
     getTooltipContent(datumIndex: number): unknown;
@@ -52,8 +52,7 @@ const cases: PresenceCase[] = [
     { name: 'ScatterSeries without missingDataFill', seriesType: 'scatter', missingDataFill: undefined },
 ];
 
-// `colorKey` is enterprise-gated on these community series options, so tests must run under
-// `prepareEnterpriseTestOptions` or the option is cleared and the code path is never hit.
+// `colorKey` is enterprise-gated here, so create the chart with `createEnterpriseChart` or the option is cleared.
 describe('colorScale.missingDataFill - bubble/scatter', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -72,10 +71,9 @@ describe('colorScale.missingDataFill - bubble/scatter', () => {
             ...seriesBaseByType[seriesType],
             colorScale: { fills, ...(missingDataFill != null && { missingDataFill }) },
         };
-        const options: AgChartOptions = prepareEnterpriseTestOptions({ data, series: [series] });
+        const options: AgChartOptions = { data, series: [series] };
 
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(options));
 
         const seriesImpl = chart.series[0] as ColorScaleSeriesLike;
         assertTooltipPresentForAll(
@@ -124,13 +122,12 @@ describe('colorScale.missingDataFill - bubble/scatter', () => {
         '$seriesType tooltip swatch uses missingDataFill for missing-colour datum',
         async ({ build }) => {
             const missingDataFill = 'tomato';
-            const options: AgChartOptions = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data,
                 series: [build(missingDataFill)],
-            });
+            };
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const markerAt = (predicate: (d: (typeof data)[number]) => boolean) => {
                 const datumIndex = data.findIndex(predicate);
@@ -152,7 +149,7 @@ describe('colorScale partial options — theme fills survive user partials', () 
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance | undefined;
 
     afterEach(() => {
         if (chart) {
@@ -162,7 +159,7 @@ describe('colorScale partial options — theme fills survive user partials', () 
     });
 
     function assertColorScalePopulated() {
-        const series: any = deproxy(chart).series.find((s: any) => s.colorScale != null);
+        const series: any = deproxy(chart!).series.find((s: any) => s.colorScale != null);
         expect(series).toBeDefined();
         expect(series.colorScale.domain.length).toBeGreaterThanOrEqual(2);
         expect(series.colorScale.range.length).toBeGreaterThanOrEqual(2);
@@ -170,7 +167,7 @@ describe('colorScale partial options — theme fills survive user partials', () 
     }
 
     it('heatmap with colorScale: {}', async () => {
-        const options: AgChartOptions = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: [
                 { x: 'A', y: '1', v: 10 },
                 { x: 'B', y: '1', v: 20 },
@@ -178,15 +175,14 @@ describe('colorScale partial options — theme fills survive user partials', () 
                 { x: 'B', y: '2', v: 40 },
             ],
             series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'v', colorScale: {} }],
-        });
+        };
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
         assertColorScalePopulated();
     });
 
     it('treemap with colorScale: {}', async () => {
-        const options: AgChartOptions = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: [
                 { title: 'A', size: 10, color: 1, children: [{ title: 'A1', size: 5, color: 2 }] },
                 { title: 'B', size: 20, color: 3, children: [{ title: 'B1', size: 8, color: 4 }] },
@@ -201,15 +197,14 @@ describe('colorScale partial options — theme fills survive user partials', () 
                     colorScale: {},
                 },
             ],
-        });
+        };
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
         assertColorScalePopulated();
     });
 
     it('sunburst with colorScale: {}', async () => {
-        const options: AgChartOptions = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: [
                 { name: 'A', size: 10, color: 1, children: [{ name: 'A1', size: 5, color: 2 }] },
                 { name: 'B', size: 20, color: 3, children: [{ name: 'B1', size: 8, color: 4 }] },
@@ -224,42 +219,39 @@ describe('colorScale partial options — theme fills survive user partials', () 
                     colorScale: {},
                 },
             ],
-        });
+        };
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
         assertColorScalePopulated();
     });
 
     it('map-marker with colorScale: {}', async () => {
-        const options: AgChartOptions = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: ukData,
             topology: ukTopology,
             series: [
                 { type: 'map-shape-background' },
                 { type: 'map-marker', idKey: 'name', colorKey: 'population', colorScale: {} },
             ],
-        });
+        };
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
         assertColorScalePopulated();
     });
 
     it('map-shape with colorScale: {}', async () => {
-        const options: AgChartOptions = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: ukData,
             topology: ukTopology,
             series: [{ type: 'map-shape', idKey: 'name', colorKey: 'population', colorScale: {} }],
-        });
+        };
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
         assertColorScalePopulated();
     });
 
     it('heatmap with colorScale: { mode: "discrete" }', async () => {
-        const options: AgChartOptions = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: [
                 { x: 'A', y: '1', v: 10 },
                 { x: 'B', y: '1', v: 20 },
@@ -267,10 +259,9 @@ describe('colorScale partial options — theme fills survive user partials', () 
                 { x: 'B', y: '2', v: 40 },
             ],
             series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'v', colorScale: { mode: 'discrete' } }],
-        });
+        };
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
         assertColorScalePopulated();
     });
 });
@@ -290,9 +281,8 @@ describe('AG-18413 a colorKey naming no column - bubble/scatter', () => {
     });
 
     const createChartWith = async (series: AgBubbleSeriesOptions | AgScatterSeriesOptions) => {
-        const options: AgChartOptions = prepareEnterpriseTestOptions({ data, series: [series] });
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        const options: AgChartOptions = { data, series: [series] };
+        chart = deproxy(await createEnterpriseChart(options));
         return chart.series[0];
     };
 

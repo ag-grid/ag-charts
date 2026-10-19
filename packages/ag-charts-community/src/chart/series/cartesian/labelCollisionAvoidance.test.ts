@@ -983,6 +983,8 @@ describe('label collision avoidance', () => {
                 ],
             };
             prepareTestOptions(options);
+            // Bespoke: the size under test is applied after preparation, which the shared factory would overwrite.
+            // This applies to every bare create in this suite.
             options.width = 260;
             options.height = 500;
             chart = AgCharts.create(options);
@@ -1351,9 +1353,7 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
             const series = deproxy(chart as any).series[0] as unknown as {
                 contextNodeData?: { nodeData?: { y: number }[]; labelData?: { label?: { y: number } }[] };
             };
@@ -1464,9 +1464,7 @@ describe('label collision avoidance', () => {
 
         it('drops a hideable scatter label overlapping a bar inside label', async () => {
             const opts = options();
-            prepareTestOptions(opts);
-            chart = AgCharts.create(opts);
-            await waitForChartStability(chart);
+            chart = await createChart(opts);
             const [bar, scatter] = deproxy(chart as any).series as unknown as Parameters<
                 typeof seriesVisibleLabelBoxes
             >[0][];
@@ -1534,9 +1532,7 @@ describe('label collision avoidance', () => {
 
         it('drops a hideable scatter label overlapping a histogram inside label', async () => {
             const opts = options();
-            prepareTestOptions(opts);
-            chart = AgCharts.create(opts);
-            await waitForChartStability(chart);
+            chart = await createChart(opts);
             const [histogram, scatter] = deproxy(chart as any).series as unknown as Parameters<
                 typeof seriesVisibleLabelBoxes
             >[0][];
@@ -1624,9 +1620,7 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            prepareTestOptions(opts);
-            chart = AgCharts.create(opts);
-            await waitForChartStability(chart);
+            chart = await createChart(opts);
             const series = deproxy(chart as any).series[0] as unknown as {
                 labelSelection: { nodes(): { visible: boolean; datum: { label?: { placement?: string } } }[] };
             };
@@ -1845,6 +1839,8 @@ describe('label collision avoidance', () => {
                 return labelled == null ? undefined : (labelled.label?.rotation ?? 0);
             };
 
+            // Bespoke: `optionsAt` applies the width under test after preparation, which the shared factory
+            // would overwrite. This applies to every bare create in this suite.
             chart = AgCharts.create(optionsAt(1000));
             await waitForChartStability(chart);
 
@@ -1952,9 +1948,7 @@ describe('label collision avoidance', () => {
 
             it(`slides a resolved '${placement}' label flush within the bar rect`, async () => {
                 const options = thinTallColumns(placement);
-                prepareTestOptions(options as any);
-                chart = AgCharts.create(options as any);
-                await waitForChartStability(chart);
+                chart = await createChart(options as any);
 
                 const series = deproxy(chart as any).series[0] as unknown as {
                     contextNodeData?: { nodeData?: { x: number; y: number; width: number; height: number }[] };
@@ -2024,9 +2018,7 @@ describe('label collision avoidance', () => {
                 axes: plainAxes,
                 series: [{ type: 'bar', xKey: 'cat', yKey: 'bar', label: barLabel }],
             };
-            prepareTestOptions(barOnlyOptions);
-            chart = AgCharts.create(barOnlyOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(barOnlyOptions);
             const baseline = barRotations();
             // Anti-vacuous guard: every bar must actually render a label in the baseline.
             expect(baseline.visible).toBe(barData.length);
@@ -2047,9 +2039,7 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            prepareTestOptions(comboOptions);
-            chart = AgCharts.create(comboOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(comboOptions);
             const combo = barRotations();
 
             // A self-obstacle would make the bar wrongly perceive a collision with its own label,
@@ -2074,9 +2064,7 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const bar = deproxy(chart as any).series[0] as unknown as {
                 getLabelObstacles(): { kind: string; category?: string }[] | undefined;
@@ -2132,6 +2120,8 @@ describe('label collision avoidance', () => {
                 ],
             };
             prepareTestOptions(options as any);
+            // Bespoke: the size under test is applied after preparation, which the shared factory would overwrite.
+            // This applies to every bare create in this suite.
             // Thin columns (each narrower than twice the spacing) so an all-sides inset region would reject the
             // horizontal label, while it still fits the bar's full width.
             (options as any).width = 500;
@@ -2428,10 +2418,7 @@ describe('label collision avoidance', () => {
         };
 
         it('re-places labels when label.placement changes on an existing chart', async () => {
-            const top = lineOptions('top');
-            prepareTestOptions(top);
-            chart = AgCharts.create(top);
-            await waitForChartStability(chart);
+            chart = await createChart(lineOptions('top'));
             const topYs = visibleLabelYs();
             // Anti-vacuous guard: placement is only observable when labels actually render.
             expect(topYs.length).toBeGreaterThan(0);
@@ -2508,8 +2495,7 @@ describe('label collision avoidance', () => {
         };
 
         it('re-places labels the same way after a series is hidden and shown again', async () => {
-            chart = AgCharts.create(prepareTestOptions(gdpOptions()));
-            await waitForChartStability(chart);
+            chart = await createChart(gdpOptions());
             const before = placementsByText();
             // Anti-vacuous guard: one label per series, each at a resolved placement.
             expect(Object.keys(before)).toHaveLength(3);

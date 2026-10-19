@@ -60,10 +60,7 @@ describe('PolarCrossLine', () => {
         it.each(Object.entries(examples))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
-                const options: AgPolarChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(example.options);
                 await compare(chart, ctx);
             }
         );
@@ -109,6 +106,8 @@ describe('CrossLine colour references', () => {
         restoreCssVarColorSupport = mockCssVarColorSupport(container, vars);
 
         const options = cartesianOptions([{ type: 'range', range: [1, 3], fill: 'var(--my-colour)' }]);
+        // Bespoke: the tests in this suite create the chart in their own detached container, which the CSS variable shim
+        // is bound to.
         chart = deproxy(AgCharts.create(prepareEnterpriseTestOptions(options, container)));
         await waitForChartStability(chart);
 
@@ -219,8 +218,7 @@ describe('PolarCrossLine theme overrides', () => {
                 },
             },
         };
-        chart = deproxy(AgCharts.create(prepareEnterpriseTestOptions(options)));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(options));
 
         expect(crossLineInstances(chart, 'angle').map((c) => c.stroke)).toEqual(['blue']);
         expect(crossLineInstances(chart, 'radius').map((c) => c.stroke)).toEqual(['blue', 'green']);

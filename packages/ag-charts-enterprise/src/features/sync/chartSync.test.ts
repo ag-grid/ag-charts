@@ -34,6 +34,7 @@ describe('ChartSync', () => {
         }
     };
 
+    // Bespoke: the synced charts are all created before any is awaited for stability, which the factory cannot do.
     describe('domain synchronization between charts', () => {
         beforeEach(async () => {
             charts = BAR_SHARED_Y_AXIS.map((o) => prepareEnterpriseTestOptions({ ...o })).map((o) =>

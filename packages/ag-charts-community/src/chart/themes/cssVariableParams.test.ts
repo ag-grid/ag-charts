@@ -78,6 +78,7 @@ const DARK_PALETTE_KEYS = [
  */
 const getThemeProperties = async (theme: AgCartesianChartOptions['theme'], charts: ChartOrProxy[]) => {
     const container = document.body.appendChild(document.createElement('div'));
+    // Bespoke: unprepared options with a custom container and size, which `createChart` would override.
     const chart = AgCharts.create({
         theme,
         width: 400,

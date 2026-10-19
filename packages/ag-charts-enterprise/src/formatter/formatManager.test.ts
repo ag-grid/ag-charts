@@ -1,25 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
-import {
-    expectWarningsCalls,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import { expectWarningsCalls, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart } from '../test/utils';
 
 describe('Format Manager (Enterprise)', () => {
     setupMockConsole();
 
     setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -53,8 +47,7 @@ describe('Format Manager (Enterprise)', () => {
                     series: [{ type: 'waterfall', xKey: 'category', yKey: 'value', allowNullKeys } as any],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -89,8 +82,7 @@ describe('Format Manager (Enterprise)', () => {
                     ],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -131,8 +123,7 @@ describe('Format Manager (Enterprise)', () => {
                     ],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -176,8 +167,7 @@ describe('Format Manager (Enterprise)', () => {
                     ],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -226,8 +216,7 @@ describe('Format Manager (Enterprise)', () => {
                     ],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -276,8 +265,7 @@ describe('Format Manager (Enterprise)', () => {
                     ],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -324,8 +312,7 @@ describe('Format Manager (Enterprise)', () => {
                     ],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -359,8 +346,7 @@ describe('Format Manager (Enterprise)', () => {
                     series: [{ type: 'radial-bar', radiusKey: 'category', angleKey: 'value', allowNullKeys } as any],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -394,8 +380,7 @@ describe('Format Manager (Enterprise)', () => {
                     series: [{ type: 'radial-column', angleKey: 'category', radiusKey: 'value', allowNullKeys } as any],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -428,8 +413,7 @@ describe('Format Manager (Enterprise)', () => {
                     series: [{ type: 'nightingale', angleKey: 'category', radiusKey: 'value', allowNullKeys } as any],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -462,8 +446,7 @@ describe('Format Manager (Enterprise)', () => {
                     series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'color', allowNullKeys } as any],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -496,8 +479,7 @@ describe('Format Manager (Enterprise)', () => {
                     series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value', allowNullKeys } as any],
                 };
 
-                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';

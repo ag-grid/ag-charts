@@ -2,12 +2,11 @@ import { afterEach, describe, test } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../../api/agCharts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     compareImageSnapshot,
-    prepareTestOptions,
+    createChart,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -35,7 +34,6 @@ describe('LineUtil', () => {
     describe('AG-10152', () => {
         test('markers stay visible', async () => {
             const opts: AgChartOptions = {
-                ...prepareTestOptions({}),
                 data: [
                     { quarter: 'Q1', petrol: 200, diesel: 100, electric: 50 },
                     { quarter: 'Q2', petrol: 300, diesel: 130, electric: 70 },
@@ -48,7 +46,7 @@ describe('LineUtil', () => {
                     { type: 'line', xKey: 'quarter', yKey: 'electric' },
                 ],
             };
-            chart = AgCharts.create(opts);
+            chart = await createChart(opts);
             await compare();
 
             await click({ x: 330, y: 575 });

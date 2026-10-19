@@ -42,6 +42,8 @@ describe('Gallery Examples', () => {
 
         for (const [exampleName, example] of Object.entries(ENTERPRISE_GALLERY_EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
+                // Bespoke: examples can be gauges, which are created with `AgCharts.createGauge`; the shared factories do
+                // not support that. The render test below also deliberately uses the community test preparation.
                 chart =
                     example.type === 'gauge'
                         ? AgCharts.createGauge(prepareEnterpriseTestOptions(example.options))
@@ -88,6 +90,8 @@ describe('Gallery Examples', () => {
                     options = { ...example.options };
                     prepareEnterpriseTestOptions(options as any);
 
+                    // Bespoke: the examples can be gauges, which the shared factories cannot create, and `options` is
+                    // prepared once here because the tests reuse it for `update`.
                     chart =
                         example.type === 'gauge'
                             ? AgCharts.createGauge(options as any)

@@ -433,7 +433,6 @@ describe('DonutSeries', () => {
     describe('null category key', () => {
         it('should reject null category key with warning', async () => {
             const opts: AgChartOptions = examples.DONUT_NULL_ANGLE_KEY_EXAMPLE;
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -454,7 +453,6 @@ describe('DonutSeries', () => {
 
         it('should accept null category key when allowNullKeys is true', async () => {
             const opts: AgChartOptions = examples.DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -464,7 +462,6 @@ describe('DonutSeries', () => {
 
         it('should reject undefined category key with warning', async () => {
             const opts: AgChartOptions = examples.DONUT_UNDEFINED_CATEGORY_KEY_EXAMPLE;
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -485,7 +482,6 @@ describe('DonutSeries', () => {
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
             const opts: AgChartOptions = examples.DONUT_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -495,7 +491,6 @@ describe('DonutSeries', () => {
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const opts: AgChartOptions = examples.DONUT_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -528,7 +523,6 @@ describe('DonutSeries', () => {
                     } as any,
                 ],
             };
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -555,7 +549,6 @@ describe('DonutSeries', () => {
                     } as any,
                 ],
             };
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -1079,7 +1072,7 @@ describe('DonutSeries', () => {
         let donutSeries: DonutSeries;
 
         beforeEach(async () => {
-            const transactionOptions = prepareTestOptions({
+            chartProxy = await createChart({
                 theme: {
                     palette: {
                         fills: ['red', 'green'],
@@ -1099,9 +1092,7 @@ describe('DonutSeries', () => {
                     },
                 ],
             });
-            chartProxy = AgCharts.create(transactionOptions);
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
 
             donutSeries = classCast(chart.series[0], DonutSeries);
         });
@@ -1598,6 +1589,7 @@ describe('DonutSeries', () => {
             )}`;
             const preloaded = await skiaLoadImage(icon);
 
+            // Bespoke: the image loader is stubbed between create and first render.
             chart = deproxy(
                 AgCharts.create(
                     prepareTestOptions(
@@ -1685,7 +1677,7 @@ describe('DonutSeries', () => {
                     },
                 ],
             } as AgPolarChartOptions);
-            // prepareTestOptions fixes the canvas size, so the repro's height is applied after it.
+            // Bespoke: prepareTestOptions fixes the canvas size, so the repro's height is applied after it.
             reproOptions.height = 200;
             chart = deproxy(AgCharts.create(reproOptions) as AgChartProxy);
             await waitForChartStability(chart);
@@ -1917,23 +1909,20 @@ describe('DonutSeries', () => {
         });
 
         test('tracks the data through an update', async () => {
-            const chartProxy = AgCharts.create(
-                prepareTestOptions({
-                    ...options,
-                    data,
-                    series: [
-                        {
-                            type: 'donut',
-                            angleKey: 'amount',
-                            innerRadiusRatio: 0.7,
-                            cornerRadius: 20,
-                            innerCircle: { fill: '#c9fdc9' },
-                        } as AgDonutSeriesOptions,
-                    ],
-                }) as AgChartOptions
-            ) as AgChartProxy;
+            const chartProxy = await createChart({
+                ...options,
+                data,
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        innerRadiusRatio: 0.7,
+                        cornerRadius: 20,
+                        innerCircle: { fill: '#c9fdc9' },
+                    } as AgDonutSeriesOptions,
+                ],
+            } as AgChartOptions);
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
 
             const series = classCast(chart.series[0], DonutSeries);
             expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(data.length);
@@ -2127,6 +2116,7 @@ describe('DonutSeries', () => {
             )}`;
             const preloaded = await skiaLoadImage(icon);
 
+            // Bespoke: the image loader is stubbed between create and first render.
             chart = deproxy(
                 AgCharts.create(
                     prepareTestOptions(richFillOptions({ type: 'image', url: icon })) as AgChartOptions

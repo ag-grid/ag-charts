@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { AgCharts } from 'ag-charts-community';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 
 import { ukData } from './series/map-test/ukData';
 import ukTopology from './series/map-test/ukTopology.json';
-import { prepareEnterpriseTestOptions } from './test/utils';
+import { createEnterpriseChart } from './test/utils';
 
 const FLOWS = [
     { from: 'A', to: 'C', size: 4 },
@@ -49,17 +48,13 @@ describe('updateDelta() layout keys', () => {
     // Applies `delta` to a chart built from `options`, then compares `read` of it with a chart built with `delta` already
     // in its options.
     async function expectDeltaToMatchFreshChart(options: object, delta: object, read: (chart: any) => unknown) {
-        const create = (extra: object) =>
-            deproxy(AgCharts.create(prepareEnterpriseTestOptions({ ...options, ...extra } as any)));
-        const proxy = AgCharts.create(prepareEnterpriseTestOptions(options as any));
+        const proxy = await createEnterpriseChart(options as any);
         chart = deproxy(proxy);
+
+        await proxy.updateDelta(delta);
         await waitForChartStability(chart);
 
-        await proxy.updateDelta(delta as any);
-        await waitForChartStability(chart);
-
-        fresh = create(delta);
-        await waitForChartStability(fresh);
+        fresh = deproxy(await createEnterpriseChart({ ...options, ...delta } as any));
         expect(read(chart)).toEqual(read(fresh));
         return read(chart);
     }
