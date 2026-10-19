@@ -161,7 +161,9 @@ export function formatStackedLabels<Meta>(
 
     const fontSizeCandidates = generateLabelSecondaryLabelFontSizeCandidates(labelProps, secondaryLabelProps);
     const smallest = fontSizeCandidates[0];
-    const minimumHeight = smallest.labelFontSize + smallest.secondaryLabelFontSize;
+    const minimumHeight =
+        (lineHeightAtSize(labelProps, smallest.labelFontSize) ?? smallest.labelFontSize) +
+        (lineHeightAtSize(secondaryLabelProps, smallest.secondaryLabelFontSize) ?? smallest.secondaryLabelFontSize);
 
     if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust, false).height - heightAdjust) return;
 

@@ -207,6 +207,24 @@ describe('label formatter', () => {
             expect(String(format.text).split('\n')).toHaveLength(1);
             expect(format.height).toBe(40);
         });
+
+        it('fits stacked labels whose lineHeights are below their font sizes', () => {
+            const props = {
+                enabled: true,
+                fontFamily: 'Verdana',
+                fontSize: 20,
+                minimumFontSize: 20,
+                lineHeight: 12,
+                wrapping: 'never',
+                truncate: false,
+            } as const;
+            const format = formatStackedLabels('A', props, 'B', props, { padding: 0 }, () => ({
+                width: 1000,
+                height: 30,
+                meta: undefined,
+            }));
+            expect(format?.height).toBe(24);
+        });
     });
 
     describe('formatStackedLabels', () => {
