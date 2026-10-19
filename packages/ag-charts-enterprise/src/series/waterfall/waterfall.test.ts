@@ -24,6 +24,7 @@ import {
     expectBarCentresOnCategoryGridlines,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
+    expectRedrawWithSameDataIsStable,
     expectSceneTrajectory,
     expectWarningMessages,
     expectWarningsCalls,
@@ -1706,5 +1707,52 @@ describe('WaterfallSeries category/gridline pixel alignment', () => {
         await waitForChartStability(chart);
 
         expectBarCentresOnCategoryGridlines(chart);
+    });
+});
+
+describe('WaterfallSeries redraw with identical data', () => {
+    const ctx = setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const makeData = (count: number) =>
+        Array.from({ length: count }, (_, i) => ({
+            x: `C${i}`,
+            v: i % 4 === 3 ? -(5 + (i % 9)) : 10 + ((i * 7) % 13),
+        }));
+
+    const createChart = async (count: number, dpr: number) => {
+        const options: any = prepareEnterpriseTestOptions({
+            data: makeData(count),
+            animation: { enabled: false },
+            series: [{ type: 'waterfall', xKey: 'x', yKey: 'v' }],
+            legend: { enabled: false },
+            axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+        });
+        options.overrideDevicePixelRatio = dpr;
+        options.width = 1200;
+        options.height = 600;
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        return chart;
+    };
+
+    it('changes no pixels or node geometry for non-crisp bars', async () => {
+        const count = 400;
+        const c = await createChart(count, 2);
+
+        await expectRedrawWithSameDataIsStable(c, ctx, makeData(count), { crisp: false });
+    });
+
+    it('changes no pixels for crisp bars (20 bars, dpr 2)', async () => {
+        const c = await createChart(20, 2);
+
+        await expectRedrawWithSameDataIsStable(c, ctx, makeData(20), { crisp: true });
     });
 });

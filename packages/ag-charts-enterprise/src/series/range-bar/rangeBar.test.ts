@@ -34,6 +34,7 @@ import {
     expectBarCentresRenderedOnCategoryGridlines,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
+    expectRedrawWithSameDataIsStable,
     expectSceneTrajectory,
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
@@ -2433,4 +2434,52 @@ describe('RangeBarSeries aggregated device-pixel snap', () => {
             expect(offGrid.slice(0, 5).map(([key, { x, width }]) => `${key} x=${x} width=${width}`)).toEqual([]);
         });
     }
+});
+
+describe('RangeBarSeries redraw with identical data', () => {
+    const ctx = setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const makeData = (count: number) =>
+        Array.from({ length: count }, (_, i) => ({ x: `C${i}`, lo: 10 + ((i * 7) % 13), hi: 30 + ((i * 11) % 17) }));
+
+    const createChart = async (count: number, dpr: number, extra: object = {}) => {
+        const options: any = prepareEnterpriseTestOptions({
+            data: makeData(count),
+            animation: { enabled: false },
+            series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
+            legend: { enabled: false },
+            axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            ...extra,
+        });
+        options.overrideDevicePixelRatio = dpr;
+        options.width = 1200;
+        options.height = 600;
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        return chart;
+    };
+
+    it('changes no pixels or node geometry for non-crisp bars', async () => {
+        const count = 40;
+        const c = await createChart(count, 2, {
+            zoom: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.1, end: 0.9 } } },
+        });
+
+        await expectRedrawWithSameDataIsStable(c, ctx, makeData(count), { crisp: false });
+    });
+
+    it('changes no pixels for crisp bars (20 bars, dpr 1)', async () => {
+        const c = await createChart(20, 1);
+
+        await expectRedrawWithSameDataIsStable(c, ctx, makeData(20), { crisp: true });
+    });
 });
