@@ -1,82 +1,81 @@
 import { describe, expect, it } from 'vitest';
 
-import { CallbackResultMemo, hasOnlyPlainValues } from './callbackResultMemo';
+import { CallbackResultMemo, isPlainResult } from './callbackResultMemo';
 
-describe('hasOnlyPlainValues', () => {
-    it.each([
-        [{}],
-        [{ fill: 'red' }],
-        [{ strokeWidth: 2 }],
-        [{ enabled: true }],
-        [{ fill: 'red', strokeWidth: 2, enabled: false }],
-    ])('accepts only strings, numbers and booleans: %j', (result) => {
-        expect(hasOnlyPlainValues(result)).toBe(true);
-    });
+type Cleared = { tag: string };
 
-    it.each([
-        ['a CSS variable', { fill: 'var(--cell)' }],
-        ['a CSS variable with a fallback', { stroke: 'black', fill: 'var(--cell, red)' }],
-        ['a CSS variable inside other text', { fill: 'color-mix(in srgb, var(--cell) 50%, white)' }],
-        ['a nested object', { shadow: { enabled: true } }],
-        ['a theme reference', { fill: { ref: 'accentColor' } }],
-        ['an array', { lineDash: [1, 2] }],
-        ['undefined', { fill: undefined }],
-        ['null', { fill: null }],
-        ['a function', { fill: () => 'red' }],
-        ['a bigint', { strokeWidth: 1n }],
-    ])('rejects %s', (_name, result) => {
-        expect(hasOnlyPlainValues(result)).toBe(false);
-    });
-});
+function remembered(memo: CallbackResultMemo<Cleared>, result: object, tag: string) {
+    expect(memo.recall(result)).toBeUndefined();
+    const cleared = { tag };
+    memo.remember(result, cleared);
+    return cleared;
+}
 
 describe('CallbackResultMemo', () => {
-    describe('keyFor', () => {
-        const memo = new CallbackResultMemo<object>();
+    describe('recall', () => {
+        it('returns what equal results were remembered as, and nothing for a result not remembered', () => {
+            const memo = new CallbackResultMemo<Cleared>();
+            const cleared = remembered(memo, { fill: 'red', strokeWidth: 2 }, 'a');
 
-        it('gives equal results the same key', () => {
-            expect(memo.keyFor({ fill: 'red', strokeWidth: 2 })).toBe(memo.keyFor({ fill: 'red', strokeWidth: 2 }));
+            expect(memo.recall({ fill: 'red', strokeWidth: 2 })).toBe(cleared);
+            expect(memo.recall({ fill: 'blue', strokeWidth: 2 })).toBeUndefined();
         });
 
-        it('gives a result with no properties a key, unlike an unkeyable one', () => {
-            expect(memo.keyFor({})).toBeDefined();
-            expect(memo.keyFor({})).not.toBe(memo.keyFor({ fill: 'red' }));
+        it('remembers a result with no properties apart from one with some', () => {
+            const memo = new CallbackResultMemo<Cleared>();
+            const empty = remembered(memo, {}, 'empty');
+            remembered(memo, { fill: 'red' }, 'red');
+
+            expect(memo.recall({})).toBe(empty);
         });
 
-        it('gives results that differ in a value, a property name or a property count different keys', () => {
-            const keys = [
-                memo.keyFor({ fill: 'red' }),
-                memo.keyFor({ fill: 'blue' }),
-                memo.keyFor({ stroke: 'red' }),
-                memo.keyFor({ fill: 'red', stroke: 'red' }),
-                memo.keyFor({ fill: 'red', strokeWidth: 1 }),
-                memo.keyFor({ fill: 'red', strokeWidth: 2 }),
+        it('keeps a result apart from one it is a prefix of', () => {
+            const memo = new CallbackResultMemo<Cleared>();
+            const short = remembered(memo, { fill: 'red' }, 'short');
+            const long = remembered(memo, { fill: 'red', strokeWidth: 1 }, 'long');
+
+            expect(memo.recall({ fill: 'red' })).toBe(short);
+            expect(memo.recall({ fill: 'red', strokeWidth: 1 })).toBe(long);
+        });
+
+        it('keeps results apart that differ in a value, a property name or a property count', () => {
+            const memo = new CallbackResultMemo<Cleared>();
+            const results = [
+                { fill: 'red' },
+                { fill: 'blue' },
+                { stroke: 'red' },
+                { fill: 'red', stroke: 'red' },
+                { fill: 'red', strokeWidth: 1 },
+                { fill: 'red', strokeWidth: 2 },
             ];
-            expect(keys.every((key) => key !== undefined)).toBe(true);
-            expect(new Set(keys).size).toBe(keys.length);
+            const clearedByResult = results.map((result, index) => remembered(memo, result, `${index}`));
+
+            for (const [index, result] of results.entries()) expect(memo.recall(result)).toBe(clearedByResult[index]);
         });
 
         it('keeps a string, a number and a boolean with the same text apart', () => {
-            const keys = [
-                memo.keyFor({ value: 1 }),
-                memo.keyFor({ value: '1' }),
-                memo.keyFor({ value: true }),
-                memo.keyFor({ value: 'true' }),
-                memo.keyFor({ value: false }),
-                memo.keyFor({ value: 'false' }),
-            ];
-            expect(new Set(keys).size).toBe(keys.length);
+            const memo = new CallbackResultMemo<Cleared>();
+            const results = [{ v: 1 }, { v: '1' }, { v: true }, { v: 'true' }, { v: false }, { v: 'false' }];
+            const clearedByResult = results.map((result, index) => remembered(memo, result, `${index}`));
+
+            for (const [index, result] of results.entries()) expect(memo.recall(result)).toBe(clearedByResult[index]);
         });
 
-        it('keeps two results apart when a value could be read as the boundary between properties', () => {
-            const keys = [
-                memo.keyFor({ a: 'x', b: 'y' }),
-                memo.keyFor({ a: 'x:b', b: 'y' }),
-                memo.keyFor({ a: 'x1:b1:y' }),
-                memo.keyFor({ a: 'x', b: 'y', c: '' }),
-                memo.keyFor({ a: 'x', 'b:y': '' }),
-                memo.keyFor({ a: '', b: 'xy' }),
+        it('keeps results apart however a name or value could be read as the boundary between properties', () => {
+            const memo = new CallbackResultMemo<Cleared>();
+            const results = [
+                { w: 1, 'anumber51:x': 0 },
+                { w: 11, a: 5, x: 0 },
+                { a: 'x', b: 'y' },
+                { a: 'x:b', b: 'y' },
+                { a: 'x1:b1:y' },
+                { a: 'x', b: 'y', c: '' },
+                { a: 'x', 'b:y': '' },
+                { a: '', b: 'xy' },
             ];
-            expect(new Set(keys).size).toBe(keys.length);
+            const clearedByResult = results.map((result, index) => remembered(memo, result, `${index}`));
+
+            for (const [index, result] of results.entries()) expect(memo.recall(result)).toBe(clearedByResult[index]);
         });
 
         it.each([
@@ -87,9 +86,17 @@ describe('CallbackResultMemo', () => {
             ['an undefined value', { fill: undefined }],
             ['a null value', { fill: null }],
             ['a function value', { fill: () => 'red' }],
-            ['one unkeyable value among keyable ones', { stroke: 'black', strokeWidth: 2, fill: 'var(--cell)' }],
-        ])('has no key for a result with %s', (_name, result) => {
-            expect(memo.keyFor(result)).toBeUndefined();
+            ['a bigint value', { strokeWidth: 1n }],
+            ['one unkeyable value among plain ones', { stroke: 'black', strokeWidth: 2, fill: 'var(--cell)' }],
+        ])('never finds or remembers a result with %s', (_name, result) => {
+            const memo = new CallbackResultMemo<Cleared>();
+            const cleared = { tag: 'cleared' };
+
+            expect(memo.recall(result)).toBeUndefined();
+            memo.remember(result, cleared);
+
+            expect(memo.recall(result)).toBeUndefined();
+            expect(isPlainResult(cleared)).toBe(false);
         });
 
         it.each([
@@ -99,68 +106,78 @@ describe('CallbackResultMemo', () => {
             ['a number', 3],
             ['an array', ['red']],
             ['a function', () => ({})],
-        ])('has no key when the result is %s', (_name, result) => {
-            expect(memo.keyFor(result)).toBeUndefined();
+        ])('never finds a result that is %s', (_name, result) => {
+            expect(new CallbackResultMemo<Cleared>().recall(result)).toBeUndefined();
         });
     });
 
-    describe('get and set', () => {
-        it('returns nothing for a key that was not set', () => {
-            expect(new CallbackResultMemo<object>().get('missing')).toBeUndefined();
+    describe('remember', () => {
+        it('ignores a result other than the one recall last missed on being plain', () => {
+            const memo = new CallbackResultMemo<Cleared>();
+            const cleared = { tag: 'cleared' };
+
+            memo.recall({ fill: 'var(--cell)' });
+            memo.remember({ fill: 'red' }, cleared);
+
+            expect(memo.recall({ fill: 'red' })).toBeUndefined();
         });
 
-        it('returns the stored value for each distinct key', () => {
-            const memo = new CallbackResultMemo<object>();
-            const red = { fill: 'red' };
-            const blue = { fill: 'blue' };
+        it('marks the cleared result of a plain result as plain', () => {
+            const memo = new CallbackResultMemo<Cleared>();
 
-            memo.set(memo.keyFor({ fill: 'red' })!, red);
-            memo.set(memo.keyFor({ fill: 'blue' })!, blue);
-
-            expect(memo.get(memo.keyFor({ fill: 'red' })!)).toBe(red);
-            expect(memo.get(memo.keyFor({ fill: 'blue' })!)).toBe(blue);
-            expect(memo.get(memo.keyFor({ fill: 'green' })!)).toBeUndefined();
+            expect(isPlainResult(remembered(memo, { fill: 'red' }, 'a'))).toBe(true);
+            expect(isPlainResult({ fill: 'red' })).toBe(false);
         });
+    });
 
-        describe('when the cap is reached', () => {
-            const ATTEMPTS = 10_000;
+    describe('when the cap is reached', () => {
+        const ATTEMPTS = 10_000;
 
-            function fill(memo: CallbackResultMemo<{ index: number }>) {
-                const keys = Array.from({ length: ATTEMPTS }, (_, index) => memo.keyFor({ fill: `#${index}` })!);
-                for (const [index, key] of keys.entries()) memo.set(key, { index });
-                return keys;
+        function fill(memo: CallbackResultMemo<{ index: number }>) {
+            const results = Array.from({ length: ATTEMPTS }, (_, index) => ({ fill: `#${index}` }));
+            for (const [index, result] of results.entries()) {
+                memo.recall(result);
+                memo.remember(result, { index });
             }
+            return results;
+        }
 
-            it('keeps a bounded number of entries', () => {
-                const memo = new CallbackResultMemo<{ index: number }>();
-                const keys = fill(memo);
+        it('keeps the first results and never adds the later ones, with at least 256 fits', () => {
+            const memo = new CallbackResultMemo<{ index: number }>();
+            const results = fill(memo);
 
-                const kept = keys.filter((key) => memo.get(key) !== undefined).length;
-                // Spec: a map with a size cap, so many distinct results (about 256 fills) fit, but not without limit.
-                expect(kept).toBeGreaterThanOrEqual(256);
-                expect(kept).toBeLessThan(ATTEMPTS);
-            });
+            const keptIndices = results.flatMap((result, index) => (memo.recall(result) === undefined ? [] : [index]));
+            const cap = keptIndices.length;
+            expect(cap).toBeGreaterThanOrEqual(256);
+            expect(cap).toBeLessThan(ATTEMPTS);
+            expect(keptIndices).toEqual(Array.from({ length: cap }, (_, index) => index));
+        });
 
-            it('stops adding rather than evicting, so the first entries stay and the last were never added', () => {
-                const memo = new CallbackResultMemo<{ index: number }>();
-                const keys = fill(memo);
+        it('still marks a cleared result as plain once full, though it is not remembered', () => {
+            const memo = new CallbackResultMemo<{ index: number }>();
+            const results = fill(memo);
+            const last = results[ATTEMPTS - 1];
+            const cleared = { index: -1 };
 
-                const keptIndices = keys.flatMap((key, index) => (memo.get(key) === undefined ? [] : [index]));
-                const cap = keptIndices.length;
-                expect(keptIndices).toEqual(Array.from({ length: cap }, (_, index) => index));
-                expect(memo.get(keys[ATTEMPTS - 1])).toBeUndefined();
-            });
+            memo.recall(last);
+            memo.remember(last, cleared);
 
-            it('still returns the stored values, and adds nothing new, once full', () => {
-                const memo = new CallbackResultMemo<{ index: number }>();
-                const keys = fill(memo);
+            expect(memo.recall(last)).toBeUndefined();
+            expect(isPlainResult(cleared)).toBe(true);
+        });
 
-                expect(memo.get(keys[0])).toEqual({ index: 0 });
-                memo.set(keys[ATTEMPTS - 1], { index: -2 });
+        it('takes new results again after clear', () => {
+            const memo = new CallbackResultMemo<{ index: number }>();
+            const results = fill(memo);
+            const last = results[ATTEMPTS - 1];
+            const cleared = { index: -1 };
 
-                expect(memo.get(keys[0])).toEqual({ index: 0 });
-                expect(memo.get(keys[ATTEMPTS - 1])).toBeUndefined();
-            });
+            memo.clear();
+            expect(memo.recall(results[0])).toBeUndefined();
+            memo.recall(last);
+            memo.remember(last, cleared);
+
+            expect(memo.recall(last)).toBe(cleared);
         });
     });
 });

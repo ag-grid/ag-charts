@@ -37,11 +37,12 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
-    hasOnlyPlainValues,
     isPlainObject,
+    isPlainResult,
     joinFormatted,
     measureLabelText,
     mergeDefaults,
+    resetRememberedResults,
     resolveCollideWith,
     resolveTextAlign,
     upsertNodeDatum,
@@ -429,6 +430,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
     }
 
+    /** The remembered styler results go with every full reset, so drifting results cannot fill the memo for good. */
+    override resetDatumCallbackCache(id?: unknown) {
+        super.resetDatumCallbackCache(id);
+        if (id === undefined) resetRememberedResults(this.options?.itemStyler);
+    }
+
     /** A transaction does not clear the datum callback cache, so a styler result cached for a changed datum would outlive it. */
     private resetStaleCallbackResults(
         previous: HeatmapBuildSignature | undefined,
@@ -437,6 +444,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     ) {
         if (touched != null) {
             if (this.options.itemStyler == null) return;
+            resetRememberedResults(this.options.itemStyler);
             for (const datumIndex of touched) {
                 this.resetDatumCallbackCache(itemStylerCacheKey(datumIndex, false));
                 this.resetDatumCallbackCache(itemStylerCacheKey(datumIndex, true));
@@ -840,9 +848,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return overrides ? applyOverrides(style, overrides) : style;
     }
 
-    /** A result of plain values holds no theme reference or `var()` colour, so there is nothing for the options graph to resolve. */
+    /** The options wrapper marks a result of plain values, which holds nothing for the options graph to resolve. */
     private resolveItemStylerResult(result: PlainObject | undefined): PlainObject | undefined {
-        if (result == null || hasOnlyPlainValues(result)) return result;
+        if (result == null || isPlainResult(result)) return result;
         return this.ctx.optionsGraphService.resolvePartial(['series', `${this.declarationOrder}`], result);
     }
 

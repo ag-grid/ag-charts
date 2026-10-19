@@ -892,9 +892,16 @@ export const callbackOf = (validator: Validator, description?: string) =>
         return { valid: true, cleared: cbWithValidation, invalid: [] };
     }, 'a function');
 
+const resetResultsSymbol = Symbol('resetResults');
+
+/** Forgets the results a `rememberResults` callback has remembered; any other callback is left alone. */
+export function resetRememberedResults(fn: unknown) {
+    if (isFunction(fn)) (fn as { [resetResultsSymbol]?: () => void })[resetResultsSymbol]?.();
+}
+
 /**
  * With `rememberResults`, a result of only plain values is validated once and the same cleared object is returned for
- * every equal result after it, so the caller must treat it as read-only.
+ * every equal result after it, so the caller must treat it as read-only. `resetRememberedResults` clears them.
  */
 export const callbackDefs = <T>(
     defs: OptionsDefs<T>,
@@ -913,16 +920,15 @@ export const callbackDefs = <T>(
                 const result = safeCall(value, args, context.params.logger, context.path);
                 if (result == null) return;
 
-                const memoKey = memo?.keyFor(result);
-                const remembered = memoKey == null ? undefined : memo?.get(memoKey);
+                const remembered = memo?.recall(result);
                 if (remembered !== undefined) return remembered;
 
                 const validatorResult = validate(result, defs, context.path, context.params);
                 warnCallbackErrors(validatorResult, context, validatorDescription);
-                if (memoKey != null && validatorResult.cleared != null) memo?.set(memoKey, validatorResult.cleared);
+                if (validatorResult.cleared != null) memo?.remember(result, validatorResult.cleared);
                 return validatorResult.cleared;
             },
-            { [markedSymbol]: true }
+            { [markedSymbol]: true, [resetResultsSymbol]: () => memo?.clear() }
         );
 
         return { valid: true, cleared: cbWithValidation, invalid: [] };

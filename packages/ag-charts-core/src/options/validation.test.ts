@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 
 import { Logger, reset as resetLogger } from '../logging/logger';
 import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
+import { isPlainResult } from './callbackResultMemo';
 import { textOrSegments } from './chartDefaults';
 import { colorOrRef, colorOrRefNoOperator, fontFamilyFull, fontFamilyNoOperator, padding } from './optionsDefaults';
 import {
@@ -38,6 +39,7 @@ import {
     partial,
     positiveNumber,
     ratio,
+    resetRememberedResults,
     required,
     string,
     typeUnion,
@@ -1002,6 +1004,57 @@ describe('Validation utils', () => {
 
             shouldThrow = false;
             expect(call()).toEqual({ strokeWidth: 2 });
+        });
+
+        test('marks the cleared result of a plain result as plain, and no other', () => {
+            const plain = wrap(() => ({ strokeWidth: 2 }), true).call();
+            const cssVariable = wrap(() => ({ fill: 'var(--cell)' }), true).call();
+
+            expect(isPlainResult(plain!)).toBe(true);
+            expect(isPlainResult(cssVariable!)).toBe(false);
+        });
+
+        test('validates a remembered result again after the results are reset', () => {
+            const { call, validations } = wrap(() => ({ strokeWidth: 2 }), true);
+
+            const first = call();
+            const afterFirst = validations();
+            resetRememberedResults(call);
+            const second = call();
+
+            expect(second).toEqual(first);
+            expect(second).not.toBe(first);
+            expect(validations()).toBe(afterFirst * 2);
+        });
+
+        test('remembers again after results that drift past the cap are reset between updates', () => {
+            let width = 0;
+            const { call, validations } = wrap(() => ({ strokeWidth: width++ }), true);
+
+            for (let update = 0; update < 3; update++) {
+                resetRememberedResults(call);
+                const first = update * 10_000;
+                width = first;
+                for (let cell = 0; cell < 2_000; cell++) call();
+                const settled = validations();
+
+                width = first;
+                const hits = Array.from({ length: 256 }, call);
+                expect(validations()).toBe(settled);
+                expect(hits.every((hit) => hit != null)).toBe(true);
+            }
+        });
+
+        test('ignores a reset of a callback that remembers nothing', () => {
+            const { call, validations } = wrap(() => ({ strokeWidth: 2 }), false);
+
+            call();
+            const afterFirst = validations();
+            resetRememberedResults(call);
+            resetRememberedResults(undefined);
+            call();
+
+            expect(validations()).toBe(afterFirst * 2);
         });
 
         test('keeps each wrapped callback’s memory separate', () => {
