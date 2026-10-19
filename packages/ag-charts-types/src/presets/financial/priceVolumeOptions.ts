@@ -190,12 +190,17 @@ export interface AgVolumeProfileTotalSegmentOptions extends Toggleable {
      * Default: `60`
      */
     minWidth?: PixelSize;
+    /** The space between the segment and the up and down bars, in pixels. The series area shrinks to make room for it.
+     *
+     * Default: `2`
+     */
+    gap?: PixelSize;
     /** The label showing each level's total volume. Text too wide for the segment is truncated. */
     label?: AgVolumeProfileTotalSegmentLabelOptions;
 }
 
 export interface AgVolumeProfileTotalSegmentLabelOptions extends Toggleable, TextOptions {
-    /** A function that converts a level's total volume into the text to display. Without one, the value is abbreviated with a suffix, such as `1.2K` or `3.4M`. */
+    /** A function that converts a level's total volume into the text to display. Without one, the value is abbreviated with a suffix and shown to one decimal place, such as `1.2K` or `3.0M`. */
     formatter?: (params: AgVolumeProfileTotalSegmentLabelFormatterParams) => string;
 }
 

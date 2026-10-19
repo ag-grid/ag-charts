@@ -321,7 +321,7 @@ describe('priceVolumePreset', () => {
                     expect(blocks.length).toBeGreaterThan(0);
                     expect(new Set(blocks.map((block) => block.width))).toEqual(new Set([50]));
                     expect(totalSegmentLabels(chart).length).toBeGreaterThan(0);
-                    expect(widthWithout - deproxy(chart).seriesRect!.width).toBe(50);
+                    expect(widthWithout - deproxy(chart).seriesRect!.width).toBe(50 + 2); // the width and the default gap
 
                     await chart.updateDelta({ volumeProfile: { totalSegment: { enabled: false } } });
                     await waitForChartStability(chart);
@@ -329,6 +329,23 @@ describe('priceVolumePreset', () => {
                     expect(deproxy(chart).seriesRect!.width).toBe(widthWithout);
                 }
             );
+
+            it.each([
+                ['left', 'right'],
+                ['right', 'left'],
+            ] as const)('should align the labels of placement %s to the %s', async (placement, textAlign) => {
+                chart = AgCharts.createFinancialChart(
+                    prepareFinancialTestOptions({
+                        data: getStockData(),
+                        volumeProfile: { ...volumeProfile, placement, totalSegment: { enabled: true } },
+                    })
+                );
+                await waitForChartStability(chart);
+
+                const labels = totalSegmentLabels(chart);
+                expect(labels.length).toBeGreaterThan(0);
+                expect(new Set(labels.map((label) => label.textAlign))).toEqual(new Set([textAlign]));
+            });
 
             it('should only draw blocks for the levels in a zoomed range', async () => {
                 const create = async (initialState?: AgFinancialChartOptions['initialState']) => {

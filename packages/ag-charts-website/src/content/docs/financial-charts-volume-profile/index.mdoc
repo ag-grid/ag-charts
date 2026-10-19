@@ -30,8 +30,9 @@ Set `totalSegment.enabled` to show a column between the price axis and the bars,
 
 In this example:
 
-- Totals are abbreviated with a suffix, such as `1.2K` or `3.4M`. Supply a `label.formatter` to show them differently.
+- Totals are abbreviated with a suffix and always shown to one decimal place, such as `1.2K`, `3.0M` or `45.0M`, and are aligned towards the bars. Supply a `label.formatter` to show them differently.
 - The column is as wide as its widest label, but never narrower than `minWidth` (60 pixels by default). Set `width` to fix the width instead, in which case labels that do not fit are shortened.
+- A `gap` of 2 pixels separates the column from the bars. Set `gap` to change it.
 - Price levels with no volume have no block, and labels are hidden when the price levels are too close together to read.
 
 ## Hovering Price Levels

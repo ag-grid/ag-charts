@@ -496,6 +496,7 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
             position: union('left', 'right', 'top', 'bottom'),
             width: positiveNumber,
             minWidth: positiveNumber,
+            gap: positiveNumber,
             fill: colorOrRef,
             fillOpacity: ratio,
             categoryKey: string,
