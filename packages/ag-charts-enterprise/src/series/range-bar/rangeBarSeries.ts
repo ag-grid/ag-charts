@@ -284,6 +284,16 @@ function bakeFirstCandidate(
     labelDatum.candidates = candidates;
 }
 
+/** The options that only change how a range bar is painted: not where it is, nor its size, labels or corners. */
+const RANGE_BAR_STYLE_OPTION_KEYS: ReadonlySet<string> = new Set([
+    'fill',
+    'fillOpacity',
+    'stroke',
+    'strokeOpacity',
+    'lineDash',
+    'lineDashOffset',
+]);
+
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSeriesTypes> {
     static override readonly className = 'RangeBarSeries';
     static readonly type = 'range-bar' as const;
@@ -319,6 +329,21 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 label: resetLabelFn,
             },
         });
+    }
+
+    protected override canKeepNodeDataForUnchangedData() {
+        return true;
+    }
+
+    protected override isStyleOnlyChange(optionsDiff: object) {
+        return Object.keys(optionsDiff).every((key) => RANGE_BAR_STYLE_OPTION_KEYS.has(key));
+    }
+
+    protected override refreshNodeDataStyles() {
+        const { contextNodeData } = this;
+        if (contextNodeData) {
+            contextNodeData.styles = getItemStyles(this.getItemStyle.bind(this));
+        }
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {

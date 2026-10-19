@@ -565,7 +565,21 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         visible: boolean,
         crisp: boolean,
         fillShadow: NormalisedDropShadowOptions | undefined
-    ): void {
+    ): boolean {
+        // Only what shapes the path needs it rebuilt, and nothing needs the scene redrawn when nothing changed.
+        const pathChanged =
+            this.__topLeftCornerRadius !== topLeftCornerRadius ||
+            this.__topRightCornerRadius !== topRightCornerRadius ||
+            this.__bottomRightCornerRadius !== bottomRightCornerRadius ||
+            this.__bottomLeftCornerRadius !== bottomLeftCornerRadius ||
+            this.__crisp !== crisp;
+        const changed =
+            pathChanged ||
+            this.__drawingMode !== drawingMode ||
+            this.__visible !== visible ||
+            this.__fillShadow !== fillShadow;
+        if (!changed) return false;
+
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__drawingMode = drawingMode;
         this.__topLeftCornerRadius = topLeftCornerRadius;
@@ -576,11 +590,13 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         this.__crisp = crisp;
         this.__fillShadow = fillShadow;
 
-        // Mark path as dirty since corner radii, crisp, direction, and featherRatio affect path
-        this.dirtyPath = true;
+        if (pathChanged) {
+            this.dirtyPath = true;
+        }
 
         // Single dirty notification for the batch
         this.markDirty();
+        return true;
     }
 
     /**
@@ -601,6 +617,21 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         opacity: number,
         clipBBox: BBox | undefined
     ): void {
+        // A rect left where it was needs neither its path rebuilt nor the scene redrawn.
+        const sameClip =
+            this.__clipBBox === clipBBox ||
+            (this.__clipBBox != null && clipBBox != null && this.__clipBBox.equals(clipBBox));
+        if (
+            sameClip &&
+            this.__x === x &&
+            this.__y === y &&
+            this.__width === width &&
+            this.__height === height &&
+            this.__opacity === opacity
+        ) {
+            return;
+        }
+
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__x = x;
         this.__y = y;

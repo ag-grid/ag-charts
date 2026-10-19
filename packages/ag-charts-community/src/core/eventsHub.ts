@@ -65,7 +65,8 @@ export interface ProcessDataEvent {
 }
 
 export interface UpdateOpts {
-    forceNodeDataRefresh?: boolean;
+    /** `'data'` says new data is the only reason, so a series may withdraw the rebuild if its data is unchanged. */
+    forceNodeDataRefresh?: boolean | 'data';
     skipAnimations?: boolean;
     newAnimationBatch?: boolean;
     seriesToUpdate?: Iterable<ISeries<any, any, any>>;

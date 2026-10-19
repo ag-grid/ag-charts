@@ -39,14 +39,19 @@ export class BarShape<D = any> extends Rect<D> {
         direction?: 'x' | 'y',
         featherRatio?: number,
         crispCentreDirection?: 'x' | 'y'
-    ): void {
+    ): boolean {
+        const ownChanged =
+            this.__direction !== (direction ?? 'x') ||
+            this.__featherRatio !== (featherRatio ?? 0) ||
+            this.__crispCentreDirection !== crispCentreDirection;
+
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__direction = direction ?? 'x';
         this.__featherRatio = featherRatio ?? 0;
         // Must be set before animation: barUtil's settle-snap avoidance reads it.
         this.__crispCentreDirection = crispCentreDirection;
 
-        super.setStaticProperties(
+        const changed = super.setStaticProperties(
             drawingMode,
             topLeftCornerRadius,
             topRightCornerRadius,
@@ -56,6 +61,14 @@ export class BarShape<D = any> extends Rect<D> {
             crisp,
             fillShadow
         );
+        if (ownChanged) {
+            // All three shape the path.
+            this.dirtyPath = true;
+            if (!changed) {
+                this.markDirty();
+            }
+        }
+        return changed || ownChanged;
     }
 
     private get feathered() {
