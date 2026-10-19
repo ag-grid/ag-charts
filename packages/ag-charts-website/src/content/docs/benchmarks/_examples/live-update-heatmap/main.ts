@@ -223,6 +223,11 @@ function getBenchmarkConfig(): BenchmarkConfig {
     };
 }
 
+// Spike flag: `#batched-cells=true` (or `?batched-cells=true`) paints the heatmap cells from one batched scene node.
+if (/batched-cells=true/.test(window.location.hash + window.location.search)) {
+    Object.assign(window, { agChartsBatchedHeatmapCells: true });
+}
+
 if (!window.location.hash.includes('e2e=true')) {
     initBenchmark(getBenchmarkConfig());
 }

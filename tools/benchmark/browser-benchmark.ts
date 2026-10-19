@@ -117,6 +117,11 @@ async function main() {
                 'Forwarded to the in-page harness via ?testCases=... — only IDs that exist in a given ' +
                 "example's getBenchmarkConfig() are executed; unmatched IDs are reported as warnings.",
         })
+        .option('query', {
+            type: 'string',
+            default: '',
+            describe: 'Extra query string appended to every example URL, e.g. "batched-cells=true"',
+        })
         .option('timeout', {
             type: 'number',
             default: 300_000,
@@ -203,7 +208,9 @@ async function main() {
 
     const overallStart = Date.now();
 
-    const testCasesQuery = argv['test-cases'] ? `&testCases=${encodeURIComponent(argv['test-cases'])}` : '';
+    const testCasesQuery =
+        (argv['test-cases'] ? `&testCases=${encodeURIComponent(argv['test-cases'])}` : '') +
+        (argv.query ? `&${argv.query}` : '');
 
     for (const name of exampleNames) {
         const url = `${argv['base-url']}/vanilla/benchmarks/examples/${name}?benchmark=true${testCasesQuery}`;
