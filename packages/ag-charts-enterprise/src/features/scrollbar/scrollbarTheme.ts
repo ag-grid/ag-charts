@@ -125,7 +125,11 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
                     { $path: '../strokeWidth' },
                     themeBorderWidth('scrollbarThumbHoverBorder', {
                         on: {
-                            $if: [{ $greaterThan: [{ $path: '../strokeWidth' }, 0] }, { $path: '../strokeWidth' }, 1],
+                            $if: [
+                                { $greaterThan: [{ $path: '../strokeWidth' }, 0] },
+                                { $path: '../strokeWidth' },
+                                { $ref: 'borderWidth' },
+                            ],
                         },
                         unset: { $path: '../strokeWidth' },
                     }),

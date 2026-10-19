@@ -961,6 +961,20 @@ describe('Scrollbar border theme params', () => {
         await compareImageSnapshot(chartRef.current, ctx);
     });
 
+    it('follows borderWidth for a true hover border on a thumb without a border', async () => {
+        chartRef.current = await createEnterpriseChart(
+            chartOptions({
+                borderColor: 'red',
+                borderWidth: 4,
+                scrollbarThickness: 30,
+                scrollbarThumbBorder: false,
+                scrollbarThumbHoverBorder: true,
+            })
+        );
+        hoverHorizontalThumb();
+        await compareImageSnapshot(chartRef.current, ctx);
+    });
+
     it('uses no width for a false border', async () => {
         const { track, thumb } = await create({
             ...BASE,
