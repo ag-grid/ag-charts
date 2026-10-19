@@ -1005,7 +1005,12 @@ describe('NightingaleSeries', () => {
 
         const missingValueOptions = (missingValue: 'absent' | null): AgChartOptions => ({
             data: QUARTERS.map((quarter, index) => {
-                const row: Record<string, unknown> = { quarter, iphone: 140 + index, mac: 16 + index, ipad: 14 + index };
+                const row: Record<string, unknown> = {
+                    quarter,
+                    iphone: 140 + index,
+                    mac: 16 + index,
+                    ipad: 14 + index,
+                };
                 if (index === MISSING_INDEX) {
                     if (missingValue === 'absent') {
                         delete row.ipad;

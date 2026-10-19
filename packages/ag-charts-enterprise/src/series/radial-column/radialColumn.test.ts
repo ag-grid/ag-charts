@@ -1442,7 +1442,12 @@ describe('RadialColumnSeries', () => {
             stacked = false
         ): AgChartOptions => ({
             data: QUARTERS.map((quarter, index) => {
-                const row: Record<string, unknown> = { quarter, iphone: 140 + index, mac: 16 + index, ipad: 14 + index };
+                const row: Record<string, unknown> = {
+                    quarter,
+                    iphone: 140 + index,
+                    mac: 16 + index,
+                    ipad: 14 + index,
+                };
                 if (index === missingIndex) {
                     if (missingValue === 'absent') {
                         delete row.ipad;
