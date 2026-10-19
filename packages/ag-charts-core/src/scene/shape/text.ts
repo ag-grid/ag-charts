@@ -527,13 +527,9 @@ export class Text<D = unknown> extends Shape<D> {
         height: number,
         lineMetrics: ReturnType<typeof measureTextSegments>['lineMetrics']
     ) {
-        if (this.lineHeight == null && !lineMetrics.some((line) => Text.hasSegmentLineHeight(line))) return;
+        if (!lineMetrics.some((line) => line.lineHeight != null)) return;
         bbox.y = this.textBaseline === 'middle' ? this.y - height / 2 : rowsTop;
         bbox.height = height;
-    }
-
-    private static hasSegmentLineHeight(line: ReturnType<typeof measureTextSegments>['lineMetrics'][number]) {
-        return line.segments.some((segment) => segment.type !== 'image' && segment.lineHeight != null);
     }
 
     private static findFirstTextSegment(

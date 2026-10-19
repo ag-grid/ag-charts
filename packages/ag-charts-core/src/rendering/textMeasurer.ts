@@ -377,6 +377,7 @@ export function measureTextSegments(
             // Extra space goes to descent so the baseline-anchored renderer spaces following lines by the override.
             line.descent = lineHeight - line.ascent;
             line.height = lineHeight;
+            line.lineHeight = lineHeight;
         }
         line.textAscent = line.ascent;
         line.textDescent = line.descent;

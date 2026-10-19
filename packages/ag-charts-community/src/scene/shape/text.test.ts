@@ -1017,18 +1017,23 @@ describe('Text', () => {
         describe('rich text', () => {
             const mockScene = setUpMockScene(canvasCtx);
 
+            const inherited = (text: string) => [[{ text }], 36] as const;
             it.each([
-                ['A', 'top'],
-                ['A\nB', 'top'],
-                ['A', 'middle'],
-                ['A\nB', 'middle'],
-            ] as const)('reports the measured bounds of %j at a %s baseline', (text, textBaseline) => {
-                const font = { fontSize: 12, fontFamily: 'Verdana', lineHeight: 36 };
-                const node = Object.assign(new Text(), font, { text: [{ text }], textBaseline });
-                node.setScene(mockScene);
-                const { y, height } = Text.measureBBox([{ text }], 0, 0, { font, textBaseline });
-                expect(node.getBBox()).toMatchObject({ y, height });
-            });
+                [...inherited('A'), 'top'],
+                [...inherited('A\nB'), 'top'],
+                [...inherited('A'), 'middle'],
+                [...inherited('A\nB'), 'middle'],
+                [[{ text: 'A' }, { text: '\n\n', lineHeight: 40 }], undefined, 'top'],
+            ] as const)(
+                'reports the measured bounds of %j with lineHeight %s at a %s baseline',
+                (text, lineHeight, textBaseline) => {
+                    const font = { fontSize: 12, fontFamily: 'Verdana', lineHeight };
+                    const node = Object.assign(new Text(), font, { text: [...text], textBaseline });
+                    node.setScene(mockScene);
+                    const { y, height } = Text.measureBBox([...text], 0, 0, { font, textBaseline });
+                    expect(node.getBBox()).toMatchObject({ y, height });
+                }
+            );
 
             it.each(['top', 'middle'] as const)(
                 'fills its box to the measured rows at a %s baseline',
