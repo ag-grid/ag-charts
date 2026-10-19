@@ -1428,6 +1428,11 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             totalHeight += height;
             startRow(segments, height);
             result.push(...segments);
+            if (segments.length === 0 && height > 0) {
+                // Carries the empty line's height; the next line break lands on it.
+                const measurer = cachedTextMeasurer(options.font);
+                result.push({ ...options.font, text: '', lineHeight: height, textMetrics: measurer.measureText('') });
+            }
             continue;
         }
 

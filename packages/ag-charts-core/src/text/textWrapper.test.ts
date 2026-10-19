@@ -982,6 +982,17 @@ describe('measureTextSegments — lineHeight', () => {
         expect(measureTextSegments([text('A\n\nB')], font).height).toBe(120);
     });
 
+    it("keeps an empty line's own lineHeight through fitting", () => {
+        const segments = [text('A', { lineHeight: 40 }), text('\n\nB', { lineHeight: 10 })];
+        expect(measureTextSegments(segments, baseFont).height).toBe(60);
+        const fitted = fitLabelText(
+            segments,
+            { maxWidth: 100, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            baseFont
+        ) as MeasuredSegment[];
+        expect(measureTextSegments(fitted, baseFont).height).toBe(60);
+    });
+
     it('wraps a segment to the height of its inherited lineHeight', () => {
         const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
         const fitted = fitLabelText(

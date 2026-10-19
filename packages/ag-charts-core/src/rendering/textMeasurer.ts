@@ -357,7 +357,8 @@ export function measureTextSegments(
                 }
                 currentLine.segments.push({ ...font, ...rest, lineHeight, text: textLine, textMetrics });
                 currentLineUncommitted = false;
-            } else if (lineHeight != null) {
+            } else if (lineHeight != null && (j < textLines.length - 1 || i === textSegments.length - 1)) {
+                // An empty line takes its height from the segment whose line break ends it.
                 const index = lineMetrics.length - 1;
                 blankLineHeights[index] = Math.max(blankLineHeights[index] ?? 0, lineHeight);
             }
