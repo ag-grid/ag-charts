@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-import type { ContentSegment, ImageSegment, TextSegment } from 'ag-charts-types';
+import type { ContentSegment, ImageSegment, TextSegment, TextWrap } from 'ag-charts-types';
 
 import type { FitRegion } from '../geometry/fitRegion';
 import { measureTextSegments } from '../rendering/textMeasurer';
@@ -104,6 +104,16 @@ function hasOrphanedCombiningMark(str: string): boolean {
         }
     }
     return false;
+}
+
+// mulberry32: a reproducible sequence in [0, 1) per seed, so a failing generated case can be replayed.
+function seededRandom(seed: number) {
+    return () => {
+        seed = Math.trunc(seed + 0x6d2b79f5) % 2 ** 32;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
 }
 
 const E = EllipsisChar; // shorthand for assertions
@@ -1005,76 +1015,114 @@ describe('measureTextSegments — lineHeight', () => {
         expect(height).toBe(40);
     });
 
-    it('budgets the first wrapped row by the taller segment already on it', () => {
-        const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
-        const fitted = fitLabelText(
-            [text('A ', { fontSize: 30 }), text('BBB CCC DDD', { fontSize: 10 })],
-            { maxWidth: 60, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
-            font
-        ) as MeasuredSegment[];
-        expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
-    });
-
-    it('budgets a row by the baseline extents of an inline image and its text', () => {
-        const font = { ...baseFont, fontSize: 10, lineHeight: 30 };
-        const fitted = fitLabelText(
-            [text('A '), { type: 'image', src: 'x', width: 20, height: 30 } as ImageSegment, text('C DD EE')],
-            { maxWidth: 60, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
-            font
-        ) as MeasuredSegment[];
-        expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
-    });
-
-    it.each([
-        ['checks wrapped rows against the region band below a taller shared row', 'BB CC DD EE FF'],
-        ['admits a segment onto a taller row only where the row band has room', 'BB CC'],
-    ])('%s', (_name, tail) => {
-        const font = { ...baseFont, fontSize: 10, lineHeight: 30 };
-        const widthAt = (bottom: number) => Math.max(10, 80 - bottom * 0.4);
-        const region: FitRegion = {
-            spanAt: (_top, bottom) => [-widthAt(bottom) / 2, widthAt(bottom) / 2],
-            extentAbove: 0,
-            extentBelow: 180,
-        };
-        const fitted = fitLabelText(
-            [text('A', { fontSize: 20 }), text(tail)],
-            { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' },
-            font
-        ) as MeasuredSegment[];
-        let top = 0;
-        for (const line of measureTextSegments(fitted, font).lineMetrics) {
-            expect(line.width).toBeLessThanOrEqual(widthAt(top + line.height));
-            top += line.height;
+    describe('fits the lines as the renderer measures them', () => {
+        interface Bounds {
+            maxWidth: number;
+            maxHeight: number;
+            /** Width lost per pixel down the block, bounding the label by a shape rather than a box. */
+            narrowing?: number;
+            wrapping?: TextWrap;
         }
-    });
 
-    it('clips a wrapped segment against the region band of the rows it lands on', () => {
-        const widthAt = (bottom: number) => Math.max(10, 60 - bottom * 0.4);
-        const region: FitRegion = {
-            spanAt: (_top, bottom) => [-widthAt(bottom) / 2, widthAt(bottom) / 2],
-            extentAbove: 0,
-            extentBelow: 60,
-        };
-        const fitted = fitLabelText(
-            [text('A ', { lineHeight: 40 }), text('BBB CCC DDD', { lineHeight: 10 })],
-            { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' },
-            baseFont
-        ) as MeasuredSegment[];
-        let top = 0;
-        for (const line of measureTextSegments(fitted, baseFont).lineMetrics) {
-            expect(line.width).toBeLessThanOrEqual(widthAt(top + line.height));
-            top += line.height;
+        function expectMeasuredFit(segments: ContentSegment[], font: FontOptions, bounds: Bounds, message?: string) {
+            const { maxWidth, maxHeight, narrowing = 0, wrapping = 'on-space' } = bounds;
+            const widthAt = (bottom: number) => Math.max(0, maxWidth - bottom * narrowing);
+            const region: FitRegion | undefined =
+                narrowing === 0
+                    ? undefined
+                    : {
+                          spanAt: (_top, bottom) => [-widthAt(bottom) / 2, widthAt(bottom) / 2],
+                          extentAbove: 0,
+                          extentBelow: maxHeight,
+                      };
+            const fitted = fitLabelText(
+                segments,
+                { maxWidth, maxHeight, region, regionAlign: 'start', wrapping, overflowStrategy: 'ellipsis' },
+                font
+            ) as MeasuredSegment[];
+            let bottom = 0;
+            for (const line of measureTextSegments(fitted, font).lineMetrics) {
+                bottom += line.height;
+                expect(line.width, message).toBeLessThanOrEqual(widthAt(bottom));
+            }
+            expect(bottom, message).toBeLessThanOrEqual(maxHeight);
         }
-    });
 
-    it('budgets a wrapped row by a taller segment that follows it', () => {
-        const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
-        const fitted = fitLabelText(
-            [text('AAA BBB'), text('C', { fontSize: 30 }), text('\nD')],
-            { maxWidth: 60, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
-            font
-        ) as MeasuredSegment[];
-        expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
+        const font10 = (lineHeight: number) => ({ ...baseFont, fontSize: 10, lineHeight });
+
+        it.each<[string, ContentSegment[], FontOptions, Bounds]>([
+            [
+                'a row shared with a taller segment',
+                [text('A ', { fontSize: 30 }), text('BBB CCC DDD', { fontSize: 10 })],
+                font10(20),
+                { maxWidth: 60, maxHeight: 60 },
+            ],
+            [
+                'a row followed by a taller segment',
+                [text('AAA BBB'), text('C', { fontSize: 30 }), text('\nD')],
+                font10(20),
+                { maxWidth: 60, maxHeight: 60 },
+            ],
+            [
+                'a row with an inline image',
+                [text('A '), image('icon', { width: 20 }), text('C DD EE')],
+                font10(30),
+                { maxWidth: 60, maxHeight: 60 },
+            ],
+            [
+                'a row open before a segment wraps',
+                [text('A '), text('BBB CCC')],
+                baseFont,
+                { maxWidth: 40, maxHeight: 40 },
+            ],
+            [
+                'wrapped rows below a taller shared row',
+                [text('A', { fontSize: 20 }), text('BB CC DD EE FF')],
+                font10(30),
+                { maxWidth: 80, maxHeight: 180, narrowing: 0.4 },
+            ],
+            [
+                'a segment joining a taller row',
+                [text('A', { fontSize: 20 }), text('BB CC')],
+                font10(30),
+                { maxWidth: 80, maxHeight: 180, narrowing: 0.4 },
+            ],
+            [
+                'a wrapped segment under a taller row',
+                [text('A ', { lineHeight: 40 }), text('BBB CCC DDD', { lineHeight: 10 })],
+                baseFont,
+                { maxWidth: 60, maxHeight: 60, narrowing: 0.4 },
+            ],
+            [
+                'an ellipsis after the rest of its row',
+                [text('AAA BBB', { lineHeight: 20 }), text('A', { lineHeight: 20 }), text('A', { lineHeight: 40 })],
+                baseFont,
+                { maxWidth: 50, maxHeight: 40, narrowing: 0.25 },
+            ],
+        ])('%s', (_name, segments, font, bounds) => expectMeasuredFit(segments, font, bounds));
+
+        it('for generated segments, line heights, bounds and wrapping modes', () => {
+            const wrappings: TextWrap[] = ['on-space', 'always', 'hyphenate', 'never'];
+            for (let seed = 1; seed <= 200; seed++) {
+                const random = seededRandom(seed);
+                const pick = <T>(values: readonly T[]) => values[Math.floor(random() * values.length)];
+                const word = () => 'A'.repeat(1 + Math.floor(random() * 5));
+                const segments = Array.from({ length: 1 + Math.floor(random() * 4) }, () =>
+                    text(pick(['', ' ', '\n']) + [word(), word(), word()].join(pick([' ', ' ', '\n', '\n\n'])), {
+                        fontSize: pick([10, 14, 30]),
+                        lineHeight: pick([undefined, 8, 16, 40]),
+                    })
+                );
+                const font = { ...baseFont, lineHeight: pick([undefined, 20]) };
+                const bounds = {
+                    maxWidth: 20 + Math.floor(random() * 100),
+                    maxHeight: 15 + Math.floor(random() * 120),
+                    narrowing: pick([0, 0.25, 0.6]),
+                    wrapping: pick(wrappings),
+                };
+                expectMeasuredFit(segments, font, bounds, `seed ${seed}`);
+            }
+        });
     });
 
     describe('without a lineHeight', () => {
@@ -1091,11 +1139,6 @@ describe('measureTextSegments — lineHeight', () => {
                 EllipsisChar
             );
             expect(measureTextSegments(fitted, baseFont).lineMetrics).toHaveLength(3);
-        });
-
-        it('counts the open row before a segment wraps below it', () => {
-            const fitted = fit([text('A '), text('BBB CCC')], 40, 2 * LINE_HEIGHT);
-            expect(measureTextSegments(fitted, baseFont).height).toBeLessThanOrEqual(2 * LINE_HEIGHT);
         });
 
         it('truncates a segment that overflows an empty row without adding a blank row', () => {
