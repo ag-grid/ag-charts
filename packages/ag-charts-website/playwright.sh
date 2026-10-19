@@ -133,7 +133,7 @@ e2e_host=e2e.ag-grid.com
 export PUBLIC_SITE_URL=http://${e2e_host}:${astro_port}
 EXTRA_DOCKER_ARGS="--add-host=${e2e_host}:host-gateway"
 if [ "${CI:-}" == "" ] ; then
-    EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS} -p 8080:8080 -p 9323:9323"
+    EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS} -p 9323:9323"
 fi
 
 # Pre-start mode, used by CI so the dev server's boot and first-request compile
@@ -169,6 +169,17 @@ if [ "$1" == "--host" ] ; then
     docker stop ${existingContainers}
   fi
 
+  # Port 8080 serves Playwright's UI mode (--ui-port=8080). Publish it only when
+  # it is free, and never kill its holder: that can be another service's port
+  # forwarder (e.g. Colima's SSH master), and killing it drops every forward.
+  if [ "${CI:-}" == "" ] ; then
+    if lsof -nP -iTCP:8080 -sTCP:LISTEN >/dev/null ; then
+      echo "Port 8080 is in use; not publishing it, so --ui-port=8080 is unavailable."
+    else
+      EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS} -p 8080:8080"
+    fi
+  fi
+
   # Matching the command line, not just liveness: a stale PID file left by an
   # interrupted run would otherwise adopt whatever process inherited that PID.
   reuse_astro=no
@@ -194,14 +205,8 @@ if [ "$1" == "--host" ] ; then
         sleep 3
       fi
 
-      if (lsof -i :8080 >/dev/null) ; then
-        echo "Port 8080 already in use, killing..."
-        lsof -i :8080 | awk 'NR>1 {print $2}' | xargs kill -9
-        sleep 3
-      fi
-
-      if (lsof -i :4601 >/dev/null || lsof -i :8080 >/dev/null) ; then
-        echo "Ports 4601 and 8080 already in use, unable to start Playwright tests."
+      if (lsof -i :4601 >/dev/null) ; then
+        echo "Port 4601 already in use, unable to start Playwright tests."
       fi
     fi
 
