@@ -334,16 +334,6 @@ interface BarSeriesTypes {
 
 type BarAnimationData = AbstractBarSeriesAnimationData<BarSeriesTypes>;
 
-/** The options that only change how a bar is painted: not where it is, nor its size, labels or corners. */
-const BAR_STYLE_OPTION_KEYS: ReadonlySet<string> = new Set([
-    'fill',
-    'fillOpacity',
-    'stroke',
-    'strokeOpacity',
-    'lineDash',
-    'lineDashOffset',
-]);
-
 export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     static override readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
@@ -406,19 +396,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.phantomHighlightGroup.opacity = 0.2;
     }
 
-    protected override canKeepNodeDataForUnchangedData() {
-        return true;
-    }
+    protected override readonly keepsNodeDataForUnchangedData = true;
 
-    protected override isStyleOnlyChange(optionsDiff: object) {
-        return Object.keys(optionsDiff).every((key) => BAR_STYLE_OPTION_KEYS.has(key));
-    }
-
-    protected override refreshNodeDataStyles() {
-        const { contextNodeData } = this;
-        if (contextNodeData) {
-            contextNodeData.styles = getItemStyles(this.getItemStyle.bind(this));
-        }
+    protected override buildItemStyles() {
+        return getItemStyles(this.getItemStyle.bind(this));
     }
 
     override async processData(dataController: DataController) {
@@ -1570,7 +1551,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             scales: this.calculateScaling(),
             visible: this.visible || ctx.animationEnabled,
             groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
-            styles: getItemStyles(this.getItemStyle.bind(this)),
+            styles: this.buildItemStyles(),
             segments: undefined,
         };
     }

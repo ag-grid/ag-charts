@@ -88,26 +88,8 @@ export abstract class DataModelSeries<
             .flat();
     }
 
-    /**
-     * Whether the node data this series built from its previous data still stands when the new data processes to the
-     * same values. True only of a series whose node data depends on nothing but its processed data, options and size.
-     */
-    protected canKeepNodeDataForUnchangedData(): boolean {
-        return false;
-    }
-
-    /**
-     * User callbacks (an `itemStyler`, a label `formatter`...) can return something new on every update, and only
-     * re-run when node data is rebuilt, so a series that has any cannot keep its node data.
-     */
-    private hasCallbackOptions() {
-        const search = (value: unknown, depth: number): boolean => {
-            if (typeof value === 'function') return true;
-            if (depth === 0 || value == null || typeof value !== 'object' || Array.isArray(value)) return false;
-            return Object.values(value).some((child) => search(child, depth - 1));
-        };
-        return search(this.options, 4);
-    }
+    /** Set by series whose node data stands when new data processes to the values of the last update. */
+    protected readonly keepsNodeDataForUnchangedData: boolean = false;
 
     // Request data, but with message dispatching to series-options (modules).
     protected async requestDataModel<
@@ -130,8 +112,8 @@ export abstract class DataModelSeries<
         this.processedData = processedData;
         if (
             previousProcessedData != null &&
-            this.canKeepNodeDataForUnchangedData() &&
-            !this.hasCallbackOptions() &&
+            this.keepsNodeDataForUnchangedData &&
+            !this.nodeDataHasCallbacks() &&
             processedDataUnchanged(previousProcessedData, processedData)
         ) {
             this.cancelDataRefresh();

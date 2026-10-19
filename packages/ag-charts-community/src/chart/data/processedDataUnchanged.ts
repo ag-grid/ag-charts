@@ -57,25 +57,27 @@ function sameRows(a: DataSet<any>, b: DataSet<any>): boolean {
 }
 
 /**
- * Whether `next` holds exactly what `previous` did: the same processed keys and values, validity and missing-ness, and
- * the same rows behind them. A series that finds so can keep the node data it built from `previous`.
- *
- * Only ungrouped data qualifies, and processed columns are compared by value so that mutating the data array in place
- * is caught. The rows are compared too, as callbacks and tooltips can read fields no column holds.
- *
- * The comparison is O(n) in the columns and rows and gives up at the first difference.
+ * Whether `next` holds exactly what `previous` did, rows included, so a series can keep the node data it built from
+ * `previous`. Ungrouped data only; the comparison is O(n) and stops at the first difference.
  */
 export function processedDataUnchanged(previous: ProcessedData<any>, next: ProcessedData<any>): boolean {
     if (previous === next) return false; // An incremental update mutates in place: there is nothing to compare against.
     // The series of one request share their processed data, so each is asked the same question.
-    const known = comparisons.get(next);
-    if (known?.previous === previous) return known.unchanged;
-    const unchanged = compareProcessedData(previous, next);
-    comparisons.set(next, { previous, unchanged });
+    let results = comparisons.get(next);
+    if (results == null) {
+        results = new WeakMap();
+        comparisons.set(next, results);
+    }
+    let unchanged = results.get(previous);
+    if (unchanged == null) {
+        unchanged = compareProcessedData(previous, next);
+        results.set(previous, unchanged);
+    }
     return unchanged;
 }
 
-const comparisons = new WeakMap<ProcessedData<any>, { previous: ProcessedData<any>; unchanged: boolean }>();
+// Both levels are weak, so a cached answer never keeps an earlier generation of processed data alive.
+const comparisons = new WeakMap<ProcessedData<any>, WeakMap<ProcessedData<any>, boolean>>();
 
 function compareProcessedData(previous: ProcessedData<any>, next: ProcessedData<any>): boolean {
     if (previous.type !== 'ungrouped' || next.type !== 'ungrouped') return false;

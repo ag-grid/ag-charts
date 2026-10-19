@@ -2174,7 +2174,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (!isUpdated) {
             return 'no-op';
         }
-        // Every series that changed only changed its colours, so none has node data to rebuild.
+        // Every series that changed only restyled, so none has node data to rebuild.
         const updateCount = changes.filter((change) => change.status !== 'no-op').length;
         return restyleCount === updateCount ? 'restyled' : 'updated';
     }

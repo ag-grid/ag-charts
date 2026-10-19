@@ -283,6 +283,81 @@ describe('rect series restyle where nothing moves', () => {
                 expect(ctx.snapshot()).toMatchImage(expected, { writeDiff: false });
             });
 
+            describe('with a visible navigator', () => {
+                const withNavigator = (series: object, miniChart: object = {}) =>
+                    prepareEnterpriseTestOptions({
+                        ...make(series),
+                        navigator: { enabled: true, miniChart: { enabled: true, ...miniChart } },
+                    } as AgCartesianChartOptions);
+
+                const settled = async (options: AgCartesianChartOptions) => {
+                    chart = await createEnterpriseChart(options);
+                    await chart.updateDelta({ data: styleCase.rows(0) }); // settle the first (crisp) frame
+                    await waitForChartStability(chart);
+                    return chart;
+                };
+
+                it('restyles without rebuilding for a colour-only change', async () => {
+                    const c = await settled(withNavigator(styleCase.base));
+                    const [, change] = styleCase.restyles[0];
+
+                    const work = await measureRedrawWork(c, () =>
+                        c.updateDelta({ series: [{ ...styleCase.base, ...change }] } as any)
+                    );
+
+                    expect(work).toEqual({ nodeDataBuilds: 0, rectPathBuilds: 0 });
+                });
+
+                it('rebuilds when another navigator option moves with the restyle', async () => {
+                    const c = await settled(withNavigator(styleCase.base));
+                    const [, change] = styleCase.restyles[0];
+
+                    const work = await measureRedrawWork(c, () =>
+                        c.updateDelta({
+                            series: [{ ...styleCase.base, ...change }],
+                            navigator: { height: 50 },
+                        } as any)
+                    );
+
+                    expect(work.nodeDataBuilds).toBe(1);
+                });
+
+                it('rebuilds when the mini chart series move by more than a restyle', async () => {
+                    const c = await settled(withNavigator(styleCase.base));
+                    const [, change] = styleCase.restyles[0];
+                    const moved =
+                        styleCase.name === 'waterfall'
+                            ? { item: { positive: { cornerRadius: 4 } } }
+                            : { cornerRadius: 4 };
+
+                    const work = await measureRedrawWork(c, () =>
+                        c.updateDelta({
+                            series: [{ ...styleCase.base, ...change }],
+                            navigator: { miniChart: { series: [{ ...styleCase.base, ...change, ...moved }] } },
+                        } as any)
+                    );
+
+                    expect(work.nodeDataBuilds).toBe(1);
+                });
+            });
+
+            it.each([
+                ['a corner radius', { cornerRadius: 4 }],
+                ['a label', { label: { enabled: true } }],
+            ])('rebuilds for a change to %s, which is not paint alone', async (_name, change) => {
+                chart = await createEnterpriseChart(make(styleCase.base));
+                await chart.updateDelta({ data: styleCase.rows(0) });
+                await waitForChartStability(chart);
+                const c = chart;
+                const key = styleCase.name === 'waterfall' ? { item: { positive: change, negative: change } } : change;
+
+                const work = await measureRedrawWork(c, () =>
+                    c.updateDelta({ series: [{ ...styleCase.base, ...key }] } as any)
+                );
+
+                expect(work.nodeDataBuilds).toBe(1);
+            });
+
             it('moves the bars to the same pixels as a fresh render', async () => {
                 chart = await createEnterpriseChart(make(styleCase.base, 4));
                 const expected = ctx.snapshot();
@@ -349,6 +424,49 @@ describe('rect series restyle where nothing moves', () => {
 
             (expect(ctx.snapshot()) as any).not.toMatchImage(started, { writeDiff: false });
             expect(ctx.snapshot()).toMatchImage(expected);
+        });
+
+        it.each([
+            ['colorScale', scale('#27ae60', '#f1c40f')],
+            ['stroke', { stroke: '#222222', strokeWidth: 2 }],
+        ])('restyles without rebuilding for a change to %s', async (_name, change) => {
+            chart = await createEnterpriseChart(make(base));
+            await chart.updateDelta({ data: heatmapRows(STYLE_COUNT * 3, 0) });
+            await waitForChartStability(chart);
+            const c = chart;
+
+            const work = await measureRedrawWork(c, () =>
+                c.updateDelta({
+                    series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'level', ...base, ...change }],
+                } as any)
+            );
+
+            expect(work.nodeDataBuilds).toBe(0);
+        });
+
+        it('rebuilds for a style change while labels are shown, as a label holds its cell style', async () => {
+            const labelled = { ...base, label: { enabled: true } };
+            chart = await createEnterpriseChart(make(labelled));
+            await chart.updateDelta({ data: heatmapRows(STYLE_COUNT * 3, 0) });
+            await waitForChartStability(chart);
+            const c = chart;
+
+            const work = await measureRedrawWork(c, () =>
+                c.updateDelta({
+                    series: [
+                        {
+                            type: 'heatmap',
+                            xKey: 'x',
+                            yKey: 'y',
+                            colorKey: 'level',
+                            ...labelled,
+                            ...scale('#27ae60', '#f1c40f'),
+                        },
+                    ],
+                } as any)
+            );
+
+            expect(work.nodeDataBuilds).toBe(1);
         });
 
         it('paints the same data again, over and over, as a fresh render would', async () => {

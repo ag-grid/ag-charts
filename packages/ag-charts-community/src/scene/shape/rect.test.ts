@@ -799,6 +799,46 @@ describe('Rect', () => {
             expect(fill).toHaveBeenCalledTimes(2);
         });
 
+        it('rebuilds a bar shape path only when its own shape options change', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const bar = Object.assign(new BarShape(), { x: 10, y: 10, width: 30, height: 40, fill: 'red' });
+            const updatePath = vi.spyOn(bar, 'updatePath');
+            const renderCtx = renderContext(ctx);
+            const set = (direction: 'x' | 'y', featherRatio: number, crispCentreDirection?: 'x' | 'y') =>
+                bar.setStaticProperties(
+                    'overlay',
+                    0,
+                    0,
+                    0,
+                    0,
+                    true,
+                    false,
+                    undefined,
+                    direction,
+                    featherRatio,
+                    crispCentreDirection
+                );
+
+            set('x', 0);
+            bar.preRender(renderCtx);
+            expect(updatePath).toHaveBeenCalledTimes(1);
+
+            expect(set('x', 0)).toBe(false);
+            bar.preRender(renderCtx);
+            expect(updatePath).toHaveBeenCalledTimes(1);
+
+            // Each of these changes alone, with the rect's own options untouched.
+            for (const [direction, featherRatio, crispCentreDirection, rebuilds] of [
+                ['y', 0, undefined, 2],
+                ['y', 0.3, undefined, 3],
+                ['y', 0.3, 'x', 4],
+            ] as const) {
+                expect(set(direction, featherRatio, crispCentreDirection)).toBe(true);
+                bar.preRender(renderCtx);
+                expect(updatePath).toHaveBeenCalledTimes(rebuilds);
+            }
+        });
+
         it('hit tests where the rect is now, without a new pre-render', () => {
             const ctx = canvasCtx.getRenderContext2D();
             const rect = plainRect({ x: 0, y: 0, width: 10, height: 10 });

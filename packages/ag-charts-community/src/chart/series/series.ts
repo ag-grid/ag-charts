@@ -339,10 +339,7 @@ export abstract class Series<
 
     // Flag to determine if we should recalculate node data.
     private _nodeDataRefresh = true;
-    /**
-     * Set when new data arrives and nothing else asks for a node data rebuild. Unlike `_nodeDataRefresh` it can be
-     * withdrawn by {@link cancelDataRefresh} once the processed data turns out to be identical to the last update's.
-     */
+    // A rebuild that only new data asked for: unlike `_nodeDataRefresh`, `cancelDataRefresh` can withdraw it.
     private _dataRefreshPending = false;
     private _nodeDataVersion = 0;
     protected get nodeDataRefresh() {
@@ -773,8 +770,8 @@ export abstract class Series<
         return Transformable.toCanvasPoint(this.contentGroup, x, y);
     }
 
-    // Indicate that something external changed and we should recalculate nodeData. `cause: 'data'` says that new data
-    // is the only reason, so the rebuild can still be withdrawn if the data processes to what it was (see `cancelDataRefresh`).
+    // Indicate that something external changed and we should recalculate nodeData.
+    // `cause: 'data'` marks a rebuild that new data alone asked for, which `cancelDataRefresh` may withdraw.
     markNodeDataDirty(cause?: 'data') {
         if (cause === 'data') {
             this.markDataRefreshPending();
@@ -795,7 +792,7 @@ export abstract class Series<
 
     /** Applies an options `diff` that only restyles the series, keeping its node data. False if it can't. */
     restyleFor(diff: object | undefined): boolean {
-        if (diff == null || !this.isStyleOnlyChange(diff)) return false;
+        if (diff == null || this.nodeDataHasCallbacks() || !this.isStyleOnlyChange(diff)) return false;
         this._restyle = true;
         return true;
     }
@@ -805,6 +802,16 @@ export abstract class Series<
         const restyle = this._restyle;
         this._restyle = false;
         return restyle;
+    }
+
+    /** Whether a callback whose result is held in the node data is set: it only re-runs when node data is rebuilt. */
+    protected nodeDataHasCallbacks(): boolean {
+        if (hasCallback(this.options, 4)) return true;
+        if (!(this.options as { label?: { enabled?: boolean } }).label?.enabled) return false;
+        // Label text also runs through the chart-wide formatter and the axis label formatter.
+        const { formatter } = this.ctx.formatManager;
+        if (typeof formatter === 'function' || (formatter != null && hasCallback(formatter, 1))) return true;
+        return Object.values(this.axes).some((axis) => typeof (axis?.options as any)?.label?.formatter === 'function');
     }
 
     private markDataRefreshPending() {
@@ -818,10 +825,7 @@ export abstract class Series<
         this.itemShadowPass = undefined;
     }
 
-    /**
-     * Withdraws a rebuild of the node data that only new data asked for. Does nothing if anything else asked for one
-     * too, as that rebuild is still needed.
-     */
+    /** Withdraws a node data rebuild that only new data asked for; a rebuild anything else asked for stays. */
     protected cancelDataRefresh() {
         if (this._nodeDataRefresh || !this._dataRefreshPending) return false;
         this._dataRefreshPending = false;
@@ -2061,6 +2065,16 @@ export abstract class Series<
     needsDataModelDiff(): boolean {
         return !this.ctx.animationManager.isSkipped() || !!this.chart?.flashOnUpdateEnabled;
     }
+}
+
+const NON_NODE_DATA_CALLBACK_KEYS: ReadonlySet<string> = new Set(['tooltip', 'listeners']);
+
+function hasCallback(value: unknown, depth: number): boolean {
+    if (typeof value === 'function') return true;
+    if (depth === 0 || value == null || typeof value !== 'object' || Array.isArray(value)) return false;
+    return Object.keys(value).some(
+        (key) => !NON_NODE_DATA_CALLBACK_KEYS.has(key) && hasCallback((value as any)[key], depth - 1)
+    );
 }
 
 function hasShadowOption(options: object): options is { shadow?: NormalisedDropShadowOptions } {

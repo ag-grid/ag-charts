@@ -211,6 +211,14 @@ function itemStylerCacheKey(datumIndex: number, isHighlight: boolean) {
     return datumIndex * 2 + (isHighlight ? 1 : 0);
 }
 
+/** The options that only change how a cell is painted: the colour scale is rebuilt in `processData`, from stored values. */
+const HEATMAP_STYLE_OPTION_KEYS: ReadonlySet<string> = new Set([
+    'stroke',
+    'strokeWidth',
+    'strokeOpacity',
+    'colorScale',
+]);
+
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesTypes> {
     static override readonly className = 'HeatmapSeries';
     static readonly type = 'heatmap' as const;
@@ -258,8 +266,19 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         });
     }
 
-    protected override canKeepNodeDataForUnchangedData() {
-        return true;
+    protected override readonly keepsNodeDataForUnchangedData = true;
+
+    protected override isStyleOnlyChange(diff: object) {
+        // A label datum holds the cell style it was built with, so labels need the full rebuild.
+        return !this.isLabelEnabled() && Object.keys(diff).every((key) => HEATMAP_STYLE_OPTION_KEYS.has(key));
+    }
+
+    protected override refreshNodeDataStyles() {
+        const itemStyleContext = this.createItemStyleContext();
+        for (const nodeDatum of this.contextNodeData?.nodeData ?? []) {
+            nodeDatum.style = this.getItemStyle(nodeDatum, false, itemStyleContext);
+        }
+        this.restyledEveryCell = true;
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {

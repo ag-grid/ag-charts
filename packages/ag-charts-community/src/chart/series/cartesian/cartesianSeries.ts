@@ -64,6 +64,7 @@ import type {
     OptionsOf,
     StackContextOf,
 } from './cartesianSeriesTypes';
+import { sameSegments } from './util';
 
 type CartesianSeriesOpts<TTypes extends CartesianSeriesTypes> = {
     pathsPerSeries: string[];
@@ -380,10 +381,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.contentGroup.batchedUpdate(function updateSelections() {
             const dataChanged = series.updateSelections();
             const segments = series.contextNodeData?.segments;
-            if (series.opts.segmentedDataNodes) {
-                series.dataNodeGroup.segments = segments ?? series.dataNodeGroup.segments;
-            } else {
-                series.dataNodeGroup.segments = undefined;
+            const { dataNodeGroup } = series;
+            const nextSegments = series.opts.segmentedDataNodes ? (segments ?? dataNodeGroup.segments) : undefined;
+            // A new array marks the group dirty, which re-rasterises its layer, so only assign segments that differ.
+            if (!sameSegments(nextSegments, dataNodeGroup.segments)) {
+                dataNodeGroup.segments = nextSegments;
             }
             series.updateNodes(itemHighlighted, resize || dataChanged || restyled);
         });
