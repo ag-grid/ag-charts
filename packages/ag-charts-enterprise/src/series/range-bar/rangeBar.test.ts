@@ -2330,6 +2330,23 @@ describe('RangeBarSeries', () => {
             expect(seriesNodeClick.mock.calls[1][0]).toMatchObject({ seriesId: 'second', datum: { index: 29 } }); // mouse
         });
     });
+    describe('AG-18978 missing value', () => {
+        const QUARTERS = [`Q1'18`, `Q2'18`, `Q3'18`, `Q4'18`];
+
+        it('should draw the other categories and leave a gap for a row without the yHighKey property', async () => {
+            const data = QUARTERS.map((quarter, index) => ({ quarter, low: 10 + index, high: 20 + index }));
+            delete (data[3] as Partial<(typeof data)[number]>).high;
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data,
+                    series: [{ type: 'range-bar', xKey: 'quarter', yLowKey: 'low', yHighKey: 'high' }],
+                })
+            );
+
+            const nodeData = chart.series[0].contextNodeData.nodeData as any[];
+            expect(nodeData.map((nodeDatum) => nodeDatum.xValue)).toEqual(QUARTERS.slice(0, 3));
+        });
+    });
 });
 
 describe('RangeBarSeries category/gridline pixel alignment', () => {
