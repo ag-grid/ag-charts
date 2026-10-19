@@ -11,6 +11,7 @@ import {
     type NormalisedLinearGaugeScaleOptions,
     type NormalisedLinearGaugeTargetOptions,
     type NormalisedTextOrSegments,
+    boxContains,
     cachedTextMeasurer,
     getColorStops,
     isArray,
@@ -306,7 +307,13 @@ interface LinearGaugeLabelLayout {
     region: BoxBounds | undefined;
 }
 
-type LinearGaugeLabelBBoxes = { seriesRect: BBox; gaugeRect: BBox; barRect: BBox };
+interface LinearGaugeLabelBBoxes {
+    seriesRect: BBox;
+    gaugeRect: BBox;
+    /** The gauge clipped across its thickness to the canvas, which a thick gauge on a short chart overflows. */
+    visibleGaugeRect: BBox;
+    barRect: BBox;
+}
 
 interface LinearGaugeLabelOpts {
     padding: number;
@@ -441,7 +448,7 @@ function layoutLinearGaugeLabel(
     opts: LinearGaugeLabelOpts,
     bboxes: LinearGaugeLabelBBoxes
 ): LinearGaugeLabelLayout | undefined {
-    const { gaugeRect } = bboxes;
+    const { visibleGaugeRect: gaugeRect } = bboxes;
     const { padding, horizontal } = opts;
     const legacyKeep = isLegacyKeep(labelDatum);
     const bounds = labelBounds(placement, horizontal, bboxes);
@@ -494,6 +501,58 @@ function layoutLinearGaugeLabel(
     }
 
     return { layout, x, y, align: bounds.align, box, region };
+}
+
+function isOutsidePlacement(placement: AgLinearGaugeLabelPlacement) {
+    return placement === 'outside-start' || placement === 'outside-end';
+}
+
+function fitsLinearGaugeLabel(
+    labelText: NormalisedTextOrSegments,
+    labelDatum: LinearGaugeLabelDatum,
+    placement: AgLinearGaugeLabelPlacement,
+    opts: LinearGaugeLabelOpts,
+    bboxes: LinearGaugeLabelBBoxes
+) {
+    const fitted = layoutLinearGaugeLabel(labelText, labelDatum, placement, false, opts, bboxes);
+    if (fitted == null) {
+        return false;
+    }
+    const { box, region } = fitted;
+    return region == null || boxContains(region, box.x, box.y, box.width, box.height);
+}
+
+/**
+ * The placement to set room aside for: the first in the list that fits, outside ones within the room they would
+ * reserve. When none fits, only an `alwaysShow` label keeps the first placement's room for its overflow fallback.
+ */
+export function reservedLinearGaugeLabelPlacement(
+    labelDatum: LinearGaugeLabelDatum,
+    labelText: () => NormalisedTextOrSegments | undefined,
+    opts: LinearGaugeLabelOpts,
+    bboxes: (reserved: AgLinearGaugeLabelPlacement | undefined) => LinearGaugeLabelBBoxes
+): AgLinearGaugeLabelPlacement | undefined {
+    const { placements, collision } = labelDatum;
+    const [first] = placements;
+    if (isLegacyKeep(labelDatum) || !placements.some(isOutsidePlacement)) {
+        return first;
+    }
+
+    const text = labelText();
+    if (text == null) {
+        return first;
+    }
+    const unreserved = bboxes(undefined);
+    const fitting = placements.find((placement) =>
+        fitsLinearGaugeLabel(
+            text,
+            labelDatum,
+            placement,
+            opts,
+            isOutsidePlacement(placement) ? bboxes(placement) : unreserved
+        )
+    );
+    return fitting ?? (collision?.alwaysShow === true ? first : undefined);
 }
 
 /**
