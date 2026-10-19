@@ -47,7 +47,11 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
         return { innerRadius, outerRadius, startAngle, endAngle, clipSector, phase };
     };
 
-    const toFn = (sect: Sector, datum: RadialColumnNodeDatum, status: _ModuleSupport.NodeUpdateState) => {
+    const toFn = (
+        sect: Sector<RadialColumnNodeDatum>,
+        datum: RadialColumnNodeDatum,
+        status: _ModuleSupport.NodeUpdateState
+    ) => {
         const { startAngle, endAngle } = angles.to(datum);
         let innerRadius: number;
         let outerRadius: number;

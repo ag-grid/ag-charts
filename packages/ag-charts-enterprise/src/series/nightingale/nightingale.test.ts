@@ -1087,5 +1087,6 @@ describe('NightingaleSeries', () => {
                 const drawnRadii = trajectory.map((frame) => frame.find((node) => !node.missing)!.outerRadius);
                 expect(drawnRadii.at(-1)).toBeGreaterThan(drawnRadii[0]);
             });
+        });
     });
 });
