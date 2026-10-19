@@ -9,6 +9,8 @@ import {
     getAxisLabelNodes,
     getAxisLabelTexts,
     getAxisTitleText,
+    getLabelSegmentAlignments,
+    getLabelText,
     getSeriesRect,
 } from './axisAccessors';
 import { createChart, setupMockCanvas, setupMockConsole } from './utils';
@@ -97,6 +99,30 @@ describe('axis test accessors', () => {
             expect(getAxisLabelTexts(chart, 'bottom', { visibleOnly: false })).toEqual(['A', 'C']);
             expect(getAxisLabelTexts(chart, 'left').length).toBeGreaterThan(1);
         });
+
+        it('joins the segments of a rich-text label', async () => {
+            chart = await createChart({
+                ...options,
+                axes: {
+                    ...options.axes,
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: {
+                            formatter: ({ value }) => [
+                                { text: `<${String(value)}`, fontSize: 20 },
+                                { text: '>', fontSize: 10, verticalAlign: 'top' },
+                            ],
+                        },
+                    },
+                },
+            });
+
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['<A>', '<B>', '<C>']);
+            const [node] = getAxisLabelNodes(chart, 'bottom');
+            expect(getLabelText(node)).toBe('<A>');
+            expect(getLabelSegmentAlignments(node)).toEqual([undefined, 'top']);
+        });
     });
 
     describe('getAxisTitleText', () => {
@@ -136,15 +162,18 @@ describe('axis test accessors', () => {
             expect(c.start).toBeGreaterThan(a.end);
         });
 
-        it('orders the extent of a band on a reversed axis', async () => {
+        it('places the bands in reverse on a reversed axis', async () => {
             chart = await createChart({
                 ...options,
                 axes: { ...options.axes, x: { type: 'category', position: 'bottom', reverse: true } },
             });
 
-            const { start, end, bandwidth } = getAxisBandExtent(chart, 'bottom', 'A');
-            expect(bandwidth).toBeGreaterThan(1);
-            expect(end - start).toBeCloseTo(bandwidth, 5);
+            const a = getAxisBandExtent(chart, 'bottom', 'A');
+            const c = getAxisBandExtent(chart, 'bottom', 'C');
+            expect(a.bandwidth).toBeGreaterThan(1);
+            expect(a.end - a.start).toBeCloseTo(a.bandwidth, 5);
+            // Unreversed, A is the first band and C the last (see above); reversed, A comes after C.
+            expect(a.start).toBeGreaterThanOrEqual(c.end);
         });
     });
 });

@@ -64,14 +64,14 @@ export function getLabelSegmentAlignments(node: AxisLabelNode): (string | undefi
         : [];
 }
 
-/** The text the axis' label nodes render, without the empty ones. */
+/** The text the axis' label nodes render, rich-text segments joined, without the empty ones. */
 export function getAxisLabelTexts(
     chartOrProxy: ChartOrProxy<any>,
     position: string,
     options?: AxisLabelOptions
 ): string[] {
     return getAxisLabelNodes(chartOrProxy, position, options)
-        .map((node) => (node.text == null ? '' : String(node.text)))
+        .map(getLabelText)
         .filter((text) => text !== '');
 }
 
@@ -94,13 +94,17 @@ export function getAxisBandwidth(chartOrProxy: ChartOrProxy<any>, position: stri
     return findAxis(chartOrProxy, position).scale.bandwidth ?? 0;
 }
 
-/** The extent along the axis of the band `value` sits in, whichever way the scale runs. */
+/**
+ * The extent along the axis of the band `value` sits in. A reversed axis flips where the band sits, not its width, so
+ * `start` is always the scale's own position for `value` and `end` is `bandwidth` further along.
+ */
 export function getAxisBandExtent(
     chartOrProxy: ChartOrProxy<any>,
     position: string,
     value: unknown
 ): { start: number; end: number; bandwidth: number } {
-    const bandwidth = getAxisBandwidth(chartOrProxy, position);
-    const start: number = findAxis(chartOrProxy, position).scale.convert(value);
-    return { start: Math.min(start, start + bandwidth), end: Math.max(start, start + bandwidth), bandwidth };
+    const { scale } = findAxis(chartOrProxy, position);
+    const bandwidth = scale.bandwidth ?? 0;
+    const start: number = scale.convert(value);
+    return { start, end: start + bandwidth, bandwidth };
 }

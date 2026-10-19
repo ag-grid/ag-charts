@@ -573,7 +573,8 @@ describe('Time Axis Examples', () => {
             async (axisType) => {
                 chart = deproxy(await createChart(monthAndYearOptions(false, axisType)));
 
-                const texts = getAxisLabelTexts(chart, 'bottom');
+                // Every node, not only the visible ones: a base tier that was merely hidden would otherwise pass as removed.
+                const texts = getAxisLabelTexts(chart, 'bottom', { visibleOnly: false });
                 expect(texts.length).toBeGreaterThan(0);
                 // Parent tier (year) is retained; no base tier (month) text leaks through.
                 expect(texts).toContain('2024');
@@ -602,7 +603,7 @@ describe('Time Axis Examples', () => {
             await deproxy(chart).publicApi!.update(prepareTestOptions(monthAndYearOptions(false, 'unit-time')));
             await waitForChartStability(chart);
 
-            const after = getAxisLabelTexts(chart, 'bottom');
+            const after = getAxisLabelTexts(chart, 'bottom', { visibleOnly: false });
             expect(after).toContain('2024');
             expect(after.some((t) => /Jan|Feb|Mar|Nov|Dec/.test(t))).toBe(false);
         });
@@ -619,7 +620,7 @@ describe('Time Axis Examples', () => {
                 })
             );
 
-            expect(getAxisLabelTexts(chart, 'left')).toEqual([]);
+            expect(getAxisLabelTexts(chart, 'left', { visibleOnly: false })).toEqual([]);
         });
     });
 
