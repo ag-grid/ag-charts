@@ -11,6 +11,11 @@
     pointer-events: none;
 }
 
+/* Keyboard-only: pointer clicks on cross lines are hit-tested by the series area. */
+.ag-charts-proxy-cross-lines .ag-charts-proxy-elem {
+    pointer-events: none;
+}
+
 .ag-charts-proxy-elem {
     -webkit-appearance: none;
     appearance: none;
