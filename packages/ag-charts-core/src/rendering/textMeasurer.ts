@@ -258,6 +258,8 @@ export function measureTextSegments(
     const lineHeights: Array<number | undefined> = [];
     // Tallest natural height among each line's segments without a `lineHeight`.
     const naturalHeights: Array<number | undefined> = [];
+    // Largest `lineHeight` among segments that only contribute an empty line, for lines left without content.
+    const blankLineHeights: Array<number | undefined> = [];
     let currentLineUncommitted = false;
 
     // Tracks the currently-open block row. `startLineIndex` is the index of the marker line in
@@ -355,6 +357,9 @@ export function measureTextSegments(
                 }
                 currentLine.segments.push({ ...font, ...rest, lineHeight, text: textLine, textMetrics });
                 currentLineUncommitted = false;
+            } else if (lineHeight != null) {
+                const index = lineMetrics.length - 1;
+                blankLineHeights[index] = Math.max(blankLineHeights[index] ?? 0, lineHeight);
             }
         }
     }
@@ -364,7 +369,8 @@ export function measureTextSegments(
     // Grow each line to contain its inline images: the text-only ascent/descent are captured first, then
     // each image box is placed per its verticalAlign and the line's ascent/descent expanded to fit.
     for (const [index, line] of lineMetrics.entries()) {
-        const override = lineHeights[index];
+        const isBlank = line.segments.length === 0 && (line.blockImages?.length ?? 0) === 0;
+        const override = isBlank ? blankLineHeights[index] : lineHeights[index];
         if (override != null) {
             const lineHeight = Math.max(override, naturalHeights[index] ?? 0);
             // Extra space goes to descent so the baseline-anchored renderer spaces following lines by the override.

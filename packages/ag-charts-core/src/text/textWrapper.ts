@@ -1353,7 +1353,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 wrappedLines = textWrap(guardedText, sharedBudget, lineWidth, rowTop(), sharedRowHeight);
             } else {
                 const lastSegment = result.at(-1);
-                if (lastSegment && lastSegment.type !== 'image') {
+                if (lineWidth > 0 && lastSegment && lastSegment.type !== 'image') {
                     lastSegment.text += '\n';
                     lineWidth = 0;
                     startRow();

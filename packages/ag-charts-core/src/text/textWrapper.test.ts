@@ -977,6 +977,11 @@ describe('measureTextSegments — lineHeight', () => {
         ]);
     });
 
+    it('spaces empty lines by the inherited lineHeight', () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 40 };
+        expect(measureTextSegments([text('A\n\nB')], font).height).toBe(120);
+    });
+
     it('wraps a segment to the height of its inherited lineHeight', () => {
         const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
         const fitted = fitLabelText(
@@ -1061,6 +1066,14 @@ describe('measureTextSegments — lineHeight', () => {
         it('counts the open row before a segment wraps below it', () => {
             const fitted = fit([text('A '), text('BBB CCC')], 40, 2 * LINE_HEIGHT);
             expect(measureTextSegments(fitted, baseFont).height).toBeLessThanOrEqual(2 * LINE_HEIGHT);
+        });
+
+        it('truncates a segment that overflows an empty row without adding a blank row', () => {
+            const fitted = fit([text('Spotify'), text('\n$21B')], 30, 3 * LINE_HEIGHT);
+            expect(fitted.map((segment) => (segment.type === 'image' ? '' : segment.text))).toEqual([
+                `S${EllipsisChar}\n`,
+                `$${EllipsisChar}`,
+            ]);
         });
     });
 
