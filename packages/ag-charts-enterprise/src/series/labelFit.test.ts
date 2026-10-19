@@ -26,10 +26,10 @@ const contains = (outer: BBox, inner: BBox, tolerance = 0.5) =>
     inner.x + inner.width <= outer.x + outer.width + tolerance &&
     inner.y + inner.height <= outer.y + outer.height + tolerance;
 
-// The label-fit options are undocumented, so labels are built untyped and cast at the AgCharts.create
+// The label-fit options are undocumented, so labels are built untyped and cast at the chart-creation
 // boundary; `setupMockConsole` fails the test on any "property is unknown" warning.
-// Bespoke: the bare `AgCharts.create` calls in this suite set the size after preparation, which the factory would overwrite
-// with the default canvas size.
+// Bespoke: the bare `AgCharts.create` calls in `renderAndSnapshot` (when given a size), `renderAt`, `renderNarrow` and the
+// grown-chart test set the size after preparation, which the factory would overwrite with the default canvas size.
 describe('series label fit', () => {
     setupMockConsole();
 
@@ -41,9 +41,13 @@ describe('series label fit', () => {
     });
 
     const renderAndSnapshot = async (options: object, size?: { width: number; height: number }) => {
-        prepareEnterpriseTestOptions(options as AgChartOptions);
-        Object.assign(options, size);
-        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        if (size == null) {
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+        } else {
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+            Object.assign(options, size);
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+        }
         await compareImageSnapshot(chart, ctx);
     };
 

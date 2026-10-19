@@ -4582,6 +4582,7 @@ describe('BarSeries', () => {
     });
 });
 
+// Bespoke: width, height and overrideDevicePixelRatio are set after preparation, which `createChart` would overwrite.
 describe('BarSeries category/gridline pixel alignment', () => {
     setupMockCanvas();
 

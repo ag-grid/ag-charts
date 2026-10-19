@@ -1652,10 +1652,6 @@ describe('HeatmapSeries', () => {
             legend: { enabled: false },
         });
 
-        // Prepared for the updates that replay options onto a chart the factory has already prepared.
-        const buildOptions = (...args: Parameters<typeof rawOptions>) =>
-            prepareEnterpriseTestOptions(rawOptions(...args));
-
         const cellRects = (c: Chart) => collectShapes(classCast(c.series[0], HeatmapSeries).contentGroup);
         const cellFills = (c: Chart) => cellRects(c).map((rect) => String(rect.fill));
         const cellOpacities = (c: Chart) => cellRects(c).map((rect) => rect.fillOpacity);
@@ -1709,7 +1705,7 @@ describe('HeatmapSeries', () => {
             const before = cellFills(chart);
 
             const colorScale = { fills: [{ color: 'green' }, { color: 'yellow' }] };
-            chart.publicApi.updateDelta({ series: [{ ...buildOptions().series[0], colorScale }] });
+            chart.publicApi.updateDelta({ series: [{ ...rawOptions().series[0], colorScale }] });
             await waitForChartStability(chart);
 
             const after = cellFills(chart);
@@ -2628,7 +2624,7 @@ describe('HeatmapSeries', () => {
                 await create(GRID);
 
                 const transaction = chart.publicApi.applyTransaction({ update: [UPDATED('1:1', 8)] });
-                chart.publicApi.updateDelta({ series: [{ ...buildOptions(GRID).series[0], cornerRadius: 6 }] });
+                chart.publicApi.updateDelta({ series: [{ ...rawOptions(GRID).series[0], cornerRadius: 6 }] });
                 await transaction;
                 await waitForChartStability(chart);
 
@@ -2640,7 +2636,7 @@ describe('HeatmapSeries', () => {
                 await create(GRID);
                 await transact({ update: [UPDATED('1:1', 8)] });
 
-                chart.publicApi.updateDelta({ series: [{ ...buildOptions(GRID).series[0], cornerRadius: 6 }] });
+                chart.publicApi.updateDelta({ series: [{ ...rawOptions(GRID).series[0], cornerRadius: 6 }] });
                 await waitForChartStability(chart);
 
                 expect(rects(chart).map((rect) => rect.topLeftCornerRadius)).toEqual(Array(GRID.length).fill(6));
