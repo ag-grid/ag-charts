@@ -378,6 +378,28 @@ describe('Navigator', () => {
             expect(slider.getAttribute('data-focus-override')).not.toBe('true');
             expect(document.activeElement).not.toBe(slider);
         });
+
+        it('restores the focus indicator on keydown inside a shadow root', async () => {
+            const host = document.createElement('div');
+            document.body.appendChild(host);
+            const container = document.createElement('div');
+            host.attachShadow({ mode: 'open' }).appendChild(container);
+            const options: AgCartesianChartOptions = {
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', data: xyData([5, 7, 8, 3, 0, 2]) }],
+                navigator: { enabled: true },
+            };
+            chart = await createEnterpriseChart(options, container);
+
+            const slider = container.querySelector<HTMLInputElement>(
+                '.ag-charts-proxy-navigator-toolbar input[type="range"]'
+            );
+            expect(slider).not.toBeNull();
+            slider!.focus();
+            slider!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', code: 'ShiftLeft', bubbles: true }));
+
+            expect(slider!.getAttribute('data-focus-override')).toBe('true');
+            host.remove();
+        });
     });
 
     describe('#create', () => {

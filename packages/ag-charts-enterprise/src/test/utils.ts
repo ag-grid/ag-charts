@@ -64,8 +64,11 @@ export function prepareEnterpriseTestOptions<T extends AgChartOptions<any, any> 
  * The canonical enterprise chart factory for tests. Returns the public `AgChartInstance`; wrap the result in `deproxy()`
  * where a test needs chart internals, so that the internal access is visible at the call site.
  */
-export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(options: T): Promise<AgChartInstance> {
-    options = prepareEnterpriseTestOptions({ ...options });
+export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(
+    options: T,
+    container?: HTMLElement
+): Promise<AgChartInstance> {
+    options = prepareEnterpriseTestOptions({ ...options }, container);
     const chart = AgCharts.create(options as any);
     await waitForChartStability(chart);
     return chart;

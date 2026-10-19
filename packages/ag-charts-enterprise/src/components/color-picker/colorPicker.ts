@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Color, type DynamicContext, clamp, setAttribute } from 'ag-charts-core';
+import { Color, type DynamicContext, clamp, isFocused, setAttribute } from 'ag-charts-core';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
 
@@ -110,7 +110,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
 
             colorInputLabel.classList.toggle('ag-charts-color-picker__color-label--multi-color', isMultiColor);
 
-            if (document.activeElement !== colorInput) {
+            if (!isFocused(colorInput)) {
                 multiColorButton.ariaChecked = isMultiColor.toString();
                 colorInput.value = isMultiColor
                     ? localeManager.t('ariaLabelColorPickerMultiColor')
