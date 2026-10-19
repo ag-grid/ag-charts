@@ -88,7 +88,7 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
     track: {
         fill: { $ref: 'scrollbarTrackBackgroundColor' },
         stroke: themeBorderColor('scrollbarTrackBorder'),
-        strokeWidth: themeBorderWidth('scrollbarTrackBorder', { on: 1 }),
+        strokeWidth: themeBorderWidth('scrollbarTrackBorder'),
         lineDash: [0],
         lineDashOffset: 0,
         opacity: 1,
@@ -97,7 +97,7 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
     thumb: {
         fill: { $ref: 'scrollbarThumbBackgroundColor' },
         stroke: themeBorderColor('scrollbarThumbBorder'),
-        strokeWidth: themeBorderWidth('scrollbarThumbBorder', { on: 1 }),
+        strokeWidth: themeBorderWidth('scrollbarThumbBorder'),
         lineDash: [0],
         lineDashOffset: 0,
         opacity: 1,

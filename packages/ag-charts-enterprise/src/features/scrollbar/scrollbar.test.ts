@@ -927,36 +927,47 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
 
 describe('Scrollbar border theme params', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
 
     const chartRef: ChartRef = {};
     afterEach(() => destroyChartRef(chartRef));
 
+    const chartOptions = (params: object): AgCartesianChartOptions => ({
+        data: DATA,
+        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+        scrollbar: { enabled: true, visible: 'always' },
+        initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
+        theme: { params },
+    });
+
     const create = async (params: object) => {
-        chartRef.current = deproxy(
-            await createEnterpriseChart({
-                data: DATA,
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                scrollbar: { enabled: true, visible: 'always' },
-                initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
-                theme: { params },
-            })
-        );
+        chartRef.current = deproxy(await createEnterpriseChart(chartOptions(params)));
         const scrollbar = chartRef.current.modulesManager.getModule('scrollbar');
         return { scrollbar, ...scrollbar.state.horizontal };
     };
 
     const BASE = { borderColor: '#112233', borderWidth: 2 };
 
-    it('uses borderColor at width 1 for a true border, and no width for a false border', async () => {
-        const enabled = await create({ ...BASE, scrollbarTrackBorder: true, scrollbarThumbBorder: true });
-        expect([enabled.track.stroke, enabled.track.strokeWidth]).toEqual(['#112233', 1]);
-        expect([enabled.thumb.stroke, enabled.thumb.strokeWidth]).toEqual(['#112233', 1]);
-        destroyChartRef(chartRef);
+    it('follows borderWidth for a true border', async () => {
+        chartRef.current = await createEnterpriseChart(
+            chartOptions({
+                borderColor: 'red',
+                borderWidth: 4,
+                scrollbarThickness: 20,
+                scrollbarTrackBorder: true,
+                scrollbarThumbBorder: true,
+            })
+        );
+        await compareImageSnapshot(chartRef.current, ctx);
+    });
 
-        const disabled = await create({ ...BASE, scrollbarTrackBorder: false, scrollbarThumbBorder: false });
-        expect(disabled.track.strokeWidth).toBe(0);
-        expect(disabled.thumb.strokeWidth).toBe(0);
+    it('uses no width for a false border', async () => {
+        const { track, thumb } = await create({
+            ...BASE,
+            scrollbarTrackBorder: false,
+            scrollbarThumbBorder: false,
+        });
+        expect([track.strokeWidth, thumb.strokeWidth]).toEqual([0, 0]);
     });
 
     it('uses the colour and width of an object border', async () => {
@@ -983,6 +994,6 @@ describe('Scrollbar border theme params', () => {
 
         const shown = await create({ ...BASE, scrollbarThumbBorder: true, scrollbarThumbHoverBorder: true });
         shown.scrollbar.handleHoverChange('horizontal', true);
-        expect(shown.thumb.strokeWidth).toBe(1);
+        expect(shown.thumb.strokeWidth).toBe(2);
     });
 });
