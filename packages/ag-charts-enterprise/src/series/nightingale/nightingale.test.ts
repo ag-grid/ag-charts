@@ -998,4 +998,60 @@ describe('NightingaleSeries', () => {
             await compare();
         });
     });
+
+    describe('AG-18978 missing radius value', () => {
+        const QUARTERS = [`Q1'18`, `Q2'18`, `Q3'18`, `Q4'18`];
+        const MISSING_INDEX = 3;
+
+        const missingValueOptions = (missingValue: 'absent' | null): AgChartOptions => ({
+            data: QUARTERS.map((quarter, index) => {
+                const row: Record<string, unknown> = { quarter, iphone: 140 + index, mac: 16 + index, ipad: 14 + index };
+                if (index === MISSING_INDEX) {
+                    if (missingValue === 'absent') {
+                        delete row.ipad;
+                    } else {
+                        row.ipad = missingValue;
+                    }
+                }
+                return row;
+            }),
+            series: ['iphone', 'mac', 'ipad'].map((radiusKey) => ({
+                type: 'nightingale' as const,
+                angleKey: 'quarter',
+                radiusKey,
+                label: { enabled: true },
+            })),
+        });
+
+        const summariseNodeData = (nodeData: any[]) =>
+            nodeData.map(({ radiusValue, negative, innerRadius, outerRadius, startAngle, endAngle, label }) => ({
+                radiusValue,
+                negative,
+                innerRadius,
+                outerRadius,
+                startAngle,
+                endAngle,
+                label: label ? { text: label.text, x: label.x, y: label.y } : undefined,
+            }));
+
+        const createMissingValueChart = async (options: AgChartOptions) => {
+            chart = deproxy(await createEnterpriseChart(options));
+            return chart.series[2].contextNodeData.nodeData as any[];
+        };
+
+        it('should leave a gap for the missing row and draw the other rows', async () => {
+            const nodeData = await createMissingValueChart(missingValueOptions('absent'));
+
+            expect(nodeData).toHaveLength(QUARTERS.length);
+            nodeData.forEach((nodeDatum, index) => {
+                const drawn = Number.isFinite(nodeDatum.innerRadius) && Number.isFinite(nodeDatum.outerRadius);
+                expect(drawn).toBe(index !== MISSING_INDEX);
+            });
+
+            const absentSummary = summariseNodeData(nodeData);
+            chart.destroy();
+            const nullNodeData = await createMissingValueChart(missingValueOptions(null));
+            expect(absentSummary).toEqual(summariseNodeData(nullNodeData));
+        });
+    });
 });
