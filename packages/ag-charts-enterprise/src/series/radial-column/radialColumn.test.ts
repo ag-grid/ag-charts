@@ -1483,12 +1483,12 @@ describe('RadialColumnSeries', () => {
         };
 
         it.each([
-            { missingIndex: 0, stacked: false },
-            { missingIndex: 1, stacked: false },
-            { missingIndex: 3, stacked: false },
-            { missingIndex: 3, stacked: true },
+            { row: 'first', missingIndex: 0, stacked: false },
+            { row: 'middle', missingIndex: 1, stacked: false },
+            { row: 'last', missingIndex: 3, stacked: false },
+            { row: 'last', missingIndex: 3, stacked: true },
         ])(
-            'should leave a gap at row $missingIndex and draw the other rows (stacked: $stacked)',
+            'should leave a gap at the $row row and draw the other rows (stacked: $stacked)',
             async ({ missingIndex, stacked }) => {
                 const nodeData = await createMissingValueChart(missingValueOptions(missingIndex, 'absent', stacked));
 
