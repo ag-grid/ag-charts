@@ -2033,6 +2033,240 @@ describe('HeatmapSeries', () => {
             });
         });
 
+        describe('itemStyler call count and restyling', () => {
+            type StylerParams = AgHeatmapSeriesItemStylerParams<(typeof DATA)[number]>;
+            const ROWS = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
+
+            const highlightWidths = () =>
+                collectShapes(classCast(chart.series[0], HeatmapSeries).highlightGroup).map((r) => r.strokeWidth);
+
+            describe.each([
+                ['undefined', () => undefined],
+                ['an empty object', () => ({})],
+                ['a fill', () => ({ fill: 'lime' })],
+            ])('a styler that returns %s', (_name, result) => {
+                it('runs once per cell on creation and once per cell on each full update', async () => {
+                    const itemStyler = vi.fn((_params: StylerParams) => result());
+                    const options = rawOptions({ ...NO_TOOLTIP, itemStyler }, ROWS);
+                    await createStable(options);
+                    prepareEnterpriseTestOptions(options);
+                    expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
+
+                    itemStyler.mockClear();
+                    chart.publicApi.update(options);
+                    await waitForChartStability(chart);
+                    expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
+
+                    itemStyler.mockClear();
+                    chart.publicApi.updateDelta({ data: ROWS.map((d) => ({ ...d, spending: d.spending + 100 })) });
+                    await waitForChartStability(chart);
+                    expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
+                });
+            });
+
+            it('styles each cell from its own datum after repeated full updates that return nothing for some cells', async () => {
+                let width = 2;
+                const itemStyler = ({ datum }: StylerParams) =>
+                    datum.spending % 2 === 0 ? undefined : { strokeWidth: width };
+                const options = rawOptions({ ...NO_TOOLTIP, itemStyler }, ROWS);
+                await createStable(options);
+                prepareEnterpriseTestOptions(options);
+                const unstyled = await freshCellFills(rawOptions({}, ROWS), strokeWidths);
+
+                for (const next of [5, 8]) {
+                    width = next;
+                    chart.publicApi.update(options);
+                    await waitForChartStability(chart);
+                    expect(strokeWidths(chart)).toEqual(
+                        ROWS.map((d, i) => (d.spending % 2 === 0 ? unstyled[i] : next))
+                    );
+                }
+            });
+
+            it('restyles from the highlight state after a full update, and restores the cells when the pointer leaves', async () => {
+                const itemStyler = vi.fn(({ highlightState }: StylerParams) =>
+                    highlightState === 'unhighlighted-item' ? { strokeWidth: 6 } : undefined
+                );
+                const options = rawOptions({ ...NO_TOOLTIP, itemStyler });
+                await createStable(options);
+                prepareEnterpriseTestOptions(options);
+                const before = strokeWidths(chart);
+                expect(before).not.toContain(6);
+
+                // The restyle straight after this update is skipped, so the hover below must still restyle.
+                chart.publicApi.update(options);
+                await waitForChartStability(chart);
+                expect(strokeWidths(chart)).toEqual(before);
+
+                await hoverDatumByIndex(chart, 0, 0);
+                expect(strokeWidths(chart)).toEqual([6, 6, 6, 6]);
+
+                await hoverAway();
+                expect(strokeWidths(chart)).toEqual(before);
+            });
+
+            it('restyles every cell on a full update while a cell is highlighted', async () => {
+                let width = 2;
+                const itemStyler = ({ highlightState }: StylerParams) =>
+                    highlightState === 'highlighted-item' ? { strokeWidth: 9 } : { strokeWidth: width };
+                const options = rawOptions({ ...NO_TOOLTIP, itemStyler });
+                await createStable(options);
+                prepareEnterpriseTestOptions(options);
+                await hoverDatumByIndex(chart, 0, 1);
+                expect(highlightWidths()).toEqual([9]);
+
+                width = 4;
+                chart.publicApi.update(options);
+                await waitForChartStability(chart);
+
+                expect(strokeWidths(chart)).toEqual([4, 4, 4, 4]);
+                expect(highlightWidths()).toEqual([9]);
+
+                await hoverAway();
+                expect(strokeWidths(chart)).toEqual([4, 4, 4, 4]);
+            });
+
+            it('restyles a cell that a highlight styled once the highlight is gone and the data changes', async () => {
+                const itemStyler = ({ datum, highlightState }: StylerParams) =>
+                    highlightState === 'unhighlighted-item'
+                        ? { strokeWidth: 7 }
+                        : { strokeWidth: 1 + (datum.spending >= 30 ? 1 : 0) };
+                await createStable(rawOptions({ ...NO_TOOLTIP, itemStyler }));
+                await hoverDatumByIndex(chart, 0, 0);
+                expect(strokeWidths(chart)).toEqual([7, 7, 7, 7]);
+                await hoverAway();
+
+                chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+                await waitForChartStability(chart);
+
+                expect(strokeWidths(chart)).toEqual(SHIFTED_DATA.map((d) => 1 + (d.spending >= 30 ? 1 : 0)));
+            });
+
+            it('applies a selection over cells whose styler returns nothing, and clears it again', async () => {
+                const itemStyler = vi.fn(() => undefined);
+                const options = rawOptions({ ...NO_TOOLTIP, selection: SELECTION, itemStyler });
+                await createStable(options);
+                prepareEnterpriseTestOptions(options);
+                const unselected = cellFills(chart);
+                expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
+
+                await select(0);
+
+                expect(cellFills(chart)[0]).toBe('lime');
+                expect(cellFills(chart).slice(1)).toEqual(unselected.slice(1));
+                expect(cellOpacities(chart).slice(1)).toEqual([0.3, 0.3, 0.3]);
+
+                // A full update while a cell is selected keeps the selection styling.
+                chart.publicApi.update(options);
+                await waitForChartStability(chart);
+                expect(cellFills(chart)[0]).toBe('lime');
+                expect(cellOpacities(chart).slice(1)).toEqual([0.3, 0.3, 0.3]);
+
+                chart.publicApi.setSelection([]);
+                await waitForChartStability(chart);
+                expect(cellFills(chart)).toEqual(unselected);
+                expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
+            });
+
+            it('keeps the styler result on cells alongside a selection', async () => {
+                const itemStyler = ({ datum }: StylerParams) =>
+                    datum.person === 'B' ? { stroke: 'black', strokeWidth: 4 } : undefined;
+                await createStable(rawOptions({ ...NO_TOOLTIP, selection: SELECTION, itemStyler }));
+                const widths = strokeWidths(chart);
+
+                await select(1);
+
+                expect(cellFills(chart)[1]).toBe('lime');
+                expect(strokeWidths(chart)).toEqual(widths);
+            });
+
+            it('logs a styler that throws once and gives its cells the default style, without calling it again', async () => {
+                const unstyledFills = await freshCellFills(rawOptions());
+                const unstyledWidths = await freshCellFills(rawOptions(), strokeWidths);
+                const itemStyler = vi.fn(({ datum }: StylerParams) => {
+                    if (datum.person === 'B') throw new Error('boom');
+                    return { strokeWidth: 8 };
+                });
+                const options = rawOptions({ ...NO_TOOLTIP, itemStyler });
+                await createStable(options);
+                prepareEnterpriseTestOptions(options);
+
+                expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
+                expect(cellFills(chart)).toEqual(unstyledFills);
+                expect(strokeWidths(chart)).toEqual(DATA.map((d, i) => (d.person === 'B' ? unstyledWidths[i] : 8)));
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Uncaught exception in user callback \`series[0].itemStyler\`",
+                      [Error: boom],
+                    ],
+                  ]
+                `);
+            });
+        });
+
+        describe('itemStyler results without a theme or var() reference', () => {
+            type StylerParams = AgHeatmapSeriesItemStylerParams<(typeof DATA)[number]>;
+            const resolvedStylerResults = (resolvePartial: { mock: { calls: any[][] } }) =>
+                resolvePartial.mock.calls.filter(([, value]) => value != null && 'fill' in value);
+
+            async function updateWatchingResolvePartial(options: ReturnType<typeof rawOptions>) {
+                await createStable(options);
+                prepareEnterpriseTestOptions(options);
+                const resolvePartial = vi.spyOn(chart.series[0].ctx.optionsGraphService, 'resolvePartial');
+                chart.publicApi.update(options);
+                await waitForChartStability(chart);
+                return resolvePartial;
+            }
+
+            it('applies about 256 distinct fills to the cells that asked for them, skipping the options graph', async () => {
+                const DISTINCT = 256;
+                const data = Array.from({ length: DISTINCT * 2 }, (_, i) => ({
+                    year: `${2000 + (i % 40)}`,
+                    person: `P${Math.floor(i / 40)}`,
+                    spending: i,
+                }));
+                const fillFor = (spending: number) => `rgb(${spending % DISTINCT}, 20, 30)`;
+                const itemStyler = ({ datum }: { datum: { spending: number } }) => ({ fill: fillFor(datum.spending) });
+                const options = rawOptions({ itemStyler }, data);
+
+                const resolvePartial = await updateWatchingResolvePartial(options);
+                try {
+                    expect(resolvedStylerResults(resolvePartial)).toHaveLength(0);
+                    const fills = cellFills(chart);
+                    expect(fills).toHaveLength(data.length);
+                    expect(new Set(fills).size).toBe(DISTINCT);
+                    // Cells 0..255 and 256..511 share fills pairwise, and every cell shows the fill its own datum asked for.
+                    const expected = await freshCellFills(rawOptions({ itemStyler }, data));
+                    expect(fills).toEqual(expected);
+                    expect(fills[0]).toBe(fills[DISTINCT]);
+                    expect(fills[1]).not.toBe(fills[0]);
+                } finally {
+                    resolvePartial.mockRestore();
+                }
+            });
+
+            it('still resolves a result holding a theme colour reference through the options graph for each cell', async () => {
+                const itemStyler = ({ datum }: StylerParams) => ({
+                    fill: { ref: 'accentColor' as const },
+                    strokeWidth: datum.spending / 10,
+                });
+                const options = {
+                    ...rawOptions({ ...NO_TOOLTIP, itemStyler }),
+                    theme: { params: { accentColor: 'orange' } },
+                } as AgChartOptions;
+
+                const resolvePartial = await updateWatchingResolvePartial(options as ReturnType<typeof rawOptions>);
+                try {
+                    expect(resolvedStylerResults(resolvePartial)).toHaveLength(DATA.length);
+                    expect(cellFills(chart)).toEqual(DATA.map(() => 'orange'));
+                    expect(strokeWidths(chart)).toEqual(DATA.map((d) => d.spending / 10));
+                } finally {
+                    resolvePartial.mockRestore();
+                }
+            });
+        });
+
         it('keeps the colour scale fill in the tooltip symbol', async () => {
             await createStable(rawOptions());
 
