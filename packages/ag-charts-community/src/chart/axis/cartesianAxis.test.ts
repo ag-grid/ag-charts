@@ -21,18 +21,21 @@ import {
     getLabelSegmentAlignments,
     getLabelText,
     getSeriesRect,
+    pickAxisValue,
 } from '../test/axisAccessors';
 import { BIG, expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     createChart,
+    createSceneGeometrySampler,
     deproxy,
     expectWarningsCalls,
     getAxisTickLayout,
     getAxisTickLayoutLabelTexts,
     getAxisTickLayouts,
     prepareTestOptions,
+    resizeChartContainer,
     setupMockCanvas,
     setupMockConsole,
     spyOnAxisTickLayout,
@@ -958,25 +961,32 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             });
 
-            const crossTranslationY = async (value: AgCartesianAxisCrossAt['value']) => {
-                const options = bigintDomainOptions(value);
-                chart = await createChart(options);
-                const chartInstance = deproxy(chart as any) as any;
-                const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
-                expect(bottomAxis).toBeDefined();
-                const { y } = bottomAxis.crossAxisTranslation;
+            // Where the axis line is drawn, as the scene places it, and the series rect it was placed against.
+            const crossPositionY = async (value: AgCartesianAxisCrossAt['value']) => {
+                chart = await createChart(bigintDomainOptions(value));
+                const line = createSceneGeometrySampler(chart)().get('axis[bottom]/group[x-Axis-line]');
+                expect(line).toBeDefined();
+                const { y, height } = getSeriesRect(chart);
                 chart.destroy();
                 (chart as unknown) = undefined;
-                return y;
+                return { translationY: line!.translationY, bottom: y + height, height };
             };
 
+            // The axis moves with the cross position: one at the domain minimum sits on the edge, and makes room for
+            // its labels, so the offsets stay inside the domain to compare positions under one series rect.
             it('resolves adjacent bigints beyond MAX_SAFE_INTEGER to distinct cross positions', async () => {
-                const at0 = await crossTranslationY(BIG);
-                const at1 = await crossTranslationY(BIG + 1n);
-                const at2 = await crossTranslationY(BIG + 2n);
+                const offsets = [1n, 2n, 3n];
+                const positions = [];
+                for (const offset of offsets) {
+                    positions.push(await crossPositionY(BIG + offset));
+                }
 
-                expect(new Set([at0, at1, at2]).size).toBe(3);
-                expect(at1 - at0).toBeCloseTo(at2 - at1, 6);
+                expect(new Set(positions.map((position) => position.translationY)).size).toBe(3);
+                // The domain is BIG to BIG + 4, so each step moves the axis a quarter of the height. The rendered
+                // translation is floored, so it lands within a pixel below the exact position.
+                for (const [i, { translationY, bottom, height }] of positions.entries()) {
+                    expect(Math.abs(translationY - (bottom - ((i + 1) * height) / 4))).toBeLessThanOrEqual(1);
+                }
             });
 
             it('renders a bigint crossAt value identically to the equivalent number', async () => {
@@ -1011,20 +1021,17 @@ describe('CartesianAxis', () => {
             });
 
             it('degrades to the uncrossed fallback for a bigint crossAt value on a category axis', async () => {
-                const options: AgCartesianChartOptions = {
+                const options = (crossAt?: AgCartesianAxisCrossAt): AgCartesianChartOptions => ({
                     data: CATEGORY_DATA,
                     theme: THEME,
                     axes: {
                         x: { type: 'category', position: 'bottom' },
-                        y: { type: 'number', position: 'left', crossAt: { value: 1n } },
+                        y: { type: 'number', position: 'left', ...(crossAt ? { crossAt } : {}) },
                     },
                     series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-                };
-                chart = await createChart(options);
+                });
 
-                const chartInstance = deproxy(chart as any) as any;
-                const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
-                expect(leftAxis.crossAxisTranslation).toEqual({ x: 0, y: 0 });
+                await expectPixelIdenticalAcrossUpdate(ctx, createChart, options({ value: 1n }), options());
                 expectWarningsCalls().toHaveLength(0);
             });
         });
@@ -1578,10 +1585,15 @@ describe('CartesianAxis', () => {
         afterEach(() => container.remove());
 
         // Drive the auto-size path; explicit width/height would short-circuit the device-pixel offset.
-        const resizeTo = async (chartInstance: any, width: number, height: number) => {
-            chartInstance.ctx.domManager.containerSize = { width, height, pixelRatio: PIXEL_RATIO };
-            chartInstance.ctx.eventsHub.emit('dom:resize', null);
-            await waitForChartStability(chart);
+        const resizeTo = (width: number, height: number) =>
+            resizeChartContainer(chart, { width, height, pixelRatio: PIXEL_RATIO });
+
+        // Where the scene draws the axis line, floored to the pixel it is placed on.
+        const axisLinePosition = (position: 'bottom' | 'left', along: 'translationX' | 'translationY') => {
+            const id = position === 'bottom' ? 'x' : 'y';
+            const line = createSceneGeometrySampler(chart)().get(`axis[${position}]/group[${id}-Axis-line]`);
+            expect(line).toBeDefined();
+            return line![along];
         };
 
         const createAutoSizedChart = () => {
@@ -1595,30 +1607,27 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             };
             chart = AgCharts.create(options);
-            return deproxy(chart as any) as any;
         };
 
         it('keeps the bottom axis Y position fixed as the container width grows', async () => {
-            const chartInstance = createAutoSizedChart();
+            createAutoSizedChart();
 
             const positions = new Set<number>();
             for (let width = 300; width <= 320; width++) {
-                await resizeTo(chartInstance, width, 200);
-                const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
-                positions.add(bottomAxis.translation.y);
+                await resizeTo(width, 200);
+                positions.add(axisLinePosition('bottom', 'translationY'));
             }
 
             expect(positions.size).toBe(1);
         });
 
         it('keeps the left axis X position fixed as the container height grows', async () => {
-            const chartInstance = createAutoSizedChart();
+            createAutoSizedChart();
 
             const positions = new Set<number>();
             for (let height = 300; height <= 320; height++) {
-                await resizeTo(chartInstance, 400, height);
-                const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
-                positions.add(leftAxis.translation.x);
+                await resizeTo(400, height);
+                positions.add(axisLinePosition('left', 'translationX'));
             }
 
             expect(positions.size).toBe(1);
@@ -1639,26 +1648,24 @@ describe('CartesianAxis', () => {
         };
 
         it('moves the left axis X position monotonically as the container width grows', async () => {
-            const chartInstance = createAutoSizedChart();
+            createAutoSizedChart();
 
             const positions: number[] = [];
             for (let width = 300; width <= 320; width++) {
-                await resizeTo(chartInstance, width, 200);
-                const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
-                positions.push(leftAxis.translation.x);
+                await resizeTo(width, 200);
+                positions.push(axisLinePosition('left', 'translationX'));
             }
 
             expect(directionReversals(positions)).toBe(0);
         });
 
         it('moves the bottom axis Y position monotonically as the container height grows', async () => {
-            const chartInstance = createAutoSizedChart();
+            createAutoSizedChart();
 
             const positions: number[] = [];
             for (let height = 300; height <= 320; height++) {
-                await resizeTo(chartInstance, 400, height);
-                const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
-                positions.push(bottomAxis.translation.y);
+                await resizeTo(400, height);
+                positions.push(axisLinePosition('bottom', 'translationY'));
             }
 
             expect(directionReversals(positions)).toBe(0);
@@ -1736,16 +1743,12 @@ describe('CartesianAxis', () => {
             const options = baseOptions(reverse);
             chart = await createChart(options);
 
-            const chartInstance = deproxy(chart as any) as any;
-            const yAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
-            expect(yAxis).toBeDefined();
             expect(formatterIndexByValue.size).toBeGreaterThan(0);
 
-            const { x, y } = yAxis.getLayoutTranslation();
             for (const [value, formatterIndex] of formatterIndexByValue) {
-                const pick = yAxis.pickValue({ canvasX: x, canvasY: y + yAxis.scale.convert(value) });
+                const pick = pickAxisValue(chart, 'left', value);
                 expect(pick).toBeDefined();
-                expect(pick.index).toBe(formatterIndex);
+                expect(pick!.index).toBe(formatterIndex);
             }
         };
 

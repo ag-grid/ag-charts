@@ -1,9 +1,15 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { BBox } from 'ag-charts-core';
-import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
+import type {
+    AgBaseChartOptions,
+    AgCartesianAxisType,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgTimeAxisParentLevel,
+} from 'ag-charts-types';
 
-import { getAxisLabelTexts } from '../test/axisAccessors';
+import { getAxisLabelSource, getAxisLabelTexts } from '../test/axisAccessors';
 import { calculateAxisBBox, mixinDerivedCases } from '../test/axisTestCases';
 import {
     type ChartOrProxy,
@@ -428,7 +434,7 @@ const EXAMPLES: Record<string, TestCase> = {
 
 describe('Time Axis Examples', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     const compare = async () => {
@@ -436,7 +442,7 @@ describe('Time Axis Examples', () => {
     };
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -444,13 +450,13 @@ describe('Time Axis Examples', () => {
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
         it(`for ${exampleName} it should create chart instance as expected`, async () => {
-            chart = deproxy(await createChart(example.options));
+            chart = await createChart(example.options);
             await example.assertions(chart);
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
             const axisCompare = async () => {
-                for (const axis of chart.axes) {
+                for (const axis of deproxy(chart).axes) {
                     if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
                         continue;
                     }
@@ -460,7 +466,7 @@ describe('Time Axis Examples', () => {
                 }
             };
 
-            chart = deproxy(await createChart(example.options));
+            chart = await createChart(example.options);
             await axisCompare();
 
             if (example.extraScreenshotActions) {
@@ -552,18 +558,22 @@ describe('Time Axis Examples', () => {
 
         const monthAndYearOptions = (
             labelEnabled: boolean,
-            axisType: 'time' | 'unit-time'
+            axisType: 'time' | 'unit-time',
+            parentLevel: AgTimeAxisParentLevel = { enabled: true, label: { enabled: true } }
         ): AgCartesianChartOptions => ({
             data: PARENT_TIER_DATA,
             series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
             axes: {
-                x: {
-                    type: axisType,
-                    position: 'bottom',
-                    ...(axisType === 'unit-time' ? { unit: 'month' } : {}),
-                    label: { enabled: labelEnabled },
-                    parentLevel: { enabled: true, label: { enabled: true } },
-                } as any,
+                x:
+                    axisType === 'unit-time'
+                        ? {
+                              type: 'unit-time',
+                              position: 'bottom',
+                              unit: 'month',
+                              label: { enabled: labelEnabled },
+                              parentLevel,
+                          }
+                        : { type: 'time', position: 'bottom', label: { enabled: labelEnabled }, parentLevel },
                 y: { type: 'number', position: 'left' },
             },
         });
@@ -571,7 +581,7 @@ describe('Time Axis Examples', () => {
         it.each(['time', 'unit-time'] as const)(
             'renders only the parent (year) tier when base labels are disabled on a %s axis',
             async (axisType) => {
-                chart = deproxy(await createChart(monthAndYearOptions(false, axisType)));
+                chart = await createChart(monthAndYearOptions(false, axisType));
 
                 // Every node, not only the visible ones: a base tier that was merely hidden would otherwise pass as removed.
                 const texts = getAxisLabelTexts(chart, 'bottom', { visibleOnly: false });
@@ -583,19 +593,22 @@ describe('Time Axis Examples', () => {
         );
 
         it('contributes the parent tier as label obstacles when base labels are disabled', async () => {
-            const options = monthAndYearOptions(false, 'unit-time');
             // The label group draws only while a base or parent tick is enabled.
-            (options.axes as any).x.parentLevel.tick = { enabled: true };
-            chart = deproxy(await createChart(options));
-            const axis = deproxy(chart).axes.find((a: any) => a.position === 'bottom') as any;
+            chart = await createChart(
+                monthAndYearOptions(false, 'unit-time', {
+                    enabled: true,
+                    label: { enabled: true },
+                    tick: { enabled: true },
+                })
+            );
             expect(getAxisLabelTexts(chart, 'bottom')).toContain('2024');
-            expect(axis.labelSource.getLabelObstacles(BBox.zero)).toHaveLength(
+            expect(getAxisLabelSource(chart, 'bottom').getLabelObstacles(BBox.zero)).toHaveLength(
                 getAxisLabelTexts(chart, 'bottom').length
             );
         });
 
         it('removes base-tier labels at runtime while the parent tier remains (TC2)', async () => {
-            chart = deproxy(await createChart(monthAndYearOptions(true, 'unit-time')));
+            chart = await createChart(monthAndYearOptions(true, 'unit-time'));
 
             const before = getAxisLabelTexts(chart, 'bottom');
             expect(before.some((t) => /Jan|Feb|Mar|Nov|Dec/.test(t))).toBe(true);
@@ -609,16 +622,14 @@ describe('Time Axis Examples', () => {
         });
 
         it('hides all labels on a number axis when its labels are disabled (regression guard)', async () => {
-            chart = deproxy(
-                await createChart({
-                    data: PARENT_TIER_DATA,
-                    series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
-                    axes: {
-                        x: { type: 'category', position: 'bottom' },
-                        y: { type: 'number', position: 'left', label: { enabled: false } },
-                    },
-                })
-            );
+            chart = await createChart({
+                data: PARENT_TIER_DATA,
+                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', label: { enabled: false } },
+                },
+            });
 
             expect(getAxisLabelTexts(chart, 'left', { visibleOnly: false })).toEqual([]);
         });
