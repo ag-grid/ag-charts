@@ -1029,6 +1029,36 @@ describe('Text', () => {
                 const { y, height } = Text.measureBBox([{ text }], 0, 0, { font, textBaseline });
                 expect(node.getBBox()).toMatchObject({ y, height });
             });
+
+            it.each(['top', 'middle'] as const)(
+                'fills its box to the measured rows at a %s baseline',
+                (textBaseline) => {
+                    const font = { fontSize: 12, fontFamily: 'Verdana', lineHeight: 36 };
+                    const node = Object.assign(new Text(), font, {
+                        text: [{ text: 'A' }],
+                        textBaseline,
+                        x: 100,
+                        y: 100,
+                    });
+                    node.setScene(mockScene);
+                    node.setBoxing({ fill: 'red', padding: 0 });
+                    const ctx = canvasCtx.getRenderContext2D();
+                    node.render({
+                        ctx,
+                        direction: 'ltr' as const,
+                        width: canvasCtx.nodeCanvas.width,
+                        height: canvasCtx.nodeCanvas.height,
+                        devicePixelRatio: 1,
+                        logger: testLogger,
+                        debugNodes: {},
+                    });
+                    const { x, y, height } = node.getBBox();
+                    for (const rowY of [y + 1, y + height - 1]) {
+                        const [r, g, b] = ctx.getImageData(Math.ceil(x) + 1, Math.round(rowY), 1, 1).data;
+                        expect([r, g, b]).toEqual([255, 0, 0]);
+                    }
+                }
+            );
         });
     });
 

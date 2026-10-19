@@ -332,11 +332,7 @@ export class Text<D = unknown> extends Shape<D> {
             // Segments are laid out from a top-left origin, so the anchor only coincides with the
             // box top under a `'top'` baseline; every other baseline moves the block against it.
             bbox.y = this.y - Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
-            // Child glyph boxes don't carry the rows' line heights, which centre on a middle anchor.
-            if (this.lineHeight != null || lineMetrics.some((line) => Text.hasSegmentLineHeight(line))) {
-                bbox.height = height;
-                if (this.textBaseline === 'middle') bbox.y = this.y - height / 2;
-            }
+            this.fitToMeasuredRows(bbox, bbox.y, height, lineMetrics);
             if (this.boxing != null) bbox.grow(this.boxPadding);
             return bbox;
         }
@@ -524,6 +520,18 @@ export class Text<D = unknown> extends Shape<D> {
         return offsetY + rowHeight;
     }
 
+    // Child glyph boxes don't carry the rows' line heights, which centre on a middle anchor.
+    private fitToMeasuredRows(
+        bbox: BBox,
+        rowsTop: number,
+        height: number,
+        lineMetrics: ReturnType<typeof measureTextSegments>['lineMetrics']
+    ) {
+        if (this.lineHeight == null && !lineMetrics.some((line) => Text.hasSegmentLineHeight(line))) return;
+        bbox.y = this.textBaseline === 'middle' ? this.y - height / 2 : rowsTop;
+        bbox.height = height;
+    }
+
     private static hasSegmentLineHeight(line: ReturnType<typeof measureTextSegments>['lineMetrics'][number]) {
         return line.segments.some((segment) => segment.type !== 'image' && segment.lineHeight != null);
     }
@@ -675,7 +683,9 @@ export class Text<D = unknown> extends Shape<D> {
 
             const translateY = this.y - Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
 
-            this.renderBoxing(renderCtx, richTextBBox.clone().translate(translateX, translateY));
+            const boxingBBox = richTextBBox.clone().translate(translateX, translateY);
+            this.fitToMeasuredRows(boxingBBox, translateY, height, lineMetrics);
+            this.renderBoxing(renderCtx, boxingBBox);
 
             ctx.save();
             ctx.translate(translateX, translateY);
