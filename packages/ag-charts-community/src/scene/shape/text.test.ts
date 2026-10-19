@@ -1013,6 +1013,18 @@ describe('Text', () => {
             expect(Text.measureBBox('A\nB', 0, 0, { font, textBaseline: 'top' }).height).toBe(72);
             expect(Text.measureBBox('A\nB', 0, 0, { font, lineHeight: 20, textBaseline: 'top' }).height).toBe(40);
         });
+
+        describe('rich text', () => {
+            const mockScene = setUpMockScene(canvasCtx);
+
+            it.each(['A', 'A\nB'])('reports the measured height of %j in its scene bounds', (text) => {
+                const font = { fontSize: 12, fontFamily: 'Verdana', lineHeight: 36 };
+                const node = Object.assign(new Text(), font, { text: [{ text }], textBaseline: 'top' as const });
+                node.setScene(mockScene);
+                const measured = Text.measureBBox([{ text }], 0, 0, { font, textBaseline: 'top' });
+                expect(node.getBBox().height).toBe(measured.height);
+            });
+        });
     });
 
     // A number beside RTL text reorders to `5-` in either paragraph direction, so the marks are

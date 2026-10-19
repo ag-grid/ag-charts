@@ -332,6 +332,9 @@ export class Text<D = unknown> extends Shape<D> {
             // Segments are laid out from a top-left origin, so the anchor only coincides with the
             // box top under a `'top'` baseline; every other baseline moves the block against it.
             bbox.y = this.y - Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
+            // Child glyph boxes don't carry the rows' line heights.
+            if (this.lineHeight != null || lineMetrics.some((line) => Text.hasSegmentLineHeight(line)))
+                bbox.height = height;
             if (this.boxing != null) bbox.grow(this.boxPadding);
             return bbox;
         }
@@ -517,6 +520,10 @@ export class Text<D = unknown> extends Shape<D> {
         }
 
         return offsetY + rowHeight;
+    }
+
+    private static hasSegmentLineHeight(line: ReturnType<typeof measureTextSegments>['lineMetrics'][number]) {
+        return line.segments.some((segment) => segment.type !== 'image' && segment.lineHeight != null);
     }
 
     private static findFirstTextSegment(
