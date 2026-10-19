@@ -41,6 +41,18 @@ describe('volumeProfilePreset', () => {
         title: { text: 'Volume Profile' },
     };
 
+    // A test whose chart should end up looking like one of these compares against the same baseline, so every
+    // route to that chart is held to the same image. Regenerating one regenerates it for all of them.
+    const DEFAULT_SNAPSHOT = 'volume-profile-preset-default';
+    const LARGER_TICK_SIZE_SNAPSHOT = 'volume-profile-preset-larger-tick-size';
+    const SHARED_SNAPSHOTS: Record<string, string> = {
+        default: DEFAULT_SNAPSHOT,
+        'larger tick size': LARGER_TICK_SIZE_SNAPSHOT,
+    };
+
+    const compareToSnapshot = (customSnapshotIdentifier?: string) =>
+        compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, customSnapshotIdentifier });
+
     const EXAMPLES: Record<string, AgVolumeProfileChartOptions> = {
         default: volumeProfile,
         'smaller tick size': { ...volumeProfile, tickSize: 1 },
@@ -85,19 +97,16 @@ describe('volumeProfilePreset', () => {
         },
     };
 
-    it.each(Object.entries(EXAMPLES))(
-        'for %s it should render to canvas as expected',
-        async (_exampleName, example) => {
-            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...example }));
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
-        }
-    );
+    it.each(Object.entries(EXAMPLES))('for %s it should render to canvas as expected', async (exampleName, example) => {
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...example }));
+        await compareToSnapshot(SHARED_SNAPSHOTS[exampleName]);
+    });
 
     it('should update the profile on an add transaction', async () => {
         chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
         await waitForChartStability(chart);
         await chart.applyTransaction({ add: [{ price: 210, upVolume: 50e6, downVolume: 40e6 }] });
-        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        await compareToSnapshot();
     });
 
     it('should update the profile on an update transaction', async () => {
@@ -109,45 +118,45 @@ describe('volumeProfilePreset', () => {
         const datum = chart.getOptions().data!.at(-1)!;
         datum.upVolume = 150e6;
         await chart.applyTransaction({ update: [datum] });
-        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        await compareToSnapshot();
     });
-
-    const levels = () => deproxy(chart).series[0].data?.data ?? [];
 
     it('should regroup the profile when the tick size changes', async () => {
         chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
         await waitForChartStability(chart);
         await chart.updateDelta({ tickSize: 5 });
-        await waitForChartStability(chart);
-        // From 135 to 205 in steps of 5.
-        expect(levels()).toHaveLength(15);
+        await compareToSnapshot(LARGER_TICK_SIZE_SNAPSHOT);
     });
 
-    it('should regroup the profile when the price key changes', async () => {
-        const data = getRegularVolumeProfile().map((datum) => ({ ...datum, level: datum.price + 100 }));
+    it('should regroup the profile when the price, up and down keys change', async () => {
+        // The default keys read decoys, with prices shifted and the volumes swapped; the keys switched to hold the
+        // levels of the default profile.
+        const data = getRegularVolumeProfile().map(({ price, upVolume, downVolume }) => ({
+            price: price + 100,
+            upVolume: downVolume,
+            downVolume: upVolume,
+            level: price,
+            buys: upVolume,
+            sells: downVolume,
+        }));
         chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile, data }));
         await waitForChartStability(chart);
-        await chart.updateDelta({ priceKey: 'level' });
-        await waitForChartStability(chart);
-        expect(levels()[0]).toMatchObject({ price: 305 });
+        const decoys = ctx.snapshot();
+
+        await chart.updateDelta({ priceKey: 'level', upKey: 'buys', downKey: 'sells' });
+        await compareToSnapshot(DEFAULT_SNAPSHOT);
+        expect(ctx.snapshot()).not.toMatchImage(decoys, { writeDiff: false });
     });
 
     it('should regroup the profile on a same-length data update', async () => {
-        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
-        await waitForChartStability(chart);
         const data = getRegularVolumeProfile().map((datum) => ({ ...datum, upVolume: datum.upVolume * 2 }));
-        await chart.updateDelta({ data });
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile, data }));
         await waitForChartStability(chart);
-        expect(levels()[0]).toMatchObject({ price: 205, upVolume: data.find(({ price }) => price === 205)?.upVolume });
-    });
+        const doubled = ctx.snapshot();
 
-    it('should regroup the profile when the up key changes', async () => {
-        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
-        await waitForChartStability(chart);
-        await chart.updateDelta({ upKey: 'downVolume' });
-        await waitForChartStability(chart);
-        const { downVolume } = getRegularVolumeProfile().find(({ price }) => price === 205) ?? {};
-        expect(levels()[0]).toMatchObject({ price: 205, upVolume: downVolume, downVolume });
+        await chart.updateDelta({ data: getRegularVolumeProfile() });
+        await compareToSnapshot(DEFAULT_SNAPSHOT);
+        expect(ctx.snapshot()).not.toMatchImage(doubled, { writeDiff: false });
     });
 
     describe('with the total segment', () => {
@@ -171,14 +180,14 @@ describe('volumeProfilePreset', () => {
             chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...enabled }));
             await waitForChartStability(chart);
             await chart.updateDelta({ totalSegment: { width: 120, gap: 16 } });
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+            await compareToSnapshot();
         });
 
         it('should keep the blocks aligned with the bars when the profile is regrouped', async () => {
             chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...enabled }));
             await waitForChartStability(chart);
             await chart.updateDelta({ tickSize: 5 });
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+            await compareToSnapshot();
         });
     });
 
@@ -207,9 +216,7 @@ describe('volumeProfilePreset', () => {
         it('should show the loaded profile', async () => {
             createWithDataSource(getRegularVolumeProfile);
             await waitForChartStabilityUntil(chart, () => loadedRows() === regularRows, 'the load');
-            // From 135 to 205 in steps of 2.5.
-            expect(levels()).toHaveLength(29);
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+            await compareToSnapshot(DEFAULT_SNAPSHOT);
         });
 
         it('should load without `data`', async () => {
@@ -218,7 +225,7 @@ describe('volumeProfilePreset', () => {
                 prepareFinancialTestOptions({ ...options, dataSource: instantDataSource(getRegularVolumeProfile) })
             );
             await waitForChartStabilityUntil(chart, () => loadedRows() === regularRows, 'the load');
-            expect(levels()).toHaveLength(29);
+            await compareToSnapshot(DEFAULT_SNAPSHOT);
             expectWarningsCalls().toEqual([]);
         });
 
@@ -230,9 +237,7 @@ describe('volumeProfilePreset', () => {
             getData.mockImplementation(() => getRegularVolumeProfile().filter(({ price }) => price >= 170));
             await chart.updateDelta({});
             await waitForChartStabilityUntil(chart, () => loadedRows() === 15, 'the second load');
-            // From 170 to 205 in steps of 2.5.
-            expect(levels()).toHaveLength(15);
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+            await compareToSnapshot();
         });
 
         it('should keep the profile when a load groups to no levels', async () => {
@@ -242,8 +247,7 @@ describe('volumeProfilePreset', () => {
             await waitForChartStabilityUntil(chart, () => rendered === false, 'the load');
             await waitForChartStability(chart);
             // A load that renders nothing is dropped, and the chart's previous data restored.
-            expect(loadedRows()).toBe(regularRows);
-            expect(levels()).toHaveLength(29);
+            await compareToSnapshot(DEFAULT_SNAPSHOT);
         });
 
         it('should infer the tick size from the loaded data', async () => {
@@ -255,17 +259,15 @@ describe('volumeProfilePreset', () => {
                 }));
             createWithDataSource(getData, { data: getRegularVolumeProfile() });
             await waitForChartStabilityUntil(chart, () => loadedRows() === 11, 'the load');
-            // From 150 to 160 in steps of 1.
-            expect(levels()).toHaveLength(11);
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+            await compareToSnapshot();
         });
 
         it('should group the loaded data by the validated options', async () => {
             // @ts-expect-error invalid `priceKey`
             createWithDataSource(getRegularVolumeProfile, { priceKey: null, tickSize: 0 });
             await waitForChartStabilityUntil(chart, () => loadedRows() === regularRows, 'the load');
-            // The levels of the default `priceKey` at the inferred 2.5 tick size, from 135 to 205.
-            expect(levels()).toHaveLength(29);
+            // The default `priceKey` at the inferred tick size.
+            await compareToSnapshot(DEFAULT_SNAPSHOT);
             expectWarningsCalls().toEqual([
                 ['AG Charts - Option `priceKey` cannot be set to `null`; expecting a string, ignoring.'],
                 ['AG Charts - Option `tickSize` cannot be set to `0`; expecting a number greater than 0, ignoring.'],
@@ -282,7 +284,7 @@ describe('volumeProfilePreset', () => {
         chart = AgCharts.createVolumeProfileChart(
             prepareFinancialTestOptions({ data, priceKey: 'level', upKey: 'buys', downKey: 'sells' })
         );
-        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        await compareToSnapshot();
     });
 
     describe('with keys the data lacks', () => {
@@ -328,7 +330,7 @@ describe('volumeProfilePreset', () => {
                 theme: { params: {}, palette: { up: { fill: '#1565c0' }, down: { fill: '#ef6c00' } } },
             })
         );
-        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        await compareToSnapshot();
     });
 
     it('should apply the theme overrides', async () => {
@@ -349,7 +351,7 @@ describe('volumeProfilePreset', () => {
                 },
             })
         );
-        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        await compareToSnapshot();
     });
 
     it('keeps the preset base theme under a user theme naming no base of its own', async () => {
@@ -358,10 +360,7 @@ describe('volumeProfilePreset', () => {
         expect(theme.baseTheme).toBeUndefined();
 
         chart = AgCharts.createVolumeProfileChart(options);
-        await waitForChartStability(chart);
-
-        // `ag-financial`'s up colour; the default theme would resolve a green of its own.
-        const { activeTheme } = deproxy(chart).chartOptions as { activeTheme: { palette: AgChartTheme['palette'] } };
-        expect(activeTheme.palette?.up?.fill).toBe('#089981');
+        // `ag-financial`'s colours; the default theme would resolve a green of its own.
+        await compareToSnapshot(DEFAULT_SNAPSHOT);
     });
 });
