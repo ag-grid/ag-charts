@@ -614,23 +614,21 @@ describe('HeatmapSeries', () => {
         });
 
         it('AG-16043: discrete-bin legend items render with the default cursor, not pointer', async () => {
-            chart = deproxy(
-                await createEnterpriseChart({
-                    data: EXAMPLE_OPTIONS.data,
-                    series: [
-                        {
-                            type: 'heatmap',
-                            xKey: 'year',
-                            yKey: 'person',
-                            colorKey: 'spending',
-                            colorScale: {
-                                fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
-                                mode: 'discrete' as const,
-                            },
+            chart = await createEnterpriseChart({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
                         },
-                    ],
-                })
-            );
+                    },
+                ],
+            });
 
             // Discrete-bin items don't toggle, so a pointer cursor would imply interactivity.
             const legendButtons = document.querySelectorAll<HTMLElement>('button.ag-charts-proxy-elem[role="switch"]');

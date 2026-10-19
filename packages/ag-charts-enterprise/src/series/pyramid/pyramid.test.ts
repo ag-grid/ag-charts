@@ -78,7 +78,7 @@ describe('PyramidSeries', () => {
         it('should render a chart', async () => {
             const options: AgChartOptions = { ...PYRAMID_EXAMPLE };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 

@@ -168,7 +168,7 @@ describe('ChordSeries', () => {
         it('should render a complex chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 

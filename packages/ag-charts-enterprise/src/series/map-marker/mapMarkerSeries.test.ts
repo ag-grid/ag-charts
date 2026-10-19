@@ -82,7 +82,7 @@ describe('MapMarkerSeries', () => {
     describe('Simple Chart', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -120,7 +120,7 @@ describe('MapMarkerSeries', () => {
     describe('Bubble markers', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIZE_EXAMPLE };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });

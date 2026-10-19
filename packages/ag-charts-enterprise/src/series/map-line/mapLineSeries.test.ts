@@ -83,7 +83,7 @@ describe('MapLineSeries', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -107,7 +107,7 @@ describe('MapLineSeries', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...HEATMAP_EXAMPLE };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -175,7 +175,7 @@ describe('MapLineSeries', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...VARIABLE_STROKE_EXAMPLE };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });

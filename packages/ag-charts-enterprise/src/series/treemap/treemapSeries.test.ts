@@ -839,15 +839,13 @@ describe('TreemapSeries', () => {
         };
 
         it('fits, shrinks and aligns group labels within their headers', async () => {
-            chart = deproxy(
-                await createEnterpriseChart(
-                    groupOptions(
-                        { fontSize: 16, minimumFontSize: 8, maxWidth: 150, maxHeight: 30, verticalAlign: 'bottom' },
-                        [
-                            ...groupData('Fresh fruit from the orchards of the valley'),
-                            { name: 'Nuts\nand seeds', children: [{ name: 'Almonds', value: 20 }] },
-                        ]
-                    )
+            chart = await createEnterpriseChart(
+                groupOptions(
+                    { fontSize: 16, minimumFontSize: 8, maxWidth: 150, maxHeight: 30, verticalAlign: 'bottom' },
+                    [
+                        ...groupData('Fresh fruit from the orchards of the valley'),
+                        { name: 'Nuts\nand seeds', children: [{ name: 'Almonds', value: 20 }] },
+                    ]
                 )
             );
             await compare();

@@ -113,7 +113,7 @@ describe('FunnelSeries', () => {
         it('should render a chart', async () => {
             const options: AgChartOptions = { ...FUNNEL_EXAMPLE };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
