@@ -78,6 +78,7 @@ export * from './options/normalised/normalisedCartesianSeries';
 export * from './options/normalised/normalisedChartCaptionOptions';
 export * from './options/normalised/normalisedChartOptions';
 export * from './options/normalised/normalisedCommonOptions';
+export * from './options/normalised/normalisedContextMenuOptions';
 export * from './options/normalised/normalisedDonutSeries';
 export * from './options/normalised/normalisedEnterpriseBarSeries';
 export * from './options/normalised/normalisedErrorBarOptions';

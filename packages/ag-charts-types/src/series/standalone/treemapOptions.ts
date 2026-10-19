@@ -216,7 +216,10 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext
 
 export interface AgTreemapSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend' | 'selection'>,
+        Omit<
+            AgBaseSeriesOptions<TDatum, TContext>,
+            'highlight' | 'highlightStyle' | 'showInLegend' | 'selection' | 'focusIndex'
+        >,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames,
         AgTreemapSeriesThemeableOptions<TDatum, TContext> {

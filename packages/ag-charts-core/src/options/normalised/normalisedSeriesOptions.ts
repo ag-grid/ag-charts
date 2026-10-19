@@ -98,7 +98,7 @@ export type SeriesCommonOptionKey =
     | 'listeners'
     | 'context'
     | 'allowNullKeys'
-    | 'focusPriority';
+    | 'focusIndex';
 
 /** The series-specific part of its options: everything the common block does not own. */
 export type NormalisedSeriesOwnOptions<T extends object> = Omit<T, SeriesCommonOptionKey>;
@@ -119,8 +119,8 @@ export interface NormalisedSeriesOptionsCommon<T extends object = object> {
     context?: unknown;
     /** Undocumented: allow null values as discrete keys. */
     allowNullKeys?: boolean;
-    /** Undocumented: keyboard focus order across series; lower is focused first. */
-    focusPriority?: number;
+    /** Absent on series types whose public options omit it. */
+    focusIndex?: number;
 }
 
 /** The post-theme shape of a series' options; `T` is the public options type or a normalised alias of it. */

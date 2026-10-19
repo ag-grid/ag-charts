@@ -60,6 +60,12 @@ export interface ErrorBarCapOptions extends ErrorBarStylingOptions {
 export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
     /** Options to style error bars' caps */
     cap?: ErrorBarCapOptions;
+    /**
+     * Whether series labels are positioned past the error bar instead of against the series shape. Labels that collide with an error bar follow the label's collision options either way.
+     *
+     * Default: `true`
+     */
+    offsetLabels?: boolean;
 }
 
 export interface AgErrorBarOptions<TDatum = DatumDefault, TContext = ContextDefault>

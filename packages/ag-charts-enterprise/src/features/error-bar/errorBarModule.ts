@@ -17,6 +17,7 @@ export const ErrorBarsModule: SeriesPluginModuleDefinition<AgErrorBarOptions> = 
     options: errorBarOptionsDefs,
     themeTemplate: {
         visible: true,
+        offsetLabels: true,
         stroke: { $ref: 'foregroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,

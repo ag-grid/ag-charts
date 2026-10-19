@@ -143,7 +143,7 @@ export interface AgWaterfallSeriesOptionsNames {
 
 export interface AgWaterfallSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight' | 'focusIndex'>,
         AgBaseCartesianSeriesAxisOptions,
         AgWaterfallSeriesOptionsKeys<TDatum>,
         AgWaterfallSeriesOptionsNames,

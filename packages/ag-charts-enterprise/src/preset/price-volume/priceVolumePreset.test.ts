@@ -6,11 +6,14 @@ import {
     compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
+    getSwapChainText,
     hoverAction,
     isTooltipVisible,
     prepareFinancialTestOptions,
+    pressKey,
     setupMockCanvas,
     setupMockConsole,
+    tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { testLogger } from 'ag-charts-test';
@@ -159,6 +162,20 @@ describe('priceVolumePreset', () => {
         expect(ids).toEqual(['price', 'volume', 'volumeProfileDown', 'volumeProfileUp']);
     });
 
+    it('focuses the price series before the volume series', async () => {
+        chart = AgCharts.createFinancialChart(
+            prepareFinancialTestOptions({ data: getStockData().slice(0, 40) } as AgFinancialChartOptions)
+        );
+        await waitForChartStability(chart);
+
+        const internal = deproxy(chart);
+        await tabIntoChart(internal);
+        await pressKey(internal, 'ArrowRight');
+        expect(getSwapChainText()).toContain('close');
+        await pressKey(internal, 'ArrowDown');
+        expect(getSwapChainText()).toContain('volume');
+    });
+
     it('keeps the preset base theme under a user theme naming no base of its own', async () => {
         const options = prepareFinancialTestOptions({
             chartType: 'candlestick',
@@ -204,6 +221,18 @@ describe('priceVolumePreset', () => {
         expect(bigintVolume).toBe(numberVolume);
     });
 
+    it('re-points the annotations data at the grown data of an updateDelta()', async () => {
+        const rows = getStockData();
+        chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data: rows.slice(0, 50) }));
+        await waitForChartStability(chart);
+
+        await chart.updateDelta({ data: rows.slice(0, 60) });
+        await waitForChartStability(chart);
+
+        const { processedOptions } = deproxy(chart).chartOptions;
+        expect((processedOptions as { annotations?: { data?: unknown[] } }).annotations?.data).toHaveLength(60);
+    });
+
     describe('#createFinancialChart', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
@@ -244,7 +273,7 @@ describe('priceVolumePreset', () => {
 
         const VOLUME_PROFILE_EXAMPLES: Record<string, AgFinancialChartOptions> = {
             default: { data: getStockData(), volumeProfile },
-            'placement right': { data: getStockData(), volumeProfile: { ...volumeProfile, placement: 'right' } },
+            'placement left': { data: getStockData(), volumeProfile: { ...volumeProfile, placement: 'left' } },
             'width ratio': { data: getStockData(), volumeProfile: { ...volumeProfile, widthRatio: 0.25 } },
             'smaller tick size': { data: getStockData(), volumeProfile, tickSize: 1 },
             'matching tick size': { data: getStockData(), volumeProfile, tickSize: 2.5 },
@@ -333,6 +362,15 @@ describe('priceVolumePreset', () => {
                 expect(zoomed).toBeGreaterThan(0);
                 expect(zoomed).toBeLessThan(all);
             });
+        });
+
+        it('should leave the volume profile unselectable', async () => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data: getStockData(), volumeProfile }));
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).ctx.chartService.series;
+            expect(series).toHaveLength(4);
+            expect(series.map((s) => s.isSelectionEnabled())).toEqual(series.map(() => false));
         });
 
         it('should render no volume profile when enabled is false', async () => {
@@ -465,13 +503,14 @@ describe('priceVolumePreset', () => {
         });
 
         describe('picking the volume profile', () => {
-            // The point is inside the start of the 200 level's up bar, in series coordinates.
+            // The point is inside the start of the 200 level's up bar, which grows from the right edge by default, in
+            // series coordinates.
             const pick = (intent: 'tooltip' | 'highlight' | 'highlight-tooltip' | 'event' | 'context-menu') => {
                 const { y } = nodeCentre('bar', 'upVolume', LEVEL_200);
-                const { y: top } = deproxy(chart).ctx.chartService.seriesRect!;
+                const { y: top, width } = deproxy(chart).ctx.chartService.seriesRect!;
                 // The bar series are the volume, then the up and down halves of the profile.
                 const [, series] = deproxy(chart).series.filter((s) => s.type === 'bar');
-                return series?.pickNodes({ x: 5, y: y - top }, intent)?.picks.length ?? 0;
+                return series?.pickNodes({ x: width - 5, y: y - top }, intent)?.picks.length ?? 0;
             };
 
             it('should pick on a click or context menu but not on hover', async () => {

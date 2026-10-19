@@ -22,7 +22,6 @@ import {
     markerOptionsDefs,
     markerStyleOptionsDefs,
     multiSeriesShadowHighlightOptionsDef,
-    number,
     positiveNumber,
     required,
     seriesLabelOptionsDefs,
@@ -120,6 +119,5 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
     },
     ...undocumentedDefs({
         pickOutsideVisibleMinorAxis: boolean,
-        focusPriority: number,
     }),
 };

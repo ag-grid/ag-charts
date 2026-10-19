@@ -75,6 +75,7 @@ export const navigatorHandleOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = 
 
 export const commonIgnoredMiniChartProperties: CommonIgnoredProperties[] = [
     'cursor',
+    'focusIndex',
     'highlightStyle',
     'listeners',
     'nodeClickRange',

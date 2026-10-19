@@ -172,6 +172,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasPathDrawingStyles &
     CanvasDrawPath &
     CanvasPath &
+    CanvasRect &
     CanvasTransform &
     CanvasState;
 
@@ -436,6 +437,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
 
         if (this.__drawingMode === 'cutout') {
+            // Opaque, so a sibling's fill style left on the context can't weaken the cutout.
+            ctx.fillStyle = '#000';
             ctx.globalCompositeOperation = 'destination-out';
             this.executeFill(ctx, path);
             ctx.globalCompositeOperation = 'source-over';

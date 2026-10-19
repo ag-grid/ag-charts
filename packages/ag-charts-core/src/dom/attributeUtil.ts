@@ -8,6 +8,7 @@ import { isHTMLElement } from './globalsProxy';
 export type StrictHTMLElement = HTMLElement & { id: ElementID };
 
 type AriaRole =
+    | 'button'
     | 'figure'
     | 'group'
     | 'img'

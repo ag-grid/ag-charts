@@ -20,7 +20,6 @@ import {
     markerOptionsDefs,
     markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
-    number,
     required,
     shadowOptionsDefs,
     shapeHighlightOptionsDef,
@@ -96,6 +95,5 @@ export const hlcSeriesOptionsDef: OptionsDefs<AgHlcSeriesOptions> = {
     legendItemName: string,
     ...undocumentedDefs({
         pickOutsideVisibleMinorAxis: boolean,
-        focusPriority: number,
     }),
 };

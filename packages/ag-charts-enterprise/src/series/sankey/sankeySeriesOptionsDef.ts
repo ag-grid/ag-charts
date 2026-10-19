@@ -92,7 +92,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
 
 export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     ...sankeySeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlight']),
+    ...without(commonSeriesOptionsDefs, ['highlight', 'focusIndex']),
     type: required(constant('sankey')),
     fromKey: required(string),
     toKey: required(string),

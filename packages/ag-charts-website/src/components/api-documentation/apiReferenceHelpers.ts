@@ -1159,3 +1159,24 @@ function addNewLineOnPipe(str: string) {
 function isArrayOrRecordSpecialType(specialType: SpecialTypesMap | undefined, type: string) {
     return specialType?.[type] === 'InterfaceArray' || specialType?.[type] === 'InterfaceRecord';
 }
+
+/** The discriminated variants of an `InterfaceArray` / `InterfaceRecord` special type, e.g. each `series` type. */
+export function getInterfaceArrayTypes(reference?: ApiReferenceType, interfaceRef?: NodeTypes) {
+    if (
+        interfaceRef?.kind === 'typeAlias' &&
+        typeof interfaceRef.type === 'object' &&
+        interfaceRef.type.kind === 'union'
+    ) {
+        return interfaceRef.type.type
+            .map((type) => {
+                const nodeType = normalizeType(type);
+                const innerInterfaceRef = reference?.get(nodeType);
+                const discriminator = getVariantDiscriminator(innerInterfaceRef);
+                if (discriminator) {
+                    return { name: discriminator.value, type: nodeType };
+                }
+            })
+            .filter((item): item is NavigationPath => item != null);
+    }
+    return [];
+}

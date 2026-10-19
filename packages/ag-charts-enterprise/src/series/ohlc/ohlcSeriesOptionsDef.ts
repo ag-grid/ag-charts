@@ -9,7 +9,6 @@ import {
     lineDashOptionsDef,
     lineHighlightOptionsDef,
     multiSeriesShadowHighlightOptionsDef,
-    number,
     required,
     shadowOptionsDefs,
     string,
@@ -59,6 +58,5 @@ export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
     closeName: string,
     ...undocumentedDefs({
         pickOutsideVisibleMinorAxis: boolean,
-        focusPriority: number,
     }),
 };

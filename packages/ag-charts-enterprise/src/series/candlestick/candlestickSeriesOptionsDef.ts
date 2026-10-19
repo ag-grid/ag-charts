@@ -14,7 +14,6 @@ import {
     fillOptionsDef,
     lineDashOptionsDef,
     multiSeriesShadowHighlightOptionsDef,
-    number,
     positiveNumber,
     ratio,
     required,
@@ -85,6 +84,5 @@ export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions
     yKeyAxis: string,
     ...undocumentedDefs({
         pickOutsideVisibleMinorAxis: boolean,
-        focusPriority: number,
     }),
 };

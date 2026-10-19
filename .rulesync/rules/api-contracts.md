@@ -53,13 +53,16 @@ Chart-level:
 -   `foreground`
 -   `overrideDevicePixelRatio`
 -   `displayNullData`
--   `dataSource.requestThrottle`, `dataSource.updateThrottle`, `dataSource.updateDuringInteraction`
--   `ranges.minSize`
 
 Series-level:
 
 -   `allowNullKeys` - allows null/undefined as discrete category keys
 -   `seriesGrouping`
+
+Module-level, declared in the owning module rather than `chartDefaults.ts`:
+
+-   `ranges.minSize` - `undocumentedDefs` in `packages/ag-charts-enterprise/src/features/ranges/rangesOptionsDefs.ts`
+-   `dataSource.requestThrottle`, `dataSource.updateThrottle`, `dataSource.updateDuringInteraction` - inline `undocumented(...)` in `packages/ag-charts-enterprise/src/features/data-source/dataSourceModule.ts`
 
 ## Documented Options on Chart
 

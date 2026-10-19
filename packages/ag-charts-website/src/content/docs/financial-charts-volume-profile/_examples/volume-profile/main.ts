@@ -15,7 +15,6 @@ const options: AgFinancialChartOptions = {
         data: getRegularVolumeProfile(),
         upKey: 'upVolume',
         downKey: 'downVolume',
-        placement: 'left',
         widthRatio: 0.2,
     },
 };

@@ -83,7 +83,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
 
 export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     ...chordSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlight']),
+    ...without(commonSeriesOptionsDefs, ['highlight', 'focusIndex']),
     type: required(constant('chord')),
     fromKey: required(string),
     toKey: required(string),

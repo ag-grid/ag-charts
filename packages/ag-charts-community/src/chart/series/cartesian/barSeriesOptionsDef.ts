@@ -107,7 +107,6 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     ...undocumentedDefs({
         yFilterKey: string,
         pickOutsideVisibleMinorAxis: boolean,
-        focusPriority: number,
         simpleItemStyler: callback,
         selectionGroup: string,
         hoverable: boolean,

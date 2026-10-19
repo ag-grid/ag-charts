@@ -93,7 +93,7 @@ export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesTh
 
 export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = {
     ...waterfallSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlight']),
+    ...without(commonSeriesOptionsDefs, ['highlight', 'focusIndex']),
     type: required(constant('waterfall')),
     xKey: required(string),
     yKey: required(string),
