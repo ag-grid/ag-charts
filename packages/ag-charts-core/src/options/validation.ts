@@ -17,6 +17,7 @@ import {
 import type { Logger } from '../logging/logger';
 import { isEnterprise } from '../modules/registryMode';
 import type { AreExact, IsUnion } from '../types/global';
+import { CallbackResultMemo } from './callbackResultMemo';
 
 const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
@@ -891,19 +892,34 @@ export const callbackOf = (validator: Validator, description?: string) =>
         return { valid: true, cleared: cbWithValidation, invalid: [] };
     }, 'a function');
 
-export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object') =>
+/**
+ * With `rememberResults`, a result of only plain values is validated once and the same cleared object is returned for
+ * every equal result after it, so the caller must treat it as read-only.
+ */
+export const callbackDefs = <T>(
+    defs: OptionsDefs<T>,
+    description = 'an object',
+    { rememberResults = false }: { rememberResults?: boolean } = {}
+) =>
     attachDescription((value, context) => {
         if (!isFunction(value)) return false;
         if (markedSymbol in value) return true;
 
         const validatorDescription = description;
+        const memo = rememberResults ? new CallbackResultMemo<Partial<T>>() : undefined;
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
                 const result = safeCall(value, args, context.params.logger, context.path);
                 if (result == null) return;
+
+                const memoKey = memo?.keyFor(result);
+                const remembered = memoKey == null ? undefined : memo?.get(memoKey);
+                if (remembered !== undefined) return remembered;
+
                 const validatorResult = validate(result, defs, context.path, context.params);
                 warnCallbackErrors(validatorResult, context, validatorDescription);
+                if (memoKey != null && validatorResult.cleared != null) memo?.set(memoKey, validatorResult.cleared);
                 return validatorResult.cleared;
             },
             { [markedSymbol]: true }

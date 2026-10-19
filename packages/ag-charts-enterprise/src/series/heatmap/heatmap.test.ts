@@ -1981,7 +1981,7 @@ describe('HeatmapSeries', () => {
                 expect(strokeWidths(chart)).toEqual([2, 2, 2, 2]);
             });
 
-            it('resolves each distinct flat result once, and again after an update clears the memory', async () => {
+            it('leaves a flat result out of the options graph', async () => {
                 const data = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
                 const itemStyler = ({ datum }: StylerParams) => ({ strokeWidth: 1 + (datum.spending % 3) });
                 const options = rawOptions({ itemStyler }, data);
@@ -1990,19 +1990,13 @@ describe('HeatmapSeries', () => {
 
                 const { optionsGraphService } = chart.series[0].ctx;
                 const resolvePartial = vi.spyOn(optionsGraphService, 'resolvePartial');
-                const resolvedStylerResults = () =>
-                    resolvePartial.mock.calls.filter(([, value]) => Object.keys(value ?? {}).includes('strokeWidth'));
 
                 try {
                     chart.publicApi.update(options);
                     await waitForChartStability(chart);
-                    expect(strokeWidths(chart)).toEqual(data.map((d) => 1 + (d.spending % 3)));
-                    expect(resolvedStylerResults()).toHaveLength(3);
 
-                    resolvePartial.mockClear();
-                    chart.publicApi.update(options);
-                    await waitForChartStability(chart);
-                    expect(resolvedStylerResults()).toHaveLength(3);
+                    expect(strokeWidths(chart)).toEqual(data.map((d) => 1 + (d.spending % 3)));
+                    expect(resolvePartial).not.toHaveBeenCalled();
                 } finally {
                     resolvePartial.mockRestore();
                 }

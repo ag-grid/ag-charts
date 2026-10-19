@@ -62,6 +62,7 @@ export * from './modules/optionsContribution';
 // options
 export * from './options/axesOptionsDefs';
 export * from './options/axisThemeTemplate';
+export * from './options/callbackResultMemo';
 export * from './options/chartDefaults';
 export * from './options/chartOptionsDefs';
 export * from './options/chartThemeTemplate';

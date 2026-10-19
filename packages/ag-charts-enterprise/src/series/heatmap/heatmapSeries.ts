@@ -37,6 +37,7 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
+    hasOnlyPlainValues,
     isPlainObject,
     joinFormatted,
     measureLabelText,
@@ -46,11 +47,10 @@ import {
     upsertNodeDatum,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
-import type { BBox, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
+import type { BBox, PlainObject, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
 import type { PaddingOptions } from 'ag-charts-types';
 
 import { autoSizedLabelFit } from '../util/autoSizedLabelFit';
-import { ItemStylerResolutions } from './itemStylerResolutions';
 
 const {
     HighlightState,
@@ -207,6 +207,8 @@ interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
     readonly createNodeDataContext: HeatmapSeriesNodeDatumContext;
 }
 
+const NO_OVERRIDES: PlainObject = Object.freeze({});
+
 function itemStylerCacheKey(datumIndex: number, isHighlight: boolean) {
     return datumIndex * 2 + (isHighlight ? 1 : 0);
 }
@@ -237,9 +239,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     /** Whether the current pass restyled every cell, which makes the untouched cells' scene nodes stale too. */
     private restyledEveryCell = false;
 
-    private readonly itemStylerResolutions = new ItemStylerResolutions((result) =>
-        this.ctx.optionsGraphService.resolvePartial(['series', `${this.declarationOrder}`], result)
-    );
+    /** Whether `createNodeData` styled the cells this update, so a restyle would only repeat it. */
+    private styledByNodeData = false;
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -390,6 +391,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
      */
     protected override populateNodeData(ctx: HeatmapSeriesNodeDatumContext): void {
         this.restyledEveryCell = false;
+        this.styledByNodeData = true;
 
         const previous = this.buildSignature;
         const signature = this.captureBuildSignature(ctx);
@@ -827,19 +829,21 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         let overrides;
         if (itemStyler != null && datumIndex != null) {
             // OPTIMIZATION: a numeric key avoids building a string per cell; highlight and node styles are distinct.
-            overrides = this.cachedDatumCallback(itemStylerCacheKey(datumIndex, isHighlight), () => {
+            // `NO_OVERRIDES` stands in for `undefined`, which the cache would read as a miss and run the styler again.
+            const cached = this.cachedDatumCallback(itemStylerCacheKey(datumIndex, isHighlight), () => {
                 const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
-                return this.itemStylerResolutions.resolve(this.callWithContext(itemStyler, params));
+                return this.resolveItemStylerResult(this.callWithContext(itemStyler, params)) ?? NO_OVERRIDES;
             });
+            overrides = cached === NO_OVERRIDES ? undefined : cached;
         }
 
         return overrides ? applyOverrides(style, overrides) : style;
     }
 
-    override resetDatumCallbackCache(id?: unknown) {
-        super.resetDatumCallbackCache(id);
-        // Resolutions are keyed by the styler's result rather than the datum, so only a full reset needs to drop them.
-        if (id === undefined) this.itemStylerResolutions.clear();
+    /** A result of plain values holds no theme reference or `var()` colour, so there is nothing for the options graph to resolve. */
+    private resolveItemStylerResult(result: PlainObject | undefined): PlainObject | undefined {
+        if (result == null || hasOnlyPlainValues(result)) return result;
+        return this.ctx.optionsGraphService.resolvePartial(['series', `${this.declarationOrder}`], result);
     }
 
     private makeLabelFormatterParams() {
@@ -888,12 +892,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         if (!isHighlight) {
             // OPTIMIZATION: createNodeData styled every cell; only a highlight, selection or styler needs a restyle.
-            // A transaction restyled the updated cells already, so a styler needs no pass over the rest.
+            // A styler needs none straight after createNodeData either, which restyled every cell or the updated ones.
             if (
                 !selectionEnabled &&
                 !highlightActive &&
                 !this.cellsStyledByHighlight &&
-                (this.options.itemStyler == null || this.touchedDatumIndices != null)
+                (this.options.itemStyler == null || this.styledByNodeData)
             ) {
                 return;
             }
@@ -950,6 +954,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     protected override updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {
         super.updateNodes(itemHighlighted, nodeRefresh);
         this.touchedDatumIndices = undefined;
+        this.styledByNodeData = false;
     }
 
     protected override updateLabelSelection(opts: {
