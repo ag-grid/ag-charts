@@ -1,12 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-community';
-import {
-    expectWarningsCalls,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { expectWarningsCalls, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../test/utils';
 
@@ -53,7 +48,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -89,7 +83,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -131,7 +124,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -176,7 +168,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -226,7 +217,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -276,7 +266,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -324,7 +313,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -359,7 +347,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -394,7 +381,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -428,7 +414,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -462,7 +447,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';
@@ -496,7 +480,6 @@ describe('Format Manager (Enterprise)', () => {
                 };
 
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 if (expectWarning) {
                     const valueType = nullValue === null ? 'object' : 'undefined';

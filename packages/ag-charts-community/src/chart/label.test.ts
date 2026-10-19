@@ -7,14 +7,7 @@ import type { AgBarSeriesLabelPlacement, AgChartInstance } from 'ag-charts-types
 import { resolvePlacementLabelPadding } from './label';
 import { adjustLabelPlacement } from './labelUtil';
 import { BarSeries } from './series/cartesian/barSeries';
-import {
-    compareImageSnapshot,
-    createChart,
-    deproxy,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from './test/utils';
+import { compareImageSnapshot, createChart, deproxy, setupMockCanvas, setupMockConsole } from './test/utils';
 
 describe('Labels', () => {
     setupMockConsole();
@@ -108,7 +101,6 @@ describe('Labels', () => {
                 data: [{ x: 'A', y: 1 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             });
-            await waitForChartStability(chart);
             const barSeries = classCast(deproxy(chart).series[0], BarSeries);
             expect(barSeries.options.label.collision.alwaysShow).toBe(true);
         });

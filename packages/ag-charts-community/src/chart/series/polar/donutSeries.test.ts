@@ -433,7 +433,6 @@ describe('DonutSeries', () => {
     describe('null category key', () => {
         it('should reject null category key with warning', async () => {
             const opts: AgChartOptions = examples.DONUT_NULL_ANGLE_KEY_EXAMPLE;
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -454,7 +453,6 @@ describe('DonutSeries', () => {
 
         it('should accept null category key when allowNullKeys is true', async () => {
             const opts: AgChartOptions = examples.DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -464,7 +462,6 @@ describe('DonutSeries', () => {
 
         it('should reject undefined category key with warning', async () => {
             const opts: AgChartOptions = examples.DONUT_UNDEFINED_CATEGORY_KEY_EXAMPLE;
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -485,7 +482,6 @@ describe('DonutSeries', () => {
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
             const opts: AgChartOptions = examples.DONUT_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -495,7 +491,6 @@ describe('DonutSeries', () => {
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const opts: AgChartOptions = examples.DONUT_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -528,7 +523,6 @@ describe('DonutSeries', () => {
                     } as any,
                 ],
             };
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 
@@ -555,7 +549,6 @@ describe('DonutSeries', () => {
                     } as any,
                 ],
             };
-            prepareTestOptions(opts);
 
             chart = deproxy(await createChart(opts));
 

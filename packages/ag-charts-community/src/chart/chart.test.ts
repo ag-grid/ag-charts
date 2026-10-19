@@ -659,11 +659,8 @@ describe('Chart', () => {
                 },
                 { name: 'a title on a chart with explicit axes', options: { series: barSeries, axes } },
             ])('does not refresh node data for $name', async ({ options }) => {
-                const chartProxy = AgCharts.create(
-                    prepareTestOptions({ data: rows(8), title: { text: 'Before' }, ...options } as any)
-                );
+                const chartProxy = await createChart({ data: rows(8), title: { text: 'Before' }, ...options } as any);
                 chart = deproxy(chartProxy);
-                await waitForChartStability(chart);
                 const dataBefore = chart.data.data;
 
                 spyOnProcessData(chart);
@@ -673,7 +670,7 @@ describe('Chart', () => {
                 expect(processData).not.toHaveBeenCalled();
                 expect(chart.data.data).toBe(dataBefore);
 
-                await chartProxy.updateDelta({ data: rows(9) } as any);
+                await chartProxy.updateDelta({ data: rows(9) });
                 await waitForChartStability(chart);
                 expect(processData).toHaveBeenCalled();
                 expect(chart.data.data).toHaveLength(9);
@@ -685,29 +682,25 @@ describe('Chart', () => {
                 { key: 'padding', delta: { padding: { top: 60, left: 40 } } },
                 { key: 'background', delta: { background: { fill: 'red' } } },
             ])('does not refresh node data for a $key delta on a chart with axes', async ({ delta, withTitle }) => {
-                const chartProxy = AgCharts.create(
-                    prepareTestOptions({
-                        data: rows(8),
-                        series: barSeries,
-                        axes,
-                        ...(withTitle && { title: { text: 'Before' }, subtitle: { text: 'Before' } }),
-                    } as any)
-                );
+                const chartProxy = await createChart({
+                    data: rows(8),
+                    series: barSeries,
+                    axes,
+                    ...(withTitle && { title: { text: 'Before' }, subtitle: { text: 'Before' } }),
+                } as any);
                 chart = deproxy(chartProxy);
-                await waitForChartStability(chart);
 
                 spyOnProcessData(chart);
-                await chartProxy.updateDelta(delta as any);
+                await chartProxy.updateDelta(delta);
                 await waitForChartStability(chart);
 
                 expect(processData).not.toHaveBeenCalled();
             });
 
             it('does not refresh node data for a title after a growing data delta', async () => {
-                const chartProxy = AgCharts.create(prepareTestOptions({ data: rows(5), series: barSeries } as any));
+                const chartProxy = await createChart({ data: rows(5), series: barSeries } as any);
                 chart = deproxy(chartProxy);
-                await waitForChartStability(chart);
-                await chartProxy.updateDelta({ data: rows(6) } as any);
+                await chartProxy.updateDelta({ data: rows(6) });
                 await waitForChartStability(chart);
 
                 spyOnProcessData(chart);
@@ -724,26 +717,21 @@ describe('Chart', () => {
                     delta: { title: { text: 'After' }, axes: { x: { reverse: true } } },
                 },
             ])('refreshes node data for $name, as a fresh chart does', async ({ delta }) => {
-                const chartProxy = AgCharts.create(
-                    prepareTestOptions({ data: rows(4), series: barSeries, axes } as any)
-                );
+                const chartProxy = await createChart({ data: rows(4), series: barSeries, axes } as any);
                 chart = deproxy(chartProxy);
-                await waitForChartStability(chart);
                 const xBefore = barData(chart).map((d) => d.x);
 
                 spyOnProcessData(chart);
-                await chartProxy.updateDelta(delta as any);
+                await chartProxy.updateDelta(delta);
                 await waitForChartStability(chart);
                 expect(processData).toHaveBeenCalled();
 
                 const fresh = deproxy(
-                    await createChart(
-                        prepareTestOptions({
-                            data: rows(4),
-                            series: barSeries,
-                            axes: { ...axes, x: { ...axes.x, reverse: true } },
-                        } as any)
-                    )
+                    await createChart({
+                        data: rows(4),
+                        series: barSeries,
+                        axes: { ...axes, x: { ...axes.x, reverse: true } },
+                    } as any)
                 );
                 try {
                     const xAfter = barData(chart).map((d) => d.x);
@@ -760,11 +748,10 @@ describe('Chart', () => {
                     { type: 'bar', xKey: 'year', yKey: 'tax' },
                     { type: 'line', xKey: 'year', yKey: 'gdp', stroke: 'purple' },
                 ];
-                const chartProxy = AgCharts.create(prepareTestOptions({ data: rows(5), series } as any));
+                const chartProxy = await createChart({ data: rows(5), series } as any);
                 chart = deproxy(chartProxy);
-                await waitForChartStability(chart);
 
-                await chartProxy.updateDelta({ data: rows(6) } as any);
+                await chartProxy.updateDelta({ data: rows(6) });
                 await waitForChartStability(chart);
 
                 const fresh = deproxy(await createChart({ data: rows(6), series } as any));
@@ -800,11 +787,10 @@ describe('Chart', () => {
                             },
                         ],
                     }) as any;
-                const chartProxy = AgCharts.create(prepareTestOptions(options('A')));
+                const chartProxy = await createChart(options('A'));
                 chart = deproxy(chartProxy);
-                await waitForChartStability(chart);
 
-                await chartProxy.updateDelta({ context: { p: 'B' } } as any);
+                await chartProxy.updateDelta({ context: { p: 'B' } });
                 await waitForChartStability(chart);
 
                 const fresh = deproxy(await createChart(options('B')));
@@ -825,13 +811,12 @@ describe('Chart', () => {
                 const axisTypes = (c: Chart) => c.axes.map((axis) => axis.type);
 
                 it('takes on the axes of a grown data set after a same-length type change', async () => {
-                    const chartProxy = AgCharts.create(prepareTestOptions({ data: numbers(5), series } as any));
+                    const chartProxy = await createChart({ data: numbers(5), series } as any);
                     chart = deproxy(chartProxy);
-                    await waitForChartStability(chart);
 
-                    await chartProxy.updateDelta({ data: dates(5) } as any);
+                    await chartProxy.updateDelta({ data: dates(5) });
                     await waitForChartStability(chart);
-                    await chartProxy.updateDelta({ data: dates(6) } as any);
+                    await chartProxy.updateDelta({ data: dates(6) });
                     await waitForChartStability(chart);
 
                     const fresh = deproxy(await createChart({ data: dates(6), series } as any));
@@ -843,13 +828,10 @@ describe('Chart', () => {
                 });
 
                 it('takes on the axes a grown data set predicts, as a fresh chart does', async () => {
-                    const chartProxy = AgCharts.create(
-                        prepareTestOptions({ data: [{ when: 'a', gdp: 1 }], series } as any)
-                    );
+                    const chartProxy = await createChart({ data: [{ when: 'a', gdp: 1 }], series } as any);
                     chart = deproxy(chartProxy);
-                    await waitForChartStability(chart);
 
-                    await chartProxy.updateDelta({ data: dates(8) } as any);
+                    await chartProxy.updateDelta({ data: dates(8) });
                     await waitForChartStability(chart);
 
                     const fresh = deproxy(await createChart({ data: dates(8), series } as any));

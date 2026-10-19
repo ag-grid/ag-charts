@@ -256,17 +256,11 @@ describe('Legend', () => {
     });
 
     describe('Hover over legend', () => {
-        it('should change the cursor when entering and leaving the legend rect', () => {
-            const options = {
-                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            };
-
-            prepareTestOptions(options);
-
-            // Bespoke: the proxy elements are queried synchronously, before the chart's first update completes.
-            chart = deproxy(AgCharts.create(options));
+        it('should change the cursor when entering and leaving the legend rect', async () => {
+            chart = deproxy(await createChart({ ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS }));
 
             const legendButtons = document.querySelectorAll('button.ag-charts-proxy-elem[role="switch"]');
+            expect(legendButtons.length).toBeGreaterThan(0);
             for (const button of Array.from(legendButtons) as HTMLElement[]) {
                 expect(button).toBeInstanceOf(HTMLButtonElement);
                 expect(button.style.cursor).toBe('pointer');
@@ -1048,7 +1042,6 @@ describe('Legend', () => {
 
             animate(1200, 1);
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             const legend = getLegendModule(chart);
             const items = legend.itemSelection.nodes();
@@ -1086,7 +1079,6 @@ describe('Legend', () => {
 
             animate(1200, 1);
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             const legend = getLegendModule(chart);
             const items = legend.itemSelection.nodes();
@@ -1170,7 +1162,6 @@ describe('Legend', () => {
             });
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             const { highlightManager, interactionManager, tooltipManager } = chart.ctx;
             const legend = getLegendModule(chart);
@@ -1494,7 +1485,6 @@ describe('Legend', () => {
 
         test('interactions enabled', async () => {
             chart = deproxy(await createChart({ ...options }));
-            await waitForChartStability(chart);
 
             const EXPECTED_ID = 'ag-charts-3';
             const ids = findAriaDescribedByIds();
@@ -1512,7 +1502,6 @@ describe('Legend', () => {
 
         test('interactions disabled', async () => {
             chart = deproxy(await createChart({ ...options, legend: { toggleSeries: false } }));
-            await waitForChartStability(chart);
 
             const [ariaDescribedById0, ariaDescribedById1, ariaDescribedById2] = findAriaDescribedByIds();
             expect(ariaDescribedById0).toBeNull();

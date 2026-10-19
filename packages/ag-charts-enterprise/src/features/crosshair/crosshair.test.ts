@@ -273,7 +273,6 @@ describe('Crosshair', () => {
     it.each(CASES)(`should follow mouse pointer on series hover`, async (TEST_CASE) => {
         const options: AgChartOptions = TEST_CASE;
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
         await hoverAction(605, 300)(chart);
         await compare();
     });
@@ -281,7 +280,6 @@ describe('Crosshair', () => {
     it.each(CASES)(`should snap to the closest highlighted node datum`, async (TEST_CASE) => {
         const options: AgChartOptions = applyCrosshairSnap(TEST_CASE, true);
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
         await hoverAction(605, 125)(chart);
         await compare();
     });
@@ -298,7 +296,6 @@ describe('Crosshair', () => {
         };
 
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
         await hoverAction(300, 300)(chart);
         await compare();
     });
@@ -347,7 +344,6 @@ describe('Crosshair', () => {
         };
 
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
         await hoverAction(260, 140)(chart);
         await compare();
     });
@@ -384,7 +380,6 @@ describe('Crosshair', () => {
         };
 
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
         await hoverAction(300, 300)(chart);
         await compare();
     });
@@ -422,7 +417,6 @@ describe('Crosshair', () => {
         };
 
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
 
         const visibleLabels = (axisId: string) =>
             Array.from(
@@ -479,7 +473,6 @@ describe('Crosshair', () => {
             },
         };
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
         await hoverAction(300, 300)(chart);
         await waitForChartStability(chart);
 
@@ -539,7 +532,6 @@ describe('Crosshair', () => {
             },
         };
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
         await hoverAction(300, 300)(chart);
         await waitForChartStability(chart);
 
@@ -590,7 +582,6 @@ describe('Crosshair', () => {
 
         const hoverOverNegativeValues = async (options: AgCartesianChartOptions) => {
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
             await hoverAction(300, 450)(chart);
             await waitForChartStability(chart);
         };
@@ -643,7 +634,6 @@ describe('Crosshair', () => {
             },
         };
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
         await hoverAction(480, 250)(chart);
         await waitForChartStability(chart);
     });
@@ -669,7 +659,6 @@ describe('Crosshair', () => {
                 axes,
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
             await hoverAction(480, 250)(chart);
             await waitForChartStability(chart);
         };

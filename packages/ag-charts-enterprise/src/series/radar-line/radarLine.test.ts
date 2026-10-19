@@ -789,7 +789,6 @@ describe('RadarLineSeries', () => {
 
         chart = await createEnterpriseChart(options);
 
-        await waitForChartStability(chart);
         await hoverAction(300, 200)(chart);
         await waitForChartStability(chart);
         await compare();

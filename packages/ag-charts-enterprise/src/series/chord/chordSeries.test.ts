@@ -57,7 +57,7 @@ describe('ChordSeries', () => {
             ],
             series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
         };
-        chart = deproxy(await createEnterpriseChart(options));
+        chart = await createEnterpriseChart(options);
     });
 
     describe('Series', () => {
@@ -75,7 +75,7 @@ describe('ChordSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -100,7 +100,7 @@ describe('ChordSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -127,7 +127,7 @@ describe('ChordSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -468,7 +468,7 @@ describe('ChordSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -500,7 +500,7 @@ describe('ChordSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -531,7 +531,7 @@ describe('ChordSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -563,7 +563,7 @@ describe('ChordSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
@@ -607,7 +607,7 @@ describe('ChordSeries', () => {
             ],
         };
 
-        chart = deproxy(await createEnterpriseChart(options));
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 

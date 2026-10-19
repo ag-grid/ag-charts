@@ -647,7 +647,7 @@ describe('RangeBarSeries', () => {
         ): AgCartesianChartOptions => {
             const valueAxis = { type: 'number' as const, ...valueBounds };
             const catAxis = { type: 'category' as const };
-            return prepareEnterpriseTestOptions({
+            return {
                 animation: { enabled: true },
                 data,
                 series: [{ type: 'range-bar', direction, xKey: 'date', yLowKey: 'low', yHighKey: 'high' }],
@@ -655,8 +655,12 @@ describe('RangeBarSeries', () => {
                     direction === 'vertical'
                         ? { x: { ...catAxis, position: 'bottom' }, y: { ...valueAxis, position: 'left' } }
                         : { y: { ...catAxis, position: 'left' }, x: { ...valueAxis, position: 'bottom' } },
-            }) as AgCartesianChartOptions;
+            } as AgCartesianChartOptions;
         };
+
+        // Bespoke: tests that pass their options to `update` or `expectAnimatedEndpointsMatchStatic` create the chart bare
+        // on these prepared options, so the chart and the later update see the same ones.
+        const preparedOptions = (...args: Parameters<typeof options>) => prepareEnterpriseTestOptions(options(...args));
 
         const groupedOptions = (direction: 'horizontal' | 'vertical'): AgCartesianChartOptions => {
             const base = options(direction, GROUPED_DATA);
@@ -725,8 +729,7 @@ describe('RangeBarSeries', () => {
             const catAxisAny: Record<string, SceneNodeExpectation> = { [`axis[${catPos}]/*`]: 'any' };
 
             it(`initial load (${direction}): bars expand from their midpoint`, async () => {
-                // Bespoke: the frame spy and sampler attach before the first render.
-                chart = AgCharts.create(options(direction));
+                chart = await createEnterpriseChart(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
                 const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
                 // Anti-vacuity: the bar genuinely starts collapsed to a zero-extent line.
@@ -742,7 +745,7 @@ describe('RangeBarSeries', () => {
             });
 
             it(`update data (${direction}): low/high edges tween to the new values`, async () => {
-                chart = AgCharts.create(options(direction));
+                chart = await createEnterpriseChart(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
                 const { trajectory, before, after } = await frames.captureUpdate(chart, sampleScene, () =>
                     chart.updateDelta({
@@ -772,7 +775,7 @@ describe('RangeBarSeries', () => {
 
             // captureSnap (not captureUpdate): the category-axis reflow snaps the axis line at frame 0.
             it(`add data (${direction}): entering bar grows from its midpoint while others narrow`, async () => {
-                chart = AgCharts.create(options(direction, DATA.slice(0, 2)));
+                chart = await createEnterpriseChart(options(direction, DATA.slice(0, 2)));
                 const sampleScene = createSceneGeometrySampler(chart);
                 const { before, trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
                     chart.updateDelta({ data: DATA })
@@ -795,7 +798,7 @@ describe('RangeBarSeries', () => {
             });
 
             it(`remove data (${direction}): leaving bar collapses to its midpoint while others widen`, async () => {
-                chart = AgCharts.create(options(direction));
+                chart = await createEnterpriseChart(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
                 const { trajectory, before, after } = await frames.captureUpdate(chart, sampleScene, () =>
                     chart.updateDelta({ data: DATA.slice(0, 2) })
@@ -823,7 +826,7 @@ describe('RangeBarSeries', () => {
             });
 
             it(`shuffle data (${direction}): bars slide to their reordered band positions`, async () => {
-                chart = AgCharts.create(options(direction));
+                chart = await createEnterpriseChart(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
                 const { trajectory, before, after } = await frames.captureUpdate(chart, sampleScene, () =>
                     chart.updateDelta({ data: [DATA[2], DATA[0], DATA[1]] })
@@ -844,7 +847,7 @@ describe('RangeBarSeries', () => {
 
             // A legend toggle must collapse the hidden series' bars to their MIDPOINT, not the chart baseline. captureSnap: a series toggle snaps structurally at frame 0.
             it(`legend toggle off (${direction}): hidden bars collapse to their midpoint (CRT-1082)`, async () => {
-                const grouped = groupedOptions(direction);
+                const grouped = prepareEnterpriseTestOptions(groupedOptions(direction));
                 chart = AgCharts.create(grouped);
                 const sampleScene = createSceneGeometrySampler(chart);
                 const { trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
@@ -870,11 +873,11 @@ describe('RangeBarSeries', () => {
 
             // A single mixed update (add + remove + shuffle + revalue) must keep low<=high on every frame. captureSnap: the category add/remove snaps the axis line at frame 0.
             it(`combined mutation (${direction}): mixed add/remove/shuffle/revalue stays coherent`, async () => {
-                chart = AgCharts.create(options(direction));
+                chart = AgCharts.create(preparedOptions(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
                 const { before, trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
                     chart.update(
-                        options(direction, [
+                        preparedOptions(direction, [
                             { date: 'Feb', low: -10, high: 4 },
                             { date: 'Apr', low: -6, high: 9 },
                             { date: 'Jan', low: 0, high: 14 },
@@ -896,7 +899,7 @@ describe('RangeBarSeries', () => {
         // Value axis UNPINNED here: removing the low-extreme datum contracts the domain. captureSnap: the category reflow snaps the axis line at frame 0.
         it('unpinned value axis (vertical): axis rescales by tweening, not snapping', async () => {
             const d = dims('vertical');
-            const unpinned = (data: object[]) => options('vertical', data, {});
+            const unpinned = (data: object[]) => preparedOptions('vertical', data, {});
             chart = AgCharts.create(unpinned(DATA));
             const sampleScene = createSceneGeometrySampler(chart);
             const { before, trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
@@ -911,7 +914,7 @@ describe('RangeBarSeries', () => {
 
         // captureUpdate works here: the category set is unchanged, so no axis-line snap.
         it('shuffle data (vertical): category labels track their reordered bars', async () => {
-            chart = AgCharts.create(options('vertical'));
+            chart = await createEnterpriseChart(options('vertical'));
             const sampleScene = createSceneGeometrySampler(chart);
             const { trajectory, before, after } = await frames.captureUpdate(chart, sampleScene, () =>
                 chart.updateDelta({ data: [DATA[2], DATA[0], DATA[1]] })
@@ -928,14 +931,14 @@ describe('RangeBarSeries', () => {
 
         for (const direction of ['vertical', 'horizontal'] as const) {
             it(`endpoints (${direction}): update data settles at the static render`, async () => {
-                const opts = options(direction);
+                const opts = preparedOptions(direction);
                 chart = AgCharts.create(opts);
                 await expectAnimatedEndpointsMatchStatic(
                     frames,
                     () => ctx.snapshot(),
                     chart,
                     opts,
-                    options(direction, [
+                    preparedOptions(direction, [
                         { date: 'Jan', low: -8, high: 12 },
                         { date: 'Feb', low: -10, high: 4 },
                         { date: 'Mar', low: -2, high: 14 },
@@ -944,19 +947,19 @@ describe('RangeBarSeries', () => {
             });
 
             it(`endpoints (${direction}): remove data settles at the static render`, async () => {
-                const opts = options(direction);
+                const opts = preparedOptions(direction);
                 chart = AgCharts.create(opts);
                 await expectAnimatedEndpointsMatchStatic(
                     frames,
                     () => ctx.snapshot(),
                     chart,
                     opts,
-                    options(direction, DATA.slice(0, 2))
+                    preparedOptions(direction, DATA.slice(0, 2))
                 );
             });
 
             it(`endpoints (${direction}): legend toggle settles at the static render`, async () => {
-                const grouped = groupedOptions(direction);
+                const grouped = prepareEnterpriseTestOptions(groupedOptions(direction));
                 chart = AgCharts.create(grouped);
                 await expectAnimatedEndpointsMatchStatic(
                     frames,

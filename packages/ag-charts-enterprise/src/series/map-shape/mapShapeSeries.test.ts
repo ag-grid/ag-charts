@@ -282,7 +282,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });
@@ -304,7 +304,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });
@@ -631,7 +631,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -648,7 +648,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -665,7 +665,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -686,7 +686,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -711,7 +711,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
         });
@@ -736,7 +736,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -747,7 +747,7 @@ describe('MapShapeSeries', () => {
                 ...HEATMAP_EXAMPLE,
                 gradientLegend: { enabled: true },
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -766,7 +766,7 @@ describe('MapShapeSeries', () => {
                 legend: { enabled: true },
                 gradientLegend: { enabled: false },
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -789,7 +789,7 @@ describe('MapShapeSeries', () => {
                 legend: { enabled: true },
                 gradientLegend: { enabled: false },
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -810,7 +810,7 @@ describe('MapShapeSeries', () => {
                 ],
                 gradientLegend: { enabled: true },
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -832,7 +832,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });
@@ -862,7 +862,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });
@@ -893,7 +893,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });

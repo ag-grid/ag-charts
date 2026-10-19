@@ -702,13 +702,12 @@ describe('TreemapSeries', () => {
             },
         ];
         const alignmentOptions = (series: object, data: object[] = alignmentData): AgChartOptions => {
-            const options = {
+            return {
                 data,
                 series: [
                     { type: 'treemap', labelKey: 'name', secondaryLabelKey: 'detail', sizeKey: 'value', ...series },
                 ],
             } as AgChartOptions;
-            return options;
         };
         const leaves = () => {
             const out: any[] = [];
@@ -826,16 +825,11 @@ describe('TreemapSeries', () => {
                 ],
             },
         ];
-        const groupOptions = (label: object, data = groupData()): AgChartOptions => {
-            const options = {
+        const groupOptions = (label: object, data = groupData()): AgChartOptions =>
+            ({
                 data,
                 series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'value', group: { label } }],
-            } as AgChartOptions;
-            return options;
-        };
-        const render = async (label: object, data?: object[]) => {
-            chart = deproxy(await createEnterpriseChart(groupOptions(label, data as any)));
-        };
+            }) as AgChartOptions;
         const groups = () => {
             const out: any[] = [];
             chart.series[0].rootNode?.walk((node: any) => {
@@ -860,14 +854,14 @@ describe('TreemapSeries', () => {
         });
 
         it('renders a manual line break in the group label as separate lines', async () => {
-            await render({}, groupData('Fresh\nfruit'));
+            chart = deproxy(await createEnterpriseChart(groupOptions({}, groupData('Fresh\nfruit'))));
             const [fruit, vegetables] = groups();
             expect(fruit.label.text).toBe('Fresh\nfruit');
             expect(fruit.padding.top).toBeGreaterThan(vegetables.padding.top);
         });
 
         it('wraps a group label to maxWidth', async () => {
-            await render({ maxWidth: 100 });
+            chart = deproxy(await createEnterpriseChart(groupOptions({ maxWidth: 100 })));
             const [fruit, vegetables] = groups();
             expect(fruit.label.text).toContain('\n');
             expect(fruit.label.text).not.toContain('…');
@@ -875,41 +869,53 @@ describe('TreemapSeries', () => {
         });
 
         it('shrinks a group label before truncating it', async () => {
-            await render({ maxWidth: 100, wrapping: 'never', minimumFontSize: 6 });
+            chart = deproxy(
+                await createEnterpriseChart(groupOptions({ maxWidth: 100, wrapping: 'never', minimumFontSize: 6 }))
+            );
             const [fruit, vegetables] = groups();
             expect(fruit.label.fontSize).toBeLessThan(vegetables.label.fontSize);
             expect(fruit.label.text).not.toContain('…');
         });
 
         it('truncates a group label wider than maxWidth', async () => {
-            await render({ maxWidth: 60, wrapping: 'never' });
+            chart = deproxy(await createEnterpriseChart(groupOptions({ maxWidth: 60, wrapping: 'never' })));
             expect(groups()[0].label.text).toMatch(/…$/);
         });
 
         it('hides a group label taller than maxHeight unless alwaysShow keeps it', async () => {
-            await render({ maxHeight: 5 });
+            chart = deproxy(await createEnterpriseChart(groupOptions({ maxHeight: 5 })));
             const [hidden] = groups();
             expect(hidden.label).toBeUndefined();
             expect(hidden.padding.top).toBe(chart.series[0].options.group.padding);
 
             chart.destroy();
-            await render({ maxHeight: 5, collision: { alwaysShow: true } });
+            chart = deproxy(
+                await createEnterpriseChart(groupOptions({ maxHeight: 5, collision: { alwaysShow: true } }))
+            );
             expect(groups()[0].label).toBeDefined();
         });
 
         it('keeps the group header within maxHeight when the label shrinks', async () => {
-            await render({ fontSize: 16, minimumFontSize: 6, maxHeight: 10, wrapping: 'never' });
+            chart = deproxy(
+                await createEnterpriseChart(
+                    groupOptions({ fontSize: 16, minimumFontSize: 6, maxHeight: 10, wrapping: 'never' })
+                )
+            );
             const { padding, label } = chart.series[0].options.group;
             expect(groups()[1].padding.top).toBeLessThanOrEqual(padding + 10 + label.spacing);
         });
 
         it('hides a multi-line group label taller than maxHeight when it cannot wrap', async () => {
-            await render({ wrapping: 'never', maxHeight: 20 }, groupData('Fresh\nfruit\nand nuts'));
+            chart = deproxy(
+                await createEnterpriseChart(
+                    groupOptions({ wrapping: 'never', maxHeight: 20 }, groupData('Fresh\nfruit\nand nuts'))
+                )
+            );
             expect(groups()[0].label).toBeUndefined();
         });
 
         it('draws a wrapped group label at the height it was fitted to', async () => {
-            await render({ maxWidth: 100 });
+            chart = deproxy(await createEnterpriseChart(groupOptions({ maxWidth: 100 })));
             const [fruit] = groups();
             const text = [...chart.series[0].labelSelection.selectByClass(Text)].find(
                 (node: any) => node.visible && node.text === fruit.label.text
@@ -920,9 +926,13 @@ describe('TreemapSeries', () => {
         });
 
         it('shrinks a manually broken group label to fit maxHeight', async () => {
-            await render(
-                { fontSize: 16, minimumFontSize: 6, maxHeight: 20, wrapping: 'never' },
-                groupData('Fresh\nfruit')
+            chart = deproxy(
+                await createEnterpriseChart(
+                    groupOptions(
+                        { fontSize: 16, minimumFontSize: 6, maxHeight: 20, wrapping: 'never' },
+                        groupData('Fresh\nfruit')
+                    )
+                )
             );
             const { label } = groups()[0];
             expect(label.text).toBe('Fresh\nfruit');
@@ -931,7 +941,11 @@ describe('TreemapSeries', () => {
 
         it('aligns a truncated group label vertically within its capped header', async () => {
             const labelY = async (verticalAlign: string) => {
-                await render({ maxHeight: 20, verticalAlign }, groupData('Fresh\nfruit'));
+                chart = deproxy(
+                    await createEnterpriseChart(
+                        groupOptions({ maxHeight: 20, verticalAlign }, groupData('Fresh\nfruit'))
+                    )
+                );
                 const { label, bbox, padding } = groups()[0];
                 chart.destroy();
                 return { y: label.y - bbox.y, headerBottom: padding.top };
@@ -946,7 +960,7 @@ describe('TreemapSeries', () => {
         });
 
         it('resolves the other group label fit options once one is set', async () => {
-            await render({});
+            chart = deproxy(await createEnterpriseChart(groupOptions({})));
             const defaults = chart.series[0].options.group.label;
             expect([defaults.wrapping, defaults.truncate, defaults.collision.alwaysShow]).toEqual([
                 undefined,
@@ -955,7 +969,7 @@ describe('TreemapSeries', () => {
             ]);
 
             chart.destroy();
-            await render({ minimumFontSize: 6 });
+            chart = deproxy(await createEnterpriseChart(groupOptions({ minimumFontSize: 6 })));
             expect(chart.series[0].options.group.label).toMatchObject({
                 wrapping: 'on-space',
                 truncate: true,

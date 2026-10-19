@@ -502,7 +502,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -530,7 +530,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -559,7 +559,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -588,7 +588,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -617,7 +617,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -647,7 +647,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
@@ -707,7 +707,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -727,7 +727,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -747,7 +747,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -771,7 +771,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -866,7 +866,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -886,7 +886,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -910,7 +910,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -933,7 +933,7 @@ describe('SunburstSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -1152,7 +1152,7 @@ describe('SunburstSeries', () => {
                 ],
                 animation: { enabled: false },
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -1528,9 +1528,9 @@ describe('SunburstSeries', () => {
                 animation: { enabled: false },
                 ...chartOptions,
             };
+            proxy = await createEnterpriseChart(options);
             // `lastOptions` keeps the prepared options, since the tests replay them through `proxy.update`.
             lastOptions = prepareEnterpriseTestOptions(options);
-            proxy = await createEnterpriseChart(lastOptions);
             chart = deproxy(proxy);
             return chart.series[0] as SunburstSeries;
         };

@@ -102,7 +102,6 @@ describe('Ranges', () => {
                 ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }], ...ranges },
             } as any;
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
             return deproxy(chart as any) as any;
         };
 
@@ -220,7 +219,6 @@ describe('Ranges', () => {
             } as any;
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             // The range-check source should have been received during initial button enablement validation
             expect(receivedSources).toContain('range-check');
@@ -253,7 +251,6 @@ describe('Ranges', () => {
             } as any;
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             expect(receivedParams.length).toBeGreaterThan(0);
             const params = receivedParams[0];
@@ -295,7 +292,6 @@ describe('Ranges', () => {
             } as any;
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             expect(receivedContexts.length).toBeGreaterThan(0);
             expect(receivedContexts[0]).toEqual({ tz: 'UTC' });
@@ -326,7 +322,6 @@ describe('Ranges', () => {
             } as any;
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             expect(receivedContexts.length).toBeGreaterThan(0);
             expect(receivedContexts[0]).toBeUndefined();
@@ -347,7 +342,6 @@ describe('Ranges', () => {
             } as any;
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
             return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
         };
 
@@ -461,7 +455,6 @@ describe('Ranges', () => {
                 },
             } as any;
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
             const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
 
             expect(ranges.button.hover.textColor).toBe('red');
@@ -548,7 +541,6 @@ describe('Ranges', () => {
                 theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
             } as any;
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
             const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
 
             for (const state of ['hover', 'active', 'disabled']) {
@@ -564,7 +556,6 @@ describe('Ranges', () => {
                 theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
             } as any;
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
             const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
 
             for (const state of ['hover', 'active', 'disabled']) {
@@ -586,7 +577,6 @@ describe('Ranges', () => {
                 ranges: { enabled: true, padding, buttons: [{ label: 'All', value: [0, 19] }] },
             } as any;
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
             return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges').button.padding;
         };
 

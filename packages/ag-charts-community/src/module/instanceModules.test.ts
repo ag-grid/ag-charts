@@ -474,7 +474,6 @@ describe('instance modules', () => {
         it('renders identically whether modules are registered globally or per instance', async () => {
             ModuleRegistry.registerModules([...LINE_MODULES, LegendModule]);
             chart = await createChart({ ...LINE_CHART });
-            await waitForChartStability(chart);
             const globalSnapshot = ctx.snapshot();
             chart.destroy();
             ModuleRegistry.reset();

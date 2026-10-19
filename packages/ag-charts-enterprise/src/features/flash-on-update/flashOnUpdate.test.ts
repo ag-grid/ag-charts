@@ -201,7 +201,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -214,7 +213,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: ADDED_CATEGORY_DATA });
@@ -227,7 +225,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: REMOVED_CATEGORY_DATA });
@@ -240,7 +237,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: MIXED_CHANGES_DATA });
@@ -256,7 +252,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -272,7 +267,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -288,7 +282,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -306,7 +299,6 @@ describe('FlashOnUpdate', () => {
 
                     animate(1200, 1);
                     chart = await createEnterpriseChart(options);
-                    await waitForChartStability(chart);
 
                     animate(1200, ratio);
                     await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -319,7 +311,6 @@ describe('FlashOnUpdate', () => {
 
                     animate(1200, 1);
                     chart = await createEnterpriseChart(options);
-                    await waitForChartStability(chart);
 
                     animate(1200, ratio);
                     await chart.updateDelta({ data: ADDED_CATEGORY_DATA });
@@ -332,7 +323,6 @@ describe('FlashOnUpdate', () => {
 
                     animate(1200, 1);
                     chart = await createEnterpriseChart(options);
-                    await waitForChartStability(chart);
 
                     animate(1200, ratio);
                     await chart.updateDelta({ data: REMOVED_CATEGORY_DATA });
@@ -345,7 +335,6 @@ describe('FlashOnUpdate', () => {
 
                     animate(1200, 1);
                     chart = await createEnterpriseChart(options);
-                    await waitForChartStability(chart);
 
                     animate(1200, ratio);
                     await chart.updateDelta({ data: MIXED_CHANGES_DATA });
@@ -362,7 +351,6 @@ describe('FlashOnUpdate', () => {
 
                     animate(1200, 1);
                     chart = await createEnterpriseChart(options);
-                    await waitForChartStability(chart);
 
                     animate(1200, ratio);
                     await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -375,7 +363,6 @@ describe('FlashOnUpdate', () => {
 
                     animate(1200, 1);
                     chart = await createEnterpriseChart(options);
-                    await waitForChartStability(chart);
 
                     animate(1200, ratio);
                     await chart.updateDelta({ data: REMOVED_CATEGORY_DATA });
@@ -392,7 +379,6 @@ describe('FlashOnUpdate', () => {
 
                     animate(1200, 1);
                     chart = await createEnterpriseChart(options);
-                    await waitForChartStability(chart);
 
                     // First: add category E
                     await chart.updateDelta({ data: ADDED_CATEGORY_DATA });
@@ -412,7 +398,6 @@ describe('FlashOnUpdate', () => {
 
             animate(1200, 1);
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             animate(1200, 0.3);
             await chart.updateDelta({
@@ -437,7 +422,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 // Use full options update (apiUpdate: true via applyOptions)
                 animate(1200, ratio);
@@ -455,7 +439,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -468,7 +451,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: [...INITIAL_DATA] });
@@ -481,7 +463,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 // Click legend to toggle series visibility — triggers
                 // a chart update without apiUpdate: true
@@ -497,7 +478,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 // Legend click (no flash)
                 const { x, y } = computeLegendBBox(deproxy(chart));
@@ -523,7 +503,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -539,7 +518,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -555,7 +533,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -576,7 +553,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -593,7 +569,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -610,7 +585,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -637,7 +611,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: LARGE_DATA_UPDATED });
@@ -656,7 +629,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: LARGE_DATA_UPDATED });
@@ -675,7 +647,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 void chart.updateDelta({ data: LARGE_DATA_UPDATED });
@@ -696,7 +667,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 // Remove half, add new ones
                 const mixedData = [
@@ -730,7 +700,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.updateDelta({ data: THRESHOLD_DATA_UPDATED });
@@ -746,7 +715,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 // With >1000 items the diff has empty category sets, so category mode
                 // falls back to chart flash.
@@ -764,7 +732,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 void chart.updateDelta({ data: THRESHOLD_DATA_UPDATED });
@@ -790,7 +757,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.applyTransaction({
@@ -805,7 +771,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.applyTransaction({
@@ -823,7 +788,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 await chart.applyTransaction({
@@ -838,7 +802,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 void chart.applyTransaction({
@@ -1002,7 +965,6 @@ describe('FlashOnUpdate', () => {
 
             animate(1200, 1);
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             animate(1200, 0.31);
             await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -1021,7 +983,6 @@ describe('FlashOnUpdate', () => {
 
             animate(1200, 1);
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             animate(1200, 0.31);
             await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -1042,7 +1003,6 @@ describe('FlashOnUpdate', () => {
 
             animate(1200, 1);
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             animate(1200, 0.31);
             await chart.updateDelta({ data: UPDATED_VALUES_DATA });
@@ -1060,7 +1020,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 // First update (fire-and-forget)
@@ -1083,7 +1042,6 @@ describe('FlashOnUpdate', () => {
 
                 animate(1200, 1);
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
 
                 // Fire three updates without waiting — only the last should produce a visible flash
                 animate(1200, ratio);

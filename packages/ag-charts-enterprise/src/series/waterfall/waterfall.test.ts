@@ -645,15 +645,19 @@ describe('WaterfallSeries', () => {
         const options = (direction: 'horizontal' | 'vertical', data: object[] = DATA): AgCartesianChartOptions => {
             const valueAxis = { type: 'number' as const, min: -20, max: 80 };
             const catAxis = { type: 'category' as const };
-            return prepareEnterpriseTestOptions({
+            return {
                 data,
                 series: [{ type: 'waterfall', direction, xKey: 'type', yKey: 'value' }],
                 axes:
                     direction === 'vertical'
                         ? { x: { ...catAxis, position: 'bottom' }, y: { ...valueAxis, position: 'left' } }
                         : { y: { ...catAxis, position: 'left' }, x: { ...valueAxis, position: 'bottom' } },
-            }) as AgCartesianChartOptions;
+            } as AgCartesianChartOptions;
         };
+
+        // Bespoke: the endpoint tests pass their options to `expectAnimatedEndpointsMatchStatic`, which updates the
+        // chart with them, so they create the chart bare on these prepared options.
+        const preparedOptions = (...args: Parameters<typeof options>) => prepareEnterpriseTestOptions(options(...args));
 
         // Naming the dimension per-direction keeps the initial-load specs symmetric.
         const valueDim = (direction: 'horizontal' | 'vertical') => (direction === 'vertical' ? 'height' : 'width');
@@ -677,8 +681,7 @@ describe('WaterfallSeries', () => {
 
             // The near edge slides for floating/negative bars, so it is `bounded` by its own endpoints, not pinned constant.
             it(`initial load (${direction}): bars and the connector reveal from the baseline`, async () => {
-                // Bespoke: the frame spy and sampler attach before the first render.
-                chart = AgCharts.create(options(direction));
+                chart = await createEnterpriseChart(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
                 const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
 
@@ -704,8 +707,8 @@ describe('WaterfallSeries', () => {
         }
 
         // Data mutations snap: the whole layout already sits at its settled state on the first captured frame.
-        const captureSnap = (opts: AgCartesianChartOptions, action: () => void) => {
-            chart = AgCharts.create(opts);
+        const captureSnap = async (opts: AgCartesianChartOptions, action: () => void) => {
+            chart = await createEnterpriseChart(opts);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
@@ -753,14 +756,14 @@ describe('WaterfallSeries', () => {
 
         // Settled scene must match a static render; one chart per test since the mock canvas only snapshots the first chart created.
         it('endpoints: update value settles at the static render', async () => {
-            const before = options('vertical');
+            const before = preparedOptions('vertical');
             chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(
                 frames,
                 () => ctx.snapshot(),
                 chart,
                 before,
-                options(
+                preparedOptions(
                     'vertical',
                     DATA.map((d) => (d.type === 'A' ? { ...d, value: 50 } : d))
                 )
@@ -768,20 +771,26 @@ describe('WaterfallSeries', () => {
         });
 
         it('endpoints: add data settles at the static render', async () => {
-            const before = options('vertical', DATA.slice(0, 3));
-            chart = AgCharts.create(before);
-            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, options('vertical'));
-        });
-
-        it('endpoints: remove data settles at the static render', async () => {
-            const before = options('vertical');
+            const before = preparedOptions('vertical', DATA.slice(0, 3));
             chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(
                 frames,
                 () => ctx.snapshot(),
                 chart,
                 before,
-                options('vertical', DATA.slice(0, 3))
+                preparedOptions('vertical')
+            );
+        });
+
+        it('endpoints: remove data settles at the static render', async () => {
+            const before = preparedOptions('vertical');
+            chart = AgCharts.create(before);
+            await expectAnimatedEndpointsMatchStatic(
+                frames,
+                () => ctx.snapshot(),
+                chart,
+                before,
+                preparedOptions('vertical', DATA.slice(0, 3))
             );
         });
     });

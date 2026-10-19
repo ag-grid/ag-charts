@@ -120,7 +120,6 @@ describe('GradientLegend', () => {
             const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
             options.gradientLegend!.position = 'top';
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const chartInstance = deproxy(chart);
             const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -134,7 +133,6 @@ describe('GradientLegend', () => {
             const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
             options.gradientLegend!.position = 'bottom';
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const chartInstance = deproxy(chart);
             const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -185,7 +183,6 @@ describe('GradientLegend', () => {
             ],
         };
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
 
         const chartInstance = deproxy(chart);
         const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -227,7 +224,6 @@ describe('GradientLegend', () => {
             gradientLegend: { gradient: { preferredLength: 200 } },
         };
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
 
         const chartInstance = deproxy(chart);
         const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -351,7 +347,6 @@ describe('GradientLegend', () => {
             ...EXAMPLE_OPTIONS,
         };
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
 
         const chartInstance = deproxy(chart);
         const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -385,7 +380,6 @@ describe('GradientLegend', () => {
             ],
         };
         chart = await createEnterpriseChart(options);
-        await waitForChartStability(chart);
 
         const chartInstance = deproxy(chart);
         const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -672,7 +666,6 @@ describe('GradientLegend', () => {
                 gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             // Hover over a data point to trigger the arrow indicator.
             await hoverAction(300, 200)(chart);
@@ -697,7 +690,6 @@ describe('GradientLegend', () => {
                 ],
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const chartInstance = deproxy(chart);
             const series: any = chartInstance.series[0];

@@ -524,7 +524,6 @@ describe('Tooltip', () => {
                 },
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
             });
-            await waitForChartStability(chart);
 
             // Verify formatter was called with actual null value (not string "null")
             expect(formatterMock).toHaveBeenCalledWith(expect.objectContaining({ value: null }));
@@ -694,7 +693,6 @@ describe('Tooltip', () => {
             };
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             // Manually show tooltip
             chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 }, [
@@ -729,7 +727,6 @@ describe('Tooltip', () => {
             };
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             // Only fake setTimeout/clearTimeout: faking requestAnimationFrame breaks jsdom's rAF permanently, as
             // vi.useRealTimers() cannot restore it. The tooltip delay uses setTimeout.
@@ -776,7 +773,6 @@ describe('Tooltip', () => {
             };
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
@@ -829,7 +825,6 @@ describe('Tooltip', () => {
             };
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
@@ -883,7 +878,6 @@ describe('Tooltip', () => {
             };
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 

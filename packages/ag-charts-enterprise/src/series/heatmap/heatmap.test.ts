@@ -1384,7 +1384,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('renders with the shadow enabled', async () => {
-            chart = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
+            chart = await createEnterpriseChart(buildOptions(SHADOW));
             await compare();
         });
     });
@@ -1533,7 +1533,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('renders the nine styled cell alignments', async () => {
-                chart = deproxy(await createEnterpriseChart(styledOptions()));
+                chart = await createEnterpriseChart(styledOptions());
 
                 await compareImageSnapshot(chart, ctx);
             });
@@ -1637,23 +1637,26 @@ describe('HeatmapSeries', () => {
         const NO_TOOLTIP = { tooltip: { enabled: false } };
         const HIGHLIGHT_OFF = { ...NO_TOOLTIP, highlight: { enabled: false } };
 
-        const buildOptions = (overrides: Record<string, unknown> = {}, data: object[] = DATA) =>
-            prepareEnterpriseTestOptions({
-                width: 400,
-                height: 300,
-                data,
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
-                        ...overrides,
-                    },
-                ],
-                legend: { enabled: false },
-            });
+        const rawOptions = (overrides: Record<string, unknown> = {}, data: object[] = DATA) => ({
+            width: 400,
+            height: 300,
+            data,
+            series: [
+                {
+                    type: 'heatmap' as const,
+                    xKey: 'year',
+                    yKey: 'person',
+                    colorKey: 'spending',
+                    colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
+                    ...overrides,
+                },
+            ],
+            legend: { enabled: false },
+        });
+
+        // Prepared for the updates that replay options onto a chart the factory has already prepared.
+        const buildOptions = (...args: Parameters<typeof rawOptions>) =>
+            prepareEnterpriseTestOptions(rawOptions(...args));
 
         const cellRects = (c: Chart) => collectShapes(classCast(c.series[0], HeatmapSeries).contentGroup);
         const cellFills = (c: Chart) => cellRects(c).map((rect) => String(rect.fill));
@@ -1668,16 +1671,14 @@ describe('HeatmapSeries', () => {
             options: AgChartOptions,
             read: (c: Chart) => T = cellFills as unknown as (c: Chart) => T
         ): Promise<T> {
-            const reference = deproxy(AgCharts.create(options));
-            await waitForChartStability(reference);
+            const reference = deproxy(await createEnterpriseChart(options));
             const result = read(reference);
             reference.destroy();
             return result;
         }
 
         async function createStable(options: AgChartOptions) {
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
         }
 
         async function hoverAway() {
@@ -1693,7 +1694,7 @@ describe('HeatmapSeries', () => {
         }
 
         it('restyles every cell when the colour scale domain changes', async () => {
-            await createStable(buildOptions());
+            await createStable(rawOptions());
             const before = cellFills(chart);
             expect(new Set(before).size).toBe(DATA.length);
 
@@ -1702,11 +1703,11 @@ describe('HeatmapSeries', () => {
 
             const after = cellFills(chart);
             expect(after).not.toEqual(before);
-            expect(after).toEqual(await freshCellFills(buildOptions({}, SHIFTED_DATA)));
+            expect(after).toEqual(await freshCellFills(rawOptions({}, SHIFTED_DATA)));
         });
 
         it('restyles every cell when the colour scale fills change', async () => {
-            await createStable(buildOptions());
+            await createStable(rawOptions());
             const before = cellFills(chart);
 
             const colorScale = { fills: [{ color: 'green' }, { color: 'yellow' }] };
@@ -1715,14 +1716,14 @@ describe('HeatmapSeries', () => {
 
             const after = cellFills(chart);
             expect(after).not.toEqual(before);
-            expect(after).toEqual(await freshCellFills(buildOptions({ colorScale })));
+            expect(after).toEqual(await freshCellFills(rawOptions({ colorScale })));
         });
 
         it.each([
             { name: 'an explicit unhighlightedItem', highlight: { unhighlightedItem: { opacity: 0.4 } }, dimmed: 0.4 },
             { name: 'the theme highlight', highlight: undefined, dimmed: 0.6 },
         ])('dims the cells on hover with $name and restores them afterwards', async ({ highlight, dimmed }) => {
-            await createStable(buildOptions({ ...NO_TOOLTIP, highlight }));
+            await createStable(rawOptions({ ...NO_TOOLTIP, highlight }));
             const fills = cellFills(chart);
             expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
 
@@ -1736,12 +1737,12 @@ describe('HeatmapSeries', () => {
         });
 
         it('keeps the colour scale fills and full opacity on update and hover when highlighting is disabled', async () => {
-            const options = buildOptions(HIGHLIGHT_OFF);
+            const options = rawOptions(HIGHLIGHT_OFF);
             await createStable(options);
 
             chart.publicApi.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
-            expect(cellFills(chart)).toEqual(await freshCellFills(buildOptions(HIGHLIGHT_OFF, SHIFTED_DATA)));
+            expect(cellFills(chart)).toEqual(await freshCellFills(rawOptions(HIGHLIGHT_OFF, SHIFTED_DATA)));
 
             await hoverDatumByIndex(chart, 0, 0);
             expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
@@ -1749,14 +1750,14 @@ describe('HeatmapSeries', () => {
         });
 
         it('keeps the new colour scale fills when the domain changes during a hover and restores them after', async () => {
-            await createStable(buildOptions({ ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } }));
+            await createStable(rawOptions({ ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } }));
             await hoverDatumByIndex(chart, 0, 0);
 
             chart.publicApi.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
             const fills = cellFills(chart);
-            expect(fills).toEqual(await freshCellFills(buildOptions({}, SHIFTED_DATA)));
+            expect(fills).toEqual(await freshCellFills(rawOptions({}, SHIFTED_DATA)));
             expect(new Set(fills).size).toBe(DATA.length);
 
             await hoverAway();
@@ -1765,7 +1766,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('applies the selection styles over the colour scale fill', async () => {
-            await createStable(buildOptions({ selection: SELECTION }));
+            await createStable(rawOptions({ selection: SELECTION }));
             const fills = cellFills(chart);
 
             await select(1);
@@ -1775,7 +1776,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('restores the colour scale styling when the selection is cleared', async () => {
-            await createStable(buildOptions({ selection: SELECTION }));
+            await createStable(rawOptions({ selection: SELECTION }));
             const fills = cellFills(chart);
 
             await select(1);
@@ -1788,7 +1789,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('styles each cell once per update when only the colour scale colours the cells', async () => {
-            await createStable(buildOptions());
+            await createStable(rawOptions());
             const getItemStyle = vi.spyOn(HeatmapSeries.prototype as any, 'getItemStyle');
 
             try {
@@ -1805,21 +1806,21 @@ describe('HeatmapSeries', () => {
             const itemStyler = ({ datum }: { datum: { year: string; person: string } }) =>
                 datum.person === 'A' ? { stroke: 'black', strokeWidth: 3 } : {};
 
-            await createStable(buildOptions({ itemStyler }));
+            await createStable(rawOptions({ itemStyler }));
             const strokes = cellStrokes(chart);
             expect(strokes.filter(({ width }) => width === 3)).toHaveLength(2);
 
             chart.publicApi.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
-            expect(cellFills(chart)).toEqual(await freshCellFills(buildOptions({ itemStyler }, SHIFTED_DATA)));
+            expect(cellFills(chart)).toEqual(await freshCellFills(rawOptions({ itemStyler }, SHIFTED_DATA)));
             expect(cellStrokes(chart)).toEqual(strokes);
         });
 
         it('applies an itemStyler that depends on the highlight state and drops it when the pointer leaves', async () => {
             const itemStyler = ({ highlightState }: { highlightState: string }) =>
                 highlightState === 'unhighlighted-item' ? { strokeWidth: 5 } : {};
-            await createStable(buildOptions({ ...NO_TOOLTIP, itemStyler }));
+            await createStable(rawOptions({ ...NO_TOOLTIP, itemStyler }));
             const before = cellStrokes(chart);
 
             await hoverDatumByIndex(chart, 0, 0);
@@ -1832,8 +1833,9 @@ describe('HeatmapSeries', () => {
         it('re-evaluates an itemStyler on an update that leaves the data and options alone', async () => {
             let strokeWidth = 1;
             const itemStyler = () => ({ strokeWidth });
-            const options = buildOptions({ itemStyler });
+            const options = rawOptions({ itemStyler });
             await createStable(options);
+            prepareEnterpriseTestOptions(options);
             expect(cellStrokes(chart).map(({ width }) => width)).toEqual([1, 1, 1, 1]);
 
             strokeWidth = 4;
@@ -1848,13 +1850,13 @@ describe('HeatmapSeries', () => {
             const colorScale = { fills: [{ color: 'blue' }, { color: 'red' }], missingDataFill };
             const withGap = DATA.map((d, i) => (i === 1 ? { ...d, spending: undefined } : d));
 
-            await createStable(buildOptions({ colorScale }, withGap));
+            await createStable(rawOptions({ colorScale }, withGap));
             expect(cellFills(chart).filter((f) => f === missingDataFill)).toHaveLength(1);
 
             chart.publicApi.updateDelta({ data: DATA });
             await waitForChartStability(chart);
             expect(cellFills(chart)).not.toContain(missingDataFill);
-            expect(cellFills(chart)).toEqual(await freshCellFills(buildOptions({ colorScale })));
+            expect(cellFills(chart)).toEqual(await freshCellFills(rawOptions({ colorScale })));
         });
 
         describe('itemStyler results', () => {
@@ -1870,7 +1872,7 @@ describe('HeatmapSeries', () => {
                     stroke: 'black',
                     strokeWidth: datum.spending / 10,
                 });
-                await createStable(buildOptions({ itemStyler }, MANY_DATA));
+                await createStable(rawOptions({ itemStyler }, MANY_DATA));
 
                 expect(strokeWidths(chart)).toEqual(MANY_DATA.map((d) => d.spending / 10));
             });
@@ -1879,7 +1881,7 @@ describe('HeatmapSeries', () => {
                 const data = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
                 const itemStyler = ({ datum }: StylerParams) =>
                     datum.spending % 2 === 0 ? { strokeWidth: 2, stroke: 'black' } : { strokeWidth: 7, stroke: 'red' };
-                await createStable(buildOptions({ itemStyler }, data));
+                await createStable(rawOptions({ itemStyler }, data));
 
                 expect(cellStrokes(chart)).toEqual(
                     data.map((d) =>
@@ -1894,28 +1896,28 @@ describe('HeatmapSeries', () => {
                     shared.strokeWidth = datum.spending / 10;
                     return shared;
                 };
-                await createStable(buildOptions({ itemStyler }));
+                await createStable(rawOptions({ itemStyler }));
 
                 expect(strokeWidths(chart)).toEqual(DATA.map((d) => d.spending / 10));
             });
 
             it('keeps the colour scale fill for undefined result values and for cells whose styler returns nothing', async () => {
-                const unstyled = await freshCellFills(buildOptions());
-                const unstyledWidths = await freshCellFills(buildOptions(), strokeWidths);
+                const unstyled = await freshCellFills(rawOptions());
+                const unstyledWidths = await freshCellFills(rawOptions(), strokeWidths);
 
                 const itemStyler = ({ datum }: StylerParams) =>
                     datum.person === 'A' ? { fill: undefined, strokeWidth: 6 } : undefined;
-                await createStable(buildOptions({ itemStyler }));
+                await createStable(rawOptions({ itemStyler }));
 
                 expect(cellFills(chart)).toEqual(unstyled);
                 expect(strokeWidths(chart)).toEqual(DATA.map((d, i) => (d.person === 'A' ? 6 : unstyledWidths[i])));
             });
 
             it('lets a styler fill replace the colour scale fill only on the cells it styles', async () => {
-                const unstyled = await freshCellFills(buildOptions());
+                const unstyled = await freshCellFills(rawOptions());
 
                 const itemStyler = ({ datum }: StylerParams) => (datum.spending >= 30 ? { fill: 'lime' } : {});
-                await createStable(buildOptions({ itemStyler }));
+                await createStable(rawOptions({ itemStyler }));
 
                 expect(cellFills(chart)).toEqual(DATA.map((d, i) => (d.spending >= 30 ? 'lime' : unstyled[i])));
             });
@@ -1938,7 +1940,7 @@ describe('HeatmapSeries', () => {
                     enabled: true,
                     selectedItem: { fill: selectedGradient },
                 };
-                await createStable(buildOptions({ selection, itemStyler }));
+                await createStable(rawOptions({ selection, itemStyler }));
                 const fills = cellRects(chart).map((rect) => rect.fill);
 
                 await select(0);
@@ -1956,7 +1958,7 @@ describe('HeatmapSeries', () => {
                     strokeWidth: 1,
                     fillOpacity: datum.spending / 100,
                 });
-                await createStable(buildOptions({ itemStyler }));
+                await createStable(rawOptions({ itemStyler }));
 
                 expect(cellOpacities(chart)).toEqual(DATA.map((d) => d.spending / 100));
             });
@@ -1971,7 +1973,7 @@ describe('HeatmapSeries', () => {
                 }));
                 const highlightWidths = () =>
                     collectShapes(classCast(chart.series[0], HeatmapSeries).highlightGroup).map((r) => r.strokeWidth);
-                await createStable(buildOptions({ ...NO_TOOLTIP, itemStyler }));
+                await createStable(rawOptions({ ...NO_TOOLTIP, itemStyler }));
                 expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
                 expect(strokeWidths(chart)).toEqual([2, 2, 2, 2]);
 
@@ -1992,8 +1994,9 @@ describe('HeatmapSeries', () => {
             it('resolves each distinct flat result once, and again after an update clears the memory', async () => {
                 const data = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
                 const itemStyler = ({ datum }: StylerParams) => ({ strokeWidth: 1 + (datum.spending % 3) });
-                const options = buildOptions({ itemStyler }, data);
+                const options = rawOptions({ itemStyler }, data);
                 await createStable(options);
+                prepareEnterpriseTestOptions(options);
 
                 const { optionsGraphService } = chart.series[0].ctx;
                 const resolvePartial = vi.spyOn(optionsGraphService, 'resolvePartial');
@@ -2018,9 +2021,9 @@ describe('HeatmapSeries', () => {
             it('warns once about an invalid result value and still applies the valid properties', async () => {
                 const itemStyler = ({ datum }: StylerParams) =>
                     datum.person === 'A' ? { strokeWidth: 'thick', stroke: 'black' } : { strokeWidth: 5 };
-                const unstyled = await freshCellFills(buildOptions(), strokeWidths);
+                const unstyled = await freshCellFills(rawOptions(), strokeWidths);
 
-                await createStable(buildOptions({ itemStyler }));
+                await createStable(rawOptions({ itemStyler }));
                 expect(strokeWidths(chart)).toEqual(DATA.map((d, i) => (d.person === 'A' ? unstyled[i] : 5)));
                 expectWarningsCalls().toMatchInlineSnapshot(`
                   [
@@ -2033,7 +2036,7 @@ describe('HeatmapSeries', () => {
 
             it('warns about an unknown result property', async () => {
                 const itemStyler = () => ({ strokeWidth: 3, notAnOption: 1 });
-                await createStable(buildOptions({ itemStyler }));
+                await createStable(rawOptions({ itemStyler }));
 
                 expect(strokeWidths(chart)).toEqual([3, 3, 3, 3]);
                 expectWarningsCalls().toMatchInlineSnapshot(`
@@ -2047,7 +2050,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('keeps the colour scale fill in the tooltip symbol', async () => {
-            await createStable(buildOptions());
+            await createStable(rawOptions());
 
             const series = classCast(chart.series[0], HeatmapSeries);
             const content = series.getTooltipContent(2);
@@ -2074,7 +2077,7 @@ describe('HeatmapSeries', () => {
         };
 
         it('repaints the cells in their new colours without rebuilding their paths', async () => {
-            await createStable(buildOptions());
+            await createStable(rawOptions());
             const before = cellFills(chart);
             const updatePaths = cellRects(chart).map((rect) => vi.spyOn(rect as Rect, 'updatePath'));
             const updated = () => updatePaths.filter((spy) => spy.mock.calls.length > 0).length;
@@ -2101,7 +2104,7 @@ describe('HeatmapSeries', () => {
                 shadowed: { shadow: SHADOW },
             };
             for (const [name, overrides] of Object.entries(variants)) {
-                await createStable(buildOptions(overrides));
+                await createStable(rawOptions(overrides));
                 fills[name] = await countFills(repaint);
                 chart.destroy();
             }
@@ -2114,7 +2117,7 @@ describe('HeatmapSeries', () => {
 
         /** The rects the chart fills apart from its cells and the highlighted cell, by a hover over rounded cells. */
         async function nonCellRects(highlight: object) {
-            await createStable(buildOptions({ ...NO_TOOLTIP, cornerRadius: 4, highlight }));
+            await createStable(rawOptions({ ...NO_TOOLTIP, cornerRadius: 4, highlight }));
             const { rects } = await countFills(() => hoverDatumByIndex(chart, 0, 1));
             chart.destroy();
             return rects;
@@ -2126,7 +2129,7 @@ describe('HeatmapSeries', () => {
                 unhighlightedItem: { opacity: 0.4 },
             };
             const others = await nonCellRects(highlight);
-            await createStable(buildOptions({ ...NO_TOOLTIP, highlight }));
+            await createStable(rawOptions({ ...NO_TOOLTIP, highlight }));
             const series = classCast(chart.series[0], HeatmapSeries);
 
             const { rects } = await countFills(() => hoverDatumByIndex(chart, 0, 1));
@@ -2140,7 +2143,7 @@ describe('HeatmapSeries', () => {
         it('paints cells that a highlight strokes through their path and back to a direct fill once it ends', async () => {
             const highlight = { unhighlightedItem: { stroke: 'black', strokeWidth: 3 } };
             const others = await nonCellRects(highlight);
-            await createStable(buildOptions({ ...NO_TOOLTIP, highlight }));
+            await createStable(rawOptions({ ...NO_TOOLTIP, highlight }));
             const fills = cellFills(chart);
 
             // Only the plain highlight node is filled directly.
@@ -2155,7 +2158,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('picks, highlights and shows the tooltip of the cell under the pointer after a repaint', async () => {
-            await createStable(buildOptions());
+            await createStable(rawOptions());
             chart.publicApi.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
@@ -2166,7 +2169,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('keeps keyboard navigation and labels working after a repaint', async () => {
-            await createStable(buildOptions({ label: { enabled: true } }));
+            await createStable(rawOptions({ label: { enabled: true } }));
             chart.publicApi.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
@@ -2202,24 +2205,27 @@ describe('HeatmapSeries', () => {
         });
         const NO_TOOLTIP = { tooltip: { enabled: false } };
 
-        const buildOptions = (data: Cell[], series: Record<string, unknown> = {}) =>
-            prepareEnterpriseTestOptions({
-                width: 400,
-                height: 300,
-                data,
-                dataIdKey: 'id',
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'x',
-                        yKey: 'y',
-                        colorKey: 'v',
-                        colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
-                        ...series,
-                    },
-                ],
-                legend: { enabled: false },
-            });
+        const rawOptions = (data: Cell[], series: Record<string, unknown> = {}) => ({
+            width: 400,
+            height: 300,
+            data,
+            dataIdKey: 'id',
+            series: [
+                {
+                    type: 'heatmap' as const,
+                    xKey: 'x',
+                    yKey: 'y',
+                    colorKey: 'v',
+                    colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
+                    ...series,
+                },
+            ],
+            legend: { enabled: false },
+        });
+
+        // Prepared for the updates that replay options onto a chart the factory has already prepared.
+        const buildOptions = (...args: Parameters<typeof rawOptions>) =>
+            prepareEnterpriseTestOptions(rawOptions(...args));
 
         const heatmap = (c: Chart) => classCast(c.series[0], HeatmapSeries);
         const rects = (c: Chart) => collectShapes(heatmap(c).contentGroup) as Rect[];
@@ -2236,8 +2242,7 @@ describe('HeatmapSeries', () => {
             }));
 
         async function create(data: Cell[], series: Record<string, unknown> = {}) {
-            chart = deproxy(AgCharts.create(buildOptions(data, series)));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(rawOptions(data, series) as AgChartOptions));
         }
 
         async function transact(transaction: { update?: Cell[]; add?: Cell[]; remove?: { id: string }[] }) {
@@ -2246,8 +2251,7 @@ describe('HeatmapSeries', () => {
         }
 
         async function freshCells(data: Cell[], series: Record<string, unknown> = {}) {
-            const reference = deproxy(AgCharts.create(buildOptions(data, series)));
-            await waitForChartStability(reference);
+            const reference = deproxy(await createEnterpriseChart(rawOptions(data, series) as AgChartOptions));
             const result = cells(reference);
             reference.destroy();
             return result;
@@ -2408,6 +2412,7 @@ describe('HeatmapSeries', () => {
             chart.publicApi.updateDelta({ width: 300, height: 200 });
             await waitForChartStability(chart);
 
+            // Bespoke: the size is set after preparation, which the factory would overwrite with the default canvas size.
             const reference = deproxy(
                 AgCharts.create({ ...buildOptions(withUpdates(UPDATED('1:1', 7))), width: 300, height: 200 })
             );
@@ -2485,9 +2490,10 @@ describe('HeatmapSeries', () => {
             await transactIncrementally([UPDATED('2:2', 5)]);
 
             const reference = deproxy(
-                AgCharts.create(buildOptions(withUpdates(UPDATED('1:1', 7), UPDATED('2:2', 5)), NO_TOOLTIP))
+                await createEnterpriseChart(
+                    rawOptions(withUpdates(UPDATED('1:1', 7), UPDATED('2:2', 5)), NO_TOOLTIP) as AgChartOptions
+                )
             );
-            await waitForChartStability(reference);
             await hoverDatumByIndex(reference, 0, 0);
             const expected = cells(reference);
             reference.destroy();
@@ -2836,8 +2842,9 @@ describe('HeatmapSeries', () => {
                 expect(after).toHaveLength(GRID.length);
                 expect(after.filter((text, i) => text !== before[i])).toHaveLength(1);
 
-                const reference = deproxy(AgCharts.create(buildOptions(withUpdates(UPDATED('1:1', 8)), series)));
-                await waitForChartStability(reference);
+                const reference = deproxy(
+                    await createEnterpriseChart(rawOptions(withUpdates(UPDATED('1:1', 8)), series) as AgChartOptions)
+                );
                 expect(after).toEqual(labelTexts(reference));
                 reference.destroy();
             });

@@ -55,8 +55,6 @@ describe('Format Manager', () => {
 
         chart = await createChart(options);
 
-        await waitForChartStability(chart);
-
         await compare();
     });
 
@@ -86,8 +84,6 @@ describe('Format Manager', () => {
         };
 
         chart = await createChart(options);
-
-        await waitForChartStability(chart);
 
         expect(xFormatter.mock.calls.at(0)?.at(0)).toEqual({
             boundSeries: [
@@ -172,8 +168,6 @@ describe('Format Manager', () => {
 
         chart = await createChart(options);
 
-        await waitForChartStability(chart);
-
         await compare();
     });
 
@@ -208,8 +202,6 @@ describe('Format Manager', () => {
 
         chart = await createChart(options);
 
-        await waitForChartStability(chart);
-
         await compare();
     });
 
@@ -243,7 +235,6 @@ describe('Format Manager', () => {
         };
 
         chart = await createChart(options);
-        await waitForChartStability(chart);
 
         await hoverAction(250, 150)(chart);
         await waitForChartStability(chart);
@@ -275,7 +266,6 @@ describe('Format Manager', () => {
         };
 
         chart = await createChart(options);
-        await waitForChartStability(chart);
 
         // Verify the formatter receives the actual object, not "[object Object]"
         const firstCall = xFormatter.mock.calls.at(0)?.at(0);
@@ -340,7 +330,6 @@ describe('Format Manager', () => {
                     };
 
                     chart = await createChart(options);
-                    await waitForChartStability(chart);
 
                     if (expectWarning) {
                         const valueType = nullValue === null ? 'object' : 'undefined';
@@ -387,7 +376,6 @@ describe('Format Manager', () => {
                 };
 
                 chart = await createChart(options);
-                await waitForChartStability(chart);
 
                 expect(axisFormatter).toHaveBeenCalledWith(expect.objectContaining({ value: null }));
             });
@@ -406,7 +394,6 @@ describe('Format Manager', () => {
                 };
 
                 chart = await createChart(options);
-                await waitForChartStability(chart);
 
                 const callWithDomain = xFormatter.mock.calls.find(
                     (c) => Array.isArray(c[0]?.domain) && c[0].domain.length === 3
@@ -436,7 +423,6 @@ describe('Format Manager', () => {
                     };
 
                     chart = await createChart(options);
-                    await waitForChartStability(chart);
 
                     if (expectWarning) {
                         const valueType = nullValue === null ? 'object' : 'undefined';
@@ -477,7 +463,6 @@ describe('Format Manager', () => {
                 };
 
                 chart = await createChart(options);
-                await waitForChartStability(chart);
 
                 const callWithDomain = xFormatter.mock.calls.find(
                     (c) => Array.isArray(c[0]?.domain) && c[0].domain.length === 3
@@ -504,7 +489,6 @@ describe('Format Manager', () => {
                 };
 
                 chart = await createChart(options);
-                await waitForChartStability(chart);
 
                 await hoverAction(200, 200)(chart);
                 await waitForChartStability(chart);
@@ -532,7 +516,6 @@ describe('Format Manager', () => {
                 };
 
                 chart = await createChart(options);
-                await waitForChartStability(chart);
 
                 await hoverAction(200, 200)(chart);
                 await waitForChartStability(chart);
@@ -565,7 +548,6 @@ describe('Format Manager', () => {
                 };
 
                 chart = await createChart(options);
-                await waitForChartStability(chart);
 
                 expect(labelFormatter).toHaveBeenCalledTimes(2);
                 const formatterDatums = labelFormatter.mock.calls.map((c: any[]) => c[0].datum?.product);
@@ -595,7 +577,6 @@ describe('Format Manager', () => {
                     };
 
                     chart = await createChart(options);
-                    await waitForChartStability(chart);
 
                     // Pie/donut emit warnings for both legendItemKey and legendItemValue
                     expectWarningsCalls().toEqual([
@@ -620,7 +601,6 @@ describe('Format Manager', () => {
                     };
 
                     chart = await createChart(options);
-                    await waitForChartStability(chart);
 
                     expectWarningsCalls().toEqual([]);
                 });
@@ -637,7 +617,6 @@ describe('Format Manager', () => {
                     };
 
                     chart = await createChart(options);
-                    await waitForChartStability(chart);
 
                     // Pie/donut emit warnings for both legendItemKey and legendItemValue
                     expectWarningsCalls().toEqual([
@@ -662,7 +641,6 @@ describe('Format Manager', () => {
                     };
 
                     chart = await createChart(options);
-                    await waitForChartStability(chart);
 
                     expectWarningsCalls().toEqual([]);
                 });

@@ -377,7 +377,7 @@ describe('ConeFunnelSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -406,7 +406,7 @@ describe('ConeFunnelSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -436,7 +436,7 @@ describe('ConeFunnelSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
@@ -472,7 +472,7 @@ describe('ConeFunnelSeries', () => {
                 },
             ],
         };
-        chart = deproxy(await createEnterpriseChart(options));
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -515,7 +515,7 @@ describe('ConeFunnelSeries', () => {
                 series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value' }],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -564,7 +564,7 @@ describe('ConeFunnelSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });

@@ -360,6 +360,8 @@ const INVALID_DATA_EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
     COLUMN_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase('bar', DATA_INVALID_DOMAIN_LOG_AXIS),
 };
 
+// Bespoke: the bare `AgCharts.create` calls in this suite either pass prepared options that a later `chart.update` reuses,
+// or set the size after preparation, which `createChart` would overwrite with the default.
 describe('BarSeries', () => {
     setupMockConsole();
 
@@ -394,7 +396,6 @@ describe('BarSeries', () => {
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 chart = await createChart(options);
-                await waitForChartStability(chart);
                 await example.assertions(chart);
 
                 if (example.warnings) {
@@ -475,7 +476,6 @@ describe('BarSeries', () => {
             };
 
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             // Visual snapshot to ensure no spurious bars are rendered
             await compare();
@@ -531,7 +531,6 @@ describe('BarSeries', () => {
             };
 
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             // Visual snapshot to ensure no spurious bars are rendered
             await compare();
@@ -561,7 +560,6 @@ describe('BarSeries', () => {
                     options.series = reducedSeries;
                 }
 
-                // Bespoke: the prepared `options` are reused by `chart.update`.
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
@@ -589,7 +587,7 @@ describe('BarSeries', () => {
 
         // The pinned 0-100 y-domain makes data updates within it provably non-scale-affecting.
         const columnOptions = (data: Array<{ x: string; y: number }>): AgChartOptions => {
-            const options: AgChartOptions = {
+            return {
                 data,
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                 axes: {
@@ -597,7 +595,6 @@ describe('BarSeries', () => {
                     y: { type: 'number', position: 'left', min: 0, max: 100 },
                 },
             };
-            return options;
         };
 
         // CASE 1 — non-scale-affecting data update on a vertical (column) series. The changed bar should
@@ -817,7 +814,6 @@ describe('BarSeries', () => {
             const options: AgChartOptions = { ...examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 };
             prepareTestOptions(options);
             const allSeries = options.series!;
-            // Bespoke: the prepared `options` are reused by `chart.update`.
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
@@ -864,7 +860,6 @@ describe('BarSeries', () => {
             }
             return options;
         };
-        // Bespoke: the bare creates in this suite pass prepared options that are reused by a later `chart.update`.
         const preparedGroupedOptions = (mode?: 'integrated') => prepareTestOptions(groupedOptions(mode));
 
         const rectCount = (sample: SceneGeometrySample) =>
@@ -1438,7 +1433,6 @@ describe('BarSeries', () => {
             };
             prepareTestOptions(options);
 
-            // Bespoke: the prepared `options` are reused by `chart.update`.
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
@@ -1465,7 +1459,6 @@ describe('BarSeries', () => {
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 chart = await createChart(options);
-                await waitForChartStability(chart);
                 await example.assertions(chart);
 
                 expectWarningsCalls().toEqual([
@@ -1822,7 +1815,6 @@ describe('BarSeries', () => {
         it('restores hidden labels when alwaysShow is toggled back on', async () => {
             const hiddenOptions = wideLabel(false);
             chart = await createChart(hiddenOptions);
-            await waitForChartStability(chart);
             const series = deproxy(chart).series[0] as any;
             const visible = () => series.labelSelection.nodes().filter((node: any) => node.visible).length;
             expect(visible()).toBeLessThan(wideLabelData.length);
@@ -2244,7 +2236,6 @@ describe('BarSeries', () => {
             const options = { ...EXAMPLE_OPTIONS };
 
             chart = await createChart(options);
-            await waitForChartStability(chart);
             await chart.updateDelta({ data: DATA2 });
             await compare();
         });
@@ -2294,7 +2285,6 @@ describe('BarSeries', () => {
                         { type: 'bar', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
                     ],
                 });
-                await waitForChartStability(chart);
             });
             test('snapshot', async () => {
                 await compare();
@@ -2346,7 +2336,6 @@ describe('BarSeries', () => {
                         },
                     ],
                 });
-                await waitForChartStability(chart);
             });
             test('snapshot', async () => {
                 await compare();
@@ -2375,7 +2364,6 @@ describe('BarSeries', () => {
                         },
                     ],
                 });
-                await waitForChartStability(chart);
             });
             test('snapshot', async () => {
                 await compare();
@@ -2406,7 +2394,6 @@ describe('BarSeries', () => {
                         },
                     ],
                 });
-                await waitForChartStability(chart);
             });
             test('snapshot', async () => {
                 await compare();
@@ -2432,7 +2419,6 @@ describe('BarSeries', () => {
                         },
                     ],
                 });
-                await waitForChartStability(chart);
             });
 
             const miss = { x: 300, y: 150 } as const;
@@ -3164,7 +3150,6 @@ describe('BarSeries', () => {
 
             chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(135, 330)(chart);
             await compare();
         });
@@ -3216,7 +3201,6 @@ describe('BarSeries', () => {
             };
 
             chart = await createChart(options);
-            await waitForChartStability(chart);
             await compare();
         });
 
@@ -3261,7 +3245,6 @@ describe('BarSeries', () => {
             };
 
             chart = await createChart(options);
-            await waitForChartStability(chart);
             await compare();
         });
     });
@@ -3286,7 +3269,6 @@ describe('BarSeries', () => {
             };
 
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             // Get initial node data references
             const chartInstance = deproxy(chart);
@@ -3549,7 +3531,6 @@ describe('BarSeries', () => {
                 ],
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
             (options.series as any)[0].width = 40;
             await chart.update(prepareTestOptions(options));
             await compare();
@@ -3566,7 +3547,6 @@ describe('BarSeries', () => {
                 series: [{ type: 'bar', xKey: 'quarter', yKey: 'iphone', width: fixedWidth }],
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             const instance = deproxy(chart);
             const categoryAxis = instance.axes.find((axis) => axis.type === 'category')!;
@@ -3587,7 +3567,6 @@ describe('BarSeries', () => {
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = examples.BAR_NULL_CATEGORY_KEY_EXAMPLE;
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
@@ -3603,7 +3582,6 @@ describe('BarSeries', () => {
         it('should accept null category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -3612,7 +3590,6 @@ describe('BarSeries', () => {
         it('should accept undefined category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.BAR_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -3621,7 +3598,6 @@ describe('BarSeries', () => {
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -3630,7 +3606,6 @@ describe('BarSeries', () => {
         it('should accept null category key in stacked bar when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.STACKED_BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -3665,7 +3640,6 @@ describe('BarSeries', () => {
                 ],
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             // Click on the first bar (null category) - approximate center
             await clickAction(130, 300)(chart);
@@ -3897,7 +3871,6 @@ describe('BarSeries', () => {
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', yFilterKey: 'yFilter' } as any],
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             await compare();
         });
@@ -3910,7 +3883,6 @@ describe('BarSeries', () => {
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', yFilterKey: 'yFilter' } as any],
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             await compare();
         });
@@ -3928,7 +3900,6 @@ describe('BarSeries', () => {
                 ],
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             await compare();
         });
@@ -3946,7 +3917,6 @@ describe('BarSeries', () => {
                 ],
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             await compare();
         });
@@ -3981,7 +3951,6 @@ describe('BarSeries', () => {
         it('normalizedTo: y-axis domain stays [0, normalizedTo] when yFilterKey is set', async () => {
             // Filter values all sit below their base values, so only the raw-column domain union can stretch the axis.
             chart = await createChart(normalizedFilterOptions());
-            await waitForChartStability(chart);
 
             const { axes } = deproxy(chart);
             const yAxis = axes.find((a: any) => a.direction === ChartAxisDirection.Y);
@@ -3990,7 +3959,6 @@ describe('BarSeries', () => {
 
         it('normalizedTo: filtered overlay is drawn as its true proportion of the bar', async () => {
             chart = await createChart(normalizedFilterOptions());
-            await waitForChartStability(chart);
 
             const series = deproxy(chart).series as any[];
             expect(series[0].processedData.reduced.filteredValueExceedUnfiltered).toBe(false);
@@ -4028,7 +3996,6 @@ describe('BarSeries', () => {
         it('normalizedTo: a null filter value produces no NaN geometry', async () => {
             const data = normalizedFilterData.map((d, i) => (i === 1 ? { ...d, aFiltered: null } : d));
             chart = await createChart(normalizedFilterOptions(data));
-            await waitForChartStability(chart);
 
             const { nodeData, phantomNodeData } = (deproxy(chart).series[0] as any).contextNodeData;
             // The null-filter datum is dropped upstream by the data model, so it contributes no node at all.
@@ -4062,7 +4029,6 @@ describe('BarSeries', () => {
                 ],
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             const { axes, series } = deproxy(chart);
             const yAxis = axes.find((a: any) => a.direction === ChartAxisDirection.Y);
@@ -4092,7 +4058,6 @@ describe('BarSeries', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
             } as any;
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             const chartObj = deproxy(chart);
             const categoryAxis = chartObj.axes.find((a: any) => a.type === 'category') as any;
@@ -4181,7 +4146,6 @@ describe('BarSeries', () => {
                 ],
                 axes: categoryNumberAxes,
             });
-            await waitForChartStability(chart);
             expect(chart).toBeDefined();
         });
     });
@@ -4313,7 +4277,6 @@ describe('BarSeries', () => {
                 ],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             });
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([]);
         });
@@ -4331,7 +4294,6 @@ describe('BarSeries', () => {
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             const series = deproxy(chart).series[0] as any;
             const nodeData = series.contextNodeData?.nodeData;
@@ -4354,7 +4316,6 @@ describe('BarSeries', () => {
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             const series = deproxy(chart).series[0] as any;
             const nodeData = series.contextNodeData?.nodeData as Array<{
@@ -4659,7 +4620,6 @@ describe('BarSeries category/gridline pixel alignment', () => {
                     options.height = 400;
                     options.overrideDevicePixelRatio = dpr;
 
-                    // Bespoke: width, height and overrideDevicePixelRatio are set after preparation.
                     chart = AgCharts.create(options);
                     await waitForChartStability(chart);
 

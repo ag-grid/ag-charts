@@ -313,7 +313,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -333,7 +333,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -353,7 +353,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -377,7 +377,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -445,7 +445,7 @@ describe('MapMarkerSeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
         });
@@ -525,7 +525,7 @@ describe('MapMarkerSeries', () => {
                 ...COLOR_EXAMPLE,
                 gradientLegend: { enabled: true },
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -547,7 +547,7 @@ describe('MapMarkerSeries', () => {
                 legend: { enabled: true },
                 gradientLegend: { enabled: false },
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -573,7 +573,7 @@ describe('MapMarkerSeries', () => {
                 legend: { enabled: true },
                 gradientLegend: { enabled: false },
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -597,7 +597,7 @@ describe('MapMarkerSeries', () => {
                 ],
                 gradientLegend: { enabled: true },
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -622,7 +622,7 @@ describe('MapMarkerSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
         it('should render map marker series with a gradient fill', async () => {
@@ -652,7 +652,7 @@ describe('MapMarkerSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });

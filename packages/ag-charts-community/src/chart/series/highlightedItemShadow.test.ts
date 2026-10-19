@@ -390,8 +390,8 @@ describe('highlightedItem.shadow', () => {
                 series: [testCase.series(SERIES_SHADOW, {})],
             } as AgChartOptions;
             // `options` is returned and reused for a later update, so it keeps the prepared test theme and size.
-            prepareTestOptions(options);
             const proxy = await createChart(options);
+            prepareTestOptions(options);
             chart = deproxy(proxy);
 
             const [series] = chart.series;

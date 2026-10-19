@@ -3217,23 +3217,21 @@ describe('CrossLine label fitting', () => {
             };
             const value = xValue(2);
             chart = deproxy(
-                await createChart(
-                    prepareTestOptions({
-                        data: Array.from({ length: 5 }, (_, i) => ({ x: xValue(i), y: i })),
-                        series: [{ type: axisType === 'log' ? 'line' : 'bar', xKey: 'x', yKey: 'y' } as any],
-                        axes: {
-                            x: { type: axisType, position: 'bottom', crossLines: [{ type: 'line', value }] } as any,
-                            y: { type: 'number', position: 'left' },
-                        },
-                        theme: {
-                            overrides: {
-                                common: {
-                                    axes: { [axisType]: { crossLines: { label: { text: LONG_TEXT, maxWidth: 40 } } } },
-                                },
+                await createChart({
+                    data: Array.from({ length: 5 }, (_, i) => ({ x: xValue(i), y: i })),
+                    series: [{ type: axisType === 'log' ? 'line' : 'bar', xKey: 'x', yKey: 'y' } as any],
+                    axes: {
+                        x: { type: axisType, position: 'bottom', crossLines: [{ type: 'line', value }] } as any,
+                        y: { type: 'number', position: 'left' },
+                    },
+                    theme: {
+                        overrides: {
+                            common: {
+                                axes: { [axisType]: { crossLines: { label: { text: LONG_TEXT, maxWidth: 40 } } } },
                             },
                         },
-                    })
-                )
+                    },
+                })
             );
 
             const rendered = renderedLabel('x');

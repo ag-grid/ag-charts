@@ -1404,7 +1404,7 @@ describe('RadialColumnSeries', () => {
             });
 
             it('renders with the shadow enabled', async () => {
-                chart = deproxy(await createEnterpriseChart(shadowOptions(SHADOW)));
+                chart = await createEnterpriseChart(shadowOptions(SHADOW));
                 await compare();
             });
         });

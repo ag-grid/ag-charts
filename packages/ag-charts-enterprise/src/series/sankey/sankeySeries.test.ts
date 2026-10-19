@@ -163,7 +163,7 @@ describe('SankeySeries', () => {
                     ],
                 };
 
-                chart = deproxy(await createEnterpriseChart(options));
+                chart = await createEnterpriseChart(options);
                 await compare();
             });
         });
@@ -178,7 +178,7 @@ describe('SankeySeries', () => {
                 ],
                 series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
             };
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
         });
 
         it('should avoid crossovers for nodes with similar sizes', async () => {
@@ -226,7 +226,7 @@ describe('SankeySeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
 
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -267,7 +267,7 @@ describe('SankeySeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -440,7 +440,7 @@ describe('SankeySeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -501,7 +501,7 @@ describe('SankeySeries', () => {
                 ],
             } as AgChartOptions;
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -856,7 +856,7 @@ describe('SankeySeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -884,7 +884,7 @@ describe('SankeySeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -917,7 +917,7 @@ describe('SankeySeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -951,7 +951,7 @@ describe('SankeySeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -985,7 +985,7 @@ describe('SankeySeries', () => {
                     },
                 ],
             };
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
@@ -1034,7 +1034,7 @@ describe('SankeySeries', () => {
                 },
             ],
         };
-        chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+        chart = await createEnterpriseChart(options as AgChartOptions);
         await compare();
     });
 

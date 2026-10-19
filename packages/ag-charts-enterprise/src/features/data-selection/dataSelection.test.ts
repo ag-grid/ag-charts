@@ -905,7 +905,6 @@ describe('DataSelection', () => {
             };
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const seriesId = deproxy(chart).series[0].id;
             const dataSet = deproxy(chart).series[0].data!;
@@ -940,7 +939,6 @@ describe('DataSelection', () => {
             };
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const seriesId = deproxy(chart).series[0].id;
             const dataSet = deproxy(chart).series[0].data!;
@@ -975,7 +973,6 @@ describe('DataSelection', () => {
             };
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const seriesId = deproxy(chart).series[0].id;
             const dataSet = deproxy(chart).series[0].data!;
@@ -1068,7 +1065,6 @@ describe('DataSelection', () => {
             };
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
@@ -1129,7 +1125,6 @@ describe('DataSelection', () => {
             };
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const seriesId = deproxy(chart).series[0].id;
             const dataSet = deproxy(chart).series[0].data!;
@@ -1167,7 +1162,6 @@ describe('DataSelection', () => {
             };
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
@@ -1222,7 +1216,6 @@ describe('DataSelection', () => {
             };
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const seriesId = deproxy(chart).series[0].id;
             const dataSet = deproxy(chart).series[0].data!;
@@ -1251,7 +1244,6 @@ describe('DataSelection', () => {
             };
 
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
@@ -1309,7 +1301,6 @@ describe('DataSelection', () => {
             chart = await createEnterpriseChart(
                 buildOptions([lineSeries(monthsData, 'A', { stroke: 'steelblue', strokeWidth: 3 })])
             );
-            await waitForChartStability(chart);
 
             const seriesId = deproxy(chart).series[0].id;
             const itemId = deproxy(chart).series[0].data!.getItemIdFromIndex(2);
@@ -1323,7 +1314,6 @@ describe('DataSelection', () => {
                     selectionChange: (event) => event.preventDefault(),
                 })
             );
-            await waitForChartStability(chart);
 
             const seriesId = deproxy(chart).series[0].id;
             const itemId = deproxy(chart).series[0].data!.getItemIdFromIndex(2);
@@ -1342,7 +1332,6 @@ describe('DataSelection', () => {
                     lineSeries(colderData, 'B', { stroke: 'crimson', strokeWidth: 4 }),
                 ])
             );
-            await waitForChartStability(chart);
 
             const seriesA = deproxy(chart).series[0];
             const seriesB = deproxy(chart).series[1];
@@ -1402,7 +1391,6 @@ describe('DataSelection', () => {
             ] as const) {
                 it(`dims and restores error bars on a ${seriesType} series without an intervening highlight`, async () => {
                     chart = await createEnterpriseChart(buildOptions([seriesFactory(monthsData)]));
-                    await waitForChartStability(chart);
                     expect(getErrorBarGroupOpacity()).toBe(1);
 
                     const series = deproxy(chart).series[0];
@@ -1420,7 +1408,6 @@ describe('DataSelection', () => {
 
                 it(`restores error bars on a ${seriesType} series when deselecting after the highlight has cleared`, async () => {
                     chart = await createEnterpriseChart(buildOptions([seriesFactory(monthsData)]));
-                    await waitForChartStability(chart);
 
                     const series = deproxy(chart).series[0];
                     chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
@@ -5683,7 +5670,6 @@ describe('DataSelection', () => {
                         axes: { x: { type: 'category' }, y: { type: 'number' } },
                     };
                     chart = await createEnterpriseChart(options);
-                    await waitForChartStability(chart);
 
                     const chartInstance = deproxy(chart) as any;
                     const series = chartInstance.series[0];
@@ -5724,7 +5710,7 @@ describe('DataSelection', () => {
 
             beforeEach(async () => {
                 selectionChange = createSelectionChangeRecorder<D, C>();
-                opts = prepareEnterpriseTestOptions({
+                opts = {
                     data,
                     dataIdKey: 'id',
                     selection: {
@@ -5754,8 +5740,9 @@ describe('DataSelection', () => {
                         },
                     ],
                     listeners: { selectionChange },
-                });
+                };
                 chart = await createEnterpriseChart(opts);
+                prepareEnterpriseTestOptions(opts);
                 await setChartSelectionArray([SELECTION]);
             });
             describe('initial', () => {

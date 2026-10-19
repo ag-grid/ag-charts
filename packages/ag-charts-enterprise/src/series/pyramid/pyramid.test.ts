@@ -322,7 +322,7 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -351,7 +351,7 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -381,7 +381,7 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -411,7 +411,7 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
@@ -434,7 +434,7 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -464,7 +464,7 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -495,7 +495,7 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -519,7 +519,7 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -543,7 +543,7 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -573,7 +573,7 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expect(formatterCalls).toContain(null);
             expectWarningsCalls().toEqual([]);
@@ -611,7 +611,7 @@ describe('PyramidSeries', () => {
                 },
             ],
         };
-        chart = deproxy(await createEnterpriseChart(options));
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -628,7 +628,7 @@ describe('PyramidSeries', () => {
                 series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -647,7 +647,7 @@ describe('PyramidSeries', () => {
                 series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
             await compare();

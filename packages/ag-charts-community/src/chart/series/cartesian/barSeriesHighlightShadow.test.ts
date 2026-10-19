@@ -73,7 +73,6 @@ describe('BarSeries highlight shadow', () => {
             series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', shadow: SERIES_SHADOW }],
         };
         chart = deproxy(await createChart(options));
-        await waitForChartStability(chart);
 
         const bars = shapes(chart.series[0].contentGroup);
         expect(bars).toHaveLength(DATA.length);
@@ -155,8 +154,7 @@ describe('BarSeries highlight shadow', () => {
                 animation: { enabled: false },
                 series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', shadow: SPREAD_SHADOW }],
             };
-            chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });

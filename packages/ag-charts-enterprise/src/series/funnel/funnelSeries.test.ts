@@ -104,7 +104,7 @@ describe('FunnelSeries', () => {
                 },
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -360,7 +360,7 @@ describe('FunnelSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -389,7 +389,7 @@ describe('FunnelSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -419,7 +419,7 @@ describe('FunnelSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -449,7 +449,7 @@ describe('FunnelSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -479,7 +479,7 @@ describe('FunnelSeries', () => {
                 ],
             };
 
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
@@ -515,7 +515,7 @@ describe('FunnelSeries', () => {
                 },
             ],
         };
-        chart = deproxy(await createEnterpriseChart(options));
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -685,7 +685,7 @@ describe('FunnelSeries', () => {
                 series: [{ type: 'funnel', stageKey: 'group', valueKey: 'value' }],
             };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -886,7 +886,7 @@ describe('FunnelSeries', () => {
                 { group: 'Closing stage', value: 4460 },
             ];
 
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 

@@ -392,7 +392,6 @@ describe('AreaSeries', () => {
                 it(`for ${exampleName} it should create chart instance as expected`, async () => {
                     const { assertions, options, warnings = [] } = example;
                     chart = await createChart(options);
-                    await waitForChartStability(chart);
                     await assertions(chart);
 
                     for (const [index, message] of warnings.entries()) {
@@ -2169,7 +2168,6 @@ describe('AreaSeries', () => {
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
                 chart = await createChart(options);
-                await waitForChartStability(chart);
                 await example.assertions(chart);
             }
         );
@@ -2241,7 +2239,6 @@ describe('AreaSeries', () => {
                 axes: { x: { type: 'number' }, y: { type: 'number' } },
             };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             const areaSeries = classCast(deproxy(chart).series[0], AreaSeries);
             const pointAt = (x: number) => areaSeries.getNodeData()!.find((n) => n.xValue === x)!.point;
@@ -2293,7 +2290,6 @@ describe('AreaSeries', () => {
         beforeEach(async () => {
             const options = { ...nodeClickOptions };
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             clicks.splice(0, clicks.length);
             doubleClicks.splice(0, doubleClicks.length);
@@ -2450,7 +2446,6 @@ describe('AreaSeries', () => {
                 };
                 chart = await createChart(options);
 
-                await waitForChartStability(chart);
                 await compare(PATTERN_SNAPSHOT_DEFAULTS);
             }
         );
@@ -2475,7 +2470,6 @@ describe('AreaSeries', () => {
                 };
                 chart = await createChart(options);
 
-                await waitForChartStability(chart);
                 await compare(PATTERN_SNAPSHOT_DEFAULTS);
 
                 expect(console.warn).toHaveBeenCalledWith(warningMessage);
@@ -2758,7 +2752,6 @@ describe('AreaSeries', () => {
                         { type: 'area', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
                     ],
                 });
-                await waitForChartStability(chart);
             });
             test('snapshot', async () => {
                 await compare();
@@ -2816,7 +2809,6 @@ describe('AreaSeries', () => {
                         },
                     ],
                 });
-                await waitForChartStability(chart);
             });
             test('snapshot', async () => {
                 await compare();
@@ -2851,7 +2843,6 @@ describe('AreaSeries', () => {
                         },
                     ],
                 });
-                await waitForChartStability(chart);
             });
             test('snapshot', async () => {
                 await compare();
@@ -2901,7 +2892,6 @@ describe('AreaSeries', () => {
                         },
                     ],
                 });
-                await waitForChartStability(chart);
             });
             test('snapshot', async () => {
                 await compare();
@@ -3257,7 +3247,6 @@ describe('AreaSeries', () => {
 
             chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(300, 280)(chart);
             await waitForChartStability(chart);
             await compare();
@@ -3737,7 +3726,6 @@ describe('AreaSeries', () => {
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = examples.AREA_NULL_CATEGORY_KEY_EXAMPLE;
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -3753,7 +3741,6 @@ describe('AreaSeries', () => {
         it('should accept null category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.AREA_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -3762,7 +3749,6 @@ describe('AreaSeries', () => {
         it('should accept undefined category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.AREA_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -3771,7 +3757,6 @@ describe('AreaSeries', () => {
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
             chart = await createChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -3836,7 +3821,6 @@ describe('AreaSeries', () => {
                 data,
                 series: [{ type: 'area', xKey: 'x', yKey: 'y', selectedKey: 'selected' } as any],
             });
-            await waitForChartStability(chart);
 
             await compare();
         });

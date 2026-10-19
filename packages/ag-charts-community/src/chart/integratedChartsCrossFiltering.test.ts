@@ -7,7 +7,6 @@ import {
     createChart,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from './test/utils';
 
 const INTEGRATED_THEME = {
@@ -134,7 +133,6 @@ describe('Integrated Charts Cross Filtering', () => {
             ],
         };
         chart = await createChart(options);
-        await waitForChartStability(chart);
         await compare();
     });
 
@@ -188,7 +186,6 @@ describe('Integrated Charts Cross Filtering', () => {
             ],
         };
         chart = await createChart(options);
-        await waitForChartStability(chart);
         await compare();
     });
 
@@ -227,7 +224,6 @@ describe('Integrated Charts Cross Filtering', () => {
             ],
         };
         chart = await createChart(options);
-        await waitForChartStability(chart);
         await compare();
     });
 });

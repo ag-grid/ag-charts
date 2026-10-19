@@ -71,19 +71,16 @@ describe('Context Menu RTL', () => {
         legend: {},
     };
 
-    let cx: number = 0;
-    let cy: number = 0;
+    const cx = CANVAS_WIDTH / 2;
+    const cy = CANVAS_HEIGHT / 2;
 
-    async function prepareChart(contextMenuOptions?: AgChartOptions['contextMenu'], baseOptions = EXAMPLE_OPTIONS) {
-        const options: AgChartOptions = {
-            ...baseOptions,
-            contextMenu: { ...baseOptions.contextMenu, ...(contextMenuOptions ?? {}) },
-        };
-        cx = CANVAS_WIDTH / 2;
-        cy = CANVAS_HEIGHT / 2;
-
-        chart = await createEnterpriseChart(options);
-    }
+    const chartOptions = (
+        contextMenuOptions?: AgChartOptions['contextMenu'],
+        baseOptions = EXAMPLE_OPTIONS
+    ): AgChartOptions => ({
+        ...baseOptions,
+        contextMenu: { ...baseOptions.contextMenu, ...(contextMenuOptions ?? {}) },
+    });
 
     afterEach(() => {
         if (chart != null) {
@@ -98,14 +95,14 @@ describe('Context Menu RTL', () => {
     };
 
     it('should render menu with RTL direction and Hebrew text', async () => {
-        await prepareChart();
+        chart = await createEnterpriseChart(chartOptions());
         await contextMenuAction(cx, cy)(chart);
         await compare();
     });
 
     describe('submenu expansion', () => {
         test('hover submenu parent shows submenu', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
 
@@ -123,7 +120,7 @@ describe('Context Menu RTL', () => {
         });
 
         test('nested submenu (3 levels)', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
 
@@ -155,7 +152,7 @@ describe('Context Menu RTL', () => {
 
     describe('keyboard navigation', () => {
         test('ArrowLeft opens submenu in RTL', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
 
@@ -176,7 +173,7 @@ describe('Context Menu RTL', () => {
         });
 
         test('ArrowRight closes submenu in RTL', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
 
@@ -203,7 +200,7 @@ describe('Context Menu RTL', () => {
         });
 
         test('Escape closes submenu', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
 
@@ -228,7 +225,7 @@ describe('Context Menu RTL', () => {
         });
 
         test('ArrowDown/ArrowUp navigate items', async () => {
-            await prepareChart();
+            chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await waitForChartStability(chart);
 

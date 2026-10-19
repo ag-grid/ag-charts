@@ -486,6 +486,8 @@ const invalidValueScenarios: Scenario[] = [
     },
 ];
 
+// Bespoke: the bare `AgCharts.create` calls in this suite set the width or height after preparation, which `createChart`
+// would overwrite with the default, or skip preparation to take the auto-size path.
 describe('CartesianAxis', () => {
     setupMockConsole();
     const compare = async (snapshotId: string) => {
@@ -1111,7 +1113,6 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
             };
 
-            // Bespoke: the width is set after preparation, which `createChart` would overwrite with the default.
             prepareTestOptions(options);
             options.width = 300;
             chart = AgCharts.create(options);
@@ -1153,7 +1154,6 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
 
-            // Bespoke: the width or height is set after preparation, which `createChart` would overwrite with the default.
             prepareTestOptions(options);
             options.width = 300;
             chart = AgCharts.create(options);
@@ -1423,7 +1423,6 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
             };
 
-            // Bespoke: the width is set after preparation, which `createChart` would overwrite with the default.
             prepareTestOptions(options);
             options.width = 300;
             chart = AgCharts.create(options);
@@ -1523,7 +1522,6 @@ describe('CartesianAxis', () => {
             await waitForChartStability(chart);
         };
 
-        // Bespoke: skips `prepareTestOptions` so the chart has no explicit width/height and takes the auto-size path.
         const createAutoSizedChart = () => {
             const options: AgCartesianChartOptions = {
                 container,
@@ -2495,7 +2493,6 @@ describe('CartesianAxis', () => {
             }
         });
 
-        // Bespoke: `width` is applied after `prepareTestOptions`, which `createChart` would overwrite with the default.
         const renderChart = async (options: AgCartesianChartOptions, width?: number) => {
             if (chart != null) {
                 chart.destroy();

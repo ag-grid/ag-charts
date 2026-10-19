@@ -781,7 +781,6 @@ describe('RadarAreaSeries', () => {
 
         chart = await createEnterpriseChart(options);
 
-        await waitForChartStability(chart);
         await hoverAction(300, 200)(chart);
         await waitForChartStability(chart);
         await compare();
@@ -1000,7 +999,7 @@ describe('RadarAreaSeries', () => {
 
         it('renders with the shadow enabled', async () => {
             const options = shadowOptions(SHADOW);
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });

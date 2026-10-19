@@ -362,7 +362,6 @@ describe('Navigator', () => {
                 navigator: { enabled: true },
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const toolbar = document.querySelector('.ag-charts-proxy-navigator-toolbar');
             expect(toolbar).not.toBeNull();
@@ -387,7 +386,6 @@ describe('Navigator', () => {
             async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
                 await example.assertions(chart);
 
                 expectWarningsCalls().toEqual([]);
@@ -410,7 +408,6 @@ describe('Navigator', () => {
             async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 chart = await createEnterpriseChart(options);
-                await waitForChartStability(chart);
                 await example.assertions(chart);
 
                 if (example.warnings) expectWarningsCalls().toEqual(example.warnings);
@@ -436,7 +433,6 @@ describe('Navigator', () => {
                 navigator: { enabled: true, miniChart: { enabled: true } },
             };
             chart = await createEnterpriseChart(base);
-            await waitForChartStability(chart);
             const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
             expect(navigator.miniChart.axes.length).toBeGreaterThan(0);
 
@@ -505,7 +501,6 @@ describe('Navigator', () => {
 
             const base = options(true);
             chart = await createEnterpriseChart(base);
-            await waitForChartStability(chart);
             expect(placementsOnAxis()).toEqual(['top', 'top', 'top']);
 
             await chart.update(prepareEnterpriseTestOptions(options(false)));
@@ -521,7 +516,6 @@ describe('Navigator', () => {
                 navigator: { miniChart: { series: [{ strokeWidth: 'thick' } as any] } },
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([[expect.stringContaining('.strokeWidth` cannot be set to `"thick"`')]]);
         });
@@ -532,7 +526,6 @@ describe('Navigator', () => {
                 navigator: { miniChart: { series: [{ type: 'line', strokeWidth: 1 }] } },
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([]);
             const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
@@ -547,7 +540,6 @@ describe('Navigator', () => {
                 theme: { overrides: { common: { navigator: navigatorTheme } } } as AgCartesianChartOptions['theme'],
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
         };
 
         it('validates navigator theme overrides against the module theme schema', async () => {
@@ -640,7 +632,6 @@ describe('Navigator', () => {
                 navigator: { enabled: true, ...navigator },
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
             return deproxy(chart).modulesManager.getModule<any>('navigator').track;
         };
 
@@ -729,7 +720,6 @@ describe('Navigator', () => {
 
         const create = async (options: AgCartesianChartOptions) => {
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
             return deproxy(chart).modulesManager.getModule<any>('navigator').miniChart;
         };
 
@@ -823,7 +813,6 @@ describe('Navigator', () => {
                 navigator: { miniChart: {} },
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const { x: miniX } = getMiniChartAxes(chart);
             expect(miniX).toBeDefined();
@@ -840,7 +829,6 @@ describe('Navigator', () => {
                 navigator: { miniChart: {} },
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const { x: miniX } = getMiniChartAxes(chart);
             expect(miniX).toBeDefined();
@@ -857,7 +845,6 @@ describe('Navigator', () => {
                 navigator: { miniChart: {} },
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const { y: miniY } = getMiniChartAxes(chart);
             expect(miniY).toBeDefined();
@@ -876,7 +863,6 @@ describe('Navigator', () => {
                 navigator: { miniChart: {} },
             };
             chart = await createEnterpriseChart(options);
-            await waitForChartStability(chart);
 
             const { x: miniX, y: miniY } = getMiniChartAxes(chart);
             expect(miniY).toBeDefined();

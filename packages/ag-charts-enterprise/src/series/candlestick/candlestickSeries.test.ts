@@ -253,6 +253,8 @@ describe('CandlestickSeries', () => {
             expectNoAnimation(trajectory);
         });
 
+        // Bespoke: these tests create the chart bare on prepared options and pass the same options to
+        // `expectAnimatedEndpointsMatchStatic`, which updates the chart with them.
         // One chart per test: the mock canvas only snapshots the first chart created.
         it('sanity: update value endpoints match static renders', async () => {
             const before = preparedCandlestickOptions();
