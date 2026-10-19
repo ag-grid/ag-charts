@@ -3624,9 +3624,13 @@ describe('CartesianAxis', () => {
             Array.from({ length: count }, (_, i) => ({ x: `Item ${from + i}`, y: y(from + i) }));
         const alternating = (shift: number) => (i: number) => ((i + shift) % 2) * 10;
 
+        type Size = { width: number; height: number };
+
         const freshCharts: AgChartInstance[] = [];
+        const autoSizedContainers: HTMLElement[] = [];
         afterEach(() => {
             for (const fresh of freshCharts.splice(0)) fresh.destroy();
+            for (const container of autoSizedContainers.splice(0)) container.remove();
         });
 
         const create = (options: Record<string, unknown>) =>
@@ -3635,6 +3639,30 @@ describe('CartesianAxis', () => {
         const update = async (delta: Record<string, unknown>) => {
             await chart.updateDelta(delta);
             await waitForChartStability(chart);
+        };
+
+        // Bespoke: no explicit width/height, so the chart takes the auto-size path that a container resize drives.
+        // `updateDelta({ width })` would drop the layout cache; only this path reaches the cache key's range check.
+        const createAutoSized = async (options: Record<string, unknown>, size: { width: number; height: number }) => {
+            const container = getDocument().createElement('div');
+            getDocument().body.append(container);
+            autoSizedContainers.push(container);
+            const instance = AgCharts.create({
+                container,
+                series,
+                animation: { enabled: false },
+                ...options,
+            } as AgCartesianChartOptions);
+            freshCharts.push(instance);
+            await resizeContainer(instance, size);
+            return instance;
+        };
+
+        const resizeContainer = async (instance: AgChartInstance, { width, height }: Size) => {
+            const internal = deproxy(instance);
+            internal.ctx.domManager.containerSize = { width, height, pixelRatio: 1 };
+            internal.ctx.eventsHub.emit('dom:resize', null);
+            await waitForChartStability(instance);
         };
 
         /**
@@ -3798,36 +3826,44 @@ describe('CartesianAxis', () => {
             });
         });
 
+        // A container resize never drops the layout cache, so only the range in the cache key can catch it.
         it.each([
             {
                 name: 'a resize after a data update',
-                deltas: [{ data: categories(0, 6, alternating(1)) }, { width: 400, height: 300 }],
+                steps: [{ data: categories(0, 6, alternating(1)) }, { size: { width: 400, height: 300 } }],
             },
             {
-                name: 'a resize and a data update in one delta',
-                deltas: [{ data: categories(0, 6, alternating(1)), width: 400, height: 300 }],
+                name: 'a resize and a data update together',
+                steps: [{ data: categories(0, 6, alternating(1)), size: { width: 400, height: 300 } }],
             },
             {
                 name: 'resizes between data updates',
-                deltas: [
-                    { width: 300 },
+                steps: [
+                    { size: { width: 300, height: 300 } },
                     { data: categories(0, 6, alternating(1)) },
-                    { width: 900 },
+                    { size: { width: 900, height: 300 } },
                     { data: categories(0, 6, alternating(0)) },
                 ],
             },
-        ])('has no stale axis after $name', async ({ deltas }) => {
+        ])('has no stale axis after $name', async ({ steps }) => {
+            const initial = { width: 600, height: 400 };
             const options = { axes: categoryAxes, data: categories(0, 6, alternating(0)) };
-            chart = await create(options);
-            const before = getAxisTickLayouts(chart);
+            const instance = await createAutoSized(options, initial);
+            const before = getAxisTickLayouts(instance);
 
-            for (const delta of deltas) {
-                await update(delta);
+            let data: Row[] = options.data;
+            let size: Size = initial;
+            for (const step of steps) {
+                data = step.data ?? data;
+                size = step.size ?? size;
+                if (step.data != null) await instance.updateDelta({ data });
+                if (step.size != null) await resizeContainer(instance, step.size);
+                await waitForChartStability(instance);
             }
 
-            const { data, ...size } = Object.assign({}, ...deltas);
-            await expectMatchesFresh({ ...options, data: data ?? options.data }, size);
-            expect(getAxisTickLayouts(chart)).not.toEqual(before);
+            const fresh = await createAutoSized({ ...options, data }, size);
+            expect(getAxisTickLayouts(instance)).toEqual(getAxisTickLayouts(fresh));
+            expect(getAxisTickLayouts(instance)).not.toEqual(before);
         });
 
         describe('with a band-aligned axis and a fixed-width series', () => {
@@ -3851,13 +3887,18 @@ describe('CartesianAxis', () => {
                 expect(getAxisTickLayouts(chart)).not.toEqual(before);
             });
 
-            it('has no stale axis when the chart is resized and then given wider y labels', async () => {
-                chart = await create(options((i) => i));
+            it('has no stale axis when the container is resized and then the y labels widen', async () => {
+                const instance = await createAutoSized(
+                    options((i) => i),
+                    { width: 600, height: 400 }
+                );
 
-                await update({ width: 900 });
-                await update({ data: categories(0, 5, wide) });
+                await resizeContainer(instance, { width: 900, height: 400 });
+                await instance.updateDelta({ data: categories(0, 5, wide) });
+                await waitForChartStability(instance);
 
-                await expectMatchesFresh(options(wide), { width: 900 });
+                const fresh = await createAutoSized(options(wide), { width: 900, height: 400 });
+                expect(getAxisTickLayouts(instance)).toEqual(getAxisTickLayouts(fresh));
             });
         });
 

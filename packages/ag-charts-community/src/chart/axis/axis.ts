@@ -155,7 +155,9 @@ interface TickLayout<D, TickLayoutMeta> {
 
 /**
  * Everything that positions a tick layout: if an input is missing here, a layout is reused at stale positions, so
- * anything read by `calculateTickLayout` that isn't a domain, option or the zoom must be part of the key.
+ * anything read by `calculateTickLayout` that isn't a domain, option or the zoom must be part of the key. The range is
+ * the one that changes without an option (a container resize, or wider labels on the other axis). The padding and
+ * chart layout fields only change with options, which drop the cache; they are kept as defence in depth.
  */
 interface TickLayoutCache<D, TickLayoutMeta> {
     domain: D[];
@@ -177,8 +179,9 @@ type TickLayoutCacheKey<D, TickLayoutMeta> = Omit<
     'tickLayout' | 'domainIsPrimitive'
 >;
 
+/** Whether `value` is immutable, so a domain of such values compared by identity can't have changed in place. */
 function isPrimitiveCategory(value: unknown) {
-    return (typeof value !== 'object' || value instanceof Date) && typeof value !== 'function';
+    return value == null || (typeof value !== 'object' && typeof value !== 'function');
 }
 
 function tickLayoutCacheValid<D, TickLayoutMeta>(
