@@ -8,7 +8,6 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import { EXAMPLE_GRID_LINE, applyRotationWithoutCollisionAvoidance, mixinDerivedCases } from '../test/axisTestCases';
 import {
     DATA_GROUPED_MULTIPLE_NULLS,
@@ -219,9 +218,8 @@ describe('Grouped Category Axis Examples', () => {
 
     describe('when toggling all series off', () => {
         it('should render correctly', async () => {
-            const options = prepareTestOptions({ ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE });
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const options = { ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE };
+            chart = await createChart(options);
 
             await chart.updateDelta({ series: options.series?.map((s) => ({ ...s, visible: false })) });
             await compare();
@@ -249,9 +247,7 @@ describe('Grouped Category Axis Examples', () => {
                     },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const data = [
                 { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1658289600000 },
@@ -273,9 +269,7 @@ describe('Grouped Category Axis Examples', () => {
 
     describe('AG-17795', () => {
         it('removing the last top-level group drops its grid and separator nodes', async () => {
-            const options = prepareTestOptions({ ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE });
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart({ ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE });
 
             const sampleScene = createSceneGeometrySampler(chart);
             const removedGroup = 'Nebulon';
@@ -345,7 +339,7 @@ describe('Grouped Category Axis Examples', () => {
     });
 
     test('AG-14639 label boxing', async () => {
-        const options = prepareTestOptions({
+        chart = await createChart({
             data: [
                 { location: ['Europe', 'United Kingdom', 'London'], gold: 27, silver: 23, bronze: 17 },
                 { location: ['Europe', 'United Kingdom', 'Manchester'], gold: 12, silver: 8, bronze: 10 },
@@ -384,7 +378,6 @@ describe('Grouped Category Axis Examples', () => {
                 { type: 'bar', xKey: 'location', yKey: 'bronze' },
             ],
         });
-        chart = AgCharts.create(options);
         await compare();
     });
 
@@ -424,7 +417,7 @@ describe('Grouped Category Axis Examples', () => {
 
     describe('AG-16613 null values in grouped categories', () => {
         test('handles null at first level of grouped category', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 data: DATA_GROUPED_NULL_FIRST_LEVEL,
                 axes: {
                     x: { type: 'grouped-category', position: 'bottom' },
@@ -432,12 +425,11 @@ describe('Grouped Category Axis Examples', () => {
                 },
                 series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
 
         test('handles null at middle level of grouped category', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 data: DATA_GROUPED_NULL_MIDDLE_LEVEL,
                 axes: {
                     x: { type: 'grouped-category', position: 'bottom' },
@@ -445,12 +437,11 @@ describe('Grouped Category Axis Examples', () => {
                 },
                 series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
 
         test('handles null at last level of grouped category', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 data: DATA_GROUPED_NULL_LAST_LEVEL,
                 axes: {
                     x: { type: 'grouped-category', position: 'bottom' },
@@ -458,12 +449,11 @@ describe('Grouped Category Axis Examples', () => {
                 },
                 series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
 
         test('handles multiple nulls in same grouping', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 data: DATA_GROUPED_MULTIPLE_NULLS,
                 axes: {
                     x: { type: 'grouped-category', position: 'bottom' },
@@ -471,12 +461,11 @@ describe('Grouped Category Axis Examples', () => {
                 },
                 series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
 
         test('distinguishes null from "null" string in grouped categories', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 data: DATA_GROUPED_NULL_VS_STRING_NULL,
                 axes: {
                     x: { type: 'grouped-category', position: 'bottom' },
@@ -484,7 +473,6 @@ describe('Grouped Category Axis Examples', () => {
                 },
                 series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
     });

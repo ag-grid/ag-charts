@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { AgCharts } from 'ag-charts-community';
 import {
     deproxy,
     getVisibleLabelNodes,
@@ -11,7 +10,7 @@ import {
 import { Text } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
 
 /**
  * Enterprise mirror of the community suite: the label `itemStyler` participates in placement, so the
@@ -27,12 +26,6 @@ describe('label itemStyler participates in placement', () => {
     afterEach(() => {
         chart?.destroy();
     });
-
-    const render = async (options: object) => {
-        prepareEnterpriseTestOptions(options as AgChartOptions);
-        chart = AgCharts.create(options as AgChartOptions);
-        await waitForChartStability(chart);
-    };
 
     const visibleLabels = (seriesIndex = 0) => getVisibleLabelNodes(chart, seriesIndex);
 
@@ -71,7 +64,7 @@ describe('label itemStyler participates in placement', () => {
          * the winning candidate, so the last recorded call is the last candidate probed, not the choice.
          */
         const drawnPlacements = async (label: object) => {
-            await render(rangeBarChart(label));
+            chart = await createEnterpriseChart(rangeBarChart(label) as AgChartOptions);
             const series = deproxy(chart as any).series[0] as unknown as {
                 contextNodeData?: { labelData: { placement?: string; hidden?: boolean }[] };
             };
@@ -93,7 +86,9 @@ describe('label itemStyler participates in placement', () => {
         });
 
         it('hides a label its styler disabled', async () => {
-            await render(rangeBarChart({ itemStyler: () => ({ enabled: false }) }));
+            chart = await createEnterpriseChart(
+                rangeBarChart({ itemStyler: () => ({ enabled: false }) }) as AgChartOptions
+            );
             expect(visibleLabels()).toHaveLength(0);
         });
 
@@ -112,13 +107,13 @@ describe('label itemStyler participates in placement', () => {
             });
 
         it('reserves no placement for a disabled label on the orientation-only route', async () => {
-            await render(orientationOnly(() => ({ enabled: false })));
+            chart = await createEnterpriseChart(orientationOnly(() => ({ enabled: false })) as AgChartOptions);
             expect(visibleLabels()).toHaveLength(0);
             expect(placementLabelData()).toHaveLength(0);
         });
 
         it('still reserves placement for an enabled label on the orientation-only route', async () => {
-            await render(orientationOnly(() => ({})));
+            chart = await createEnterpriseChart(orientationOnly(() => ({})) as AgChartOptions);
             expect(placementLabelData().length).toBeGreaterThan(0);
         });
     });
@@ -143,7 +138,7 @@ describe('label itemStyler participates in placement', () => {
         });
 
         const labelYs = async (options: object) => {
-            await render(options);
+            chart = await createEnterpriseChart(options as AgChartOptions);
             const ys = visibleLabels().map((node) => node.y);
             expect(ys.length).toBeGreaterThan(0);
             chart.destroy();
@@ -163,7 +158,9 @@ describe('label itemStyler participates in placement', () => {
         });
 
         it('hides a band label its styler disabled', async () => {
-            await render(rangeAreaChart({ itemStyler: () => ({ enabled: false }) }));
+            chart = await createEnterpriseChart(
+                rangeAreaChart({ itemStyler: () => ({ enabled: false }) }) as AgChartOptions
+            );
             expect(visibleLabels()).toHaveLength(0);
         });
     });
@@ -205,14 +202,14 @@ describe('label itemStyler participates in placement', () => {
 
         const styledPlacements = async (type: string, placement: string[], extra: object = {}) => {
             const seen = new Set<string>();
-            const options = seriesChart(type, placement, extra, seen);
-            await render(options);
+            const options = seriesChart(type, placement, extra, seen) as AgChartOptions;
+            chart = await createEnterpriseChart(options);
             expect(placementLabelData().length).toBeGreaterThan(0);
             expect(seen.size).toBeGreaterThan(0);
             // The second pass is the route that resolves a styled box from a placement already mapped into
             // the bar vocabulary, so it must be seen calling the styler in its own right.
             seen.clear();
-            await chart.update(options as AgChartOptions);
+            await chart.update(prepareEnterpriseTestOptions(options));
             await waitForChartStability(chart);
             expect(placementLabelData().length).toBeGreaterThan(0);
             expect(seen.size).toBeGreaterThan(0);
@@ -241,7 +238,7 @@ describe('label itemStyler participates in placement', () => {
             ['treemap', { tile: { label } }],
             ['sunburst', { label }],
         ])('draws %s labels at the fontSize and lineHeight the styler returns', async (type, labelOptions) => {
-            await render({
+            chart = await createEnterpriseChart({
                 data: [
                     { name: 'Alpha', size: 3 },
                     { name: 'Bravo', size: 2 },
@@ -254,7 +251,7 @@ describe('label itemStyler participates in placement', () => {
                         ...labelOptions,
                     },
                 ],
-            });
+            } as AgChartOptions);
             const { labelSelection } = deproxy(chart).series[0] as unknown as {
                 labelSelection: { selectByClass(type: typeof Text): Iterable<Text> };
             };
@@ -291,13 +288,15 @@ describe('label itemStyler participates in placement', () => {
         });
 
         it('reserves no placement for a label its styler disabled', async () => {
-            await render(mapMarkerChart({ itemStyler: () => ({ enabled: false }) }));
+            chart = await createEnterpriseChart(
+                mapMarkerChart({ itemStyler: () => ({ enabled: false }) }) as AgChartOptions
+            );
             expect(visibleLabels()).toHaveLength(0);
             expect(placementLabelData()).toHaveLength(0);
         });
 
         it('still reserves placement for a label its styler leaves enabled', async () => {
-            await render(mapMarkerChart({ itemStyler: () => ({}) }));
+            chart = await createEnterpriseChart(mapMarkerChart({ itemStyler: () => ({}) }) as AgChartOptions);
             expect(placementLabelData().length).toBeGreaterThan(0);
         });
     });

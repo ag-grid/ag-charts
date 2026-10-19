@@ -7,7 +7,7 @@ import './test/_setup-tz-us-pacific';
 import { EXAMPLES } from './test/examples-gallery';
 import {
     compareImageSnapshot,
-    prepareTestOptions,
+    createChart,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -46,6 +46,7 @@ describe('Gallery Examples (US TZ)', () => {
         'for %s it should create chart instance as expected',
         async (_exampleName, example) => {
             const options: AgChartOptions = example.options;
+            // Bespoke: the example options are deliberately created unprepared.
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
             await example.assertions(chart);
@@ -60,10 +61,7 @@ describe('Gallery Examples (US TZ)', () => {
                 await compareImageSnapshot(chart, ctx);
             };
 
-            const options: AgChartOptions = { ...example.options };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(example.options);
             await compare();
 
             if (example.extraScreenshotActions) {

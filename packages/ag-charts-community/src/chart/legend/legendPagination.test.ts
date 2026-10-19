@@ -53,6 +53,7 @@ describe('Legend pagination state (AG-13436)', () => {
     it('includes legendPagination in getState when the legend is paginated', async () => {
         const options = paginatingOptions();
         prepareTestOptions(options, container);
+        // Bespoke (every call in this suite): charts render into a per-test container, which the factory cannot take.
         chart = AgCharts.create(options);
         await waitForChartStability(chart);
 

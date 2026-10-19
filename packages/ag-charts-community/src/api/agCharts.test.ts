@@ -8,6 +8,7 @@ import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import { PieSeriesModule } from '../chart/series/polar/pieSeriesModule';
 import {
+    createChart,
     deproxy,
     expectErrorsCalls,
     expectWarningsCalls,
@@ -201,9 +202,7 @@ describe('AgCharts', () => {
                 data: [{ x: 'A', y: 1 }],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await chart.waitForUpdate();
+            chart = await createChart(options);
 
             expect(() => JSON.stringify(chart)).not.toThrow();
             expect(Object.keys(chart)).not.toContain('chart');
@@ -229,10 +228,8 @@ describe('AgCharts', () => {
                 ],
             } satisfies AgChartOptions;
 
+            chart = await createChart(options);
             prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await chart.waitForUpdate();
 
             expect(chart.getOptions().series?.[0]).toStrictEqual({
                 type: 'line',
@@ -285,10 +282,8 @@ describe('AgCharts', () => {
                 ],
             } satisfies AgChartOptions;
 
+            chart = await createChart(options);
             prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await chart.waitForUpdate();
             const realChart = deproxy(chart);
 
             let series = realChart.getChartOptions().processedOptions.series?.[0] as AgLineSeriesOptions;
@@ -325,10 +320,8 @@ describe('AgCharts', () => {
                 theme: { params: { accentColor: '#ff0000' } },
             } satisfies AgChartOptions;
 
+            chart = await createChart(options);
             prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await chart.waitForUpdate();
             const realChart = deproxy(chart);
 
             expect(realChart.getChartOptions().themeParameters.accentColor).toBe('#ff0000');
@@ -370,6 +363,8 @@ describe('AgCharts', () => {
             return false;
         }
 
+        // Bespoke: the first chart is attached to the per-test `container` and the second has no container, which
+        // `createChart` would override.
         it('warns once and drops an itemStyler fill in an unsupported color format', async () => {
             const options: AgChartOptions = {
                 data: [
@@ -435,6 +430,7 @@ describe('AgCharts', () => {
         const expectedError =
             /^AG Charts - AgCharts\.create\(\) requires a non-empty options object; a minimal chart specifies a `container` and `series` \(or `data`\)\./;
 
+        // Bespoke: these tests create from invalid or unprepared options and assert on errors raised during `create()`.
         // Reported, not thrown: `create()` must still hand back an instance the caller can destroy.
         it.each([
             ['no argument', undefined],
@@ -569,10 +565,7 @@ describe('AgCharts', () => {
                 data: [{ x: 'a', y: 1 }],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await chart.waitForUpdate();
+            chart = await createChart(options);
 
             expect(deproxy(chart).series).toHaveLength(1);
         });
@@ -615,6 +608,8 @@ describe('AgCharts', () => {
             return Object.fromEntries(deproxy(chart).axes.map((axis) => [axis.direction, axis.type]));
         }
 
+        // Bespoke: these tests create from unprepared options inside a swapped module registry and assert on what
+        // `create()` reports, which `createChart` would alter.
         it('falls back to a registered series type when no series are provided', async () => {
             await withOnlyBarRegistered(async () => {
                 expect(

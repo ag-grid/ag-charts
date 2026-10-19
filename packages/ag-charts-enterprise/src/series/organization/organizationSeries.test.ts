@@ -993,6 +993,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
 };
 
 describe('OrganizationSeries', () => {
+    // Bespoke: the bare creates here apply `setState` straight after creation, or set a size after preparation.
     setupMockConsole();
     let chart: any;
 
@@ -1069,10 +1070,8 @@ describe('OrganizationSeries', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
                 await example.assertions(chart);
 
                 if (example.warnings) {
@@ -1093,9 +1092,8 @@ describe('OrganizationSeries', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -1129,15 +1127,13 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
             return { options, captured };
         };
 
         it('AG-17992 passes undefined, not NaN/Infinity, for unconstrained width/height/maxWidth/maxHeight', async () => {
             const { options, captured } = createWithNodeStyler({});
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expect(captured.length).toBeGreaterThan(0);
             for (const params of captured) {
@@ -1151,8 +1147,7 @@ describe('OrganizationSeries', () => {
         it('AG-17992 reflects configured width/maxHeight and leaves the unset dimensions undefined', async () => {
             const { options, captured } = createWithNodeStyler({ width: 200, maxHeight: 150 });
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expect(captured.length).toBeGreaterThan(0);
             for (const params of captured) {
@@ -1167,9 +1162,8 @@ describe('OrganizationSeries', () => {
     describe('expander chevron', () => {
         it('should render a point-down chevron when a node is expanded', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1199,10 +1193,8 @@ describe('OrganizationSeries', () => {
                 ...NUMERIC_ID_ORG_CHART,
                 initialState: { collapsed: [2] },
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             // setupMockConsole's afterEach fails the test on any console warning.
             expect(renderedItemIds(chart)).toEqual([1, 2, 3, 6]);
@@ -1224,10 +1216,8 @@ describe('OrganizationSeries', () => {
 
         it('should toggle a numeric-id node via collapseItem then expandItem', async () => {
             const options: AgChartOptions = { ...NUMERIC_ID_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const series = deproxy(chart).series[0] as any;
             const { collapsedManager } = series.ctx;
@@ -1242,10 +1232,8 @@ describe('OrganizationSeries', () => {
 
         it('should resolve a numeric id to the matching node, not a positional index', async () => {
             const options: AgChartOptions = { ...NUMERIC_ID_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const series = deproxy(chart).series[0] as any;
             const node = series.findNodeDatum(2);
@@ -1263,9 +1251,8 @@ describe('OrganizationSeries', () => {
                         collapsed: ['cto'],
                     },
                 };
-                prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await compare();
             });
         });
@@ -1337,10 +1324,8 @@ describe('OrganizationSeries', () => {
                         },
                     ],
                 };
-                prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
                 await chart.setState({ version: '13.3.0', collapsed: ['henry8'] });
                 await waitForChartStability(chart);
 
@@ -1374,10 +1359,8 @@ describe('OrganizationSeries', () => {
             it('AG-17250 should keep node bbox stable across repeated programmatic toggles', async () => {
                 // Card height must not grow on each expand/collapse cycle.
                 const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
-                prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 const series = deproxy(chart).series[0] as any;
                 const captureBBoxes = () => {
@@ -1432,8 +1415,7 @@ describe('OrganizationSeries', () => {
                         },
                     ],
                 };
-                prepareEnterpriseTestOptions(options);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await compare();
             });
 
@@ -1476,10 +1458,8 @@ describe('OrganizationSeries', () => {
 
         it('resolves a link parent by node-selection index, not data order, when collapsing', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const series: any = deproxy(chart).series[0];
             const nodeData = series.contextNodeData.nodeData;
@@ -1521,10 +1501,8 @@ describe('OrganizationSeries', () => {
                     { id: 'intern', name: 'Grace Lee', job: 'Intern', location: 'London', parentId: 'dev' },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const series: any = deproxy(chart).series[0];
             expect(series.contextNodeData.nodeData.map((d: any) => d.itemId)).toEqual([
@@ -1563,10 +1541,8 @@ describe('OrganizationSeries', () => {
                     },
                 },
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             // Root card centre on the 800x600 mock canvas (card spans ~x=357-523, ~y=112-202).
             await hoverAction(440, 155)(chart);
@@ -1583,10 +1559,8 @@ describe('OrganizationSeries', () => {
                     },
                 },
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             await chart.setState({
                 version: chart.getState().version,
@@ -1790,10 +1764,8 @@ describe('OrganizationSeries', () => {
 
         it('applies the configured hoverStyle fill/stroke to the expander pill while hovered', async () => {
             const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } });
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const unhovered = expanderShapeNode('cfo');
             const unhoveredFill = unhovered.fill;
@@ -1814,10 +1786,8 @@ describe('OrganizationSeries', () => {
 
         it('leaves the expander pill at its un-hovered style when the card, not the pill, is hovered', async () => {
             const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } });
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const unhovered = expanderShapeNode('cfo');
             const unhoveredFill = unhovered.fill;
@@ -1836,10 +1806,8 @@ describe('OrganizationSeries', () => {
                 { hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } },
                 { clickToExpand: true }
             );
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const unhovered = expanderShapeNode('cfo');
             const unhoveredFill = unhovered.fill;
@@ -1860,10 +1828,8 @@ describe('OrganizationSeries', () => {
                     datum.job === 'Chief Financial Officer' ? { fill: '#123456' } : undefined,
                 hoverStyle: { fill: '#ff00ff' },
             });
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expect(expanderShapeNode('cfo').fill).toBe('#123456');
 
@@ -1876,10 +1842,8 @@ describe('OrganizationSeries', () => {
 
         it('resolves a real, distinct default hover fill for the expander pill when no hoverStyle is configured', async () => {
             const options = buildOptions();
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const unhoveredFill = expanderShapeNode('cfo').fill;
             expect(typeof unhoveredFill).toBe('string');
@@ -1893,9 +1857,7 @@ describe('OrganizationSeries', () => {
 
         it('uses the theme button-hover colour as the default hover fill, independently of the expander fill', async () => {
             const themed = buildOptions();
-            prepareEnterpriseTestOptions(themed);
-            chart = AgCharts.create(themed);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(themed);
             await hoverItem('cfo', OrganizationNodeTag.Expander);
             const themedHoverFill = expanderShapeNode('cfo').fill;
             chart.destroy();
@@ -1903,9 +1865,7 @@ describe('OrganizationSeries', () => {
             // The default is a fixed accentColor/backgroundColor mix (the button hover state), so a
             // user-set expander fill must not move it — the r1 behaviour this replaces did move with it.
             const custom = buildOptions({ fill: '#804000' });
-            prepareEnterpriseTestOptions(custom);
-            chart = AgCharts.create(custom);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(custom);
 
             expect(expanderShapeNode('cfo').fill).toBe('#804000');
 
@@ -1916,10 +1876,8 @@ describe('OrganizationSeries', () => {
 
         it('leaves the expander stroke unchanged on hover by default — the default treatment is fill-only', async () => {
             const options = buildOptions();
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const unhoveredStroke = expanderShapeNode('cfo').stroke;
 
@@ -1930,10 +1888,8 @@ describe('OrganizationSeries', () => {
 
         it('requests exactly one series update for a card-to-pill move, and none for a repeat hover at the same point', async () => {
             const options = buildOptions({ hoverStyle: { fill: '#ff00ff' } });
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const cardCentre = centreOf('cfo', OrganizationNodeTag.Card);
             const pillCentre = centreOf('cfo', OrganizationNodeTag.Expander);
@@ -1961,10 +1917,8 @@ describe('OrganizationSeries', () => {
 
         it('applies hoverStyle text.color/fontWeight to the expander count text while hovered, reverting once unhovered', async () => {
             const options = buildOptions({ hoverStyle: { text: { color: '#334455', fontWeight: 'bold' } } });
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const unhovered = expanderCountTextNode('cfo');
             const unhoveredColor = unhovered.fill;
@@ -1990,10 +1944,8 @@ describe('OrganizationSeries', () => {
 
         it('reverts the expander pill hover style once the pointer leaves the series area entirely', async () => {
             const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } });
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const unhoveredFill = expanderShapeNode('cfo').fill;
             const unhoveredStroke = expanderShapeNode('cfo').stroke;
@@ -2065,10 +2017,8 @@ describe('OrganizationSeries', () => {
             'keeps the card border out of the expander pill at expander.fillOpacity %s',
             async (fillOpacity) => {
                 const options = buildOptions({ fillOpacity });
-                prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
 
                 const pill = Transformable.toCanvas(findTaggedNode('ceo', OrganizationNodeTag.Expander));
 
@@ -2083,10 +2033,8 @@ describe('OrganizationSeries', () => {
             // The card border must still run through the wedges between the corner arcs and the pill's
             // box, which a rectangular cut-out would erase.
             const options = buildOptions({ cornerRadius: 40, strokeWidth: 1, fillOpacity: 0 }, { strokeWidth: 20 });
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const pill = Transformable.toCanvas(findTaggedNode('ceo', OrganizationNodeTag.Expander));
             const radius = pill.height / 2;
@@ -2118,8 +2066,7 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
             expect(console.error).not.toHaveBeenCalled();
         });
@@ -2134,10 +2081,8 @@ describe('OrganizationSeries', () => {
                 title: { text: 'Organisation Chart', fontSize: 18 },
                 subtitle: { text: 'Reporting structure' },
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             setZoom(chart, 0.4, 0.6, 0.41, 0.61);
             await waitForChartStability(chart);
@@ -2154,10 +2099,8 @@ describe('OrganizationSeries', () => {
             // The expander pill overhangs below each parent card; a drag-rect touching only that
             // overhang must not pick the node.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const series = deproxy(chart).series[0] as any;
 
@@ -2205,9 +2148,7 @@ describe('OrganizationSeries', () => {
                 data,
                 series: [{ type: 'organization', id: 'org', idKey: 'id', parentIdKey: 'parentId', node }],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
         };
 
         const missingKeyWarning = (key: string) => [
@@ -2265,9 +2206,7 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             expectWarningsCalls().toEqual([missingKeyWarning('subtitle')]);
         });
 
@@ -2286,10 +2225,8 @@ describe('OrganizationSeries', () => {
                     ...SIMPLE_ORG_CHART,
                     series: SIMPLE_ORG_CHART.series.map((series) => ({ ...series, ...spacing })),
                 };
-                prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
                 const gap = centreOf('cto', OrganizationNodeTag.Card).y - centreOf('ceo', OrganizationNodeTag.Card).y;
                 chart.destroy();
                 (chart as unknown) = undefined;
@@ -2315,9 +2252,8 @@ describe('OrganizationSeries', () => {
                 ],
                 series: [{ ...SIMPLE_ORG_CHART.series[0], node: { title: { key: 'name' }, subtitle: { key: 'job' } } }],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -2349,9 +2285,8 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -2387,9 +2322,8 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -2434,9 +2368,8 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -2457,9 +2390,8 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
@@ -2524,9 +2456,8 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -2549,9 +2480,8 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -2575,9 +2505,8 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -2602,9 +2531,8 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -2631,10 +2559,8 @@ describe('OrganizationSeries', () => {
                 series: [{ type: 'organization', idKey: 'id', parentIdKey: 'parentId', node } as any],
                 ...extra,
             };
-            prepareEnterpriseTestOptions(options);
             chart?.destroy();
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             const series = deproxy(chart).series[0] as any;
             const texts: NodeTexts[] = [];
             series.datumSelection.each((nodeScene: any, datum: any) => {
@@ -2992,8 +2918,7 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         };
 
@@ -3034,10 +2959,8 @@ describe('OrganizationSeries', () => {
             // Only SQUARE_OVERFLOW_ORG_CHART has comparable fitX and fitY, so the requested ranges
             // survive being reduced to one shared scale.
             const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             setZoom(chart, 0.4, 0.6, 0.4, 0.6);
             await compare();
@@ -3047,10 +2970,8 @@ describe('OrganizationSeries', () => {
             // Padding on each side leaves content spanning only ratios ~0.375–0.625, so framing
             // off-centre needs a deeper zoom and a window kept inside that span.
             const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             setZoom(chart, 0.51, 0.59, 0.51, 0.59);
             await compare();
@@ -3062,10 +2983,8 @@ describe('OrganizationSeries', () => {
     describe('pan-to-active', () => {
         it('should pan to active item after setState when the node is outside the zoom window', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const seriesId = deproxy(chart).series[0].id;
             await chart.setState({
@@ -3087,10 +3006,8 @@ describe('OrganizationSeries', () => {
 
         it('should pan to the active item even when it is already within the zoom window', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const seriesId = deproxy(chart).series[0].id;
             await chart.setState({
@@ -3111,10 +3028,8 @@ describe('OrganizationSeries', () => {
 
         it('should NOT pan when active item changes via hover (user-interaction source)', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             setZoom(chart, 0.8, 1, 0, 1);
             await waitForChartStability(chart);
 
@@ -3144,9 +3059,7 @@ describe('OrganizationSeries', () => {
 
         async function setupChart() {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             return deproxy(chart).series[0] as any;
         }
 
@@ -3208,9 +3121,7 @@ describe('OrganizationSeries', () => {
 
         it('ArrowDown into a collapsed node auto-expands to first child', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             const series = deproxy(chart).series[0] as any;
             const pick = press(series, ARROW_DOWN, 1, 2);
             expect(pick?.datum.itemId).toBe('dev');
@@ -3243,9 +3154,7 @@ describe('OrganizationSeries', () => {
                 ...SIMPLE_ORG_CHART,
                 series: [{ ...baseSeries, node: { ...baseSeries.node, clickToExpand } }],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             return deproxy(chart).ctx.collapsedManager;
         }
 
@@ -3289,9 +3198,7 @@ describe('OrganizationSeries', () => {
 
         it('reports collapsed parents in the live announcement', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             expect(readLiveAnnouncement()).toBe(
@@ -3377,9 +3284,7 @@ describe('OrganizationSeries', () => {
                 listeners: { seriesNodeClick: chartSeriesNodeClick },
                 ...(selection && { selection: { enabled: true, enableClick: true } }),
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             collapsedManager = deproxy(chart).ctx.collapsedManager;
         }
 
@@ -3515,10 +3420,8 @@ describe('OrganizationSeries', () => {
     describe('AG-17239 native pixel floor', () => {
         it('should not pan when a zoom request asks to zoom in past the 1:1 floor', async () => {
             const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             // Land at the 1:1 floor (both axes saturate at fitX/fitY).
             setZoom(chart, 0.45, 0.55, 0.45, 0.55);
@@ -3535,10 +3438,8 @@ describe('OrganizationSeries', () => {
 
         it('should not pan when only one axis requests further zoom-in past the floor', async () => {
             const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             setZoom(chart, 0.45, 0.55, 0.45, 0.55);
             await waitForChartStability(chart);
@@ -3645,9 +3546,7 @@ describe('OrganizationSeries', () => {
 
         // Reads the view of a second chart; the mock canvas only snapshots the first chart a test creates.
         async function getFreshView(options: AgChartOptions) {
-            prepareEnterpriseTestOptions(options);
-            const fresh = AgCharts.create(options);
-            await waitForChartStability(fresh);
+            const fresh = await createEnterpriseChart(options);
             const view = getView(fresh);
             fresh.destroy();
             return view;
@@ -3812,10 +3711,8 @@ describe('OrganizationSeries', () => {
     describe('aspect-ratio guard', () => {
         it('should project off-isotropic zoom state onto the isotropic line', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             // Off-isotropic request (x=0.2 wide, y=0.1 wide) centred at 0.5,0.5. Both are inside the
             // content-fits floor, so the request is applied and y is widened to match x's scale.
@@ -3863,10 +3760,8 @@ describe('OrganizationSeries', () => {
         // outright at a zoom limit, which content that fits is always at.
         async function createPanned(fixture: AgChartOptions, toFarEnd: boolean) {
             const options: AgChartOptions = { ...fixture };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const ratios = getZoomRatios(chart);
             const xSize = (ratios?.ratioX?.end ?? 0) - (ratios?.ratioX?.start ?? 0);
@@ -3914,10 +3809,7 @@ describe('OrganizationSeries', () => {
                 },
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expect(collapsed).toEqual(undefined);
             expect(source).toEqual(undefined);
@@ -3953,8 +3845,7 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             const sampler = createSceneGeometrySampler(chart);
             const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
                 chart.updateDelta({

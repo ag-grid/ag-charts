@@ -40,8 +40,7 @@ describe('label collision avoidance', () => {
         a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 
     const renderAndSnapshot = async (options: object) => {
-        prepareEnterpriseTestOptions(options as AgChartOptions);
-        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
         await compareImageSnapshot(chart, ctx);
     };
 
@@ -56,9 +55,7 @@ describe('label collision avoidance', () => {
         placement?: string | string[]
     ) => {
         const opts = makeOptions(collision, placement);
-        prepareEnterpriseTestOptions(opts as AgChartOptions);
-        chart = deproxy(AgCharts.create(opts as AgChartOptions));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
         return visibleLabelCount();
     };
 
@@ -99,9 +96,7 @@ describe('label collision avoidance', () => {
             const render = async (config: object) => {
                 chart?.destroy();
                 const opts = markerOptions(config);
-                prepareEnterpriseTestOptions(opts as AgChartOptions);
-                chart = deproxy(AgCharts.create(opts as AgChartOptions));
-                await waitForChartStability(chart);
+                chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
                 const series = chart.series.find((s: any) => s.type === 'map-marker') as unknown as {
                     labelSelection: { nodes(): { visible: boolean }[] };
                 };
@@ -176,9 +171,7 @@ describe('label collision avoidance', () => {
             const render = async (config: object) => {
                 chart?.destroy();
                 const opts = lineOptions(config);
-                prepareEnterpriseTestOptions(opts as AgChartOptions);
-                chart = deproxy(AgCharts.create(opts as AgChartOptions));
-                await waitForChartStability(chart);
+                chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
                 return visibleLabelCount();
             };
 
@@ -431,9 +424,7 @@ describe('label collision avoidance', () => {
 
         it('drops a hideable scatter label overlapping a range-bar baked label', async () => {
             const opts = options();
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts));
             const [rangeBar, scatter] = chart.series as unknown as Parameters<typeof visibleLabelBoxes>[0][];
             const rangeBarBoxes = visibleLabelBoxes(rangeBar);
             const scatterBoxes = visibleLabelBoxes(scatter);
@@ -473,9 +464,7 @@ describe('label collision avoidance', () => {
 
         const renderLabelBoxes = async (label: object, atSeriesLevel: boolean) => {
             const opts = options(label, atSeriesLevel);
-            prepareEnterpriseTestOptions(opts as AgChartOptions);
-            chart = deproxy(AgCharts.create(opts as AgChartOptions));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
             const series = chart.series[0] as unknown as {
                 labelSelection: { nodes(): { visible: boolean; x: number; y: number; text: string }[] };
             };
@@ -589,9 +578,7 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts));
             const series = chart.series[0] as unknown as {
                 labelSelection: { nodes(): { visible: boolean; datum: { label?: { placement?: string } } }[] };
             };
@@ -760,9 +747,7 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts));
             const series = chart.series[0] as unknown as Parameters<typeof visibleLabels>[0];
             const labels = visibleLabels(series);
             // Anti-vacuous guard: both end labels must stay visible (neither hidden for failing inside).
@@ -806,9 +791,7 @@ describe('label collision avoidance', () => {
                 axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10, reverse: true } },
                 series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'low', yHighKey: 'high', label }],
             };
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts));
             const series = chart.series[0] as unknown as {
                 labelSelection: {
                     nodes(): { visible: boolean; datum: { itemType: string }; computeBBox(): Box | undefined }[];
@@ -860,9 +843,7 @@ describe('label collision avoidance', () => {
         const placedLabels = async (options: object): Promise<PlacedLabelInfo[]> => {
             chart?.destroy();
             const opts = options as AgChartOptions;
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts));
             const series = chart.series[0] as unknown as { labelSelection: { nodes(): LabelNode[] } };
             const labels: PlacedLabelInfo[] = [];
             for (const node of series.labelSelection.nodes()) {
@@ -1676,6 +1657,7 @@ describe('label collision avoidance', () => {
             }
             return pairs;
         };
+        // Bespoke: the size is set after preparation, which the factory would overwrite with the default canvas size.
         const render = async (opts: object, width = 520, height = 360) => {
             chart?.destroy();
             prepareEnterpriseTestOptions(opts as AgChartOptions);

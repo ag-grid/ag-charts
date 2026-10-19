@@ -378,7 +378,7 @@ describe('AreaSeries', () => {
         });
 
         test('no data', async () => {
-            chart = AgCharts.create(prepareTestOptions({ data: [], series: [{ type: 'area', xKey: 'x', yKey: 'y' }] }));
+            chart = await createChart({ data: [], series: [{ type: 'area', xKey: 'x', yKey: 'y' }] });
             await compare();
         });
 
@@ -391,10 +391,7 @@ describe('AreaSeries', () => {
             } else {
                 it(`for ${exampleName} it should create chart instance as expected`, async () => {
                     const { assertions, options, warnings = [] } = example;
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
                     await assertions(chart);
 
                     for (const [index, message] of warnings.entries()) {
@@ -410,9 +407,7 @@ describe('AreaSeries', () => {
 
                 it(`for ${exampleName} it should render to canvas as expected`, async () => {
                     const options: AgChartOptions = { ...example.options };
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
+                    chart = await createChart(options);
                     await compare(example.imageSnapshotDefaults);
 
                     if (example.extraScreenshotActions) {
@@ -426,6 +421,8 @@ describe('AreaSeries', () => {
 
     // Area paints two nodes per series — a fill polygon (background group) and a top-edge stroke — so
     // every path assertion must resolve and pin both keys.
+    // Bespoke: the option builders return prepared options that the tests also pass to `update`, so charts are created
+    // bare rather than preparing the same options twice.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -2170,10 +2167,7 @@ describe('AreaSeries', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 await example.assertions(chart);
             }
         );
@@ -2182,9 +2176,7 @@ describe('AreaSeries', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -2228,9 +2220,7 @@ describe('AreaSeries', () => {
                 legend: { enabled: false },
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -2248,9 +2238,7 @@ describe('AreaSeries', () => {
                 series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
                 axes: { x: { type: 'number' }, y: { type: 'number' } },
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const areaSeries = classCast(deproxy(chart).series[0], AreaSeries);
             const pointAt = (x: number) => areaSeries.getNodeData()!.find((n) => n.xValue === x)!.point;
@@ -2301,9 +2289,7 @@ describe('AreaSeries', () => {
 
         beforeEach(async () => {
             const options = { ...nodeClickOptions };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             clicks.splice(0, clicks.length);
             doubleClicks.splice(0, doubleClicks.length);
@@ -2433,9 +2419,7 @@ describe('AreaSeries', () => {
                 ),
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -2460,11 +2444,8 @@ describe('AreaSeries', () => {
                             }) as AgAreaSeriesOptions
                     ),
                 };
-                prepareTestOptions(options);
+                chart = await createChart(options);
 
-                chart = AgCharts.create(options);
-
-                await waitForChartStability(chart);
                 await compare(PATTERN_SNAPSHOT_DEFAULTS);
             }
         );
@@ -2487,11 +2468,8 @@ describe('AreaSeries', () => {
                             }) as AgAreaSeriesOptions
                     ),
                 };
-                prepareTestOptions(options);
+                chart = await createChart(options);
 
-                chart = AgCharts.create(options);
-
-                await waitForChartStability(chart);
                 await compare(PATTERN_SNAPSHOT_DEFAULTS);
 
                 expect(console.warn).toHaveBeenCalledWith(warningMessage);
@@ -2523,9 +2501,7 @@ describe('AreaSeries', () => {
                         },
                     ] as AgAreaSeriesOptions[],
                 };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare(PATTERN_SNAPSHOT_DEFAULTS);
             }
         );
@@ -2549,9 +2525,7 @@ describe('AreaSeries', () => {
                         },
                     ] as AgAreaSeriesOptions[],
                 };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare(PATTERN_SNAPSHOT_DEFAULTS);
             }
         );
@@ -2584,9 +2558,7 @@ describe('AreaSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2621,9 +2593,7 @@ describe('AreaSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -2651,9 +2621,7 @@ describe('AreaSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -2716,18 +2684,14 @@ describe('AreaSeries', () => {
         it('handles multiple stacked areas', async () => {
             const options = createAreaExample({});
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
         it('handles missing data', async () => {
             const options = createAreaExample({ connectMissingData: true });
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -2781,16 +2745,13 @@ describe('AreaSeries', () => {
             beforeEach(async () => {
                 c1 = { name: 'sales context' };
                 c2 = { name: 'expenses context' };
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data,
-                        series: [
-                            { type: 'area', xKey: 'month', yKey: 'sales', styler: styler.frozen, context: c1 },
-                            { type: 'area', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createChart({
+                    data,
+                    series: [
+                        { type: 'area', xKey: 'month', yKey: 'sales', styler: styler.frozen, context: c1 },
+                        { type: 'area', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -2808,49 +2769,46 @@ describe('AreaSeries', () => {
         });
         describe('deriveMarkerEnabledFromStyler', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data: [
-                            { month: 'January', sales: 1200, sales2: 2400, expenses: 800, expenses2: 400 },
-                            { month: 'February', sales: 1500, sales2: 3000, expenses: 950, expenses2: 475 },
-                            { month: 'March', sales: 1700, sales2: 3400, expenses: 1100, expenses2: 550 },
-                        ],
-                        series: [
-                            {
-                                type: 'area',
-                                xKey: 'month',
-                                yKey: 'sales',
-                                // Do not draw markers, despite `styler` enabling markers.
-                                marker: { enabled: false },
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'area',
-                                xKey: 'month',
-                                yKey: 'sales2',
-                                // Draw default markers, despite `styler` not enabling markers.
-                                marker: { enabled: true },
-                                styler: () => undefined,
-                            },
-                            {
-                                type: 'area',
-                                xKey: 'month',
-                                yKey: 'expenses',
-                                // Draw markers, both `marker` and `styler` enable markers.
-                                marker: { enabled: true },
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'area',
-                                xKey: 'month',
-                                yKey: 'expenses2',
-                                // Draw markers, despite the `marker.enabled: false` default.
-                                styler: styler.frozen,
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createChart({
+                    data: [
+                        { month: 'January', sales: 1200, sales2: 2400, expenses: 800, expenses2: 400 },
+                        { month: 'February', sales: 1500, sales2: 3000, expenses: 950, expenses2: 475 },
+                        { month: 'March', sales: 1700, sales2: 3400, expenses: 1100, expenses2: 550 },
+                    ],
+                    series: [
+                        {
+                            type: 'area',
+                            xKey: 'month',
+                            yKey: 'sales',
+                            // Do not draw markers, despite `styler` enabling markers.
+                            marker: { enabled: false },
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'area',
+                            xKey: 'month',
+                            yKey: 'sales2',
+                            // Draw default markers, despite `styler` not enabling markers.
+                            marker: { enabled: true },
+                            styler: () => undefined,
+                        },
+                        {
+                            type: 'area',
+                            xKey: 'month',
+                            yKey: 'expenses',
+                            // Draw markers, both `marker` and `styler` enable markers.
+                            marker: { enabled: true },
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'area',
+                            xKey: 'month',
+                            yKey: 'expenses2',
+                            // Draw markers, despite the `marker.enabled: false` default.
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -2858,39 +2816,33 @@ describe('AreaSeries', () => {
         });
         describe('fill gradient stars', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data: [
-                            { x: '1', y: 1200 },
-                            { x: '2', y: 1500 },
-                            { x: '3', y: 1700 },
-                        ],
-                        legend: {},
-                        series: [
-                            {
-                                type: 'area',
-                                xKey: 'x',
-                                yKey: 'y',
-                                styler: () => {
-                                    return {
-                                        marker: {
-                                            fill: {
-                                                type: 'gradient',
-                                                colorStops: [
-                                                    { color: 'dodgerblue', stop: 0.1 },
-                                                    { color: 'lightcyan' },
-                                                ],
-                                            },
-                                            size: 75,
-                                            shape: 'star',
+                chart = await createChart({
+                    data: [
+                        { x: '1', y: 1200 },
+                        { x: '2', y: 1500 },
+                        { x: '3', y: 1700 },
+                    ],
+                    legend: {},
+                    series: [
+                        {
+                            type: 'area',
+                            xKey: 'x',
+                            yKey: 'y',
+                            styler: () => {
+                                return {
+                                    marker: {
+                                        fill: {
+                                            type: 'gradient',
+                                            colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
                                         },
-                                    };
-                                },
+                                        size: 75,
+                                        shape: 'star',
+                                    },
+                                };
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -2908,41 +2860,38 @@ describe('AreaSeries', () => {
                     }
                     return {};
                 };
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data,
-                        series: [
-                            {
-                                type: 'area',
-                                xKey: 'month',
-                                yKey: 'sales',
-                                marker: {
-                                    fill: 'lime', // ignored
-                                    shape: 'square', // ignored
-                                    strokeWidth: 3, // ignored only for February
-                                    itemStyler,
-                                },
-                                fill: 'limegreen', // ignored
-                                styler: styler.frozen,
+                chart = await createChart({
+                    data,
+                    series: [
+                        {
+                            type: 'area',
+                            xKey: 'month',
+                            yKey: 'sales',
+                            marker: {
+                                fill: 'lime', // ignored
+                                shape: 'square', // ignored
+                                strokeWidth: 3, // ignored only for February
+                                itemStyler,
                             },
-                            {
-                                type: 'area',
-                                xKey: 'month',
-                                yKey: 'expenses',
-                                marker: {
-                                    fill: 'olive', // ignored
-                                    shape: 'square', // ignored
-                                    itemStyler,
-                                },
-                                fill: 'olivedrab', // ignored
-                                stroke: 'green', // ignored
-                                strokeWidth: 5, // not ignored
-                                styler: styler.frozen,
+                            fill: 'limegreen', // ignored
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'area',
+                            xKey: 'month',
+                            yKey: 'expenses',
+                            marker: {
+                                fill: 'olive', // ignored
+                                shape: 'square', // ignored
+                                itemStyler,
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                            fill: 'olivedrab', // ignored
+                            stroke: 'green', // ignored
+                            strokeWidth: 5, // not ignored
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -2983,8 +2932,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3037,8 +2985,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3086,8 +3033,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3148,8 +3094,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -3207,8 +3152,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -3261,8 +3205,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -3302,10 +3245,8 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(300, 280)(chart);
             await waitForChartStability(chart);
             await compare();
@@ -3375,8 +3316,7 @@ describe('AreaSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3441,8 +3381,7 @@ describe('AreaSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3483,8 +3422,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3523,8 +3461,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3564,8 +3501,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3615,8 +3551,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3681,8 +3616,7 @@ describe('AreaSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -3711,9 +3645,7 @@ describe('AreaSeries', () => {
                 series: [{ type: 'area', xKey: 'quarter', yKey: 'iphone' }],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3740,9 +3672,7 @@ describe('AreaSeries', () => {
                 series: [{ type: 'area', xKey: 'quarter', yKey: 'iphone' }],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3769,16 +3699,14 @@ describe('AreaSeries', () => {
                 series: [{ type: 'area', xKey: 'quarter', yKey: 'iphone' }],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
 
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            create: async (o) => (chart = await createChart(o)),
             compare,
             chartOptions: {
                 data: [
@@ -3797,10 +3725,7 @@ describe('AreaSeries', () => {
     describe('null category key', () => {
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = examples.AREA_NULL_CATEGORY_KEY_EXAMPLE;
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -3815,10 +3740,7 @@ describe('AreaSeries', () => {
 
         it('should accept null category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.AREA_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -3826,10 +3748,7 @@ describe('AreaSeries', () => {
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.AREA_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -3837,10 +3756,7 @@ describe('AreaSeries', () => {
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -3864,8 +3780,7 @@ describe('AreaSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
 
             // The Y-domain must span all visible data in the X range, not just a single point.
@@ -3890,8 +3805,7 @@ describe('AreaSeries', () => {
                     y: { type: 'number', position: 'left', nice: false, min: 10, max: 25 },
                 },
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -3903,12 +3817,10 @@ describe('AreaSeries', () => {
                 { x: 'Feb', y: 20, selected: false },
                 { x: 'Mar', y: 15, selected: false },
             ];
-            const options = prepareTestOptions({
+            chart = await createChart({
                 data,
                 series: [{ type: 'area', xKey: 'x', yKey: 'y', selectedKey: 'selected' } as any],
             });
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
 
             await compare();
         });
@@ -3931,8 +3843,7 @@ describe('AreaSeries', () => {
                 },
                 series: [{ type: 'area', data, xKey: 'time', yKey: 'value' }],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
             await compare();
         });
@@ -3942,69 +3853,61 @@ describe('AreaSeries', () => {
         const categoryNumberAxes = { x: { type: 'category' as const }, y: { type: 'number' as const } };
 
         it('renders a plain area series with out-of-safe-range bigint values', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', y: BIG },
-                        { x: 'b', y: BIG * 2n },
-                        { x: 'c', y: NEG_BIG },
-                    ],
-                    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', y: BIG },
+                    { x: 'b', y: BIG * 2n },
+                    { x: 'c', y: NEG_BIG },
+                ],
+                series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+                axes: categoryNumberAxes,
+            });
             await compare();
         });
 
         it('renders a stacked area series with bigint values', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', a: BIG, b: BIG * 2n },
-                        { x: 'b', a: BIG * 3n, b: BIG },
-                    ],
-                    series: [
-                        { type: 'area', xKey: 'x', yKey: 'a', stacked: true },
-                        { type: 'area', xKey: 'x', yKey: 'b', stacked: true },
-                    ],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', a: BIG, b: BIG * 2n },
+                    { x: 'b', a: BIG * 3n, b: BIG },
+                ],
+                series: [
+                    { type: 'area', xKey: 'x', yKey: 'a', stacked: true },
+                    { type: 'area', xKey: 'x', yKey: 'b', stacked: true },
+                ],
+                axes: categoryNumberAxes,
+            });
             await compare();
         });
 
         it('renders a 100%-stacked area series with bigint values (normalizedTo degrades to Number)', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', a: BIG, b: BIG * 2n },
-                        { x: 'b', a: BIG * 3n, b: BIG },
-                    ],
-                    series: [
-                        { type: 'area', xKey: 'x', yKey: 'a', stacked: true, normalizedTo: 100 },
-                        { type: 'area', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 },
-                    ],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', a: BIG, b: BIG * 2n },
+                    { x: 'b', a: BIG * 3n, b: BIG },
+                ],
+                series: [
+                    { type: 'area', xKey: 'x', yKey: 'a', stacked: true, normalizedTo: 100 },
+                    { type: 'area', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 },
+                ],
+                axes: categoryNumberAxes,
+            });
             await compare();
         });
     });
 
     describe('ISO datetime (AG-16654)', () => {
         it('renders an area series with ISO-8601 datetime-string x values on a time axis', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { time: '2024-01-15T09:00:00Z', y: 12 },
-                        { time: '2024-01-15T10:00:00Z', y: 15 },
-                        { time: '2024-01-15T11:00:00Z', y: 11 },
-                        { time: '2024-01-15T12:00:00Z', y: 18 },
-                    ],
-                    series: [{ type: 'area', xKey: 'time', yKey: 'y' }],
-                    axes: { x: { type: 'time' }, y: { type: 'number' } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { time: '2024-01-15T09:00:00Z', y: 12 },
+                    { time: '2024-01-15T10:00:00Z', y: 15 },
+                    { time: '2024-01-15T11:00:00Z', y: 11 },
+                    { time: '2024-01-15T12:00:00Z', y: 18 },
+                ],
+                series: [{ type: 'area', xKey: 'time', yKey: 'y' }],
+                axes: { x: { type: 'time' }, y: { type: 'number' } },
+            });
             await compare();
         });
     });

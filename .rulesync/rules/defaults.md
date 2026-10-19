@@ -32,4 +32,4 @@ For the full lookup procedure — locating the module file, the verification ste
 | Layer              | Pattern                                                       |
 | ------------------ | ------------------------------------------------------------- |
 | Theme templates    | `packages/ag-charts-{community,enterprise}/src/**/*Module.ts` |
-| Shared theme parts | `packages/ag-charts-community/src/chart/themes/`              |
+| Shared theme parts | `packages/ag-charts-core/src/options/`                        |

@@ -33,6 +33,7 @@ import type {
     NormalisedPaddingOptions,
     NormalisedTextOrSegments,
 } from './normalisedCommonOptions';
+import type { NormalisedContextMenuOptions } from './normalisedContextMenuOptions';
 import type { NormalisedGradientLegendOptions } from './normalisedGradientLegendOptions';
 import type { NormalisedLegendOptions } from './normalisedLegendOptions';
 import type { NormalisedSelectionOptions } from './normalisedSelectionOptions';
@@ -147,6 +148,7 @@ export type ResolvedChartOptions = Omit<
     | 'animation'
     | 'annotations'
     | 'background'
+    | 'contextMenu'
     | 'dataSource'
     | 'flashOnUpdate'
     | 'footnote'
@@ -170,6 +172,7 @@ export type ResolvedChartOptions = Omit<
 > & {
     animation?: NormalisedAnimationOptions;
     background: NormalisedBackgroundOptions;
+    contextMenu?: NormalisedContextMenuOptions;
     dataSource?: NormalisedDataSourceOptions;
     flashOnUpdate?: NormalisedFlashOnUpdateOptions;
     footnote?: NormalisedChartCaptionOptions;

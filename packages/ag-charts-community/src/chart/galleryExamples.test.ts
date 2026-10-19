@@ -7,6 +7,7 @@ import { EXAMPLES } from './test/examples-gallery';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
+    createChart,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -36,6 +37,7 @@ describe('Gallery Examples', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = example.options;
+                // Bespoke: the example options are deliberately created unprepared.
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
@@ -49,10 +51,7 @@ describe('Gallery Examples', () => {
                     await compareImageSnapshot(chart, ctx, defaults);
                 };
 
-                const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(example.options);
                 await compare(example.imageSnapshotDefaults);
 
                 if (example.extraScreenshotActions) {
@@ -71,9 +70,8 @@ describe('Gallery Examples', () => {
 
             beforeEach(async () => {
                 options = { ...example.options };
+                chart = await createChart(options);
                 prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
             });
 

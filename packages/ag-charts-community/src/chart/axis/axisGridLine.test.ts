@@ -1,13 +1,12 @@
 import { afterEach, describe } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
+import type { AgChartInstance } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import { EXAMPLE_GRID_LINE } from '../test/axisTestCases';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
-    prepareTestOptions,
+    createChart,
     setupMockCanvas,
     setupMockConsole,
 } from '../test/utils';
@@ -24,16 +23,13 @@ describe('AxisGridLine', () => {
     });
 
     const ctx = setupMockCanvas();
-    const opts: AgCartesianChartOptions = prepareTestOptions({});
-
     const compare = async () => {
         await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
     // AG-8777
     test('use theme default stroke', async () => {
-        chart = AgCharts.create({
-            ...opts,
+        chart = await createChart({
             data: [
                 { x: 0, y: 0 },
                 { x: 1, y: 1 },
@@ -59,8 +55,7 @@ describe('AxisGridLine', () => {
     describe('fills', () => {
         describe('horizontal axis', () => {
             it('should fill between and behind grid lines', async () => {
-                chart = AgCharts.create({
-                    ...opts,
+                chart = await createChart({
                     data: [
                         { x: 0, y: 0 },
                         { x: 1, y: 1 },
@@ -86,8 +81,7 @@ describe('AxisGridLine', () => {
             });
 
             it('should fill non-uniform between and behind grid lines', async () => {
-                chart = AgCharts.create({
-                    ...opts,
+                chart = await createChart({
                     data: [
                         { x: new Date(2025, 0, 28), y: 0 },
                         { x: new Date(2025, 1, 12), y: 1 },
@@ -116,8 +110,7 @@ describe('AxisGridLine', () => {
 
         describe('vertical axis', () => {
             it('should fill between and behind grid lines', async () => {
-                chart = AgCharts.create({
-                    ...opts,
+                chart = await createChart({
                     data: [
                         { x: 0, y: 0 },
                         { x: 1, y: 1 },
@@ -143,8 +136,7 @@ describe('AxisGridLine', () => {
             });
 
             it('should fill non-uniform between and behind grid lines', async () => {
-                chart = AgCharts.create({
-                    ...opts,
+                chart = await createChart({
                     data: [
                         { y: new Date(2025, 0, 28), x: 0 },
                         { y: new Date(2025, 1, 12), x: 1 },
@@ -172,8 +164,7 @@ describe('AxisGridLine', () => {
     });
 
     test('do not draw empty styles', async () => {
-        chart = AgCharts.create({
-            ...opts,
+        chart = await createChart({
             data: [
                 { x: 0, y: 0 },
                 { x: 1, y: 1 },

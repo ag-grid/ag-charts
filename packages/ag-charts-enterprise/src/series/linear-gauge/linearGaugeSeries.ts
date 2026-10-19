@@ -36,7 +36,7 @@ import {
     toRadians,
     toTextString,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgLinearGaugeLabelPlacement, AgNumericValue } from 'ag-charts-types';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -73,6 +73,7 @@ import {
     getLinearGaugeTargetStyle,
     linearGaugeLabelDatum,
     prepareLinearGaugeSeriesAnimationFunctions,
+    reservedLinearGaugeLabelPlacement,
     resetLinearGaugeSeriesResetRectFunction,
 } from './linearGaugeUtil';
 
@@ -104,6 +105,18 @@ interface Target {
     rotation: number;
     label: TargetLabel;
     style: Required<NormalisedGaugeSeriesStyle>;
+}
+
+/** The gauge's main-axis span as `scale.range` reads it; vertical gauges run `y0` (bottom) to `y1` (top). */
+interface GaugeEdges {
+    x0: number;
+    x1: number;
+    y0: number;
+    y1: number;
+}
+
+function gaugeEdgesBBox({ x0, x1, y0, y1 }: GaugeEdges) {
+    return new BBox(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
 }
 
 type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -540,7 +553,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             axisRotation = 0;
         }
 
-        const primaryPlacement = firstCandidate(label.placement);
+        const valueLabel = label.enabled ? this.labelDatum(label, value) : undefined;
         let x0: number;
         let x1: number;
         let y0: number;
@@ -550,27 +563,21 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             x1 = seriesRect.width;
             y0 = (seriesRect.height - thickness) / 2;
             y1 = y0 + thickness;
-
-            if (primaryPlacement === 'outside-start') {
-                x0 += this.horizontalLabelInset();
-            } else if (primaryPlacement === 'outside-end') {
-                x1 -= this.horizontalLabelInset();
-            }
         } else {
             x0 = (seriesRect.width - thickness) / 2;
             x1 = x0 + thickness;
             // Reversed
             y1 = 0;
             y0 = seriesRect.height;
-
-            if (primaryPlacement === 'outside-start') {
-                y0 -= this.verticalLabelInset();
-            } else if (primaryPlacement === 'outside-end') {
-                y1 += this.verticalLabelInset();
-            }
         }
 
-        this.gaugeRect = new BBox(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0), Math.abs(y1 - y0));
+        const unreserved = { x0, x1, y0, y1 };
+        const reservedPlacement = this.reservedLabelPlacement(valueLabel, (placement) =>
+            gaugeEdgesBBox(this.reserveLabelRoom(placement, unreserved))
+        );
+        ({ x0, x1, y0, y1 } = this.reserveLabelRoom(reservedPlacement, unreserved));
+
+        this.gaugeRect = gaugeEdgesBBox({ x0, x1, y0, y1 });
 
         const originX = 0;
         const originY = 0;
@@ -783,8 +790,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             }
         }
 
-        if (label.enabled) {
-            labelData.push(this.labelDatum(label, value));
+        if (valueLabel != null) {
+            labelData.push(valueLabel);
         }
 
         const targetPlacementRotation = horizontal
@@ -1144,8 +1151,39 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return true;
     }
 
-    private labelBBoxes(value: AgNumericValue) {
-        const { horizontal, scale, seriesRect, gaugeRect } = this;
+    private reservedLabelPlacement(
+        labelDatum: LinearGaugeLabelDatum | undefined,
+        gaugeRect: (reserved: AgLinearGaugeLabelPlacement | undefined) => BBox
+    ) {
+        if (labelDatum == null) {
+            return firstCandidate(this.options.label.placement);
+        }
+        return reservedLinearGaugeLabelPlacement(
+            labelDatum,
+            () => this.finalText(labelDatum),
+            this.labelLayoutOptions(),
+            (reserved) => this.labelBBoxes(this.options.value, gaugeRect(reserved))
+        );
+    }
+
+    private reserveLabelRoom(placement: AgLinearGaugeLabelPlacement | undefined, edges: GaugeEdges): GaugeEdges {
+        let { x0, x1, y0, y1 } = edges;
+        if (this.horizontal) {
+            if (placement === 'outside-start') {
+                x0 += this.horizontalLabelInset();
+            } else if (placement === 'outside-end') {
+                x1 -= this.horizontalLabelInset();
+            }
+        } else if (placement === 'outside-start') {
+            y0 -= this.verticalLabelInset();
+        } else if (placement === 'outside-end') {
+            y1 += this.verticalLabelInset();
+        }
+        return { x0, x1, y0, y1 };
+    }
+
+    private labelBBoxes(value: AgNumericValue, gaugeRect = this.gaugeRect) {
+        const { horizontal, scale, seriesRect } = this;
         const { x, y, width, height } = gaugeRect;
 
         let barRect: BBox;
@@ -1157,7 +1195,21 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             barRect = new BBox(x, yValue, width, y + height - yValue);
         }
 
-        return { seriesRect, gaugeRect, barRect };
+        return { seriesRect, gaugeRect, visibleGaugeRect: this.visibleGaugeRect(gaugeRect), barRect };
+    }
+
+    private visibleGaugeRect(gaugeRect: BBox) {
+        const { horizontal, seriesRect } = this;
+        const { width, height } = this.ctx.scene;
+        const { x, y } = gaugeRect;
+        if (horizontal) {
+            const y0 = Math.max(y, -seriesRect.y);
+            const y1 = Math.min(y + gaugeRect.height, height - seriesRect.y);
+            return new BBox(x, y0, gaugeRect.width, Math.max(0, y1 - y0));
+        }
+        const x0 = Math.max(x, -seriesRect.x);
+        const x1 = Math.min(x + gaugeRect.width, width - seriesRect.x);
+        return new BBox(x0, y, Math.max(0, x1 - x0), gaugeRect.height);
     }
 
     private labelLayoutOptions() {

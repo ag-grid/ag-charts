@@ -48,7 +48,7 @@ describe('CandlestickSeries', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
 
-    const compareSnapshot = async (chart: any) => {
+    const compareSnapshot = async (chart: AgChartInstance) => {
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
 
         chart.destroy();
@@ -56,8 +56,7 @@ describe('CandlestickSeries', () => {
 
     it(`should render a candlestick chart as expected with default ordinal time x-axis`, async () => {
         const options = CANDLESTICK_OPTIONS;
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a candlestick chart with a unit time x-axis`, async () => {
@@ -74,8 +73,7 @@ describe('CandlestickSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a candlestick chart as expected with reversed axes`, async () => {
@@ -94,8 +92,7 @@ describe('CandlestickSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a candlestick chart with a reversed unit time x-axis`, async () => {
@@ -113,8 +110,7 @@ describe('CandlestickSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     it(`should render a candlestick chart with RTL enabled`, async () => {
@@ -122,8 +118,7 @@ describe('CandlestickSeries', () => {
             ...CANDLESTICK_OPTIONS,
             enableRtl: true,
         };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
+        await compareSnapshot(await createEnterpriseChart(options));
     });
 
     // Candlestick/OHLC implement no animation hooks, so every action must land completely on the
@@ -145,7 +140,7 @@ describe('CandlestickSeries', () => {
             { date: new Date(2023, 0, 3), low: 1, open: 3, close: 5, high: 6 },
         ];
         const candlestickOptions = (): AgCartesianChartOptions =>
-            prepareEnterpriseTestOptions({
+            ({
                 data: candleData(),
                 series: [
                     {
@@ -163,6 +158,8 @@ describe('CandlestickSeries', () => {
                 },
             }) as AgCartesianChartOptions;
 
+        const preparedCandlestickOptions = () => prepareEnterpriseTestOptions(candlestickOptions());
+
         // The Date key stringifies with a timezone suffix, so match on the leading `Day Mon DD YYYY`.
         const candleKeys = (sample: SceneGeometrySample) =>
             [...sample.keys()].filter((k) => /^series\[0\]\/path\[/.test(k));
@@ -173,13 +170,13 @@ describe('CandlestickSeries', () => {
             return key!;
         };
 
-        const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
-            chart = AgCharts.create(options);
+        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+            chart = await createEnterpriseChart(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
         it('initial load: candles render instantly at their full ranges', async () => {
-            chart = AgCharts.create(candlestickOptions());
+            chart = await createEnterpriseChart(candlestickOptions());
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             // Anti-vacuity: expectNoAnimation alone passes on a blank scene.
@@ -194,7 +191,7 @@ describe('CandlestickSeries', () => {
             const data = candleData();
             data[2] = { ...data[2], close: 8, high: 9.5 };
             const { before, trajectory, after } = await captureSnap(candlestickOptions(), () =>
-                chart!.update({ ...candlestickOptions(), data })
+                chart!.update({ ...preparedCandlestickOptions(), data })
             );
             const changed = candleKey(after, 'Tue Jan 03 2023');
             // Anti-vacuity: constancy would pass vacuously if nothing moved.
@@ -213,7 +210,7 @@ describe('CandlestickSeries', () => {
         it('add data: a new candle appears instantly and the layout snaps', async () => {
             const { before, trajectory, after } = await captureSnap(candlestickOptions(), () =>
                 chart!.update({
-                    ...candlestickOptions(),
+                    ...preparedCandlestickOptions(),
                     data: [...candleData(), { date: new Date(2023, 0, 4), low: 2, open: 5, close: 7, high: 9 }],
                 })
             );
@@ -237,7 +234,7 @@ describe('CandlestickSeries', () => {
 
         it('remove data: the last candle disappears instantly and the layout snaps', async () => {
             const { before, trajectory, after } = await captureSnap(candlestickOptions(), () =>
-                chart!.update({ ...candlestickOptions(), data: candleData().slice(0, 2) })
+                chart!.update({ ...preparedCandlestickOptions(), data: candleData().slice(0, 2) })
             );
             expect(candleCount(before)).toBe(3);
             expect(candleCount(after)).toBe(2);
@@ -256,32 +253,34 @@ describe('CandlestickSeries', () => {
             expectNoAnimation(trajectory);
         });
 
+        // Bespoke: these tests create the chart bare on prepared options and pass the same options to
+        // `expectAnimatedEndpointsMatchStatic`, which updates the chart with them.
         // One chart per test: the mock canvas only snapshots the first chart created.
         it('sanity: update value endpoints match static renders', async () => {
-            const before = candlestickOptions();
+            const before = preparedCandlestickOptions();
             const data = candleData();
             data[2] = { ...data[2], close: 8, high: 9.5 };
             chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
-                ...candlestickOptions(),
+                ...preparedCandlestickOptions(),
                 data,
             });
         });
 
         it('sanity: add data endpoints match static renders', async () => {
-            const before = candlestickOptions();
+            const before = preparedCandlestickOptions();
             chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
-                ...candlestickOptions(),
+                ...preparedCandlestickOptions(),
                 data: [...candleData(), { date: new Date(2023, 0, 4), low: 2, open: 5, close: 7, high: 9 }],
             });
         });
 
         it('sanity: remove data endpoints match static renders', async () => {
-            const before = candlestickOptions();
+            const before = preparedCandlestickOptions();
             chart = AgCharts.create(before);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, {
-                ...candlestickOptions(),
+                ...preparedCandlestickOptions(),
                 data: candleData().slice(0, 2),
             });
         });
@@ -309,8 +308,7 @@ describe('CandlestickSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-            await compareSnapshot(AgCharts.create(options as AgChartOptions));
+            await compareSnapshot(await createEnterpriseChart(options as AgChartOptions));
         });
 
         it('should render candlestick series with a gradient fill', async () => {
@@ -350,8 +348,7 @@ describe('CandlestickSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-            await compareSnapshot(AgCharts.create(options as AgChartOptions));
+            await compareSnapshot(await createEnterpriseChart(options as AgChartOptions));
         });
     });
 
@@ -367,7 +364,6 @@ describe('CandlestickSeries', () => {
                 ...CANDLESTICK_OPTIONS,
                 series: [{ ...CANDLESTICK_OPTIONS.series![0], shadow, item }],
             } as AgChartOptions;
-            prepareEnterpriseTestOptions(options as any);
             return options;
         };
 
@@ -435,21 +431,23 @@ describe('CandlestickSeries', () => {
         });
 
         it('should render a candlestick chart with a shadow spread and shared wick styling', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions(SPREAD_SHADOW)));
+            await compareSnapshot(await createEnterpriseChart(buildOptions(SPREAD_SHADOW)));
         });
 
         it('should render a candlestick chart with a shadow spread and separately styled wicks', async () => {
             await compareSnapshot(
-                AgCharts.create(buildOptions(SPREAD_SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS }))
+                await createEnterpriseChart(buildOptions(SPREAD_SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS }))
             );
         });
 
         it('should render a candlestick chart with a shadow and shared wick styling', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions(SHADOW)));
+            await compareSnapshot(await createEnterpriseChart(buildOptions(SHADOW)));
         });
 
         it('should render a candlestick chart with a shadow and separately styled wicks', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions(SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS })));
+            await compareSnapshot(
+                await createEnterpriseChart(buildOptions(SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS }))
+            );
         });
     });
 
@@ -465,7 +463,7 @@ describe('CandlestickSeries', () => {
 
         describe('Candlestick series matching', () => {
             it('should not recreate candlestick series when direction property is omitted on update', async () => {
-                const options = prepareEnterpriseTestOptions({
+                const options: AgChartOptions = {
                     data: [
                         { year: new Date(2020, 0, 1), low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
                         { year: new Date(2021, 0, 1), low: 4.87, open: 5.8, close: 6.66, high: 7.09 },
@@ -484,11 +482,10 @@ describe('CandlestickSeries', () => {
                             },
                         },
                     ],
-                });
+                };
 
-                const chartInstance = AgCharts.create(options);
+                const chartInstance = await createEnterpriseChart(options);
                 chart = deproxy(chartInstance);
-                await waitForChartStability(chart);
 
                 const seriesIdBefore = chart.series[0]?.id;
                 const legendDataBefore = chart.ctx.legendManager.getData();
@@ -525,7 +522,7 @@ describe('CandlestickSeries', () => {
 
         describe('Candlestick legend regression', () => {
             it('should not accumulate legend items when updating candlestick tooltip renderer', async () => {
-                const options = prepareEnterpriseTestOptions({
+                const options: AgChartOptions = {
                     data: [
                         { year: new Date(2020, 0, 1), low: 3.07, close: 4.78, open: 6.3, high: 7.27, value: 10 },
                         { year: new Date(2021, 0, 1), low: 4.87, open: 5.8, close: 6.66, high: 7.09, value: 20 },
@@ -542,11 +539,10 @@ describe('CandlestickSeries', () => {
                         },
                         { type: 'line', xKey: 'year', yKey: 'value', yName: 'Value' },
                     ],
-                });
+                };
 
-                const chartInstance = AgCharts.create(options);
+                const chartInstance = await createEnterpriseChart(options);
                 chart = deproxy(chartInstance);
-                await waitForChartStability(chart);
 
                 const legendDataBefore = chart.ctx.legendManager.getData();
                 expect(legendDataBefore).toHaveLength(2);

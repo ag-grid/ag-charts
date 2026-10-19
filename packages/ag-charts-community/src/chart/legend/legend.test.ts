@@ -158,6 +158,7 @@ describe('Legend', () => {
             prepareTestOptions(options);
             options.width = width ?? options.width;
 
+            // Bespoke: the width is set after preparation.
             chart = deproxy(AgCharts.create(options) as AgChartProxy);
             await compare(chart);
         });
@@ -255,16 +256,11 @@ describe('Legend', () => {
     });
 
     describe('Hover over legend', () => {
-        it('should change the cursor when entering and leaving the legend rect', () => {
-            const options = {
-                ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            };
-
-            prepareTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+        it('should change the cursor when entering and leaving the legend rect', async () => {
+            chart = deproxy(await createChart({ ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS }));
 
             const legendButtons = document.querySelectorAll('button.ag-charts-proxy-elem[role="switch"]');
+            expect(legendButtons.length).toBeGreaterThan(0);
             for (const button of Array.from(legendButtons) as HTMLElement[]) {
                 expect(button).toBeInstanceOf(HTMLButtonElement);
                 expect(button.style.cursor).toBe('pointer');
@@ -278,12 +274,13 @@ describe('Legend', () => {
         beforeEach(async () => {
             listeners.legendItemClick = vi.fn();
             listeners.legendItemDoubleClick = vi.fn();
-            const options = prepareTestOptions({
-                data: [{ x: 'Q1', y: 200 }],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                legend: { enabled: true, listeners },
-            });
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(
+                await createChart({
+                    data: [{ x: 'Q1', y: 200 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    legend: { enabled: true, listeners },
+                })
+            );
             await waitForChartStability(chart);
         });
 
@@ -660,7 +657,7 @@ describe('Legend', () => {
 
     describe('AG-12614', () => {
         test('updateDelta line to bar', async () => {
-            const options: AgChartOptions = prepareTestOptions({
+            const options: AgChartOptions = {
                 title: { text: 'Chinese Olympic medals' },
                 data: [
                     { year: '2016', gold: 26, silver: 18, bronze: 26 },
@@ -672,10 +669,11 @@ describe('Legend', () => {
                     { type: 'line', xKey: 'year', yKey: 'silver' },
                     { type: 'line', xKey: 'year', yKey: 'bronze' },
                 ],
-            });
+            };
 
-            const chartInstance = AgCharts.create(options);
+            const chartInstance = await createChart(options);
             chart = deproxy(chartInstance);
+            prepareTestOptions(options);
             await compare(chart);
 
             await chartInstance.updateDelta({
@@ -692,18 +690,19 @@ describe('Legend', () => {
 
     describe('AG-12693', () => {
         test('custom marker shapes', async () => {
-            const options = prepareTestOptions({
-                data: [
-                    { x: 0, ag: 2, npm: 3 },
-                    { x: 1, ag: 6, npm: 7 },
-                    { x: 2, ag: 5, npm: 1 },
-                ],
-                series: [
-                    { type: 'scatter', xKey: 'x', yKey: 'ag', shape: agChartsLogo, size: 20 },
-                    { type: 'scatter', xKey: 'x', yKey: 'npm', shape: npmLogo, size: 20 },
-                ],
-            });
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { x: 0, ag: 2, npm: 3 },
+                        { x: 1, ag: 6, npm: 7 },
+                        { x: 2, ag: 5, npm: 1 },
+                    ],
+                    series: [
+                        { type: 'scatter', xKey: 'x', yKey: 'ag', shape: agChartsLogo, size: 20 },
+                        { type: 'scatter', xKey: 'x', yKey: 'npm', shape: npmLogo, size: 20 },
+                    ],
+                })
+            );
             // Looser threshold for scene-graph churn.
             await compare(chart, 'ag-12693-both-visible', true);
 
@@ -725,13 +724,13 @@ describe('Legend', () => {
     describe('AG-13753', () => {
         test('single item legend', async () => {
             const legendItemClick = vi.fn();
-            const options = prepareTestOptions({
-                data: [{ x: 'Q1', y: 200 }],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                legend: { enabled: true, listeners: { legendItemClick } },
-            });
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(
+                await createChart({
+                    data: [{ x: 'Q1', y: 200 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    legend: { enabled: true, listeners: { legendItemClick } },
+                })
+            );
             await waitForChartStability(chart);
 
             await clickAction(400, 570)(chart);
@@ -742,13 +741,13 @@ describe('Legend', () => {
     describe('AG-13342', () => {
         test('legend click parameters', async () => {
             const legendItemClick = vi.fn();
-            const options = prepareTestOptions({
-                data: [{ x: 'Q1', y: 200 }],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                legend: { enabled: true, listeners: { legendItemClick } },
-            });
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(
+                await createChart({
+                    data: [{ x: 'Q1', y: 200 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    legend: { enabled: true, listeners: { legendItemClick } },
+                })
+            );
             await waitForChartStability(chart);
 
             await clickAction(400, 570)(chart);
@@ -775,13 +774,13 @@ describe('Legend', () => {
 
         test('legend double click parameters', async () => {
             const legendItemDoubleClick = vi.fn();
-            const options = prepareTestOptions({
-                data: [{ x: 'Q1', y: 200 }],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                legend: { enabled: true, listeners: { legendItemDoubleClick } },
-            });
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(
+                await createChart({
+                    data: [{ x: 'Q1', y: 200 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    legend: { enabled: true, listeners: { legendItemDoubleClick } },
+                })
+            );
             await waitForChartStability(chart);
 
             await doubleClickAction(400, 570)(chart);
@@ -809,7 +808,7 @@ describe('Legend', () => {
 
     describe('AG-14022', () => {
         test('updateDelta update data should not clear/reset legend data', async () => {
-            const options: AgChartOptions = prepareTestOptions({
+            const options: AgChartOptions = {
                 title: { text: 'Chinese Olympic medals' },
                 data: [
                     { year: '2016', gold: 26, silver: 18, bronze: 26 },
@@ -821,10 +820,11 @@ describe('Legend', () => {
                     { type: 'line', xKey: 'year', yKey: 'silver' },
                     { type: 'line', xKey: 'year', yKey: 'bronze' },
                 ],
-            });
+            };
 
-            const chartInstance = AgCharts.create(options);
+            const chartInstance = await createChart(options);
             chart = deproxy(chartInstance);
+            prepareTestOptions(options);
             await waitForChartStability(chart);
 
             const { x, y } = computeLegendBBox(chart);
@@ -845,7 +845,7 @@ describe('Legend', () => {
 
     describe('CRT-637', () => {
         test('updateDelta disabling/removing legend should reset legend data and refresh series visibility', async () => {
-            const options: AgChartOptions = prepareTestOptions({
+            const options: AgChartOptions = {
                 title: { text: 'Chinese Olympic medals' },
                 data: [
                     { year: '2016', gold: 26, silver: 18, bronze: 26 },
@@ -857,10 +857,11 @@ describe('Legend', () => {
                     { type: 'line', xKey: 'year', yKey: 'silver' },
                     { type: 'line', xKey: 'year', yKey: 'bronze' },
                 ],
-            });
+            };
 
-            const chartInstance = AgCharts.create(options);
+            const chartInstance = await createChart(options);
             chart = deproxy(chartInstance);
+            prepareTestOptions(options);
             await waitForChartStability(chart);
 
             const { x, y } = computeLegendBBox(chart);
@@ -878,7 +879,7 @@ describe('Legend', () => {
 
     describe('CRT-636', () => {
         test('updateDelta disabling/removing legend should redraw series correctly', async () => {
-            const options: AgChartOptions = prepareTestOptions({
+            const options: AgChartOptions = {
                 title: { text: 'Chinese Olympic medals' },
                 data: [
                     { year: '2016', gold: 26, silver: 18, bronze: 26 },
@@ -890,10 +891,11 @@ describe('Legend', () => {
                     { type: 'bar', xKey: 'year', yKey: 'silver' },
                     { type: 'bar', xKey: 'year', yKey: 'bronze' },
                 ],
-            });
+            };
 
-            const chartInstance = AgCharts.create(options);
+            const chartInstance = await createChart(options);
             chart = deproxy(chartInstance);
+            prepareTestOptions(options);
             await waitForChartStability(chart);
 
             const { x, y } = computeLegendBBox(chart);
@@ -916,7 +918,7 @@ describe('Legend', () => {
 
     describe('CRT-638', () => {
         test('updateDelta changing legend options should NOT reset legend data NOR refresh series visibility', async () => {
-            const options: AgChartOptions = prepareTestOptions({
+            const options: AgChartOptions = {
                 title: { text: 'Chinese Olympic medals' },
                 data: [
                     { year: '2016', gold: 26, silver: 18, bronze: 26 },
@@ -928,10 +930,11 @@ describe('Legend', () => {
                     { type: 'line', xKey: 'year', yKey: 'silver' },
                     { type: 'line', xKey: 'year', yKey: 'bronze' },
                 ],
-            });
+            };
 
-            const chartInstance = AgCharts.create(options);
+            const chartInstance = await createChart(options);
             chart = deproxy(chartInstance);
+            prepareTestOptions(options);
             await waitForChartStability(chart);
 
             const { x, y } = computeLegendBBox(chart);
@@ -1010,29 +1013,30 @@ describe('Legend', () => {
 
     describe('AG-15363 legend.floating', () => {
         test('right-top', async () => {
-            const options = prepareTestOptions({
-                data: [
-                    { ticker: 'AAPL', 2020: 0.7, 2021: 0.6, 2022: 0.5 },
-                    { ticker: 'KO', 2020: 3, 2021: 2.9, 2022: 2.8 },
-                    { ticker: 'JNJ', 2020: 2.6, 2021: 2.5, 2022: 2.4 },
-                    { ticker: 'T', 2020: 6.5, 2021: 7, 2022: 6 },
-                    { ticker: 'PG', 2020: 2.3, 2021: 2.2, 2022: 2.1 },
-                ],
-                series: [
-                    { type: 'bar', xKey: 'ticker', yKey: '2020' },
-                    { type: 'bar', xKey: 'ticker', yKey: '2021' },
-                    { type: 'bar', xKey: 'ticker', yKey: '2022' },
-                ],
-                legend: {
-                    position: {
-                        placement: 'right-top',
-                        floating: true,
-                        xOffset: -50,
-                        yOffset: 120,
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { ticker: 'AAPL', 2020: 0.7, 2021: 0.6, 2022: 0.5 },
+                        { ticker: 'KO', 2020: 3, 2021: 2.9, 2022: 2.8 },
+                        { ticker: 'JNJ', 2020: 2.6, 2021: 2.5, 2022: 2.4 },
+                        { ticker: 'T', 2020: 6.5, 2021: 7, 2022: 6 },
+                        { ticker: 'PG', 2020: 2.3, 2021: 2.2, 2022: 2.1 },
+                    ],
+                    series: [
+                        { type: 'bar', xKey: 'ticker', yKey: '2020' },
+                        { type: 'bar', xKey: 'ticker', yKey: '2021' },
+                        { type: 'bar', xKey: 'ticker', yKey: '2022' },
+                    ],
+                    legend: {
+                        position: {
+                            placement: 'right-top',
+                            floating: true,
+                            xOffset: -50,
+                            yOffset: 120,
+                        },
                     },
-                },
-            });
-            chart = deproxy(AgCharts.create(options));
+                })
+            );
             await compare(chart);
         });
     });
@@ -1056,7 +1060,6 @@ describe('Legend', () => {
 
             animate(1200, 1);
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             const legend = getLegendModule(chart);
             const items = legend.itemSelection.nodes();
@@ -1094,7 +1097,6 @@ describe('Legend', () => {
 
             animate(1200, 1);
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             const legend = getLegendModule(chart);
             const items = legend.itemSelection.nodes();
@@ -1178,7 +1180,6 @@ describe('Legend', () => {
             });
 
             chart = deproxy(await createChart(options));
-            await waitForChartStability(chart);
 
             const { highlightManager, interactionManager, tooltipManager } = chart.ctx;
             const legend = getLegendModule(chart);
@@ -1502,7 +1503,6 @@ describe('Legend', () => {
 
         test('interactions enabled', async () => {
             chart = deproxy(await createChart({ ...options }));
-            await waitForChartStability(chart);
 
             const EXPECTED_ID = 'ag-charts-3';
             const ids = findAriaDescribedByIds();
@@ -1520,7 +1520,6 @@ describe('Legend', () => {
 
         test('interactions disabled', async () => {
             chart = deproxy(await createChart({ ...options, legend: { toggleSeries: false } }));
-            await waitForChartStability(chart);
 
             const [ariaDescribedById0, ariaDescribedById1, ariaDescribedById2] = findAriaDescribedByIds();
             expect(ariaDescribedById0).toBeNull();

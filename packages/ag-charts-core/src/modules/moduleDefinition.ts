@@ -149,7 +149,10 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
 
     create(this: void, options: unknown, ...args: any[]): any;
     // Used only by sparklines, types should be normalised to support generic cases
-    processData?(this: void, data: unknown): { data?: unknown[]; series?: Array<{ xKey: string; yKey: string }> };
+    processData?(
+        this: void,
+        data: unknown
+    ): { data?: unknown[]; series?: Array<{ xKey: string; yKey: string }>; datumKey?: string };
 
     // Preset-specific root-level delta keys applicable on the fast path; declaring them here rather than
     // in the community allow-list keeps the fast-path gate free of preset knowledge.

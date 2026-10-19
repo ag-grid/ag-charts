@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { type AgChartLegendPosition, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import type { AgChartInstance, AgChartLegendPosition, AgChartOptions } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -11,16 +11,16 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart } from '../test/utils';
 
 describe('GradientLegend', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -72,9 +72,8 @@ describe('GradientLegend', () => {
     describe('AG-7868 gradientLegend.position', () => {
         async function testPosition(position: AgChartLegendPosition) {
             const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
             options.gradientLegend!.position = position;
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         }
 
@@ -119,10 +118,8 @@ describe('GradientLegend', () => {
     describe('CRT-1108 top-position label placement', () => {
         it('should position labels below the gradient bar for top placement', async () => {
             const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
             options.gradientLegend!.position = 'top';
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const chartInstance = deproxy(chart);
             const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -134,10 +131,8 @@ describe('GradientLegend', () => {
 
         it('should position labels below the gradient bar for bottom placement', async () => {
             const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
             options.gradientLegend!.position = 'bottom';
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const chartInstance = deproxy(chart);
             const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -161,8 +156,7 @@ describe('GradientLegend', () => {
                 padding: 50,
             },
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -188,9 +182,7 @@ describe('GradientLegend', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         const chartInstance = deproxy(chart);
         const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -231,9 +223,7 @@ describe('GradientLegend', () => {
             ],
             gradientLegend: { gradient: { preferredLength: 200 } },
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         const chartInstance = deproxy(chart);
         const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -262,7 +252,7 @@ describe('GradientLegend', () => {
         const GRADIENT_LEGEND = { gradient: { preferredLength: 200 } };
 
         it('should render named labels for continuous colorScale', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: EXAMPLE_OPTIONS.data,
                 series: [
                     {
@@ -277,13 +267,13 @@ describe('GradientLegend', () => {
                     },
                 ],
                 gradientLegend: GRADIENT_LEGEND,
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render named labels for discrete colorScale', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: EXAMPLE_OPTIONS.data,
                 series: [
                     {
@@ -300,13 +290,13 @@ describe('GradientLegend', () => {
                 ],
                 legend: { enabled: false },
                 gradientLegend: { ...GRADIENT_LEGEND, enabled: true },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render only named labels (partial names)', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: EXAMPLE_OPTIONS.data,
                 series: [
                     {
@@ -322,13 +312,13 @@ describe('GradientLegend', () => {
                     },
                 ],
                 gradientLegend: GRADIENT_LEGEND,
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render named labels in vertical position', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: EXAMPLE_OPTIONS.data,
                 series: [
                     {
@@ -346,8 +336,8 @@ describe('GradientLegend', () => {
                     ...GRADIENT_LEGEND,
                     position: 'right',
                 },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -356,9 +346,7 @@ describe('GradientLegend', () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         const chartInstance = deproxy(chart);
         const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -391,9 +379,7 @@ describe('GradientLegend', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         const chartInstance = deproxy(chart);
         const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
@@ -414,7 +400,7 @@ describe('GradientLegend', () => {
         ];
 
         it('should render two gradient bars for two scatter series (bottom)', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: SCATTER_DATA,
                 series: [
                     {
@@ -443,13 +429,13 @@ describe('GradientLegend', () => {
                     },
                 ],
                 gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render two gradient bars for two scatter series (right)', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: SCATTER_DATA,
                 series: [
                     {
@@ -478,13 +464,13 @@ describe('GradientLegend', () => {
                     },
                 ],
                 gradientLegend: { enabled: true, position: 'right', gradient: { preferredLength: 150 } },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render gradient bars for scatter and bubble with different domains', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: SCATTER_DATA,
                 series: [
                     {
@@ -514,13 +500,13 @@ describe('GradientLegend', () => {
                     },
                 ],
                 gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render a single gradient bar when only one series has colorKey', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: SCATTER_DATA,
                 series: [
                     {
@@ -542,13 +528,13 @@ describe('GradientLegend', () => {
                     },
                 ],
                 gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render named labels per gradient bar for multiple series', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: SCATTER_DATA,
                 series: [
                     {
@@ -577,13 +563,13 @@ describe('GradientLegend', () => {
                     },
                 ],
                 gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should only render gradient bar for continuous series when mixed with discrete', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: SCATTER_DATA,
                 series: [
                     {
@@ -613,13 +599,13 @@ describe('GradientLegend', () => {
                     },
                 ],
                 gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should auto-enable gradient legend when series[0] has no colorKey but later series does', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: SCATTER_DATA,
                 series: [
                     {
@@ -643,13 +629,13 @@ describe('GradientLegend', () => {
                 ],
                 // NOT setting gradientLegend.enabled — relying on theme auto-enable
                 gradientLegend: { gradient: { preferredLength: 150 } },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should show arrow on correct gradient bar when hovering series data', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: SCATTER_DATA,
                 series: [
                     {
@@ -678,9 +664,8 @@ describe('GradientLegend', () => {
                     },
                 ],
                 gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
-            });
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            };
+            chart = await createEnterpriseChart(options);
 
             // Hover over a data point to trigger the arrow indicator.
             await hoverAction(300, 200)(chart);
@@ -692,7 +677,7 @@ describe('GradientLegend', () => {
         // An empty user-supplied `colorScale: {}` must still pick up the theme's diverging palette for
         // `fills` via the `$map` theme expression, not the ColorScale constructor defaults.
         it('AG-16048 should apply the theme fills palette when user supplies an empty colorScale', async () => {
-            const options = prepareEnterpriseTestOptions({
+            const options: AgChartOptions = {
                 data: SCATTER_DATA,
                 series: [
                     {
@@ -703,9 +688,8 @@ describe('GradientLegend', () => {
                         colorScale: {},
                     },
                 ],
-            });
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            };
+            chart = await createEnterpriseChart(options);
 
             const chartInstance = deproxy(chart);
             const series: any = chartInstance.series[0];

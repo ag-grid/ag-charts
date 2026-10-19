@@ -149,10 +149,7 @@ export function createVolumeProfileStatusBarOptions(levels: VolumeProfileDatum[]
     };
 }
 
-/**
- * Selection is opted into by the two profile series alone, never through the chart-level `enabled`, which the theme
- * carries to every series and would make the candles and volume bars selectable in the Financial Chart.
- */
+/** Selection is opted into by the two profile series, never through the chart-level `enabled`. */
 function createSeriesSelectionOptions(selection: AgVolumeProfileSelectionOptions | undefined) {
     if (selection?.enabled !== true) return undefined;
 
@@ -248,7 +245,7 @@ export function createVolumeProfileAxis(
 ): Record<string, AgNumberAxisOptions | AgCategoryAxisOptions> {
     if (!volumeProfile) return {};
 
-    const placedRight = volumeProfile.placement === 'right';
+    const placedRight = volumeProfile.placement !== 'left';
 
     return {
         yVolumeProfile: {
@@ -287,7 +284,6 @@ export function createVolumeProfileAxis(
             },
             linkZoom: 'y',
             ...createTotalSegmentAxisOptions(volumeProfile.totalSegment, placedRight ? 'right' : 'left'),
-            ...createSelectedBandAxisOptions(volumeProfile.selection),
         } satisfies AgCategoryAxisOptions,
     };
 }

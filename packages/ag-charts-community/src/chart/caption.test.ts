@@ -19,13 +19,13 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
-import type { AgChartProxy } from './test/utils';
+import type { AgChartProxy, ChartOrProxy } from './test/utils';
 
 describe('Caption', () => {
     setupMockConsole();
 
-    const compare = async () => {
-        await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+    const compare = async (target: ChartOrProxy = chart) => {
+        await compareImageSnapshot(target, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
     let chart: Chart;
@@ -34,47 +34,39 @@ describe('Caption', () => {
     describe('#create', () => {
         describe('text align', () => {
             test('left', async () => {
-                chart = deproxy(
-                    await createChart({
-                        title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
-                        subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'left' },
-                        footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'left' },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
+                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'left' },
+                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'left' },
+                });
+                await compare(instance);
             });
 
             test('center', async () => {
-                chart = deproxy(
-                    await createChart({
-                        title: { text: 'Monthly Sales Report\n2023', textAlign: 'center' },
-                        subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
-                        footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'center' },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'center' },
+                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
+                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'center' },
+                });
+                await compare(instance);
             });
 
             test('right', async () => {
-                chart = deproxy(
-                    await createChart({
-                        title: { text: 'Monthly Sales Report\n2023', textAlign: 'right' },
-                        subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'right' },
-                        footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'right' },
+                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'right' },
+                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
+                });
+                await compare(instance);
             });
 
             test('mixed', async () => {
-                chart = deproxy(
-                    await createChart({
-                        title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
-                        subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
-                        footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
+                    subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
+                    footnote: { text: 'Source: Sales Department\nGenerated on 2023-12-20', textAlign: 'right' },
+                });
+                await compare(instance);
             });
         });
 
@@ -82,20 +74,18 @@ describe('Caption', () => {
             test.each(['left', 'center', 'right'] as const)(
                 'aligns explicit and wrapped segment lines to textAlign=%s',
                 async (textAlign) => {
-                    chart = deproxy(
-                        await createChart({
-                            title: {
-                                textAlign,
-                                maxWidth: 260,
-                                maxHeight: 200,
-                                text: [
-                                    { text: 'Quarterly revenue by region and sales channel', fontSize: 20 },
-                                    { text: '\nfiscal year 2023', fontSize: 11 },
-                                ],
-                            },
-                        })
-                    );
-                    await compare();
+                    const instance = await createChart({
+                        title: {
+                            textAlign,
+                            maxWidth: 260,
+                            maxHeight: 200,
+                            text: [
+                                { text: 'Quarterly revenue by region and sales channel', fontSize: 20 },
+                                { text: '\nfiscal year 2023', fontSize: 11 },
+                            ],
+                        },
+                    });
+                    await compare(instance);
                 }
             );
         });
@@ -105,36 +95,30 @@ describe('Caption', () => {
                 'This is an extremely long title that should definitely exceed the width of the chart container and be truncated under normal circumstances';
 
             test('truncate: false on title', async () => {
-                chart = deproxy(
-                    await createChart({
-                        title: { text: longText, truncate: false } as any,
-                        subtitle: { text: longText },
-                        footnote: { text: longText },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    title: { text: longText, truncate: false } as any,
+                    subtitle: { text: longText },
+                    footnote: { text: longText },
+                });
+                await compare(instance);
             });
 
             test('truncate: false on all captions', async () => {
-                chart = deproxy(
-                    await createChart({
-                        title: { text: longText, truncate: false } as any,
-                        subtitle: { text: longText, truncate: false } as any,
-                        footnote: { text: longText, truncate: false } as any,
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    title: { text: longText, truncate: false } as any,
+                    subtitle: { text: longText, truncate: false } as any,
+                    footnote: { text: longText, truncate: false } as any,
+                });
+                await compare(instance);
             });
 
             test('truncate: false with maxWidth', async () => {
-                chart = deproxy(
-                    await createChart({
-                        title: { text: longText, truncate: false, maxWidth: 200 } as any,
-                        subtitle: { text: longText },
-                        footnote: { text: longText },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    title: { text: longText, truncate: false, maxWidth: 200 } as any,
+                    subtitle: { text: longText },
+                    footnote: { text: longText },
+                });
+                await compare(instance);
             });
         });
     });
@@ -183,14 +167,12 @@ describe('Caption', () => {
         });
 
         test('title, subtitle and footnote all shrink rather than truncate', async () => {
-            chart = deproxy(
-                await createChart({
-                    title: { text: titleText, fontSize: 20, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
-                    subtitle: { text: titleText, fontSize: 16, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
-                    footnote: { text: titleText, fontSize: 14, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
-                })
-            );
-            await compare();
+            const instance = await createChart({
+                title: { text: titleText, fontSize: 20, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
+                subtitle: { text: titleText, fontSize: 16, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
+                footnote: { text: titleText, fontSize: 14, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
+            });
+            await compare(instance);
         });
 
         test('a wrapping title shrinks until every line fits its maxHeight', async () => {
@@ -284,28 +266,28 @@ describe('Caption', () => {
 
         describe('visual snapshots', () => {
             test('filled subtitle (reference)', async () => {
-                chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } }));
-                await compare();
+                const instance = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
+                await compare(instance);
             });
 
             test('empty subtitle reserves the same space as filled', async () => {
-                chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: '' } }));
-                await compare();
+                const instance = await createChart({ ...baseOptions, subtitle: { text: '' } });
+                await compare(instance);
             });
 
             test('disabled subtitle reclaims the space', async () => {
-                chart = deproxy(await createChart({ ...baseOptions, subtitle: { enabled: false } }));
-                await compare();
+                const instance = await createChart({ ...baseOptions, subtitle: { enabled: false } });
+                await compare(instance);
             });
 
             test('filled footnote (reference)', async () => {
-                chart = deproxy(await createChart({ ...baseOptions, footnote: { text: 'Footnote' } }));
-                await compare();
+                const instance = await createChart({ ...baseOptions, footnote: { text: 'Footnote' } });
+                await compare(instance);
             });
 
             test('empty footnote reserves the same space as filled', async () => {
-                chart = deproxy(await createChart({ ...baseOptions, footnote: { text: '' } }));
-                await compare();
+                const instance = await createChart({ ...baseOptions, footnote: { text: '' } });
+                await compare(instance);
             });
         });
 
@@ -408,69 +390,57 @@ describe('Caption', () => {
 
         describe('visual snapshots', () => {
             test('title fill and fillOpacity', async () => {
-                chart = deproxy(
-                    await createChart({
-                        ...seriesOptions,
-                        title: { text: 'Revenue', fill: '#4a90d9', fillOpacity: 0.5 },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', fill: '#4a90d9', fillOpacity: 0.5 },
+                });
+                await compare(instance);
             });
 
             test('title border', async () => {
-                chart = deproxy(
-                    await createChart({
-                        ...seriesOptions,
-                        title: { text: 'Revenue', border: { enabled: true, stroke: '#204060', strokeWidth: 2 } },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', border: { enabled: true, stroke: '#204060', strokeWidth: 2 } },
+                });
+                await compare(instance);
             });
 
             test('title cornerRadius and object padding', async () => {
-                chart = deproxy(
-                    await createChart({
-                        ...seriesOptions,
-                        title: {
-                            text: 'Revenue',
-                            fill: '#e0e8f0',
-                            cornerRadius: 8,
-                            padding: { top: 6, right: 16, bottom: 6, left: 16 },
-                        },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    ...seriesOptions,
+                    title: {
+                        text: 'Revenue',
+                        fill: '#e0e8f0',
+                        cornerRadius: 8,
+                        padding: { top: 6, right: 16, bottom: 6, left: 16 },
+                    },
+                });
+                await compare(instance);
             });
 
             test('title numeric padding', async () => {
-                chart = deproxy(
-                    await createChart({
-                        ...seriesOptions,
-                        title: { text: 'Revenue', fill: '#e0e8f0', padding: 20 },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', fill: '#e0e8f0', padding: 20 },
+                });
+                await compare(instance);
             });
 
             test('subtitle fill', async () => {
-                chart = deproxy(
-                    await createChart({
-                        ...seriesOptions,
-                        title: { text: 'Revenue' },
-                        subtitle: { text: 'Quarterly', fill: '#f0d0d0' },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue' },
+                    subtitle: { text: 'Quarterly', fill: '#f0d0d0' },
+                });
+                await compare(instance);
             });
 
             test('footnote fill', async () => {
-                chart = deproxy(
-                    await createChart({
-                        ...seriesOptions,
-                        footnote: { text: 'Source: internal', fill: '#d0f0d0' },
-                    })
-                );
-                await compare();
+                const instance = await createChart({
+                    ...seriesOptions,
+                    footnote: { text: 'Source: internal', fill: '#d0f0d0' },
+                });
+                await compare(instance);
             });
         });
 
@@ -692,11 +662,11 @@ describe('Caption', () => {
         test.each(['title', 'subtitle', 'footnote'] as const)(
             'disabling %s hides the node, re-enabling shows it again',
             async (key) => {
-                const proxy = AgCharts.create(
-                    prepareTestOptions({ ...baseOptions, [key]: { text: 'Caption', enabled: true } })
-                ) as AgChartProxy;
+                const proxy = (await createChart({
+                    ...baseOptions,
+                    [key]: { text: 'Caption', enabled: true },
+                })) as AgChartProxy;
                 const chartInstance = deproxy(proxy);
-                await waitForChartStability(chartInstance);
                 expect(chartInstance[key].node.visible).toBe(true);
 
                 await proxy.update(prepareTestOptions({ ...baseOptions, [key]: { text: 'Caption', enabled: false } }));
@@ -987,9 +957,8 @@ describe('Caption', () => {
 
             test('listeners added by a later update are picked up', async () => {
                 const click = vi.fn();
-                const proxy = AgCharts.create(prepareTestOptions(chartOptions())) as AgChartProxy;
+                const proxy = (await createChart(chartOptions())) as AgChartProxy;
                 chart = deproxy(proxy);
-                await waitForChartStability(chart);
 
                 await proxy.update(prepareTestOptions(chartOptions(withListeners({ click }))));
                 await waitForChartStability(chart);

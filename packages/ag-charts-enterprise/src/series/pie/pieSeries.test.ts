@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { type AgChartInstance, AgCharts } from 'ag-charts-community';
+import type { AgChartInstance } from 'ag-charts-community';
 import {
     type SceneGeometrySample,
     compareImageSnapshot,
@@ -13,7 +13,7 @@ import {
 } from 'ag-charts-community-test';
 import { expectWarningsCalls } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 
 describe('PieSeries', () => {
     setupMockConsole();
@@ -42,13 +42,13 @@ describe('PieSeries', () => {
                 { id: 'b', value: 6 },
                 { id: 'c', value: 5 },
             ];
-            const options = prepareEnterpriseTestOptions({
+            const options = {
                 // animation: { enabled: true },
                 data,
                 series: [{ type: 'pie' as const, angleKey: 'value', calloutLabelKey: 'id' }],
-            });
+            };
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compareSnapshot();
 
             await chart.updateDelta({
@@ -92,11 +92,11 @@ describe('PieSeries', () => {
                 { id: 'b', value: 6 },
                 { id: 'c', value: 5 },
             ];
-            const options = prepareEnterpriseTestOptions({
+            const options = {
                 data,
                 series: [{ type: 'pie' as const, angleKey: 'value', calloutLabelKey: 'id' }],
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createEnterpriseChart(options);
             const sampler = createSceneGeometrySampler(chart);
             const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
                 chart.updateDelta({ data: [...data, ...data] })

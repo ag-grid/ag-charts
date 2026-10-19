@@ -633,18 +633,18 @@ describe('Ordinal Time Axis Examples', () => {
 
     it('should render interval on as expected', async () => {
         const options = applyIntervalOn(BASIC_ORDINAL_TIME_AXIS_EXAMPLE, ['ordinal-time']);
-        chart = deproxy(await createEnterpriseChart(options));
+        chart = await createEnterpriseChart(options);
         await compareImageSnapshot(chart, ctx);
     });
 
     it('should render interval between as expected', async () => {
         const options = applyIntervalBetween(BASIC_ORDINAL_TIME_AXIS_EXAMPLE, ['ordinal-time']);
-        chart = deproxy(await createEnterpriseChart(options));
+        chart = await createEnterpriseChart(options);
         await compareImageSnapshot(chart, ctx);
     });
 
     it('should render reversed ordinal-time axis zoomed to end as expected', async () => {
-        chart = deproxy(await createEnterpriseChart(ORDINAL_TIME_AXIS_REVERSED_ZOOM_END));
+        chart = await createEnterpriseChart(ORDINAL_TIME_AXIS_REVERSED_ZOOM_END);
         await compareImageSnapshot(chart, ctx);
     });
 
@@ -675,25 +675,23 @@ describe('Ordinal Time Axis Examples', () => {
     it('fits a label bounded through an ordinal-time axis theme override', async () => {
         const text = 'A cross line label long enough to need fitting';
         chart = deproxy(
-            await createEnterpriseChart(
-                prepareEnterpriseTestOptions({
-                    data: DATA,
-                    series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
-                    axes: {
-                        x: {
-                            type: 'ordinal-time',
-                            position: 'bottom',
-                            crossLines: [{ type: 'line', value: DATA[2].date }],
-                        },
-                        y: { type: 'number', position: 'left' },
+            await createEnterpriseChart({
+                data: DATA,
+                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+                axes: {
+                    x: {
+                        type: 'ordinal-time',
+                        position: 'bottom',
+                        crossLines: [{ type: 'line', value: DATA[2].date }],
                     },
-                    theme: {
-                        overrides: {
-                            common: { axes: { 'ordinal-time': { crossLines: { label: { text, maxWidth: 40 } } } } },
-                        },
+                    y: { type: 'number', position: 'left' },
+                },
+                theme: {
+                    overrides: {
+                        common: { axes: { 'ordinal-time': { crossLines: { label: { text, maxWidth: 40 } } } } },
                     },
-                })
-            )
+                },
+            })
         );
 
         const [crossLine] = _ModuleSupport.getCrossLinesPlugin(chart.axes.findById('x'))!.getInstances() as any[];

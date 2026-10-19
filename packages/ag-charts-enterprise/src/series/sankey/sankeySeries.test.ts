@@ -163,9 +163,7 @@ describe('SankeySeries', () => {
                     ],
                 };
 
-                prepareEnterpriseTestOptions(options);
-
-                chart = deproxy(AgCharts.create(options));
+                chart = await createEnterpriseChart(options);
                 await compare();
             });
         });
@@ -180,9 +178,7 @@ describe('SankeySeries', () => {
                 ],
                 series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
         });
 
         it('should avoid crossovers for nodes with similar sizes', async () => {
@@ -230,9 +226,7 @@ describe('SankeySeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
 
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -273,9 +267,7 @@ describe('SankeySeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -301,6 +293,7 @@ describe('SankeySeries', () => {
                 data,
                 series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
             };
+            // Bespoke: the width is overridden after the options are prepared, which the factory cannot do.
             prepareEnterpriseTestOptions(options);
             chart = deproxy(AgCharts.create({ ...options, width: 500 }));
             await waitForChartStability(chart);
@@ -447,9 +440,7 @@ describe('SankeySeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -470,10 +461,7 @@ describe('SankeySeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const series = chart.series[0];
             const node = series.contextNodeData.nodeData.find(
@@ -513,9 +501,7 @@ describe('SankeySeries', () => {
                 ],
             } as AgChartOptions;
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -535,10 +521,7 @@ describe('SankeySeries', () => {
                 link: SMALL_SHADOW,
                 node: SMALL_SHADOW,
             });
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const node = chart.series[0].contextNodeData.nodeData.find(
                 (n: any) => n.type === FlowProportionDatumType.Node
@@ -557,18 +540,13 @@ describe('SankeySeries', () => {
 
         it('should render a complex chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render highlight of node', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const node = chart.series[0].contextNodeData.nodeData.find(
                 (n: any) => n.type === FlowProportionDatumType.Node
@@ -581,10 +559,7 @@ describe('SankeySeries', () => {
 
         it('should render highlight of link', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const node = chart.series[0].contextNodeData.nodeData.find(
                 (n: any) => n.type === FlowProportionDatumType.Link
@@ -612,10 +587,7 @@ describe('SankeySeries', () => {
                 data: DATA,
                 series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expect(getNodeItemIds(chart)).toEqual(['A', 'B', 'C']);
         });
@@ -626,10 +598,7 @@ describe('SankeySeries', () => {
                 data: DATA,
                 series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', getItemId }],
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expect(getNodeItemIds(chart)).toEqual(['node:A', 'node:B', 'node:C']);
             expect(getItemId).toHaveBeenCalledWith(expect.objectContaining({ nodeName: 'A' }));
@@ -642,10 +611,7 @@ describe('SankeySeries', () => {
                 data: DATA,
                 series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', context, getItemId }],
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expect(getNodeItemIds(chart)).toEqual(['acme:A', 'acme:B', 'acme:C']);
         });
@@ -655,10 +621,7 @@ describe('SankeySeries', () => {
                 data: DATA,
                 series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             expect(getNodeItemIds(chart)).toEqual(['A', 'B', 'C']);
 
             await chart.update({
@@ -893,9 +856,7 @@ describe('SankeySeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -923,9 +884,7 @@ describe('SankeySeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -958,9 +917,7 @@ describe('SankeySeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -994,9 +951,7 @@ describe('SankeySeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -1030,9 +985,7 @@ describe('SankeySeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
@@ -1081,9 +1034,7 @@ describe('SankeySeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options as AgChartOptions);
-
-        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        chart = await createEnterpriseChart(options as AgChartOptions);
         await compare();
     });
 
@@ -1106,6 +1057,7 @@ describe('SankeySeries', () => {
                         },
                     ],
                 } as AgChartOptions;
+                // Bespoke: the chart is created in a custom container, which the factory does not accept.
                 prepareEnterpriseTestOptions(options, container);
 
                 chart = deproxy(AgCharts.create(options));
@@ -1180,10 +1132,7 @@ describe('SankeySeries', () => {
                 },
             ],
         } as AgChartOptions;
-        prepareEnterpriseTestOptions(options);
-
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(options));
 
         const linkNode = chart.series[0].contextNodeData.nodeData.find(
             (n: any) => n.type === FlowProportionDatumType.Link
@@ -1213,8 +1162,7 @@ describe('SankeySeries', () => {
                 ],
                 series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             const sampler = createSceneGeometrySampler(chart);
             const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
                 chart.updateDelta({
