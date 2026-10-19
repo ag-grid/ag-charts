@@ -1058,5 +1058,10 @@ describe('NightingaleSeries', () => {
             const nullNodeData = await createMissingValueChart(missingValueOptions(null));
             expect(absentSummary).toEqual(summariseNodeData(nullNodeData));
         });
+
+        it('should render an absent value as a gap', async () => {
+            chart = await createEnterpriseChart(missingValueOptions('absent'));
+            await compare();
+        });
     });
 });
