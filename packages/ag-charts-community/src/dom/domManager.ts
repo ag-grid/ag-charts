@@ -441,8 +441,10 @@ export class DOMManager extends BaseManager {
             this.shadowDocumentRoot = undefined;
         } else {
             // Detection needs the attached page, so a container connected late is mounted again.
-            this.updateMountPoint(this.container);
-            this.appendElement(this.container);
+            const mountParent = this.updateMountPoint(this.container);
+            if (this.element.parentNode !== mountParent) {
+                mountParent.appendChild(this.element);
+            }
         }
         this.initiallyConnected = true;
         // Remove styles from our DOM tree before re-adding to correct location
@@ -533,7 +535,7 @@ export class DOMManager extends BaseManager {
         // Shadow-path watchers live on the shadow root; clearing the mirror for a move within the
         // same root would re-register duplicates.
         const previousShadowRoot = this.getShadowRoot();
-        this.updateMountPoint(pendingContainer);
+        const mountParent = this.updateMountPoint(pendingContainer);
         if (this.getShadowRoot() !== previousShadowRoot) {
             this.shadowCssVariableWatchers.clear();
         }
@@ -546,7 +548,7 @@ export class DOMManager extends BaseManager {
             this.addStyles(id, styles);
         }
 
-        this.appendElement(pendingContainer);
+        mountParent.appendChild(this.element);
         this.sizeMonitor.observe(
             pendingContainer,
             (size) => {
@@ -730,9 +732,8 @@ export class DOMManager extends BaseManager {
         }
 
         let element: HTMLElement | null = this.element;
-        const fullScreenElement = (
-            (this.isolationHost ?? this.element).getRootNode() as any as DocumentOrShadowRoot | undefined
-        )?.fullscreenElement;
+        const fullScreenElement = (this.getOutermostElement().getRootNode() as any as DocumentOrShadowRoot | undefined)
+            ?.fullscreenElement;
 
         // Try and find a parent which will clip rendering of children - if found we should restrict
         // to that elements bounding box.
@@ -752,11 +753,7 @@ export class DOMManager extends BaseManager {
                 return element;
             }
 
-            // The chart element's parent is our shadow root, so continue the walk from the host's parent.
-            element =
-                element === this.element && this.isolationHost != null
-                    ? this.isolationHost.parentElement
-                    : element.parentElement;
+            element = element === this.element ? this.getOutermostElement().parentElement : element.parentElement;
         }
 
         this._cachedScrollableContainer = null;
@@ -789,9 +786,10 @@ export class DOMManager extends BaseManager {
         }
 
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
-        // viewport. A shadow root of our own is invisible to the page, so overlays keep the window.
-        if (this.shadowDocumentRoot != null && this.isolationHost == null) {
-            this._cachedRawOverlayRect = BBox.fromObject(this.shadowDocumentRoot.getBoundingClientRect());
+        // viewport.
+        const overlayBounds = this.getShadowOverlayBounds();
+        if (overlayBounds != null) {
+            this._cachedRawOverlayRect = BBox.fromObject(overlayBounds.getBoundingClientRect());
             return this._cachedRawOverlayRect;
         }
 
@@ -801,18 +799,21 @@ export class DOMManager extends BaseManager {
         return this._cachedRawOverlayRect;
     }
 
-    private updateMountPoint(container: HTMLElement) {
+    /** Returns the node the chart element belongs under: our own shadow root when isolating, otherwise the container. */
+    private updateMountPoint(container: HTMLElement): ParentNode {
         if (this.shouldIsolate(container)) {
             this.isolationHost ??= createIsolationHost();
             if (this.isolationHost.parentNode !== container) {
                 container.appendChild(this.isolationHost);
             }
             this.shadowDocumentRoot = this.element;
-        } else {
-            this.isolationHost?.remove();
-            this.isolationHost = undefined;
-            this.shadowDocumentRoot = this.getShadowDocumentRoot(container);
+            return this.isolationHost.shadowRoot!;
         }
+
+        this.isolationHost?.remove();
+        this.isolationHost = undefined;
+        this.shadowDocumentRoot = this.getShadowDocumentRoot(container);
+        return container;
     }
 
     private shouldIsolate(container: HTMLElement) {
@@ -825,11 +826,17 @@ export class DOMManager extends BaseManager {
         );
     }
 
-    private appendElement(container: HTMLElement) {
-        const parent = this.isolationHost?.shadowRoot ?? container;
-        if (this.element.parentNode !== parent) {
-            parent.appendChild(this.element);
-        }
+    /** Our outermost element in the page's DOM tree: the isolation host when isolating, otherwise the chart element. */
+    private getOutermostElement(): HTMLElement {
+        return this.isolationHost ?? this.element;
+    }
+
+    /**
+     * A shadow root the page put us in belongs to a component with its own box, which bounds overlays.
+     * Ours wraps a `display: contents` host, so its only box is the chart itself.
+     */
+    private getShadowOverlayBounds(): HTMLElement | undefined {
+        return this.isolationHost == null ? this.shadowDocumentRoot : undefined;
     }
 
     private getShadowRoot(): Node | undefined {

@@ -133,10 +133,10 @@ describe('DOMManager', () => {
         });
 
         it.each([
-            ['outside #vis-container', { insideVisContainer: false }, []],
-            ['without the visualiser stylesheet', { stylesheet: false }, []],
-            ['with a styleContainer', {}, [doc.head]],
-        ] as const)('stays in the light DOM %s', (_, setup, [styleContainer]) => {
+            ['outside #vis-container', { insideVisContainer: false }, undefined],
+            ['without the visualiser stylesheet', { stylesheet: false }, undefined],
+            ['with a styleContainer', {}, doc.head],
+        ] as const)('stays in the light DOM %s', (_, setup, styleContainer) => {
             const { container } = buildContainer(setup);
             const dm = new DOMManager(eventsHub, 'vis-light', doc, container, styleContainer);
 
