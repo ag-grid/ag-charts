@@ -47,7 +47,7 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
         return { innerRadius, outerRadius, startAngle, endAngle, clipSector, phase };
     };
 
-    const toFn = (_sect: Sector, datum: RadialColumnNodeDatum, status: _ModuleSupport.NodeUpdateState) => {
+    const toFn = (sect: Sector, datum: RadialColumnNodeDatum, status: _ModuleSupport.NodeUpdateState) => {
         const { startAngle, endAngle } = angles.to(datum);
         let innerRadius: number;
         let outerRadius: number;
@@ -65,7 +65,7 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
             if (Number.isNaN(clipOuterRadius)) clipOuterRadius = axisZeroRadius;
             clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
         }
-        const visibility = status === 'removed' ? undefined : gapVisibility(datum);
+        const visibility = status === 'removed' ? undefined : gapVisibility(datum, sect.previousDatum);
         return { innerRadius, outerRadius, startAngle, endAngle, clipSector, ...visibility };
     };
 

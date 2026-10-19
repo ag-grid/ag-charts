@@ -13,16 +13,21 @@ type AnimatableRadialColumnDatum = {
     endAngle: number;
 };
 
+type RadiiDatum = { innerRadius: number; outerRadius: number };
+
 // A datum without finite radii is a missing value: hide its node rather than draw a zero-height column.
-export function hasRadii(datum: { innerRadius: number; outerRadius: number }) {
+export function hasRadii(datum: RadiiDatum) {
     return Number.isFinite(datum.innerRadius) && Number.isFinite(datum.outerRadius);
 }
 
 const SHOWN = { start: { visible: true }, finish: { visible: true } };
 const HIDDEN_ON_FINISH = { start: { visible: true }, finish: { visible: false } };
+const HIDDEN = { start: { visible: false }, finish: { visible: false } };
 
-export function gapVisibility(datum: { innerRadius: number; outerRadius: number }) {
-    return hasRadii(datum) ? SHOWN : HIDDEN_ON_FINISH;
+// A column that was drawn before its value went missing stays visible until its exit transition lands; one that was never drawn stays hidden throughout.
+export function gapVisibility(datum: RadiiDatum, previousDatum: RadiiDatum | undefined) {
+    if (hasRadii(datum)) return SHOWN;
+    return previousDatum != null && hasRadii(previousDatum) ? HIDDEN_ON_FINISH : HIDDEN;
 }
 
 type AngleKey = 'startAngle' | 'endAngle';
@@ -159,7 +164,7 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
             axisOuterRadius = datum.axisOuterRadius;
         }
 
-        const visibility = status === 'removed' ? undefined : gapVisibility(datum);
+        const visibility = status === 'removed' ? undefined : gapVisibility(datum, node.previousDatum);
         return {
             innerRadius,
             outerRadius,

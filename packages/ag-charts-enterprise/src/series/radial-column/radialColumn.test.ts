@@ -1509,5 +1509,30 @@ describe('RadialColumnSeries', () => {
             chart = await createEnterpriseChart(missingValueOptions(3, 'absent'));
             await compare();
         });
+
+        describe('during the initial animation', () => {
+            const frames = spyOnAnimationFrames();
+
+            it('should keep the missing column hidden on every frame', async () => {
+                const proxy = await createEnterpriseChart(missingValueOptions(3, 'absent'));
+                chart = deproxy(proxy);
+                const sampleNodes = () =>
+                    (chart.series[2].itemSelection.nodes() as any[]).map((node) => ({
+                        missing: !Number.isFinite(node.datum.outerRadius),
+                        visible: node.visible,
+                        outerRadius: node.outerRadius,
+                    }));
+                const trajectory = await frames.captureAnimationFrames(proxy, sampleNodes);
+                await frames.runToEnd(proxy);
+
+                for (const frame of trajectory) {
+                    expect(frame).toHaveLength(QUARTERS.length);
+                    expect(frame.filter((node) => node.missing)).toEqual([expect.objectContaining({ visible: false })]);
+                }
+                // Guards against passing vacuously: the drawn columns must grow over the captured frames.
+                const drawnRadii = trajectory.map((frame) => frame.find((node) => !node.missing)!.outerRadius);
+                expect(drawnRadii.at(-1)).toBeGreaterThan(drawnRadii[0]);
+            });
+        });
     });
 });
