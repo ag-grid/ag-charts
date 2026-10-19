@@ -20,6 +20,8 @@ import {
     findChartTarget,
     focusIndicatorContainsCanvasPoint,
     getAggregatedMarkerXValues,
+    getAxisLabelDatums,
+    getAxisPickTickData,
     getLegendModule,
     getSwapChainText,
     hoverAction,
@@ -181,108 +183,74 @@ describe('Zoom', () => {
     };
 
     describe('tick datums across a data update', () => {
-        it('gives a zoomed axis new label datums, so its animated labels update rather than fade in', async () => {
-            const rows = (shift: number) => Array.from({ length: 9 }, (_, x) => ({ x, y: ((x + shift) % 2) * 10 }));
-            const baseOptions: AgCartesianChartOptions = {
-                data: rows(0),
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'number', position: 'bottom', nice: false },
-                    y: { type: 'number', position: 'left' },
-                },
-                zoom: { enabled: true, axes: 'x' },
-            };
-            await prepareChart(undefined, { ratioX: { start: 0.1, end: 0.7 } }, baseOptions, false);
-            await waitForChartStability(chart);
+        const rows = (shift = 0, maxX = 20) =>
+            Array.from({ length: 11 }, (_, i) => ({ x: (i * maxX) / 10, y: ((i + shift) % 2) * 10 }));
+        const lineOptions = (data: object[], xAxis: object = {}): AgCartesianChartOptions => ({
+            data,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom', ...xAxis },
+                y: { type: 'number', position: 'left' },
+            },
+            zoom: { enabled: true, axes: 'x' },
+        });
+        const pickedTicks = (instance: AgChartInstance) => getAxisPickTickData(instance, 'bottom');
 
-            const xAxis = deproxy(chart).axes.find((axis) => axis.direction === ChartAxisDirection.X);
-            expect(xAxis).toBeDefined();
-            const labelDatums = () =>
-                Array.from(
-                    (
-                        xAxis as unknown as { tickLabelGroupSelection: { nodes(): Iterable<{ datum: object }> } }
-                    ).tickLabelGroupSelection.nodes(),
-                    (node) => node.datum
-                );
-            const before = labelDatums();
+        const freshCharts: AgChartInstance[] = [];
+        const createFresh = async (options: AgCartesianChartOptions, zoom?: object) => {
+            const fresh = await createEnterpriseChart(
+                (zoom == null ? options : { ...options, initialState: { zoom } }) as AgChartOptions
+            );
+            freshCharts.push(fresh);
+            return fresh;
+        };
+        afterEach(() => {
+            for (const fresh of freshCharts.splice(0)) fresh.destroy();
+        });
+
+        it('gives a zoomed axis new label datums, so its animated labels update rather than fade in', async () => {
+            await prepareChart(
+                undefined,
+                { ratioX: { start: 0.1, end: 0.7 } },
+                lineOptions(rows(), { nice: false }),
+                false
+            );
+            await waitForChartStability(chart);
+            const before = getAxisLabelDatums(chart, 'bottom');
             expect(before.length).toBeGreaterThan(0);
 
             await chart.updateDelta({ data: rows(1) });
             await waitForChartStability(chart);
 
-            const after = labelDatums();
+            const after = getAxisLabelDatums(chart, 'bottom');
             expect(after).toHaveLength(before.length);
             expect(after.filter((datum) => before.includes(datum))).toEqual([]);
         });
 
         it('keeps the picked ticks of a zoomed axis when the raw domain changes but the nice domain does not', async () => {
-            const rows = (maxX: number) =>
-                Array.from({ length: 11 }, (_, i) => ({ x: (i * maxX) / 10, y: (i % 2) * 10 }));
-            const baseOptions = (maxX: number): AgCartesianChartOptions => ({
-                data: rows(maxX),
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'number', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                },
-                zoom: { enabled: true, axes: 'x' },
-            });
             const zoom = { ratioX: { start: 0.2, end: 0.6 } };
-            const pickedTicks = (instance: AgChartInstance) => {
-                const xAxis = deproxy(instance).axes.find((axis) => axis.direction === ChartAxisDirection.X);
-                return (xAxis as unknown as { pickTickData: unknown }).pickTickData;
-            };
-
-            await prepareChart(undefined, zoom, baseOptions(50), false);
+            await prepareChart(undefined, zoom, lineOptions(rows(0, 50)), false);
             await waitForChartStability(chart);
             const before = pickedTicks(chart);
 
-            await chart.updateDelta({ data: rows(48) });
+            await chart.updateDelta({ data: rows(0, 48) });
             await waitForChartStability(chart);
 
-            const fresh = AgCharts.create(
-                prepareEnterpriseTestOptions({ ...baseOptions(48), initialState: { zoom } } as AgChartOptions)
-            );
-            try {
-                await waitForChartStability(fresh);
-                expect(pickedTicks(chart)).toEqual(pickedTicks(fresh));
-                expect(pickedTicks(chart)).toEqual(before);
-            } finally {
-                fresh.destroy();
-            }
+            const fresh = await createFresh(lineOptions(rows(0, 48)), zoom);
+            expect(pickedTicks(chart)).toEqual(pickedTicks(fresh));
+            expect(pickedTicks(chart)).toEqual(before);
         });
 
         it('keeps the picked ticks of an axis whose zoom is reset before a data update that leaves its domain unchanged', async () => {
-            const rows = (shift: number) =>
-                Array.from({ length: 11 }, (_, i) => ({ x: i * 2, y: ((i + shift) % 2) * 10 }));
-            const baseOptions = (shift: number): AgCartesianChartOptions => ({
-                data: rows(shift),
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'number', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                },
-                zoom: { enabled: true, axes: 'x' },
-            });
-            const pickedTicks = (instance: AgChartInstance) => {
-                const xAxis = deproxy(instance).axes.find((axis) => axis.direction === ChartAxisDirection.X);
-                return (xAxis as unknown as { pickTickData: unknown }).pickTickData;
-            };
-
-            await prepareChart(undefined, { ratioX: { start: 0.2, end: 0.4 } }, baseOptions(0), false);
+            await prepareChart(undefined, { ratioX: { start: 0.2, end: 0.4 } }, lineOptions(rows(0)), false);
             await waitForChartStability(chart);
             await chart.setState({ ...chart.getState(), zoom: { ratioX: { start: 0, end: 1 } } });
             await waitForChartStability(chart);
             await chart.updateDelta({ data: rows(1) });
             await waitForChartStability(chart);
 
-            const fresh = AgCharts.create(prepareEnterpriseTestOptions(baseOptions(1) as AgChartOptions));
-            try {
-                await waitForChartStability(fresh);
-                expect(pickedTicks(chart)).toEqual(pickedTicks(fresh));
-            } finally {
-                fresh.destroy();
-            }
+            const fresh = await createFresh(lineOptions(rows(1)));
+            expect(pickedTicks(chart)).toEqual(pickedTicks(fresh));
         });
     });
 

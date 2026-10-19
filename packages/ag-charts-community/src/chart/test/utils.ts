@@ -472,6 +472,7 @@ export function getVisibleLabelNodes<TDatum = any>(
 
 interface AxisLayoutInternals {
     position: string;
+    pickTickData: unknown;
     tickLabelGroupSelection: {
         nodes(): Iterable<DrawnLabelNode & { fill?: string; rotation: number; textAlign?: string }>;
     };
@@ -510,9 +511,49 @@ const lineByPosition = (a: AxisLineNode, b: AxisLineNode) => (a.x1 === b.x1 ? a.
  * two charts compare equal whatever order their nodes were created in.
  */
 export function getAxisTickLayouts(chartOrProxy: ChartOrProxy<any>): AxisTickLayout[] {
+    return getAxisInternals(chartOrProxy).map(toAxisTickLayout);
+}
+
+/** What the axis at `position` drew from its tick layout, as `getAxisTickLayouts` describes it. */
+export function getAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string): AxisTickLayout {
+    return toAxisTickLayout(findAxisInternals(chartOrProxy, position));
+}
+
+/** The label texts of the axis at `position`, in order along the axis. */
+export function getAxisLabelTexts(chartOrProxy: ChartOrProxy<any>, position: string): string[] {
+    return getAxisTickLayout(chartOrProxy, position).labels.map((label) => label.text);
+}
+
+/** The ticks the axis at `position` resolves a pick to. */
+export function getAxisPickTickData(chartOrProxy: ChartOrProxy<any>, position: string): unknown {
+    return findAxisInternals(chartOrProxy, position).pickTickData;
+}
+
+/** The datum objects bound to the axis at `position`'s label nodes, which animated nodes diff against. */
+export function getAxisLabelDatums(chartOrProxy: ChartOrProxy<any>, position: string): object[] {
+    const { tickLabelGroupSelection } = findAxisInternals(chartOrProxy, position);
+    return Array.from(tickLabelGroupSelection.nodes(), (node) => node.datum);
+}
+
+/** Counts the tick layouts the axis at `position` calculates, rather than reuses, from now on. */
+export function spyOnAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string) {
+    return vi.spyOn(findAxisInternals(chartOrProxy, position), 'calculateTickLayout');
+}
+
+function getAxisInternals(chartOrProxy: ChartOrProxy<any>) {
+    return deproxy(chartOrProxy).axes as unknown as AxisLayoutInternals[];
+}
+
+function findAxisInternals(chartOrProxy: ChartOrProxy<any>, position: string) {
+    const axis = getAxisInternals(chartOrProxy).find((a) => a.position === position);
+    expect(axis).toBeDefined();
+    return axis!;
+}
+
+function toAxisTickLayout(axis: AxisLayoutInternals): AxisTickLayout {
     const lines = (selection: AxisLayoutInternals['tickLineGroupSelection']) =>
         Array.from(selection.nodes(), ({ x1, y1, x2, y2 }) => ({ x1, y1, x2, y2 })).sort(lineByPosition);
-    return (deproxy(chartOrProxy).axes as unknown as AxisLayoutInternals[]).map((axis) => ({
+    return {
         position: axis.position,
         labels: Array.from(
             axis.tickLabelGroupSelection.nodes(),
@@ -528,21 +569,7 @@ export function getAxisTickLayouts(chartOrProxy: ChartOrProxy<any>): AxisTickLay
         ).sort(byPosition),
         tickLines: lines(axis.tickLineGroupSelection),
         gridLines: lines(axis.gridLineGroupSelection),
-    }));
-}
-
-/** The label texts of the axis at `position`, in order along the axis. */
-export function getAxisLabelTexts(chartOrProxy: ChartOrProxy<any>, position: string): string[] {
-    const axis = getAxisTickLayouts(chartOrProxy).find((layout) => layout.position === position);
-    expect(axis).toBeDefined();
-    return axis!.labels.map((label) => label.text);
-}
-
-/** Counts the tick layouts the axis at `position` calculates, rather than reuses, from now on. */
-export function spyOnAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string) {
-    const axis = (deproxy(chartOrProxy).axes as unknown as AxisLayoutInternals[]).find((a) => a.position === position);
-    expect(axis).toBeDefined();
-    return vi.spyOn(axis!, 'calculateTickLayout');
+    };
 }
 
 /** A series' placed label geometry, enough to measure a label's offset from its marker anchor. */

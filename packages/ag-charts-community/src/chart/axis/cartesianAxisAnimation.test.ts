@@ -275,6 +275,38 @@ describe('CartesianAxis animation', () => {
         }
     });
 
+    it('keeps the labels of a category axis whose tick layout is reused as updated, not added', async () => {
+        const rows = (shift: number) =>
+            Array.from({ length: 4 }, (_, i) => ({ x: `Item ${i}`, y: ((i + shift) % 2) * 10 }));
+        chart = AgCharts.create(
+            prepareTestOptions({
+                data: rows(0),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            })
+        );
+        await frames.runToEnd(chart);
+        const sampleScene = createSceneGeometrySampler(chart);
+
+        await chart.updateDelta({ data: rows(1) });
+        const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+        // A label bound to a datum its node never had would report as added and start at zero opacity.
+        const labels = [...trajectory[0].keys()].filter((key) => key.startsWith('axis[bottom]/text[l:'));
+        expect(labels).toHaveLength(4);
+        for (const label of labels) {
+            expect(trajectory[0].get(label)!.opacity).toBe(1);
+        }
+        expectSceneTrajectory(trajectory, {
+            'axis[bottom]/text[l:*]': 'constant',
+            'axis[bottom]/line[*]': 'any',
+            'series[0]/path[stroke]': 'any',
+        });
+    });
+
     it('resize snaps the axes to the new layout without tweening', async () => {
         const options = numberChartOptions([
             { x: 0, y: 0 },
