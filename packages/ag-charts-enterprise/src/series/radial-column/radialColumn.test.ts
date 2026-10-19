@@ -1493,10 +1493,10 @@ describe('RadialColumnSeries', () => {
                 const nodeData = await createMissingValueChart(missingValueOptions(missingIndex, 'absent', stacked));
 
                 expect(nodeData).toHaveLength(QUARTERS.length);
-                nodeData.forEach((nodeDatum, index) => {
+                for (const [index, nodeDatum] of nodeData.entries()) {
                     const drawn = Number.isFinite(nodeDatum.innerRadius) && Number.isFinite(nodeDatum.outerRadius);
                     expect(drawn).toBe(index !== missingIndex);
-                });
+                }
 
                 const absentSummary = summariseNodeData(nodeData);
                 chart.destroy();

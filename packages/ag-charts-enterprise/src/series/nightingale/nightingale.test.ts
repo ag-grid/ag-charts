@@ -1048,10 +1048,10 @@ describe('NightingaleSeries', () => {
             const nodeData = await createMissingValueChart(missingValueOptions('absent'));
 
             expect(nodeData).toHaveLength(QUARTERS.length);
-            nodeData.forEach((nodeDatum, index) => {
+            for (const [index, nodeDatum] of nodeData.entries()) {
                 const drawn = Number.isFinite(nodeDatum.innerRadius) && Number.isFinite(nodeDatum.outerRadius);
                 expect(drawn).toBe(index !== MISSING_INDEX);
-            });
+            }
 
             const absentSummary = summariseNodeData(nodeData);
             chart.destroy();

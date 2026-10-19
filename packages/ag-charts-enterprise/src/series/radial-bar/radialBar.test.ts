@@ -1083,10 +1083,10 @@ describe('RadialBarSeries', () => {
 
                 const nodeData = chart.series[1].contextNodeData.nodeData as any[];
                 expect(nodeData).toHaveLength(QUARTERS.length);
-                nodeData.forEach(({ clipSector }, index) => {
+                for (const [index, { clipSector }] of nodeData.entries()) {
                     const drawn = Number.isFinite(clipSector.startAngle) && Number.isFinite(clipSector.endAngle);
                     expect(drawn).toBe(index !== 3);
-                });
+                }
             }
         );
     });
