@@ -6,6 +6,7 @@ import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
 import type { PropertyDefinition } from '../data/dataModelTypes';
 import { DataSet } from '../data/dataSet';
+import { processedDataUnchanged } from '../data/processedDataUnchanged';
 import type { PickFocusInputs, PickFocusOutputs, SeriesNodePickMatch } from './pickTypes';
 import { SeriesNodeDatumSentinel } from './pickTypes';
 import type { SeriesConstructorOpts, SeriesNodeDataContext } from './series';
@@ -87,6 +88,27 @@ export abstract class DataModelSeries<
             .flat();
     }
 
+    /**
+     * Whether the node data this series built from its previous data still stands when the new data processes to the
+     * same values. True only of a series whose node data depends on nothing but its processed data, options and size.
+     */
+    protected canKeepNodeDataForUnchangedData(): boolean {
+        return false;
+    }
+
+    /**
+     * User callbacks (an `itemStyler`, a label `formatter`...) can return something new on every update, and only
+     * re-run when node data is rebuilt, so a series that has any cannot keep its node data.
+     */
+    private hasCallbackOptions() {
+        const search = (value: unknown, depth: number): boolean => {
+            if (typeof value === 'function') return true;
+            if (depth === 0 || value == null || typeof value !== 'object' || Array.isArray(value)) return false;
+            return Object.values(value).some((child) => search(child, depth - 1));
+        };
+        return search(this.options, 4);
+    }
+
     // Request data, but with message dispatching to series-options (modules).
     protected async requestDataModel<
         D extends object,
@@ -103,8 +125,17 @@ export abstract class DataModelSeries<
         dataSet ??= DataSet.empty(this.ctx.logger);
         const { dataModel, processedData } = await dataController.request<D, K, G>(this.id, dataSet, opts);
 
+        const { processedData: previousProcessedData } = this;
         this.dataModel = dataModel;
         this.processedData = processedData;
+        if (
+            previousProcessedData != null &&
+            this.canKeepNodeDataForUnchangedData() &&
+            !this.hasCallbackOptions() &&
+            processedDataUnchanged(previousProcessedData, processedData)
+        ) {
+            this.cancelDataRefresh();
+        }
         // Incremental reprocessing mutates the existing columns, so identity alone cannot detect the change.
         this.categoryValueLookup = undefined;
         this.events.emit('data-processed', { dataModel, processedData });

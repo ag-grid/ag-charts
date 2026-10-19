@@ -201,6 +201,16 @@ interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
 
 type WaterfallAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<WaterfallSeriesTypes>;
 
+/** The options of a waterfall item that only change how its bars are painted: not where they are, nor their labels or corners. */
+const WATERFALL_STYLE_OPTION_KEYS: ReadonlySet<string> = new Set([
+    'fill',
+    'fillOpacity',
+    'stroke',
+    'strokeOpacity',
+    'lineDash',
+    'lineDashOffset',
+]);
+
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallSeriesTypes> {
     static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
@@ -231,6 +241,35 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     private readonly seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
+
+    protected override canKeepNodeDataForUnchangedData() {
+        return true;
+    }
+
+    protected override isStyleOnlyChange(diff: object) {
+        const keys = Object.keys(diff);
+        if (keys.length !== 1 || keys[0] !== 'item') return false;
+        const { item } = diff as { item: Record<string, unknown> };
+        return Object.values(item).every(
+            (itemDiff) =>
+                itemDiff != null &&
+                typeof itemDiff === 'object' &&
+                Object.keys(itemDiff).every((key) => WATERFALL_STYLE_OPTION_KEYS.has(key))
+        );
+    }
+
+    protected override refreshNodeDataStyles() {
+        const { contextNodeData } = this;
+        if (contextNodeData) {
+            contextNodeData.styles = getItemStylesPerItemId(
+                this.getItemStyle.bind(this),
+                'total',
+                'subtotal',
+                'positive',
+                'negative'
+            );
+        }
+    }
 
     override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yKey, totals = [] } = this.options;

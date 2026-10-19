@@ -339,22 +339,36 @@ export abstract class Series<
 
     // Flag to determine if we should recalculate node data.
     private _nodeDataRefresh = true;
+    /**
+     * Set when new data arrives and nothing else asks for a node data rebuild. Unlike `_nodeDataRefresh` it can be
+     * withdrawn by {@link cancelDataRefresh} once the processed data turns out to be identical to the last update's.
+     */
+    private _dataRefreshPending = false;
     private _nodeDataVersion = 0;
     protected get nodeDataRefresh() {
-        return this._nodeDataRefresh;
+        return this._nodeDataRefresh || this._dataRefreshPending;
     }
     protected set nodeDataRefresh(value: boolean) {
-        this._nodeDataRefresh = value;
+        if (value) {
+            this._nodeDataRefresh = true;
+            this.requestNodeDataVersion();
+        } else {
+            if (this._dataRefreshPending) {
+                this._nodeDataVersion++;
+            }
+            this._nodeDataRefresh = false;
+            this._dataRefreshPending = false;
+        }
+    }
+    private requestNodeDataVersion() {
         // A rebuild request bumps the version so consumers (e.g. label placement) can tell that this
         // series' node data, and everything derived from it, will differ from the last render.
-        if (value) {
-            this._nodeDataVersion++;
-            this.itemShadowPass = undefined;
-        }
+        this._nodeDataVersion++;
+        this.itemShadowPass = undefined;
     }
     /** Increments on every node-data invalidation; lets consumers skip work while it is unchanged. */
     get nodeDataVersion() {
-        return this._nodeDataVersion;
+        return this._nodeDataVersion + (this._dataRefreshPending ? 1 : 0);
     }
     protected processedDataUpdated = true;
 
@@ -419,7 +433,7 @@ export abstract class Series<
     }
 
     protected onDataChange() {
-        this.nodeDataRefresh = true;
+        this.markDataRefreshPending();
         this.processedDataUpdated = true;
         this._pickNodeCache.clear();
     }
@@ -759,11 +773,60 @@ export abstract class Series<
         return Transformable.toCanvasPoint(this.contentGroup, x, y);
     }
 
-    // Indicate that something external changed and we should recalculate nodeData.
-    markNodeDataDirty() {
-        this.nodeDataRefresh = true;
+    // Indicate that something external changed and we should recalculate nodeData. `cause: 'data'` says that new data
+    // is the only reason, so the rebuild can still be withdrawn if the data processes to what it was (see `cancelDataRefresh`).
+    markNodeDataDirty(cause?: 'data') {
+        if (cause === 'data') {
+            this.markDataRefreshPending();
+        } else {
+            this.nodeDataRefresh = true;
+        }
         this._pickNodeCache.clear();
         this.visibleMaybeChanged();
+    }
+
+    private _restyle = false;
+
+    /** Whether `diff` changes only how this series' items are drawn, so that their node data still stands. */
+    protected isStyleOnlyChange(_diff: object): boolean {
+        // For override by series that can restyle their node data without rebuilding it.
+        return false;
+    }
+
+    /** Applies an options `diff` that only restyles the series, keeping its node data. False if it can't. */
+    restyleFor(diff: object | undefined): boolean {
+        if (diff == null || !this.isStyleOnlyChange(diff)) return false;
+        this._restyle = true;
+        return true;
+    }
+
+    /** Whether the series was restyled since it last updated; reading resets it. */
+    protected takeRestyle(): boolean {
+        const restyle = this._restyle;
+        this._restyle = false;
+        return restyle;
+    }
+
+    private markDataRefreshPending() {
+        if (this._nodeDataRefresh) {
+            // A rebuild is already due, so this request can't be withdrawn, but it still counts as an invalidation.
+            this.requestNodeDataVersion();
+            return;
+        }
+        if (this._dataRefreshPending) this._nodeDataVersion++;
+        this._dataRefreshPending = true;
+        this.itemShadowPass = undefined;
+    }
+
+    /**
+     * Withdraws a rebuild of the node data that only new data asked for. Does nothing if anything else asked for one
+     * too, as that rebuild is still needed.
+     */
+    protected cancelDataRefresh() {
+        if (this._nodeDataRefresh || !this._dataRefreshPending) return false;
+        this._dataRefreshPending = false;
+        this.processedDataUpdated = false;
+        return true;
     }
 
     // TODO: is there a better way to pass width through here?

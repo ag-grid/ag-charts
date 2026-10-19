@@ -8,6 +8,7 @@ import {
     type CanvasPoint,
     Group,
     type OffsetPoint,
+    Rect,
     alignCentre,
     fromPairs,
     getDocument,
@@ -1857,6 +1858,31 @@ export async function expectRedrawWithSameDataIsStable(
     expect(canvasCtx.snapshot()).toMatchImage(beforeImage);
     if (before) {
         expectSceneSamplesMatch(sampleScene(), before, 0);
+    }
+}
+
+/** The work redrawing a chart takes that scales with the number of items it draws. */
+export interface RedrawWork {
+    /** Calls to `createNodeData` across all series. */
+    nodeDataBuilds: number;
+    /** Rect paths rebuilt for painting. */
+    rectPathBuilds: number;
+}
+
+/** Runs `update` on a stabilised `chart`, and reports the per-item work the redraw took. */
+export async function measureRedrawWork(chart: AgChartInstance, update: () => Promise<void>): Promise<RedrawWork> {
+    const nodeDataSpies = deproxy(chart).series.map((series) => vi.spyOn(series as any, 'createNodeData'));
+    const pathSpy = vi.spyOn(Rect.prototype, 'updatePath');
+    try {
+        await update();
+        await waitForChartStability(chart);
+        return {
+            nodeDataBuilds: nodeDataSpies.reduce((total, spy) => total + spy.mock.calls.length, 0),
+            rectPathBuilds: pathSpy.mock.calls.length,
+        };
+    } finally {
+        pathSpy.mockRestore();
+        for (const spy of nodeDataSpies) spy.mockRestore();
     }
 }
 

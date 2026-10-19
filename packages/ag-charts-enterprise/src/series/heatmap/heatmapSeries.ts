@@ -258,6 +258,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         });
     }
 
+    protected override canKeepNodeDataForUnchangedData() {
+        return true;
+    }
+
     override async processData(dataController: _ModuleSupport.DataController) {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
