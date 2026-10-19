@@ -919,8 +919,8 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
         }
     }
 
-    avoidOrphans(result, measurer, options);
-    const clippedResult = clipLines(result, measurer, options);
+    avoidOrphans(result, measurer, options, blockTop, firstLineHeight);
+    const clippedResult = clipLines(result, measurer, options, blockTop, firstLineHeight);
     return shouldHideOverflow(clippedResult, options, text) ? [] : clippedResult;
 }
 
@@ -929,7 +929,13 @@ function getWordAt(text: string, position: number) {
     return nextSpaceIndex === -1 ? text.slice(position) : text.slice(position, nextSpaceIndex);
 }
 
-export function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
+export function clipLines(
+    lines: string[],
+    measurer: ITextMeasurer,
+    options: WrapOptions,
+    blockTop = 0,
+    firstLineHeight?: number
+) {
     if (!isFiniteNumber(options.maxHeight)) {
         return lines;
     }
@@ -944,13 +950,12 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
     const lineHeightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
 
     for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
-        const lineTop = cumulativeHeight;
         cumulativeHeight += lineHeightAt(i);
         if (cumulativeHeight > options.maxHeight) {
             if (options.overflow === 'hide' || i === 0) return [];
             const clippedResults = lines.slice(0, i);
             const lastLine = clippedResults.pop()!;
-            const maxWidth = lineMaxWidth(options, lineTop - lineHeightAt(i - 1), lineTop);
+            const maxWidth = lineBandMaxWidth(options, lineHeightAt, i - 1, blockTop, firstLineHeight);
             return clippedResults.concat(
                 isTextTruncated(lastLine) ? lastLine : truncateLine(lastLine, measurer, maxWidth, true)
             );
@@ -960,17 +965,29 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
     return lines;
 }
 
-function lastLineMaxWidth(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
-    const { lineMetrics } = measurer.measureLines(lines);
-    const heightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
-    let top = 0;
-    for (let i = 0; i < lineMetrics.length - 1; i += 1) {
-        top += heightAt(i);
+/** The width available to line `index`, whose block starts at `blockTop` with a first line `firstLineHeight` tall. */
+function lineBandMaxWidth(
+    options: WrapOptions,
+    heightAt: (i: number) => number,
+    index: number,
+    blockTop: number,
+    firstLineHeight: number | undefined
+) {
+    const bandHeight = (i: number) => (i === 0 ? (firstLineHeight ?? heightAt(0)) : heightAt(i));
+    let top = blockTop;
+    for (let i = 0; i < index; i += 1) {
+        top += bandHeight(i);
     }
-    return lineMaxWidth(options, top, top + heightAt(lineMetrics.length - 1));
+    return lineMaxWidth(options, top, top + bandHeight(index));
 }
 
-function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
+function avoidOrphans(
+    lines: string[],
+    measurer: ITextMeasurer,
+    options: WrapOptions,
+    blockTop: number,
+    firstLineHeight: number | undefined
+) {
     if (options.avoidOrphans === false || lines.length < 2) return;
 
     const { length } = lines;
@@ -984,7 +1001,12 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
     if (lastSpaceIndex === -1 || lastSpaceIndex === beforeLast.indexOf(' ') || lastLine.includes(' ')) return;
 
     const lastWord = beforeLast.slice(lastSpaceIndex + 1);
-    const maxWidth = options.maxWidthAt == null ? options.maxWidth : lastLineMaxWidth(lines, measurer, options);
+    let maxWidth = options.maxWidth;
+    if (options.maxWidthAt != null) {
+        const { lineMetrics } = measurer.measureLines(lines);
+        const heightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
+        maxWidth = lineBandMaxWidth(options, heightAt, length - 1, blockTop, firstLineHeight);
+    }
     // Measured as it will be drawn, joining space included: a line that reads as fitting without it
     // overruns its width by a space, which a shape-bounded label pays for by being hidden whole.
     const joined = lastWord + ' ' + lastLine;

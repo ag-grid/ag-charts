@@ -1048,6 +1048,25 @@ describe('measureTextSegments — lineHeight', () => {
         }
     });
 
+    it('clips a wrapped segment against the region band of the rows it lands on', () => {
+        const widthAt = (bottom: number) => Math.max(10, 60 - bottom * 0.4);
+        const region: FitRegion = {
+            spanAt: (_top, bottom) => [-widthAt(bottom) / 2, widthAt(bottom) / 2],
+            extentAbove: 0,
+            extentBelow: 60,
+        };
+        const fitted = fitLabelText(
+            [text('A ', { lineHeight: 40 }), text('BBB CCC DDD', { lineHeight: 10 })],
+            { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            baseFont
+        ) as MeasuredSegment[];
+        let top = 0;
+        for (const line of measureTextSegments(fitted, baseFont).lineMetrics) {
+            expect(line.width).toBeLessThanOrEqual(widthAt(top + line.height));
+            top += line.height;
+        }
+    });
+
     it('budgets a wrapped row by a taller segment that follows it', () => {
         const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
         const fitted = fitLabelText(
