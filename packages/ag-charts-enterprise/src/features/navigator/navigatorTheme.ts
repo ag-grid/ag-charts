@@ -146,7 +146,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
 const NAVIGATOR_HANDLE_THEME: WithThemeParams<AgNavigatorHandleOptions> = {
     fill: { $ref: 'navigatorHandleBackgroundColor' },
     stroke: themeBorderColor('navigatorHandleBorder'),
-    strokeWidth: themeBorderWidth('navigatorHandleBorder', { on: 1 }),
+    strokeWidth: themeBorderWidth('navigatorHandleBorder'),
     width: 12,
     height: 24,
     cornerRadius: { $ref: 'navigatorHandleBorderRadius' },
@@ -163,7 +163,7 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
         fill: { $ref: 'navigatorTrackBackgroundColor' },
         fillOpacity: 0.1,
         stroke: themeBorderColor('navigatorTrackBorder'),
-        strokeWidth: themeBorderWidth('navigatorTrackBorder', { on: 1 }),
+        strokeWidth: themeBorderWidth('navigatorTrackBorder'),
     },
     track: {
         fill: { $path: '../mask/fill' },

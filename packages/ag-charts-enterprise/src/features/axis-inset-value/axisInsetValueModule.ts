@@ -23,6 +23,7 @@ export const AxisInsetValueModule: AxisPluginModuleDefinition<AxisInsetValueOpti
         enabled: false,
         position: 'left',
         minWidth: 60,
+        gap: 2,
         fill: { $palette: 'neutral.fill' },
         fillOpacity: 1,
         label: {
