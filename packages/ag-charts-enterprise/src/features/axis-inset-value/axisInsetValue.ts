@@ -83,7 +83,7 @@ export class AxisInsetValue extends AbstractModuleInstance {
             ctx.scene.attachNode(this.group),
             ctx.layoutManager.registerElement(LayoutElement.SeriesInset, (layout) => {
                 const { enabled, position } = this.options ?? {};
-                if (enabled && position != null) {
+                if (enabled && position != null && this.isParallel(position)) {
                     layout.seriesInsets[position] = this.resolveWidth() + this.resolveGap();
                 }
             }),
@@ -116,12 +116,9 @@ export class AxisInsetValue extends AbstractModuleInstance {
         }
         const width = this.resolveWidth();
 
-        // The blocks sit along the axis' own direction, so the strip must run parallel to it.
         const horizontal = position === 'top' || position === 'bottom';
-        const direction = this.axisCtx.direction;
-        const parallel = direction === (horizontal ? ChartAxisDirection.X : ChartAxisDirection.Y);
         const length = horizontal ? seriesRect.width : seriesRect.height;
-        if (!parallel || width <= 0 || length <= 0) {
+        if (!this.isParallel(position) || width <= 0 || length <= 0) {
             this.hide();
             return;
         }
@@ -208,6 +205,12 @@ export class AxisInsetValue extends AbstractModuleInstance {
             node.x = horizontal ? block.start + thickness / 2 : textX;
             node.y = horizontal ? width / 2 : block.start + thickness / 2;
         });
+    }
+
+    /** The blocks sit along the axis' own direction, so the strip must run parallel to it, or nothing is drawn or reserved. */
+    private isParallel(position: NonNullable<AxisInsetValueOptions['position']>): boolean {
+        const horizontal = position === 'top' || position === 'bottom';
+        return this.axisCtx.direction === (horizontal ? ChartAxisDirection.X : ChartAxisDirection.Y);
     }
 
     /** The empty space kept between the strip and the series area, in pixels. */
