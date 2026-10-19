@@ -1,10 +1,12 @@
 import styled from '@emotion/styled';
-import { type CSSProperties, memo, useLayoutEffect, useMemo } from 'react';
+import { type CSSProperties, memo, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
 import type { AgChartOptions } from 'ag-charts-community';
 
 import { THUMBNAIL_OPTIONS } from './chartTypes';
+import { getStackParams } from './chartsTheme';
 import { toChartTheme } from './chartsThemeOutput';
+import { CHARTS_FONT_FAMILY_OPTIONS } from './fonts';
 import type { ChartsPreset } from './presets';
 import { useChart } from './useChart';
 
@@ -19,6 +21,20 @@ interface Props {
  * frame and reads as disconnected blocks of colour.
  */
 export const PresetPreview = memo(({ preset }: Props) => {
+    const families = useMemo(() => pageFontFamilies(preset), [preset]);
+    const fontsDeclared = useFontsDeclared(families);
+
+    return (
+        <Card
+            className="preset-preview"
+            style={{ '--page-background-color': preset.pageBackgroundColor } as CSSProperties}
+        >
+            {fontsDeclared && <Thumbnail preset={preset} />}
+        </Card>
+    );
+});
+
+const Thumbnail = ({ preset }: Props) => {
     const options = useMemo<AgChartOptions>(
         () => ({
             ...THUMBNAIL_OPTIONS,
@@ -34,15 +50,53 @@ export const PresetPreview = memo(({ preset }: Props) => {
         containerRef.current?.setAttribute('inert', '');
     }, [containerRef]);
 
-    return (
-        <Card
-            className="preset-preview"
-            style={{ '--page-background-color': preset.pageBackgroundColor } as CSSProperties}
-        >
-            <ChartContainer ref={containerRef} />
-        </Card>
-    );
-});
+    return <ChartContainer ref={containerRef} />;
+};
+
+const unquote = (family: string) => family.trim().replace(/^["']|["']$/g, '');
+
+const toFamilies = (value: unknown): string[] =>
+    [value].flat().flatMap((font) => {
+        if (typeof font === 'string') return font.split(',').map(unquote);
+        if (typeof font === 'object' && font != null && 'googleFont' in font) return [String(font.googleFont)];
+        return [];
+    });
+
+const MENU_FAMILIES = new Set(CHARTS_FONT_FAMILY_OPTIONS.flatMap(({ value }) => toFamilies(value)));
+
+/** The families a preset's text is set in that the page's font CSS declares, its stock theme's included. */
+const pageFontFamilies = ({ baseTheme, params }: ChartsPreset): ReadonlySet<string> => {
+    const merged: Record<string, unknown> = { ...getStackParams(baseTheme), ...params };
+    const families = Object.keys(merged)
+        .filter((param) => param === 'fontFamily' || param.endsWith('FontFamily'))
+        .flatMap((param) => toFamilies(merged[param]));
+    return new Set(families.filter((family) => MENU_FAMILIES.has(family)));
+};
+
+const FONT_DECLARATION_TIMEOUT_MS = 3000;
+
+/**
+ * A chart counts an undeclared font as loaded, so one drawn before the page's font CSS lands keeps
+ * its fallback. That CSS fires no event once declared, so watch for its faces each frame.
+ */
+const useFontsDeclared = (families: ReadonlySet<string>) => {
+    const [declared, setDeclared] = useState(false);
+    useEffect(() => {
+        const giveUpAt = performance.now() + FONT_DECLARATION_TIMEOUT_MS;
+        let frame = 0;
+        const check = () => {
+            const faces = new Set(Array.from(document.fonts, (face) => unquote(face.family)));
+            if ([...families].every((family) => faces.has(family)) || performance.now() > giveUpAt) {
+                setDeclared(true);
+            } else {
+                frame = requestAnimationFrame(check);
+            }
+        };
+        check();
+        return () => cancelAnimationFrame(frame);
+    }, [families]);
+    return declared;
+};
 
 // Drawn from the preset's own page colour, never the site's, so a card looks
 // the same whichever mode the site is in. Grey reads on both light and dark.
