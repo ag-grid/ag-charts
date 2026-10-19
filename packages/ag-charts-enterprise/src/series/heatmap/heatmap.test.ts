@@ -2180,6 +2180,82 @@ describe('HeatmapSeries', () => {
                 expect(strokeWidths(chart)).toEqual(widths);
             });
 
+            it('does not run a styler that returned nothing again when a cell is styled outside the node data pass', async () => {
+                const itemStyler = vi.fn((_params: StylerParams) => undefined);
+                await createStable(rawOptions({ ...NO_TOOLTIP, itemStyler }));
+                expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
+
+                // The tooltip, and a restyle that doesn't rebuild the node data, style a cell through getItemStyle.
+                const series = classCast(chart.series[0], HeatmapSeries) as any;
+                for (const [datumIndex, datum] of DATA.entries()) {
+                    series.getItemStyle({ datumIndex, datum, colorValue: datum.spending }, false);
+                }
+
+                expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
+            });
+
+            describe('the restyle after a full update', () => {
+                const spyOnCellStyling = () =>
+                    vi.spyOn(classCast(chart.series[0], HeatmapSeries) as any, 'getItemStyle');
+
+                it.each([
+                    ['returns nothing', () => undefined],
+                    ['returns a fill', () => ({ fill: 'lime' })],
+                ])('is skipped for a styler that %s when nothing is highlighted or selected', async (_name, result) => {
+                    const options = rawOptions({ ...NO_TOOLTIP, itemStyler: result }, ROWS);
+                    await createStable(options);
+                    prepareEnterpriseTestOptions(options);
+                    const getItemStyle = spyOnCellStyling();
+
+                    try {
+                        chart.publicApi.update(options);
+                        await waitForChartStability(chart);
+
+                        // createNodeData styled each cell once; a second pass over them would double this.
+                        expect(getItemStyle).toHaveBeenCalledTimes(ROWS.length);
+                    } finally {
+                        getItemStyle.mockRestore();
+                    }
+                });
+
+                it('still happens on a full update while a cell is highlighted', async () => {
+                    const options = rawOptions({ ...NO_TOOLTIP, itemStyler: () => undefined }, ROWS);
+                    await createStable(options);
+                    prepareEnterpriseTestOptions(options);
+                    await hoverDatumByIndex(chart, 0, 1);
+                    const getItemStyle = spyOnCellStyling();
+
+                    try {
+                        chart.publicApi.update(options);
+                        await waitForChartStability(chart);
+
+                        expect(getItemStyle.mock.calls.length).toBeGreaterThan(ROWS.length);
+                    } finally {
+                        getItemStyle.mockRestore();
+                    }
+                });
+
+                it('still happens on a full update while a cell is selected', async () => {
+                    const options = rawOptions(
+                        { ...NO_TOOLTIP, selection: SELECTION, itemStyler: () => undefined },
+                        ROWS
+                    );
+                    await createStable(options);
+                    prepareEnterpriseTestOptions(options);
+                    await select(0);
+                    const getItemStyle = spyOnCellStyling();
+
+                    try {
+                        chart.publicApi.update(options);
+                        await waitForChartStability(chart);
+
+                        expect(getItemStyle.mock.calls.length).toBeGreaterThan(ROWS.length);
+                    } finally {
+                        getItemStyle.mockRestore();
+                    }
+                });
+            });
+
             it('logs a styler that throws once and gives its cells the default style, without calling it again', async () => {
                 const unstyledFills = await freshCellFills(rawOptions());
                 const unstyledWidths = await freshCellFills(rawOptions(), strokeWidths);
@@ -2242,6 +2318,70 @@ describe('HeatmapSeries', () => {
                     expect(fills[0]).toBe(fills[DISTINCT]);
                     expect(fills[1]).not.toBe(fills[0]);
                 } finally {
+                    resolvePartial.mockRestore();
+                }
+            });
+
+            it('hands every cell with an equal result the same validated object, and a distinct result its own', async () => {
+                const data = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
+                const itemStyler = ({ datum }: StylerParams) => ({
+                    strokeWidth: 1 + (datum.spending % 3),
+                    fill: 'lime',
+                });
+                const options = rawOptions({ itemStyler }, data);
+                await createStable(options);
+                prepareEnterpriseTestOptions(options);
+                const series = classCast(chart.series[0], HeatmapSeries) as any;
+                const resolve = vi.spyOn(series, 'resolveItemStylerResult');
+
+                try {
+                    chart.publicApi.update(options);
+                    await waitForChartStability(chart);
+
+                    // Cells 0, 3, 6 and 9 asked for the same style: validating each distinct result once means they share it.
+                    const results = resolve.mock.results.map((r) => r.value);
+                    expect(results).toHaveLength(data.length);
+                    expect(new Set(results).size).toBe(3);
+                    for (let i = 3; i < data.length; i++) expect(results[i]).toBe(results[i % 3]);
+                } finally {
+                    resolve.mockRestore();
+                }
+            });
+
+            it('validates each distinct result once again after earlier results filled the memory', async () => {
+                const CELLS = 1500;
+                const SETTLED = 100_000;
+                const dataFrom = (offset: number) =>
+                    Array.from({ length: CELLS }, (_, i) => ({
+                        year: `${2000 + (i % 50)}`,
+                        person: `P${Math.floor(i / 50)}`,
+                        spending: i + offset,
+                    }));
+                // The first data gives every cell its own result, more than the memory can hold; the data after it gives
+                // the cells three results between them.
+                const fillFor = (spending: number) =>
+                    spending >= SETTLED
+                        ? `rgb(${200 + (spending % 3)}, 99, 99)`
+                        : `rgb(${spending % 256}, ${Math.floor(spending / 256)}, 30)`;
+                const itemStyler = ({ datum }: { datum: { spending: number } }) => ({ fill: fillFor(datum.spending) });
+                await createStable(rawOptions({ itemStyler }, dataFrom(0)));
+                const series = classCast(chart.series[0], HeatmapSeries) as any;
+                const resolve = vi.spyOn(series, 'resolveItemStylerResult');
+                const resolvePartial = vi.spyOn(chart.series[0].ctx.optionsGraphService, 'resolvePartial');
+
+                try {
+                    chart.publicApi.updateDelta({ data: dataFrom(SETTLED) });
+                    await waitForChartStability(chart);
+
+                    expect(cellFills(chart)).toEqual(
+                        await freshCellFills(rawOptions({ itemStyler }, dataFrom(SETTLED)))
+                    );
+                    expect(resolvedStylerResults(resolvePartial)).toHaveLength(0);
+                    const results = resolve.mock.results.map((r) => r.value);
+                    expect(results).toHaveLength(CELLS);
+                    expect(new Set(results).size).toBe(3);
+                } finally {
+                    resolve.mockRestore();
                     resolvePartial.mockRestore();
                 }
             });
