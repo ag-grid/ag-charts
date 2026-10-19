@@ -11,6 +11,7 @@ import {
     TranslatableGroup,
     ZIndexMap,
     cachedTextMeasurer,
+    drawnLineHeight,
     isFiniteNumber,
     isNumericValue,
 } from 'ag-charts-core';
@@ -323,11 +324,12 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
 
         this.labelGroup.translationY = layoutBox.y + spacingAbove;
 
-        const fontMetrics = [opts.title, opts.positive, opts.negative].map((font) =>
-            cachedTextMeasurer(font).measureText('')
-        );
+        const fonts = [opts.title, opts.positive, opts.negative];
+        const fontMetrics = fonts.map((font) => cachedTextMeasurer(font).measureText(''));
         const ascent = Math.max(...fontMetrics.map((metrics) => metrics.ascent));
-        const lineHeight = ascent + Math.max(...fontMetrics.map((metrics) => metrics.descent));
+        const lineHeight = fonts.some((font) => font.lineHeight != null)
+            ? Math.max(...fonts.map((font) => drawnLineHeight(font)))
+            : ascent + Math.max(...fontMetrics.map((metrics) => metrics.descent));
 
         const labelConfigurations = chartConfigurations[this.getChartType()] ?? 0;
 

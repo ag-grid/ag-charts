@@ -11,6 +11,7 @@ import {
     type SeriesModuleDefinition,
     fillThemeTemplate,
     seriesLabelFontWeightOr,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
@@ -59,6 +60,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 color: { $ref: 'chartBackgroundColor' },
                 fontFamily: { $ref: 'seriesLabelFontFamily' },
                 fontSize: { $ref: 'seriesLabelFontSize' },
+                lineHeight: themeLineHeight('seriesLabelLineHeight'),
                 fontWeight: seriesLabelFontWeightOr('bold'),
             },
             tooltip: SERIES_TOOLTIP_THEME,

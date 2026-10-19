@@ -1,4 +1,4 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight, ImageSegment } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight, ImageSegment, PixelSize } from 'ag-charts-types';
 
 import type { NormalisedTextSegment } from '../options/normalised/normalisedCommonOptions';
 import type { Writeable } from './global';
@@ -18,6 +18,7 @@ export interface FontOptions {
     fontStyle?: FontStyle;
     fontWeight?: FontWeight;
     fontFamily?: FontFamily;
+    lineHeight?: PixelSize;
 }
 
 export interface TextMetricsBox {
@@ -61,6 +62,8 @@ export interface SegmentsLineMetrics extends Size {
      */
     textAscent: number;
     textDescent: number;
+    /** The line height the row is spaced by, when one was set rather than taken from the glyphs. */
+    lineHeight?: number;
     segments: MeasuredSegment[];
     /**
      * Present on the first line of a block row: the leading block-image strip, anchored to the left

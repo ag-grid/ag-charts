@@ -12,6 +12,7 @@ import {
     SERIES_TOOLTIP_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -70,6 +71,7 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $rem: 2 },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             minimumFontSize: FONT_SIZE.SMALL,
             spacing: 18,
             wrapping: 'on-space',

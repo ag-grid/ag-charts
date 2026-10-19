@@ -27,6 +27,7 @@ import {
     findRangeExtent,
     firstCandidate,
     isArray,
+    lineHeightAtSize,
     measureTextSegments,
     mergeDefaults,
     tickFormat,
@@ -313,6 +314,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 rotation,
                 label: {
                     ...pickGaugeTargetLabelOptions(label, target.label),
+                    lineHeight: target.label?.lineHeight ?? lineHeightAtSize(defaultTarget.label, label.fontSize),
                     color: label.color,
                     spacing: label.spacing,
                 },
@@ -1068,6 +1070,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             fontSize = defaultScale.label.fontSize,
             fontStyle,
             fontWeight = defaultScale.label.fontWeight,
+            lineHeight = lineHeightAtSize(defaultScale.label, fontSize),
             spacing,
         } = options.scale.label;
         let { placement } = options.scale.label;
@@ -1105,6 +1108,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             label.fontSize = fontSize;
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
+            label.lineHeight = lineHeight;
             label.textBaseline = textBaseline;
             label.textAlign = textAlign;
             label.x = x;

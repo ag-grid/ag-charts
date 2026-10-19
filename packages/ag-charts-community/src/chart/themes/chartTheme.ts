@@ -67,6 +67,12 @@ const defaultsConfigCache = createScopedCache(
     }
 );
 
+/** Params with no default, so text keeps the natural line height of its font until a theme sets them. */
+type UnsetThemeParam = 'lineHeight';
+export type ThemeParamDefaults<T> = Required<Omit<T, UnsetThemeParam>> & {
+    [K in UnsetThemeParam & keyof T]: T[K] | undefined;
+};
+
 export class ChartTheme {
     readonly palette: Required<AgChartThemePalette> & {
         sequentialColors: CssColor[][]; // TODO: AG-14186 make public
@@ -108,7 +114,7 @@ export class ChartTheme {
         };
     }
 
-    public static getDefaultPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
+    public static getDefaultPublicParameters(): ThemeParamDefaults<WithThemeParams<AgChartThemeParams>> {
         return {
             accentColor: '#2196f3',
             axisLineColor: { $ref: 'borderColor' },
@@ -126,6 +132,7 @@ export class ChartTheme {
             fontFamily:
                 '"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
             fontSize: BASE_FONT_SIZE,
+            lineHeight: undefined,
             fontWeight: 400,
             gridLineColor: { $mix: [{ $ref: 'axisLineColor' }, { $ref: 'backgroundColor' }, 0.35] },
             gridLineWidth: 1,
@@ -136,6 +143,7 @@ export class ChartTheme {
             chromeBackgroundColor: { $foregroundBackgroundMix: 0.02 },
             chromeFontFamily: { $ref: 'fontFamily' },
             chromeFontSize: { $ref: 'fontSize' },
+            chromeLineHeight: { $ref: 'lineHeight' },
             chromeFontWeight: { $ref: 'fontWeight' },
             chromeTextColor: { $ref: 'textColor' },
             chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
@@ -143,10 +151,12 @@ export class ChartTheme {
             axisLabelColor: { $ref: 'textColor' },
             axisLabelFontFamily: { $ref: 'fontFamily' },
             axisLabelFontSize: { $ref: 'fontSize' },
+            axisLabelLineHeight: { $ref: 'lineHeight' },
             axisLabelFontWeight: { $ref: 'fontWeight' },
             axisTitleColor: { $ref: 'textColor' },
             axisTitleFontFamily: { $ref: 'fontFamily' },
             axisTitleFontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
+            axisTitleLineHeight: { $ref: 'lineHeight' },
             axisTitleFontWeight: { $ref: 'fontWeight' },
 
             buttonBackgroundColor: { $ref: 'chromeBackgroundColor' },
@@ -203,14 +213,17 @@ export class ChartTheme {
             crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
 
             titleFontSize: { $rem: FONT_SIZE_RATIO.LARGEST },
+            titleLineHeight: { $ref: 'lineHeight' },
             titleFontWeight: { $ref: 'fontWeight' },
             titleFontFamily: { $ref: 'fontFamily' },
             titleColor: { $ref: 'textColor' },
             subtitleFontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
+            subtitleLineHeight: { $ref: 'lineHeight' },
             subtitleFontWeight: { $ref: 'fontWeight' },
             subtitleFontFamily: { $ref: 'fontFamily' },
             subtitleColor: { $ref: 'subtleTextColor' },
             footnoteFontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
+            footnoteLineHeight: { $ref: 'lineHeight' },
             footnoteFontWeight: { $ref: 'fontWeight' },
             footnoteFontFamily: { $ref: 'fontFamily' },
             footnoteColor: { $ref: 'subtleTextColor' },
@@ -224,6 +237,7 @@ export class ChartTheme {
             legendLabelColor: { $ref: 'textColor' },
             legendLabelFontFamily: { $ref: 'fontFamily' },
             legendLabelFontSize: { $rem: FONT_SIZE_RATIO.SMALL },
+            legendLabelLineHeight: { $ref: 'lineHeight' },
             legendLabelFontWeight: { $ref: 'fontWeight' },
             legendMarkerSize: 15,
             legendPadding: 5,
@@ -269,6 +283,7 @@ export class ChartTheme {
             seriesLabelBorderRadius: { $ref: 'borderRadius' },
             seriesLabelFontFamily: { $ref: 'fontFamily' },
             seriesLabelFontSize: { $ref: 'fontSize' },
+            seriesLabelLineHeight: { $ref: 'lineHeight' },
             seriesLabelFontWeight: { $ref: 'fontWeight' },
             seriesLabelInsideBackgroundColor: 'transparent',
             seriesLabelInsideTextColor: { $ref: 'chartBackgroundColor' },
@@ -424,7 +439,7 @@ export class ChartTheme {
         return ChartTheme.getDefaultColors();
     }
 
-    getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
+    getThemeParameters(): ThemeParamDefaults<WithThemeParams<AgChartAllThemeParams>> {
         return {
             ...ChartTheme.getDefaultPublicParameters(),
             ...this.getPrivateParameters(),

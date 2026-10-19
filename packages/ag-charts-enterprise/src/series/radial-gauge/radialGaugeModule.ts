@@ -11,6 +11,7 @@ import {
     SERIES_TOOLTIP_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
@@ -95,6 +96,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 enabled: true,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: 56,
+                lineHeight: themeLineHeight('seriesLabelLineHeight'),
                 minimumFontSize: 18 / 56,
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'textColor' },
@@ -107,6 +109,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 enabled: true,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
+                lineHeight: themeLineHeight('seriesLabelLineHeight'),
                 minimumFontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'subtleTextColor' },

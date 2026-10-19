@@ -637,6 +637,24 @@ describe('Legend', () => {
         });
     });
 
+    describe('Item labels', () => {
+        it('breaks labels across lines, truncating each line to the item width', async () => {
+            await compareSnapshot({
+                data: [
+                    { x: 'x1', a: 1, b: 2, c: 3, d: 4 },
+                    { x: 'x2', a: 2, b: 3, c: 4, d: 5 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a', yName: 'One line' },
+                    { type: 'bar', xKey: 'x', yKey: 'b', yName: 'Two\nlines' },
+                    { type: 'bar', xKey: 'x', yKey: 'c', yName: 'Three\nline\nlabel' },
+                    { type: 'bar', xKey: 'x', yKey: 'd', yName: 'Short\nA second line far too long to fit' },
+                ],
+                legend: { item: { maxWidth: 140 } },
+            });
+        });
+    });
+
     describe('AG-12614', () => {
         test('updateDelta line to bar', async () => {
             const options: AgChartOptions = {

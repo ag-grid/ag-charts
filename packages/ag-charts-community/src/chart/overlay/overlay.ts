@@ -138,6 +138,7 @@ export class Overlay {
                         fontFamily: segment.fontFamily ?? 'inherit',
                         fontWeight: String(segment.fontWeight),
                         fontStyle: segment.fontStyle,
+                        lineHeight: segment.lineHeight == null ? undefined : `${segment.lineHeight}px`,
                     });
                     el.innerText = toTextString(segment.text);
                     container.appendChild(el);

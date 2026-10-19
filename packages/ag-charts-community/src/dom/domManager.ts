@@ -558,7 +558,7 @@ export class DOMManager extends BaseManager {
         this.lastThemeParameters = params;
         this.lastThemeParameterCount = paramCount;
 
-        const variables: Record<string, string | number> = {};
+        const variables: Record<string, string | number | undefined> = {};
 
         // Flatten theme params into a single object ready for the css variables
         for (const [key, value] of entries(params as Record<string, any>)) {
@@ -586,7 +586,7 @@ export class DOMManager extends BaseManager {
         module: string,
         component: string | undefined,
         modifier: string | undefined,
-        variables: Record<string, string | number>,
+        variables: Record<string, string | number | undefined>,
         numericKeys?: string[]
     ) {
         this.setCSSVariables(`--ag-charts-${module}`, component, modifier, variables, numericKeys);
@@ -596,10 +596,14 @@ export class DOMManager extends BaseManager {
         prefix: string,
         component: string | undefined,
         modifier: string | undefined,
-        variables: Record<string, string | number>,
+        variables: Record<string, string | number | undefined>,
         numericKeys?: string[]
     ) {
         for (const [key, value] of entries(variables)) {
+            if (value == null) {
+                this.element.style.removeProperty(this.formatCSSVariableKey(prefix, component, key, modifier));
+                continue;
+            }
             let formattedValue = `${value}`;
 
             if (

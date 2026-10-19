@@ -49,6 +49,8 @@ export interface AgGaugeScaleLabel<TContext> {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the labels. */
     fontSize?: FontSize;
+    /** The line height in pixels to use for the labels. Defaults to the natural line height of the font. */
+    lineHeight?: PixelSize;
     /** The font family to use for the labels */
     fontFamily?: FontFamily;
     /** Spacing in pixels between the scale label and the tick. */

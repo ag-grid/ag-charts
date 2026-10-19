@@ -40,6 +40,9 @@ const BASE_OPTIONS = {
     textBaseline: 'top' as CanvasTextBaseline,
 };
 
+// Segments inherit a set lineHeight, so rich-text cases leave it natural.
+const { lineHeight: _lineHeight, ...SEGMENT_OPTIONS } = BASE_OPTIONS;
+
 describe('Text', () => {
     setupMockConsole();
 
@@ -228,7 +231,7 @@ describe('Text', () => {
             },
         ];
 
-        it('should render as expected', () => {
+        it('should render as expected with a lineHeight shorter than the natural line height', () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.strokeStyle = 'black';
@@ -528,7 +531,7 @@ describe('Text', () => {
 
             const text = new Text();
             Object.assign(text, {
-                ...BASE_OPTIONS,
+                ...SEGMENT_OPTIONS,
                 text: [
                     { text: 'Hello ', fontWeight: 'bold' as const },
                     { type: 'image', url: ICON_SVG, width: 24, height: 24, verticalAlign: 'middle' },
@@ -562,7 +565,7 @@ describe('Text', () => {
 
             const text = new Text();
             Object.assign(text, {
-                ...BASE_OPTIONS,
+                ...SEGMENT_OPTIONS,
                 textBaseline: 'middle',
                 text: [
                     {
@@ -604,7 +607,7 @@ describe('Text', () => {
 
             const text = new Text();
             Object.assign(text, {
-                ...BASE_OPTIONS,
+                ...SEGMENT_OPTIONS,
                 text: [
                     { text: 'Before ' },
                     { type: 'image', url: ICON_SVG, width: 24, height: 24, ...extra },
@@ -676,7 +679,7 @@ describe('Text', () => {
             {
                 x = 200,
                 y = 120,
-                textAlign = BASE_OPTIONS.textAlign,
+                textAlign = SEGMENT_OPTIONS.textAlign,
                 direction = 'ltr',
             }: { x?: number; y?: number; textAlign?: CanvasTextAlign; direction?: CanvasDirection } = {}
         ) {
@@ -684,7 +687,7 @@ describe('Text', () => {
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 800, canvasCtx.nodeCanvas.height ?? 600);
 
-            Object.assign(node, { ...BASE_OPTIONS, textBaseline: 'middle', textAlign, text, x, y });
+            Object.assign(node, { ...SEGMENT_OPTIONS, textBaseline: 'middle', textAlign, text, x, y });
             node.setScene({ ...makeImageLoaderScene(imagesByUri), isRtl: direction === 'rtl' });
 
             ctx.save();
@@ -1004,6 +1007,64 @@ describe('Text', () => {
             expect(textMeasurerA.measureText('Hello world!')).toMatchSnapshot();
             expect(textMeasurerB.measureText('Hello world!')).toMatchSnapshot();
         });
+
+        it('measures plain text by the font lineHeight when no lineHeight option is given', () => {
+            const font = { fontSize: 12, fontFamily: 'Verdana', lineHeight: 36 };
+            expect(Text.measureBBox('A\nB', 0, 0, { font, textBaseline: 'top' }).height).toBe(72);
+            expect(Text.measureBBox('A\nB', 0, 0, { font, lineHeight: 20, textBaseline: 'top' }).height).toBe(40);
+        });
+
+        describe('rich text', () => {
+            const mockScene = setUpMockScene(canvasCtx);
+
+            const inherited = (text: string) => [[{ text }], 36] as const;
+            it.each([
+                [...inherited('A'), 'top'],
+                [...inherited('A\nB'), 'top'],
+                [...inherited('A'), 'middle'],
+                [...inherited('A\nB'), 'middle'],
+                [[{ text: 'A' }, { text: '\n\n', lineHeight: 40 }], undefined, 'top'],
+            ] as const)(
+                'reports the measured bounds of %j with lineHeight %s at a %s baseline',
+                (text, lineHeight, textBaseline) => {
+                    const font = { fontSize: 12, fontFamily: 'Verdana', lineHeight };
+                    const node = Object.assign(new Text(), font, { text: [...text], textBaseline });
+                    node.setScene(mockScene);
+                    const { y, height } = Text.measureBBox([...text], 0, 0, { font, textBaseline });
+                    expect(node.getBBox()).toMatchObject({ y, height });
+                }
+            );
+
+            it.each(['top', 'middle'] as const)(
+                'fills its box to the measured rows at a %s baseline',
+                (textBaseline) => {
+                    const font = { fontSize: 12, fontFamily: 'Verdana', lineHeight: 36 };
+                    const node = Object.assign(new Text(), font, {
+                        text: [{ text: 'A' }],
+                        textBaseline,
+                        x: 100,
+                        y: 100,
+                    });
+                    node.setScene(mockScene);
+                    node.setBoxing({ fill: 'red', padding: 0 });
+                    const ctx = canvasCtx.getRenderContext2D();
+                    node.render({
+                        ctx,
+                        direction: 'ltr' as const,
+                        width: canvasCtx.nodeCanvas.width,
+                        height: canvasCtx.nodeCanvas.height,
+                        devicePixelRatio: 1,
+                        logger: testLogger,
+                        debugNodes: {},
+                    });
+                    const { x, y, height } = node.getBBox();
+                    for (const rowY of [y + 1, y + height - 1]) {
+                        const [r, g, b] = ctx.getImageData(Math.ceil(x) + 1, Math.round(rowY), 1, 1).data;
+                        expect([r, g, b]).toEqual([255, 0, 0]);
+                    }
+                }
+            );
+        });
     });
 
     // A number beside RTL text reorders to `5-` in either paragraph direction, so the marks are
@@ -1114,7 +1175,7 @@ describe('Text', () => {
         it('tracks the textBaseline for a segmented label', () => {
             const measure = (textBaseline: CanvasTextBaseline) => {
                 const node = Object.assign(new Text(), {
-                    ...BASE_OPTIONS,
+                    ...SEGMENT_OPTIONS,
                     textBaseline,
                     text: [
                         { text: 'Ag', fontSize: 24 },

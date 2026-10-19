@@ -1,5 +1,6 @@
 import type { BBox, Point, StateMachine } from 'ag-charts-core';
 
+import type { FontFields } from './annotationDatum';
 import type { AnnotationContext, AnnotationType, Constructor, DataPoint } from './annotationTypes';
 import type { ArrowDownDatum } from './arrow-down/arrowDownDatum';
 import type { ArrowDownScene } from './arrow-down/arrowDownScene';
@@ -99,7 +100,7 @@ export interface AnnotationsStateMachineContext {
     showTextInput: (index: number) => void;
     hideTextInput: () => void;
     updateTextInputColor: (color: string) => void;
-    updateTextInputFontSize: (fontSize: number) => void;
+    updateTextInputFontSize: (font: FontFields) => void;
     updateTextInputBBox: (bbox?: BBox) => void;
 
     showAnnotationOptions: (index: number) => void;

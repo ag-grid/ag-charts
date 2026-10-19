@@ -4,7 +4,7 @@ import {
     type AgNavigatorOptions,
     type WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth, themeLineHeight } from 'ag-charts-core';
 
 import {
     barIgnoredMiniChartProperties,
@@ -183,6 +183,7 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
         label: {
             color: { $ref: 'textColor' },
             fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
+            lineHeight: themeLineHeight('lineHeight'),
             fontFamily: { $ref: 'fontFamily' } as any,
             fontWeight: { $ref: 'fontWeight' },
             spacing: 5,

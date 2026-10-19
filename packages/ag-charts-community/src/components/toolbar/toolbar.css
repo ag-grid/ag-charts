@@ -45,6 +45,7 @@
     display: flex;
     font-family: var(--ag-charts-chrome-font-family);
     font-size: var(--ag-charts-chrome-font-size-medium);
+    line-height: var(--ag-charts-chrome-line-height, normal);
     font-weight: var(--ag-charts-chrome-font-weight);
     justify-content: center;
     min-height: var(--toolbar-size);

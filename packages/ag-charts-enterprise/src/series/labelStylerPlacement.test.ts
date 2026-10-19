@@ -7,6 +7,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Text } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
@@ -228,6 +229,39 @@ describe('label itemStyler participates in placement', () => {
         it('reports cone-funnel placements to a cone-funnel label styler', async () => {
             const seen = await styledPlacements('cone-funnel', ['start-center', 'end-center']);
             expect(seen.every((placement) => CONE_FUNNEL_PLACEMENT.test(placement))).toBe(true);
+        });
+    });
+
+    describe('hierarchy series fit the styled font', () => {
+        const label = { fontSize: 10, itemStyler: () => ({ fontSize: 20, lineHeight: 30 }) };
+        it.each([
+            ['treemap', { tile: { label } }],
+            ['sunburst', { label }],
+        ])('draws %s labels at the fontSize and lineHeight the styler returns', async (type, labelOptions) => {
+            chart = await createEnterpriseChart({
+                data: [
+                    { name: 'Alpha', size: 3 },
+                    { name: 'Bravo', size: 2 },
+                ],
+                series: [
+                    {
+                        type,
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        ...labelOptions,
+                    },
+                ],
+            } as AgChartOptions);
+            const { labelSelection } = deproxy(chart).series[0] as unknown as {
+                labelSelection: { selectByClass(type: typeof Text): Iterable<Text> };
+            };
+            const labels = [...labelSelection.selectByClass(Text)].filter(
+                (text) => text.visible && text.text != null && text.text !== ''
+            );
+            expect(labels.length).toBeGreaterThan(0);
+            expect(labels.map(({ fontSize, lineHeight }) => ({ fontSize, lineHeight }))).toEqual(
+                labels.map(() => ({ fontSize: 20, lineHeight: 30 }))
+            );
         });
     });
 

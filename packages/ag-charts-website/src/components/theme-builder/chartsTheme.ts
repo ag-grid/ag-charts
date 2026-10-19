@@ -5,6 +5,7 @@ import {
     type SeriesColor,
     fromSeriesColors,
 } from '@ag-website-shared/components/theme-builder/palette';
+import type { ParamType } from '@ag-website-shared/theming/api';
 import { type Theme, createPart, createSharedTheme } from 'ag-stack';
 
 import { _Theme } from 'ag-charts-community';
@@ -110,6 +111,13 @@ export const toStackParamValue = (property: string, value: ChartsParamValue): un
  */
 export const PUBLIC_PARAM_NAMES = Object.keys(_Theme.ChartTheme.getDefaultPublicParameters());
 
+/** Unset by default, so text keeps its font's natural line height. */
+export const UNSET_BY_DEFAULT_PARAMS = new Set(['lineHeight']);
+
+/** Line heights are ratios of the font size, which the name-based inference would edit as pixel lengths. */
+export const chartsParamType = (property: string): ParamType | undefined =>
+    property === 'lineHeight' || property.endsWith('LineHeight') ? 'ratio' : undefined;
+
 /**
  * Edited only as on/off toggles, so a stock theme reads them as `true`. The
  * builder does not model their colour and width members.
@@ -174,6 +182,13 @@ export const CHARTS_PARAM_DEFAULTS = getStackParams(DEFAULT_THEME_NAME);
 
 const shadowThemes = new Map<AgChartThemeName, Theme>();
 
+const definedParams = (params: Record<string, unknown>) =>
+    Object.fromEntries(
+        Object.keys(params)
+            .filter((key) => params[key] !== undefined)
+            .map((key) => [key, params[key]])
+    );
+
 /**
  * The shadow theme the shared model reads from for one stock theme.
  * `createSharedTheme` starts empty, so the catalogue is exactly AG Charts' params.
@@ -184,7 +199,7 @@ export const getShadowTheme = (themeName: AgChartThemeName): Theme => {
         theme = createSharedTheme(themeLogger).withPart(
             // Keyed by AG Charts' names rather than ag-stack's, so the values are
             // validated at runtime through `themeLogger`.
-            createPart({ feature: 'agCharts', params: getStackParams(themeName) })
+            createPart({ feature: 'agCharts', params: definedParams(getStackParams(themeName)) })
         );
         shadowThemes.set(themeName, theme);
     }

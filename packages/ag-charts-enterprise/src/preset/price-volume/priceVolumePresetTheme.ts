@@ -1,4 +1,4 @@
-import { FONT_SIZE_RATIO } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, themeLineHeight } from 'ag-charts-core';
 import type {
     AgAnnotationAxisLabel,
     AgAnnotationHandleStyles,
@@ -36,6 +36,7 @@ const lineText: WithThemeParams<TextOptions> = {
 const font: WithThemeParams<TextOptions> = {
     color: { $ref: 'annotationTextColor' },
     fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
+    lineHeight: themeLineHeight('lineHeight'),
     fontFamily: { $ref: 'fontFamily' },
 };
 
@@ -51,6 +52,7 @@ const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
         ...font,
         color: undefined,
         fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
+        lineHeight: themeLineHeight('lineHeight'),
     },
 };
 

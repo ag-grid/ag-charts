@@ -11,6 +11,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     cycledFillThemeTemplate,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -46,6 +47,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             enabled: true,
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontSize: { $rem: [FONT_SIZE_RATIO.LARGE, 'seriesLabelFontSize'] },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             minimumFontSize: { $rem: [9 / BASE_FONT_SIZE, 'seriesLabelFontSize'] },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
@@ -58,6 +60,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             enabled: true,
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontSize: { $rem: [FONT_SIZE_RATIO.SMALLEST, 'seriesLabelFontSize'] },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             minimumFontSize: { $rem: [7 / BASE_FONT_SIZE, 'seriesLabelFontSize'] },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
@@ -68,6 +71,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             $apply: {
                 ...LABEL_BOXING_DEFAULTS,
                 fontSize: { $ref: 'seriesLabelFontSize' },
+                lineHeight: themeLineHeight('seriesLabelLineHeight'),
                 fontFamily: { $ref: 'seriesLabelFontFamily' },
                 fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },

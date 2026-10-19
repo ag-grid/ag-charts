@@ -329,7 +329,7 @@ describe('Ranges', () => {
     });
 
     describe('theme params', () => {
-        const resolvedRanges = async (params: Record<string, unknown>) => {
+        const resolvedRanges = async (params: Record<string, unknown>, ranges: Record<string, unknown> = {}) => {
             const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -337,13 +337,33 @@ describe('Ranges', () => {
                     x: { type: 'number', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
                 },
-                ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] },
+                ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }], ...ranges },
                 theme: { params },
             } as any;
 
             chart = await createEnterpriseChart(options);
             return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
         };
+
+        it('derives the button and dropdown lineHeight from their own fontSize', async () => {
+            const ranges = await resolvedRanges(
+                { chromeLineHeight: 1.5 },
+                { fontSize: 10, button: { fontSize: 20 }, dropdown: { fontSize: 16 } }
+            );
+
+            expect(ranges.button.lineHeight).toBe(30);
+            expect(ranges.dropdown.lineHeight).toBe(24);
+        });
+
+        it('passes a set ranges lineHeight on to the button and dropdown', async () => {
+            const ranges = await resolvedRanges(
+                { chromeLineHeight: 1.5 },
+                { lineHeight: 18, button: { fontSize: 20 }, dropdown: { fontSize: 16 } }
+            );
+
+            expect(ranges.button.lineHeight).toBe(18);
+            expect(ranges.dropdown.lineHeight).toBe(18);
+        });
 
         it('button text follows buttonTextColor, not chromeTextColor', async () => {
             const ranges = await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' });

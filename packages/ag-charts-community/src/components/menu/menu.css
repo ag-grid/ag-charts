@@ -5,6 +5,7 @@
     grid: auto-flow auto / 1fr;
     column-gap: 12px;
     font-size: var(--ag-charts-chrome-font-size);
+    line-height: var(--ag-charts-chrome-line-height);
 }
 
 .ag-charts-menu:has(.ag-charts-menu__icon, .ag-charts-menu__row--stroke-width-visible) {

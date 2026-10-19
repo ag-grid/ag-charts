@@ -58,6 +58,8 @@ export interface AgNavigatorMiniChartLabelOptions<TContext = ContextDefault> {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the labels. */
     fontSize?: FontSize;
+    /** The line height in pixels to use for the labels. Defaults to the natural line height of the font. */
+    lineHeight?: PixelSize;
     /** The font family to use for the labels. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
     /** Spacing in pixels between the axis labels and the Mini Chart. */

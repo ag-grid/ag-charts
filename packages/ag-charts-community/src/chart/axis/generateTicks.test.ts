@@ -3,9 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LinearScale, OrdinalTimeScale, ScaleAlignment, UnitTimeScale } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import { setupMockCanvas } from '../test/utils';
 import { NiceMode } from './axisUtil';
 import { estimateScaleTickCount, generateTicks } from './generateTicks';
-import { withTemporaryDomain } from './generateTicksUtils';
+import { timeIntervalMaxLabelSize, withTemporaryDomain } from './generateTicksUtils';
 
 // `numericBands` is a protected derived cache; bracket access keeps it typed without a cast.
 const numericBandsOf = (scale: OrdinalTimeScale) => scale['numericBands'];
@@ -288,5 +289,54 @@ describe('labelBandOffsets', () => {
         for (const rotation of requested) {
             expect(rotation).toBe(result.rotation);
         }
+    });
+});
+
+describe('tick label lineHeight', () => {
+    setupMockCanvas();
+
+    function tickHeights(lineHeight: number | undefined) {
+        const scale = new LinearScale();
+        scale.domain = [0, 100];
+        scale.range = [0, 600];
+
+        const { tickData } = generateTicks({
+            label: { enabled: true, fontSize: 12, lineHeight, avoidCollisions: true, autoRotate: false } as any,
+            parallel: true,
+            axisRotation: Math.PI / -2,
+            scale,
+            domain: [0, 100],
+            range: [0, 600],
+            visibleRange: [0, 1],
+            niceMode: [],
+            reverse: false,
+            primaryTickCount: undefined,
+            defaultTickMinSpacing: 50,
+            labelOffset: 0,
+            sideFlag: -1,
+            interval: undefined,
+            tickFormatter: () => (value: any) => `${value}\nunits`,
+        } as any);
+        return tickData.ticks.map((tick) => tick.textMetrics.height);
+    }
+
+    it('measures multi-line tick labels by their lineHeight', () => {
+        const heights = tickHeights(40);
+        expect(heights.length).toBeGreaterThan(0);
+        expect(heights.every((height) => height === 80)).toBe(true);
+        expect(tickHeights(undefined).every((height) => height < 80)).toBe(true);
+    });
+
+    it('measures time labels by their lineHeight when estimating their size', () => {
+        const label = { enabled: true, fontSize: 12, lineHeight: 40, format: '%d %b' } as any;
+        const domain = [new Date(2024, 0, 1), new Date(2024, 0, 10)];
+        expect(timeIntervalMaxLabelSize(label, undefined, domain, 'day').height).toBe(40);
+    });
+
+    it('measures parent level time labels by their own lineHeight', () => {
+        const label = { enabled: true, fontSize: 12, lineHeight: 15, format: '%d' } as any;
+        const primaryLabel = { enabled: true, fontSize: 12, lineHeight: 60, format: '%b' } as any;
+        const domain = [new Date(2024, 0, 1), new Date(2024, 2, 10)];
+        expect(timeIntervalMaxLabelSize(label, primaryLabel, domain, 'day').height).toBe(60);
     });
 });

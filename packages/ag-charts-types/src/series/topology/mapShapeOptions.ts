@@ -6,15 +6,7 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type {
-    ContextDefault,
-    DatumDefault,
-    DatumKey,
-    FontSize,
-    GeoJSON,
-    OverflowStrategy,
-    PixelSize,
-} from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, OverflowStrategy, PixelSize } from '../../chart/types';
 import type { AgColorScale, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -63,8 +55,6 @@ export interface AgMapShapeSeriesOptionsNames {
 
 export interface AgMapShapeSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgChartLabelAutoFontSizeOptions {
-    /** Line height to use for the label. */
-    lineHeight?: FontSize;
     /**
      * Adjusts the behaviour of labels when they overflow.
      * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)

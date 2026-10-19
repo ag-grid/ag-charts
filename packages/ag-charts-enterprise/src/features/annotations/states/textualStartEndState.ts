@@ -6,7 +6,7 @@ import type { TextualStartEndDatum } from '../datum/textualDatum';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
 import { maybeWrapText } from '../text/util';
 import { applyAnnotationOptions } from '../utils/datum';
-import { setColor } from '../utils/styles';
+import { resizeFont, setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
@@ -127,8 +127,8 @@ export abstract class TextualStartEndStateMachine<
             const { datum, node } = this;
             if (!datum || !node || !isTextType(datum)) return;
 
-            datum.fontSize = fontSize;
-            ctx.updateTextInputFontSize(fontSize);
+            resizeFont(datum, fontSize);
+            ctx.updateTextInputFontSize(datum);
             ctx.update();
         };
 

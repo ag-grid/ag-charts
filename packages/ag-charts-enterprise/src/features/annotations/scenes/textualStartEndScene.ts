@@ -81,8 +81,8 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndDatum> e
     }
 
     protected getTextOptions(datum: TextualStartEndDatum): TextOptions {
-        const { fontFamily, fontSize, fontStyle, fontWeight, textAlign } = datum;
-        return { fontFamily, fontSize, fontStyle, fontWeight, textAlign, position: this.textPosition };
+        const { fontFamily, fontSize, fontStyle, fontWeight, lineHeight, textAlign } = datum;
+        return { fontFamily, fontSize, fontStyle, fontWeight, lineHeight, textAlign, position: this.textPosition };
     }
 
     protected getTextBBox(datum: Datum, coords: Bounds4, context: AnnotationContext) {

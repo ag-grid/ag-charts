@@ -1241,12 +1241,22 @@ describe('AG-13301 layout-driven caption shrinking', () => {
             const { proxy, chart } = await createSizedChart(180, 320, { title: titleOptions });
 
             const fitted = chart.title.node.text as Array<{ text: string; fontSize: number }>;
-            // The note runs down to the caption floor so that the headline, on a floor of its own, need
-            // give up only enough to still read as the headline.
+            // The note gives up its line to keep the title within its 10% height budget.
             expect(chart.title.node.fontSize).toBeLessThan(captionMinimumFontSize + 1);
-            expect(sizeOf(fitted, 'prior year')).toBeLessThan(captionMinimumFontSize + 1);
-            expect(sizeOf(fitted, 'Revenue')).toBeGreaterThanOrEqual(headline.minimumFontSize);
+            expect(fitted.some((s) => s.text.includes('prior year'))).toBe(false);
+            expect(chart.title.node.getBBox().height).toBeLessThanOrEqual(32);
+            expect(sizeOf(fitted, 'Reven')).toBeGreaterThanOrEqual(headline.minimumFontSize);
             expect(sizeOf(fitted, 'Q4')).toBeGreaterThanOrEqual(kicker.minimumFontSize);
+            proxy.destroy();
+        });
+
+        it('keeps a segment taller than the height budget at its inherited lineHeight', async () => {
+            const { proxy, chart } = await createSizedChart(420, 320, {
+                title: { text: [{ text: 'Large', fontSize: 40 }], fontSize: 20, lineHeight: 30 },
+            });
+
+            const fitted = chart.title.node.text as Array<{ text: string }>;
+            expect(fitted.map((s) => s.text).join('')).toBe('Large');
             proxy.destroy();
         });
 

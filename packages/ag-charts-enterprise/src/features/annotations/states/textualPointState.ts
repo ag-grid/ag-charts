@@ -5,7 +5,7 @@ import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTy
 import type { TextualPointDatum } from '../datum/textualDatum';
 import type { TextualPointScene } from '../scenes/textualPointScene';
 import { maybeWrapText } from '../text/util';
-import { setColor } from '../utils/styles';
+import { resizeFont, setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
@@ -109,8 +109,8 @@ export abstract class TextualPointStateMachine<
             const { datum, node } = this;
             if (!datum || !node || !isTextType(datum)) return;
 
-            datum.fontSize = fontSize;
-            ctx.updateTextInputFontSize(fontSize);
+            resizeFont(datum, fontSize);
+            ctx.updateTextInputFontSize(datum);
             ctx.update();
         };
 

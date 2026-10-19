@@ -16,7 +16,13 @@ import {
     isBlockBoundary,
     measureTextSegments,
 } from '../rendering/textMeasurer';
-import type { ITextMeasurer, MeasuredImageSegment, MeasuredSegment, MeasuredTextSegment } from '../types/text';
+import type {
+    ITextMeasurer,
+    MeasuredImageSegment,
+    MeasuredSegment,
+    MeasuredTextSegment,
+    SegmentsLineMetrics,
+} from '../types/text';
 import {
     EllipsisChar,
     type FontOptions,
@@ -26,6 +32,7 @@ import {
     graphemeSegments,
     guardTextEdges,
     isTextTruncated,
+    lineHeightAtSize,
     preserveArabicJoining,
     toTextString,
     unguardTextEdges,
@@ -45,8 +52,6 @@ export interface LabelFit {
      * {@link overflowStrategy} applies, which it does only once the minimum size still does not fit.
      */
     readonly minimumFontSize?: number;
-    /** Line height the label is drawn at, when it overrides the font's own. */
-    readonly lineHeight?: number;
     /**
      * The shape the label sits in, when it is not a rectangle. Each line is then wrapped to the width the
      * shape offers where that line lands, instead of every line sharing one inscribed rectangle's width.
@@ -155,7 +160,7 @@ export function fitLabelText(
     font: FontOptions
 ): NormalisedTextOrSegments {
     if (fit == null) return text;
-    const { maxWidth, maxHeight, wrapping, overflowStrategy, region, lineHeight } = fit;
+    const { maxWidth, maxHeight, wrapping, overflowStrategy, region } = fit;
     if (maxWidth == null && maxHeight == null && region == null) return text;
     const overflow = overflowStrategy ?? 'preserve';
     const options: WrapOptions = {
@@ -163,7 +168,7 @@ export function fitLabelText(
         maxWidth: maxWidth ?? Infinity,
         // A height bound can only be honoured by dropping lines, which 'preserve' forbids.
         maxHeight: overflow === 'preserve' ? undefined : maxHeight,
-        lineHeight,
+        lineHeight: font.lineHeight,
         textWrap: wrapping,
         overflow,
         rejectTallFirstLine: true,
@@ -196,7 +201,7 @@ export function fitLabelTextToRegion(
             font,
             maxWidth: fit.maxWidth ?? Infinity,
             maxHeight: overflow === 'preserve' ? undefined : fit.maxHeight,
-            lineHeight: fit.lineHeight,
+            lineHeight: font.lineHeight,
             textWrap: fit.wrapping,
             overflow,
             rejectTallFirstLine: true,
@@ -477,10 +482,38 @@ export interface AutoSizedLabelText {
     readonly fontSize?: number;
 }
 
-/** `font` at `fontSize`, or `font` itself when the size is unchanged. */
+/** `font` at `fontSize`, or `font` itself when the size is unchanged. A `lineHeight` keeps its proportion to the size. */
 export function fontWithSize(font: FontOptions, fontSize: number | undefined): FontOptions {
     if (fontSize == null || fontSize === font.fontSize) return font;
-    return { fontSize, fontStyle: font.fontStyle, fontWeight: font.fontWeight, fontFamily: font.fontFamily };
+    const { fontStyle, fontWeight, fontFamily } = font;
+    const sized: FontOptions = { fontSize, fontStyle, fontWeight, fontFamily };
+    const lineHeight = lineHeightAtSize(font, fontSize);
+    if (lineHeight != null) sized.lineHeight = lineHeight;
+    return sized;
+}
+
+/** The line height `font` is drawn at, as passed to an `itemStyler`. */
+export function drawnLineHeight(font: FontOptions): number {
+    return font.lineHeight ?? cachedTextMeasurer(font).lineHeight();
+}
+
+/**
+ * Reconciles an `itemStyler` result with `font`: a natural line height echoed back stays unset, and a restyled
+ * `fontSize` without a `lineHeight` of its own (unset or echoed) keeps a set line height in proportion.
+ */
+export function stylerLineHeightOverrides<T extends { fontSize?: number; lineHeight?: number }>(
+    result: T,
+    font: FontOptions,
+    paramLineHeight: number
+): T {
+    if (font.lineHeight == null) {
+        return result.lineHeight === paramLineHeight ? { ...result, lineHeight: undefined } : result;
+    }
+    const echoed = result.lineHeight == null || result.lineHeight === paramLineHeight;
+    if (echoed && result.fontSize != null) {
+        return { ...result, lineHeight: lineHeightAtSize(font, result.fontSize) };
+    }
+    return result;
 }
 
 /**
@@ -615,9 +648,11 @@ export function labelTextAtShrinkRatio(
     if (!isArray(text)) return { text, fontSize };
 
     const sized = text.map((segment) => {
+        if (segment.type === 'image') return segment;
         // A segment that overrides neither bound is drawn at the base size, which is already at `ratio`.
-        if (segment.type === 'image' || (segment.fontSize == null && segment.minimumFontSize == null)) {
-            return segment;
+        if (segment.fontSize == null && segment.minimumFontSize == null) {
+            if (segment.lineHeight == null) return segment;
+            return { ...segment, lineHeight: (segment.lineHeight * fontSize) / font.fontSize };
         }
         const range = segmentFontSizeRange(segment, minimumFontSize, font);
         const segmentSize = sizeAtRatio(range, ratio);
@@ -930,11 +965,12 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
 
 function lastLineMaxWidth(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
     const { lineMetrics } = measurer.measureLines(lines);
+    const heightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
     let top = 0;
     for (let i = 0; i < lineMetrics.length - 1; i += 1) {
-        top += lineMetrics[i].height;
+        top += heightAt(i);
     }
-    return lineMaxWidth(options, top, top + lineMetrics.at(-1)!.height);
+    return lineMaxWidth(options, top, top + heightAt(lineMetrics.length - 1));
 }
 
 function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
@@ -1223,15 +1259,25 @@ function hasImageWithStrategy(segments: NormalisedContentSegment[], strategy: 'h
     return segments.some(isImageWithStrategy(strategy));
 }
 
+/**
+ * Fits the segments in two steps: wrapping estimates each row's band to break the text to its width, then
+ * the renderer's own measurement of the result decides what fits, trimming it to the bands and `maxHeight`.
+ */
 function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
-    const { maxHeight = Infinity } = options;
+    const { result, reshaped, height } = wrapMeasuredSegments(textSegments, options);
+    if (preservesText(options)) return result;
+    // OPTIMIZATION: lines passed through unchanged were measured in their bands already.
+    if (!reshaped && height <= (options.maxHeight ?? Infinity)) return result;
+    return trimToMeasuredFit(result, options);
+}
+
+function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options: WrapOptions) {
     const preserveText = preservesText(options);
     const result: MeasuredSegment[] = [];
 
+    let reshaped = false;
     let lineWidth = 0;
     let totalHeight = 0;
-    // The band the line being built occupies: the segment path already tracks its own vertical offset,
-    // so mixed line heights need no extra bookkeeping to ask the shape for that line's width.
     const maxWidth = (height = 0) => lineMaxWidth(options, totalHeight, totalHeight + height);
 
     function truncateLastSegment() {
@@ -1250,7 +1296,8 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
     function wrapOverflowingTextSegment(segment: MeasuredTextSegment): boolean {
         const measurer = cachedTextMeasurer(segment);
         const guardedText = guardTextEdges(segment.text);
-        const wrapOptions = { ...options, font: segment, maxHeight: maxHeight - totalHeight };
+        const lineHeight = segment.lineHeight ?? options.lineHeight;
+        const wrapOptions = { ...options, font: segment, lineHeight, maxHeight: undefined };
 
         let wrappedLines = textWrap(guardedText, { ...wrapOptions, overflow: 'hide' }, lineWidth, totalHeight);
         if (wrappedLines.length === 0) {
@@ -1259,7 +1306,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             } else {
                 wrappedLines = textWrap(guardedText, wrapOptions, 0, totalHeight);
                 const lastSegment = result.at(-1);
-                if (lastSegment && lastSegment.type !== 'image') {
+                if (wrappedLines.length > 0 && lineWidth > 0 && lastSegment && lastSegment.type !== 'image') {
                     lastSegment.text += '\n';
                     lineWidth = 0;
                 }
@@ -1303,35 +1350,29 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 subSegment.text += '\n';
                 lineWidth = 0;
             }
-            totalHeight += textMetrics.height;
+            totalHeight += lineHeight ?? textMetrics.height;
             result.push(subSegment);
         }
 
         return truncationIndex !== -1;
     }
 
-    let isFirstLine = true;
-    for (const { width, height, segments } of measureTextSegments(textSegments, options.font).lineMetrics) {
-        if (!isFirstLine) {
-            appendLineBreak(result, options.font);
-            lineWidth = 0;
-        }
-        isFirstLine = false;
-
-        if (totalHeight + height > maxHeight) {
-            if (result.length > 0) {
-                truncateLastSegment();
-            }
-            break;
-        }
-
+    // Returns false once nothing more can be placed.
+    function wrapLine({ width, height, segments }: SegmentsLineMetrics): boolean {
         if (lineWidth + width <= maxWidth(height)) {
             lineWidth += width;
             totalHeight += height;
             result.push(...segments);
-            continue;
+            if (segments.length === 0 && height > 0) {
+                // An empty line's height belongs to the segment whose break ends it, which the break
+                // appended to the line above would otherwise take over.
+                const measurer = cachedTextMeasurer(options.font);
+                result.push({ ...options.font, text: '', lineHeight: height, textMetrics: measurer.measureText('') });
+            }
+            return true;
         }
 
+        reshaped = true;
         // Only the image-wrap path below leaves a line unaccounted for in totalHeight.
         let lineHeight = 0;
         for (const segment of segments) {
@@ -1345,14 +1386,8 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             if (segment.type === 'image') {
                 const imageWidth = segment.textMetrics.width;
                 const imageHeight = segment.textMetrics.height;
-                // Wrap the overflowing image to its own line rather than drop it (keeps width-shrinking
-                // monotonic). The text line it leaves behind must also fit, so count it under maxHeight.
-                if (
-                    options.textWrap !== 'never' &&
-                    lineWidth > 0 &&
-                    imageWidth <= maxWidth(imageHeight) &&
-                    totalHeight + lineHeight + imageHeight <= maxHeight
-                ) {
+                // Wrap the overflowing image to its own line rather than drop it (keeps width-shrinking monotonic).
+                if (options.textWrap !== 'never' && lineWidth > 0 && imageWidth <= maxWidth(imageHeight)) {
                     appendLineBreak(result, options.font);
                     lineWidth = imageWidth;
                     totalHeight += lineHeight + imageHeight;
@@ -1371,15 +1406,105 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 // No line to wrap to and images can't be subdivided, so stop fitting. The caller
                 // (wrapInlineSegmentsWithOverflow) handles overflow-strategy-based dropping.
                 truncateLastSegment();
-                return result;
+                return false;
             }
 
-            if (wrapOverflowingTextSegment(segment)) break;
+            if (wrapOverflowingTextSegment(segment)) return true;
             lineHeight = 0;
         }
+        return true;
     }
 
-    return result;
+    const { lineMetrics } = measureTextSegments(textSegments, options.font);
+    for (let i = 0; i < lineMetrics.length; i++) {
+        if (i > 0) {
+            appendLineBreak(result, options.font);
+            lineWidth = 0;
+        }
+        if (!wrapLine(lineMetrics[i])) break;
+    }
+
+    return { result, reshaped, height: totalHeight };
+}
+
+/**
+ * Measures `segments` as the renderer lays them out and, while a line falls outside its band or the block
+ * outgrows `maxHeight`, cuts the block after the last line that fits and ellipsises it.
+ */
+function trimToMeasuredFit(segments: MeasuredSegment[], options: WrapOptions): MeasuredSegment[] {
+    const { maxHeight = Infinity } = options;
+    const lineMaxWidths: number[] = [];
+    let top = 0;
+    let fits = true;
+    for (const { width, height } of measureTextSegments(segments, options.font).lineMetrics) {
+        const bottom = top + height;
+        if (bottom > maxHeight) {
+            fits = false;
+            break;
+        }
+        const maxWidth = lineMaxWidth(options, top, bottom);
+        lineMaxWidths.push(maxWidth);
+        if (width > maxWidth) {
+            fits = false;
+            break;
+        }
+        top = bottom;
+    }
+    if (fits) return segments;
+
+    for (let line = lineMaxWidths.length - 1; line >= 0; line--) {
+        const { before, row } = splitAtLine(segments, line);
+        const ellipsised = ellipsiseRow(row, lineMaxWidths[line]);
+        if (ellipsised != null) return trimToMeasuredFit([...before, ...ellipsised], options);
+    }
+    return [];
+}
+
+/** The segments of the lines above `line` with their breaks, and those on `line` itself without one. */
+function splitAtLine(segments: MeasuredSegment[], line: number) {
+    const before: MeasuredSegment[] = [];
+    const row: MeasuredSegment[] = [];
+    let current = 0;
+    for (const segment of segments) {
+        if (current > line) break;
+        if (segment.type === 'image') {
+            (current < line ? before : row).push(segment);
+            continue;
+        }
+        const parts = segment.text.split(LineSplitter);
+        const measurer = cachedTextMeasurer(segment);
+        for (let i = 0; i < parts.length && current <= line; i++) {
+            const text = parts[i];
+            const textMetrics = measurer.measureText(text);
+            const breaks = i < parts.length - 1;
+            if (current < line) {
+                before.push({ ...segment, text: breaks ? `${text}\n` : text, textMetrics });
+            } else if (text !== '') {
+                row.push({ ...segment, text, textMetrics });
+            }
+            if (breaks) current++;
+        }
+    }
+    return { before, row };
+}
+
+/**
+ * `row` ending in an ellipsis within `maxWidth`, giving up trailing segments until one with text to show
+ * leaves room for it; unset when none does.
+ */
+function ellipsiseRow(row: MeasuredSegment[], maxWidth: number): MeasuredSegment[] | undefined {
+    let available = maxWidth;
+    for (const segment of row) available -= segment.textMetrics.width;
+    while (row.length > 0) {
+        const last = row.pop()!;
+        available += last.textMetrics.width;
+        if (last.type === 'image' || survivingCharacters(last.text) === 0) continue;
+        const measurer = cachedTextMeasurer(last);
+        const text = truncateLine(last.text, measurer, available, true);
+        const textMetrics = measurer.measureText(text);
+        if (textMetrics.width <= available) return [...row, { ...last, text, textMetrics }];
+    }
+    return undefined;
 }
 
 // The renderer only reads a trailing \n on a text segment, so a break after an image needs a synthetic one.

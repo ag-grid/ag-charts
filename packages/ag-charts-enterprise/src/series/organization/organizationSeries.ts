@@ -34,7 +34,9 @@ import {
     boxCollides,
     boxContains,
     clamp,
+    drawnLineHeight,
     mergeDefaults,
+    stylerLineHeightOverrides,
     toPlainText,
 } from 'ag-charts-core';
 import type { Node, Selection } from 'ag-charts-core';
@@ -1050,6 +1052,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 fontSize: text.fontSize,
                 fontStyle: text.fontStyle,
                 fontWeight: text.fontWeight,
+                lineHeight: text.lineHeight,
                 showAllChildren: text.showAllChildren,
                 showDirectChildren: text.showDirectChildren,
                 textAlign: text.textAlign,
@@ -1099,6 +1102,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fontSize: props.fontSize,
             fontStyle: props.fontStyle,
             fontWeight: props.fontWeight,
+            lineHeight: props.lineHeight,
             truncate: props.truncate,
             collision: {
                 threshold: props.collision.threshold,
@@ -1218,6 +1222,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             return style;
         }
 
+        const lineHeight = drawnLineHeight(style);
         const overrides = this.cachedDatumCallback(
             _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix, datumState.isCollapsed),
             () => {
@@ -1227,7 +1232,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                     datumIndex,
                     highlightState,
                     datumState,
-                    style
+                    { ...style, lineHeight }
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -1237,7 +1242,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         );
 
         if (overrides) {
-            style = mergeDefaults(overrides, style);
+            style = mergeDefaults(stylerLineHeightOverrides(overrides, style, lineHeight), style);
             // The deprecated `overflowStrategy` is only mapped by the theme, so map a styler-returned value here.
             if (overrides.overflowStrategy != null && overrides.truncate == null) {
                 style.truncate = overrides.overflowStrategy === 'ellipsis';
@@ -1336,6 +1341,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return {
             ...style,
             ...datumState,
+            lineHeight: style.lineHeight,
             datum,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),

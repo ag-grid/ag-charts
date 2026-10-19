@@ -41,10 +41,12 @@ import {
     clamp,
     clampArray,
     deepFreeze,
+    drawnLineHeight,
     findMinMax,
     findRangeExtent,
     isArray,
     mergeDefaults,
+    stylerLineHeightOverrides,
     toPlainText,
 } from 'ag-charts-core';
 import type {
@@ -665,15 +667,19 @@ export abstract class Axis<
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
+            lineHeight: label.lineHeight,
             padding: label.padding,
             spacing: label.spacing,
         } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
+            const lineHeight = drawnLineHeight(label);
             stylerOutput = this.cachedCallWithContext(label.itemStyler, {
                 ...params,
                 ...defaultStyle,
+                lineHeight,
             });
+            if (stylerOutput) stylerOutput = stylerLineHeightOverrides(stylerOutput, label, lineHeight);
         }
         // OPTIMIZATION: with nothing to merge over it, `defaultStyle` is already the resolved style.
         if (stylerOutput == null && additionalStyles == null) return defaultStyle;
@@ -688,6 +694,7 @@ export abstract class Axis<
             fontSize: merged.fontSize,
             fontStyle: merged.fontStyle,
             fontWeight: merged.fontWeight,
+            lineHeight: merged.lineHeight,
             padding: merged.padding,
             spacing: merged.spacing,
         } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;

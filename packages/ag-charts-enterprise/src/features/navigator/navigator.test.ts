@@ -509,6 +509,18 @@ describe('Navigator', () => {
         });
     });
 
+    describe('mini chart axis padding', () => {
+        it('reserves room for the axis labels by their lineHeight', async () => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                navigator: { enabled: true, miniChart: { enabled: true, label: { enabled: true, lineHeight: 60 } } },
+            };
+            chart = await createEnterpriseChart(options);
+            const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
+            expect(navigator.miniChart.computeAxisPadding().bottom).toBeGreaterThanOrEqual(60);
+        });
+    });
+
     describe('mini chart series validation', () => {
         it('validates an untyped mini chart series against the type the theme fills in', async () => {
             const options: AgCartesianChartOptions = {

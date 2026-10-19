@@ -1072,6 +1072,37 @@ describe('CartesianAxis', () => {
         });
     });
 
+    describe('label lineHeight', () => {
+        const seriesAreaHeight = async (label: object, parentLabel: object) => {
+            chart = await createChart({
+                data: [
+                    { date: new Date(2023, 10, 1), value: 2 },
+                    { date: new Date(2024, 0, 1), value: 3 },
+                    { date: new Date(2024, 2, 1), value: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                axes: {
+                    x: {
+                        type: 'time',
+                        position: 'bottom',
+                        label,
+                        parentLevel: { enabled: true, label: { enabled: true, ...parentLabel } },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+            const { height } = deproxy(chart).seriesRect!;
+            chart.destroy();
+            return height;
+        };
+
+        it('reserves axis size by the lineHeight of the parent level labels', async () => {
+            const natural = await seriesAreaHeight({ enabled: false }, { format: '%Y' });
+            const tall = await seriesAreaHeight({ enabled: false }, { format: '%Y', lineHeight: 100 });
+            expect(natural - tall).toBeGreaterThan(50);
+        });
+    });
+
     // Auto-rotation must trigger when category labels would collide on a narrow chart.
     describe('CRT-1048 axis label collision', () => {
         it('should detect overlap when three labels collide with padding', () => {
@@ -1203,6 +1234,33 @@ describe('CartesianAxis', () => {
 
             chart = await createChart(options);
             await compare('cartesian-axis-title-max-height');
+        });
+
+        it('should clip wrapped title lines by the lineHeight within maxHeight', async () => {
+            chart = await createChart({
+                data: NUMERIC_DATA,
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        title: {
+                            enabled: true,
+                            text: 'This Is A Very Long Axis Title That Should Be Truncated After A Certain Height',
+                            fontSize: 20,
+                            lineHeight: 60,
+                            maxWidth: 150,
+                            maxHeight: 130,
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const xAxis = deproxy(chart as any).axes.find((axis: any) => axis.position === 'bottom') as any;
+            const lines = String(xAxis.caption.node.text).split('\n');
+            expect(lines).toHaveLength(2);
+            expect(lines[1]).toContain('\u2026');
         });
 
         it('should not wrap title when wrapping is "never"', async () => {

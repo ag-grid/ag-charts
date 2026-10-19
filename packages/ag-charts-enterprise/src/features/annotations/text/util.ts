@@ -11,8 +11,8 @@ export type TextOptions = FontOptions & { textAlign: TextAlign; position: Annota
 
 const ANNOTATION_TEXT_LINE_HEIGHT = 1.38;
 
-export function annotationLineHeight(fontSize: number) {
-    return Math.round(fontSize * ANNOTATION_TEXT_LINE_HEIGHT);
+export function annotationLineHeight({ fontSize, lineHeight }: { fontSize: number; lineHeight?: number }) {
+    return lineHeight ?? Math.round(fontSize * ANNOTATION_TEXT_LINE_HEIGHT);
 }
 
 export function getAnnotationText(text: string, localeManager: _ModuleSupport.LocaleManager) {
@@ -30,7 +30,7 @@ export function maybeWrapText(options: FontOptions, text: string, maxWidth: numb
 
 function measureAnnotationText(options: FontOptions, text: string) {
     const { lineMetrics, width } = cachedTextMeasurer(options).measureLines(text);
-    const height = lineMetrics.length * annotationLineHeight(options.fontSize);
+    const height = lineMetrics.length * annotationLineHeight(options);
     return { width, height };
 }
 
@@ -55,7 +55,7 @@ export function updateTextNode(
     textBaseline?: CanvasTextBaseline
 ) {
     const { visible = true, fontFamily, fontSize = 14, fontStyle, fontWeight, textAlign } = config;
-    const lineHeight = annotationLineHeight(fontSize);
+    const lineHeight = annotationLineHeight({ fontSize, lineHeight: config.lineHeight });
     textBaseline ??= config.position == 'center' ? 'middle' : config.position;
 
     const fill = isPlaceholder ? config.placeholderColor : config.color;

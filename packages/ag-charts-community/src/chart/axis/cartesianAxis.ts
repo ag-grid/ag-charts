@@ -24,9 +24,9 @@ import {
     TransformableText,
     TranslatableGroup,
     arraysEqual,
-    cachedTextMeasurer,
     countLines,
     diffArrays,
+    drawnLineHeight,
     findMinMax,
     isPlainObject,
     resolveEdgeLabelOverflow,
@@ -884,7 +884,7 @@ export abstract class CartesianAxis<
             boxes.push(
                 new BBox(
                     0,
-                    cachedTextMeasurer(label).lineHeight() + inexactMeasurementPadding,
+                    drawnLineHeight(label) + inexactMeasurementPadding,
                     1,
                     this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding
                 )
@@ -902,7 +902,7 @@ export abstract class CartesianAxis<
                             primaryLabel.spacing +
                             seriesAreaPadding,
                         1,
-                        maxLines * cachedTextMeasurer(primaryLabel).lineHeight() + inexactMeasurementPadding
+                        maxLines * drawnLineHeight(primaryLabel) + inexactMeasurementPadding
                     )
                 );
             }

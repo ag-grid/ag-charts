@@ -113,7 +113,7 @@ export class CommentScene extends TextualPointScene<CommentDatum> {
         const top = y - height;
         const right = x + width;
 
-        const cornerRadius = (annotationLineHeight(fontSize) + verticalPadding) / 2;
+        const cornerRadius = (annotationLineHeight(datum) + verticalPadding) / 2;
 
         const { path } = this.shape;
         path.clear();

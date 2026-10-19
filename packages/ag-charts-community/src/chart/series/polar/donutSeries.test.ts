@@ -1428,6 +1428,26 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('sectorLabel lineHeight', () => {
+        const drawnLabels = async (sectorLabel: object) => {
+            chart = deproxy(
+                await createChart({
+                    data: Array.from({ length: 6 }, (_, i) => ({ name: 'Alpha Bravo', size: 1 + i })),
+                    series: [{ type: 'donut', angleKey: 'size', sectorLabelKey: 'name', sectorLabel }],
+                })
+            );
+            const nodes: Text[] = [];
+            (chart as any).series[0].labelSelection.each((node: Text) => nodes.push(node));
+            return nodes.filter((node) => node.visible);
+        };
+
+        test('shrinks labels toward minimumFontSize until their lineHeight fits the wedge', async () => {
+            const labels = await drawnLabels({ fontSize: 12, lineHeight: 60, minimumFontSize: 6 });
+            expect(labels).toHaveLength(6);
+            expect(Math.max(...labels.map((node) => node.fontSize))).toBeLessThanOrEqual(8);
+        });
+    });
+
     describe('cutout drawing mode', () => {
         it('should render donut series with cutout highlight drawing mode', async () => {
             const cutoutOptions: AgChartOptions = {

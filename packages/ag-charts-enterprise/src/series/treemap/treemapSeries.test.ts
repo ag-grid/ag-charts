@@ -903,6 +903,26 @@ describe('TreemapSeries', () => {
             expect(groups()[1].padding.top).toBeLessThanOrEqual(padding + 10 + label.spacing);
         });
 
+        it('keeps a group label shrunk to fit maxHeight with its lineHeight in proportion', async () => {
+            chart = deproxy(
+                await createEnterpriseChart(
+                    groupOptions({ fontSize: 20, lineHeight: 40, minimumFontSize: 6, maxHeight: 25, wrapping: 'never' })
+                )
+            );
+            const [fruit] = groups();
+            expect(fruit.label).toBeDefined();
+            expect(fruit.label.fontSize).toBeLessThan(20);
+        });
+
+        it('sizes the group header by the lineHeight of the whole wrapped label', async () => {
+            chart = deproxy(
+                await createEnterpriseChart(groupOptions({ maxWidth: 100, maxHeight: 70, lineHeight: 40 }))
+            );
+            const [fruit] = groups();
+            expect(fruit.label.text.split('\n')).toHaveLength(1);
+            expect(fruit.padding.top).toBeGreaterThanOrEqual(chart.series[0].options.group.padding + 70);
+        });
+
         it('hides a multi-line group label taller than maxHeight when it cannot wrap', async () => {
             chart = deproxy(
                 await createEnterpriseChart(

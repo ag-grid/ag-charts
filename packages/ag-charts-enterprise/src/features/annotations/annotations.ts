@@ -20,6 +20,7 @@ import type { ClickWidgetEvent, DblClickWidgetEvent, DragWidgetEvent, KeyboardWi
 import type { AgAnnotationAxesButtons, AgNumericValue } from 'ag-charts-types';
 
 import { TextInput, type TextInputLayout } from '../text-input/textInput';
+import type { FontFields } from './annotationDatum';
 import { annotationDatums, getDefaultColor, isHoverable } from './annotationDatums';
 import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
@@ -346,6 +347,7 @@ export class Annotations extends AbstractModuleInstance {
                     fontSize: datum.fontSize,
                     fontStyle: datum.fontStyle,
                     fontWeight: datum.fontWeight,
+                    lineHeight: datum.lineHeight,
                     placeholderColor: node.getPlaceholderColor(datum),
                 };
 
@@ -375,8 +377,8 @@ export class Annotations extends AbstractModuleInstance {
                 this.textInput.updateColor(color);
             },
 
-            updateTextInputFontSize: (fontSize: number) => {
-                const bbox = this.textInput.updateFontSize(fontSize);
+            updateTextInputFontSize: (font: FontFields) => {
+                const bbox = this.textInput.updateFontSize(font.fontSize, font.lineHeight);
                 this.state.transition('updateTextInputBBox', bbox);
             },
 

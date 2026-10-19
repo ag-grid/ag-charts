@@ -907,6 +907,23 @@ describe('series label fit', () => {
             expect(drawnLabels().some(isWrapped)).toBe(true);
         });
 
+        it('measures wrapped labels by their lineHeight', async () => {
+            await renderNarrow(sankeyChart({ wrapping: 'on-space', lineHeight: FONT_SIZE * 3 }));
+            const labelData: Array<{ text: string; layout: { height: number } }> =
+                chart.series[0].contextNodeData.labelData;
+            const lines = labelData.map(({ text }) => text.split('\n').length);
+            expect(Math.max(...lines)).toBeGreaterThan(1);
+            expect(labelData.map(({ layout }) => layout.height)).toEqual(lines.map((count) => count * FONT_SIZE * 3));
+        });
+
+        it('leaves an edge label the height of one line at its lineHeight', async () => {
+            const tiny = { from: 'Paid advertising', to: 'Tiny', size: 0.05 };
+            await renderNarrow({ ...sankeyChart({ lineHeight: FONT_SIZE * 3 }), data: [...flows, tiny] });
+            const labelData: Array<{ text: string; layout: { heightRoom: number } }> =
+                chart.series[0].contextNodeData.labelData;
+            expect(labelData.find(({ text }) => text === 'Tiny')?.layout.heightRoom).toBe(FONT_SIZE * 3);
+        });
+
         it('renders labels that fit, wrap, shrink and truncate clear of the nodes', async () => {
             const options = {
                 ...sankeyChart({ wrapping: 'on-space', minimumFontSize: 9, maxHeight: 30 }),
@@ -1004,6 +1021,20 @@ describe('series label fit', () => {
             });
             return checked;
         };
+
+        it('sizes the label aspect ratio by its lineHeight', async () => {
+            const aspectRatio = async (label: object) => {
+                chart = deproxy(
+                    await createEnterpriseChart(ukSeries({ wrapping: 'never', ...label }, 'Short') as AgChartOptions)
+                );
+                const ratio: number = chart.series[0].previousLabelLayouts.get('England').aspectRatio;
+                chart.destroy();
+                return ratio;
+            };
+            const natural = await aspectRatio({ fontSize: 12 });
+            const tall = await aspectRatio({ fontSize: 12, lineHeight: 100 });
+            expect(natural / tall).toBeGreaterThan(3);
+        });
 
         it('wraps labels within their shape by default', async () => {
             await renderAndSnapshot(ukSeries({ fontSize: 10 }));

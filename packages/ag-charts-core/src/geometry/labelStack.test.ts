@@ -40,6 +40,15 @@ describe('fitLabelStack', () => {
         expect(fitted?.blocks.map((b) => b?.text)).toEqual(['Apple', undefined]);
     });
 
+    it('measures blocks by their lineHeight', () => {
+        const tall = (text: string): LabelStackBlock => ({
+            fit: { text, policy: { overflowStrategy: 'ellipsis' }, font: { ...FONT, lineHeight: 40 } },
+        });
+        const fitted = fitLabelStack(stack(tall('Apple'), tall('$383B')), { width: 100, height: 100 });
+        expect(fitted?.blocks.map((b) => b?.height)).toEqual([40, 40]);
+        expect(fitted?.height).toBe(80);
+    });
+
     it('drops a block truncated to a bare ellipsis', () => {
         expect(fitLabelStack(stack(block('Netflix')), { width: 15, height: 100 })).toBeUndefined();
     });

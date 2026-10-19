@@ -232,6 +232,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 }
                 const wrapOptions: WrapOptions = {
                     font: labelStyles,
+                    lineHeight: labelStyles.lineHeight,
                     textWrap: optionsMap[depth].wrapping,
                     overflow: optionsMap[depth].truncate ? 'ellipsis' : 'hide',
                     maxWidth,
@@ -364,6 +365,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 fill: boxing.fill,
                 fontFamily: tempText.fontFamily,
                 fontSize: tempText.fontSize,
+                lineHeight: tempText.lineHeight,
                 fontStyle: tempText.fontStyle,
                 fontWeight: tempText.fontWeight,
                 padding: boxing.padding,

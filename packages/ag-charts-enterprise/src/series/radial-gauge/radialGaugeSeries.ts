@@ -27,6 +27,7 @@ import {
     createBigIntTicks,
     isBetweenAngles,
     isNumberEqual,
+    lineHeightAtSize,
     mergeDefaults,
     normalizeAngle360,
     normalizeAngle360Inclusive,
@@ -457,6 +458,7 @@ export class RadialGaugeSeries
                 rotation,
                 label: {
                     ...pickGaugeTargetLabelOptions(label, target.label),
+                    lineHeight: target.label?.lineHeight ?? lineHeightAtSize(defaultTarget.label, label.fontSize),
                     color: label.color,
                     spacing: label.spacing,
                 },
@@ -1117,7 +1119,8 @@ export class RadialGaugeSeries
         tickSelection: Selection<RadialGaugeTickDatum, TransformableText<RadialGaugeTickDatum>>;
     }) {
         const { scale, radius, centerX, centerY, options } = this;
-        const { enabled, color, fontFamily, fontSize, fontStyle, fontWeight, spacing } = options.scale.label;
+        const { enabled, color, fontFamily, fontSize, fontStyle, fontWeight, lineHeight, spacing } =
+            options.scale.label;
         const rotation = toRadians(options.scale.label.rotation ?? 0);
 
         opts.tickSelection.each((label, datum) => {
@@ -1133,6 +1136,7 @@ export class RadialGaugeSeries
             label.fontSize = fontSize;
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
+            label.lineHeight = lineHeight;
 
             const angle = scale.convert(datum.value);
             const { textAlign, textBaseline } = this.getTickLabelAlign(angle);
@@ -1199,6 +1203,7 @@ export class RadialGaugeSeries
         tempText.fontSize = label.fontSize;
         tempText.fontStyle = label.fontStyle;
         tempText.fontWeight = label.fontWeight;
+        tempText.lineHeight = label.lineHeight;
         tempText.rotation = rotation;
 
         const minComponent = 1e-6;

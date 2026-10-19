@@ -32,7 +32,6 @@ import {
     bakedLabelObstacles,
     barLabelPropsRouteThroughEngine,
     buildBarPositionedLabelDatum,
-    cachedTextMeasurer,
     cycledValue,
     fontWithSize,
     isArray,
@@ -42,7 +41,6 @@ import {
     resolveLabelFit,
     toNumber,
     toPlainText,
-    toTextString,
     trapezoidBandRect,
     trapezoidBox,
     trapezoidFitRegion,
@@ -311,7 +309,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData).domain;
 
         const isRtl = this.ctx.domManager.isRtl;
-        const textMeasurer = cachedTextMeasurer(stageLabel);
         const placeLeft = (stageLabel.placement === 'after') === isRtl;
 
         let textAlign: CanvasTextAlign;
@@ -354,7 +351,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const { width, height } = isArray(text)
                 ? measureTextSegments(text, label)
-                : textMeasurer.measureLines(toTextString(text));
+                : measureLabelText(text, stageLabel);
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 
@@ -1021,7 +1018,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const style = getLabelStyles(this, undefined, params, labelProperties, datumIsHighlighted, activeHighlight);
 
-            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
+            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight } = style;
             label.visible = visible && style.enabled === true;
             label.x = x;
             label.y = y;
@@ -1033,6 +1030,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
+            label.lineHeight = lineHeight;
             label.textAlign = textAlign;
             label.textBaseline = textBaseline;
             label.setBoxing(style);

@@ -11,6 +11,7 @@ import {
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
@@ -42,6 +43,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
                 enabled: true,
                 fontFamily: { $ref: 'seriesLabelFontFamily' },
                 fontSize: { $ref: 'seriesLabelFontSize' },
+                lineHeight: themeLineHeight('seriesLabelLineHeight'),
                 fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 5,

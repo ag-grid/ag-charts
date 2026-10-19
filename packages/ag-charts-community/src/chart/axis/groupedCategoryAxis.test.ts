@@ -477,6 +477,32 @@ describe('Grouped Category Axis Examples', () => {
         });
     });
 
+    describe('label lineHeight', () => {
+        const groupLabels = async (label: object) => {
+            const group =
+                'Alpha Bravo Charlie Delta Echo Foxtrot Golf Hotel India Juliet Kilo Lima Mike November Oscar Papa Quebec Romeo Sierra Tango Uniform Victor Whiskey Xray Yankee Zulu Alpha Bravo Charlie';
+            chart = await createChart({
+                data: [
+                    { name: [group, 'One'], value: 1 },
+                    { name: [group, 'Two'], value: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'name', yKey: 'value' }],
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom', thickness: 100, label },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+            const axis = (deproxy(chart) as any).axes.find((a: any) => a.type === 'grouped-category');
+            return axis.tickLabelGroupSelection.nodes().map((node: any) => String(node.text)) as string[];
+        };
+
+        it('wraps group labels to the thickness by their lineHeight', async () => {
+            expect((await groupLabels({})).some((text) => text.includes('\n'))).toBe(true);
+            chart.destroy();
+            expect((await groupLabels({ lineHeight: 60 })).some((text) => text.includes('\n'))).toBe(false);
+        });
+    });
+
     describe('AG-18182 boxed tick labels', () => {
         // `CartesianAxis` reports a `label.boxOffset` so that anything placed in the label column
         // from the axis layout - an annotation's axis label - lands on the same offset the axis gave

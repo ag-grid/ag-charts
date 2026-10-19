@@ -508,8 +508,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         crossLineLabel.rotation = toRadians(label.rotation ?? 0);
         crossLineLabel.textAlign = 'center';
         crossLineLabel.textBaseline = 'middle';
-        crossLineLabel.setFont(label);
-        crossLineLabel.fontSize = fontSize;
+        crossLineLabel.setFont(fontWithSize(label, fontSize));
         crossLineLabel.setBoxing(label);
     }
 
@@ -668,8 +667,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const { label } = this;
         const { text, fontSize } = this.fittedLabel();
         const tempText = new TransformableText();
-        tempText.setFont(label);
-        tempText.fontSize = fontSize;
+        tempText.setFont(fontWithSize(label, fontSize));
         tempText.text = text;
         tempText.rotation = toRadians(label.rotation ?? 0);
         tempText.textBaseline = 'middle';
