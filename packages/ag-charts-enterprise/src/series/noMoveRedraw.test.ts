@@ -244,6 +244,45 @@ describe('rect series restyle where nothing moves', () => {
                 });
             }
 
+            // An enterprise chart's series delta also carries the navigator's mirrored mini-chart series.
+            for (const [name, change] of styleCase.restyles) {
+                it(`restyles without rebuilding for a colour-only change to ${name}`, async () => {
+                    chart = await createEnterpriseChart(make(styleCase.base));
+                    await chart.updateDelta({ data: styleCase.rows(0) }); // settle the first (crisp) frame
+                    await waitForChartStability(chart);
+                    const c = chart;
+
+                    const work = await measureRedrawWork(c, () =>
+                        c.updateDelta({ series: [{ ...styleCase.base, ...change }] } as any)
+                    );
+
+                    expect(work).toEqual({ nodeDataBuilds: 0, rectPathBuilds: 0 });
+                });
+            }
+
+            it('paints a colour-only change as a fresh render would with a visible navigator', async () => {
+                const [, change] = styleCase.restyles[0];
+                const withNavigator = (series: object) =>
+                    prepareEnterpriseTestOptions({
+                        ...make(series),
+                        navigator: { enabled: true },
+                    } as AgCartesianChartOptions);
+
+                chart = await createEnterpriseChart(withNavigator({ ...styleCase.base, ...change }));
+                const expected = ctx.snapshot();
+
+                await chart.update(withNavigator(styleCase.base));
+                await waitForChartStability(chart);
+                const started = ctx.snapshot();
+                const c = chart;
+
+                await c.updateDelta({ series: [{ ...styleCase.base, ...change }] } as any);
+                await waitForChartStability(c);
+
+                (expect(ctx.snapshot()) as any).not.toMatchImage(started, { writeDiff: false });
+                expect(ctx.snapshot()).toMatchImage(expected, { writeDiff: false });
+            });
+
             it('moves the bars to the same pixels as a fresh render', async () => {
                 chart = await createEnterpriseChart(make(styleCase.base, 4));
                 const expected = ctx.snapshot();

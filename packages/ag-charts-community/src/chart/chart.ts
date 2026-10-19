@@ -131,6 +131,17 @@ type SeriesChangeType =
     | 'series-count-changed'
     | 'updated';
 
+/** Whether a `navigator` delta carries nothing but `miniChart.series`, i.e. no other navigator option moved. */
+function isMiniChartSeriesOnlyDelta(navigator: unknown): boolean {
+    if (navigator == null || typeof navigator !== 'object') return false;
+    const keys = Object.keys(navigator);
+    if (keys.length !== 1 || keys[0] !== 'miniChart') return false;
+    const miniChart = (navigator as { miniChart?: unknown }).miniChart;
+    if (miniChart == null || typeof miniChart !== 'object') return false;
+    const miniChartKeys = Object.keys(miniChart);
+    return miniChartKeys.length === 1 && miniChartKeys[0] === 'series';
+}
+
 const MINI_CHART_LABEL_EXCLUDED: ReadonlySet<string> = new Set([
     'interval',
     'autoRotate',
@@ -1802,9 +1813,17 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
         this.applyAxes(this, newOpts, seriesStatus);
         const restyled = seriesStatus === 'restyled';
+        // The navigator's mini chart mirrors the main series, so a restyle also arrives as a `navigator` delta.
+        // That is only restyle-safe when the mini chart's own series report a restyle too (checked below).
+        const miniChartRestyle = restyled && isMiniChartSeriesOnlyDelta((deltaOptions as any).navigator);
         if (
             this.axes.length === 0 ||
-            !Object.keys(deltaOptions).every((key) => LAYOUT_ONLY_DELTA_KEYS.has(key) || (restyled && key === 'series'))
+            !Object.keys(deltaOptions).every(
+                (key) =>
+                    LAYOUT_ONLY_DELTA_KEYS.has(key) ||
+                    (restyled && key === 'series') ||
+                    (miniChartRestyle && key === 'navigator')
+            )
         ) {
             forceNodeDataRefresh ||= this.onlyDataForcesRefresh(deltaOptions) ? 'data' : true;
         }
@@ -1855,7 +1874,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const miniChartSeries =
             (newOpts.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? newOpts.series;
         if (miniChart?.enabled === true && miniChartSeries != null) {
-            this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
+            const miniChartStatus = this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
+            if (miniChartRestyle && miniChartStatus !== 'restyled' && miniChartStatus !== 'no-op') {
+                forceNodeDataRefresh = true;
+            }
         } else if (miniChart?.enabled === false) {
             miniChart.setSeries([]);
             miniChart.setAxes(new ChartAxes());
@@ -2009,7 +2031,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         miniChartSeries: NonNullable<AgChartOptions['series']>,
         completeOptions: AgChartOptions,
         oldOpts: AgChartOptions & { type?: SeriesType }
-    ) {
+    ): SeriesChangeType {
         const oldSeries =
             (oldOpts?.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? oldOpts?.series;
         const miniChartSeriesStatus = this.applySeries(
@@ -2034,6 +2056,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
             axis.nice = axis.direction === domainDirection ? (mainDomainAxis?.nice ?? true) : false;
             axis.interactionEnabled = false;
         }
+
+        return miniChartSeriesStatus;
     }
 
     private applyModules() {
