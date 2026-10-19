@@ -83,8 +83,11 @@ export class AxisInsetValue extends AbstractModuleInstance {
             ctx.scene.attachNode(this.group),
             ctx.layoutManager.registerElement(LayoutElement.SeriesInset, (layout) => {
                 const { enabled, position } = this.options ?? {};
-                if (enabled && position != null && this.isParallel(position)) {
-                    layout.seriesInsets[position] = this.resolveWidth() + this.resolveGap();
+                if (!enabled || position == null || !this.isParallel(position)) return;
+
+                const width = this.resolveWidth();
+                if (width > 0) {
+                    layout.seriesInsets[position] = width + this.resolveGap();
                 }
             }),
             // Text measured before a web font loads is narrower than the font that replaces it.
