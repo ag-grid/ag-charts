@@ -116,6 +116,12 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "HlcSeriesModule",
+                    "name": "HLC Series",
+                    "path": "hlc-series",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "OhlcSeriesModule",
                     "name": "OHLC Series",
                     "path": "ohlc-series",

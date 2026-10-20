@@ -5,6 +5,8 @@
 # Series Type Names (not in standard dictionaries)
 donut
 Donut
+hlc
+HLC
 ohlc
 OHLC
 treemap
