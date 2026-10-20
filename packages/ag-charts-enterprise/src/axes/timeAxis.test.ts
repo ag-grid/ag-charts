@@ -1,14 +1,12 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
 import {
-    calculateAxisBBox,
+    compareAxisSnapshots,
     compareImageSnapshot,
-    deproxy,
     seedLcgRandom,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
@@ -67,22 +65,9 @@ describe('Time Axis Examples', () => {
         await compareImageSnapshot(chart, ctx);
     };
 
-    const axisCompare = async () => {
-        await waitForChartStability(chart);
-
-        for (const axis of deproxy(chart).axes) {
-            if (!axis.type.endsWith('time')) continue;
-
-            const axisBbox = calculateAxisBBox(axis);
-            expect(axisBbox).toMatchSnapshot();
-
-            const { width, height } = axisBbox;
-
-            if (width >= 1 && height >= 1) {
-                await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
-            }
-        }
-    };
+    // The axes of every time-based type: `time`, `unit-time` and `ordinal-time`.
+    const axisCompare = () =>
+        compareAxisSnapshots(chart, ctx, { types: ['time', 'unit-time', 'ordinal-time'], snapshotBBox: true });
 
     afterEach(() => {
         if (chart != null) {

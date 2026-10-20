@@ -17,6 +17,7 @@ import {
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    stubChartImageLoader,
     waitForChartStability,
 } from './test/utils';
 import type { AgChartProxy, ChartOrProxy } from './test/utils';
@@ -703,15 +704,10 @@ describe('Caption', () => {
             preloaded = Object.fromEntries(entries);
         });
 
-        function stubChartImageLoader(chartInstance: Chart) {
-            const imageLoader = (chartInstance.ctx.scene as any).imageLoader;
-            imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
-        }
-
         // Bespoke: the image loader must be stubbed before the first render, so it cannot follow `createChart`'s wait.
         async function createStubbedChart(options: AgChartOptions) {
-            chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })) as any);
-            stubChartImageLoader(chart);
+            chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })));
+            stubChartImageLoader(chart, preloaded);
             await compare();
             expectWarningsCalls().toHaveLength(0);
         }

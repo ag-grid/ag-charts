@@ -10,7 +10,7 @@ import type {
 } from 'ag-charts-types';
 
 import { getAxisLabelSource, getAxisLabelTexts } from '../test/axisAccessors';
-import { calculateAxisBBox, mixinDerivedCases } from '../test/axisTestCases';
+import { compareAxisSnapshots, mixinDerivedCases } from '../test/axisTestCases';
 import {
     type ChartOrProxy,
     cartesianChartAssertions,
@@ -455,16 +455,7 @@ describe('Time Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = async () => {
-                for (const axis of deproxy(chart).axes) {
-                    if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
-                        continue;
-                    }
-
-                    const axisBbox = calculateAxisBBox(axis);
-                    await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
-                }
-            };
+            const axisCompare = () => compareAxisSnapshots(chart, ctx, { types: example.compare });
 
             chart = await createChart(example.options);
             await axisCompare();
