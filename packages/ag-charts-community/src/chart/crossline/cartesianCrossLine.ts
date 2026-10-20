@@ -175,7 +175,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     }
 
     /** The canvas-space box enclosing both regions {@link containsPoint} tests, for the keyboard focus proxy. */
-    getFocusBounds(): BBox | undefined {
+    computeFocusBounds(): BBox | undefined {
         const lineBox = this.getLineHitBox();
         if (lineBox == null) return;
 

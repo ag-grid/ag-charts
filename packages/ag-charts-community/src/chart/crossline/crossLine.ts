@@ -7,6 +7,7 @@ import type {
     Group,
     NormalisedAxisCrossLineLabelOptions,
     NormalisedAxisCrossLineOptions,
+    Path,
     PointLabelDatum,
     PositionedLabelCandidate,
     RequireOptional,
@@ -115,10 +116,8 @@ export interface CrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> {
     gridPadding: number;
     /** The drawn label's footprint in canvas coordinates, or `undefined` when it draws no label. */
     getLabelBox?(): BoxBounds | undefined;
-    /** The hit-tested line/fill and label in canvas coordinates, or `undefined` when nothing is drawn. */
-    getFocusBounds?(): BoxBounds | undefined;
-    /** SVG path data, in canvas coordinates, outlining a focus region that is not a box. */
-    getFocusPath?(): string | undefined;
+    /** The hit-tested region, excluding any label for a `Path`, for the keyboard focus indicator. */
+    computeFocusBounds?(): BBox | Path | undefined;
     /** Whether the label is kept on collision rather than dropped. Cartesian cross lines only. */
     readonly keepsLabel?: boolean;
     /** The label as a placement candidate in `seriesRect` space. Cartesian cross lines only. */

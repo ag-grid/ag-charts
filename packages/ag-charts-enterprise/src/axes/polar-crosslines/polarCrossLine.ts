@@ -126,6 +126,10 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
             this.crossLineRange.append(this.lineNode);
         }
         this.labelGroup.append(this.labelNode);
+
+        // Never drawn: it only carries the focus outline and the transform into canvas coordinates.
+        this.focusNode.visible = false;
+        this.crossLineRange.append(this.focusNode);
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions) {
@@ -165,18 +169,8 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
         return hit || (this.getLabelBox()?.containsPoint(point.canvasX, point.canvasY) ?? false);
     }
 
-    /** The hit region as SVG path data in canvas coordinates, for the keyboard focus indicator. */
-    getFocusPath(): string | undefined {
-        if (!this.traceFocusPath()) return;
-        return this.focusNode.svgPathData((x, y) => {
-            const { canvasX, canvasY } = Transformable.toCanvasPoint(this.crossLineRange, x, y);
-            return { x: canvasX, y: canvasY };
-        });
-    }
-
-    getFocusBounds(): BBox | undefined {
-        if (!this.traceFocusPath()) return;
-        return Transformable.toCanvas(this.crossLineRange, this.focusNode.path.computeBBox());
+    computeFocusBounds(): Path | undefined {
+        return this.traceFocusPath() ? this.focusNode : undefined;
     }
 
     /** Traces the drawn shape widened by {@link crossLineHitTolerance} into `focusNode`, if it is drawn. */

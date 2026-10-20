@@ -1,5 +1,5 @@
-import type { BoxBounds, ButtonWidget, DynamicContext, ListWidget } from 'ag-charts-core';
-import { CleanupRegistry, createSvgElement } from 'ag-charts-core';
+import type { BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget } from 'ag-charts-core';
+import { CleanupRegistry, Path, Transformable, createSvgElement } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartAxis } from '../chartAxis';
@@ -14,7 +14,19 @@ interface ProxyEntry {
     readonly plugin: CrossLinesPlugin;
     readonly crossLine: CrossLine;
     readonly bounds: BoxBounds;
-    readonly focusPath: string | undefined;
+    readonly focusPath?: string;
+}
+
+/** A `Path` is outlined as drawn; any other focus region is outlined by its proxy button. */
+function toCanvasFocus(focus: BBox | Path): { bounds: BoxBounds; focusPath?: string } {
+    if (!(focus instanceof Path)) return { bounds: focus };
+
+    const bounds = Transformable.toCanvas(focus, focus.path.computeBBox());
+    const focusPath = focus.svgPathData((x, y) => {
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(focus, x, y);
+        return { x: canvasX, y: canvasY };
+    });
+    return { bounds, focusPath };
 }
 
 /** Unlocalised placeholder text, kept in one place until a localised format is agreed. */
@@ -80,8 +92,8 @@ export class CrossLinesDOMProxy {
             for (const crossLine of plugin.getInstances()) {
                 if (!plugin.isKeyboardClickable(crossLine)) continue;
 
-                const bounds = crossLine.getFocusBounds?.();
-                if (bounds != null) entries.push({ plugin, crossLine, bounds, focusPath: crossLine.getFocusPath?.() });
+                const focus = crossLine.computeFocusBounds?.();
+                if (focus != null) entries.push({ plugin, crossLine, ...toCanvasFocus(focus) });
             }
         }
         this.entries = entries;
