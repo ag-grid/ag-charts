@@ -687,6 +687,38 @@ describe('series label fit', () => {
                 );
             });
 
+            it('never grows a label as the chart gets shorter', async () => {
+                const previous = new Map<number, number>();
+                for (let height = 200; height >= 140; height -= 4) {
+                    await renderAt(380, height, 'funnel', { placement: 'inside-center', wrapping: 'on-space' });
+                    for (const node of stageLabels()) {
+                        const index = node.datum.datumIndex;
+                        expect(node.fontSize, `stage ${index} at ${height}px`).toBeLessThanOrEqual(
+                            previous.get(index) ?? FONT_SIZE
+                        );
+                        previous.set(index, node.fontSize);
+                    }
+                }
+            });
+
+            it('keeps a truncated label truncated as its stage narrows', async () => {
+                const truncated = new Set<number>();
+                const restored: string[] = [];
+                for (let width = 230; width >= 100; width -= 10) {
+                    await renderAt(width, 440, 'cone-funnel', { placement: 'middle-before' });
+                    for (const node of stageLabels()) {
+                        const index = node.datum.datumIndex;
+                        if (node.text.includes(ELLIPSIS)) {
+                            truncated.add(index);
+                        } else if (truncated.has(index)) {
+                            restored.push(`stage ${index} at ${width}px: ${node.text}`);
+                        }
+                    }
+                }
+                expect(truncated.size).toBeGreaterThan(0);
+                expect(restored).toEqual([]);
+            });
+
             it.each([
                 ['outside-end', 'on-space', 380, 440],
                 ['inside-center', 'never', 380, 80],

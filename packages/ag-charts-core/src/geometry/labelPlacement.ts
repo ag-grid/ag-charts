@@ -2733,15 +2733,29 @@ function fitPositionedCandidate(
     const floorFont = fontWithSize(font, floor);
     keptLineContainer.width = fitTo.container.width;
     keptLineContainer.height = Math.max(fitTo.container.height, drawnLineHeight(floorFont));
-    if (fitLabelToCandidate(fit, font, source, keptLineContainer, fontSearch) && hasRealChars(fittedLabel.text)) {
-        return true;
+    // Too narrow for even one character: overflow by the least a truncated label can show.
+    if (!fitKeptAtFloor(fit, floorFont)) {
+        keptLineContainer.width = Math.max(keptLineContainer.width, leadCharacterWidth(fit.text, floorFont));
+        if (!fitKeptAtFloor(fit, floorFont) && !fitLabelToCandidate(fit, floorFont, undefined, undefined, false)) {
+            return false;
+        }
     }
-    // Too narrow for even one character: the text overflows its container whole, at its smallest size.
-    if (!fitLabelToCandidate(fit, floorFont, undefined, undefined, false)) return false;
-    if (floor < font.fontSize) {
-        fittedLabel.fontSize = floor;
-    }
+    fittedLabel.fontSize = floor < font.fontSize ? floor : undefined;
     return true;
+}
+
+/** A label kept at its smallest size: a larger one would grow back as its container shrinks. */
+function fitKeptAtFloor(fit: LabelFitDescriptor, floorFont: FontOptions): boolean {
+    return fitLabelToCandidate(fit, floorFont, undefined, keptLineContainer, false) && hasRealChars(fittedLabel.text);
+}
+
+/** Width of the text's first character followed by an ellipsis. */
+function leadCharacterWidth(text: NormalisedTextOrSegments, font: FontOptions): number {
+    const first = isArray(text) ? text.find((segment) => segment.type !== 'image')?.text : text;
+    const lead = graphemeSegments(toTextString(first).trimStart())[0];
+    if (lead == null) return 0;
+    const measurer = cachedTextMeasurer(font);
+    return measurer.textWidth(lead) + measurer.textWidth(EllipsisChar);
 }
 
 /** Fits a stack into {@link candidateStack}; one that fits only without the threshold's clearance is kept. */
