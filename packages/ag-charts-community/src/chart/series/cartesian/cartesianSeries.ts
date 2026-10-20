@@ -51,7 +51,7 @@ import type { PickFocusOutputs, PickViewportFocusInputs, SeriesNodePickMatch } f
 import type { SeriesDirectionKeysMapping } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
-import { countExpandingSearch, visibleRangeIndices } from '../util';
+import { countExpandingSearch, rebindDatumRows, visibleRangeIndices } from '../util';
 import type {
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
@@ -1656,6 +1656,16 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     protected abstract isLabelEnabled(): boolean;
+
+    protected override hasLabels() {
+        return this.isLabelEnabled();
+    }
+
+    protected override rebindNodeDataRows(rows: readonly unknown[]) {
+        super.rebindNodeDataRows(rows);
+        const { nodeData, labelData } = this._contextNodeData ?? {};
+        if (labelData !== nodeData) rebindDatumRows(labelData, rows);
+    }
 
     protected getScaling(scale: Scale<any, any>): Scaling | undefined {
         if (scale instanceof LogScale) {

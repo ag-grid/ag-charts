@@ -13,6 +13,7 @@ import {
     isNumericValue,
     isObject,
     isString,
+    objectsEqual,
 } from 'ag-charts-core';
 import type { AgCartesianSeriesOptions, DatumDefault, SeriesPredictAxis } from 'ag-charts-types';
 
@@ -22,17 +23,9 @@ function isAxisReversed(axis: ChartAxis) {
     return axis.isReversed() !== axis.range[1] < axis.range[0];
 }
 
-function samePlainValue(a: unknown, b: unknown): boolean {
-    if (a === b) return true;
-    if (a == null || b == null || typeof a !== 'object' || typeof b !== 'object') return false;
-    const keysA = Object.keys(a);
-    if (keysA.length !== Object.keys(b).length) return false;
-    return keysA.every((key) => samePlainValue((a as any)[key], (b as any)[key]));
-}
-
 /** Whether two segment lists draw alike; an unset list and an empty one both draw nothing. */
 export function sameSegments(a: readonly object[] | undefined, b: readonly object[] | undefined): boolean {
-    return (a?.length ?? 0) === (b?.length ?? 0) && (a ?? []).every((segment, i) => samePlainValue(segment, b![i]));
+    return objectsEqual(a ?? [], b ?? []);
 }
 
 export function calculateSegments(

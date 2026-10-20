@@ -804,10 +804,15 @@ export abstract class Series<
         return restyle;
     }
 
+    /** Whether labels are shown, whichever option they live under. Assumed so unless a series says otherwise. */
+    protected hasLabels(): boolean {
+        return true;
+    }
+
     /** Whether a callback whose result is held in the node data is set: it only re-runs when node data is rebuilt. */
     protected nodeDataHasCallbacks(): boolean {
         if (hasCallback(this.options, 4)) return true;
-        if (!(this.options as { label?: { enabled?: boolean } }).label?.enabled) return false;
+        if (!this.hasLabels()) return false;
         // Label text also runs through the chart-wide formatter and the axis label formatter.
         const { formatter } = this.ctx.formatManager;
         if (typeof formatter === 'function' || (formatter != null && hasCallback(formatter, 1))) return true;

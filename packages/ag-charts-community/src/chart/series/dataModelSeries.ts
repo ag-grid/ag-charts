@@ -12,7 +12,7 @@ import { SeriesNodeDatumSentinel } from './pickTypes';
 import type { SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import { type SeriesNodeDatum } from './seriesTypes';
-import { findNodeDatumInArray } from './util';
+import { findNodeDatumInArray, rebindDatumRows } from './util';
 
 export interface DataModelSeriesNodeDatum extends SeriesNodeDatum {
     // Optional: only aggregated series (e.g. histogram bins) set it; 1:1 series match on datumIndex instead.
@@ -117,11 +117,17 @@ export abstract class DataModelSeries<
             processedDataUnchanged(previousProcessedData, processedData)
         ) {
             this.cancelDataRefresh();
+            // The kept node data stands for the new rows, so what it hands to tooltips and events must be those rows.
+            this.rebindNodeDataRows(processedData.dataSources?.get(this.id)?.data ?? []);
         }
         // Incremental reprocessing mutates the existing columns, so identity alone cannot detect the change.
         this.categoryValueLookup = undefined;
         this.events.emit('data-processed', { dataModel, processedData });
         return { dataModel, processedData };
+    }
+
+    protected rebindNodeDataRows(rows: readonly unknown[]) {
+        rebindDatumRows(this.getNodeData(), rows);
     }
 
     protected isProcessedDataAnimatable() {

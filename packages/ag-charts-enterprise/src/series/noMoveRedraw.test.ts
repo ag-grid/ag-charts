@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, type AgChartInstance } from 'ag-charts-community';
-import { deproxy, measureRedrawWork, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
+import {
+    deproxy,
+    expectNonBlank,
+    measureRedrawWork,
+    setupMockCanvas,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
 
@@ -100,6 +106,21 @@ describe('rect series redraw where nothing moves', () => {
 
                 expect(work).toEqual({ nodeDataBuilds: 0, rectPathBuilds: 0 });
                 expect(ctx.snapshot()).toMatchImage(before);
+            });
+
+            it('hands the node data the rows of the latest data when nothing moved', async () => {
+                const c = await create(rectCase);
+                const next = rectCase.makeRows(COUNT, 0);
+
+                const work = await measureRedrawWork(c, () => c.updateDelta({ data: next }));
+
+                const nodeData = (deproxy(c).series[0] as any).contextNodeData.nodeData as {
+                    datum?: unknown;
+                    datumIndex: number;
+                }[];
+                expect(work.nodeDataBuilds).toBe(0);
+                expect(nodeData.length).toBeGreaterThan(0);
+                expect(nodeData.every((d) => d.datum === next[d.datumIndex])).toBe(true);
             });
 
             it('rebuilds nothing for a title change', async () => {
@@ -469,6 +490,25 @@ describe('rect series restyle where nothing moves', () => {
             expect(work.nodeDataBuilds).toBe(1);
         });
 
+        it('hands the labels the rows of the latest data when nothing moved', async () => {
+            const rows = () => heatmapRows(STYLE_COUNT * 3, 0);
+            chart = await createEnterpriseChart(make({ ...base, label: { enabled: true } }));
+            await chart.updateDelta({ data: rows() });
+            await waitForChartStability(chart);
+            const c = chart;
+            const next = rows();
+
+            const work = await measureRedrawWork(c, () => c.updateDelta({ data: next }));
+
+            const labelData = (deproxy(c).series[0] as any).contextNodeData.labelData as {
+                datum: unknown;
+                datumIndex: number;
+            }[];
+            expect(work.nodeDataBuilds).toBe(0);
+            expect(labelData.length).toBeGreaterThan(0);
+            expect(labelData.every((d) => d.datum === next[d.datumIndex])).toBe(true);
+        });
+
         it('paints the same data again, over and over, as a fresh render would', async () => {
             chart = await createEnterpriseChart(make(base, 2));
             const expected = ctx.snapshot();
@@ -485,5 +525,67 @@ describe('rect series restyle where nothing moves', () => {
 
             expect(ctx.snapshot()).toMatchImage(expected);
         });
+    });
+});
+
+describe('waterfall labels fed by a chart formatter', () => {
+    const ctx = setupMockCanvas();
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const COUNT = 20;
+    const label = { label: { enabled: true } };
+    const item = (positive: object = {}) => ({
+        positive: { fill: '#2e86de', ...NO_STROKE, ...label, ...positive },
+        negative: { fill: '#c0392b', ...NO_STROKE, ...label },
+        total: { ...label },
+    });
+    const make = (read: () => string, positive?: object) =>
+        prepareEnterpriseTestOptions({
+            animation: { enabled: false },
+            legend: { enabled: false },
+            data: valueRows(COUNT, 0),
+            formatter: ({ value }: { value: number }) => `${value}${read()}`,
+            series: [{ type: 'waterfall', xKey: 'category', yKey: 'value', item: item(positive) }],
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+        } as AgCartesianChartOptions);
+
+    /** Renders fresh with the formatter at `b`, moves the same chart back to `a`, flips it and applies `delta`. */
+    async function expectLabelsFollow(delta: object, positive?: object) {
+        let suffix = 'b';
+        const read = () => suffix;
+        chart = await createEnterpriseChart(make(read, positive));
+        const expected = ctx.snapshot();
+        expectNonBlank(expected);
+
+        suffix = 'a';
+        await chart.update(make(read));
+        await waitForChartStability(chart);
+        const started = ctx.snapshot();
+
+        suffix = 'b';
+        const c = chart;
+        const work = await measureRedrawWork(c, () => c.updateDelta(delta));
+        const actual = ctx.snapshot();
+
+        expect(work.nodeDataBuilds).toBe(1);
+        (expect(actual) as any).not.toMatchImage(started, { writeDiff: false });
+        expect(actual).toMatchImage(expected);
+    }
+
+    it('re-runs for the same data', async () => {
+        await expectLabelsFollow({ data: valueRows(COUNT, 0) });
+    });
+
+    it('re-runs alongside an item colour change', async () => {
+        const positive = { fill: '#27ae60' };
+        await expectLabelsFollow(
+            { series: [{ type: 'waterfall', xKey: 'category', yKey: 'value', item: item(positive) }] },
+            positive
+        );
     });
 });
