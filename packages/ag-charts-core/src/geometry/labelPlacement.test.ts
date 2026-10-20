@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 
+import { measureLabelText } from '../rendering/textMeasurer';
 import type { Point, SizedPoint } from '../types/scene';
 import {
     type BarLabelTarget,
@@ -22,6 +23,7 @@ import {
     sectorLabelContainer,
 } from './barLabelGeometry';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import type { FitRegion } from './fitRegion';
 import {
     type CandidateLabelStyle,
     type CandidateStyleResolver,
@@ -31,12 +33,12 @@ import {
     type OrientationAnchor,
     type PlacedLabel,
     type PointLabelDatum,
+    type PositionedCandidateResolver,
     type PositionedLabelCandidate,
     type SeriesLabelDefaults,
     type SeriesLabels,
     labelGlyphCentre,
     labelsAvoidAxisLabels,
-    measureLabelText,
     placeLabels,
     resolveLabelFit,
 } from './labelPlacement';
@@ -1736,6 +1738,53 @@ describe('placeLabels positioned candidates', () => {
         expect(placed[0].candidate).toBe(smallOverflow);
     });
 
+    it('ranks a fallback spilling out of its visibleRegion below one that only overflows its region (neverDrop)', () => {
+        const visibleRegion = { x: 0, y: 0, width: 200, height: 200 };
+        const clipped: BarCandidate = {
+            box: { x: 190, y: 0, width: 30, height: 10 },
+            region: { x: 190, y: 0, width: 25, height: 10 },
+            visibleRegion,
+            anchor: anchorOf(205, 5),
+            placement: 'outside-end',
+        };
+        const overflowing: BarCandidate = {
+            box: { x: 0, y: 0, width: 100, height: 10 },
+            region: { x: 0, y: 0, width: 20, height: 200 },
+            visibleRegion,
+            anchor: anchorOf(50, 5),
+            placement: 'inside-center',
+        };
+        const { placed } = place([clipped, overflowing]);
+        expect(placed).toHaveLength(1);
+        expect(placed[0].candidate).toBe(overflowing);
+    });
+
+    it('never blocks a label with a placed label of the same labelGroup', () => {
+        const stacked = (id: string, y: number, labelGroup?: string): PointLabelDatum => {
+            const box = { x: 50, y, width: 40, height: 20 };
+            return {
+                point: { x: 70, y: y + 10, size: 0 },
+                label: { text: id, width: box.width, height: box.height },
+                anchor: undefined,
+                placement: undefined,
+                alwaysShow: false,
+                collideWith: { marker: true, label: true, seriesItem: false, seriesArea: true },
+                threshold: 10,
+                labelGroup,
+                positionedCandidates: [{ box, region: bounds, flushToRegion: false, size: box }],
+            };
+        };
+        const placeStack = (labelGroup?: string) =>
+            placeLabels(
+                new Map([['s', seriesLabels([stacked('a', 50, labelGroup), stacked('b', 75, labelGroup)])]]),
+                bounds,
+                5
+            ).get('s')!;
+
+        expect(placeStack()).toHaveLength(1);
+        expect(placeStack('stack')).toHaveLength(2);
+    });
+
     it('keeps the least buried candidate when every one fits its region but collides (neverDrop)', () => {
         const buried: BarCandidate = {
             box: { x: 10, y: 10, width: 20, height: 10 },
@@ -1976,6 +2025,123 @@ describe('placeLabels sole positioned candidate', () => {
 
         expect(place()).toMatchObject({ x: 120, y: 120 });
         expect(place(false)).toMatchObject({ x: fixedBox.x, y: fixedBox.y });
+    });
+});
+
+describe('placeLabels shape-fitted rotated labels', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const padding = { top: 0, right: 0, bottom: 0, left: 0 };
+    const unbounded: FitRegion = { spanAt: () => [-1000, 1000], extentAbove: Infinity, extentBelow: Infinity };
+
+    /** A 50×20 'WWWWW' label rotated 45° about `(cx, cy)`, fitted to `shape` when one is given. */
+    const rotatedLabel = (cx: number, cy: number, shape?: FitRegion): PointLabelDatum => {
+        const footprint = (50 + 20) * Math.SQRT1_2;
+        return {
+            point: { x: cx, y: cy, size: 0 },
+            label: { text: 'WWWWW', width: 50, height: 20 },
+            fit: { text: 'WWWWW', policy: { overflowStrategy: 'ellipsis' }, font: FONT },
+            anchor: undefined,
+            placement: undefined,
+            positionedCandidates: [
+                {
+                    box: { x: cx - footprint / 2, y: cy - footprint / 2, width: footprint, height: footprint },
+                    rotation: 45,
+                    fitTo: { shape, anchor: { x: cx, y: cy, textAlign: 'center', textBaseline: 'middle' }, padding },
+                },
+            ],
+        };
+    };
+
+    // Side by side across their 20px height, 24px apart: the rotated boxes clear, their footprints overlap.
+    const place = (shape?: FitRegion) =>
+        placeLabels(
+            new Map([
+                ['a', seriesLabels([rotatedLabel(100, 100, shape)])],
+                [
+                    'b',
+                    seriesLabels([rotatedLabel(100 - 24 * Math.SQRT1_2, 100 + 24 * Math.SQRT1_2, shape)], {
+                        alwaysShow: false,
+                    }),
+                ],
+            ]),
+            bounds,
+            0
+        ).get('b');
+
+    it('collides by the rotated box when fitted inside a shape', () => {
+        expect(place(unbounded)).toHaveLength(1);
+    });
+
+    it('collides by the axis-aligned footprint otherwise', () => {
+        expect(place()).toHaveLength(0);
+    });
+
+    it('still collides when the rotated boxes overlap', () => {
+        const placed = placeLabels(
+            new Map([
+                ['a', seriesLabels([rotatedLabel(100, 100, unbounded)])],
+                ['b', seriesLabels([rotatedLabel(110, 110, unbounded)], { alwaysShow: false })],
+            ]),
+            bounds,
+            0
+        ).get('b');
+        expect(placed).toHaveLength(0);
+    });
+});
+
+describe('placeLabels shape-fitted stacks', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+    const padding = { top: 0, right: 0, bottom: 0, left: 0 };
+    const anchor: OrientationAnchor = { x: 100, y: 100, textAlign: 'center', textBaseline: 'middle' };
+    const bandRegion = (fits: (height: number) => boolean): FitRegion => ({
+        spanAt: (top, bottom) => (fits(bottom - top) ? [-500, 500] : [0, 0]),
+        extentAbove: Infinity,
+        extentBelow: Infinity,
+    });
+
+    const stackDatum = (
+        text: string,
+        fontSize: number,
+        minimumFontSize: number,
+        shapes: FitRegion[],
+        neverDrop = false
+    ): PointLabelDatum => {
+        const fit = {
+            text,
+            policy: { overflowStrategy: 'ellipsis' as const, minimumFontSize },
+            font: { fontSize, fontFamily: 'sans-serif' },
+            fitOverflow: neverDrop ? { overflowStrategy: 'ellipsis' as const } : undefined,
+        };
+        return {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text, width: 10, height: 10 },
+            fit,
+            stack: { blocks: [{ fit }], spacing: 0 },
+            anchor: undefined,
+            placement: undefined,
+            neverDrop,
+            positionedCandidates: shapes.map((shape) => ({
+                box: { x: 95, y: 95, width: 10, height: 10 },
+                fitTo: { shape, anchor, padding },
+            })),
+        };
+    };
+
+    const placeOne = (datum: PointLabelDatum) =>
+        placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 0).get('s')!;
+
+    it('finds the largest size a shape holds when it holds only a middle band of sizes', () => {
+        // Line heights of about 21.7px and 23.3px: only the 13px and 14px sizes.
+        const [placed] = placeOne(stackDatum('AB', 16, 8, [bandRegion((height) => height >= 21 && height <= 24)]));
+        expect(placed?.stack?.blocks[0]?.fontSize).toBe(14);
+    });
+
+    it('prefers a truncated fit to an always-shown overflow from a shape with no room', () => {
+        const narrow: FitRegion = { spanAt: () => [-25, 25], extentAbove: Infinity, extentBelow: Infinity };
+        const datum = stackDatum('ABCDEFGHIJ', 12, 12, [narrow, bandRegion(() => false)], true);
+        const [placed] = placeOne(datum);
+        expect(placed?.candidate).toBe(datum.positionedCandidates![0]);
     });
 });
 
@@ -2284,6 +2450,104 @@ describe('placeLabels per-candidate fit', () => {
             expect(placed.text).toBe('WWW…');
             expect(placed.width).toBe(40);
             expect(placed.y).toBe(140);
+        });
+
+        it.each([undefined, 30])(
+            'keeps one truncated line in a container shorter than it (lineHeight %s)',
+            (lineHeight) => {
+                const font = { ...FONT, lineHeight };
+                const container = { width: 34, height: 10 };
+                const placed = placeLabels(
+                    new Map([
+                        [
+                            's',
+                            seriesLabels([
+                                buildBarPositionedLabelDatum(
+                                    TEXT,
+                                    50,
+                                    20,
+                                    [
+                                        {
+                                            box: { x: 25, y: 45, width: 50, height: 10 },
+                                            fitTo: { container, anchor, padding },
+                                        },
+                                    ],
+                                    target(),
+                                    { x: 33, y: 45, width: 34, height: 10 },
+                                    true,
+                                    {},
+                                    0,
+                                    false,
+                                    { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font }
+                                ),
+                            ]),
+                        ],
+                    ]),
+                    bounds,
+                    0
+                ).get('s')![0];
+                expect(placed.text).toBe('WW…');
+            }
+        );
+
+        describe('nudging along the bar', () => {
+            const region = { x: 20, y: 20, width: 60, height: 60 };
+            const placeNudged = (obstacle: LabelObstacle) =>
+                placeLabels(
+                    new Map([
+                        [
+                            's',
+                            seriesLabels([
+                                buildBarPositionedLabelDatum(
+                                    TEXT,
+                                    50,
+                                    20,
+                                    [
+                                        {
+                                            box: { x: 25, y: 40, width: 50, height: 20 },
+                                            region,
+                                            slideAxis: 'y',
+                                            fitTo: { container: { width: 60, height: 60 }, anchor, padding },
+                                        },
+                                    ],
+                                    target(),
+                                    region,
+                                    false,
+                                    {},
+                                    0,
+                                    true,
+                                    { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
+                                ),
+                            ]),
+                        ],
+                    ]),
+                    bounds,
+                    0,
+                    [obstacle]
+                ).get('s')!;
+            const obstacle = (x: number, y: number, width: number, height: number): LabelObstacle => ({
+                kind: 'rect',
+                box: { x, y, width, height },
+                category: 'label',
+            });
+
+            it('nudges a label clear of an obstacle a few pixels along the bar', () => {
+                const [placed] = placeNudged(obstacle(0, 30, 100, 13));
+                expect(placed.text).toBe(TEXT);
+                expect(placed.x).toBe(25);
+                expect(placed.y).toBe(43);
+            });
+
+            it('hides a label that would need more than the nudge allowance', () => {
+                expect(placeNudged(obstacle(0, 30, 100, 16))).toEqual([]);
+            });
+
+            it('truncates in place rather than nudging a label across the bar', () => {
+                const [placed] = placeNudged(obstacle(0, 40, 27, 20));
+                expect(placed.text).toBe('WWW…');
+                expect(placed.x + placed.width / 2).toBe(50);
+                expect(placed.y).toBe(40);
+            });
         });
     });
 });
@@ -2673,15 +2937,92 @@ describe('placeLabels collision shrink', () => {
         expect(place([shrinkable(200, { fit: undefined })], [leftBlocker])).toEqual([]);
     });
 
-    it('keeps the full-size fallback when no size clears and the label is kept', () => {
+    describe('when no size clears and the label is kept', () => {
         const wide: LabelObstacle = {
             kind: 'rect',
             box: { x: 100, y: 180, width: 105, height: 20 },
             category: 'label',
         };
-        const [placed] = place([shrinkable(200, { alwaysShow: true })], [wide]);
-        expect(placed.fontSize).toBeUndefined();
-        expect(placed.width).toBe(50);
+
+        it('keeps the fallback at minimumFontSize', () => {
+            const [placed] = place([shrinkable(200, { alwaysShow: true })], [wide]);
+            expect(placed.fontSize).toBe(6);
+            expect(placed.width).toBeCloseTo(25);
+            expect(placed.text).toBe(TEXT);
+        });
+
+        it('keeps the fallback at its configured size without a minimumFontSize', () => {
+            const datum = shrinkable(200, {
+                alwaysShow: true,
+                fit: { text: TEXT, policy: {}, font: FONT, boxPadding: NO_PADDING, boundByRegion: false },
+            });
+            const [placed] = place([datum], [wide]);
+            expect(placed.fontSize).toBeUndefined();
+            expect(placed.width).toBe(50);
+        });
+    });
+
+    describe('when the itemStyler resolves a larger font', () => {
+        // 'WWWWW' centred on x=200 measures 100px at 24px, so it clears an obstacle ending at x=157 from 20px
+        // down (83.3px wide, left edge 158.3) but not at 21px (87.5px wide, left edge 156.25).
+        const blocker: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 100, y: 180, width: 57, height: 20 },
+            category: 'label',
+        };
+        const STYLED = { ...FONT, fontSize: 24 };
+        const datum = () =>
+            shrinkable(200, {
+                fit: {
+                    text: TEXT,
+                    policy: { minimumFontSize: 8 },
+                    font: FONT,
+                    boxPadding: NO_PADDING,
+                    boundByRegion: false,
+                },
+            });
+
+        it('compass path: shrinks from the styled size to the largest that clears', () => {
+            const resolveCandidateStyle: CandidateStyleResolver = () => ({ font: STYLED, boxPadding: NO_PADDING });
+            const [placed] = placeLabels(new Map([['s', { datums: [datum()], resolveCandidateStyle }]]), bounds, 0, [
+                blocker,
+            ]).get('s')!;
+            expect(placed.fontSize).toBe(20);
+        });
+
+        it('control: unblocked styled labels draw at the styled size', () => {
+            const resolveCandidateStyle: CandidateStyleResolver = () => ({ font: STYLED, boxPadding: NO_PADDING });
+            const [placed] = placeLabels(new Map([['s', { datums: [datum()], resolveCandidateStyle }]]), bounds, 0).get(
+                's'
+            )!;
+            expect(placed.width).toBe(100);
+        });
+
+        it('positioned path: shrinks from the styled size to the largest that clears', () => {
+            const anchor: OrientationAnchor = { x: 200, y: 190, textAlign: 'center', textBaseline: 'middle' };
+            const padding = NO_PADDING;
+            const d = buildBarPositionedLabelDatum(
+                TEXT,
+                50,
+                20,
+                [{ box: { x: 175, y: 180, width: 50, height: 20 }, fitTo: { anchor, padding } }],
+                { rotation: 0 },
+                { x: 0, y: 300, width: 10, height: 10 },
+                false,
+                {},
+                0,
+                false,
+                { text: TEXT, policy: { minimumFontSize: 8 }, font: FONT, boxPadding: NO_PADDING }
+            );
+            const resolveCandidate: PositionedCandidateResolver = (_d, c) => ({
+                ...c,
+                fitTo: { ...c.fitTo!, font: STYLED },
+            });
+            const [placed] = placeLabels(new Map([['s', { datums: [d], resolveCandidate }]]), bounds, 0, [blocker]).get(
+                's'
+            )!;
+            expect(placed.fontSize).toBe(20);
+        });
     });
 
     it('blocks a later label by the shrunken box rather than the full-size one', () => {

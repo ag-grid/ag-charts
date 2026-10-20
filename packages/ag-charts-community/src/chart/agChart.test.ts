@@ -62,6 +62,7 @@ describe('AgChart', () => {
         }
     });
 
+    // Bespoke: these tests exercise the unprepared defaults (theme, size, `getOptions()`), which `createChart` would override.
     test('cartesian chart top-level properties', async () => {
         chartProxy = AgCharts.create({
             // chart type is optional because it defaults to `cartesian`
@@ -600,6 +601,7 @@ describe('Chart re-creation canvas attachment (AG-17444)', () => {
             const container = document.createElement('div');
             document.body.appendChild(container);
 
+            // Bespoke: unprepared options with a custom container, which `createChart` would override.
             chart = AgCharts.create({ container } as AgChartOptions);
             await chart.update({ container, data: DATA, series: SERIES[seriesType] } as AgChartOptions);
             await waitForChartStability(chart);

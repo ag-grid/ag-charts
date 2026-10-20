@@ -60,6 +60,32 @@ const DEFAULT_SUBSTITUTIONS: ExampleSubstitutions = {
 const cacheKeys: Record<string, object> = {};
 const cacheValues = new WeakMap<object, GeneratedContents>();
 
+// Listing an example's files reads its whole `contents.json`, and the dev server lists every example at once:
+// bound the reads in flight so that their buffers and parsed objects do not all sit in memory together.
+const MAX_CONCURRENT_READS = 16;
+let activeReads = 0;
+const waitingReads: Array<() => void> = [];
+
+const readFileLimited = async (jsonPath: string) => {
+    if (activeReads < MAX_CONCURRENT_READS) {
+        activeReads++;
+    } else {
+        // The slot is handed over by `release`, which leaves `activeReads` unchanged
+        await new Promise<void>((resolve) => waitingReads.push(resolve));
+    }
+
+    try {
+        return await fs.readFile(jsonPath, 'utf-8');
+    } finally {
+        const next = waitingReads.shift();
+        if (next == null) {
+            activeReads--;
+        } else {
+            next();
+        }
+    }
+};
+
 const readContentJson = async (params: GeneratedExampleParams): Promise<GeneratedContents | undefined> => {
     const useCache = !getIsDev();
     const jsonPath = getContentJsonPath(params);
@@ -75,7 +101,7 @@ const readContentJson = async (params: GeneratedExampleParams): Promise<Generate
 
     if (result == null) {
         try {
-            result = JSON.parse(await fs.readFile(jsonPath, 'utf-8')) as GeneratedContents;
+            result = JSON.parse(await readFileLimited(jsonPath)) as GeneratedContents;
         } catch (e) {
             if (!getIsDev()) {
                 throw e;

@@ -2,6 +2,7 @@ import { getGalleryExampleFiles } from '@components/gallery/utils/pageData';
 import { getIsDev } from '@utils/env';
 import { fileNameToMimeType } from '@utils/mimeType';
 import { getContentRootFileUrl } from '@utils/pages';
+import { shareInFlight } from '@utils/shareInFlight';
 import { type CollectionEntry, getEntry } from 'astro:content';
 
 import { getGeneratedContents } from '../../../../components/example-generator';
@@ -11,12 +12,14 @@ interface Params {
     fileName: string;
 }
 
-export async function getStaticPaths() {
+// See the docs example file route: share the run in flight between concurrent dev requests.
+const loadExampleFiles = shareInFlight(async () => {
     const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
-    const exampleFiles = await getGalleryExampleFiles({
-        galleryData: galleryDataEntry?.data,
-    });
-    return exampleFiles;
+    return getGalleryExampleFiles({ galleryData: galleryDataEntry?.data });
+});
+
+export async function getStaticPaths() {
+    return loadExampleFiles();
 }
 
 export async function GET({ params }: { params: Params }) {

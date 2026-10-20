@@ -10,13 +10,23 @@ import {
 } from 'ag-charts-community';
 import {
     BBox,
+    type BoxBounds,
     type CallbackParamRules,
+    type FittedLabelStack,
+    type FontOptions,
     Group,
+    type LabelFit,
+    type LabelFitDescriptor,
+    type NormalisedAutoSizedSecondaryLabelOptions,
     type NormalisedColorType,
     type NormalisedTextOrSegments,
     type NormalisedTreemapSeriesOwnOptions,
     type NormalisedTreemapSeriesStyle,
+    type OrientationAnchor,
+    type PlacedLabel,
     type Point,
+    type PointLabelDatum,
+    type PositionedLabelCandidate,
     Rect,
     type RequireOptional,
     type ResolvedTextAlign,
@@ -24,18 +34,25 @@ import {
     Selection,
     Text,
     Transformable,
-    cachedTextMeasurer,
+    cycledValue,
+    drawnLineHeight,
     findDiscreteColorBinLabel,
+    findLargestFittingFontSize,
+    fitLabelText,
     fontWithSize,
     formatValue,
+    isErased,
     isGradientFill,
     isNumberEqual,
+    lineHeightAtSize,
+    measureLabelText,
     mergeDefaults,
     resolveMinimumFontSize,
     resolveTextAlign,
     toPlainText,
-    wrapLines,
+    wrapText,
 } from 'ag-charts-core';
+import type { PaddingOptions } from 'ag-charts-types';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 import {
@@ -44,9 +61,9 @@ import {
     HierarchySeries,
     toHierarchyHighlightString,
 } from '../hierarchy/hierarchySeries';
-import { formatLabels, formatSingleLabel } from '../util/labelFormatter';
+import { autoSizedLabelFit, labelPairBlocks, styledLabelFont } from '../util/autoSizedLabelFit';
 
-const { createDatumId, SelectionState, getLabelStyles } = _ModuleSupport;
+const { createDatumId, SelectionState, expandLabelBoxExtent, getLabelStyles } = _ModuleSupport;
 
 class TreemapNode extends HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
@@ -63,11 +80,51 @@ class TreemapNode extends HierarchyNode<TreemapNode> {
 }
 
 interface GroupTitle {
-    text: NormalisedTextOrSegments;
+    text: string;
     fontSize: number;
-    lineHeight: number;
     labelHeight: number;
     bandHeight: number;
+}
+
+type TreemapLabelOptions = NormalisedAutoSizedSecondaryLabelOptions<AgTreemapSeriesLabelFormatterParams> & {
+    textAlign: TextAlign;
+    verticalAlign: VerticalAlign;
+};
+
+interface TreemapPlacedLabelDatum extends PointLabelDatum {
+    readonly node: TreemapNode;
+    /** Which text node each block of the stack renders into. */
+    readonly tags: readonly TextNodeTag[];
+    /** The room inside the tile or group header the label is placed in. */
+    readonly room: BoxBounds;
+}
+
+interface TreemapLabelCandidate extends PositionedLabelCandidate {
+    readonly anchor: OrientationAnchor;
+}
+
+const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
+
+function labelFitDescriptor(
+    text: NormalisedTextOrSegments,
+    label: TreemapLabelOptions,
+    overflowWidth?: number,
+    boxPadding = expandLabelBoxExtent(label)
+): LabelFitDescriptor {
+    const fit = autoSizedLabelFit(text, label, boxPadding);
+    if (fit.fitOverflow == null || overflowWidth == null) return fit;
+    return { ...fit, fitOverflow: { ...fit.fitOverflow, maxWidth: overflowWidth } };
+}
+
+function pairTags(primary: unknown, secondary: unknown): TextNodeTag[] {
+    const tags: TextNodeTag[] = [];
+    if (primary != null) tags.push(TextNodeTag.Primary);
+    if (secondary != null) tags.push(TextNodeTag.Secondary);
+    return tags;
+}
+
+function boxHeightOf(padding: Required<PaddingOptions> | undefined) {
+    return padding == null ? 0 : padding.top + padding.bottom;
 }
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
@@ -117,11 +174,6 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     middle: 0.5,
     bottom: 1,
 };
-
-function alignedX(bbox: BBox, padding: number, textAlign: TextAlign, isRtl: boolean) {
-    const factor = textAlignFactors[resolveTextAlign(textAlign, isRtl)] ?? 0.5;
-    return bbox.x + padding + (bbox.width - 2 * padding) * factor;
-}
 
 // When the pair fits, only a `middle` label can meet an edge-aligned one.
 function clearOfEdge(
@@ -173,32 +225,47 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
     private fitGroupTitle(labelValue: string, bbox: BBox, padding: number): GroupTitle | undefined {
         const heightRatioThreshold = 3;
-        const { label } = this.options.group;
-        const { fontSize, maxWidth = Infinity, maxHeight = Infinity } = label;
+        const label = this.groupLabelOptions();
+        const { fontSize, maxHeight = Infinity } = label;
         const floorFontSize = resolveMinimumFontSize(label.minimumFontSize, fontSize);
         const heightCap = bbox.height / heightRatioThreshold;
         if (floorFontSize > bbox.width / heightRatioThreshold || floorFontSize > heightCap) return;
 
-        const props = { ...label, wrapping: label.wrapping ?? 'never', truncate: label.truncate ?? true };
-        const width = Math.min(bbox.width - 2 * padding, maxWidth);
+        const width = Math.min(bbox.width - 2 * padding, label.maxWidth ?? Infinity);
         // One line at the floor size always fits, however small the one-third cap.
-        const floorLineHeight = cachedTextMeasurer(fontWithSize(label, floorFontSize)).lineHeight();
+        const floorLineHeight = drawnLineHeight(fontWithSize(label, floorFontSize));
         const height = Math.min(maxHeight, Math.max(heightCap, floorLineHeight));
-        const fitted = formatSingleLabel(labelValue, props, { padding: 0 }, () => ({ width, height, meta: null }));
-        if (fitted == null) return;
-
-        const [formatting] = fitted;
-        const natural = cachedTextMeasurer(label).measureLines(
-            wrapLines(labelValue, { maxWidth: width, font: label, textWrap: props.wrapping })
-        );
-        const bandHeight = Math.max(formatting.height, Math.min(Math.max(natural.height, fontSize), height));
-        return {
-            text: formatting.text,
-            fontSize: formatting.fontSize,
-            lineHeight: formatting.lineHeight,
-            labelHeight: formatting.height,
-            bandHeight,
+        const { policy, fitOverflow } = labelFitDescriptor(labelValue, label, width);
+        const bounded = { ...policy, maxWidth: width, maxHeight: height };
+        const fitAt = (size: number, fit: LabelFit) => {
+            const font = fontWithSize(label, size);
+            const text = toPlainText(fitLabelText(labelValue, fit, font));
+            return isErased(text)
+                ? undefined
+                : { text, fontSize: size, labelHeight: measureLabelText(text, font).height };
         };
+        const fitted =
+            findLargestFittingFontSize(floorFontSize, fontSize, (size, atFloor) => {
+                // Truncating is the last resort, once the title is at its minimum size.
+                const step = fitAt(size, atFloor ? bounded : { ...bounded, overflowStrategy: 'hide' });
+                // `'never'` keeps every manual line whatever the height, so it can still be too tall here.
+                return step == null || step.labelHeight > height ? undefined : step;
+            }) ?? (fitOverflow == null ? undefined : fitAt(floorFontSize, fitOverflow));
+        if (fitted == null) return;
+        const { labelHeight } = fitted;
+
+        const natural = measureLabelText(
+            wrapText(labelValue, { maxWidth: width, font: label, textWrap: label.wrapping }),
+            label
+        );
+        const bandHeight = Math.max(labelHeight, Math.min(Math.max(natural.height, fontSize), height));
+        return { ...fitted, bandHeight };
+    }
+
+    /** Group headers are a single line that truncates unless the user configures their fit. */
+    private groupLabelOptions(): TreemapLabelOptions {
+        const { label } = this.options.group;
+        return { ...label, wrapping: label.wrapping ?? 'never', truncate: label.truncate ?? true };
     }
 
     private getNodePadding(node: TreemapNode, bbox: BBox) {
@@ -497,8 +564,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             fillOpacity,
             strokeWidth,
             strokeOpacity,
-            fill = fills[index % fills.length],
-            stroke = isLeaf ? strokes[index % strokes.length] : strokes[Math.min(index, strokes.length)],
+            fill = cycledValue(fills, index),
+            stroke = isLeaf ? cycledValue(strokes, index) : strokes[Math.min(index, strokes.length)],
         } = isLeaf ? this.options.tile : this.options.group;
         return { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, opacity: 1 };
     }
@@ -531,6 +598,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     }
 
     override updateSelections() {
+        const { tile } = this.options;
+        this.usesPlacedLabels = tile.label.enabled || tile.secondaryLabel.enabled || this.options.group.label.enabled;
         const highlightedNode = this.getActiveHighlightNode();
 
         const getDatumId = (node: TreemapNode) => node.datumIndex;
@@ -661,147 +730,13 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const { width, height } = seriesRect;
         this.squarify(rootNode!, new BBox(0, 0, width, height));
 
-        this.rootNode?.walk((node) => {
-            const { bbox, children, labelValue, secondaryLabelValue, labelText, secondaryLabelText } = node;
-
-            node.label = undefined;
-            node.secondaryLabel = undefined;
-
-            if (bbox == null) return;
-
-            if (children.length === 0) {
-                const layout = {
-                    width: bbox.width,
-                    height: bbox.height,
-                    meta: null,
-                };
-                const formatting = formatLabels(
-                    labelText ?? labelValue,
-                    tile.label,
-                    secondaryLabelText ?? secondaryLabelValue,
-                    tile.secondaryLabel,
-                    { padding: tile.padding },
-                    () => layout
-                );
-                if (formatting == null) {
-                    return;
-                }
-
-                const { height: labelHeight, label, secondaryLabel } = formatting;
-                const { padding } = tile;
-                const isRtl = this.ctx.domManager.isRtl;
-                const innerY = bbox.y + padding;
-                const innerHeight = bbox.height - 2 * padding;
-                const centreY = (blockHeight: number, verticalAlign: VerticalAlign) =>
-                    innerY +
-                    blockHeight * 0.5 +
-                    (innerHeight - blockHeight) * (verticalAlignFactors[verticalAlign] ?? 0.5);
-
-                let labelY = label == null ? 0 : centreY(label.height, tile.label.verticalAlign);
-                let secondaryLabelY =
-                    secondaryLabel == null ? 0 : centreY(secondaryLabel.height, tile.secondaryLabel.verticalAlign);
-                if (label != null && secondaryLabel != null) {
-                    const labelAlign = tile.label.verticalAlign;
-                    const secondaryAlign = tile.secondaryLabel.verticalAlign;
-                    const { spacing } = tile.label;
-                    // `alwaysShow` can keep a pair too tall for the tile; stacking stops them drawing over each other.
-                    if (labelAlign === secondaryAlign || labelHeight > innerHeight) {
-                        const blockY = centreY(labelHeight, labelAlign);
-                        labelY = blockY - (labelHeight - label.height) * 0.5;
-                        secondaryLabelY = blockY + (labelHeight - secondaryLabel.height) * 0.5;
-                    } else if (labelAlign === 'middle') {
-                        labelY = clearOfEdge(
-                            labelY,
-                            label.height,
-                            secondaryLabelY,
-                            secondaryLabel.height,
-                            secondaryAlign,
-                            spacing
-                        );
-                    } else if (secondaryAlign === 'middle') {
-                        secondaryLabelY = clearOfEdge(
-                            secondaryLabelY,
-                            secondaryLabel.height,
-                            labelY,
-                            label.height,
-                            labelAlign,
-                            spacing
-                        );
-                    }
-                }
-
-                if (label != null) {
-                    const {
-                        fontStyle = 'normal',
-                        fontFamily,
-                        fontWeight = 'normal',
-                        color = 'black',
-                        textAlign,
-                    } = tile.label;
-                    node.label = {
-                        text: label.text,
-                        fontSize: label.fontSize,
-                        lineHeight: label.lineHeight,
-                        fontStyle,
-                        fontFamily,
-                        fontWeight,
-                        color,
-                        textAlign,
-                        verticalAlign: 'middle',
-                        x: alignedX(bbox, padding, textAlign, isRtl),
-                        y: labelY,
-                    };
-                }
-                if (secondaryLabel != null) {
-                    const {
-                        fontStyle = 'normal',
-                        fontFamily,
-                        fontWeight = 'normal',
-                        color = 'black',
-                        textAlign,
-                    } = tile.secondaryLabel;
-                    node.secondaryLabel = {
-                        text: secondaryLabel.text,
-                        fontSize: secondaryLabel.fontSize,
-                        lineHeight: secondaryLabel.lineHeight,
-                        fontStyle,
-                        fontFamily,
-                        fontWeight,
-                        color,
-                        textAlign,
-                        verticalAlign: 'middle',
-                        x: alignedX(bbox, padding, textAlign, isRtl),
-                        y: secondaryLabelY,
-                    };
-                }
-            } else if (labelValue == null) {
-                return;
-            } else {
-                const { padding } = group;
-                const { textAlign, verticalAlign } = group.label;
-
-                const title = this.groupTitle(node, bbox);
-                if (title == null) return;
-
-                const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = group.label;
-                const { labelHeight, bandHeight } = title;
-                const alignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
-
-                node.label = {
-                    text: title.text,
-                    fontSize: title.fontSize,
-                    lineHeight: title.lineHeight,
-                    fontStyle,
-                    fontFamily,
-                    fontWeight,
-                    color,
-                    textAlign,
-                    verticalAlign: 'middle',
-                    x: alignedX(bbox, padding, textAlign, this.ctx.domManager.isRtl),
-                    y: bbox.y + padding + (bandHeight - labelHeight) * alignFactor + labelHeight * 0.5,
-                };
-            }
-        });
+        // Placed labels are written back once the label manager has fitted them to this layout.
+        if (!this.usesPlacedLabels) {
+            this.rootNode?.walk((node) => {
+                node.label = undefined;
+                node.secondaryLabel = undefined;
+            });
+        }
 
         const fillBBox: _ModuleSupport.ShapeFillBBox = {
             series: new BBox(0, 0, width, height),
@@ -861,6 +796,50 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             updateRectFn(datum, rect, true);
         });
 
+        if (!this.usesPlacedLabels) this.updateLabelNodes();
+    }
+
+    private labelFormatterParams(node: TreemapNode): RequireOptional<AgTreemapSeriesLabelFormatterParams> {
+        const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName } = this.options;
+        return {
+            childrenKey,
+            colorKey,
+            colorName: colorName ?? colorKey,
+            depth: node.depth ?? Number.NaN,
+            labelKey,
+            secondaryLabelKey,
+            sizeKey,
+            sizeName: sizeName ?? sizeKey,
+        };
+    }
+
+    private labelPath(isLeaf: boolean, tag: TextNodeTag) {
+        if (tag === TextNodeTag.Primary) {
+            return ['series', `${this.declarationOrder}`, isLeaf ? 'tile' : 'group', 'label'];
+        }
+        return ['series', `${this.declarationOrder}`, 'tile', 'secondaryLabel'];
+    }
+
+    /** A label at rest in its `itemStyler`'s font and box, so the fit reserves room for restyled text. */
+    private styledLabel(node: TreemapNode, props: TreemapLabelOptions, tag: TextNodeTag) {
+        if (props.itemStyler == null) return { label: props, box: expandLabelBoxExtent(props) };
+        const path = this.labelPath(node.children.length === 0, tag);
+        const style = getLabelStyles(this, node, this.labelFormatterParams(node), props, false, undefined, path);
+        return { label: styledLabelFont(props, style), box: expandLabelBoxExtent(style) };
+    }
+
+    private styledLabelFit(
+        node: TreemapNode,
+        text: NormalisedTextOrSegments,
+        props: TreemapLabelOptions,
+        tag: TextNodeTag
+    ) {
+        const { label, box } = this.styledLabel(node, props, tag);
+        return labelFitDescriptor(text, label, undefined, box);
+    }
+
+    private updateLabelNodes() {
+        const { tile, group } = this.options;
         const updateLabelFn = (node: TreemapNode, text: Text, tag: TextNodeTag, highlighted: boolean) => {
             const isLeaf = node.children.length === 0;
             const label = tag === TextNodeTag.Primary ? node.label : node.secondaryLabel;
@@ -869,27 +848,16 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 return;
             }
             let labelProps;
-            let labelPath: string[];
             if (tag === TextNodeTag.Primary) {
                 labelProps = isLeaf ? tile.label : group.label;
-                labelPath = ['series', `${this.declarationOrder}`, isLeaf ? 'tile' : 'group', 'label'];
             } else {
                 labelProps = tile.secondaryLabel;
-                labelPath = ['series', `${this.declarationOrder}`, 'tile', 'secondaryLabel'];
             }
+            const labelPath = this.labelPath(isLeaf, tag);
 
             const { opacity: highlightOpacity } = this.getItemStyle(node, isLeaf, highlighted) ?? {};
 
-            const params: RequireOptional<AgTreemapSeriesLabelFormatterParams> = {
-                childrenKey,
-                colorKey,
-                colorName: colorName ?? colorKey,
-                depth: node.depth ?? Number.NaN,
-                labelKey,
-                secondaryLabelKey,
-                sizeKey,
-                sizeName: sizeName ?? sizeKey,
-            };
+            const params = this.labelFormatterParams(node);
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const style = getLabelStyles(this, node, params, labelProps, highlighted, activeHighlight, labelPath);
             text.text = label.text;
@@ -915,6 +883,230 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             const datum = text.unsafeClosestDatum();
             updateLabelFn(datum, text, text.tag, datum === highlightedDatum);
         }
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.usesPlacedLabels) return [];
+        const data: TreemapPlacedLabelDatum[] = [];
+        this.rootNode?.walk((node) => {
+            const datum = node.children.length === 0 ? this.tileLabelDatum(node) : this.groupLabelDatum(node);
+            if (datum != null) data.push(datum);
+        });
+        return data;
+    }
+
+    private tileLabelDatum(node: TreemapNode): TreemapPlacedLabelDatum | undefined {
+        const { bbox, labelText: primaryText, secondaryLabelText: secondaryText } = node;
+        if (bbox == null) return;
+        const { tile } = this.options;
+        const primary =
+            primaryText == null ? undefined : this.styledLabelFit(node, primaryText, tile.label, TextNodeTag.Primary);
+        const secondary =
+            secondaryText == null
+                ? undefined
+                : this.styledLabelFit(node, secondaryText, tile.secondaryLabel, TextNodeTag.Secondary);
+        const lead = primary ?? secondary;
+        if (lead == null) return;
+        const blocks = labelPairBlocks(primary, secondary);
+        const tags = pairTags(primary, secondary);
+
+        const { padding } = tile;
+        const room = {
+            x: bbox.x + padding,
+            y: bbox.y + padding,
+            width: Math.max(0, bbox.width - 2 * padding),
+            height: Math.max(0, bbox.height - 2 * padding),
+        };
+        const alwaysShow = blocks.some(({ fit }) => fit.fitOverflow != null);
+        const { threshold } = (primary == null ? tile.secondaryLabel : tile.label).collision ?? {};
+        return this.placedLabelDatum(node, lead, room, tags, alwaysShow, threshold, {
+            blocks,
+            spacing: tile.label.spacing,
+        });
+    }
+
+    private groupLabelDatum(node: TreemapNode): TreemapPlacedLabelDatum | undefined {
+        const { bbox, labelValue } = node;
+        if (bbox == null || labelValue == null) return;
+        const title = this.groupTitle(node, bbox);
+        if (title == null) return;
+        const { padding } = this.options.group;
+        const label = this.groupLabelOptions();
+        const room = {
+            x: bbox.x + padding,
+            y: bbox.y + padding,
+            width: Math.max(0, Math.min(bbox.width - 2 * padding, label.maxWidth ?? Infinity)),
+            height: title.bandHeight,
+        };
+        // The series sized the title to its band, so the engine only places it.
+        const sized = {
+            ...label,
+            fontSize: title.fontSize,
+            lineHeight: lineHeightAtSize(label, title.fontSize),
+            minimumFontSize: title.fontSize,
+        };
+        const fit = labelFitDescriptor(
+            title.text,
+            sized,
+            room.width,
+            this.styledLabel(node, label, TextNodeTag.Primary).box
+        );
+        const { alwaysShow = false, threshold } = label.collision ?? {};
+        return this.placedLabelDatum(node, fit, room, [TextNodeTag.Primary], alwaysShow, threshold);
+    }
+
+    private placedLabelDatum(
+        node: TreemapNode,
+        fit: LabelFitDescriptor,
+        room: BoxBounds,
+        tags: TextNodeTag[],
+        alwaysShow: boolean,
+        threshold: number | undefined,
+        stack?: TreemapPlacedLabelDatum['stack']
+    ): TreemapPlacedLabelDatum {
+        const isLeaf = node.children.length === 0;
+        const { textAlign, verticalAlign } = isLeaf ? this.options.tile.label : this.options.group.label;
+        const resolvedAlign = resolveTextAlign(textAlign, this.ctx.domManager.isRtl);
+        const anchor: OrientationAnchor = {
+            x: room.x + room.width * (textAlignFactors[resolvedAlign] ?? 0.5),
+            y: room.y + room.height * (verticalAlignFactors[verticalAlign] ?? 0.5),
+            textAlign: resolvedAlign,
+            textBaseline: verticalAlign,
+        };
+        const { width, height } = measureLabelText(fit.text, fit.font);
+        const candidate: TreemapLabelCandidate = {
+            box: { x: anchor.x - width / 2, y: anchor.y - height / 2, width, height },
+            region: room,
+            anchor,
+            // A stack measures its own drawn boxes, and a group title's band is sized to its glyph alone.
+            fitTo: { container: room, anchor, padding: NO_PADDING },
+        };
+        return {
+            point: { x: 0, y: 0, size: 0 },
+            label: { text: fit.text, width, height },
+            fit,
+            stack,
+            anchor: undefined,
+            placement: undefined,
+            neverDrop: alwaysShow,
+            threshold,
+            positionedCandidates: [candidate],
+            ownBox: room,
+            node,
+            tags,
+            room,
+        };
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<TreemapNode>[]) {
+        this.rootNode?.walk((node) => {
+            node.label = undefined;
+            node.secondaryLabel = undefined;
+        });
+        for (const placedLabel of placed as PlacedLabel<unknown>[]) {
+            const datum = placedLabel.datum as TreemapPlacedLabelDatum;
+            if (datum.stack == null) {
+                this.writeGroupTitle(datum, placedLabel);
+            } else if (placedLabel.stack != null) {
+                this.writeTileLabels(datum, placedLabel.stack);
+            }
+        }
+        this.updateLabelNodes();
+    }
+
+    private writeGroupTitle({ node, fit }: TreemapPlacedLabelDatum, placed: PlacedLabel<unknown>) {
+        const label = this.groupLabelOptions();
+        const { anchor } = placed.candidate as TreemapLabelCandidate;
+        node.label = this.labelLayout(
+            label,
+            placed.text,
+            placed.fontSize ?? fit?.font.fontSize ?? label.fontSize,
+            anchor.x + (placed.offsetX ?? 0),
+            anchor.y + (placed.offsetY ?? 0),
+            label.verticalAlign
+        );
+    }
+
+    /**
+     * Lays the fitted blocks out within the tile: each block aligns on its own `verticalAlign`, and a pair
+     * that shares an alignment, or overflows the tile, is kept together as one block.
+     */
+    private writeTileLabels({ node, room, tags, stack: labelStack }: TreemapPlacedLabelDatum, stack: FittedLabelStack) {
+        const { tile } = this.options;
+        const { spacing } = tile.label;
+        const blocks = tags.map((tag, index) => {
+            const fitted = stack.blocks[index];
+            const props = tag === TextNodeTag.Primary ? tile.label : tile.secondaryLabel;
+            const blockFit = labelStack?.blocks[index].fit;
+            const font = blockFit?.font ?? props;
+            const padding = blockFit?.boxPadding ?? expandLabelBoxExtent(props);
+            return fitted == null
+                ? undefined
+                : { tag, fitted, props, font, padding, height: fitted.height + boxHeightOf(padding) };
+        });
+        const centreY = (height: number, verticalAlign: VerticalAlign) =>
+            room.y + height * 0.5 + (room.height - height) * (verticalAlignFactors[verticalAlign] ?? 0.5);
+
+        const [first, second] = blocks;
+        let firstY = first == null ? 0 : centreY(first.height, first.props.verticalAlign);
+        let secondY = second == null ? 0 : centreY(second.height, second.props.verticalAlign);
+        if (first != null && second != null) {
+            const firstAlign = first.props.verticalAlign;
+            const secondAlign = second.props.verticalAlign;
+            if (firstAlign === secondAlign || stack.height > room.height) {
+                const blockY = centreY(stack.height, firstAlign);
+                firstY = blockY - (stack.height - first.height) * 0.5;
+                secondY = blockY + (stack.height - second.height) * 0.5;
+            } else if (firstAlign === 'middle') {
+                firstY = clearOfEdge(firstY, first.height, secondY, second.height, secondAlign, spacing);
+            } else if (secondAlign === 'middle') {
+                secondY = clearOfEdge(secondY, second.height, firstY, first.height, firstAlign, spacing);
+            }
+        }
+
+        const isRtl = this.ctx.domManager.isRtl;
+        const write = (block: (typeof blocks)[number], boxCentreY: number) => {
+            if (block == null) return;
+            const { fitted, props, font, padding, tag } = block;
+            const factor = textAlignFactors[resolveTextAlign(props.textAlign, isRtl)] ?? 0.5;
+            const x = room.x + padding.left + (room.width - padding.left - padding.right) * factor;
+            const y = boxCentreY + (padding.top - padding.bottom) * 0.5;
+            const layout = this.labelLayout(props, fitted.text, fitted.fontSize, x, y, 'middle', font);
+            if (tag === TextNodeTag.Primary) {
+                node.label = layout;
+            } else {
+                node.secondaryLabel = layout;
+            }
+        };
+        write(first, firstY);
+        write(second, secondY);
+    }
+
+    private labelLayout(
+        props: TreemapLabelOptions,
+        text: NormalisedTextOrSegments,
+        fontSize: number,
+        x: number,
+        y: number,
+        verticalAlign: VerticalAlign,
+        font: FontOptions = props
+    ): LabelLayout {
+        const { fontStyle = 'normal', fontFamily = props.fontFamily, fontWeight = 'normal' } = font;
+        const { color = 'black', textAlign } = props;
+        const lineHeight = drawnLineHeight(fontWithSize(font, fontSize));
+        return {
+            text,
+            fontSize,
+            lineHeight,
+            fontStyle,
+            fontFamily,
+            fontWeight,
+            color,
+            textAlign,
+            verticalAlign,
+            x,
+            y,
+        };
     }
 
     private getGroupHighlightState(

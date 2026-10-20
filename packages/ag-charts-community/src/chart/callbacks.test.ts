@@ -8,7 +8,6 @@ import type {
     AgChartInstance,
 } from 'ag-charts-types';
 
-import { AgCharts } from '../api/agCharts';
 import type {
     MockAPICallback,
     MockAxisLabelFormatter,
@@ -51,7 +50,7 @@ describe('AG-13024 API context', () => {
     type TContext = { name: string };
     type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
 
-    let chart: Chart;
+    let chart: AgChartInstance;
     let options: AgCartesianChartOptions<TDatum, TContext>;
     let seriesContext0: TContext;
     let seriesContext1: TContext;
@@ -374,7 +373,7 @@ describe('AG-13024 API context - overlays', () => {
 });
 
 describe('AG-13024 API context validation', () => {
-    let chart: Chart;
+    let chart: AgChartInstance;
     setupMockConsole();
     setupMockCanvas();
     afterEach(() => chart?.destroy());
@@ -399,7 +398,7 @@ describe('AG-13024 API context validation', () => {
 });
 
 describe('AG-15283 context precedence', () => {
-    let chart: Chart;
+    let chart: AgChartInstance;
     setupMockCanvas();
     afterEach(() => chart?.destroy());
 
@@ -473,7 +472,7 @@ describe('AG-16613 null category callbacks', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart != null) {
@@ -585,7 +584,7 @@ describe('callback cache', () => {
     test('AG-10112 re-evaluate callbacks on update', async () => {
         let selectedCountry: string;
 
-        const opts = prepareTestOptions({
+        const opts: AgCartesianChartOptions = {
             data: [
                 { gdp: 1419, country: 'Spain' },
                 { gdp: 2855, country: 'UK' },
@@ -612,18 +611,18 @@ describe('callback cache', () => {
                     },
                 },
             },
-        });
+        };
 
         selectedCountry = 'Spain';
-        chart = AgCharts.create(opts);
+        chart = await createChart(opts);
         await compare('AG-10112-reevaluate-Spain');
 
         selectedCountry = 'UK';
-        await chart.update(opts);
+        await chart.update(prepareTestOptions({ ...opts }));
         await compare('AG-10112-reevaluate-UK');
 
         selectedCountry = 'Germany';
-        await chart.update(opts);
+        await chart.update(prepareTestOptions({ ...opts }));
         await compare('AG-10112-reevaluate-Germany');
     });
 });

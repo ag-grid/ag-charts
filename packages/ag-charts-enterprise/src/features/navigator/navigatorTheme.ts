@@ -4,7 +4,7 @@ import {
     type AgNavigatorOptions,
     type WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth, themeLineHeight } from 'ag-charts-core';
 
 import {
     barIgnoredMiniChartProperties,
@@ -50,7 +50,6 @@ const priceVolumePresetIgnoredMiniChartProperties = [
     'fillImageDefaults',
     'fillOpacity',
     'shadow',
-    'focusPriority',
     'highlight',
     'lineDash',
     'lineDashOffset',
@@ -147,7 +146,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
 const NAVIGATOR_HANDLE_THEME: WithThemeParams<AgNavigatorHandleOptions> = {
     fill: { $ref: 'navigatorHandleBackgroundColor' },
     stroke: themeBorderColor('navigatorHandleBorder'),
-    strokeWidth: themeBorderWidth('navigatorHandleBorder', { on: 1 }),
+    strokeWidth: themeBorderWidth('navigatorHandleBorder'),
     width: 12,
     height: 24,
     cornerRadius: { $ref: 'navigatorHandleBorderRadius' },
@@ -164,7 +163,7 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
         fill: { $ref: 'navigatorTrackBackgroundColor' },
         fillOpacity: 0.1,
         stroke: themeBorderColor('navigatorTrackBorder'),
-        strokeWidth: themeBorderWidth('navigatorTrackBorder', { on: 1 }),
+        strokeWidth: themeBorderWidth('navigatorTrackBorder'),
     },
     track: {
         fill: { $path: '../mask/fill' },
@@ -184,6 +183,7 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
         label: {
             color: { $ref: 'textColor' },
             fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
+            lineHeight: themeLineHeight('lineHeight'),
             fontFamily: { $ref: 'fontFamily' } as any,
             fontWeight: { $ref: 'fontWeight' },
             spacing: 5,

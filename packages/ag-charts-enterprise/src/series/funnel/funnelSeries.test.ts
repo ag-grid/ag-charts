@@ -31,6 +31,7 @@ import type { Node } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
 import {
+    createEnterpriseChart,
     funnelLabelFadeIn,
     funnelLabelOpacities,
     funnelPathReveal,
@@ -102,9 +103,8 @@ describe('FunnelSeries', () => {
                     },
                 },
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -112,18 +112,15 @@ describe('FunnelSeries', () => {
     describe('Series Highlighting', () => {
         it('should render a chart', async () => {
             const options: AgChartOptions = { ...FUNNEL_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render highlight of node', async () => {
             const options: AgChartOptions = { ...FUNNEL_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const node = chart.series[0].contextNodeData.nodeData[0];
 
@@ -144,11 +141,11 @@ describe('FunnelSeries', () => {
     }) => {
         const format = (...values: any[]) => values.join(' ');
 
-        const createChart = async (params: {
+        const chartOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): Promise<any> => {
+        }): AgCartesianChartOptions | AgPolarChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
                       renderer(rParams: any) {
@@ -177,10 +174,7 @@ describe('FunnelSeries', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            prepareEnterpriseTestOptions(options);
-            const newChart = deproxy(AgCharts.create(options));
-            await waitForChartStability(newChart);
-            return newChart;
+            return options;
         };
 
         const hoverChartNodes = async (
@@ -243,7 +237,7 @@ describe('FunnelSeries', () => {
         };
 
         it(`should render tooltip correctly`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
             await hoverChartNodes(chart, ({ series, item }) => {
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
@@ -260,42 +254,48 @@ describe('FunnelSeries', () => {
         });
 
         it(`should highlight hovered items`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should highlight hovered items when tooltip is disabled`, async () => {
-            chart = await createChart({ hasTooltip: false });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: false })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: false, onNodeClick });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: false, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle legendClick event`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' }))
+            );
             await checkLegendClick(chart);
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 6 }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
     };
@@ -359,9 +359,8 @@ describe('FunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -389,9 +388,8 @@ describe('FunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -420,9 +418,8 @@ describe('FunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -451,9 +448,8 @@ describe('FunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -482,15 +478,14 @@ describe('FunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
 
     test('AG-8290 label boxing', async () => {
-        const options = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             data: [
                 { group: 'Close', value: 4460 },
                 { group: 'Propose', value: 7260 },
@@ -519,8 +514,8 @@ describe('FunnelSeries', () => {
                     },
                 },
             ],
-        });
-        chart = deproxy(AgCharts.create(options));
+        };
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -544,10 +539,8 @@ describe('FunnelSeries', () => {
 
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = { ...FUNNEL_NULL_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -570,10 +563,8 @@ describe('FunnelSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -618,10 +609,8 @@ describe('FunnelSeries', () => {
 
         it('should reject undefined category key with warning', async () => {
             const options: AgChartOptions = { ...FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -644,10 +633,8 @@ describe('FunnelSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -663,10 +650,8 @@ describe('FunnelSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -699,10 +684,8 @@ describe('FunnelSeries', () => {
                 ],
                 series: [{ type: 'funnel', stageKey: 'group', valueKey: 'value' }],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -749,13 +732,11 @@ describe('FunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
             return options;
         };
 
         it('rounds every segment, with the stroke following the rounded shape', async () => {
-            chart = deproxy(AgCharts.create(buildOptions(16)));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(buildOptions(16)));
 
             const rects = segmentRects(chart);
             expect(rects).toHaveLength(4);
@@ -770,8 +751,7 @@ describe('FunnelSeries', () => {
         });
 
         it('starts the drop-off connectors on the segments rounded corners', async () => {
-            chart = deproxy(AgCharts.create(buildOptions(16)));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(buildOptions(16)));
 
             const rects = segmentRects(chart).sort((a, b) => a.y - b.y);
             const connectors = dropOffConnectors(chart).sort((a, b) => a.y0 - b.y0);
@@ -801,8 +781,7 @@ describe('FunnelSeries', () => {
         });
 
         it('defaults to square corners', async () => {
-            chart = deproxy(AgCharts.create(buildOptions()));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(buildOptions()));
 
             const rects = segmentRects(chart);
             expect(rects).toHaveLength(4);
@@ -820,8 +799,7 @@ describe('FunnelSeries', () => {
         });
 
         it('rounds every segment in the horizontal direction too', async () => {
-            chart = deproxy(AgCharts.create(buildOptions(16, 'horizontal')));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(buildOptions(16, 'horizontal')));
 
             const rects = segmentRects(chart);
             expect(rects).toHaveLength(4);
@@ -875,13 +853,11 @@ describe('FunnelSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
             return options;
         };
 
         const axisPosition = async (options: AgChartOptions, direction: 'x' | 'y') => {
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             return chart.axes[direction].position;
         };
 
@@ -910,8 +886,7 @@ describe('FunnelSeries', () => {
                 { group: 'Closing stage', value: 4460 },
             ];
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -937,13 +912,15 @@ describe('FunnelSeries', () => {
             { group: 'Close', value: 4460 },
         ];
 
-        const animated = (data: object[]): AgChartOptions =>
-            prepareEnterpriseTestOptions({
-                animation: { enabled: true },
-                data,
-                series: [{ type: 'funnel', stageKey: 'group', valueKey: 'value' }],
-                legend: { enabled: true },
-            });
+        const animated = (data: object[]): AgChartOptions => ({
+            animation: { enabled: true },
+            data,
+            series: [{ type: 'funnel', stageKey: 'group', valueKey: 'value' }],
+            legend: { enabled: true },
+        });
+
+        // Bespoke: the sanity test reuses the prepared options in `update`, so it creates the chart bare.
+        const preparedAnimated = (data: object[]) => prepareEnterpriseTestOptions(animated(data));
 
         const isLabelKey = (key: string) => /^series\[0\]\/labels\/text\[/.test(key);
         const expectLabelsStartHidden = (frame0: SceneGeometrySample) => {
@@ -953,7 +930,7 @@ describe('FunnelSeries', () => {
         };
 
         it('initial load: bars grow from the midpoint, connectors fan out and labels fade in', async () => {
-            chart = deproxy(AgCharts.create(animated(DATA)));
+            chart = deproxy(await createEnterpriseChart(animated(DATA)));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -980,7 +957,7 @@ describe('FunnelSeries', () => {
 
         // captureSnap because the connector snap trips captureUpdate's whole-scene start anchor.
         it('data update: bars tween to the new values while labels re-fade', async () => {
-            const proxy = AgCharts.create(animated(DATA));
+            const proxy = await createEnterpriseChart(animated(DATA));
             chart = deproxy(proxy);
             const sampler = createSceneGeometrySampler(chart);
             const { trajectory, before, after } = await frames.captureSnap(chart, sampler, () =>
@@ -1007,9 +984,15 @@ describe('FunnelSeries', () => {
         });
 
         it('animated endpoints match a static render (initial load + data update)', async () => {
-            const opts = animated(DATA);
+            const opts = preparedAnimated(DATA);
             chart = AgCharts.create(opts);
-            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, opts, animated(UPDATED));
+            await expectAnimatedEndpointsMatchStatic(
+                frames,
+                () => ctx.snapshot(),
+                chart,
+                opts,
+                preparedAnimated(UPDATED)
+            );
         });
     });
 });

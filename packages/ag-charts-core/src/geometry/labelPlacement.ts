@@ -3,11 +3,12 @@ import type { AgChartLabelOrientation, OverflowStrategy, PaddingOptions, TextWra
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import type { NormalisedChartLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
-import { type TextMeasurer, cachedTextMeasurer, measureTextSegments } from '../rendering/textMeasurer';
-import { EllipsisChar, graphemeSegments, toFontString, toTextString } from '../text/textUtil';
+import { type TextMeasurer, cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
+import { EllipsisChar, graphemeSegments, lineHeightAtSize, toFontString, toTextString } from '../text/textUtil';
 import {
     type LabelFit,
     type RegionAlign,
+    drawnLineHeight,
     findLargestFontSizeDescending,
     fitLabelTextOrOverflowAutoSize,
     fontWithSize,
@@ -20,6 +21,14 @@ import type { FontOptions } from '../types/text';
 import { LineSplitter } from '../types/text';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import type { FitRegion } from './fitRegion';
+import { type FittedLabelStack, type LabelStack, fitLabelStack } from './labelStack';
+import {
+    type OrientedRect,
+    orientedRectOverlapsBox,
+    orientedRectOverlapsCircle,
+    orientedRectsOverlap,
+    writeOrientedRect,
+} from './orientedRect';
 import { getMinOuterRectSize } from './shapeUtil';
 import { SpatialIndex, gridCellSize } from './spatialIndex';
 
@@ -132,12 +141,16 @@ export function resolveLabelFitDescriptors(
  */
 export interface CandidateFitTarget {
     readonly container?: { readonly width: number; readonly height: number };
+    /** Whether {@link container} is the label's own shape, kept clear by the collision threshold. Defaults to `true`. */
+    readonly ownShape?: boolean;
     /** Shape the text is fitted to, when the candidate's container is only its bounding box. */
     readonly shape?: FitRegion;
     /** Where the block sits against {@link anchor} within that shape; defaults to centred on it. */
     readonly shapeAlign?: RegionAlign;
     /** Anchor the drawn box hangs off, so its centre can be re-derived when the fitted glyph resizes it. */
     readonly anchor: OrientationAnchor;
+    /** Centre of a fitted box for a label whose position depends on its size; replaces {@link anchor} once fitted. */
+    readonly centreFor?: (width: number, height: number) => Point;
     /** Per-side extent of the drawn box around the glyph. */
     readonly padding: Required<PaddingOptions>;
     /** Font the text is fitted and measured with; defaults to the descriptor's own when unset. */
@@ -162,6 +175,16 @@ export interface PositionedLabelCandidate {
      * flushing (a region-bound `neverDrop` label is clamped into its region).
      */
     readonly flushToRegion?: boolean;
+    /**
+     * Where the label is visible at all. A kept `neverDrop` fallback spilling out of it ranks below every
+     * fallback that only overflows its {@link region}; when unset, all overflow ranks alike.
+     */
+    readonly visibleRegion?: BoxBounds;
+    /**
+     * Axis the box may move a few pixels along to clear an obstacle without leaving the placement it names;
+     * across any other axis it stays on its anchor. Unset moves along neither.
+     */
+    readonly slideAxis?: 'x' | 'y';
     /** Render rotation in degrees (engine convention, matching {@link PlacedLabel.rotation}); `0`/unset is upright. */
     readonly rotation?: number;
     /** Fit inputs for this candidate; used only when the datum carries a {@link PointLabelDatum.fit}. */
@@ -184,6 +207,8 @@ export interface PointLabelDatum {
      * styler (`size: size * 2`).
      */
     readonly markerSize?: number;
+    /** Box spanned by marks drawn over the point (error bars), which a directional label sits beyond. */
+    readonly overlayBounds?: BoxBounds;
     readonly label: MeasuredLabel;
     /**
      * Re-fits the text to each candidate in turn instead of to one container picked before the cascade,
@@ -263,6 +288,12 @@ export interface PointLabelDatum {
     readonly neverDrop?: boolean;
     /** When `false`, the placed label is not an obstacle for the labels resolved after it. */
     readonly obstacle?: boolean;
+    /** Placed labels sharing a group never block one another. */
+    readonly labelGroup?: string;
+    /** Gives way only to placed labels and obstacles that {@link outranks outrank} it. */
+    readonly yields?: boolean;
+    /** The placed label is an obstacle to {@link yields yielding} labels resolved after it. */
+    readonly outranks?: boolean;
     /**
      * Authoritative pre-positioned candidates, tried in order; each carries its own region. When
      * present the engine cascades over these opaque boxes and never computes a placement itself
@@ -286,6 +317,8 @@ export interface PointLabelDatum {
      * preserves the default exclude-all-categories behaviour for stacked/grouped bars.
      */
     readonly ownBoxLabelsCollide?: boolean;
+    /** Labels fitted as one box on the positioned path; {@link fit} must describe the first block. */
+    readonly stack?: LabelStack;
 }
 
 export type ObstacleCategory = 'marker' | 'label' | 'seriesItem' | 'axisLabel';
@@ -429,13 +462,17 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
      * stays `undefined` on this path since the candidate box, not a compass placement, was resolved.
      */
     readonly candidate?: PositionedLabelCandidate;
+    /** How the datum's {@link PointLabelDatum.stack} was fitted to the chosen candidate. */
+    readonly stack?: FittedLabelStack;
 }
 
 /**
  * A single obstacle labels must avoid. `box` is the AABB used to prune candidates in the spatial
  * index; the discriminant selects the exact narrow-phase test. `circle` and `rect` are dispatched
  * inline (no allocation on the hot path); `custom` carries its own predicate for shapes the core
- * engine doesn't model (e.g. pie sectors, whose geometry lives in the community package).
+ * engine doesn't model (e.g. pie sectors, whose geometry lives in the community package). An `overlay`
+ * obstacle is drawn over series shapes (an error bar), so neither sitting on its own shape nor a
+ * `collideWith` toggle excuses a label from it.
  */
 export type LabelObstacle =
     | {
@@ -447,6 +484,7 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          readonly overlay?: boolean;
       }
     | {
           readonly kind: 'rect';
@@ -454,6 +492,22 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          /** The {@link PointLabelDatum.labelGroup} of the placed label this obstacle stands for. */
+          readonly labelGroup?: string;
+          /** Blocks {@link PointLabelDatum.yields yielding} labels too. */
+          readonly outranks?: boolean;
+          readonly overlay?: boolean;
+      }
+    | {
+          readonly kind: 'orientedRect';
+          readonly box: BoxBounds;
+          readonly rect: OrientedRect;
+          readonly category?: ObstacleCategory;
+          readonly sourceId?: string;
+          readonly entityIndex?: number;
+          /** Blocks {@link PointLabelDatum.yields yielding} labels too. */
+          readonly outranks?: boolean;
+          readonly overlay?: boolean;
       }
     | {
           readonly kind: 'custom';
@@ -462,6 +516,7 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          readonly overlay?: boolean;
       };
 
 /** External obstacles, or a function producing them so a solve that never queries the index skips gathering. */
@@ -584,11 +639,6 @@ export function writeLabelBoxCentre(
     return out;
 }
 
-/** Measured size of a label's text or rich-text segments under the given font. */
-export function measureLabelText(text: NormalisedTextOrSegments, font: FontOptions): { width: number; height: number } {
-    return isArray(text) ? measureTextSegments(text, font) : cachedTextMeasurer(font).measureLines(String(text));
-}
-
 const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> = {
     inside: { x: 0, y: 0 },
     top: { x: 0, y: -1 },
@@ -612,16 +662,19 @@ interface PooledCircleObstacle {
 }
 
 // Mutable placed-label obstacle pooled across passes, mirroring markerPool.
-interface PooledRectObstacle {
-    kind: 'rect';
+interface PooledLabelObstacle {
+    kind: 'rect' | 'orientedRect';
     box: BoxBounds;
+    rect: OrientedRect;
     category: ObstacleCategory;
+    labelGroup: string | undefined;
+    outranks: boolean | undefined;
 }
 
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
 const obstacleIndex = new SpatialIndex<LabelObstacle>();
 const markerPool: PooledCircleObstacle[] = [];
-const labelObstaclePool: PooledRectObstacle[] = [];
+const labelObstaclePool: PooledLabelObstacle[] = [];
 const candidateBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // Broad-phase query box: the candidate inflated by the positive part of the collision threshold, a
 // superset of the narrow-phase test box even when the threshold is negative (a shrunk box).
@@ -634,6 +687,9 @@ const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const deflatedRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const deflatedInsideRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const fitRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+// OPTIMIZATION: scratch for the candidate's rotated rectangle, tested in place of its box when `candidateOriented`.
+const candidateRect: OrientedRect = { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 };
+let candidateOriented = false;
 // The candidate datum's per-category obstacle config, set before each obstacle query.
 let candidateCollideWith: CollideWith | undefined;
 // Collision-detection threshold applied to the candidate's own box: positive grows it (more clearance),
@@ -652,6 +708,10 @@ let candidateOwnBox: BoxBounds | undefined;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
+// The candidate datum's label group: placed labels in the same group are never obstacles to it.
+let candidateLabelGroup: string | undefined;
+// The candidate datum gives way only to outranking obstacles.
+let candidateYields = false;
 // The label's text/box after the fit step, reused per candidate to keep the hot path allocation-free.
 // `dropped` is how many characters truncation removed and `shrink` how much of the source text's area the
 // glyph gave up, ranking candidates when none holds the full text at full size; `fontSize` is the
@@ -693,18 +753,25 @@ let candidateFontSize: number | undefined;
 let candidateTrialFontSize: number | undefined;
 // The candidate font at the trial size, refilled per candidate while a trial is running.
 const trialFont: FontOptions = { fontSize: 0 };
+// Largest size the current label's candidates resolved to outside a trial, where its shrink search starts.
+let candidateLargestFontSize = 0;
 
 /**
  * `font` resized to the size the collision-shrink search is trialling, or `font` itself outside a trial.
- * The ladder runs from the configured size, so a trial above a size an `itemStyler` resolved lower is
- * clamped back to it; only the size is overridden, keeping the family and weight the styler chose.
+ * A trial above a size an `itemStyler` resolved lower is clamped back to it; only the size is overridden,
+ * keeping the family and weight the styler chose.
  */
 function candidateFontAt(font: FontOptions): FontOptions {
-    if (candidateTrialFontSize == null || candidateTrialFontSize >= font.fontSize) return font;
+    if (candidateTrialFontSize == null) {
+        candidateLargestFontSize = Math.max(candidateLargestFontSize, font.fontSize);
+        return font;
+    }
+    if (candidateTrialFontSize >= font.fontSize) return font;
     trialFont.fontSize = candidateTrialFontSize;
     trialFont.fontStyle = font.fontStyle;
     trialFont.fontWeight = font.fontWeight;
     trialFont.fontFamily = font.fontFamily;
+    trialFont.lineHeight = lineHeightAtSize(font, candidateTrialFontSize);
     return trialFont;
 }
 // Per-datum inputs to `cascadeCandidates`, refilled by `placeAvoidingLabel` before it runs. Held here
@@ -811,6 +878,13 @@ function worstObstacleOverlap(o: LabelObstacle): void {
 
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
+    if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
+        return true;
+    }
+    if (candidateYields && ((o.kind !== 'rect' && o.kind !== 'orientedRect') || o.outranks !== true)) {
+        return true;
+    }
+
     const category = o.category ?? 'seriesItem';
     // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
     // directional labels fall through to the circle test, which measures their real clearance.
@@ -829,12 +903,14 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     // excluded; `ownBoxLabelsCollide` opts sibling labels back in (range-bar shares one bar rect).
     if (
         candidateOwnBox != null &&
+        o.overlay !== true &&
         !(candidateOwnBoxLabelsCollide && category === 'label') &&
         boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height)
     ) {
         return true;
     }
 
+    if (o.overlay === true) return false;
     const enabled = candidateCollideWith?.[category];
     return category === 'axisLabel' ? enabled !== true : enabled === false;
 }
@@ -853,15 +929,38 @@ function candidateTestBox(): BoxBounds | undefined {
 }
 
 function obstacleOverlapsBox(o: LabelObstacle, testBox: BoxBounds): boolean {
+    if (candidateOriented) return obstacleOverlapsCandidateRect(o, testBox);
     const { x, y, width, height } = testBox;
     switch (o.kind) {
         case 'circle':
             return circleOverlapsBox(o.cx, o.cy, o.r, x, y, width, height);
         case 'rect':
             return boxCollides(o.box, x, y, width, height);
+        case 'orientedRect':
+            return orientedRectOverlapsBox(o.rect, testBox);
         case 'custom':
             return o.overlaps(testBox);
     }
+}
+
+function obstacleOverlapsCandidateRect(o: LabelObstacle, testBox: BoxBounds): boolean {
+    const rect = candidateRect;
+    if (rect.halfWidth <= 0 || rect.halfHeight <= 0) return false;
+    switch (o.kind) {
+        case 'circle':
+            return orientedRectOverlapsCircle(rect, o.cx, o.cy, o.r);
+        case 'rect':
+            return orientedRectOverlapsBox(rect, o.box);
+        case 'orientedRect':
+            return orientedRectsOverlap(rect, o.rect);
+        case 'custom':
+            return o.overlaps(testBox);
+    }
+}
+
+/** A label fitted inside its own shape collides by its rotated rectangle, not its wider axis-aligned box. */
+function collidesByRotatedRect(candidate: PositionedLabelCandidate | undefined, rotation: number | undefined) {
+    return candidate?.fitTo?.shape != null && rotation != null && rotation % 90 !== 0;
 }
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
@@ -883,6 +982,11 @@ const shrinkReduction = { width: 0, height: 0 };
 let shrinkWidthCap = Infinity;
 let shrinkHeightCap = Infinity;
 const shrinkSlide: Point = { x: 0, y: 0 };
+// Furthest a positioned candidate moves along its slide axis: enough to settle a near miss, not a new placement.
+const MAX_NUDGE = 4;
+// Furthest a centred box may slide along each axis before it shrinks evenly about its anchor instead.
+let shrinkSlideLimitX = Infinity;
+let shrinkSlideLimitY = Infinity;
 // Which edge of the box the placement pins against its anchor: positive the min edge (left/top), negative
 // the max edge (right/bottom), zero neither — a centred box, whose every edge a shrink can move.
 let shrinkPinX = 0;
@@ -951,19 +1055,31 @@ function accumulateObstacleReduction(o: LabelObstacle): boolean | void {
     const testBox = candidateTestBox();
     if (testBox == null || !obstacleOverlapsBox(o, testBox)) return;
     const { x, y, width, height } = testBox;
+    const spentWidth = width / retreatSpread(shrinkPinX, shrinkSlideLimitX);
+    const spentHeight = height / retreatSpread(shrinkPinY, shrinkSlideLimitY);
     writeObstacleSpanX(o, y, y + height);
-    sideRetreat.left = affordableRetreat(obstacleSpan.max - x, width, sideRetreats(shrinkPinX, true), shrinkFloorX);
+    sideRetreat.left = affordableRetreat(
+        obstacleSpan.max - x,
+        spentWidth,
+        sideRetreats(shrinkPinX, true),
+        shrinkFloorX
+    );
     sideRetreat.right = affordableRetreat(
         x + width - obstacleSpan.min,
-        width,
+        spentWidth,
         sideRetreats(shrinkPinX, false),
         shrinkFloorX
     );
     writeObstacleSpanY(o, x, x + width);
-    sideRetreat.top = affordableRetreat(obstacleSpan.max - y, height, sideRetreats(shrinkPinY, true), shrinkFloorY);
+    sideRetreat.top = affordableRetreat(
+        obstacleSpan.max - y,
+        spentHeight,
+        sideRetreats(shrinkPinY, true),
+        shrinkFloorY
+    );
     sideRetreat.bottom = affordableRetreat(
         y + height - obstacleSpan.min,
-        height,
+        spentHeight,
         sideRetreats(shrinkPinY, false),
         shrinkFloorY
     );
@@ -973,7 +1089,7 @@ function accumulateObstacleReduction(o: LabelObstacle): boolean | void {
     let best: RetreatSide | undefined;
     let bestCost = Infinity;
     for (const side of RETREAT_SIDES) {
-        const cost = sideRetreat[side] / (side === 'left' || side === 'right' ? width : height);
+        const cost = sideRetreat[side] / (side === 'left' || side === 'right' ? spentWidth : spentHeight);
         if (cost < bestCost) {
             bestCost = cost;
             best = side;
@@ -984,6 +1100,22 @@ function accumulateObstacleReduction(o: LabelObstacle): boolean | void {
     if (best == null) return;
     shrinkIntrusion[best] = Math.max(shrinkIntrusion[best], sideRetreat[best]);
     return shrinkExceedsCap();
+}
+
+/** How many times a retreat is paid out of the extent: twice for a centred box that may not slide. */
+function retreatSpread(pin: number, slideLimit: number): number {
+    return slideLimit === 0 && pin === 0 ? 2 : 1;
+}
+
+/** A centred axis that would slide past its limit shrinks about its anchor by the larger retreat instead. */
+function balanceCentredIntrusion() {
+    const { left, right, top, bottom } = shrinkIntrusion;
+    if (shrinkPinX === 0 && Math.abs(left - right) / 2 > shrinkSlideLimitX) {
+        shrinkIntrusion.left = shrinkIntrusion.right = Math.max(left, right);
+    }
+    if (shrinkPinY === 0 && Math.abs(top - bottom) / 2 > shrinkSlideLimitY) {
+        shrinkIntrusion.top = shrinkIntrusion.bottom = Math.max(top, bottom);
+    }
 }
 
 function shrinkExceedsCap(): boolean {
@@ -1036,10 +1168,14 @@ function measureShrinkReduction(
     floorY: number,
     widthCap: number,
     heightCap: number,
-    region?: BoxBounds
+    region?: BoxBounds,
+    slideLimitX = Infinity,
+    slideLimitY = Infinity
 ): boolean {
     shrinkWidthCap = widthCap;
     shrinkHeightCap = heightCap;
+    shrinkSlideLimitX = slideLimitX;
+    shrinkSlideLimitY = slideLimitY;
     shrinkIntrusion.left = 0;
     shrinkIntrusion.right = 0;
     shrinkIntrusion.top = 0;
@@ -1052,7 +1188,9 @@ function measureShrinkReduction(
         accumulateRegionIntrusion(region);
     }
     inflateBoxInto(queryBox, candidateBox, inflate);
-    if (obstacleIndex.query(queryBox, accumulateObstacleReduction) || shrinkExceedsCap()) return false;
+    if (obstacleIndex.query(queryBox, accumulateObstacleReduction)) return false;
+    balanceCentredIntrusion();
+    if (shrinkExceedsCap()) return false;
     shrinkReduction.width = shrinkIntrusion.left + shrinkIntrusion.right;
     shrinkReduction.height = shrinkIntrusion.top + shrinkIntrusion.bottom;
     // Only a centred box is moved: `positionCandidate` already re-hangs a pinned one off the same edge, so
@@ -1297,15 +1435,40 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
 function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     const box = labelObstacleBox(placed);
+    const { labelGroup, outranks } = placed.datum;
     let obstacle = labelObstaclePool[count];
     if (obstacle == null) {
-        obstacle = { kind: 'rect', box, category: 'label' };
+        obstacle = {
+            kind: 'rect',
+            box,
+            rect: { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 },
+            category: 'label',
+            labelGroup,
+            outranks,
+        };
         labelObstaclePool.push(obstacle);
     } else {
         obstacle.box = box;
+        obstacle.labelGroup = labelGroup;
+        obstacle.outranks = outranks;
+    }
+    const { rotation } = placed;
+    if (rotation != null && collidesByRotatedRect(placed.candidate, rotation)) {
+        obstacle.kind = 'orientedRect';
+        const cx = box.x + box.width / 2;
+        const cy = box.y + box.height / 2;
+        writeOrientedRect(obstacle.rect, cx, cy, placed.width, placed.height, rotation);
+    } else {
+        obstacle.kind = 'rect';
     }
     obstacleIndex.insert(box, obstacle);
     return count + 1;
+}
+
+/** The gap from `centre` on one axis, widened to clear the overlay on the side `direction` faces. */
+function overlayGap(gap: number, direction: number, centre: number, start: number, size: number): number {
+    if (direction === 0) return gap;
+    return Math.max(gap, direction < 0 ? centre - start : start + size - centre);
 }
 
 /** Writes the label box top-left for `placement` into `out`, offset from the point by gap+spacing. */
@@ -1319,20 +1482,22 @@ function positionLabelBox(
     placement: LabelPlacement | undefined
 ) {
     const { point, anchor } = d;
+    const markerSize = markerSizeOf(d);
+    const shiftX = anchor ? (anchor.x - 0.5) * markerSize : 0;
+    const shiftY = anchor ? (anchor.y - 0.5) * markerSize : 0;
     let dx = 0;
     let dy = 0;
     if (gap > 0 && placement != null) {
         const vec = labelPlacements[placement];
-        dx = (width / 2 + gap + spacing) * vec.x;
-        dy = (height / 2 + gap + spacing) * vec.y;
+        const overlay = d.overlayBounds;
+        // Clear the overlay from the marker's drawn centre, which the label is offset from.
+        const gapX = overlay == null ? gap : overlayGap(gap, vec.x, point.x - shiftX, overlay.x, overlay.width);
+        const gapY = overlay == null ? gap : overlayGap(gap, vec.y, point.y - shiftY, overlay.y, overlay.height);
+        dx = (width / 2 + gapX + spacing) * vec.x;
+        dy = (height / 2 + gapY + spacing) * vec.y;
     }
-    let x = point.x - width / 2 + dx;
-    let y = point.y - height / 2 + dy;
-    const markerSize = markerSizeOf(d);
-    if (anchor) {
-        x -= (anchor.x - 0.5) * markerSize;
-        y -= (anchor.y - 0.5) * markerSize;
-    }
+    let x = point.x - width / 2 + dx - shiftX;
+    let y = point.y - height / 2 + dy - shiftY;
     if (placement === 'inside' && d.insideOffset) {
         x += d.insideOffset.x * markerSize;
         y += d.insideOffset.y * markerSize;
@@ -1757,7 +1922,7 @@ function shrinkCompassCandidate(
     const upright = rotation % 180 === 0;
     const font = candidateFontAt(style?.font ?? fit.font);
     const unstyled = style == null && candidateTrialFontSize == null;
-    const lineHeight = (unstyled ? cascadeMeasurer! : cachedTextMeasurer(font)).lineHeight();
+    const lineHeight = font.lineHeight ?? (unstyled ? cascadeMeasurer! : cachedTextMeasurer(font)).lineHeight();
     const floorX = upright ? 0 : lineHeight;
     const floorY = upright ? lineHeight : 0;
     // Most re-fits fail by breaking a word the budget cannot hold, so the reduction the text can afford
@@ -1818,8 +1983,8 @@ function shrinkPositionedCandidate(
 ): boolean {
     const fit = d.fit;
     const fitTo = c.fitTo;
-    if (fit == null || fitTo == null || (c.rotation ?? 0) % 360 !== 0) return false;
-    const lineHeight = cachedTextMeasurer(fitTo.font ?? fit.font).lineHeight();
+    if (fit == null || fitTo == null || d.stack != null || (c.rotation ?? 0) % 360 !== 0) return false;
+    const lineHeight = drawnLineHeight(fitTo.font ?? fit.font);
     if (
         !measureShrinkReduction(
             anchorPinX(fitTo.anchor),
@@ -1829,7 +1994,9 @@ function shrinkPositionedCandidate(
             lineHeight,
             Infinity,
             Infinity,
-            region
+            region,
+            c.slideAxis === 'x' ? MAX_NUDGE : 0,
+            c.slideAxis === 'y' ? MAX_NUDGE : 0
         )
     ) {
         return false;
@@ -1963,6 +2130,7 @@ interface CandidateChoice {
     placement: LabelPlacement | undefined;
     candidate: PositionedLabelCandidate | undefined;
     fontSize: number | undefined;
+    stack: FittedLabelStack | undefined;
 }
 
 /**
@@ -1975,6 +2143,8 @@ const TIER_FIT = 0;
 const TIER_COLLIDING = 1;
 /** Tier of a candidate that overflows its region; kept only to avoid dropping the label. */
 const TIER_OVERFLOWING = 2;
+/** Tier of a candidate partly outside its {@link PositionedLabelCandidate.visibleRegion}. */
+const TIER_CLIPPED = 3;
 /** Upper bound on {@link shrinkRatio}, keeping any amount of shrinking cheaper than losing one character. */
 const MAX_SHRINK_SCORE = 0.999;
 
@@ -1993,7 +2163,11 @@ const bestChoice: CandidateChoice = {
     placement: undefined,
     candidate: undefined,
     fontSize: undefined,
+    stack: undefined,
 };
+
+// Stack fitted to the candidate being tested, read back by `recordBestChoice`.
+let candidateStack: FittedLabelStack | undefined;
 
 /** Records the candidate currently in {@link candidateBox} as the cascade's best, if it outranks the incumbent. */
 function recordBestChoice(
@@ -2022,6 +2196,7 @@ function recordBestChoice(
     bestChoice.placement = placement;
     bestChoice.candidate = candidate;
     bestChoice.fontSize = candidateFontSize;
+    bestChoice.stack = candidateStack;
 }
 
 /** Materialises {@link bestChoice} as the cascade's result, or `undefined` when no candidate was recorded. */
@@ -2041,7 +2216,28 @@ function placeBestChoice(index: number, d: PointLabelDatum): PlacedLabel | undef
         offsetY: bestChoice.offsetY,
         candidate: bestChoice.candidate,
         fontSize: bestChoice.fontSize,
+        stack: bestChoice.stack,
     };
+}
+
+// A kept label that overflows or collides at every size is kept at its floor; this holds its configured-size
+// choice in case the floor trial records nothing.
+const keptChoiceBackup: CandidateChoice = { ...bestChoice };
+let floorRecordsKept = false;
+
+function beginFloorFallback() {
+    if (bestChoice.tier < TIER_COLLIDING || bestChoice.tier === Infinity) return;
+    Object.assign(keptChoiceBackup, bestChoice);
+    bestChoice.tier = Infinity;
+    bestChoice.score = Infinity;
+    floorRecordsKept = true;
+}
+
+function endFloorFallback() {
+    if (floorRecordsKept && bestChoice.tier === Infinity) {
+        Object.assign(bestChoice, keptChoiceBackup);
+    }
+    floorRecordsKept = false;
 }
 
 /**
@@ -2054,9 +2250,8 @@ function cascadeCandidates(): PlacedLabel | undefined {
     const d = cascadeDatum;
     const candidateCount = cascadePlacements?.length ?? 1;
     const orientationCount = cascadeOrientations?.length ?? 1;
-    // A trial can only win outright, so it records nothing: a label that never places cleanly falls back
-    // to the candidate it would have fallen back to at the configured size, whatever sizes were tried.
-    const recordBest = candidateTrialFontSize == null;
+    // A trial can only win outright, so it records nothing, except the floor trial of a kept label.
+    const recordBest = candidateTrialFontSize == null || floorRecordsKept;
     for (let pi = 0; pi < candidateCount; pi++) {
         const placement = candidateAt(cascadePlacements, d.placement, pi);
         for (let oi = 0; oi < orientationCount; oi++) {
@@ -2132,7 +2327,7 @@ function cascadeCandidates(): PlacedLabel | undefined {
             // Obstacle-only failure: the candidate has the room, an obstacle is taking part of it. Shrinking
             // is tried last so a failed attempt can clobber the shared candidate scratch freely, and only
             // outside a trial, whose candidates can win outright but record nothing.
-            if (contained && recordBest && shrinkCompassCandidate(d, style, placement, rotation)) {
+            if (contained && candidateTrialFontSize == null && shrinkCompassCandidate(d, style, placement, rotation)) {
                 recordShrunkChoice(rotation, placement, undefined);
             }
         }
@@ -2166,24 +2361,26 @@ function recordShrunkChoice(
  * exhausting its placement fallbacks and before it is hidden or falls back to a colliding candidate.
  * `undefined` when the label cannot shrink or no size clears.
  */
-function shrinkToClear(): PlacedLabel | undefined {
-    const { fit } = cascadeDatum;
+function shrinkToClear(d: PointLabelDatum, pass: () => PlacedLabel | undefined): PlacedLabel | undefined {
+    const { fit } = d;
     const minimumFontSize = fit?.policy.minimumFontSize;
     if (fit == null || minimumFontSize == null) return undefined;
-    const { fontSize } = fit.font;
+    const fontSize = candidateLargestFontSize > 0 ? candidateLargestFontSize : fit.font.fontSize;
     const floor = resolveMinimumFontSize(minimumFontSize, fontSize);
     if (floor >= fontSize) return undefined;
 
     try {
         // A smaller font can reflow the text into a wider box, so clearance is not monotonic in the size
         // and the ladder has to be walked down rather than bisected.
-        return findLargestFontSizeDescending(floor, fontSize, function trialFontSize(size) {
+        return findLargestFontSizeDescending(floor, fontSize, function trialFontSize(size, atFloor) {
             candidateTrialFontSize = size;
-            return cascadeCandidates();
+            if (atFloor) beginFloorFallback();
+            return pass();
         });
     } finally {
         // A styler throwing mid-trial would otherwise leave every later label sized at the trial size.
         candidateTrialFontSize = undefined;
+        endFloorFallback();
     }
 }
 
@@ -2213,6 +2410,7 @@ function placeAvoidingLabel(
 ): PlacedLabel | undefined {
     bestChoice.tier = Infinity;
     bestChoice.score = Infinity;
+    candidateStack = undefined;
     if (d.positionedCandidates != null) {
         return placeFromPositionedCandidates(d, collideWith, threshold, index, bounds, resolveCandidate);
     }
@@ -2226,6 +2424,7 @@ function placeAvoidingLabel(
     cascadeMeasurer = fit == null ? undefined : cachedTextMeasurer(fit.font);
     cascadeDatum = d;
     cascadeIndex = index;
+    candidateLargestFontSize = 0;
     cascadePlacements = placements;
     cascadeOrientations = orientationsOf(d);
     cascadeSingleOrientation = singleOrientationOf(d);
@@ -2244,6 +2443,8 @@ function placeAvoidingLabel(
     // leave it unset (their own marker is handled by the own-marker circle gate above).
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
+    candidateLabelGroup = d.labelGroup;
+    candidateYields = d.yields === true;
     cascadeRawRegion = d.region ?? bounds;
     cascadeContainThreshold = containmentThreshold(threshold);
     cascadeRegion = deflateRegion(deflatedRegionBox, cascadeRawRegion, cascadeContainThreshold);
@@ -2256,11 +2457,22 @@ function placeAvoidingLabel(
     const placed = cascadeCandidates();
     if (placed != null) return placed;
 
-    const shrunk = shrinkToClear();
+    const shrunk = shrinkToClear(d, cascadeCandidates);
     if (shrunk != null) return shrunk;
 
     return placeBestChoice(index, d);
 }
+
+// Per-datum inputs to `positionedCandidatesPass`, so the font ladder can re-run it without allocating.
+let positionedDatum: PointLabelDatum;
+let positionedIndex = 0;
+let positionedBounds: BoxBounds;
+let positionedResolve: PositionedCandidateResolver | undefined;
+let positionedFitSource: { width: number; height: number } | undefined;
+// A candidate turned away by an obstacle or its region: the only failure a smaller font can answer.
+let positionedBlocked = false;
+// Glyph budget of a never-drop label's last resort: its container, at least one line tall at its floor size.
+const keptLineContainer = { width: 0, height: 0 };
 
 /**
  * Cascades over {@link PointLabelDatum.positionedCandidates} in order, returning the first candidate
@@ -2268,8 +2480,9 @@ function placeAvoidingLabel(
  * Runs only the generic containment/obstacle/flush/least-overflow logic — the series pre-computed each
  * candidate's geometry, so no placement maths happens here beyond resizing a candidate's box around
  * text it had to truncate. A truncated-but-fitting candidate is remembered and the cascade continues, so
- * the least-truncated one wins; when none fits at all, a {@link PointLabelDatum.neverDrop} datum keeps
- * the least buried candidate, then the least region-overflowing one, and any other is dropped (`undefined`).
+ * the least-truncated one wins. When no candidate places cleanly at the configured size, the label shrinks
+ * towards its minimum font size on its own anchor before falling back: a {@link PointLabelDatum.neverDrop}
+ * datum keeps the least buried candidate, then the least region-overflowing one, and any other is dropped.
  */
 function placeFromPositionedCandidates(
     d: PointLabelDatum,
@@ -2279,8 +2492,6 @@ function placeFromPositionedCandidates(
     bounds: BoxBounds,
     resolveCandidate: PositionedCandidateResolver | undefined
 ): PlacedLabel | undefined {
-    const candidates = d.positionedCandidates!;
-    const inflate = Math.max(threshold, 0);
     candidateCollideWith = collideWith;
     candidateThreshold = threshold;
     // No compass placement and no own marker on this path (bars): the own-marker gate in
@@ -2291,20 +2502,50 @@ function placeFromPositionedCandidates(
     candidateOwnMarkerR = -1;
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
+    candidateLabelGroup = d.labelGroup;
+    candidateYields = d.yields === true;
 
     const { fit } = d;
     // Measured once here rather than per candidate: every candidate refits the same source text. A
     // candidate carrying its own styled font re-measures under it instead (see `styledFitSource`).
-    const fitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
+    positionedFitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
     styledSourceFont = '';
+    positionedDatum = d;
+    positionedIndex = index;
+    candidateLargestFontSize = 0;
+    positionedBounds = bounds;
+    positionedResolve = resolveCandidate;
+    positionedBlocked = false;
+
+    const placed = positionedCandidatesPass();
+    if (placed != null) return placed;
+
+    if (positionedBlocked) {
+        const shrunk = shrinkToClear(d, positionedCandidatesPass);
+        if (shrunk != null) return shrunk;
+    }
+
+    return placeBestChoice(index, d);
+}
+
+/** One pass of {@link placeFromPositionedCandidates}; a trial records nothing except at a kept label's floor. */
+function positionedCandidatesPass(): PlacedLabel | undefined {
+    const d = positionedDatum;
+    const candidates = d.positionedCandidates!;
+    const { fit } = d;
+    const threshold = candidateThreshold;
+    const inflate = Math.max(threshold, 0);
     const containThreshold = containmentThreshold(threshold);
+    const trial = candidateTrialFontSize != null;
+    const recordBest = !trial || floorRecordsKept;
     for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
         // Resolved here rather than when the list was built: the styler runs for the candidates the
         // cascade reaches and no others, so a fallback the label never needed never invokes it.
-        const c = resolveCandidate == null ? candidates[ci] : resolveCandidate(d, candidates[ci]);
+        const c = positionedResolve == null ? candidates[ci] : positionedResolve(d, candidates[ci]);
         // A candidate the styler disabled is skipped, so a label disabled at every candidate is dropped.
         if (c.hidden === true) continue;
-        const rawRegion = c.region ?? bounds;
+        if (trial && (fit == null || c.fitTo == null)) continue;
+        const rawRegion = c.region ?? positionedBounds;
         const region = deflateRegion(deflatedRegionBox, rawRegion, containThreshold);
         let { text } = d.label;
         let { width, height } = c.size ?? d.label;
@@ -2315,57 +2556,53 @@ function placeFromPositionedCandidates(
         candidateBox.y = c.box.y;
         candidateBox.width = c.box.width;
         candidateBox.height = c.box.height;
-        if (fit != null && c.fitTo != null) {
-            const styledFont = c.fitTo.font;
-            const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
-            const container = deflateContainer(c.fitTo.container, threshold);
-            if (
-                !fitLabelToCandidate(
-                    fit,
-                    styledFont ?? fit.font,
-                    source,
-                    container,
-                    candidateTrialFontSize == null,
-                    c.fitTo.shape,
-                    c.fitTo.shapeAlign
-                )
-            ) {
-                continue;
-            }
-            // The clearance a label keeps from its own surface must not erase it: refit to the surface
-            // itself rather than draw the bare ellipsis the deflated container left.
-            if (
-                container !== c.fitTo.container &&
-                !hasRealChars(fittedLabel.text) &&
-                !fitLabelToCandidate(
-                    fit,
-                    styledFont ?? fit.font,
-                    source,
-                    c.fitTo.container,
-                    candidateTrialFontSize == null,
-                    c.fitTo.shape,
-                    c.fitTo.shapeAlign
-                )
-            ) {
-                continue;
-            }
+        candidateStack = undefined;
+        let overflowing = false;
+        if (d.stack != null && fit != null && c.fitTo != null) {
+            // A stack steps through its own sizes, so a trial size has nothing to add.
+            if (trial || !fitStackToCandidate(d.stack, c.fitTo, threshold)) continue;
             ({ text, dropped, shrink } = fittedLabel);
-            writeCandidateLabel(c.fitTo.padding, styledFont ?? fit.font);
+            overflowing = candidateStack!.overflows;
+            writeCandidateLabel(c.fitTo.padding, fit.font);
+            ({ width, height } = candidateLabel);
+            resizeCandidateBox(c, width, height);
+        } else if (fit != null && c.fitTo != null) {
+            const font = candidateFontAt(c.fitTo.font ?? fit.font);
+            const source = c.fitTo.font == null && !trial ? positionedFitSource : styledFitSource(fit, font);
+            if (!fitPositionedCandidate(d, fit, c.fitTo, font, source, threshold)) continue;
+            ({ text, dropped, shrink } = fittedLabel);
+            writeCandidateLabel(c.fitTo.padding, font);
             ({ width, height } = candidateLabel);
             resizeCandidateBox(c, width, height);
         }
         // Region-bound candidates are slid flush inside their region; a collision-only region is not
         // flushed, so an overflowing box is left to fail containment below.
         flushCandidateBox(rawRegion, c.region != null && c.flushToRegion !== false);
-        const { x, y, width: cw, height: ch } = candidateBox;
-        const { x: offsetX, y: offsetY } = flushOffset;
+        let { x, y } = candidateBox;
+        const { width: cw, height: ch } = candidateBox;
+        let { x: offsetX, y: offsetY } = flushOffset;
         inflateBoxInto(queryBox, candidateBox, inflate);
         const rotation = c.rotation ?? 0;
+        candidateOriented = collidesByRotatedRect(c, rotation);
+        if (candidateOriented) {
+            const grow = 2 * threshold;
+            writeOrientedRect(candidateRect, x + cw / 2, y + ch / 2, width + grow, height + grow, rotation);
+        }
         const contained = boxContains(region, x, y, cw, ch);
-        if (contained && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+        // An overflowing stack ranks with the overflowing candidates, below any that fit truncated.
+        const placeable = contained && !overflowing;
+        let clear = placeable && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
+        if (placeable && !clear && nudgeCandidate(c.slideAxis, region, inflate)) {
+            clear = true;
+            offsetX += candidateBox.x - x;
+            offsetY += candidateBox.y - y;
+            ({ x, y } = candidateBox);
+        }
+        if (clear) {
             if (dropped === 0) {
+                candidateOriented = false;
                 return {
-                    index,
+                    index: positionedIndex,
                     text,
                     x,
                     y,
@@ -2378,17 +2615,34 @@ function placeFromPositionedCandidates(
                     offsetY,
                     candidate: c,
                     fontSize: candidateFontSize,
+                    stack: candidateStack,
                 };
             }
-            recordBestChoice(TIER_FIT, dropped + shrink, text, width, height, rotation, offsetX, offsetY, undefined, c);
+            if (recordBest) {
+                recordBestChoice(
+                    TIER_FIT,
+                    dropped + shrink,
+                    text,
+                    width,
+                    height,
+                    rotation,
+                    offsetX,
+                    offsetY,
+                    undefined,
+                    c
+                );
+            }
             continue;
         }
+        positionedBlocked = true;
+        if (!recordBest) continue;
         if (d.neverDrop === true) {
             const overflow = regionOverflow(region, x, y, cw, ch);
-            let tier = TIER_OVERFLOWING;
-            let score = overflow;
+            const clipped = c.visibleRegion == null ? 0 : regionOverflow(c.visibleRegion, x, y, cw, ch);
+            let tier = clipped > 0 ? TIER_CLIPPED : TIER_OVERFLOWING;
+            let score = clipped > 0 ? clipped : overflow;
             // Ranking colliding candidates by how buried they are only matters when there is one to choose.
-            if (overflow === 0 && ln > 1) {
+            if (overflow === 0 && clipped === 0 && ln > 1) {
                 candidateWorstOverlap = 0;
                 obstacleIndex.query(queryBox, worstObstacleOverlap);
                 tier = TIER_COLLIDING;
@@ -2398,18 +2652,129 @@ function placeFromPositionedCandidates(
         }
         // Ungated on containment, unlike the compass path: `measureShrinkReduction` seeds the region's own
         // overflow here, so a candidate carrying more text than its region holds is still recoverable.
-        if (shrinkPositionedCandidate(d, c, fitSource, rawRegion, region, inflate)) {
+        if (!trial && shrinkPositionedCandidate(d, c, positionedFitSource, rawRegion, region, inflate)) {
             recordShrunkChoice(rotation, undefined, c);
         }
     }
+    candidateOriented = false;
+    return undefined;
+}
 
-    return placeBestChoice(index, d);
+// Shift towards the min edge (negative) and towards the max edge (positive) that clears every obstacle hit.
+let nudgeBefore = 0;
+let nudgeAfter = 0;
+let nudgeAlongY = false;
+
+function measureNudge(o: LabelObstacle): void {
+    if (!obstacleOverlapsCandidate(o)) return;
+    const { x, y, width, height } = candidateTestBox()!;
+    if (nudgeAlongY) {
+        writeObstacleSpanY(o, x, x + width);
+        nudgeBefore = Math.min(nudgeBefore, obstacleSpan.min - (y + height));
+        nudgeAfter = Math.max(nudgeAfter, obstacleSpan.max - y);
+    } else {
+        writeObstacleSpanX(o, y, y + height);
+        nudgeBefore = Math.min(nudgeBefore, obstacleSpan.min - (x + width));
+        nudgeAfter = Math.max(nudgeAfter, obstacleSpan.max - x);
+    }
+}
+
+/**
+ * Moves a contained but colliding candidate up to {@link MAX_NUDGE} along `axis`, the smaller shift first.
+ * `false` leaves {@link candidateBox} and {@link queryBox} as they were.
+ */
+function nudgeCandidate(axis: 'x' | 'y' | undefined, region: BoxBounds, inflate: number): boolean {
+    if (axis == null) return false;
+    nudgeAlongY = axis === 'y';
+    nudgeBefore = 0;
+    nudgeAfter = 0;
+    obstacleIndex.query(queryBox, measureNudge);
+    return -nudgeBefore <= nudgeAfter
+        ? tryNudge(nudgeBefore, region, inflate) || tryNudge(nudgeAfter, region, inflate)
+        : tryNudge(nudgeAfter, region, inflate) || tryNudge(nudgeBefore, region, inflate);
+}
+
+function tryNudge(shift: number, region: BoxBounds, inflate: number): boolean {
+    if (shift === 0 || Math.abs(shift) > MAX_NUDGE) return false;
+    const { x, y } = candidateBox;
+    if (nudgeAlongY) {
+        candidateBox.y = y + shift;
+    } else {
+        candidateBox.x = x + shift;
+    }
+    if (shrunkCandidateIsClear(region, inflate)) return true;
+    candidateBox.x = x;
+    candidateBox.y = y;
+    inflateBoxInto(queryBox, candidateBox, inflate);
+    return false;
+}
+
+/** Fits into {@link fittedLabel}; `false` when nothing is left to draw, after a never-drop label's floor fallback. */
+function fitPositionedCandidate(
+    d: PointLabelDatum,
+    fit: LabelFitDescriptor,
+    fitTo: CandidateFitTarget,
+    font: FontOptions,
+    source: { width: number; height: number } | undefined,
+    threshold: number
+): boolean {
+    const fontSearch = candidateTrialFontSize == null;
+    const container = fitTo.ownShape === false ? fitTo.container : deflateContainer(fitTo.container, threshold);
+    // The clearance a label keeps from its own surface must not erase it: refit to the surface
+    // itself rather than draw the bare ellipsis the deflated container left.
+    const fitted =
+        fitLabelToCandidate(fit, font, source, container, fontSearch, fitTo.shape, fitTo.shapeAlign) &&
+        (container === fitTo.container ||
+            hasRealChars(fittedLabel.text) ||
+            fitLabelToCandidate(fit, font, source, fitTo.container, fontSearch, fitTo.shape, fitTo.shapeAlign));
+    if (fitted && (d.neverDrop !== true || hasRealChars(fittedLabel.text))) return true;
+    if (d.neverDrop !== true || !fontSearch || fitTo.container == null) return false;
+    const floor = resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
+    const floorFont = fontWithSize(font, floor);
+    keptLineContainer.width = fitTo.container.width;
+    keptLineContainer.height = Math.max(fitTo.container.height, drawnLineHeight(floorFont));
+    if (fitLabelToCandidate(fit, font, source, keptLineContainer, fontSearch) && hasRealChars(fittedLabel.text)) {
+        return true;
+    }
+    // Too narrow for even one character: the text overflows its container whole, at its smallest size.
+    if (!fitLabelToCandidate(fit, floorFont, undefined, undefined, false)) return false;
+    if (floor < font.fontSize) {
+        fittedLabel.fontSize = floor;
+    }
+    return true;
+}
+
+/** Fits a stack into {@link candidateStack}; one that fits only without the threshold's clearance is kept. */
+function fitStackToCandidate(stack: LabelStack, fitTo: CandidateFitTarget, threshold: number): boolean {
+    const container = deflateContainer(fitTo.container, threshold);
+    let fitted = fitLabelStack(stack, container, fitTo.shape, fitTo.shapeAlign);
+    if (fitted == null && container !== fitTo.container) {
+        fitted = fitLabelStack(stack, fitTo.container, fitTo.shape, fitTo.shapeAlign);
+    }
+    if (fitted == null) return false;
+    const first = fitted.blocks.find((block) => block != null);
+    candidateStack = fitted;
+    fittedLabel.text = first?.text ?? '';
+    fittedLabel.width = fitted.width;
+    fittedLabel.height = fitted.height;
+    fittedLabel.dropped = fitted.dropped;
+    fittedLabel.shrink = fitted.shrink;
+    fittedLabel.fontSize = first?.fontSize;
+    fittedLabel.maxWidth = fitTo.container?.width ?? Infinity;
+    fittedLabel.maxHeight = fitTo.container?.height ?? Infinity;
+    return true;
 }
 
 /** Rebuilds {@link candidateBox} as the rotated footprint of a re-fitted box, recentred on its anchor. */
 function resizeCandidateBox(c: PositionedLabelCandidate, boxWidth: number, boxHeight: number) {
-    const { anchor, padding } = c.fitTo!;
-    writeLabelBoxCentre(boxCentre, anchor, boxWidth, boxHeight, padding);
+    const { anchor, padding, centreFor } = c.fitTo!;
+    if (centreFor == null) {
+        writeLabelBoxCentre(boxCentre, anchor, boxWidth, boxHeight, padding);
+    } else {
+        const centre = centreFor(boxWidth, boxHeight);
+        boxCentre.x = centre.x;
+        boxCentre.y = centre.y;
+    }
     rotatedSizeInto(c.rotation ?? 0, boxWidth, boxHeight);
     candidateBox.x = boxCentre.x - rotatedSize.width / 2;
     candidateBox.y = boxCentre.y - rotatedSize.height / 2;

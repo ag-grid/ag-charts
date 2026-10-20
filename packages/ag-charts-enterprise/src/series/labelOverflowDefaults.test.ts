@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { setupEnterpriseModules } from '../setup';
+import { resolveSeries } from '../test/seriesHelpers';
 
 setupEnterpriseModules();
 
@@ -11,18 +9,6 @@ setupEnterpriseModules();
 // coupling reaches the enterprise series templates.
 describe('label overflow defaults (enterprise)', () => {
     type SeriesLabel = { wrapping?: unknown; truncate?: unknown; collision?: { alwaysShow?: unknown } };
-
-    const resolveSeries = (series: object): Record<string, any> => {
-        const options = { series: [series] } as unknown as AgChartOptions;
-        const { processedOptions } = new _ModuleSupport.ChartOptions(
-            options,
-            {} as AgChartOptions,
-            {},
-            {},
-            {}
-        ) as unknown as { processedOptions: { series: Record<string, any>[] } };
-        return processedOptions.series[0];
-    };
 
     const seriesCases: [string, (label: object) => SeriesLabel, string[]][] = [
         [

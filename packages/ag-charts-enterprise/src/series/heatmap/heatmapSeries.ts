@@ -8,37 +8,54 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
     ColorScale,
     type DomainWithMetadata,
     type DynamicContext,
+    type FontOptions,
     type InternalAgColorType,
+    type LabelObstacle,
     type Mutable,
     type NormalisedHeatmapSeriesOwnOptions,
     type NormalisedHeatmapSeriesStyle,
     type NormalisedTextOrSegments,
+    type OrientationAnchor,
+    type PlacedLabel,
     type Point,
+    type PointLabelDatum,
     PointerEvents,
+    type PositionedCandidateResolver,
+    type PositionedLabelCandidate,
     Rect,
     type ResolvedTextAlign,
     STROKE_STYLE_THEME_DEFAULTS,
     type SizedPoint,
+    arraysEqual,
     configureColorScale,
     extent,
     findDiscreteColorBinLabel,
     formatValue,
+    isPlainObject,
     joinFormatted,
+    measureLabelText,
     mergeDefaults,
+    resolveCollideWith,
     resolveTextAlign,
     upsertNodeDatum,
+    writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type { BBox, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
+import type { PaddingOptions } from 'ag-charts-types';
 
-import { formatLabels } from '../util/labelFormatter';
+import { autoSizedLabelFit } from '../util/autoSizedLabelFit';
+import { ItemStylerResolutions } from './itemStylerResolutions';
 
 const {
+    HighlightState,
     SeriesNodePickMode,
+    hasStateStyle,
     computeBarFocusBounds,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
@@ -47,9 +64,9 @@ const {
     valueProperty,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
-    createDatumId,
     addHitTestersToQuadtree,
     findQuadtreeMatch,
+    expandLabelBoxExtent,
     getLabelStyles,
     updateLabelNode,
 } = _ModuleSupport;
@@ -69,8 +86,11 @@ interface HeatmapLabelDatum extends Point {
     datum: any;
     itemId?: never;
     text: NormalisedTextOrSegments;
-    fontSize: number;
-    lineHeight: number;
+    fittedText?: NormalisedTextOrSegments;
+    fittedFontSize?: number;
+    offsetX?: number;
+    offsetY?: number;
+    hidden?: boolean;
     fontStyle: FontStyle | undefined;
     fontFamily: string;
     fontWeight: FontWeight | undefined;
@@ -85,6 +105,14 @@ interface HeatmapLabelDatum extends Point {
     style: NormalisedHeatmapSeriesStyle;
 }
 
+interface HeatmapLabelCandidate extends PositionedLabelCandidate {
+    readonly anchor: OrientationAnchor & { textAlign: ResolvedTextAlign; textBaseline: VerticalAlign };
+}
+
+interface HeatmapPlacedLabelDatum extends PointLabelDatum {
+    readonly target: HeatmapLabelDatum;
+}
+
 type ItemStyle = Pick<NormalisedHeatmapSeriesStyle, 'fill'> &
     Required<Omit<NormalisedHeatmapSeriesStyle, 'fill'>> & { opacity: number };
 
@@ -92,6 +120,21 @@ type ItemStyle = Pick<NormalisedHeatmapSeriesStyle, 'fill'> &
 interface HeatmapItemStyleContext {
     readonly colorScaleValid: boolean;
     readonly baseStyle: Omit<ItemStyle, 'fill'>;
+    readonly selectionEnabled: boolean;
+    readonly activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined;
+    /** Whether the active highlight is in a state other than none for this series. */
+    readonly highlightActive: boolean;
+}
+
+/** What the cell node data was built from, so a later transaction can tell whether only some cells changed. */
+interface HeatmapBuildSignature {
+    readonly nodes: HeatmapNodeDatum[];
+    readonly processedData: object;
+    readonly dataVersion: number;
+    readonly nodeDataVersion: number;
+    readonly colorScaleValid: boolean;
+    readonly colorDomain: readonly unknown[];
+    readonly layout: readonly unknown[];
 }
 
 /** Context object caching expensive lookups for createNodeData(). */
@@ -135,6 +178,21 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 const TEXT_ALIGNS: TextAlign[] = ['left', 'center', 'right', 'start', 'end'];
 const VERTICAL_ALIGNS: VerticalAlign[] = ['top', 'middle', 'bottom'];
 
+/** Appends everything about an axis that places a cell, so two layouts compare element by element. */
+function pushScaleLayout(layout: unknown[], axis: _ModuleSupport.ChartAxis) {
+    const { scale, visibleRange } = axis;
+    // The scale may mutate its arrays in place, so a signature must hold copies.
+    layout.push(
+        scale.domain.slice(),
+        scale.range.slice(),
+        scale.bandwidth,
+        scale.step,
+        scale.inset,
+        visibleRange[0],
+        visibleRange[1]
+    );
+}
+
 /**
  * Consolidated type interface for HeatmapSeries.
  * Defines all type parameters in one place for the series.
@@ -147,6 +205,10 @@ interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
     readonly context: _ModuleSupport.CartesianSeriesNodeDataContext<HeatmapNodeDatum, HeatmapLabelDatum>;
     readonly stackContext: never;
     readonly createNodeDataContext: HeatmapSeriesNodeDatumContext;
+}
+
+function itemStylerCacheKey(datumIndex: number, isHighlight: boolean) {
+    return datumIndex * 2 + (isHighlight ? 1 : 0);
 }
 
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesTypes> {
@@ -163,6 +225,21 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     readonly colorScale = new ColorScale();
+
+    /** Whether the stored cell styles were resolved under an active highlight, so they need a restyle when it ends. */
+    private cellsStyledByHighlight = false;
+
+    private buildSignature: HeatmapBuildSignature | undefined;
+
+    /** Data indices of the cells an in-place transaction updated; every other cell is already up to date. */
+    private touchedDatumIndices: number[] | undefined;
+
+    /** Whether the current pass restyled every cell, which makes the untouched cells' scene nodes stale too. */
+    private restyledEveryCell = false;
+
+    private readonly itemStylerResolutions = new ItemStylerResolutions((result) =>
+        this.ctx.optionsGraphService.resolvePartial(['series', `${this.declarationOrder}`], result)
+    );
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -312,6 +389,27 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
      * Template method hook: Iterates over data and creates/updates node datums.
      */
     protected override populateNodeData(ctx: HeatmapSeriesNodeDatumContext): void {
+        this.restyledEveryCell = false;
+
+        const previous = this.buildSignature;
+        const signature = this.captureBuildSignature(ctx);
+        const touched = this.findTouchedDatumIndices(ctx, signature);
+        // An incremental pass leaves untouched cells styled as before, so `updateDatumStyles` decides whether they need a restyle.
+        if (touched == null) this.cellsStyledByHighlight = ctx.itemStyleContext.highlightActive;
+        this.touchedDatumIndices = touched;
+        this.buildSignature = signature;
+
+        this.resetStaleCallbackResults(previous, signature, touched);
+
+        if (touched != null) {
+            // OPTIMIZATION: a transaction that only updated cells rebuilds just those cells' datums.
+            for (const datumIndex of touched) {
+                this.updateNodeDatum(ctx, ctx.nodes[datumIndex], datumIndex, ctx.rawData[datumIndex]);
+            }
+            ctx.nodeIndex = ctx.nodes.length;
+            return;
+        }
+
         for (const [datumIndex, datum] of ctx.rawData.entries()) {
             const nodeDatum = upsertNodeDatum(
                 ctx,
@@ -327,6 +425,79 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 }
             }
         }
+    }
+
+    /** A transaction does not clear the datum callback cache, so a styler result cached for a changed datum would outlive it. */
+    private resetStaleCallbackResults(
+        previous: HeatmapBuildSignature | undefined,
+        next: HeatmapBuildSignature,
+        touched: number[] | undefined
+    ) {
+        if (touched != null) {
+            if (this.options.itemStyler == null) return;
+            for (const datumIndex of touched) {
+                this.resetDatumCallbackCache(itemStylerCacheKey(datumIndex, false));
+                this.resetDatumCallbackCache(itemStylerCacheKey(datumIndex, true));
+            }
+        } else if (previous?.processedData === next.processedData && previous.dataVersion !== next.dataVersion) {
+            this.resetDatumCallbackCache();
+        }
+    }
+
+    private captureBuildSignature(ctx: HeatmapSeriesNodeDatumContext): HeatmapBuildSignature {
+        const { processedData } = this;
+        const layout: unknown[] = [];
+        pushScaleLayout(layout, ctx.xAxis);
+        pushScaleLayout(layout, ctx.yAxis);
+        return {
+            nodes: ctx.nodes,
+            processedData: processedData!,
+            dataVersion: processedData!.version,
+            nodeDataVersion: this.nodeDataVersion,
+            colorScaleValid: ctx.itemStyleContext.colorScaleValid,
+            colorDomain: [...ctx.colorDomain],
+            layout,
+        };
+    }
+
+    /** The data indices a transaction updated in place, or `undefined` when anything else could change a cell. */
+    private findTouchedDatumIndices(
+        ctx: HeatmapSeriesNodeDatumContext,
+        next: HeatmapBuildSignature
+    ): number[] | undefined {
+        const previous = this.buildSignature;
+        const changes = this.processedData?.changeDescription;
+        if (!ctx.canIncrementallyUpdate || previous == null || changes == null) return undefined;
+
+        if (
+            previous.processedData !== next.processedData ||
+            previous.nodes !== next.nodes ||
+            previous.dataVersion + 1 !== next.dataVersion ||
+            previous.nodeDataVersion + 1 !== next.nodeDataVersion ||
+            previous.colorScaleValid !== next.colorScaleValid ||
+            !arraysEqual(previous.colorDomain, next.colorDomain) ||
+            !arraysEqual(previous.layout, next.layout) ||
+            this.isLabelEnabled()
+        ) {
+            return undefined;
+        }
+
+        const { indexMap } = changes;
+        const { nodes, rawData } = ctx;
+        const updateOnly =
+            indexMap.removedIndices.size === 0 &&
+            indexMap.totalPrependCount === 0 &&
+            indexMap.totalAppendCount === 0 &&
+            indexMap.originalLength === indexMap.finalLength &&
+            nodes.length === rawData.length;
+        if (!updateOnly) return undefined;
+
+        const touched: number[] = [];
+        for (const datumIndex of indexMap.updatedIndices) {
+            if (nodes[datumIndex]?.datumIndex !== datumIndex) return undefined;
+            touched.push(datumIndex);
+        }
+        return touched;
     }
 
     /**
@@ -423,9 +594,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     private createItemStyleContext(): HeatmapItemStyleContext {
         const { stroke, strokeWidth, strokeOpacity } = this.options;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         return {
             colorScaleValid: this.isColorScaleValid(),
             baseStyle: { fillOpacity: 1, stroke, strokeWidth, strokeOpacity, opacity: 1 },
+            selectionEnabled: this.isSelectionEnabled(),
+            activeHighlight,
+            highlightActive: this.getHighlightState(activeHighlight, false) !== HighlightState.None,
         };
     }
 
@@ -501,12 +676,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         mutableNode.midPoint.x = x;
         mutableNode.midPoint.y = y;
 
-        mutableNode.style = this.getItemStyle(
-            { datumIndex, datum, colorValue },
-            false,
-            undefined,
-            ctx.itemStyleContext
-        );
+        mutableNode.style = this.getItemStyle({ datumIndex, datum, colorValue }, false, ctx.itemStyleContext);
     }
 
     /**
@@ -570,29 +740,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                   )
                 : undefined;
 
-        const sizeFittingHeight = () => ({ width, height, meta: null });
-        const labels = formatLabels(
-            // Preserve `ContentSegment[]` rather than flattening, so image-bearing labels keep images.
-            labelText,
-            this.options.label,
-            undefined,
-            this.options.label,
-            { padding: itemPadding },
-            sizeFittingHeight
-        );
+        if (labelText == null || labelText === '') return undefined;
 
-        if (labels?.label == null) {
-            return undefined;
-        }
-
-        const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
-        const { fontStyle, fontFamily, fontWeight, color, textAlign, verticalAlign } = this.options.label;
+        const { fontStyle, fontFamily, fontWeight, color, textAlign, verticalAlign } = label;
         const anchorX = nodeDatum.point.x;
-        const anchorY = nodeDatum.point.y - (labels.height - labelHeight) * 0.5;
+        const anchorY = nodeDatum.point.y;
         const xSpan = width - 2 * itemPadding;
         const ySpan = height - 2 * itemPadding;
-        const lx = anchorX + textAlignFactor * xSpan;
-        const ly = anchorY + verticalAlignFactor * ySpan;
 
         return {
             anchorX,
@@ -602,17 +756,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             series: this,
             datum,
             datumIndex,
-            text,
-            fontSize,
-            lineHeight,
+            text: labelText,
             fontStyle,
             fontFamily,
             fontWeight,
             color,
             textAlign,
             textBaseline: verticalAlign,
-            x: lx,
-            y: ly,
+            x: anchorX + textAlignFactor * xSpan,
+            y: anchorY + verticalAlignFactor * ySpan,
             style: nodeDatum.style,
         };
     }
@@ -633,6 +785,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         datumSelection: Selection<HeatmapNodeDatum, Rect<HeatmapNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
+        // OPTIMIZATION: an in-place update leaves every datum bound to its scene node.
+        if (this.touchedDatumIndices != null) return datumSelection;
         const data = nodeData ?? [];
         return datumSelection.update(data);
     }
@@ -640,16 +794,19 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     protected getItemStyle(
         { datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>,
         isHighlight: boolean,
-        highlightState?: _ModuleSupport.HighlightState,
         itemStyleContext: HeatmapItemStyleContext = this.createItemStyleContext()
     ): NormalisedHeatmapSeriesStyle {
         const { options } = this;
         const { itemStyler, colorKey } = options;
         const { missingDataFill } = options.colorScale;
-        const { colorScaleValid, baseStyle } = itemStyleContext;
+        const { colorScaleValid, baseStyle, selectionEnabled, activeHighlight } = itemStyleContext;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const highlightState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        const highlightStyle =
+            highlightState === HighlightState.None
+                ? undefined
+                : this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+        const selectionStyle = selectionEnabled ? this.getSelectionStyle(datumIndex) : undefined;
         let fill: string;
         if (colorScaleValid && colorValue != null) {
             fill = this.colorScale.convert(colorValue);
@@ -660,25 +817,29 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
         // Colour refs are resolved during theme-merge before reaching scene nodes.
         // `baseStyle` is shared across cells — do not mutate it.
-        const style = mergeDefaults(
-            selectionStyle,
-            highlightStyle,
-            { fill },
-            baseStyle
+        // OPTIMIZATION: without a highlight or selection style the merge is just the fill over `baseStyle`.
+        const style = (
+            hasStateStyle(highlightStyle) || hasStateStyle(selectionStyle)
+                ? mergeDefaults(selectionStyle, highlightStyle, { fill }, baseStyle)
+                : { ...baseStyle, fill }
         ) as Required<NormalisedHeatmapSeriesStyle>;
 
         let overrides;
         if (itemStyler != null && datumIndex != null) {
-            overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
+            // OPTIMIZATION: a numeric key avoids building a string per cell; highlight and node styles are distinct.
+            overrides = this.cachedDatumCallback(itemStylerCacheKey(datumIndex, isHighlight), () => {
                 const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
-                return this.ctx.optionsGraphService.resolvePartial(
-                    ['series', `${this.declarationOrder}`],
-                    this.callWithContext(itemStyler, params)
-                );
+                return this.itemStylerResolutions.resolve(this.callWithContext(itemStyler, params));
             });
         }
 
-        return overrides ? mergeDefaults(overrides, style) : style;
+        return overrides ? applyOverrides(style, overrides) : style;
+    }
+
+    override resetDatumCallbackCache(id?: unknown) {
+        super.resetDatumCallbackCache(id);
+        // Resolutions are keyed by the styler's result rather than the datum, so only a full reset needs to drop them.
+        if (id === undefined) this.itemStylerResolutions.clear();
     }
 
     private makeLabelFormatterParams() {
@@ -722,11 +883,26 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         datumSelection: Selection<HeatmapNodeDatum, Rect<HeatmapNodeDatum>>;
         isHighlight: boolean;
     }) {
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const itemStyleContext = this.createItemStyleContext();
+        const { selectionEnabled, highlightActive } = itemStyleContext;
+
+        if (!isHighlight) {
+            // OPTIMIZATION: createNodeData styled every cell; only a highlight, selection or styler needs a restyle.
+            // A transaction restyled the updated cells already, so a styler needs no pass over the rest.
+            if (
+                !selectionEnabled &&
+                !highlightActive &&
+                !this.cellsStyledByHighlight &&
+                (this.options.itemStyler == null || this.touchedDatumIndices != null)
+            ) {
+                return;
+            }
+            this.cellsStyledByHighlight = highlightActive;
+            this.restyledEveryCell = true;
+        }
+
         datumSelection.each((_, nodeDatum) => {
-            const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, highlightState, itemStyleContext);
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, itemStyleContext);
         });
     }
 
@@ -744,7 +920,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const { cornerRadius, shadow } = this.options;
 
-        datumSelection.each((rect, nodeDatum) => {
+        const updateNode = (rect: Rect<HeatmapNodeDatum>, nodeDatum: HeatmapNodeDatum) => {
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
@@ -756,7 +932,24 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             rect.y = point.y - height / 2;
             rect.width = width;
             rect.height = height;
-        });
+        };
+
+        const { touchedDatumIndices } = this;
+        if (!isHighlight && touchedDatumIndices != null && !this.restyledEveryCell) {
+            // OPTIMIZATION: only the updated cells' nodes differ from what the scene already holds.
+            for (const datumIndex of touchedDatumIndices) {
+                const rect = datumSelection.at(datumIndex);
+                if (rect?.datum != null) updateNode(rect, rect.datum);
+            }
+            return;
+        }
+
+        datumSelection.each(updateNode);
+    }
+
+    protected override updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {
+        super.updateNodes(itemHighlighted, nodeRefresh);
+        this.touchedDatumIndices = undefined;
     }
 
     protected override updateLabelSelection(opts: {
@@ -776,16 +969,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const styledAlignment = this.options.label.itemStyler != null;
         opts.labelSelection.each((text, datum) => {
+            if (datum.hidden === true) {
+                text.visible = false;
+                return;
+            }
             text.pointerEvents = PointerEvents.None;
-            text.text = datum.text;
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex)?.opacity ?? 1;
             type P = AgHeatmapSeriesLabelFormatterParams;
             type D = HeatmapLabelDatum;
-            if (styledAlignment) {
-                this.anchorStyledLabel(datum, isHighlight, activeHighlight);
-            }
             updateLabelNode<P, D>(this, text, this.makeLabelFormatterParams(), this.options.label, datum, {
                 isHighlight,
                 activeHighlight,
@@ -793,38 +985,154 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         });
     }
 
-    /**
-     * Re-anchors a cell's label to the alignment its label styler returned. The shared label update
-     * reads the position off the datum, so the styled alignment has to be resolved into it first.
-     */
-    private anchorStyledLabel(
-        datum: HeatmapLabelDatum,
-        isHighlight: boolean,
-        activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined
-    ) {
-        const style: Record<string, unknown> = {
-            ...getLabelStyles<AgHeatmapSeriesLabelFormatterParams>(
-                this,
-                datum,
-                this.makeLabelFormatterParams(),
-                this.options.label,
-                isHighlight,
-                activeHighlight
-            ),
-        };
-        const textAlign = TEXT_ALIGNS.find((value) => value === style.textAlign);
-        const verticalAlign = VERTICAL_ALIGNS.find((value) => value === style.verticalAlign);
-        if (textAlign == null && verticalAlign == null) return;
+    protected override resolveUsesPlacedLabels(): boolean {
+        return this.options.label.enabled;
+    }
 
-        if (textAlign != null) {
-            datum.textAlign = textAlign;
-            const factor = textAlignFactors[resolveTextAlign(textAlign, this.ctx.domManager.isRtl)];
-            datum.x = datum.anchorX + factor * datum.xSpan;
+    getLabelObstacles(): LabelObstacle[] | undefined {
+        const nodeData = this.contextNodeData?.nodeData;
+        if (nodeData == null || nodeData.length === 0) return undefined;
+        const obstacles: LabelObstacle[] = [];
+        for (const { point, width, height } of nodeData) {
+            if (width <= 0 || height <= 0) continue;
+            const box = { x: point.x - width / 2, y: point.y - height / 2, width, height };
+            obstacles.push({ kind: 'rect', box, category: 'seriesItem' });
         }
-        if (verticalAlign != null) {
-            datum.textBaseline = verticalAlign;
-            datum.y = datum.anchorY + verticalAlignFactors[verticalAlign] * datum.ySpan;
+        return obstacles;
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        const { label } = this.options;
+        if (!this.usesPlacedLabels || !label.enabled) return [];
+        const alwaysShow = label.collision?.alwaysShow === true;
+        const collideWith = resolveCollideWith({ ...label.collision, alwaysShow });
+        const threshold = label.collision?.threshold ?? 0;
+        const boxPadding = expandLabelBoxExtent(label);
+        const data: HeatmapPlacedLabelDatum[] = [];
+        for (const labelDatum of this.contextNodeData?.labelData ?? []) {
+            const { text, anchorX, anchorY, xSpan, ySpan } = labelDatum;
+            const region = {
+                x: anchorX - xSpan / 2,
+                y: anchorY - ySpan / 2,
+                width: Math.max(0, xSpan),
+                height: Math.max(0, ySpan),
+            };
+            const glyph = measureLabelText(text, label);
+            const candidate = this.labelCandidate(
+                labelDatum,
+                region,
+                label.textAlign,
+                label.verticalAlign,
+                glyph,
+                boxPadding
+            );
+            data.push({
+                point: { x: 0, y: 0, size: 0 },
+                label: { text, width: candidate.box.width, height: candidate.box.height },
+                fit: autoSizedLabelFit(text, label, boxPadding),
+                anchor: undefined,
+                placement: undefined,
+                neverDrop: alwaysShow,
+                collideWith,
+                threshold,
+                positionedCandidates: [candidate],
+                ownBox: region,
+                target: labelDatum,
+            });
         }
+        return data;
+    }
+
+    override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
+        const { label } = this.options;
+        if (label.itemStyler == null) return undefined;
+        const params = this.makeLabelFormatterParams();
+        return (datum, candidate) => {
+            const { target } = datum as HeatmapPlacedLabelDatum;
+            const style = getLabelStyles<AgHeatmapSeriesLabelFormatterParams>(
+                this,
+                target,
+                params,
+                label,
+                false,
+                undefined
+            );
+            const styled: Record<string, unknown> = { ...style };
+            const textAlign = TEXT_ALIGNS.find((value) => value === styled.textAlign) ?? label.textAlign;
+            const verticalAlign =
+                VERTICAL_ALIGNS.find((value) => value === styled.verticalAlign) ?? label.verticalAlign;
+            return this.labelCandidate(
+                target,
+                candidate.region!,
+                textAlign,
+                verticalAlign,
+                measureLabelText(target.text, style),
+                expandLabelBoxExtent(style),
+                style,
+                !style.enabled
+            );
+        };
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<HeatmapLabelDatum>[]) {
+        for (const labelDatum of this.contextNodeData?.labelData ?? []) {
+            labelDatum.hidden = true;
+        }
+        for (const { datum, candidate, text, fontSize, offsetX, offsetY } of placed as PlacedLabel<unknown>[]) {
+            const { target } = datum as HeatmapPlacedLabelDatum;
+            const { anchor } = candidate as HeatmapLabelCandidate;
+            target.hidden = false;
+            target.x = anchor.x;
+            target.y = anchor.y;
+            target.textAlign = anchor.textAlign;
+            target.textBaseline = anchor.textBaseline;
+            target.offsetX = offsetX ?? 0;
+            target.offsetY = offsetY ?? 0;
+            target.fittedText = text;
+            target.fittedFontSize = fontSize;
+        }
+        this.refreshPlacedLabelNodes();
+    }
+
+    /** The one candidate a cell label has: aligned within the padded cell, and fitted to it. */
+    private labelCandidate(
+        labelDatum: HeatmapLabelDatum,
+        region: BoxBounds,
+        textAlign: TextAlign,
+        verticalAlign: VerticalAlign,
+        glyph: { width: number; height: number },
+        boxPadding: Required<PaddingOptions>,
+        font?: FontOptions,
+        hidden?: boolean
+    ): HeatmapLabelCandidate {
+        const resolvedAlign = resolveTextAlign(textAlign, this.ctx.domManager.isRtl);
+        const anchor = {
+            x: labelDatum.anchorX + textAlignFactors[resolvedAlign] * labelDatum.xSpan,
+            y: labelDatum.anchorY + verticalAlignFactors[verticalAlign] * labelDatum.ySpan,
+            textAlign: resolvedAlign,
+            textBaseline: verticalAlign,
+        };
+        const boxWidth = boxPadding.left + boxPadding.right;
+        const boxHeight = boxPadding.top + boxPadding.bottom;
+        const width = glyph.width + boxWidth;
+        const height = glyph.height + boxHeight;
+        const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
+        return {
+            box: { x: centre.x - width / 2, y: centre.y - height / 2, width, height },
+            region,
+            anchor,
+            size: font == null ? undefined : { width, height },
+            hidden,
+            fitTo: {
+                container: {
+                    width: Math.max(0, region.width - boxWidth),
+                    height: Math.max(0, region.height - boxHeight),
+                },
+                anchor,
+                padding: boxPadding,
+                font,
+            },
+        };
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
@@ -1002,7 +1310,27 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             this.isSelectionEnabled() ||
             this.options.itemStyler != null ||
             this.options.label.itemStyler != null ||
-            this.isColorScaleValid()
+            this.hasHighlightStateStyle()
         );
     }
+
+    private hasHighlightStateStyle(): boolean {
+        const { highlight } = this.options;
+        return this.isHighlightEnabled() && hasStateStyle(highlight?.unhighlightedItem);
+    }
+}
+
+/** Equivalent to `mergeDefaults(overrides, style)`, writing into the cell's own `style` unless both sides hold an object. */
+function applyOverrides(
+    style: Required<NormalisedHeatmapSeriesStyle>,
+    overrides: Partial<NormalisedHeatmapSeriesStyle>
+): Required<NormalisedHeatmapSeriesStyle> {
+    const target = style as Record<string, unknown>;
+    for (const key of Object.keys(overrides)) {
+        const value = (overrides as Record<string, unknown>)[key];
+        if (value == null) continue;
+        if (isPlainObject(value) && isPlainObject(target[key])) return mergeDefaults(overrides, style);
+        target[key] = value;
+    }
+    return style;
 }

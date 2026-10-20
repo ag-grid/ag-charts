@@ -32,6 +32,7 @@ type Region = keyof Omit<NonNullable<AgQuadrantChartOptions['regions']>, 'label'
 
 const DEFAULT_LABEL_POSITION: AgQuadrantRegionLabelPosition = 'inside-outer-outer';
 const DEFAULT_LABEL_SPACING = 10;
+const DEFAULT_SERIES_ID = 'quadrant';
 
 type AxisDirection = -1 | 0 | 1;
 
@@ -182,6 +183,7 @@ export function createQuadrant(
         'fill',
         'fillOpacity',
         'highlight',
+        'id',
         'itemStyler',
         'lineDash',
         'lineDashOffset',
@@ -365,6 +367,7 @@ export function createQuadrant(
     if (options.sizeKey == null) {
         series.push({
             ...pick(options, scatterSeriesKeys),
+            id: options.id ?? DEFAULT_SERIES_ID,
             type: 'scatter',
             context,
             itemStyler: composedItemStyler,
@@ -384,6 +387,7 @@ export function createQuadrant(
             minSize: options.size, // Default minSize to size
             ...pick(options, bubbleSeriesKeys),
             sizeKey: options.sizeKey, // Tell typescript that sizeKey is not undefined
+            id: options.id ?? DEFAULT_SERIES_ID,
             type: 'bubble',
             context,
             itemStyler: composedItemStyler,

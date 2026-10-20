@@ -1,14 +1,12 @@
 import { afterEach, describe, it } from 'vitest';
 
-import { AgCharts } from '../api/agCharts';
 import type { ChartOrProxy } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
-    prepareTestOptions,
+    createChart,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from './test/utils';
 
 const INTEGRATED_THEME = {
@@ -52,7 +50,6 @@ const INTEGRATED_THEME = {
                 strokeWidth: 8,
                 fills: {
                     $applyCycle: [
-                        { $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } },
                         { $palette: 'fills' },
                         {
                             $if: [
@@ -65,7 +62,6 @@ const INTEGRATED_THEME = {
                 },
                 strokes: {
                     $applyCycle: [
-                        { $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } },
                         { $palette: 'strokes' },
                         {
                             $if: [
@@ -136,10 +132,7 @@ describe('Integrated Charts Cross Filtering', () => {
                 },
             ],
         };
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
         await compare();
     });
 
@@ -192,10 +185,7 @@ describe('Integrated Charts Cross Filtering', () => {
                 },
             ],
         };
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
         await compare();
     });
 
@@ -233,10 +223,7 @@ describe('Integrated Charts Cross Filtering', () => {
                 },
             ],
         };
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
         await compare();
     });
 });

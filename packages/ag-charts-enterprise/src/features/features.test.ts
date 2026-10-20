@@ -1,11 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import {
-    type AgCartesianAxisCrossAt,
-    type AgCartesianChartOptions,
-    type AgChartOptions,
-    AgCharts,
-} from 'ag-charts-community';
+import { type AgCartesianAxisCrossAt, type AgCartesianChartOptions, type AgChartOptions } from 'ag-charts-community';
 import {
     clickAction,
     compareImageSnapshot,
@@ -19,8 +14,9 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart } from '../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './context-menu/contextMenuStyles';
 
 describe('Feature Combinations', () => {
@@ -78,15 +74,12 @@ describe('Feature Combinations', () => {
                     ...(initialState ?? {}),
                 },
             };
-            prepareEnterpriseTestOptions(options);
-            cx = options.width! / 2;
-            cy = options.height! / 2;
+            cx = CANVAS_WIDTH / 2;
+            cy = CANVAS_HEIGHT / 2;
 
-            chart = AgCharts.create(options);
-
+            chart = await createEnterpriseChart(options);
             // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll
             // wheel event is triggered.
-            await waitForChartStability(chart);
             await clickAction(cx, cy)(chart);
         }
 
@@ -164,13 +157,10 @@ describe('Feature Combinations', () => {
                     ...(zoom ?? {}),
                 },
             };
-            prepareEnterpriseTestOptions(options);
-            cx = options.width! / 2;
-            cy = options.height! / 2;
+            cx = CANVAS_WIDTH / 2;
+            cy = CANVAS_HEIGHT / 2;
 
-            chart = AgCharts.create(options);
-
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await clickAction(cx, cy)(chart);
         }
 
@@ -216,24 +206,16 @@ describe('Feature Combinations', () => {
             initialState: { zoom: { ratioX: { start: 0.25, end: 0.75 }, ratioY: { start: 0.25, end: 0.75 } } },
         };
 
-        let cx: number = 0;
-        let cy: number = 0;
+        const cx = CANVAS_WIDTH / 2;
+        const cy = CANVAS_HEIGHT / 2;
 
-        async function prepareChart(crossAt: AgCartesianAxisCrossAt) {
-            const options: AgCartesianChartOptions = {
-                ...EXAMPLE_OPTIONS,
-                axes: {
-                    x: { type: 'number', position: 'bottom', title: { text: 'X Axis' }, crossAt },
-                    y: { type: 'number', position: 'left', title: { text: 'Y Axis' }, crossAt },
-                },
-            };
-            prepareEnterpriseTestOptions(options);
-            cx = options.width! / 2;
-            cy = options.height! / 2;
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-        }
+        const crossAtOptions = (crossAt: AgCartesianAxisCrossAt): AgCartesianChartOptions => ({
+            ...EXAMPLE_OPTIONS,
+            axes: {
+                x: { type: 'number', position: 'bottom', title: { text: 'X Axis' }, crossAt },
+                y: { type: 'number', position: 'left', title: { text: 'Y Axis' }, crossAt },
+            },
+        });
 
         function getZoomRatios() {
             const { ratioX, ratioY } = chart.getState().zoom ?? {};
@@ -255,7 +237,7 @@ describe('Feature Combinations', () => {
         // Axes positioned with `crossAt` share the series area, so they only claim the pointer where they
         // are drawn — dragging elsewhere in the series area must still pan the chart.
         it.each(crossAtCases)('should pan the chart when dragging away from axes with $name', async ({ crossAt }) => {
-            await prepareChart(crossAt);
+            chart = await createEnterpriseChart(crossAtOptions(crossAt));
 
             const before = getZoomRatios();
 
@@ -288,10 +270,8 @@ describe('Feature Combinations', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 [key]: true,
             } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             // The chart-level pass strips the invalid value, so the plugin pass has nothing left to report.
             expectWarningsCalls().toEqual([

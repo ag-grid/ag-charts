@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "14.2.0-beta.20261011",
+  "version": "14.2.0-beta.20261018",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -121,7 +121,7 @@
     "tsx": "^4.23.15",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.59.1",
-    "vite": "^8.3.0",
+    "vite": "^8.3.4",
     "vitest": "2.1.9",
     "wait-on": "^9.1.0",
     "yargs": "^18.2.0"

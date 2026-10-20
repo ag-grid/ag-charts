@@ -14,6 +14,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgScatterSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -44,6 +45,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             padding: 8,

@@ -110,6 +110,29 @@ The default Cap length is determined based on the type of series:
 the `errorBar.itemStyler` property. The `params` object
 includes properties from the Series and Error Bars.
 
+## Offset Labels
+
+{% chartExampleRunner title="Offset Labels" name="offset-labels" type="generated" /%}
+
+By default, series labels are positioned past the end of the Error Bar, with the label `spacing` measured from the cap.
+
+Set `errorBar.offsetLabels` to `false` to position labels against the series shape instead, such as the end of a bar or the edge of a marker:
+
+```js format="snippet"
+{
+    errorBar: {
+        // ...
+        offsetLabels: false,
+    },
+}
+```
+
+{% note %}
+Error Bars are always treated as obstacles by label [Collision Avoidance](./series-labels/#collision-avoidance). Labels that collide with an Error Bar move to a fallback `placement` or are hidden, depending on the label `collision` options.
+{% /note %}
+
+`offsetLabels` can also be set in a theme or returned from `errorBar.itemStyler` to control individual labels.
+
 ## API Reference
 
 {% tabs %}

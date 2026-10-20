@@ -101,6 +101,15 @@ export function roundTo(value: number, decimals: number = 2) {
     return Math.round(value * base) / base;
 }
 
+/** Drops the float noise of decimal arithmetic (e.g. 2.4999999999999716), so results compare by exact value. */
+export function stripFloatNoise(value: number) {
+    return Number(value.toPrecision(12));
+}
+
+export function roundToMultiple(value: number, step: number) {
+    return stripFloatNoise(Math.round(stripFloatNoise(value / step)) * step);
+}
+
 export function ceilTo(value: number, decimals: number = 2) {
     const base = 10 ** decimals;
     return Math.ceil(value * base) / base;

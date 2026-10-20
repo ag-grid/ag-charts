@@ -16,7 +16,9 @@ import { FontWeightValueEditor } from './FontWeightValueEditor';
 import { FormField } from './FormField';
 import { ImageValueEditor } from './ImageValueEditor';
 import { LengthValueEditor } from './LengthValueEditor';
+import { RatioValueEditor } from './RatioValueEditor';
 import { ScaleValueEditor } from './ScaleValueEditor';
+import { ScrollbarWidthValueEditor } from './ScrollbarWidthValueEditor';
 import type { ValueEditorProps } from './ValueEditorProps';
 
 export type ParamEditorProps = {
@@ -85,6 +87,7 @@ const valueEditors: Record<ParamType, FC<ValueEditorProps<any>>> = {
     colorScheme: ColorSchemeValueEditor,
     length: LengthValueEditor,
     scale: ScaleValueEditor,
+    ratio: RatioValueEditor,
     border: BorderValueEditor,
     borderStyle: BorderStyleValueEditor,
     shadow: CssValueEditor,
@@ -92,6 +95,7 @@ const valueEditors: Record<ParamType, FC<ValueEditorProps<any>>> = {
     fontFamily: FontFamilyValueEditor,
     fontWeight: FontWeightValueEditor,
     duration: LengthValueEditor,
+    scrollbarWidth: ScrollbarWidthValueEditor,
 };
 
 function renderColorValue(property: ThemeParam, params: any, stack: Set<ThemeParam>): string {

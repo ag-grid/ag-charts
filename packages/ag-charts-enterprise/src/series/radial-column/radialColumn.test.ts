@@ -102,8 +102,7 @@ describe('RadialColumnSeries', () => {
 
     it(`should render radial column chart as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-        prepareEnterpriseTestOptions(options as any);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -121,8 +120,7 @@ describe('RadialColumnSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -136,9 +134,7 @@ describe('RadialColumnSeries', () => {
                 };
             }),
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -154,9 +150,7 @@ describe('RadialColumnSeries', () => {
                 };
             }),
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -180,9 +174,7 @@ describe('RadialColumnSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -197,9 +189,7 @@ describe('RadialColumnSeries', () => {
                 };
             }),
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -224,9 +214,7 @@ describe('RadialColumnSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -246,8 +234,7 @@ describe('RadialColumnSeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -277,8 +264,7 @@ describe('RadialColumnSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -317,8 +303,7 @@ describe('RadialColumnSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -353,8 +338,7 @@ describe('RadialColumnSeries', () => {
                 radius: { type: 'radius-number', nice: false },
             },
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -372,11 +356,11 @@ describe('RadialColumnSeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
+    // Bespoke: these tests reuse their prepared options in `update` or the endpoint check.
     // Only the empty→ready reveal animates (columns grow radially from a shared baseline); data updates, adds and removes fall through to PolarSeries.animateWaitingUpdateReady and snap with no tween.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
@@ -389,19 +373,20 @@ describe('RadialColumnSeries', () => {
             { quarter: `Q4'22`, air: 3.48, winds: 3.56 },
         ];
         // Pinned radius axis keeps scaling fixed across data mutations, so only the marks move.
-        const radialOptions = (data: Row[] = RC_DATA): AgPolarChartOptions =>
-            prepareEnterpriseTestOptions<AgPolarChartOptions>({
-                data: [...data],
-                series: [
-                    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'air', radiusName: 'Air' },
-                    { type: 'radial-column', angleKey: 'quarter', radiusKey: 'winds', radiusName: 'Winds' },
-                ],
-                axes: {
-                    angle: { type: 'angle-category' },
-                    radius: { type: 'radius-number', min: 0, max: 10, nice: false },
-                },
-                legend: { enabled: true },
-            });
+        const radialOptions = (data: Row[] = RC_DATA): AgPolarChartOptions => ({
+            data: [...data],
+            series: [
+                { type: 'radial-column', angleKey: 'quarter', radiusKey: 'air', radiusName: 'Air' },
+                { type: 'radial-column', angleKey: 'quarter', radiusKey: 'winds', radiusName: 'Winds' },
+            ],
+            axes: {
+                angle: { type: 'angle-category' },
+                radius: { type: 'radius-number', min: 0, max: 10, nice: false },
+            },
+            legend: { enabled: true },
+        });
+        const preparedOptions = (data?: Row[]) =>
+            prepareEnterpriseTestOptions<AgPolarChartOptions>(radialOptions(data));
         const grow = (data: Row[]) => data.map((d) => ({ ...d, air: d.air * 1.8 }));
 
         const pathEntries = (sample: SceneGeometrySample) =>
@@ -449,7 +434,7 @@ describe('RadialColumnSeries', () => {
         };
 
         it('initial load: every column grows radially from a shared baseline while labels fade in', async () => {
-            const proxy = AgCharts.create(radialOptions());
+            const proxy = await createEnterpriseChart(radialOptions());
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
@@ -499,7 +484,7 @@ describe('RadialColumnSeries', () => {
         });
 
         it('update data: value changes snap into place without a tween', async () => {
-            const options = radialOptions();
+            const options = preparedOptions();
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -518,7 +503,7 @@ describe('RadialColumnSeries', () => {
         });
 
         it('add data: new columns appear fully formed without animating in', async () => {
-            const options = radialOptions();
+            const options = preparedOptions();
             const proxy = AgCharts.create({ ...options, data: RC_DATA.slice(0, 3) } as AgPolarChartOptions);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -541,7 +526,7 @@ describe('RadialColumnSeries', () => {
         });
 
         it('remove data: dropped columns disappear without collapsing', async () => {
-            const options = radialOptions();
+            const options = preparedOptions();
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -556,7 +541,7 @@ describe('RadialColumnSeries', () => {
         });
 
         it('sanity: update-data endpoints match static renders', async () => {
-            const before = radialOptions();
+            const before = preparedOptions();
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
@@ -566,7 +551,7 @@ describe('RadialColumnSeries', () => {
         });
 
         it('sanity: add-data endpoints match static renders', async () => {
-            const before = { ...radialOptions(), data: RC_DATA.slice(0, 3) } as AgPolarChartOptions;
+            const before = { ...preparedOptions(), data: RC_DATA.slice(0, 3) } as AgPolarChartOptions;
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
@@ -576,7 +561,7 @@ describe('RadialColumnSeries', () => {
         });
 
         it('sanity: remove-data endpoints match static renders', async () => {
-            const before = radialOptions();
+            const before = preparedOptions();
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
@@ -586,21 +571,19 @@ describe('RadialColumnSeries', () => {
         });
 
         const stackedOptions = (data: Row[] = RC_DATA): AgPolarChartOptions => ({
-            ...radialOptions(data),
-            series: (radialOptions(data).series as AgRadialColumnSeriesOptions[]).map((s) => ({
+            ...preparedOptions(data),
+            series: (preparedOptions(data).series as AgRadialColumnSeriesOptions[]).map((s) => ({
                 ...s,
                 stackGroup: 'stack',
             })),
         });
-        const signedOptions = (data: Row[]): AgPolarChartOptions => ({
-            ...radialOptions(data),
-            axes: {
-                angle: { type: 'angle-category' },
-                radius: { type: 'radius-number', min: -10, max: 10, nice: false },
-            },
-        });
+        const signedAxes: AgPolarChartOptions['axes'] = {
+            angle: { type: 'angle-category' },
+            radius: { type: 'radius-number', min: -10, max: 10, nice: false },
+        };
+        const signedOptions = (data: Row[]): AgPolarChartOptions => ({ ...preparedOptions(data), axes: signedAxes });
         const reversedRadiusOptions = (data: Row[] = RC_DATA): AgPolarChartOptions => ({
-            ...radialOptions(data),
+            ...preparedOptions(data),
             axes: {
                 angle: { type: 'angle-category' },
                 radius: { type: 'radius-number', min: 0, max: 10, nice: false, reverse: true },
@@ -610,12 +593,12 @@ describe('RadialColumnSeries', () => {
 
         // Toggling stackGroup rebuilds the series' node set, re-running the empty→ready reveal rather than snapping.
         it('toggle stacked: stacked columns reveal-grow from a shared baseline', async () => {
-            const proxy = AgCharts.create(radialOptions());
+            const proxy = await createEnterpriseChart(radialOptions());
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             await frames.runToEnd(proxy);
 
-            await (proxy as AgChartInstance).update(stackedOptions());
+            await proxy.update(stackedOptions());
             const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
             await frames.runToEnd(proxy);
             const after = sampleScene();
@@ -640,24 +623,21 @@ describe('RadialColumnSeries', () => {
         });
 
         it('toggle stacked: endpoints match static renders', async () => {
-            const before = radialOptions();
+            const before = preparedOptions();
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, stackedOptions());
         });
 
         it('flip data sign: columns move across the baseline and snap', async () => {
-            const before = signedOptions(RC_DATA);
-            const proxy = AgCharts.create(before);
+            const proxy = await createEnterpriseChart({ ...radialOptions(RC_DATA), axes: signedAxes });
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const {
                 before: beforeSample,
                 trajectory,
                 after,
-            } = await frames.captureSnap(proxy, sampleScene, () =>
-                (proxy as AgChartInstance).update(signedOptions(negativeData))
-            );
+            } = await frames.captureSnap(proxy, sampleScene, () => proxy.update(signedOptions(negativeData)));
 
             const key = `series[0]/path[Q1'22]`;
             expect(
@@ -681,17 +661,14 @@ describe('RadialColumnSeries', () => {
         });
 
         it('reverse radius axis: columns remap and snap', async () => {
-            const before = radialOptions();
-            const proxy = AgCharts.create(before);
+            const proxy = await createEnterpriseChart(radialOptions());
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const {
                 before: beforeSample,
                 trajectory,
                 after,
-            } = await frames.captureSnap(proxy, sampleScene, () =>
-                (proxy as AgChartInstance).update(reversedRadiusOptions())
-            );
+            } = await frames.captureSnap(proxy, sampleScene, () => proxy.update(reversedRadiusOptions()));
 
             const key = `series[0]/path[Q1'22]`;
             expect(
@@ -702,7 +679,7 @@ describe('RadialColumnSeries', () => {
         });
 
         it('reverse radius axis: endpoints match static renders', async () => {
-            const before = radialOptions();
+            const before = preparedOptions();
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(
@@ -730,9 +707,7 @@ describe('RadialColumnSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -758,9 +733,7 @@ describe('RadialColumnSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -787,9 +760,7 @@ describe('RadialColumnSeries', () => {
                     } as AgRadialColumnSeriesOptions,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -816,9 +787,7 @@ describe('RadialColumnSeries', () => {
                     } as AgRadialColumnSeriesOptions,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -846,15 +815,13 @@ describe('RadialColumnSeries', () => {
                     } as AgRadialColumnSeriesOptions,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
 
     test('AG-8290 label boxing', async () => {
-        const options = prepareEnterpriseTestOptions({
+        chart = await createEnterpriseChart({
             data: [
                 { department: 'Sales', quality: 40, efficiency: 75 },
                 { department: 'Engineering', quality: 45, efficiency: 90 },
@@ -878,8 +845,6 @@ describe('RadialColumnSeries', () => {
                 },
             ],
         });
-
-        chart = AgCharts.create(options);
         await compare();
     });
 
@@ -930,34 +895,31 @@ describe('RadialColumnSeries', () => {
             beforeEach(async () => {
                 c1 = { name: 'software context 1' };
                 c2 = { name: 'hardware context 2' };
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'radial-column',
-                                angleKey: 'quarter',
-                                radiusKey: 'sw',
-                                radiusName: 'Software',
-                                context: c1,
-                                fill: 'lime', // ignored
-                                fillOpacity: 0.5, // not ignored
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'radial-column',
-                                angleKey: 'quarter',
-                                radiusKey: 'hw',
-                                context: c2,
-                                stroke: 'CornflowerBlue', // ignored
-                                strokeOpacity: 0.5, // not ignored
-                                strokeWidth: 15, // ignored
-                                styler: styler.frozen,
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'radial-column',
+                            angleKey: 'quarter',
+                            radiusKey: 'sw',
+                            radiusName: 'Software',
+                            context: c1,
+                            fill: 'lime', // ignored
+                            fillOpacity: 0.5, // not ignored
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'radial-column',
+                            angleKey: 'quarter',
+                            radiusKey: 'hw',
+                            context: c2,
+                            stroke: 'CornflowerBlue', // ignored
+                            strokeOpacity: 0.5, // not ignored
+                            strokeWidth: 15, // ignored
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -984,34 +946,31 @@ describe('RadialColumnSeries', () => {
                     }
                     return {};
                 };
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'radial-column',
-                                angleKey: 'quarter',
-                                radiusKey: 'sw',
-                                radiusName: 'Software',
-                                fill: 'lime', // ignored
-                                fillOpacity: 0.5, // not ignored
-                                styler: styler.frozen,
-                                itemStyler,
-                            },
-                            {
-                                type: 'radial-column',
-                                angleKey: 'quarter',
-                                radiusKey: 'hw',
-                                stroke: 'CornflowerBlue', // ignored
-                                strokeOpacity: 0.5, // not ignored
-                                strokeWidth: 15, // ignored
-                                styler: styler.frozen,
-                                itemStyler,
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'radial-column',
+                            angleKey: 'quarter',
+                            radiusKey: 'sw',
+                            radiusName: 'Software',
+                            fill: 'lime', // ignored
+                            fillOpacity: 0.5, // not ignored
+                            styler: styler.frozen,
+                            itemStyler,
+                        },
+                        {
+                            type: 'radial-column',
+                            angleKey: 'quarter',
+                            radiusKey: 'hw',
+                            stroke: 'CornflowerBlue', // ignored
+                            strokeOpacity: 0.5, // not ignored
+                            strokeWidth: 15, // ignored
+                            styler: styler.frozen,
+                            itemStyler,
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -1019,31 +978,28 @@ describe('RadialColumnSeries', () => {
         });
         describe('gradient-pattern', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'radial-column',
-                                angleKey: 'quarter',
-                                radiusKey: 'sw',
-                                radiusName: 'Software',
-                                styler: () => {
-                                    return { fill: { type: 'gradient' } };
-                                },
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'radial-column',
+                            angleKey: 'quarter',
+                            radiusKey: 'sw',
+                            radiusName: 'Software',
+                            styler: () => {
+                                return { fill: { type: 'gradient' } };
                             },
-                            {
-                                type: 'radial-column',
-                                angleKey: 'quarter',
-                                radiusKey: 'hw',
-                                styler: () => {
-                                    return { fill: { type: 'pattern' } };
-                                },
+                        },
+                        {
+                            type: 'radial-column',
+                            angleKey: 'quarter',
+                            radiusKey: 'hw',
+                            styler: () => {
+                                return { fill: { type: 'pattern' } };
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -1051,27 +1007,24 @@ describe('RadialColumnSeries', () => {
         });
         describe('highlights', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<O>({
-                        data,
-                        series: [
-                            {
-                                type: 'radial-column',
-                                angleKey: 'quarter',
-                                radiusKey: 'sw',
-                                radiusName: 'Software',
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'radial-column',
-                                angleKey: 'quarter',
-                                radiusKey: 'hw',
-                                styler: styler.frozen,
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart<O>({
+                    data,
+                    series: [
+                        {
+                            type: 'radial-column',
+                            angleKey: 'quarter',
+                            radiusKey: 'sw',
+                            radiusName: 'Software',
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'radial-column',
+                            angleKey: 'quarter',
+                            radiusKey: 'hw',
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
 
             const miss = { x: 100, y: 100 } as const;
@@ -1174,10 +1127,7 @@ describe('RadialColumnSeries', () => {
 
         it('should render updated data in the itemStyler specified colors', async () => {
             const options = { ...TEST_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await chart.updateDelta({ data: DATA2 });
             await compare();
         });
@@ -1185,7 +1135,7 @@ describe('RadialColumnSeries', () => {
 
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            create: async (o) => (chart = await createEnterpriseChart(o)),
             compare,
             chartOptions: {
                 data: [
@@ -1222,10 +1172,7 @@ describe('RadialColumnSeries', () => {
 
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = { ...RADIAL_COLUMN_NULL_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -1248,10 +1195,7 @@ describe('RadialColumnSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1296,10 +1240,7 @@ describe('RadialColumnSeries', () => {
 
         it('should reject undefined category key with warning', async () => {
             const options: AgChartOptions = { ...RADIAL_COLUMN_UNDEFINED_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -1322,10 +1263,7 @@ describe('RadialColumnSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1341,10 +1279,7 @@ describe('RadialColumnSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1445,13 +1380,13 @@ describe('RadialColumnSeries', () => {
             });
 
             it('defaults to a disabled shadow', async () => {
-                chart = await createEnterpriseChart(shadowOptions());
+                chart = deproxy(await createEnterpriseChart(shadowOptions()));
 
                 expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             });
 
             it('shadows nothing when no shadow is set', async () => {
-                chart = await createEnterpriseChart(shadowOptions());
+                chart = deproxy(await createEnterpriseChart(shadowOptions()));
 
                 const shapes = collectShapes(chart.series[0].contentGroup);
                 expect(shapes).toHaveLength(shadowData.length);
@@ -1459,7 +1394,7 @@ describe('RadialColumnSeries', () => {
             });
 
             it('applies an enabled shadow to every shape', async () => {
-                chart = await createEnterpriseChart(shadowOptions(SHADOW));
+                chart = deproxy(await createEnterpriseChart(shadowOptions(SHADOW)));
 
                 const shapes = collectShapes(chart.series[0].contentGroup);
                 expect(shapes).toHaveLength(shadowData.length);
@@ -1494,6 +1429,109 @@ describe('RadialColumnSeries', () => {
                         values([1, 2, 3])
                     )
                 );
+            });
+        });
+    });
+
+    describe('AG-18978 missing radius value', () => {
+        const QUARTERS = [`Q1'18`, `Q2'18`, `Q3'18`, `Q4'18`];
+
+        const missingValueOptions = (
+            missingIndex: number,
+            missingValue: 'absent' | null,
+            stacked = false
+        ): AgChartOptions => ({
+            data: QUARTERS.map((quarter, index) => {
+                const row: Record<string, unknown> = {
+                    quarter,
+                    iphone: 140 + index,
+                    mac: 16 + index,
+                    ipad: 14 + index,
+                };
+                if (index === missingIndex) {
+                    if (missingValue === 'absent') {
+                        delete row.ipad;
+                    } else {
+                        row.ipad = missingValue;
+                    }
+                }
+                return row;
+            }),
+            series: ['iphone', 'mac', 'ipad'].map((radiusKey) => ({
+                type: 'radial-column' as const,
+                angleKey: 'quarter',
+                radiusKey,
+                stacked,
+                label: { enabled: true },
+            })),
+        });
+
+        const summariseNodeData = (nodeData: any[]) =>
+            nodeData.map(({ radiusValue, negative, innerRadius, outerRadius, startAngle, endAngle, label }) => ({
+                radiusValue,
+                negative,
+                innerRadius,
+                outerRadius,
+                startAngle,
+                endAngle,
+                label: label ? { text: label.text, x: label.x, y: label.y } : undefined,
+            }));
+
+        const createMissingValueChart = async (options: AgChartOptions) => {
+            chart = deproxy(await createEnterpriseChart(options));
+            return chart.series[2].contextNodeData.nodeData as any[];
+        };
+
+        it.each([
+            { row: 'first', missingIndex: 0, stacked: false },
+            { row: 'middle', missingIndex: 1, stacked: false },
+            { row: 'last', missingIndex: 3, stacked: false },
+            { row: 'last', missingIndex: 3, stacked: true },
+        ])(
+            'should leave a gap at the $row row and draw the other rows (stacked: $stacked)',
+            async ({ missingIndex, stacked }) => {
+                const nodeData = await createMissingValueChart(missingValueOptions(missingIndex, 'absent', stacked));
+
+                expect(nodeData).toHaveLength(QUARTERS.length);
+                for (const [index, nodeDatum] of nodeData.entries()) {
+                    const drawn = Number.isFinite(nodeDatum.innerRadius) && Number.isFinite(nodeDatum.outerRadius);
+                    expect(drawn).toBe(index !== missingIndex);
+                }
+
+                const absentSummary = summariseNodeData(nodeData);
+                chart.destroy();
+                const nullNodeData = await createMissingValueChart(missingValueOptions(missingIndex, null, stacked));
+                expect(absentSummary).toEqual(summariseNodeData(nullNodeData));
+            }
+        );
+
+        it('should render an absent value as a gap', async () => {
+            chart = await createEnterpriseChart(missingValueOptions(3, 'absent'));
+            await compare();
+        });
+
+        describe('during the initial animation', () => {
+            const frames = spyOnAnimationFrames();
+
+            it('should keep the missing column hidden on every frame', async () => {
+                const proxy = await createEnterpriseChart(missingValueOptions(3, 'absent'));
+                chart = deproxy(proxy);
+                const sampleNodes = () =>
+                    (chart.series[2].itemSelection.nodes() as any[]).map((node) => ({
+                        missing: !Number.isFinite(node.datum.outerRadius),
+                        visible: node.visible,
+                        outerRadius: node.outerRadius,
+                    }));
+                const trajectory = await frames.captureAnimationFrames(proxy, sampleNodes);
+                await frames.runToEnd(proxy);
+
+                for (const frame of trajectory) {
+                    expect(frame).toHaveLength(QUARTERS.length);
+                    expect(frame.filter((node) => node.missing)).toEqual([expect.objectContaining({ visible: false })]);
+                }
+                // Guards against passing vacuously: the drawn columns must grow over the captured frames.
+                const drawnRadii = trajectory.map((frame) => frame.find((node) => !node.missing)!.outerRadius);
+                expect(drawnRadii.at(-1)).toBeGreaterThan(drawnRadii[0]);
             });
         });
     });

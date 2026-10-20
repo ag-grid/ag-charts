@@ -33,6 +33,7 @@ import type {
     NormalisedPaddingOptions,
     NormalisedTextOrSegments,
 } from './normalisedCommonOptions';
+import type { NormalisedContextMenuOptions } from './normalisedContextMenuOptions';
 import type { NormalisedGradientLegendOptions } from './normalisedGradientLegendOptions';
 import type { NormalisedLegendOptions } from './normalisedLegendOptions';
 import type { NormalisedSelectionOptions } from './normalisedSelectionOptions';
@@ -74,6 +75,7 @@ export type NormalisedChartSyncOptions = AgChartSyncOptions & {
 
 export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
     enabled: boolean;
+    axesButtons?: AgAnnotationsOptions['axesButtons'] & { snap?: boolean; snapInterval?: number };
     snap?: boolean;
     data?: unknown[];
     xKey?: string;
@@ -146,6 +148,7 @@ export type ResolvedChartOptions = Omit<
     | 'animation'
     | 'annotations'
     | 'background'
+    | 'contextMenu'
     | 'dataSource'
     | 'flashOnUpdate'
     | 'footnote'
@@ -169,6 +172,7 @@ export type ResolvedChartOptions = Omit<
 > & {
     animation?: NormalisedAnimationOptions;
     background: NormalisedBackgroundOptions;
+    contextMenu?: NormalisedContextMenuOptions;
     dataSource?: NormalisedDataSourceOptions;
     flashOnUpdate?: NormalisedFlashOnUpdateOptions;
     footnote?: NormalisedChartCaptionOptions;
@@ -206,6 +210,11 @@ export type NormalisedStatusBarOptions = {
     lowKey?: string;
     closeKey?: string;
     volumeKey?: string;
+    // Volume Profile levels, highest price first, which the status bar looks up by the pointer's price on `priceAxisKey`.
+    volumeProfile?: {
+        priceAxisKey: string;
+        levels: { priceLow: number; priceHigh: number; up: number; down: number; total: number }[];
+    };
     layoutStyle: 'block' | 'overlay';
     title: NormalisedStatusBarLabelOptions;
     positive: NormalisedStatusBarLabelOptions;
@@ -221,6 +230,7 @@ export type NormalisedStatusBarLabelOptions = {
     fontSize: number;
     fontWeight?: FontWeight;
     fontStyle?: FontStyle;
+    lineHeight?: number;
 };
 
 export type NormalisedTooltipOptions = AgChartTooltipOptions & {

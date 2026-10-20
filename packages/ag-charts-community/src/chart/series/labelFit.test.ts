@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartInstance } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import {
     compareImageSnapshot,
+    createChart,
     deproxy,
     prepareTestOptions,
     setupMockCanvas,
@@ -16,7 +17,7 @@ import { DonutNodeTag } from './polar/donutSeries';
 const ELLIPSIS = '…';
 
 // Several series here still keep their label-fit options undocumented, so the label objects below are built
-// untyped and cast at the AgCharts.create boundary; `setupMockConsole` fails on any "property is unknown".
+// untyped and passed through to `createChart` unchecked; `setupMockConsole` fails on any "property is unknown".
 describe('series label fit', () => {
     setupMockConsole();
 
@@ -28,14 +29,11 @@ describe('series label fit', () => {
     });
 
     const render = async (options: object) => {
-        prepareTestOptions(options as any);
-        chart = AgCharts.create(options as any);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
     };
 
     const renderAndSnapshot = async (options: object) => {
-        prepareTestOptions(options as any);
-        chart = AgCharts.create(options as any);
+        chart = await createChart(options);
         await compareImageSnapshot(chart, ctx);
     };
 
@@ -555,7 +553,8 @@ describe('series label fit', () => {
                     ],
                 };
                 prepareTestOptions(options);
-                // prepareTestOptions fixes the canvas size, so the size under test is applied after it.
+                // Bespoke: prepareTestOptions fixes the canvas size, so the size under test is applied after it,
+                // which the shared factory would overwrite.
                 options.width = size;
                 options.height = size;
                 chart = AgCharts.create(options);
@@ -697,10 +696,8 @@ describe('series label fit', () => {
                 legend: { enabled: false },
                 axes: insideAxes,
                 series: [insideLineSeries(shape, 60)],
-            };
-            prepareTestOptions(options as any);
-            chart = AgCharts.create(options as any);
-            await waitForChartStability(chart);
+            } as AgCartesianChartOptions;
+            chart = await createChart(options);
             const text = String(labelTexts()[0] ?? '');
             chart.destroy();
             return text;

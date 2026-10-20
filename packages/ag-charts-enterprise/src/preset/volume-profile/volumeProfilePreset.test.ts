@@ -15,7 +15,6 @@ import {
 import type { AgChartInstance, AgChartTheme, AgVolumeProfileChartOptions } from 'ag-charts-types';
 
 import { setupEnterpriseModules } from '../../setup';
-import { totalSegmentBlocks, totalSegmentLabels } from '../test/totalSegment';
 import { getIrregularVolumeProfile, getRegularVolumeProfile } from '../test/volumeProfileData';
 
 setupEnterpriseModules();
@@ -42,27 +41,72 @@ describe('volumeProfilePreset', () => {
         title: { text: 'Volume Profile' },
     };
 
+    // A test whose chart should end up looking like one of these compares against the same baseline, so every
+    // route to that chart is held to the same image. Regenerating one regenerates it for all of them.
+    const DEFAULT_SNAPSHOT = 'volume-profile-preset-default';
+    const LARGER_TICK_SIZE_SNAPSHOT = 'volume-profile-preset-larger-tick-size';
+    const SHARED_SNAPSHOTS: Record<string, string> = {
+        default: DEFAULT_SNAPSHOT,
+        'larger tick size': LARGER_TICK_SIZE_SNAPSHOT,
+    };
+
+    const compareToSnapshot = (customSnapshotIdentifier?: string) =>
+        compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, customSnapshotIdentifier });
+
     const EXAMPLES: Record<string, AgVolumeProfileChartOptions> = {
         default: volumeProfile,
         'smaller tick size': { ...volumeProfile, tickSize: 1 },
         'matching tick size': { ...volumeProfile, tickSize: 2.5 },
         'larger tick size': { ...volumeProfile, tickSize: 5 },
         'irregular data': { ...volumeProfile, data: getIrregularVolumeProfile() },
+        'a single level with the total segment': {
+            ...volumeProfile,
+            data: [{ price: 100, upVolume: 60e6, downVolume: 40e6 }],
+            totalSegment: { enabled: true },
+        },
+        // The defaults: a block per level but none for levels without volume, fitted to the widest label, a 2px
+        // gap before the bars, and labels to one decimal place, right-aligned against the bars.
+        'the default total segment': { ...volumeProfile, totalSegment: { enabled: true } },
+        // `width` wins over `minWidth`.
+        'a customised total segment': {
+            ...volumeProfile,
+            totalSegment: {
+                enabled: true,
+                width: 80,
+                minWidth: 150,
+                gap: 12,
+                fill: '#123456',
+                label: { color: '#fedcba', formatter: ({ value }) => `${Math.round(value / 1e6)}M` },
+            },
+        },
+        'a total segment without labels': {
+            ...volumeProfile,
+            totalSegment: { enabled: true, label: { enabled: false } },
+        },
+        'a total segment wider than its labels, with no gap': {
+            ...volumeProfile,
+            totalSegment: { enabled: true, minWidth: 150, gap: 0 },
+        },
+        'a total segment widened by long labels': {
+            ...volumeProfile,
+            totalSegment: {
+                enabled: true,
+                minWidth: 10,
+                label: { formatter: ({ value }) => `${value} shares traded` },
+            },
+        },
     };
 
-    it.each(Object.entries(EXAMPLES))(
-        'for %s it should render to canvas as expected',
-        async (_exampleName, example) => {
-            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...example }));
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
-        }
-    );
+    it.each(Object.entries(EXAMPLES))('for %s it should render to canvas as expected', async (exampleName, example) => {
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...example }));
+        await compareToSnapshot(SHARED_SNAPSHOTS[exampleName]);
+    });
 
     it('should update the profile on an add transaction', async () => {
         chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
         await waitForChartStability(chart);
         await chart.applyTransaction({ add: [{ price: 210, upVolume: 50e6, downVolume: 40e6 }] });
-        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        await compareToSnapshot();
     });
 
     it('should update the profile on an update transaction', async () => {
@@ -74,227 +118,76 @@ describe('volumeProfilePreset', () => {
         const datum = chart.getOptions().data!.at(-1)!;
         datum.upVolume = 150e6;
         await chart.applyTransaction({ update: [datum] });
-        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        await compareToSnapshot();
     });
-
-    const levels = () => deproxy(chart).series[0].data?.data ?? [];
-    const levelsWithVolume = () => levels().filter((level: { total: number }) => level.total !== 0);
 
     it('should regroup the profile when the tick size changes', async () => {
         chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
         await waitForChartStability(chart);
         await chart.updateDelta({ tickSize: 5 });
-        await waitForChartStability(chart);
-        // From 135 to 205 in steps of 5.
-        expect(levels()).toHaveLength(15);
+        await compareToSnapshot(LARGER_TICK_SIZE_SNAPSHOT);
     });
 
-    it('should regroup the profile when the price key changes', async () => {
-        const data = getRegularVolumeProfile().map((datum) => ({ ...datum, level: datum.price + 100 }));
+    it('should regroup the profile when the price, up and down keys change', async () => {
+        // The default keys read decoys, with prices shifted and the volumes swapped; the keys switched to hold the
+        // levels of the default profile.
+        const data = getRegularVolumeProfile().map(({ price, upVolume, downVolume }) => ({
+            price: price + 100,
+            upVolume: downVolume,
+            downVolume: upVolume,
+            level: price,
+            buys: upVolume,
+            sells: downVolume,
+        }));
         chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile, data }));
         await waitForChartStability(chart);
-        await chart.updateDelta({ priceKey: 'level' });
-        await waitForChartStability(chart);
-        expect(levels()[0]).toMatchObject({ price: 305 });
+        const decoys = ctx.snapshot();
+
+        await chart.updateDelta({ priceKey: 'level', upKey: 'buys', downKey: 'sells' });
+        await compareToSnapshot(DEFAULT_SNAPSHOT);
+        expect(ctx.snapshot()).not.toMatchImage(decoys, { writeDiff: false });
     });
 
     it('should regroup the profile on a same-length data update', async () => {
-        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
-        await waitForChartStability(chart);
         const data = getRegularVolumeProfile().map((datum) => ({ ...datum, upVolume: datum.upVolume * 2 }));
-        await chart.updateDelta({ data });
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile, data }));
         await waitForChartStability(chart);
-        expect(levels()[0]).toMatchObject({ price: 205, upVolume: data.find(({ price }) => price === 205)?.upVolume });
-    });
+        const doubled = ctx.snapshot();
 
-    it('should regroup the profile when the up key changes', async () => {
-        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
-        await waitForChartStability(chart);
-        await chart.updateDelta({ upKey: 'downVolume' });
-        await waitForChartStability(chart);
-        const { downVolume } = getRegularVolumeProfile().find(({ price }) => price === 205) ?? {};
-        expect(levels()[0]).toMatchObject({ price: 205, upVolume: downVolume, downVolume });
+        await chart.updateDelta({ data: getRegularVolumeProfile() });
+        await compareToSnapshot(DEFAULT_SNAPSHOT);
+        expect(ctx.snapshot()).not.toMatchImage(doubled, { writeDiff: false });
     });
 
     describe('with the total segment', () => {
-        const seriesRectWidth = () => deproxy(chart).seriesRect!.width;
         const enabled: AgVolumeProfileChartOptions = { ...volumeProfile, totalSegment: { enabled: true } };
 
-        it('should render a fixed-width column of totals beside the price axis', async () => {
-            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...enabled }));
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
-        });
-
-        it('should not draw the segment by default', async () => {
+        it('should add and remove the segment, and its room, as the option changes', async () => {
             chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
             await waitForChartStability(chart);
-            expect(totalSegmentBlocks(chart)).toHaveLength(0);
-        });
-
-        it('should draw a blue block per level, as wide as the widest label needs', async () => {
-            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
-            await waitForChartStability(chart);
-            const widthWithout = seriesRectWidth();
+            const without = ctx.snapshot();
 
             await chart.updateDelta({ totalSegment: { enabled: true } });
             await waitForChartStability(chart);
-
-            const blocks = totalSegmentBlocks(chart);
-            expect(blocks).toHaveLength(levelsWithVolume().length);
-            expect(new Set(blocks.map((block) => block.fill))).toEqual(new Set(['#5090dc']));
-            const widths = new Set(blocks.map((block) => block.width));
-            expect(widths.size).toBe(1);
-            const [width] = widths;
-            expect(width).toBeGreaterThan(0);
-            // The series area gives up the segment's width, as it does for an axis.
-            expect(widthWithout - seriesRectWidth()).toBe(width);
-        });
-
-        it('should leave room either side of the widest label', async () => {
-            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...enabled }));
-            await waitForChartStability(chart);
-
-            const [block] = totalSegmentBlocks(chart);
-            const widest = Math.max(...totalSegmentLabels(chart).map((label) => label.getBBox().width));
-            // The default padding, 8px each side, is wide enough for the text not to be cut short.
-            expect(block.width).toBeGreaterThanOrEqual(widest + 16);
-        });
-
-        it('should show neither a block nor a label for a level without volume', async () => {
-            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...enabled }));
-            await waitForChartStability(chart);
-
-            const empty = levels().filter((level: { total: number }) => level.total === 0);
-            expect(empty.length).toBeGreaterThan(0);
-            expect(totalSegmentBlocks(chart)).toHaveLength(levels().length - empty.length);
-            expect(totalSegmentLabels(chart).every((label) => label.text !== '0')).toBe(true);
-        });
-
-        it('should widen the segment to fit longer labels', async () => {
-            const widthFor = async (suffix: string) => {
-                chart = AgCharts.createVolumeProfileChart(
-                    prepareFinancialTestOptions({
-                        ...volumeProfile,
-                        totalSegment: { enabled: true, label: { formatter: ({ value }) => `${value}${suffix}` } },
-                    })
-                );
-                await waitForChartStability(chart);
-                const width = totalSegmentBlocks(chart)[0].width;
-                chart.destroy();
-                return width;
-            };
-
-            const short = await widthFor('');
-            const long = await widthFor(' shares traded');
-            expect(long).toBeGreaterThan(short);
-        });
-
-        it("should show each level's total in its label", async () => {
-            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...enabled }));
-            await waitForChartStability(chart);
-
-            const labels = totalSegmentLabels(chart);
-            expect(labels.length).toBeGreaterThan(0);
-            // Without a formatter the value is abbreviated with a suffix.
-            const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
-            const totals = new Set(levels().map((level: { total: number }) => compact.format(level.total)));
-            for (const label of labels) {
-                expect(totals.has(String(label.text))).toBe(true);
-            }
-            expect(labels.some((label) => /[KMB]$/.test(String(label.text)))).toBe(true);
-        });
-
-        describe('minimum width', () => {
-            const blockWidth = async (totalSegment: AgVolumeProfileChartOptions['totalSegment']) => {
-                chart = AgCharts.createVolumeProfileChart(
-                    prepareFinancialTestOptions({ ...volumeProfile, totalSegment })
-                );
-                await waitForChartStability(chart);
-                const width = totalSegmentBlocks(chart)[0].width;
-                chart.destroy();
-                return width;
-            };
-
-            it('should keep the segment at least 60px wide by default', async () => {
-                expect(await blockWidth({ enabled: true })).toBeGreaterThanOrEqual(60);
-            });
-
-            it('should honour a larger minWidth than the labels need', async () => {
-                expect(await blockWidth({ enabled: true, minWidth: 150 })).toBe(150);
-            });
-
-            it('should let the labels set the width above the minimum', async () => {
-                const wide = await blockWidth({
-                    enabled: true,
-                    minWidth: 10,
-                    label: { formatter: ({ value }) => `${value} shares traded` },
-                });
-                expect(wide).toBeGreaterThan(60);
-            });
-
-            it('should fix the width when width is given, whatever the minWidth', async () => {
-                expect(await blockWidth({ enabled: true, width: 40, minWidth: 150 })).toBe(40);
-            });
-        });
-
-        it('should apply the width, fill and label options', async () => {
-            chart = AgCharts.createVolumeProfileChart(
-                prepareFinancialTestOptions({
-                    ...volumeProfile,
-                    totalSegment: {
-                        enabled: true,
-                        width: 80,
-                        fill: '#123456',
-                        label: { formatter: ({ value }) => `${Math.round(value / 1e6)}M`, color: '#fedcba' },
-                    },
-                })
-            );
-            await waitForChartStability(chart);
-
-            const blocks = totalSegmentBlocks(chart);
-            expect(new Set(blocks.map((block) => block.fill))).toEqual(new Set(['#123456']));
-            expect(new Set(blocks.map((block) => block.width))).toEqual(new Set([80]));
-            for (const label of totalSegmentLabels(chart)) {
-                expect(label.text).toMatch(/^\d+M$/);
-                expect(label.fill).toBe('#fedcba');
-            }
-        });
-
-        it('should hide the labels when they are disabled', async () => {
-            chart = AgCharts.createVolumeProfileChart(
-                prepareFinancialTestOptions({
-                    ...volumeProfile,
-                    totalSegment: { enabled: true, label: { enabled: false } },
-                })
-            );
-            await waitForChartStability(chart);
-            expect(totalSegmentBlocks(chart).length).toBeGreaterThan(0);
-            expect(totalSegmentLabels(chart)).toHaveLength(0);
-        });
-
-        it('should toggle the segment when the option changes', async () => {
-            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
-            await waitForChartStability(chart);
-            const widthWithout = seriesRectWidth();
-
-            await chart.updateDelta({ totalSegment: { enabled: true } });
-            await waitForChartStability(chart);
-            const blocks = totalSegmentBlocks(chart);
-            expect(blocks.length).toBeGreaterThan(0);
-            expect(seriesRectWidth()).toBe(widthWithout - blocks[0].width);
+            expect(ctx.snapshot()).not.toMatchImage(without, { writeDiff: false });
 
             await chart.updateDelta({ totalSegment: { enabled: false } });
             await waitForChartStability(chart);
-            expect(totalSegmentBlocks(chart)).toHaveLength(0);
-            expect(seriesRectWidth()).toBe(widthWithout);
+            expect(ctx.snapshot()).toMatchImage(without);
+        });
+
+        it('should resize the segment when its width and gap change', async () => {
+            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...enabled }));
+            await waitForChartStability(chart);
+            await chart.updateDelta({ totalSegment: { width: 120, gap: 16 } });
+            await compareToSnapshot();
         });
 
         it('should keep the blocks aligned with the bars when the profile is regrouped', async () => {
             chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...enabled }));
             await waitForChartStability(chart);
             await chart.updateDelta({ tickSize: 5 });
-            await waitForChartStability(chart);
-            expect(totalSegmentBlocks(chart)).toHaveLength(levelsWithVolume().length);
+            await compareToSnapshot();
         });
     });
 
@@ -323,9 +216,7 @@ describe('volumeProfilePreset', () => {
         it('should show the loaded profile', async () => {
             createWithDataSource(getRegularVolumeProfile);
             await waitForChartStabilityUntil(chart, () => loadedRows() === regularRows, 'the load');
-            // From 135 to 205 in steps of 2.5.
-            expect(levels()).toHaveLength(29);
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+            await compareToSnapshot(DEFAULT_SNAPSHOT);
         });
 
         it('should load without `data`', async () => {
@@ -334,7 +225,7 @@ describe('volumeProfilePreset', () => {
                 prepareFinancialTestOptions({ ...options, dataSource: instantDataSource(getRegularVolumeProfile) })
             );
             await waitForChartStabilityUntil(chart, () => loadedRows() === regularRows, 'the load');
-            expect(levels()).toHaveLength(29);
+            await compareToSnapshot(DEFAULT_SNAPSHOT);
             expectWarningsCalls().toEqual([]);
         });
 
@@ -346,9 +237,7 @@ describe('volumeProfilePreset', () => {
             getData.mockImplementation(() => getRegularVolumeProfile().filter(({ price }) => price >= 170));
             await chart.updateDelta({});
             await waitForChartStabilityUntil(chart, () => loadedRows() === 15, 'the second load');
-            // From 170 to 205 in steps of 2.5.
-            expect(levels()).toHaveLength(15);
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+            await compareToSnapshot();
         });
 
         it('should keep the profile when a load groups to no levels', async () => {
@@ -358,8 +247,7 @@ describe('volumeProfilePreset', () => {
             await waitForChartStabilityUntil(chart, () => rendered === false, 'the load');
             await waitForChartStability(chart);
             // A load that renders nothing is dropped, and the chart's previous data restored.
-            expect(loadedRows()).toBe(regularRows);
-            expect(levels()).toHaveLength(29);
+            await compareToSnapshot(DEFAULT_SNAPSHOT);
         });
 
         it('should infer the tick size from the loaded data', async () => {
@@ -371,17 +259,15 @@ describe('volumeProfilePreset', () => {
                 }));
             createWithDataSource(getData, { data: getRegularVolumeProfile() });
             await waitForChartStabilityUntil(chart, () => loadedRows() === 11, 'the load');
-            // From 150 to 160 in steps of 1.
-            expect(levels()).toHaveLength(11);
-            await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+            await compareToSnapshot();
         });
 
         it('should group the loaded data by the validated options', async () => {
             // @ts-expect-error invalid `priceKey`
             createWithDataSource(getRegularVolumeProfile, { priceKey: null, tickSize: 0 });
             await waitForChartStabilityUntil(chart, () => loadedRows() === regularRows, 'the load');
-            // The levels of the default `priceKey` at the inferred 2.5 tick size, from 135 to 205.
-            expect(levels()).toHaveLength(29);
+            // The default `priceKey` at the inferred tick size.
+            await compareToSnapshot(DEFAULT_SNAPSHOT);
             expectWarningsCalls().toEqual([
                 ['AG Charts - Option `priceKey` cannot be set to `null`; expecting a string, ignoring.'],
                 ['AG Charts - Option `tickSize` cannot be set to `0`; expecting a number greater than 0, ignoring.'],
@@ -398,7 +284,43 @@ describe('volumeProfilePreset', () => {
         chart = AgCharts.createVolumeProfileChart(
             prepareFinancialTestOptions({ data, priceKey: 'level', upKey: 'buys', downKey: 'sells' })
         );
-        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        await compareToSnapshot();
+    });
+
+    describe('with keys the data lacks', () => {
+        it('should warn for each key found in no data element', async () => {
+            chart = AgCharts.createVolumeProfileChart(
+                prepareFinancialTestOptions({
+                    ...volumeProfile,
+                    priceKey: 'noPrice',
+                    upKey: 'nope',
+                    downKey: 'alsoNope',
+                })
+            );
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([
+                ["AG Charts - the key 'noPrice' was not found in any data element."],
+                ["AG Charts - the key 'nope' was not found in any data element."],
+                ["AG Charts - the key 'alsoNope' was not found in any data element."],
+            ]);
+        });
+
+        it('should warn for the key alone when the others match', async () => {
+            chart = AgCharts.createVolumeProfileChart(
+                prepareFinancialTestOptions({ ...volumeProfile, downKey: 'nope' })
+            );
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([["AG Charts - the key 'nope' was not found in any data element."]]);
+        });
+
+        it('should not warn when there is no data to hold the keys', async () => {
+            chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile, data: [] }));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+        });
     });
 
     it('should colour the bars from the theme palette', async () => {
@@ -408,7 +330,7 @@ describe('volumeProfilePreset', () => {
                 theme: { params: {}, palette: { up: { fill: '#1565c0' }, down: { fill: '#ef6c00' } } },
             })
         );
-        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        await compareToSnapshot();
     });
 
     it('should apply the theme overrides', async () => {
@@ -429,7 +351,7 @@ describe('volumeProfilePreset', () => {
                 },
             })
         );
-        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        await compareToSnapshot();
     });
 
     it('keeps the preset base theme under a user theme naming no base of its own', async () => {
@@ -438,10 +360,7 @@ describe('volumeProfilePreset', () => {
         expect(theme.baseTheme).toBeUndefined();
 
         chart = AgCharts.createVolumeProfileChart(options);
-        await waitForChartStability(chart);
-
-        // `ag-financial`'s up colour; the default theme would resolve a green of its own.
-        const { activeTheme } = deproxy(chart).chartOptions as { activeTheme: { palette: AgChartTheme['palette'] } };
-        expect(activeTheme.palette?.up?.fill).toBe('#089981');
+        // `ag-financial`'s colours; the default theme would resolve a green of its own.
+        await compareToSnapshot(DEFAULT_SNAPSHOT);
     });
 });

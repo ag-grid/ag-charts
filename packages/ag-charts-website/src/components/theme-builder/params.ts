@@ -9,8 +9,11 @@ import { paramToVariableName } from '@ag-website-shared/theming/utils';
 
 import { CHARTS_PARAM_DEFAULTS, PUBLIC_PARAM_NAMES } from './chartsTheme';
 
-/** Named because the preview watches for it, to hold a tooltip open. See `editedGroup.ts`. */
+/** Named because the preview watches for them, to show what they style. See `editedGroup.ts`. */
 export const TOOLTIPS_GROUP_ID = 'tooltips';
+export const UI_GROUP_ID = 'ui';
+export const CONTROLS_GROUP_ID = 'controls';
+export const SCROLLBAR_GROUP_ID = 'scrollbar';
 
 export interface ChartsParamConfig {
     key: string;
@@ -22,26 +25,45 @@ export interface ChartsParamConfig {
     max?: number;
 }
 
+/** A line of the panel: one param, or a wide one with a narrow one beside it. */
+export type ChartsParamRow = ChartsParamConfig | [ChartsParamConfig, ChartsParamConfig];
+
 export interface ChartsParamGroup {
     id: string;
     label: string;
-    /** Groups past the essentials start collapsed to keep the panel scannable. */
-    collapsed?: boolean;
-    params: ChartsParamConfig[];
+    /** Open by default. The rest start collapsed to keep the panel scannable. */
+    expanded?: boolean;
+    params: ChartsParamRow[];
 }
 
+export const GENERAL_GROUP_ID = 'general';
+
+// Each group leads with the params the design lists, in its order, then the rest of its area.
 export const PARAM_GROUPS: ChartsParamGroup[] = [
     {
-        id: 'general',
+        id: GENERAL_GROUP_ID,
         label: 'General',
+        expanded: true,
         params: [
-            { key: 'fontFamily', label: 'Font Family' },
-            { key: 'fontSize', label: 'Font Size', min: 8, max: 24 },
-            { key: 'fontWeight', label: 'Font Weight' },
+            [
+                { key: 'fontFamily', label: 'Font Family' },
+                { key: 'fontSize', label: 'Font Size', min: 8, max: 24 },
+            ],
             { key: 'backgroundColor', label: 'Background Color' },
             { key: 'foregroundColor', label: 'Foreground Color' },
             { key: 'accentColor', label: 'Accent Color' },
-            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
+            { key: 'fontWeight', label: 'Font Weight' },
+            { key: 'lineHeight', label: 'Line Height' },
+            { key: 'textColor', label: 'Text Color' },
+            { key: 'subtleTextColor', label: 'Subtle Text Color' },
+            { key: 'chartBackgroundColor', label: 'Chart Background' },
+        ],
+    },
+    {
+        id: 'borders',
+        label: 'Borders & Spacing',
+        params: [
+            { key: 'borderColor', label: 'Border Color' },
             {
                 key: 'borderRadius',
                 label: 'Border Radius',
@@ -50,27 +72,29 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
                 min: 0,
                 max: 24,
             },
-            { key: 'textColor', label: 'Text Color' },
-            { key: 'subtleTextColor', label: 'Subtle Text Color' },
-            // Follows the background colour by default, so it sits beside it.
-            { key: 'chartBackgroundColor', label: 'Chart Background' },
+            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
+            { key: 'borderWidth', label: 'Border Width', min: 0, max: 8 },
         ],
     },
     {
         id: 'axes',
-        label: 'Axes & Grid',
+        label: 'Axis & Grid',
         params: [
+            { key: 'axisTitleFontFamily', label: 'Axis Title Font Family' },
+            [
+                { key: 'axisTitleColor', label: 'Axis Title Color' },
+                { key: 'axisTitleFontSize', label: 'Font Size', min: 8, max: 24 },
+            ],
             { key: 'axisLineColor', label: 'Axis Line Color' },
-            { key: 'axisLineWidth', label: 'Axis Line Width', min: 0, max: 8 },
+            { key: 'gridLineColor', label: 'Grid Line Color' },
+            { key: 'axisTitleFontWeight', label: 'Axis Title Font Weight' },
+            { key: 'axisTitleLineHeight', label: 'Axis Title Line Height' },
             { key: 'axisLabelColor', label: 'Axis Label Color' },
             { key: 'axisLabelFontFamily', label: 'Axis Label Font Family' },
             { key: 'axisLabelFontSize', label: 'Axis Label Font Size', min: 8, max: 24 },
             { key: 'axisLabelFontWeight', label: 'Axis Label Font Weight' },
-            { key: 'axisTitleColor', label: 'Axis Title Color' },
-            { key: 'axisTitleFontFamily', label: 'Axis Title Font Family' },
-            { key: 'axisTitleFontSize', label: 'Axis Title Font Size', min: 8, max: 24 },
-            { key: 'axisTitleFontWeight', label: 'Axis Title Font Weight' },
-            { key: 'gridLineColor', label: 'Grid Line Color' },
+            { key: 'axisLabelLineHeight', label: 'Axis Label Line Height' },
+            { key: 'axisLineWidth', label: 'Axis Line Width', min: 0, max: 8 },
             { key: 'gridLineWidth', label: 'Grid Line Width', min: 0, max: 8 },
             { key: 'groupedCategoryLineColor', label: 'Grouped Category Line' },
             { key: 'bandHighlightColor', label: 'Band Highlight Color' },
@@ -80,31 +104,39 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
     },
     {
         id: 'captions',
-        label: 'Titles and Captions',
-        collapsed: true,
+        label: 'Titles & Footnote',
         params: [
             { key: 'titleFontFamily', label: 'Title Font Family' },
-            { key: 'titleFontSize', label: 'Title Font Size', min: 8, max: 32 },
-            { key: 'titleFontWeight', label: 'Title Font Weight' },
-            { key: 'titleColor', label: 'Title Color' },
+            [
+                { key: 'titleColor', label: 'Title Color' },
+                { key: 'titleFontSize', label: 'Font Size', min: 8, max: 32 },
+            ],
             { key: 'subtitleFontFamily', label: 'Subtitle Font Family' },
-            { key: 'subtitleFontSize', label: 'Subtitle Font Size', min: 8, max: 32 },
-            { key: 'subtitleFontWeight', label: 'Subtitle Font Weight' },
-            { key: 'subtitleColor', label: 'Subtitle Color' },
+            [
+                { key: 'subtitleColor', label: 'Subtitle Color' },
+                { key: 'subtitleFontSize', label: 'Font Size', min: 8, max: 32 },
+            ],
             { key: 'footnoteFontFamily', label: 'Footnote Font Family' },
-            { key: 'footnoteFontSize', label: 'Footnote Font Size', min: 8, max: 32 },
+            [
+                { key: 'footnoteColor', label: 'Footnote Color' },
+                { key: 'footnoteFontSize', label: 'Font Size', min: 8, max: 32 },
+            ],
+            { key: 'titleFontWeight', label: 'Title Font Weight' },
+            { key: 'subtitleFontWeight', label: 'Subtitle Font Weight' },
             { key: 'footnoteFontWeight', label: 'Footnote Font Weight' },
-            { key: 'footnoteColor', label: 'Footnote Color' },
+            { key: 'titleLineHeight', label: 'Title Line Height' },
+            { key: 'subtitleLineHeight', label: 'Subtitle Line Height' },
+            { key: 'footnoteLineHeight', label: 'Footnote Line Height' },
         ],
     },
     {
         id: 'seriesLabels',
         label: 'Series Labels',
-        collapsed: true,
         params: [
             { key: 'seriesLabelFontFamily', label: 'Font Family' },
             { key: 'seriesLabelFontSize', label: 'Font Size', min: 8, max: 24 },
             { key: 'seriesLabelFontWeight', label: 'Font Weight' },
+            { key: 'seriesLabelLineHeight', label: 'Line Height' },
             { key: 'seriesLabelInsideTextColor', label: 'Inside Text Color' },
             { key: 'seriesLabelInsideBackgroundColor', label: 'Inside Background' },
             { key: 'seriesLabelOutsideTextColor', label: 'Outside Text Color' },
@@ -114,17 +146,8 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         ],
     },
     {
-        id: 'borders',
-        label: 'Borders & Spacing',
-        params: [
-            { key: 'borderColor', label: 'Border Color' },
-            { key: 'borderWidth', label: 'Border Width', min: 0, max: 8 },
-        ],
-    },
-    {
-        id: 'ui',
+        id: UI_GROUP_ID,
         label: 'UI Elements',
-        collapsed: true,
         params: [
             { key: 'chromeBackgroundColor', label: 'Background Color' },
             { key: 'chromeTextColor', label: 'Text Color' },
@@ -132,6 +155,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'chromeFontFamily', label: 'Font Family' },
             { key: 'chromeFontSize', label: 'Font Size', min: 8, max: 24 },
             { key: 'chromeFontWeight', label: 'Font Weight' },
+            { key: 'chromeLineHeight', label: 'Line Height' },
             { key: 'menuBackgroundColor', label: 'Menu Background' },
             { key: 'menuTextColor', label: 'Menu Text' },
             { key: 'menuBorder', label: 'Menu Border' },
@@ -162,7 +186,6 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
     {
         id: TOOLTIPS_GROUP_ID,
         label: 'Tooltips',
-        collapsed: true,
         params: [
             { key: 'tooltipBackgroundColor', label: 'Background Color' },
             { key: 'tooltipTextColor', label: 'Text Color' },
@@ -174,7 +197,6 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
     {
         id: 'legend',
         label: 'Legend',
-        collapsed: true,
         params: [
             { key: 'legendBorder', label: 'Border' },
             { key: 'legendBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
@@ -197,13 +219,13 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'legendLabelFontFamily', label: 'Label Font Family' },
             { key: 'legendLabelFontSize', label: 'Label Font Size', min: 8, max: 24 },
             { key: 'legendLabelFontWeight', label: 'Label Font Weight' },
+            { key: 'legendLabelLineHeight', label: 'Label Line Height' },
             { key: 'legendMarkerSize', label: 'Marker Size', min: 4, max: 40 },
         ],
     },
     {
-        id: 'controls',
+        id: CONTROLS_GROUP_ID,
         label: 'Buttons & Inputs',
-        collapsed: true,
         params: [
             { key: 'buttonBackgroundColor', label: 'Button Background' },
             { key: 'buttonTextColor', label: 'Button Text' },
@@ -227,9 +249,8 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         ],
     },
     {
-        id: 'scrollbar',
+        id: SCROLLBAR_GROUP_ID,
         label: 'Scrollbar',
-        collapsed: true,
         params: [
             { key: 'scrollbarThickness', label: 'Thickness', min: 4, max: 32 },
             { key: 'scrollbarTrackBackgroundColor', label: 'Track Background' },
@@ -245,7 +266,6 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
     {
         id: 'navigator',
         label: 'Navigator',
-        collapsed: true,
         params: [
             { key: 'navigatorTrackBackgroundColor', label: 'Track Background' },
             { key: 'navigatorTrackBorder', label: 'Track Border' },
@@ -259,7 +279,6 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
     {
         id: 'effects',
         label: 'Effects',
-        collapsed: true,
         params: [
             { key: 'focusShadow', label: 'Focus Shadow' },
             { key: 'popupShadow', label: 'Popup Shadow' },
@@ -268,7 +287,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
     },
 ];
 
-export const CURATED_KEYS = PARAM_GROUPS.flatMap((group) => group.params.map(({ key }) => key));
+export const CURATED_KEYS = PARAM_GROUPS.flatMap((group) => group.params.flat().map(({ key }) => key));
 
 /**
  * Whether a param's default is derived from another param rather than chosen.

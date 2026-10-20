@@ -2,7 +2,7 @@ import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
-    AgChartLabelFitOptions,
+    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -17,7 +17,7 @@ import type {
 
 export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight' | 'focusIndex'>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
         AgSankeySeriesThemeableOptions<TDatum, TContext> {
@@ -88,7 +88,7 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
 export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>, TContext>,
-        AgChartLabelFitOptions,
+        AgChartLabelCollisionFitOptions,
         AgChartLabelAutoFontSizeOptions {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;

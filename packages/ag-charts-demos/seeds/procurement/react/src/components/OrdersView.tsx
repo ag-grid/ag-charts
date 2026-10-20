@@ -5,7 +5,8 @@ import { EmptyState } from './EmptyState';
 import { KpiStrip } from './KpiStrip';
 import { PurchaseOrderGrid } from './PurchaseOrderGrid';
 import { ShipmentSchedule } from './ShipmentSchedule';
-import { StatusLegend } from './StatusLegend';
+import { StatusKeys, statusSegments } from './StatusKeys';
+import { useClickAway } from './useClickAway';
 
 interface OrdersViewProps {
     kpis: Kpi[];
@@ -42,47 +43,46 @@ export function OrdersView({
     onClearSelection,
     canClearSelection,
 }: OrdersViewProps) {
+    useClickAway(canClearSelection, onClearSelection);
+
     return (
         <div className="pc-view-content">
-            <KpiStrip kpis={kpis} />
-
+            {/* The headline and the map stack on the left; the schedule runs the full height beside them. */}
             <div className="pc-grid-2">
-                <section className="pc-card">
-                    <div className="pc-card-head">
-                        <div>
-                            <h2 className="pc-card-title">My suppliers — in transit</h2>
-                            <span className="pc-card-sub">
-                                Select a marker to filter the orders; Ctrl- or ⌘-click to select several.
-                            </span>
+                <div className="pc-stack">
+                    <KpiStrip kpis={kpis} />
+
+                    <section className="pc-card">
+                        <div className="pc-card-head">
+                            <div>
+                                <h2 className="pc-card-title">Orders in transit</h2>
+                            </div>
+                            <StatusKeys segments={statusSegments()} showCounts={false} />
                         </div>
-                        <StatusLegend />
-                    </div>
-                    <div className="pc-chart-box-md">
-                        {shipments.length > 0 ? (
-                            <DeliveryMap
-                                shipments={shipments}
-                                selectedShipmentIds={selectedShipmentIds}
-                                onSelectionChange={onShipmentSelectionChange}
-                            />
-                        ) : (
-                            <EmptyState
-                                message="Nothing in transit for these filters"
-                                hint="Clear the supplier and subcategory filters to see all my lanes."
-                            />
-                        )}
-                    </div>
-                </section>
+                        <div className="pc-chart-box-md" data-keeps-selection>
+                            {shipments.length > 0 ? (
+                                <DeliveryMap
+                                    shipments={shipments}
+                                    selectedShipmentIds={selectedShipmentIds}
+                                    onSelectionChange={onShipmentSelectionChange}
+                                />
+                            ) : (
+                                <EmptyState
+                                    message="Nothing in transit for these filters"
+                                    hint="Clear the supplier and subcategory filters to see all my lanes."
+                                />
+                            )}
+                        </div>
+                    </section>
+                </div>
 
                 <section className="pc-card">
                     <div className="pc-card-head">
                         <div>
                             <h2 className="pc-card-title">Arrival schedule</h2>
-                            <span className="pc-card-sub">
-                                Select a bar to filter the orders; Ctrl- or ⌘-click to select several.
-                            </span>
                         </div>
                     </div>
-                    <div className="pc-chart-box-md">
+                    <div className="pc-chart-box--grow" data-keeps-selection>
                         {shipments.length > 0 ? (
                             <ShipmentSchedule
                                 shipments={shipments}

@@ -82,6 +82,7 @@ type AgSparklineSeriesOmit =
     | 'tooltip'
     | 'listeners'
     | 'errorBar'
+    | 'focusIndex'
     | 'xKey'
     | 'yKey';
 
@@ -89,13 +90,27 @@ export interface AgAreaSparklinePreset<TDatum = DatumDefault>
     extends
         AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
-        Omit<AgAreaSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {}
+        Omit<AgAreaSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
+    /**
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series, and is how `setSelection()` addresses the series.
+     *
+     * Default: `'sparkline'`
+     */
+    id?: string;
+}
 
 export interface AgBarSparklinePreset<TDatum = DatumDefault>
     extends
         AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
-        Omit<AgBarSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {}
+        Omit<AgBarSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
+    /**
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series, and is how `setSelection()` addresses the series.
+     *
+     * Default: `'sparkline'`
+     */
+    id?: string;
+}
 
 export interface AgLineSparklinePreset<TDatum = DatumDefault>
     extends
@@ -104,6 +119,12 @@ export interface AgLineSparklinePreset<TDatum = DatumDefault>
         Omit<AgLineSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
     /** The type of sparkline series. */
     type: 'line';
+    /**
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series, and is how `setSelection()` addresses the series.
+     *
+     * Default: `'sparkline'`
+     */
+    id?: string;
 }
 
 export type AgSparklinePresets<TDatum = DatumDefault> =

@@ -377,6 +377,67 @@ describe('Quadrant Preset', () => {
         expect(console.warn).not.toHaveBeenCalled();
     });
 
+    it('selects an item through the series id it is given', async () => {
+        const options: AgQuadrantChartOptions = {
+            ...BUBBLE_SIZED_NUMERIC,
+            id: 'points',
+            dataIdKey: 'label',
+            selection: { enabled: true },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.createQuadrantChart(options);
+        await waitForChartStability(chart);
+        chart.setSelection([{ seriesId: 'points', itemId: 'Two' }]);
+
+        expect(Array.from(chart.getSelection(), ({ seriesId, itemId }) => ({ seriesId, itemId }))).toEqual([
+            { seriesId: 'points', itemId: 'Two' },
+        ]);
+    });
+
+    it.each([
+        { name: 'scatter', chartOptions: NUMERIC, seriesType: 'scatter' },
+        { name: 'bubble', chartOptions: BUBBLE_SIZED_NUMERIC, seriesType: 'bubble' },
+    ])('selects an item by the default series id for a $name chart', async ({ chartOptions, seriesType }) => {
+        const options: AgQuadrantChartOptions = {
+            ...chartOptions,
+            dataIdKey: 'label',
+            selection: { enabled: true },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.createQuadrantChart(options);
+        await waitForChartStability(chart);
+        expect(deproxy(chart).series.map((s) => s.type)).toEqual([seriesType]);
+        chart.setSelection([{ seriesId: 'quadrant', itemId: 'Two' }]);
+
+        expect(Array.from(chart.getSelection(), ({ seriesId, itemId }) => ({ seriesId, itemId }))).toEqual([
+            { seriesId: 'quadrant', itemId: 'Two' },
+        ]);
+    });
+
+    it.each([
+        { name: 'scatter', chartOptions: NUMERIC, seriesType: 'scatter' },
+        { name: 'bubble', chartOptions: BUBBLE_SIZED_NUMERIC, seriesType: 'bubble' },
+    ])('selects an item by a custom series id for a $name chart', async ({ chartOptions, seriesType }) => {
+        const options: AgQuadrantChartOptions = {
+            ...chartOptions,
+            id: 'my-quadrant',
+            dataIdKey: 'label',
+            selection: { enabled: true },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.createQuadrantChart(options);
+        await waitForChartStability(chart);
+        expect(deproxy(chart).series.map((s) => s.type)).toEqual([seriesType]);
+        chart.setSelection([{ seriesId: 'my-quadrant', itemId: 'Two' }]);
+
+        expect(Array.from(chart.getSelection(), ({ seriesId, itemId }) => ({ seriesId, itemId }))).toEqual([
+            { seriesId: 'my-quadrant', itemId: 'Two' },
+        ]);
+    });
+
     it('forwards sizeName to the tooltip renderer params', () => {
         const rendererParams: unknown[] = [];
 
@@ -639,6 +700,7 @@ describe('AG-18413 quadrant with a key naming no column', () => {
         chart = undefined;
     });
 
+    // Bespoke: creates through `AgCharts.createQuadrantChart`, which the shared factory does not cover.
     const createQuadrantChart = async (overrides: Partial<AgQuadrantChartOptions>) => {
         const options: AgQuadrantChartOptions = { ...NUMERIC, ...overrides };
         prepareEnterpriseTestOptions(options as AgChartOptions);

@@ -13,6 +13,7 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { buildLogAxisTestCase } from '../../test/axisTestCases';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -64,17 +65,6 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
-
-const buildLogAxisTestCase = (
-    data: any[],
-    extra?: { warnings?: string[]; skipWarningsReversed?: boolean }
-): CartesianOrPolarTestCase => {
-    return {
-        options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'line'),
-        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'log' }, seriesTypes: ['line'] }),
-        ...extra,
-    };
-};
 
 const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
     ...mixinReversedAxesCases({
@@ -145,16 +135,16 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             options: examples.LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS,
             assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
         },
-        LINE_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
-        LINE_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
-        LINE_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
-        LINE_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS, {
+        LINE_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase('line', DATA_POSITIVE_LOG_AXIS),
+        LINE_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase('line', DATA_NEGATIVE_LOG_AXIS),
+        LINE_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase('line', DATA_FRACTIONAL_LOG_AXIS),
+        LINE_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase('line', DATA_ZERO_EXTENT_LOG_AXIS, {
             warnings: [
                 'AG Charts - The log axis domain contains a value of 0, the chart data cannot be rendered. See log axis documentation for more information.',
             ],
             skipWarningsReversed: false,
         }),
-        LINE_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase(DATA_INVALID_DOMAIN_LOG_AXIS, {
+        LINE_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase('line', DATA_INVALID_DOMAIN_LOG_AXIS, {
             warnings: [
                 'AG Charts - The log axis domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
             ],
@@ -254,15 +244,13 @@ describe('LineSeries', () => {
         const frames = spyOnAnimationFrames();
 
         it('CASE 3: line data-update morphs the path per-station monotonically', async () => {
-            const options: AgChartOptions = prepareTestOptions({
+            chart = await createChart({
                 data: [
                     { x: 0, y: 90 },
                     { x: 1, y: 50 }, // B is the domain floor, so dropping it grows the extent downward
                 ],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
             });
-
-            chart = AgCharts.create(options);
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
             const before = sampleScene();
@@ -309,6 +297,8 @@ describe('LineSeries', () => {
     });
 
     // One CASE per control on the line-series-test page, in standalone and integrated modes.
+    // Bespoke: the option builders return prepared options that the tests also pass to `update`, so charts are created
+    // bare rather than preparing the same options twice.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -1620,10 +1610,8 @@ describe('LineSeries', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const { assertions, options, warnings = [] } = example;
-                prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 await assertions(chart);
 
                 for (const [index, message] of warnings.entries()) {
@@ -1642,9 +1630,8 @@ describe('LineSeries', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -1705,9 +1692,7 @@ describe('LineSeries', () => {
                 legend: { enabled: false },
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -1735,10 +1720,7 @@ describe('LineSeries', () => {
                         ],
                     };
 
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
                     await compare();
                 });
             }
@@ -1774,9 +1756,7 @@ describe('LineSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
             // TODO: replace with `compare()` with 0 percent threshold
             await compareImageSnapshot(chart, ctx, {
@@ -1813,9 +1793,7 @@ describe('LineSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
             // TODO: replace with `compare()` with 0 percent threshold
             await compareImageSnapshot(chart, ctx, {
@@ -1833,11 +1811,7 @@ describe('LineSeries', () => {
                 })),
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const state = chart.getState();
 
@@ -1862,9 +1836,7 @@ describe('LineSeries', () => {
                 })),
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
             await compareImageSnapshot(chart, ctx, {});
         });
@@ -1878,9 +1850,7 @@ describe('LineSeries', () => {
                 })),
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
             await compareImageSnapshot(chart, ctx, {});
         });
@@ -1913,9 +1883,7 @@ describe('LineSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -1947,9 +1915,7 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             // Hover over the null category data point
             await hoverAction(100, 300)(chart);
@@ -1963,98 +1929,93 @@ describe('LineSeries', () => {
 
     describe('label enablement', () => {
         const labelOptions = (enabled: boolean) =>
-            prepareTestOptions({
+            ({
                 data: [
                     { x: 'A', y: 10 },
                     { x: 'B', y: 20 },
                     { x: 'C', y: 15 },
                 ],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', label: { enabled } }],
-            } as AgChartOptions);
+            }) as AgChartOptions;
 
         test('draws no labels while the label is disabled', async () => {
-            chart = AgCharts.create(labelOptions(false));
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions(false));
             expect(getVisibleLabelNodes(chart)).toHaveLength(0);
         });
 
         test('removes the drawn labels once an update disables them', async () => {
-            chart = AgCharts.create(labelOptions(true));
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions(true));
             expect(getVisibleLabelNodes(chart).length).toBeGreaterThan(0);
 
-            await chart.update(labelOptions(false));
+            await chart.update(prepareTestOptions(labelOptions(false)));
             await waitForChartStability(chart);
             expect(getVisibleLabelNodes(chart)).toHaveLength(0);
         });
 
         test('draws labels once an update enables them', async () => {
-            chart = AgCharts.create(labelOptions(false));
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions(false));
 
-            await chart.update(labelOptions(true));
+            await chart.update(prepareTestOptions(labelOptions(true)));
             await waitForChartStability(chart);
             expect(getVisibleLabelNodes(chart).length).toBeGreaterThan(0);
         });
     });
 
     test('AG-8290 label boxing', async () => {
-        chart = AgCharts.create(
-            prepareTestOptions({
-                data: [
-                    { month: 'Jan', value: 29.9 },
-                    { month: 'Apr', value: 129.2 },
-                    { month: 'Jul', value: 135.6 },
-                    { month: 'Oct', value: 194.1 },
-                ],
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'month',
-                        yKey: 'value',
-                        label: {
-                            itemStyler: (params) => {
-                                if (params.datum.month === 'Jul') {
-                                    return {
-                                        border: {
-                                            stroke: 'red',
-                                            strokeWidth: 6,
-                                            strokeOpacity: 1,
-                                        },
-                                        padding: {
-                                            top: 30,
-                                            bottom: 60,
-                                            left: 40,
-                                            right: 20,
-                                        },
-                                        fontWeight: 'bold',
-                                        fill: {
-                                            type: 'gradient',
-                                            colorStops: [
-                                                { color: '#70C1FF', stop: 0.1 },
-                                                { color: '#FFD86F', stop: 0.3 },
-                                                { color: '#FF9A60', stop: 0.5 },
-                                                { color: '#D16BA5' },
-                                            ],
-                                        },
-                                    };
-                                }
-                            },
-                            enabled: true,
-                            cornerRadius: 8,
-                            fill: 'rgb(252, 255, 197)',
-                            fillOpacity: 0.7,
-                            padding: 10,
-                            border: {
-                                stroke: '#AAA',
-                                strokeWidth: 3,
-                                strokeOpacity: 0.2,
-                            },
+        chart = await createChart({
+            data: [
+                { month: 'Jan', value: 29.9 },
+                { month: 'Apr', value: 129.2 },
+                { month: 'Jul', value: 135.6 },
+                { month: 'Oct', value: 194.1 },
+            ],
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'month',
+                    yKey: 'value',
+                    label: {
+                        itemStyler: (params) => {
+                            if (params.datum.month === 'Jul') {
+                                return {
+                                    border: {
+                                        stroke: 'red',
+                                        strokeWidth: 6,
+                                        strokeOpacity: 1,
+                                    },
+                                    padding: {
+                                        top: 30,
+                                        bottom: 60,
+                                        left: 40,
+                                        right: 20,
+                                    },
+                                    fontWeight: 'bold',
+                                    fill: {
+                                        type: 'gradient',
+                                        colorStops: [
+                                            { color: '#70C1FF', stop: 0.1 },
+                                            { color: '#FFD86F', stop: 0.3 },
+                                            { color: '#FF9A60', stop: 0.5 },
+                                            { color: '#D16BA5' },
+                                        ],
+                                    },
+                                };
+                            }
+                        },
+                        enabled: true,
+                        cornerRadius: 8,
+                        fill: 'rgb(252, 255, 197)',
+                        fillOpacity: 0.7,
+                        padding: 10,
+                        border: {
+                            stroke: '#AAA',
+                            strokeWidth: 3,
+                            strokeOpacity: 0.2,
                         },
                     },
-                ],
-            })
-        );
+                },
+            ],
+        });
         await compare();
     });
 
@@ -2103,16 +2064,13 @@ describe('LineSeries', () => {
             beforeEach(async () => {
                 c1 = { name: 'sales context' };
                 c2 = { name: 'expenses context' };
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data,
-                        series: [
-                            { type: 'line', xKey: 'month', yKey: 'sales', styler: styler.frozen, context: c1 },
-                            { type: 'line', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createChart({
+                    data,
+                    series: [
+                        { type: 'line', xKey: 'month', yKey: 'sales', styler: styler.frozen, context: c1 },
+                        { type: 'line', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -2140,39 +2098,36 @@ describe('LineSeries', () => {
                     }
                     return {};
                 };
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data,
-                        series: [
-                            {
-                                type: 'line',
-                                xKey: 'month',
-                                yKey: 'sales',
-                                marker: {
-                                    fill: 'lime', // ignored
-                                    shape: 'square', // ignored
-                                    strokeWidth: 3, // ignored only for February
-                                    itemStyler,
-                                },
-                                styler: styler.frozen,
+                chart = await createChart({
+                    data,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'month',
+                            yKey: 'sales',
+                            marker: {
+                                fill: 'lime', // ignored
+                                shape: 'square', // ignored
+                                strokeWidth: 3, // ignored only for February
+                                itemStyler,
                             },
-                            {
-                                type: 'line',
-                                xKey: 'month',
-                                yKey: 'expenses',
-                                marker: {
-                                    fill: 'olive', // ignored
-                                    shape: 'square', // ignored
-                                    itemStyler,
-                                },
-                                stroke: 'navy', // ignored
-                                strokeWidth: 5, // not ignored
-                                styler: styler.frozen,
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'line',
+                            xKey: 'month',
+                            yKey: 'expenses',
+                            marker: {
+                                fill: 'olive', // ignored
+                                shape: 'square', // ignored
+                                itemStyler,
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                            stroke: 'navy', // ignored
+                            strokeWidth: 5, // not ignored
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -2180,30 +2135,27 @@ describe('LineSeries', () => {
         });
         describe('gradient-pattern', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data,
-                        series: [
-                            {
-                                type: 'line',
-                                xKey: 'month',
-                                yKey: 'sales',
-                                styler: () => {
-                                    return { marker: { size: 50, fill: { type: 'gradient' } } };
-                                },
+                chart = await createChart({
+                    data,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'month',
+                            yKey: 'sales',
+                            styler: () => {
+                                return { marker: { size: 50, fill: { type: 'gradient' } } };
                             },
-                            {
-                                type: 'line',
-                                xKey: 'month',
-                                yKey: 'expenses',
-                                styler: () => {
-                                    return { marker: { size: 50, fill: { type: 'pattern' } } };
-                                },
+                        },
+                        {
+                            type: 'line',
+                            xKey: 'month',
+                            yKey: 'expenses',
+                            styler: () => {
+                                return { marker: { size: 50, fill: { type: 'pattern' } } };
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -2211,7 +2163,7 @@ describe('LineSeries', () => {
         });
         describe('stroke options', () => {
             beforeEach(async () => {
-                const options = prepareTestOptions({
+                chart = await createChart({
                     data: [
                         { month: 'Jan', subscriptions: 222 },
                         { month: 'Feb', subscriptions: 240 },
@@ -2252,8 +2204,6 @@ describe('LineSeries', () => {
                         },
                     ],
                 });
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
             });
             test('snapshot', async () => {
                 await compare();
@@ -2294,8 +2244,7 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2330,8 +2279,7 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2377,8 +2325,7 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2445,8 +2392,7 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2572,8 +2518,7 @@ describe('LineSeries', () => {
                 legend: { enabled: false },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2614,8 +2559,7 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2653,8 +2597,7 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2695,8 +2638,7 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2736,8 +2678,7 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -2783,10 +2724,8 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(250, 300)(chart);
             await compare();
         });
@@ -2844,10 +2783,8 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(200, 250)(chart);
             await compare();
         });
@@ -2884,10 +2821,8 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(300, 280)(chart);
             await compare();
         });
@@ -2928,10 +2863,8 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(300, 280)(chart);
             await waitForChartStability(chart);
             await compare();
@@ -2977,10 +2910,8 @@ describe('LineSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(220, 250)(chart);
             await waitForChartStability(chart);
             await compare();
@@ -2989,7 +2920,7 @@ describe('LineSeries', () => {
 
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            create: async (o) => (chart = await createChart(o)),
             compare,
             chartOptions: {
                 data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
@@ -3018,20 +2949,18 @@ describe('LineSeries', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const initialNodeCount = getNodeDataCount();
             expect(initialNodeCount).toBeGreaterThan(0);
 
-            await chart.update({ ...options, data: largeData });
+            await chart.update(prepareTestOptions({ ...options, data: largeData }));
             await waitForChartStability(chart);
 
             const largeDataNodeCount = getNodeDataCount();
             expect(largeDataNodeCount).toBeGreaterThan(0);
 
-            await chart.update({ ...options, data: smallData });
+            await chart.update(prepareTestOptions({ ...options, data: smallData }));
             await waitForChartStability(chart);
 
             const finalNodeCount = getNodeDataCount();
@@ -3049,28 +2978,26 @@ describe('LineSeries', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const baseline1K = getNodeDataCount();
             expect(baseline1K).toBeGreaterThan(0);
 
             // 1K -> 10K
-            await chart.update({ ...options, data: data10K });
+            await chart.update(prepareTestOptions({ ...options, data: data10K }));
             await waitForChartStability(chart);
 
             // 10K -> 1K (should match baseline)
-            await chart.update({ ...options, data: data1K });
+            await chart.update(prepareTestOptions({ ...options, data: data1K }));
             await waitForChartStability(chart);
             expect(getNodeDataCount()).toBe(baseline1K);
 
             // 1K -> 100K
-            await chart.update({ ...options, data: data100K });
+            await chart.update(prepareTestOptions({ ...options, data: data100K }));
             await waitForChartStability(chart);
 
             // 100K -> 1K (should match baseline)
-            await chart.update({ ...options, data: data1K });
+            await chart.update(prepareTestOptions({ ...options, data: data1K }));
             await waitForChartStability(chart);
             expect(getNodeDataCount()).toBe(baseline1K);
         });
@@ -3097,14 +3024,12 @@ describe('LineSeries', () => {
                 animate(1200, 1);
 
                 const options: AgChartOptions = deepClone(OPTIONS);
-                prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 // Hide series 0
                 options.series![0].visible = false;
-                await chart.update({ ...options });
+                await chart.update(prepareTestOptions({ ...options }));
                 await waitForChartStability(chart);
 
                 // Activate highlighting on series 1 directly via highlightManager
@@ -3121,7 +3046,7 @@ describe('LineSeries', () => {
                 // Re-show series 0 while highlighting is active
                 animate(1200, ratio);
                 options.series![0].visible = true;
-                await chart.update({ ...options });
+                await chart.update(prepareTestOptions({ ...options }));
                 await waitForChartStability(chart);
 
                 // The default theme sets unhighlightedSeries.opacity = 0.2.
@@ -3165,10 +3090,8 @@ describe('LineSeries', () => {
                         x: { type: 'category', position: 'bottom' },
                     },
                 };
-                prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 await compare();
             });
@@ -3194,19 +3117,17 @@ describe('LineSeries', () => {
                         x: { type: 'category', position: 'bottom' },
                     },
                 };
-                prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 // Toggle series off then back on
                 options.series![0].visible = false;
-                await chart.update({ ...options });
+                await chart.update(prepareTestOptions({ ...options }));
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 options.series![0].visible = true;
-                await chart.update({ ...options });
+                await chart.update(prepareTestOptions({ ...options }));
                 await waitForChartStability(chart);
 
                 await compare();
@@ -3240,10 +3161,8 @@ describe('LineSeries', () => {
                         x: { type: 'category', position: 'bottom' },
                     },
                 };
-                prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 // Activate highlighting so steady-state drawing mode would be 'cutout'
                 const chartInstance = deproxy(chart);
@@ -3257,12 +3176,12 @@ describe('LineSeries', () => {
 
                 // Toggle series 0 off then back on while highlighting is active
                 options.series![0].visible = false;
-                await chart.update({ ...options });
+                await chart.update(prepareTestOptions({ ...options }));
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
                 options.series![0].visible = true;
-                await chart.update({ ...options });
+                await chart.update(prepareTestOptions({ ...options }));
                 await waitForChartStability(chart);
 
                 // During animation markers must composite as 'overlay'; 'cutout' erases the line stroke underneath and
@@ -3292,10 +3211,8 @@ describe('LineSeries', () => {
                     { type: 'line', xKey: 'x', yKey: 'v2' },
                 ],
             };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const chartInstance = deproxy(chart);
             const series1 = chartInstance.series[1] as any;
@@ -3306,7 +3223,7 @@ describe('LineSeries', () => {
 
             // Hide second series (simulates legend click / setLegendState)
             (options.series![1] as AgLineSeriesOptions).visible = false;
-            await chart.update(options);
+            await chart.update(prepareTestOptions(options));
             await waitForChartStability(chart);
 
             // Core assertion: _contextNodeData.visible must be synced to false
@@ -3321,12 +3238,10 @@ describe('LineSeries', () => {
                 { x: 'Feb', y: 20, selected: false },
                 { x: 'Mar', y: 15, selected: false },
             ];
-            const options = prepareTestOptions({
+            chart = await createChart({
                 data,
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', selectedKey: 'selected' } as any],
             });
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
 
             await compare();
         });
@@ -3349,8 +3264,7 @@ describe('LineSeries', () => {
                 },
                 series: [{ type: 'line', data, xKey: 'time', yKey: 'value' }],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
             await compare();
         });
@@ -3363,8 +3277,7 @@ describe('LineSeries', () => {
                 },
                 series: [{ type: 'line', data, xKey: 'time', yKey: 'value' }],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
             await compare();
         });
@@ -3374,51 +3287,45 @@ describe('LineSeries', () => {
         const categoryNumberAxes = { x: { type: 'category' as const }, y: { type: 'number' as const } };
 
         it('renders a plain line series with out-of-safe-range bigint values', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', y: BIG },
-                        { x: 'b', y: BIG * 2n },
-                        { x: 'c', y: NEG_BIG },
-                    ],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', y: BIG },
+                    { x: 'b', y: BIG * 2n },
+                    { x: 'c', y: NEG_BIG },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: categoryNumberAxes,
+            });
             await compare();
         });
 
         it('renders a stacked line series with bigint values', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', a: BIG, b: BIG * 2n },
-                        { x: 'b', a: BIG * 3n, b: BIG },
-                    ],
-                    series: [
-                        { type: 'line', xKey: 'x', yKey: 'a', stacked: true },
-                        { type: 'line', xKey: 'x', yKey: 'b', stacked: true },
-                    ],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', a: BIG, b: BIG * 2n },
+                    { x: 'b', a: BIG * 3n, b: BIG },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'a', stacked: true },
+                    { type: 'line', xKey: 'x', yKey: 'b', stacked: true },
+                ],
+                axes: categoryNumberAxes,
+            });
             await compare();
         });
 
         it('renders a 100%-stacked line series with bigint values (normalizedTo degrades to Number)', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', a: BIG, b: BIG * 2n },
-                        { x: 'b', a: BIG * 3n, b: BIG },
-                    ],
-                    series: [
-                        { type: 'line', xKey: 'x', yKey: 'a', stacked: true, normalizedTo: 100 },
-                        { type: 'line', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 },
-                    ],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', a: BIG, b: BIG * 2n },
+                    { x: 'b', a: BIG * 3n, b: BIG },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'a', stacked: true, normalizedTo: 100 },
+                    { type: 'line', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 },
+                ],
+                axes: categoryNumberAxes,
+            });
             await compare();
         });
 
@@ -3436,26 +3343,23 @@ describe('LineSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             } as unknown as AgCartesianChartOptions;
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
 
     describe('ISO datetime (AG-16654)', () => {
         it('renders a line series with ISO-8601 datetime-string x values on a time axis', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { time: '2024-01-15T09:00:00Z', y: 12 },
-                        { time: '2024-01-15T10:00:00Z', y: 15 },
-                        { time: '2024-01-15T11:00:00Z', y: 11 },
-                        { time: '2024-01-15T12:00:00Z', y: 18 },
-                    ],
-                    series: [{ type: 'line', xKey: 'time', yKey: 'y' }],
-                    axes: { x: { type: 'time' }, y: { type: 'number' } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { time: '2024-01-15T09:00:00Z', y: 12 },
+                    { time: '2024-01-15T10:00:00Z', y: 15 },
+                    { time: '2024-01-15T11:00:00Z', y: 11 },
+                    { time: '2024-01-15T12:00:00Z', y: 18 },
+                ],
+                series: [{ type: 'line', xKey: 'time', yKey: 'y' }],
+                axes: { x: { type: 'time' }, y: { type: 'number' } },
+            });
             await compare();
         });
     });

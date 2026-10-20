@@ -5,18 +5,19 @@ import { ParamEditor } from '@ag-website-shared/components/theme-builder/ParamEd
 import { iconFor } from '@ag-website-shared/components/theme-builder/icons';
 import { useCollapsibleSections } from '@ag-website-shared/components/theme-builder/useCollapsibleSections';
 import styled from '@emotion/styled';
+import { Fragment } from 'react';
 
 import { InheritedValueNote } from './InheritedValueNote';
 import { useSetEditedGroup } from './editedGroup';
 import { usePalette } from './paletteModel';
-import { type ChartsParamConfig, PARAM_GROUPS } from './params';
+import { type ChartsParamConfig, type ChartsParamRow, GENERAL_GROUP_ID, PARAM_GROUPS } from './params';
 
 const PALETTE_SECTION = 'Palette';
 const ALL_PARAMS_SECTION = 'All Parameters';
 
 const DEFAULT_OPEN_SECTIONS = [
     PALETTE_SECTION,
-    ...PARAM_GROUPS.filter((group) => !group.collapsed).map((group) => group.label),
+    ...PARAM_GROUPS.filter((group) => group.expanded).map((group) => group.label),
     // A param pinned here was asked for explicitly; a closed section would hide it.
     ALL_PARAMS_SECTION,
 ];
@@ -36,6 +37,9 @@ const paramEditor = (param: ChartsParamConfig) => (
         max={param.max}
     />
 );
+
+const paramRow = (row: ChartsParamRow) =>
+    Array.isArray(row) ? <LeftBiasRow key={row[0].key}>{row.map(paramEditor)}</LeftBiasRow> : paramEditor(row);
 
 export const EditorPanel = () => {
     const sectionProps = useCollapsibleSections(DEFAULT_OPEN_SECTIONS);
@@ -57,16 +61,20 @@ export const EditorPanel = () => {
 
     return (
         <PanelWrapper {...releaseGroup}>
-            <CollapsibleSection {...sectionProps(PALETTE_SECTION)}>
-                <PaletteEditor value={palette} onChange={setPalette} />
-            </CollapsibleSection>
             {/* Every group, and every param in it - including params that follow
                 another one, since the panel is where you find out what a theme
                 can change. */}
             {PARAM_GROUPS.map((group) => (
-                <CollapsibleSection key={group.id} {...sectionProps(group.label)}>
-                    <Fields {...holdGroup(group.id)}>{group.params.map(paramEditor)}</Fields>
-                </CollapsibleSection>
+                <Fragment key={group.id}>
+                    <CollapsibleSection {...sectionProps(group.label)}>
+                        <Fields {...holdGroup(group.id)}>{group.params.map(paramRow)}</Fields>
+                    </CollapsibleSection>
+                    {group.id === GENERAL_GROUP_ID && (
+                        <CollapsibleSection {...sectionProps(PALETTE_SECTION)}>
+                            <PaletteEditor value={palette} onChange={setPalette} />
+                        </CollapsibleSection>
+                    )}
+                </Fragment>
             ))}
             {/* The same params, searchable, for finding one without knowing
                 which section holds it. */}
@@ -88,4 +96,15 @@ const Fields = styled('div')`
     display: flex;
     flex-direction: column;
     gap: 12px;
+`;
+
+const LeftBiasRow = styled('div')`
+    display: flex;
+    gap: 12px;
+    > :nth-of-type(1) {
+        flex: 2;
+    }
+    > :nth-of-type(2) {
+        flex: 1;
+    }
 `;

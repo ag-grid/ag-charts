@@ -14,15 +14,10 @@
         "production": {}
       }
     },
-    "build:types": {
-      "options": {
-        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts"]
-      }
-    },
+    "build:types": {},
     "build:test": {},
     "build:package": {
       "options": {
-        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts"],
         "external": ["ag-charts-core"]
       }
     },

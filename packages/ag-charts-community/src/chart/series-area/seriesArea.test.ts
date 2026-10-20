@@ -2,12 +2,11 @@ import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartInstance } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import { SIMPLE_COLUMN_CHART_EXAMPLE, SIMPLE_PIE_CHART_EXAMPLE } from '../test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
-    prepareTestOptions,
+    createChart,
     setupMockCanvas,
     setupMockConsole,
 } from '../test/utils';
@@ -53,8 +52,7 @@ describe('SeriesArea', () => {
                 ...SIMPLE_COLUMN_CHART_EXAMPLE,
                 ...SERIES_AREA_OPTIONS,
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare({ ...IMAGE_SNAPSHOT_DEFAULTS, customDiffConfig: { threshold: 0.75 } });
         });
     });
@@ -65,8 +63,7 @@ describe('SeriesArea', () => {
                 ...SIMPLE_PIE_CHART_EXAMPLE,
                 ...SERIES_AREA_OPTIONS,
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });

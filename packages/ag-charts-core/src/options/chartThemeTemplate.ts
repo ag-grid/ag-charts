@@ -1,3 +1,5 @@
+import { themeLineHeight } from './themeUtil';
+
 const CAPTION_BOX_THEME_DEFAULTS = {
     cornerRadius: 4,
     border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
@@ -78,6 +80,7 @@ export const commonChartThemeTemplate = {
         spacing: { $if: [{ $path: '../subtitle/enabled' }, 10, 20] },
         fontWeight: { $ref: 'titleFontWeight' },
         fontSize: { $ref: 'titleFontSize' },
+        lineHeight: themeLineHeight('titleLineHeight'),
         fontFamily: { $ref: 'titleFontFamily' },
         color: { $ref: 'titleColor' },
         wrapping: 'hyphenate',
@@ -91,6 +94,7 @@ export const commonChartThemeTemplate = {
         spacing: 20,
         fontWeight: { $ref: 'subtitleFontWeight' },
         fontSize: { $ref: 'subtitleFontSize' },
+        lineHeight: themeLineHeight('subtitleLineHeight'),
         fontFamily: { $ref: 'subtitleFontFamily' },
         color: { $ref: 'subtitleColor' },
         wrapping: 'hyphenate',
@@ -103,6 +107,7 @@ export const commonChartThemeTemplate = {
         text: 'Footnote',
         spacing: 20,
         fontSize: { $ref: 'footnoteFontSize' },
+        lineHeight: themeLineHeight('footnoteLineHeight'),
         fontFamily: { $ref: 'footnoteFontFamily' },
         fontWeight: { $ref: 'footnoteFontWeight' },
         color: { $ref: 'footnoteColor' },

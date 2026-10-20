@@ -18,7 +18,6 @@ import {
     labelPlacementStyleDefs,
     lineDashOptionsDef,
     multiSeriesShadowHighlightOptionsDef,
-    number,
     positiveNumber,
     positiveNumberNonZero,
     ratio,
@@ -90,6 +89,5 @@ export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     widthRatio: ratio,
     ...undocumentedDefs({
         pickOutsideVisibleMinorAxis: boolean,
-        focusPriority: number,
     }),
 };

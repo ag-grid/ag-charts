@@ -233,11 +233,23 @@ export abstract class Node<TDatum = unknown> {
         return this.childNodeCounts;
     }
 
-    /** Guaranteed isolated render - if there is any failure, the Canvas2D context is returned to its prior state. */
+    /** Whether {@link isolatedRender} saves and restores the context. False only if `render` just sets `fillStyle`. */
+    protected needsIsolatedState(): boolean {
+        return true;
+    }
+
+    /**
+     * Isolated render - the context is returned to its prior state, even if `render` fails, unless
+     * {@link needsIsolatedState} is false. Then there is no save and restore, so a failed render can leak
+     * state, and later siblings must set their own fill style.
+     */
     isolatedRender(renderCtx: RenderContext): void {
+        const isolate = this.needsIsolatedState();
         // Snapshot alongside ctx.save() — restore() reverts ctx.font, so tracker must too.
         const savedFont = renderCtx.currentFont;
-        renderCtx.ctx.save();
+        if (isolate) {
+            renderCtx.ctx.save();
+        }
         try {
             this.render(renderCtx);
         } catch (e: any) {
@@ -252,8 +264,10 @@ export abstract class Node<TDatum = unknown> {
 
             renderCtx.logger.warnOnce('Error during rendering', e, e.stack);
         } finally {
-            renderCtx.ctx.restore();
-            renderCtx.currentFont = savedFont;
+            if (isolate) {
+                renderCtx.ctx.restore();
+                renderCtx.currentFont = savedFont;
+            }
         }
     }
 

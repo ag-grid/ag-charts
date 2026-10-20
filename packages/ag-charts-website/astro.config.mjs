@@ -19,7 +19,6 @@ import agSitemapLastmod from '../../external/ag-website-shared/plugins/agSitemap
 import agSourcemapCors from '../../external/ag-website-shared/plugins/agSourcemapCors';
 import { SITEMAP_CACHE_DIR } from '../../external/ag-website-shared/src/constants';
 import agAutoRedirect from './plugins/agAutoRedirect';
-import agCssAsString from './plugins/agCssAsString';
 import agDemosStatic from './plugins/agDemosStatic';
 import agDevCsp from './plugins/agDevCsp';
 import agDevImportMapOrder from './plugins/agDevImportMapOrder';
@@ -27,7 +26,6 @@ import agDevMarkdownNegotiation from './plugins/agDevMarkdownNegotiation';
 import agGallerySeoChecker from './plugins/agGallerySeoChecker';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
-import agHtmlAsString from './plugins/agHtmlAsString';
 import agNpmPackages from './plugins/agNpmPackages';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
 import { FRAMEWORKS, FRAMEWORK_REDIRECT_PATH } from './src/constants';
@@ -108,8 +106,6 @@ console.log(
 const plugins = [
     agSourcemapCors(),
     svgr(),
-    agCssAsString(),
-    agHtmlAsString(),
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
     agDevCsp(),

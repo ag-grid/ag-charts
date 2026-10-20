@@ -379,6 +379,14 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     measurerPriceRangePercent: '${value}[percent]',
     // Text for the measurer statistics volume value
     measurerVolume: 'Vol ${value}',
+    // Text for the Financial Chart status bar's hovered Volume Profile price range label
+    statusBarVolumeProfilePrice: 'Price',
+    // Text for the Financial Chart status bar's hovered Volume Profile up volume label
+    statusBarVolumeProfileUp: 'Up',
+    // Text for the Financial Chart status bar's hovered Volume Profile down volume label
+    statusBarVolumeProfileDown: 'Down',
+    // Text for the Financial Chart status bar's hovered Volume Profile total volume label
+    statusBarVolumeProfileTotal: 'Total',
     // Status when multiple data are under the cursor, and the user can click to cycle through which one appears in the tooltip
     tooltipPaginationStatus: '${index}[number] of ${count}[number]',
 };

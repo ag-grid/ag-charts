@@ -1,18 +1,18 @@
 import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import { _ModuleSupport } from 'ag-charts-community';
+import {
+    deproxy,
+    legendHighlight,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 import { RadialColumnShape, Rect, Sector } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
-import {
-    HIERARCHY_SHADOW_DATA,
-    HIGHLIGHT_SHADOW,
-    SHADOW,
-    collectShapes,
-    prepareEnterpriseTestOptions,
-} from '../test/utils';
+import { HIERARCHY_SHADOW_DATA, HIGHLIGHT_SHADOW, SHADOW, collectShapes, createEnterpriseChart } from '../test/utils';
 import { BoxPlotNode } from './box-plot/boxPlotNode';
 import { CandlestickNode } from './candlestick/candlestickNode';
 import { ChordLink } from './chord/chordLink';
@@ -421,17 +421,6 @@ describe('highlightedItem.shadow (enterprise series)', () => {
         };
     };
 
-    /** The highlight the legend raises for the series' first legend item: per stage or sector, or the whole series. */
-    const legendHighlight = (series: any) => {
-        const [legendDatum] = series.getLegendData('category');
-        // Series without legend items, like a treemap or a heatmap with a colour scale, have nothing to hover.
-        if (legendDatum == null) return undefined;
-        const { itemId, legendItemName } = legendDatum;
-        return typeof itemId === 'number'
-            ? { series, itemId: undefined, datum: undefined, datumIndex: itemId, legendItemName }
-            : { series, itemId, datum: undefined, datumIndex: Number.NaN, legendItemName };
-    };
-
     const hoverItem = async (
         testCase: SeriesCase,
         shadow: Shadow | undefined,
@@ -447,9 +436,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
             ...testCase.chartOptions,
             series: [testCase.series(shadow, highlight)],
         } as AgChartOptions;
-        prepareEnterpriseTestOptions(options);
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(options));
 
         const [series] = chart.series;
         const { inPlace: inPlaceBefore } = layersOf(testCase, series);
@@ -677,9 +664,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
                 ...testCase.chartOptions,
                 series: [testCase.series(shadow, {})],
             } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             return canvasCtx
                 .getActiveOffscreenCanvasInstances()
                 .filter((canvas) => !before.has(canvas) && canvas.width > 0).length;
@@ -750,9 +735,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
                     shadow: SHADOW,
                 })),
             } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const [hoveredSeries, otherSeries] = chart.series;
             chart.ctx.highlightManager.updateHighlight(chart.id, hoveredSeries.getNodeData()[0]);

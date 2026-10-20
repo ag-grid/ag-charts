@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-types",
-  "version": "14.2.0-beta.20261011",
+  "version": "14.2.0-beta.20261018",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
@@ -11,12 +11,6 @@
       "require": "./dist/package/main.cjs.js",
       "import": "./dist/package/main.esm.mjs",
       "default": "./dist/package/main.cjs.js"
-    },
-    "./scene": {
-      "types": "./dist/types/src/main-scene.d.ts",
-      "require": "./dist/package/main-scene.cjs.js",
-      "import": "./dist/package/main-scene.esm.mjs",
-      "default": "./dist/package/main-scene.cjs.js"
     }
   },
   "scripts": {

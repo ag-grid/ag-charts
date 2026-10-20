@@ -10,6 +10,7 @@ import type {
     AgLinearGaugeScaleInterval,
     AgLinearGaugeScaleLabel,
     AgLinearGaugeTarget,
+    AgLinearGaugeTargetLabelOptions,
     AgRadialGaugeBarStyle,
     AgRadialGaugeLabelFormatterParams,
     AgRadialGaugeLabelOptions,
@@ -31,6 +32,10 @@ import type {
 import type { RequireOptional } from '../../types/global';
 import type { Normalised } from './normalise';
 import type { FillStrokeMorph } from './normalisedCommonOptions';
+import type {
+    NormalisedChartLabelPlacementStyleOptions,
+    NormalisedChartLabelStyleOptions,
+} from './normalisedLabelOptions';
 
 /** Fill, stroke and dash style shared by every gauge shape; `fill` may be a resolved gradient. */
 export type NormalisedGaugeSeriesStyle = Normalised<
@@ -88,23 +93,27 @@ export type NormalisedRadialGaugeNeedleOptions = Normalised<
 
 type GaugeLabelFormatter<TParams> = RichFormatter<AgChartLabelFormatterParams<unknown> & RequireOptional<TParams>>;
 
+type LabelBoxOverrides = Pick<NormalisedChartLabelStyleOptions, 'fill' | 'border'>;
+
 export type NormalisedRadialGaugeLabelOptions = Normalised<
     AgRadialGaugeLabelOptions,
     'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate' | 'spacing',
-    { color?: CssColor; formatter?: GaugeLabelFormatter<AgRadialGaugeLabelFormatterParams> }
+    LabelBoxOverrides & { color?: CssColor; formatter?: GaugeLabelFormatter<AgRadialGaugeLabelFormatterParams> }
 >;
 
 export type NormalisedRadialGaugeSecondaryLabelOptions = Normalised<
     AgRadialGaugeSecondaryLabelOptions,
     'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate',
-    { color?: CssColor; formatter?: GaugeLabelFormatter<AgRadialGaugeLabelFormatterParams> }
+    LabelBoxOverrides & { color?: CssColor; formatter?: GaugeLabelFormatter<AgRadialGaugeLabelFormatterParams> }
 >;
 
 /** A user-configured radial target; anything left unset falls back to the themed `defaultTarget`. */
 export type NormalisedRadialGaugeTargetOptions = Normalised<
     AgRadialGaugeTarget,
     never,
-    FillStrokeMorph & { label?: Normalised<AgRadialGaugeTargetLabelOptions, never, { color?: CssColor }> }
+    FillStrokeMorph & {
+        label?: Normalised<AgRadialGaugeTargetLabelOptions, never, LabelBoxOverrides & { color?: CssColor }>;
+    }
 >;
 
 export type NormalisedRadialGaugeDefaultTargetOptions = Normalised<
@@ -115,7 +124,7 @@ export type NormalisedRadialGaugeDefaultTargetOptions = Normalised<
         label: Normalised<
             AgRadialGaugeTargetLabelOptions,
             'enabled' | 'fontStyle' | 'fontWeight' | 'fontSize' | 'fontFamily' | 'spacing',
-            { color: CssColor }
+            LabelBoxOverrides & { color: CssColor }
         >;
     }
 >;
@@ -187,8 +196,13 @@ export type NormalisedLinearGaugeBarOptions = Normalised<
 
 export type NormalisedLinearGaugeLabelOptions = Normalised<
     AgLinearGaugeLabelOptions,
-    'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate' | 'spacing' | 'placement' | 'avoidCollisions',
-    { color?: CssColor; formatter?: GaugeLabelFormatter<unknown> }
+    'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate' | 'spacing' | 'placement',
+    LabelBoxOverrides & {
+        color?: CssColor;
+        formatter?: GaugeLabelFormatter<unknown>;
+        insideStyle?: NormalisedChartLabelPlacementStyleOptions;
+        outsideStyle?: NormalisedChartLabelPlacementStyleOptions;
+    }
 >;
 
 /** A user-configured linear target; anything left unset falls back to the themed `defaultTarget`. */
@@ -196,11 +210,10 @@ export type NormalisedLinearGaugeTargetOptions = Normalised<AgLinearGaugeTarget,
     label?: NormalisedLinearGaugeTargetLabelOptions;
 };
 
-/** Undocumented per-target label; the public linear target carries none, so only the default supplies it. */
 export type NormalisedLinearGaugeTargetLabelOptions = Normalised<
-    AgRadialGaugeTargetLabelOptions,
+    AgLinearGaugeTargetLabelOptions,
     never,
-    { color?: CssColor }
+    LabelBoxOverrides & { color?: CssColor }
 >;
 
 export type NormalisedLinearGaugeDefaultTargetOptions = Normalised<
@@ -209,9 +222,9 @@ export type NormalisedLinearGaugeDefaultTargetOptions = Normalised<
     FillStrokeMorph & { value?: never }
 > & {
     label: Normalised<
-        AgRadialGaugeTargetLabelOptions,
+        AgLinearGaugeTargetLabelOptions,
         'enabled' | 'fontStyle' | 'fontWeight' | 'fontSize' | 'fontFamily' | 'spacing',
-        { color: CssColor }
+        LabelBoxOverrides & { color: CssColor }
     >;
 };
 

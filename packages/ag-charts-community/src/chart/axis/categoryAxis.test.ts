@@ -1,11 +1,11 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
-import { afterEach, beforeAll, describe, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import { mapValues } from 'ag-charts-core';
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
+import { applyIntervalBetween, applyIntervalOn } from '../test/axisTestCases';
 import { DOCS_EXAMPLES } from '../test/examples';
 import type { ChartOrProxy } from '../test/utils';
 import {
@@ -18,52 +18,6 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../test/utils';
-
-const EXAMPLE_GRID_LINE = {
-    width: 2,
-    style: [
-        { fill: 'red', fillOpacity: 0.1, stroke: 'red' },
-        { fill: 'blue', fillOpacity: 0.1, stroke: 'blue' },
-        { fill: 'green', fillOpacity: 0.1, stroke: 'green' },
-        { fill: 'yellow', fillOpacity: 0.1, stroke: 'yellow' },
-    ],
-};
-
-const axesToTest = ['category', 'grouped-category', 'unit-time', 'ordinal-time'];
-
-function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
-    return {
-        ...opts,
-        axes:
-            mapValues(opts.axes ?? {}, (axis) =>
-                axis.type != null && axesToTest.includes(axis.type)
-                    ? {
-                          ...axis,
-                          interval: { ...(axis.interval ?? {}), placement: 'on' },
-                          gridLine: EXAMPLE_GRID_LINE,
-                          tick: { ...(axis.tick ?? {}), enabled: true },
-                      }
-                    : axis
-            ) ?? undefined,
-    };
-}
-
-function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
-    return {
-        ...opts,
-        axes:
-            mapValues(opts.axes ?? {}, (axis) =>
-                axis.type != null && axesToTest.includes(axis.type)
-                    ? {
-                          ...axis,
-                          interval: { ...(axis.interval ?? {}), placement: 'between' },
-                          gridLine: EXAMPLE_GRID_LINE,
-                          tick: { ...(axis.tick ?? {}), enabled: true },
-                      }
-                    : axis
-            ) ?? undefined,
-    };
-}
 
 const DATA = [
     {
@@ -280,6 +234,7 @@ describe('Category Axis', () => {
             { day: 'Thu', value: 6 },
         ];
 
+        // Bespoke: the image loader must be stubbed before the first render, so it cannot follow `createChart`'s wait.
         async function createStubbedChart(options: AgCartesianChartOptions) {
             chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })) as any);
             stubChartImageLoader(chart);
@@ -378,5 +333,28 @@ describe('Category Axis', () => {
                 await compare();
             }
         );
+    });
+
+    it('should keep nice disabled after an axis options update', async () => {
+        const options = (title: string): AgCartesianChartOptions =>
+            prepareTestOptions({
+                data: [
+                    { year: '2020', value: 5 },
+                    { year: '2021', value: 10 },
+                ],
+                series: [{ type: 'bar', xKey: 'year', yKey: 'value' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom', title: { text: title } },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+        const instance = await createChart(options('Year'));
+        chart = instance;
+        const categoryAxis = () => deproxy(instance).axes.find((axis) => axis.id === 'x')!;
+        expect(categoryAxis().nice).toBe(false);
+
+        await instance.update(options('Years'));
+
+        expect(categoryAxis().nice).toBe(false);
     });
 });

@@ -322,16 +322,18 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
     }
 
     if (typeof options?.theme === 'object') {
-        // fontFamily must stay pinned to the bundled test font even in dark mode: the default stack
-        // is unregistered and resolves per-platform, breaking snapshots.
+        // fontFamily must stay pinned to the bundled test font whatever params a test supplies: the
+        // default stack is unregistered and resolves per-platform, breaking snapshots.
+        const fontFamily = baseTestTheme.params!.fontFamily;
+        let params = options.theme.params ? { fontFamily, ...options.theme.params } : baseTestTheme.params;
+        if (baseThemeString === 'ag-default-dark') {
+            params = { fontFamily };
+        }
         baseTestTheme = {
             ...options.theme,
             baseTheme: options.theme.baseTheme ?? baseTestTheme.baseTheme,
             palette: options.theme.palette ?? baseTestTheme.palette,
-            params:
-                baseThemeString === 'ag-default-dark'
-                    ? { fontFamily: baseTestTheme.params!.fontFamily }
-                    : (options.theme.params ?? baseTestTheme.params),
+            params,
         };
     } else if (typeof options?.theme === 'string') {
         // Override colours.
@@ -360,7 +362,7 @@ export interface SeriesAggregationInternals {
     id: string;
     data: { getItemIdFromIndex(datumIndex: number): string | number } | undefined;
     dataAggregation: object | undefined;
-    aggregateIndexSet?: Map<number, number[]>;
+    aggregateIndexSet?: Map<number, Uint32Array>;
     contextNodeData?: { nodeData?: ReadonlyArray<unknown> };
     /** Present on series that aggregate via `AggregationManager` (e.g. range-bar). */
     aggregationManager?: { getFilterForRange(range: number): { maxRange: number } | undefined };
@@ -395,6 +397,55 @@ export function getAggregatedMarkerXValues(chartOrProxy: ChartOrProxy<any>, seri
     return nodeData.map(({ xValue }) => xValue).sort((a, b) => a - b);
 }
 
+/**
+ * Asserts that the markers of an aggregated bubble/scatter series stand for every datum exactly once: each cluster
+ * marker for the datums of its index set, each other marker for its own datum. A cluster's index set is read through
+ * the bucket lookup in ascending datum order, as selection changes list it, and reading it leaves the cluster's
+ * stored indices as they were.
+ */
+export function expectAggregatedMarkersCoverEveryDatumOnce(
+    chartOrProxy: ChartOrProxy<any>,
+    datumCount: number,
+    seriesIndex = 0
+) {
+    const series = getSeriesAggregationInternals(chartOrProxy, seriesIndex);
+    expect(series.dataAggregation).toBeDefined();
+    const clusters = series.aggregateIndexSet;
+    expect(clusters).toBeDefined();
+    const bucketLookup = series.ensureBucketLookupFeature();
+    expect(bucketLookup).toBeDefined();
+
+    const represented = new Set<number>();
+    const represent = (datumIndex: number) => {
+        expect(represented.has(datumIndex)).toBe(false);
+        represented.add(datumIndex);
+    };
+
+    let clusteredDatums = 0;
+    for (const [primaryDatumIndex, stored] of clusters!) {
+        const storedBefore = Array.from(stored);
+        const indexSet = Array.from(bucketLookup!.getIndexSet(primaryDatumIndex)!);
+
+        expect(indexSet).toEqual([...storedBefore].sort((a, b) => a - b));
+        expect(indexSet).toContain(primaryDatumIndex);
+        expect(Array.from(stored)).toEqual(storedBefore);
+        expect(Array.from(bucketLookup!.getIndexSet(primaryDatumIndex)!)).toEqual(indexSet);
+
+        for (const datumIndex of indexSet) {
+            represent(datumIndex);
+        }
+        clusteredDatums += indexSet.length;
+    }
+    // Aggregation must have actually clustered something, or the checks above held vacuously.
+    expect(clusteredDatums).toBeGreaterThan(clusters!.size);
+
+    const nodeData = (series.contextNodeData?.nodeData ?? []) as ReadonlyArray<{ datumIndex: number }>;
+    for (const { datumIndex } of nodeData) {
+        if (!clusters!.has(datumIndex)) represent(datumIndex);
+    }
+    expect(represented.size).toBe(datumCount);
+}
+
 export function repeat<T>(value: T, count: number): T[] {
     return new Array(count).fill(value);
 }
@@ -403,6 +454,8 @@ export function repeat<T>(value: T, count: number): T[] {
 export interface DrawnLabelNode<TDatum = any> {
     visible: boolean;
     text: string;
+    fontSize: number;
+    lineHeight?: number;
     x: number;
     y: number;
     datum: TDatum;
@@ -417,6 +470,108 @@ export function getVisibleLabelNodes<TDatum = any>(
         labelSelection: { nodes(): DrawnLabelNode<TDatum>[] };
     };
     return labelSelection.nodes().filter((node) => node.visible);
+}
+
+interface AxisLayoutInternals {
+    position: string;
+    pickTickData: unknown;
+    tickLabelGroupSelection: {
+        nodes(): Iterable<DrawnLabelNode & { fill?: string; rotation: number; textAlign?: string }>;
+    };
+    tickLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
+    gridLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
+    calculateTickLayout(...args: unknown[]): unknown;
+}
+
+interface AxisLineNode {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+}
+
+export interface AxisTickLayout {
+    position: string;
+    labels: {
+        text: string;
+        x: number;
+        y: number;
+        visible: boolean;
+        rotation: number;
+        fill?: string;
+        textAlign?: string;
+    }[];
+    tickLines: AxisLineNode[];
+    gridLines: AxisLineNode[];
+}
+
+const byPosition = (a: { x: number; y: number }, b: { x: number; y: number }) => (a.x === b.x ? a.y - b.y : a.x - b.x);
+const lineByPosition = (a: AxisLineNode, b: AxisLineNode) => (a.x1 === b.x1 ? a.y1 - b.y1 : a.x1 - b.x1);
+
+/**
+ * What each axis drew from its tick layout (labels, tick lines and grid lines), ordered by position so that
+ * two charts compare equal whatever order their nodes were created in.
+ */
+export function getAxisTickLayouts(chartOrProxy: ChartOrProxy<any>): AxisTickLayout[] {
+    return getAxisInternals(chartOrProxy).map(toAxisTickLayout);
+}
+
+/** What the axis at `position` drew from its tick layout, as `getAxisTickLayouts` describes it. */
+export function getAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string): AxisTickLayout {
+    return toAxisTickLayout(findAxisInternals(chartOrProxy, position));
+}
+
+/** The label texts of the axis at `position`, in order along the axis. */
+export function getAxisLabelTexts(chartOrProxy: ChartOrProxy<any>, position: string): string[] {
+    return getAxisTickLayout(chartOrProxy, position).labels.map((label) => label.text);
+}
+
+/** The ticks the axis at `position` resolves a pick to. */
+export function getAxisPickTickData(chartOrProxy: ChartOrProxy<any>, position: string): unknown {
+    return findAxisInternals(chartOrProxy, position).pickTickData;
+}
+
+/** The datum objects bound to the axis at `position`'s label nodes, which animated nodes diff against. */
+export function getAxisLabelDatums(chartOrProxy: ChartOrProxy<any>, position: string): object[] {
+    const { tickLabelGroupSelection } = findAxisInternals(chartOrProxy, position);
+    return Array.from(tickLabelGroupSelection.nodes(), (node) => node.datum);
+}
+
+/** Counts the tick layouts the axis at `position` calculates, rather than reuses, from now on. */
+export function spyOnAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string) {
+    return vi.spyOn(findAxisInternals(chartOrProxy, position), 'calculateTickLayout');
+}
+
+function getAxisInternals(chartOrProxy: ChartOrProxy<any>) {
+    return deproxy(chartOrProxy).axes as unknown as AxisLayoutInternals[];
+}
+
+function findAxisInternals(chartOrProxy: ChartOrProxy<any>, position: string) {
+    const axis = getAxisInternals(chartOrProxy).find((a) => a.position === position);
+    expect(axis).toBeDefined();
+    return axis!;
+}
+
+function toAxisTickLayout(axis: AxisLayoutInternals): AxisTickLayout {
+    const lines = (selection: AxisLayoutInternals['tickLineGroupSelection']) =>
+        Array.from(selection.nodes(), ({ x1, y1, x2, y2 }) => ({ x1, y1, x2, y2 })).sort(lineByPosition);
+    return {
+        position: axis.position,
+        labels: Array.from(
+            axis.tickLabelGroupSelection.nodes(),
+            ({ text, x, y, visible, rotation, fill, textAlign }) => ({
+                text,
+                x,
+                y,
+                visible,
+                rotation,
+                fill,
+                textAlign,
+            })
+        ).sort(byPosition),
+        tickLines: lines(axis.tickLineGroupSelection),
+        gridLines: lines(axis.gridLineGroupSelection),
+    };
 }
 
 /** A series' placed label geometry, enough to measure a label's offset from its marker anchor. */
@@ -1124,6 +1279,15 @@ export async function tabIntoChart(chart: ChartOrProxy) {
     await waitForChartStability(chart);
 }
 
+// The swap-chain's visible announcer is labelled by the text read out for the focused datum.
+export function getSwapChainText() {
+    const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[aria-hidden="false"]');
+    expect(announcer).not.toBeNull();
+    const label = document.getElementById(announcer!.getAttribute('aria-labelledby') ?? '');
+    expect(label).not.toBeNull();
+    return label!.textContent;
+}
+
 // The series-area widget handles keyboard navigation.
 export async function pressKey(chart: ChartOrProxy, key: string) {
     const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
@@ -1132,9 +1296,13 @@ export async function pressKey(chart: ChartOrProxy, key: string) {
     await waitForChartStability(chart);
 }
 
-export async function createChart(options: AgChartOptions<any, any>) {
+/**
+ * The canonical chart factory for tests. Returns the public `AgChartInstance`; wrap the result in `deproxy()` where a
+ * test needs chart internals, so that the internal access is visible at the call site.
+ */
+export async function createChart(options: AgChartOptions<any, any>): Promise<AgChartInstance> {
     options = prepareTestOptions({ ...options });
-    const chart = deproxy(AgCharts.create(options) as AgChartProxy);
+    const chart = AgCharts.create(options);
     await waitForChartStability(chart);
     return chart;
 }
@@ -1764,6 +1932,37 @@ export function expectSceneSamplesMatch(actual: SceneGeometrySample, expected: S
 }
 
 /**
+ * Redraws `chart` with `data`, which must equal the data it already shows, and asserts that no pixel changed. Series 0
+ * must have node data of the given crispness; non-crisp bars must also keep their node geometry, while crisp bars
+ * snap at render so only their pixels are compared. Call it once the chart has stabilised.
+ */
+export async function expectRedrawWithSameDataIsStable(
+    chart: AgChartInstance,
+    canvasCtx: Pick<ReturnType<typeof setupMockCanvas>, 'snapshot'>,
+    data: unknown[],
+    { crisp }: { crisp: boolean }
+): Promise<void> {
+    const nodeData = (getSeriesAggregationInternals(chart).contextNodeData?.nodeData ?? []) as ReadonlyArray<{
+        crisp: boolean;
+    }>;
+    expect(nodeData.length).toBeGreaterThan(0);
+    expect(nodeData.every((d) => d.crisp === crisp)).toBe(true);
+
+    const sampleScene = createSceneGeometrySampler(chart);
+    const before = crisp ? undefined : sampleScene();
+    const beforeImage = canvasCtx.snapshot();
+    expectNonBlank(beforeImage);
+
+    await chart.updateDelta({ data });
+    await waitForChartStability(chart);
+
+    expect(canvasCtx.snapshot()).toMatchImage(beforeImage);
+    if (before) {
+        expectSceneSamplesMatch(sampleScene(), before, 0);
+    }
+}
+
+/**
  * A cross-node check evaluated on every captured frame — for relationships no per-node/per-property
  * expectation can express (e.g. "stacked layer N's far edge equals layer N+1's near edge on every
  * frame"). Return a message to fail, undefined to pass; only the first failing frame per invariant is
@@ -2216,4 +2415,15 @@ export function captureUncaught(
             window.removeEventListener('error', onError);
         },
     };
+}
+
+/**
+ * Anti-vacuity check for a financial series: three subpaths over a real pixel height means the datum is drawn at
+ * full size, not parked collapsed at a baseline waiting to grow.
+ */
+export function expectDrawnAtFullRange(sample: SceneGeometrySample, key: string) {
+    const node = sample.get(key);
+    expect(node, key).toBeDefined();
+    expect(node!.subpaths, `${key} subpaths`).toBe(3);
+    expect(node!.height, `${key} height`).toBeGreaterThan(20);
 }

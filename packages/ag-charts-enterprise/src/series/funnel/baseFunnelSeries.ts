@@ -35,6 +35,7 @@ import {
     barLabelPropsRouteThroughEngine,
     barLabelRoutesThroughEngine,
     buildBarPositionedLabelDatum,
+    cycledValue,
     maxValue,
     measureLabelText,
     resolveLabelFit,
@@ -203,9 +204,9 @@ export abstract class BaseFunnelSeries<
     protected itemStyle(datumIndex: number): Required<NormalisedFunnelSeriesStyle> & { opacity: number } {
         const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.options;
         return {
-            fill: fills[datumIndex],
+            fill: cycledValue(fills, datumIndex),
             fillOpacity,
-            stroke: strokes[datumIndex],
+            stroke: cycledValue(strokes, datumIndex),
             strokeWidth,
             strokeOpacity,
             lineDash,

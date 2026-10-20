@@ -8,7 +8,6 @@ import {
     type FeatureCollection,
     type Geometry,
     Group,
-    type ITextMeasurer,
     type LabelFit,
     LinearScale,
     type NormalisedChartLabelStyleOptions,
@@ -23,12 +22,12 @@ import {
     StateMachine,
     Text,
     applySizeMode,
-    cachedTextMeasurer,
     configureColorScale,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
     isSupportedMarkerShape,
+    measureLabelText,
     mergeDefaults,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
@@ -361,7 +360,6 @@ export class MapMarkerSeries
     private getLabelDatum(
         node: MapMarkerNodeDatum,
         labelValue: string | undefined,
-        measurer: ITextMeasurer,
         labelFit: LabelFit | undefined,
         labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number }
     ): MapMarkerNodeLabelDatum | undefined {
@@ -386,7 +384,7 @@ export class MapMarkerSeries
         if (labelText == null) return;
 
         const fittedText = fitLabelText(labelText, labelFit, labelStyle);
-        const text = measurer.measureLines(String(fittedText));
+        const text = measureLabelText(fittedText, labelStyle);
         // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
         const box = expandLabelBoxExtent(labelStyle);
         const width = text.width + box.left + box.right;
@@ -494,7 +492,6 @@ export class MapMarkerSeries
         latValue: number,
         dataValues: MarkerDataValues,
         size: number,
-        measurer: ITextMeasurer,
         labelFit: LabelFit | undefined,
         labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number }
     ): { node: MapMarkerNodeDatum; label: MapMarkerNodeLabelDatum | undefined } {
@@ -507,7 +504,7 @@ export class MapMarkerSeries
 
         const node = this.buildNodeDatum(datum, datumIndex, -1, point, dataValues);
 
-        const label = this.getLabelDatum(node, dataValues.labelValue, measurer, labelFit, labelStyle) ?? undefined;
+        const label = this.getLabelDatum(node, dataValues.labelValue, labelFit, labelStyle) ?? undefined;
 
         return { node, label };
     }
@@ -518,7 +515,6 @@ export class MapMarkerSeries
         geometry: Geometry,
         dataValues: MarkerDataValues,
         size: number,
-        measurer: ITextMeasurer,
         labelFit: LabelFit | undefined,
         labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number }
     ): { nodes: MapMarkerNodeDatum[]; labels: MapMarkerNodeLabelDatum[] } {
@@ -531,7 +527,7 @@ export class MapMarkerSeries
             const node = this.buildNodeDatum(datum, datumIndex, index, point, dataValues);
             nodes.push(node);
 
-            const label = this.getLabelDatum(node, dataValues.labelValue, measurer, labelFit, labelStyle);
+            const label = this.getLabelDatum(node, dataValues.labelValue, labelFit, labelStyle);
             if (label) {
                 labels.push(label);
             }
@@ -592,7 +588,6 @@ export class MapMarkerSeries
             false,
             undefined
         );
-        const measurer = cachedTextMeasurer(labelStyle);
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
 
         const projectedGeometries = this.prepareProjectedGeometries(
@@ -632,7 +627,6 @@ export class MapMarkerSeries
                     dataValues.latValue,
                     dataValues,
                     size,
-                    measurer,
                     labelFit,
                     labelStyle
                 );
@@ -645,7 +639,6 @@ export class MapMarkerSeries
                     projectedGeometry,
                     dataValues,
                     size,
-                    measurer,
                     labelFit,
                     labelStyle
                 );
@@ -749,7 +742,7 @@ export class MapMarkerSeries
                 label.visible = false;
                 return;
             }
-            const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
+            const { color: fill, fontStyle, fontWeight, fontSize, fontFamily, lineHeight } = style;
             label.visible = true;
             label.x = x + width / 2;
             label.y = y + height / 2;
@@ -759,6 +752,7 @@ export class MapMarkerSeries
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
+            label.lineHeight = lineHeight;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
             const datumIndex = labelDatum?.datumIndex;

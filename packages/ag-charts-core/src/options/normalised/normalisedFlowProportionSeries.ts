@@ -35,7 +35,7 @@ import type {
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from './normalisedCommonOptions';
-import type { NormalisedCollisionFreeSeriesLabelOptions } from './normalisedLabelOptions';
+import type { NormalisedCollisionFreeSeriesLabelOptions, NormalisedSeriesLabelOptions } from './normalisedLabelOptions';
 
 /** Undocumented: the defaults a gradient, pattern or image fill is completed with at render time. */
 export interface NormalisedFlowProportionFillDefaults {
@@ -79,12 +79,11 @@ type FlowStyleRequiredKeys = 'fillOpacity' | 'strokeWidth' | 'strokeOpacity' | '
 
 export type NormalisedSankeySeriesNodeStyle = Normalised<AgSankeySeriesNodeStyle, never, FillStrokeMorph>;
 
-export type NormalisedSankeySeriesLabelOptions =
-    NormalisedCollisionFreeSeriesLabelOptions<AgSankeySeriesLabelFormatterParams> & {
-        spacing: number;
-        placement?: 'left' | 'right' | 'center';
-        edgePlacement?: 'inside' | 'outside';
-    };
+export type NormalisedSankeySeriesLabelOptions = NormalisedSeriesLabelOptions<AgSankeySeriesLabelFormatterParams> & {
+    spacing: number;
+    placement?: 'left' | 'right' | 'center';
+    edgePlacement?: 'inside' | 'outside';
+};
 
 /** Link styling; `fill`/`stroke` fall back to the series palette cycled by source node at render time. */
 export type NormalisedSankeySeriesLinkOptions = Normalised<

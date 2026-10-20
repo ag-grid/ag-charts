@@ -147,6 +147,8 @@ export interface AgChartLegendLabelOptions<TContext = ContextDefault> {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the legend. */
     fontSize?: FontSize;
+    /** The line height in pixels to use for the legend. Defaults to the natural line height of the font. */
+    lineHeight?: PixelSize;
     /** The font family to use for the legend. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
     /** Function used to render legend labels. Where `id` is a series ID, `itemId` is component ID within a series, such as a field name or an item index. */
@@ -329,6 +331,8 @@ export interface AgPaginationLabelOptions {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the pagination label. */
     fontSize?: FontSize;
+    /** The line height in pixels to use for the pagination label. Defaults to the natural line height of the font. */
+    lineHeight?: PixelSize;
     /** The font family to use for the pagination label. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
 }

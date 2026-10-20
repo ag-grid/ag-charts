@@ -2,6 +2,7 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
+    OrdinalTimeScale,
     isFiniteNumber,
     pickDirectionZoom,
 } from 'ag-charts-core';
@@ -13,6 +14,21 @@ import type { ChartRegistry } from '../../module/moduleContext';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
 const DEFAULT_ZOOM: ZoomMinMax = { min: 0, max: 1 };
+
+function isWithin(window: AgDataSourceCallbackParams | undefined, outer: AgDataSourceCallbackParams | undefined) {
+    const start = window?.windowStart?.valueOf();
+    const end = window?.windowEnd?.valueOf();
+    const outerStart = outer?.windowStart?.valueOf();
+    const outerEnd = outer?.windowEnd?.valueOf();
+    return (
+        isFiniteNumber(start) &&
+        isFiniteNumber(end) &&
+        isFiniteNumber(outerStart) &&
+        isFiniteNumber(outerEnd) &&
+        start >= outerStart &&
+        end <= outerEnd
+    );
+}
 
 export class DataWindowProcessor implements UpdateProcessor {
     private dirtyZoom = false;
@@ -180,6 +196,11 @@ export class DataWindowProcessor implements UpdateProcessor {
             window.windowStart?.valueOf() === lastWindow.windowStart?.valueOf() &&
             window.windowEnd?.valueOf() === lastWindow.windowEnd?.valueOf()
         ) {
+            return false;
+        }
+
+        // Ordinal-time zoom restores re-snap the edges to the new bands; a window that only narrows is already loaded.
+        if (this.zoomSource === 'data-update' && OrdinalTimeScale.is(axis.scale) && isWithin(window, lastWindow)) {
             return false;
         }
 

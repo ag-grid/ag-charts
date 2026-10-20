@@ -34,9 +34,10 @@ import {
     type WrapOptions,
     boxCrossesSegment,
     boxOverlapsSector,
-    cachedTextMeasurer,
     canRenderTextOffscreen,
     clockwiseAngles,
+    cycledValue,
+    drawnLineHeight,
     extractDomain,
     findLargestFontSizeDescending,
     fitLabelTextAutoSize,
@@ -171,7 +172,7 @@ function fitSectorLabelToWedge(
     layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
 ): PlacedSectorLabel {
     const place = (sized: FontOptions, atFloor: boolean, inset: number, block: BlockSize | undefined) => {
-        const lineHeight = cachedTextMeasurer(sized).lineHeight();
+        const lineHeight = drawnLineHeight(sized);
         const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
         const region = insetFitRegion(
             probedFitRegion(
@@ -254,12 +255,12 @@ function fitSectorLabelToWedge(
     // Wedge clearance is not monotonic in the font size — a smaller size can reflow the text into a wider
     // block — so the ladder is scanned down rather than bisected, which could step past the largest fit.
     // Measured at the smallest line height in play, so it bounds the room at every size on the ladder.
-    const room = sectorLabelRoom(anchor, sector, cachedTextMeasurer(fontWithSize(font, floor)).lineHeight());
+    const room = sectorLabelRoom(anchor, sector, drawnLineHeight(fontWithSize(font, floor)));
     const found = findLargestFontSizeDescending(floor, font.fontSize, (fontSize, atFloor) => {
         const sized = fontWithSize(font, fontSize);
         // The wedge cannot hold more text than it has room for, whether measured by the area the text
         // covers or by the lines the wedge can stack, so an oversized rung goes without being placed.
-        const lineHeight = cachedTextMeasurer(sized).lineHeight();
+        const lineHeight = drawnLineHeight(sized);
         const advance = measureLabelText(text, sized).width;
         if (!atFloor && (advance * lineHeight > room.area || advance > room.capacityAt(lineHeight))) {
             return undefined;
@@ -984,7 +985,9 @@ export class DonutSeries extends PolarSeries<
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues);
         const selectionStyle = withSelection ? this.getSelectionStyle(datumIndex) : undefined;
-        const defaultStyle = { fill: fills[datumIndex], stroke: strokes[datumIndex], ...this.getSeriesStyle() };
+        const fillIndex = datumIndex % fills.length;
+        const strokeIndex = datumIndex % strokes.length;
+        const defaultStyle = { fill: fills[fillIndex], stroke: strokes[strokeIndex], ...this.getSeriesStyle() };
 
         const {
             fill,
@@ -1016,7 +1019,7 @@ export class DonutSeries extends PolarSeries<
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
                         this.callWithContext(itemStyler, params),
-                        { proxyPaths: { fill: ['fills', `${datumIndex}`], stroke: ['strokes', `${datumIndex}`] } }
+                        { proxyPaths: { fill: ['fills', `${fillIndex}`], stroke: ['strokes', `${strokeIndex}`] } }
                     );
                 }
             );
@@ -1489,7 +1492,7 @@ export class DonutSeries extends PolarSeries<
             if (label?.text != null && label.text !== '' && !label.hidden && outerRadius !== 0) {
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
-                line.stroke = color ?? calloutColors[datumIndex % calloutColors.length];
+                line.stroke = color ?? cycledValue(calloutColors, datumIndex);
                 line.strokeOpacity =
                     this.getHighlightStyle(isDatumHighlighted, datum.datumIndex, undefined, legendItemValues).opacity ??
                     1;
@@ -2334,11 +2337,12 @@ export class DonutSeries extends PolarSeries<
         const holeExtent = (innerRadius > 0 ? innerRadius : this.getOuterRadius()) * Math.SQRT2;
         const holeBox = { width: holeExtent, height: holeExtent };
         this.innerLabelsSelection.each((text, datum) => {
-            const { fontStyle, fontWeight, fontSize, fontFamily, color } = datum;
+            const { fontStyle, fontWeight, fontSize, fontFamily, lineHeight, color } = datum;
             text.fontStyle = fontStyle;
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
             text.fontFamily = fontFamily;
+            text.lineHeight = lineHeight;
             text.text = fitLabelToContainer(datum.text, undefined, datum, holeBox);
             text.x = 0;
             text.y = 0;

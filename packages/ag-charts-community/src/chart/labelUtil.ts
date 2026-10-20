@@ -15,6 +15,7 @@ import type {
     IsAny,
     LabelFit,
     LabelFitDescriptor,
+    LabelObstacle,
     LabelPlacement,
     NormalisedColorType,
     NormalisedTextOrSegments,
@@ -34,6 +35,7 @@ import {
     type NormalisedCollisionFreeSeriesLabelOptions,
     type NormalisedSeriesLabelOptions,
     barLabelObstacles,
+    drawnLineHeight,
     fitLabelTextOrOverflow,
     fitLabelTextOrOverflowAutoSize,
     fontWithSize,
@@ -45,6 +47,7 @@ import {
     isBoxInSector,
     isPointInSector,
     isRotatable,
+    lineHeightAtSize,
     measureLabelText,
     mergeDefaults,
     orientationAngles,
@@ -53,6 +56,7 @@ import {
     rotatedGlyphDrift,
     rotatedLabelInset,
     sectorLabelContainer,
+    stylerLineHeightOverrides,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type {
@@ -79,7 +83,7 @@ import {
 } from './label';
 import { markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
-import type { DatumIndex, SeriesNodeDatum } from './series/seriesTypes';
+import type { DatumIndex, ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from './series/seriesTypes';
 
 interface SeriesLike {
     id: string;
@@ -708,6 +712,22 @@ export function barLabelObstaclesFor<TParams, TElement>(
     });
 }
 
+/** Adds an obstacle for every whisker and cap drawn over the series' shapes to `obstacles`. */
+export function withOverlayLabelObstacles(
+    obstacles: LabelObstacle[] | undefined,
+    nodeData: readonly { readonly overlayBoxes?: readonly BoxBounds[] }[] | undefined
+): LabelObstacle[] | undefined {
+    if (nodeData == null) return obstacles;
+    for (const { overlayBoxes } of nodeData) {
+        if (overlayBoxes == null) continue;
+        obstacles ??= [];
+        for (const box of overlayBoxes) {
+            obstacles.push({ kind: 'rect', box, overlay: true });
+        }
+    }
+    return obstacles;
+}
+
 /** A baked bar label, plus the reduced font size a shrink-to-fit pass left it drawn at. */
 type BakedBarLabel = NonNullable<BakedLabelSource['label']> & { readonly fittedFontSize?: number };
 
@@ -778,6 +798,7 @@ export function getLabelStyles<TParams>(
             fontSize: resolvedLabel.fontSize,
             fontStyle: resolvedLabel.fontStyle,
             fontWeight: resolvedLabel.fontWeight,
+            lineHeight: resolvedLabel.lineHeight,
             itemId,
             itemType: nodeDatum?.itemType,
             seriesId: series.id,
@@ -789,10 +810,12 @@ export function getLabelStyles<TParams>(
             selectionState: series.getSelectionStateString(nodeDatum?.datumIndex),
             candidateState: series.getCandidateStateString(nodeDatum?.datumIndex),
         };
+        const lineHeight = drawnLineHeight(resolvedLabel);
+        const stylerOutput = series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams, lineHeight });
         const stylerResult =
             series.ctx.optionsGraphService.resolvePartial(
                 labelPath,
-                series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
+                stylerOutput && stylerLineHeightOverrides(stylerOutput, resolvedLabel, lineHeight),
                 { pick: false }
             ) ?? {};
 
@@ -857,6 +880,7 @@ export function updateLabelNode<TParams>(
         // the shared `Label` instance itself.
         if (labelDatum.fittedFontSize != null) {
             textNode.fontSize = labelDatum.fittedFontSize;
+            textNode.lineHeight = lineHeightAtSize(style, labelDatum.fittedFontSize);
         }
         textNode.setBoxing(style);
         if (isRotatable(textNode)) {
@@ -886,6 +910,57 @@ const placements: Record<Exclude<BarLabelPlacement, 'inside-center' | BesideBarL
     'outside-start': { inside: false, direction: -1, textAlignment: -1 },
     'outside-end': { inside: false, direction: 1, textAlignment: 1 },
 };
+
+/** How far a mark drawn across the bar's value end (an error bar) reaches beyond it and back into it, in px. */
+export interface BarEndOverhang {
+    readonly outer: number;
+    readonly inner: number;
+}
+
+/** How far a datum's value-axis error bar reaches past the value end of its bar `rect`, outward and inward. */
+export function barEndOverhang(
+    datum: Pick<ErrorBoundSeriesNodeDatum, 'xBar' | 'yBar' | 'overlayBounds'>,
+    rect: Bounds,
+    isUpward: boolean,
+    barAlongX: boolean,
+    spacing: number
+): BarEndOverhang | undefined {
+    const bounds = datum.overlayBounds;
+    if ((barAlongX ? datum.xBar : datum.yBar) == null || bounds == null) return undefined;
+    let end: number;
+    let outward: number;
+    let lower: number;
+    let upper: number;
+    if (barAlongX) {
+        end = isUpward ? rect.x + rect.width : rect.x;
+        outward = isUpward ? 1 : -1;
+        lower = bounds.x;
+        upper = bounds.x + bounds.width;
+    } else {
+        end = isUpward ? rect.y : rect.y + rect.height;
+        outward = isUpward ? -1 : 1;
+        lower = bounds.y;
+        upper = bounds.y + bounds.height;
+    }
+    const toLower = (lower - end) * outward;
+    const toUpper = (upper - end) * outward;
+    const inner = Math.max(0, -toLower, -toUpper);
+    // An inside label with no room past the inner whisker before the base keeps its plain anchor.
+    const length = barAlongX ? rect.width : rect.height;
+    return { outer: Math.max(0, toLower, toUpper), inner: inner + spacing < length ? inner : 0 };
+}
+
+/** `spacing` for `placement`, measured from the end of any overhang an end-anchored label must clear. */
+export function barPlacementSpacing(
+    spacing: number,
+    placement: BarLabelPlacement,
+    overhang: BarEndOverhang | undefined
+): number {
+    if (overhang == null) return spacing;
+    if (placement === 'outside-end') return spacing + overhang.outer;
+    if (placement === 'inside-end') return spacing + overhang.inner;
+    return spacing;
+}
 
 function isBesidePlacement(placement: BarLabelPlacement): placement is BesideBarLabelPlacement {
     return placement.startsWith('beside-');
@@ -1075,6 +1150,7 @@ interface BarCandidateSpec {
     readonly isUpward: boolean;
     readonly isVertical: boolean;
     readonly spacing: number;
+    readonly endOverhang?: BarEndOverhang;
     readonly crossReversed?: boolean;
     readonly rect: Bounds;
     /** Text size under the configured font, used by a candidate no styler resizes. */
@@ -1144,6 +1220,7 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
     reportedPlacements?: readonly TPlacement[];
     orientations: readonly AgChartLabelOrientation[];
     spacing: number;
+    endOverhang?: BarEndOverhang;
     // The styled label; the box extent (padding + border) is resolved per candidate from its placement's
     // style, so an inside↔outside cascade offsets and sizes each candidate by its own style.
     label: NormalisedSeriesLabelOptions<TParams> & {
@@ -1183,6 +1260,7 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
         reportedPlacements,
         orientations,
         spacing,
+        endOverhang,
         label,
         rect,
         insideCrossRegion,
@@ -1226,7 +1304,12 @@ export function buildBarLabelCandidates<TParams, TPlacement extends string = Bar
         const isInside = placement.startsWith('inside');
         // Inside labels reserve `spacing` on the end they anchor against, so the gap survives the engine's
         // flush/containment (not just the anchor); centred labels reserve nothing.
-        const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
+        const insets = insideBarValueInsets(
+            barValueAnchor(placement),
+            isUpward,
+            isVertical,
+            barPlacementSpacing(spacing, placement, endOverhang)
+        );
         let insideRegion = isInside ? insideBarRegion(rect, insets.min, insets.max, isVertical) : undefined;
         if (insideRegion != null && insideCrossRegion != null) {
             insideRegion = isVertical
@@ -1288,7 +1371,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
         isUpward: spec.isUpward,
         isVertical: spec.isVertical,
         placement,
-        spacing: spec.spacing,
+        spacing: barPlacementSpacing(spec.spacing, placement, spec.endOverhang),
         boxPadding,
         rect: spec.rect,
         crossReversed: spec.crossReversed ?? false,
@@ -1300,6 +1383,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
         box: { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh },
         region,
         flushToRegion: isInside ? undefined : false,
+        slideAxis: spec.isVertical ? 'y' : 'x',
         rotation: rotationDeg === 0 ? undefined : rotationDeg,
         anchor,
         placement: reportedPlacement,

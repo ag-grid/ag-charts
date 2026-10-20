@@ -302,7 +302,7 @@ export class Legend {
             padding,
             label,
             maxWidth: itemMaxWidth,
-            label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
+            label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily, lineHeight },
         } = item;
         this.updateItemSelection();
 
@@ -322,12 +322,13 @@ export class Legend {
             markerLabel.label.fontWeight = fontWeight;
             markerLabel.label.fontSize = fontSize;
             markerLabel.label.fontFamily = fontFamily;
+            markerLabel.label.lineHeight = lineHeight;
             markerLabel.isRtl = isRtl;
 
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled, item);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
-            const text = toPlainText(labelText, '<unknown>').replace(LineSplitter, ' ');
+            const text = toPlainText(labelText, '<unknown>');
             markerLabel.label.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, measurer, id);
 
             bboxes.push(markerLabel.getTextMeasureBBox());
@@ -512,15 +513,20 @@ export class Legend {
             addEllipsis = true;
         }
 
-        const result = truncateLine(text, measurer, maxItemWidth - paddedMarkerWidth, addEllipsis);
+        const maxWidth = maxItemWidth - paddedMarkerWidth;
+        const lines = text.split(LineSplitter);
+        const last = lines.length - 1;
+        const truncated = lines.map((line, index) =>
+            truncateLine(line, measurer, maxWidth, addEllipsis && index === last)
+        );
 
-        if (isTextTruncated(result)) {
+        if (truncated.some(isTextTruncated)) {
             this.truncatedItems.add(id);
         } else {
             this.truncatedItems.delete(id);
         }
 
-        return result;
+        return truncated.join('\n');
     }
 
     private updatePagination(

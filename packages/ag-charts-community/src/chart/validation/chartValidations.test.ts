@@ -211,6 +211,22 @@ describe('ChartValidations', () => {
             expect(validations.getVisibleIssues().warning).toEqual([warningIssue]);
         });
 
+        it("a cycle keeps the issues of the data pass, which only a data pass retires, and replaces the cycle's", () => {
+            const { logger, validations } = build();
+            validations.setShowOverlayOn(['warning']);
+            validations.beginCycle([warningIssue]);
+            validations.beginPass('data');
+            logger.warnOnce('missing key');
+            validations.endPass('data');
+
+            validations.beginCycle([]);
+            expect(validations.getVisibleIssues().warning.map((issue) => issue.message)).toEqual(['missing key']);
+
+            validations.beginPass('data');
+            validations.endPass('data');
+            expect(validations.hasVisibleIssues()).toBe(false);
+        });
+
         it('a pass keeps an issue of its phase that it re-raises', () => {
             const { logger, validations, changes } = build();
             validations.setShowOverlayOn(['warning']);
@@ -641,22 +657,26 @@ describe('ChartValidations - chart integration', () => {
     };
 
     function options(extra: Partial<AgCartesianChartOptions>): AgCartesianChartOptions {
-        return prepareTestOptions({
+        return {
             width: 400,
             height: 300,
             data,
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             ...extra,
-        } as AgCartesianChartOptions);
+        } as AgCartesianChartOptions;
     }
+
+    const preparedOptions = (extra: Partial<AgCartesianChartOptions>) => prepareTestOptions(options(extra));
 
     it('reports a series callback exception as a warning to the overlay and the listener, matching the console', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [throwingFormatterSeries],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [throwingFormatterSeries],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
 
         expect(issueRaised).toHaveBeenCalledWith({
@@ -669,7 +689,7 @@ describe('ChartValidations - chart integration', () => {
     });
 
     it('completes the update and throws uncaught for a series callback exception when throwOn selects warning', async () => {
-        const proxy = AgCharts.create(options({ validations: { throwOn: ['warning'] } })) as AgChartProxy;
+        const proxy = (await createChart(options({ validations: { throwOn: ['warning'] } }))) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
 
@@ -677,7 +697,7 @@ describe('ChartValidations - chart integration', () => {
         try {
             await expect(
                 proxy.update(
-                    options({
+                    preparedOptions({
                         series: [
                             {
                                 type: 'bar',
@@ -707,11 +727,13 @@ describe('ChartValidations - chart integration', () => {
     });
 
     it('keeps a callback issue on the overlay across a hover', async () => {
-        chart = await createChart(
-            options({
-                series: [throwingFormatterSeries],
-                validations: { showOverlayOn: ['warning'] },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [throwingFormatterSeries],
+                    validations: { showOverlayOn: ['warning'] },
+                })
+            )
         );
         expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
 
@@ -724,22 +746,24 @@ describe('ChartValidations - chart integration', () => {
 
     it('reports a tooltip renderer exception to the overlay and the listener at the hover that raised it', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'x',
-                        yKey: 'y',
-                        tooltip: {
-                            renderer: () => {
-                                throw new Error('renderer boom');
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            tooltip: {
+                                renderer: () => {
+                                    throw new Error('renderer boom');
+                                },
                             },
                         },
-                    },
-                ],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+                    ],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
         expect(issueRaised).not.toHaveBeenCalled();
 
@@ -755,7 +779,7 @@ describe('ChartValidations - chart integration', () => {
     });
 
     it('throws out of the hover that raised a tooltip renderer exception when throwOn selects warning', async () => {
-        const proxy = AgCharts.create(
+        const proxy = (await createChart(
             options({
                 series: [
                     {
@@ -771,7 +795,7 @@ describe('ChartValidations - chart integration', () => {
                 ],
                 validations: { throwOn: ['warning'] },
             })
-        ) as AgChartProxy;
+        )) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
 
@@ -797,8 +821,10 @@ describe('ChartValidations - chart integration', () => {
         const issueRaised = vi.fn();
         const capture = captureUncaught();
         try {
+            // Bespoke (this and the next test): throwOn raises uncaught errors during create itself, observed through
+            // `captureUncaught` rather than the factory's stability wait, and the next test creates without awaiting.
             const proxy = AgCharts.create(
-                options({
+                preparedOptions({
                     series: [{ type: '' as any, xKey: 'x', yKey: 'y' }],
                     validations: { showOverlayOn: ['warning'], throwOn: ['warning'], issueRaised },
                 })
@@ -826,7 +852,7 @@ describe('ChartValidations - chart integration', () => {
         const capture = captureUncaught();
         try {
             const proxy = AgCharts.create(
-                options({
+                preparedOptions({
                     series: [{ type: 'bar', xKey: 'x', yKey: 'missing' }],
                     validations: { throwOn: ['warning'] },
                 })
@@ -848,11 +874,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('shows an omitted series type on the overlay and tells the listener, with throwOn unset', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [{ xKey: 'x', yKey: 'y' } as any],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [{ xKey: 'x', yKey: 'y' } as any],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
 
         expect(issueRaised).toHaveBeenCalledWith({
@@ -865,11 +893,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('reports an invalid itemStyler return value to the overlay and the listener as a warning', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
 
         expect(issueRaised).toHaveBeenCalledWith({
@@ -882,7 +912,7 @@ describe('ChartValidations - chart integration', () => {
 
     it('drops an invalid data value warning once a same-length data update supplies a valid value', async () => {
         const series: AgLineSeriesOptions = { type: 'line', xKey: 'x', yKey: 'y' };
-        const proxy = AgCharts.create(
+        const proxy = (await createChart(
             options({
                 data: [
                     { x: null, y: 10 },
@@ -891,23 +921,25 @@ describe('ChartValidations - chart integration', () => {
                 series: [series],
                 validations: { showOverlayOn: ['warning'] },
             })
-        ) as AgChartProxy;
+        )) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(2);
 
-        await proxy.update(options({ data, series: [series], validations: { showOverlayOn: ['warning'] } }));
+        await proxy.update(preparedOptions({ data, series: [series], validations: { showOverlayOn: ['warning'] } }));
 
         expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
         expectWarningsCalls().toHaveLength(2);
     });
 
     it('keeps a cached itemStyler issue across a data pass that does not clear the callback cache', async () => {
-        chart = await createChart(
-            options({
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
-                validations: { showOverlayOn: ['warning'] },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
+                    validations: { showOverlayOn: ['warning'] },
+                })
+            )
         );
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
 
@@ -929,25 +961,67 @@ describe('ChartValidations - chart integration', () => {
                 },
             },
         };
-        const proxy = AgCharts.create(
+        const proxy = (await createChart(
             options({ series: [series], validations: { showOverlayOn: ['warning'] } })
-        ) as AgChartProxy;
+        )) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
         await hoverAction(600, 400)(chart);
         await waitForChartStability(chart);
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
 
-        await proxy.update(options({ data: [...data], series: [series], validations: { showOverlayOn: ['warning'] } }));
+        await proxy.update(
+            preparedOptions({ data: [...data], series: [series], validations: { showOverlayOn: ['warning'] } })
+        );
 
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
         expectWarningsCalls().toHaveLength(1);
     });
 
-    it('keeps a missing-key warning across an incremental data transaction, which cannot re-check keys', async () => {
+    it.each([
+        { name: 'a title', delta: { title: { text: 'After' } } },
+        { name: 'the same title again', delta: { title: { text: 'Before' } } },
+        { name: 'a padding', delta: { padding: { top: 20 } } },
+    ])('keeps a missing-key warning across $name delta, which does not re-run the data pass', async ({ delta }) => {
+        const proxy = AgCharts.create(
+            options({
+                data: [{ x: 'A' }, { x: 'B' }],
+                title: { text: 'Before' },
+                validations: { showOverlayOn: ['warning'] },
+            })
+        ) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+
+        await proxy.updateDelta(delta);
+        await waitForChartStability(chart);
+
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+        expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('drops a missing-key warning once a delta supplies the data with the key', async () => {
         const proxy = AgCharts.create(
             options({ data: [{ x: 'A' }, { x: 'B' }], validations: { showOverlayOn: ['warning'] } })
         ) as AgChartProxy;
+        chart = deproxy(proxy);
+        await proxy.waitForUpdate();
+        await proxy.updateDelta({ title: { text: 'After' } });
+        expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
+
+        await proxy.updateDelta({ data });
+        await waitForChartStability(chart);
+
+        expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
+        expectWarningsCalls().toHaveLength(1);
+    });
+
+    it('keeps a missing-key warning across an incremental data transaction, which cannot re-check keys', async () => {
+        const proxy = (await createChart(
+            options({ data: [{ x: 'A' }, { x: 'B' }], validations: { showOverlayOn: ['warning'] } })
+        )) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
@@ -960,14 +1034,14 @@ describe('ChartValidations - chart integration', () => {
     });
 
     it('drops a data warning once a same-length data update supplies the key', async () => {
-        const proxy = AgCharts.create(
+        const proxy = (await createChart(
             options({ data: [{ x: 'A' }, { x: 'B' }], validations: { showOverlayOn: ['warning'] } })
-        ) as AgChartProxy;
+        )) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
 
-        await proxy.update(options({ validations: { showOverlayOn: ['warning'] } }));
+        await proxy.update(preparedOptions({ validations: { showOverlayOn: ['warning'] } }));
 
         expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
         expectWarningsCalls().toHaveLength(1);
@@ -985,7 +1059,7 @@ describe('ChartValidations - chart integration', () => {
                 },
             },
         };
-        const proxy = AgCharts.create(
+        const proxy = (await createChart(
             options({
                 data: [
                     { x: 'A', y: -10 },
@@ -994,19 +1068,19 @@ describe('ChartValidations - chart integration', () => {
                 series: [series],
                 validations: { showOverlayOn: ['warning'] },
             })
-        ) as AgChartProxy;
+        )) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
 
-        await proxy.update(options({ series: [series], validations: { showOverlayOn: ['warning'] } }));
+        await proxy.update(preparedOptions({ series: [series], validations: { showOverlayOn: ['warning'] } }));
 
         expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
         expectWarningsCalls().toHaveLength(1);
     });
 
     it('completes the update, shows the overlay and throws uncaught for a missing data key when throwOn selects warning', async () => {
-        const proxy = AgCharts.create(options({ validations: { throwOn: ['warning'] } })) as AgChartProxy;
+        const proxy = (await createChart(options({ validations: { throwOn: ['warning'] } }))) as AgChartProxy;
         chart = deproxy(proxy);
         await proxy.waitForUpdate();
 
@@ -1014,7 +1088,7 @@ describe('ChartValidations - chart integration', () => {
         try {
             await expect(
                 proxy.update(
-                    options({
+                    preparedOptions({
                         series: [{ type: 'bar', xKey: 'x', yKey: 'missing' }],
                         validations: { showOverlayOn: ['warning'], throwOn: ['warning'] },
                     })
@@ -1033,11 +1107,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('shows an unrecognised series type on the overlay and tells the listener, with throwOn unset', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [{ type: '' as any, xKey: 'x', yKey: 'y' }],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [{ type: '' as any, xKey: 'x', yKey: 'y' }],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
 
         expect(issueRaised).toHaveBeenCalledWith({
@@ -1050,11 +1126,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('shows a dropped enterprise module on the overlay and tells the listener, with throwOn unset', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                zoom: { enabled: true },
-                validations: { showOverlayOn: ['error'], issueRaised },
-            } as Partial<AgCartesianChartOptions>)
+        chart = deproxy(
+            await createChart(
+                options({
+                    zoom: { enabled: true },
+                    validations: { showOverlayOn: ['error'], issueRaised },
+                } as Partial<AgCartesianChartOptions>)
+            )
         );
 
         expect(issueRaised).toHaveBeenCalledWith({
@@ -1067,11 +1145,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('carries the issues of a validated pass into the chart it creates', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
 
         const issues: LogIssue[] = chart.ctx.validations.issues;

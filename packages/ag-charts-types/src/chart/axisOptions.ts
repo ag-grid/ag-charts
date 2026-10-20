@@ -80,6 +80,8 @@ export interface AgAxisCaptionOptions {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the title. */
     fontSize?: FontSize;
+    /** The line height in pixels to use for the title. Defaults to the natural line height of the font. */
+    lineHeight?: PixelSize;
     /** The font family to use for the title. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
     /** The colour to use for the title. A colour string, or a theme-colour reference object. */
@@ -191,7 +193,7 @@ export interface AgAxisLineOptions {
     enabled?: boolean;
     /**
      * The width in pixels of the axis line.
-     * @deprecated v14.2.0 Use `strokeWidth` instead.
+     * @deprecated v14.3.0 Use `strokeWidth` instead.
      */
     width?: PixelSize;
     /** The colour of the axis line. */
@@ -238,6 +240,8 @@ export interface AgBaseAxisLabelStyleOptions extends LabelBoxOptions {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the labels. */
     fontSize?: FontSize;
+    /** The line height in pixels to use for the labels. Defaults to the natural line height of the font. */
+    lineHeight?: PixelSize;
     /** The font family to use for the labels. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
     /** Spacing in pixels between the axis label and the tick. */

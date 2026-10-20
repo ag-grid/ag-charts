@@ -41,10 +41,11 @@ import {
     clamp,
     clampArray,
     deepFreeze,
+    drawnLineHeight,
     findMinMax,
-    findRangeExtent,
     isArray,
     mergeDefaults,
+    stylerLineHeightOverrides,
     toPlainText,
 } from 'ag-charts-core';
 import type {
@@ -86,7 +87,7 @@ import type { AxisLabelFormatterCache } from './axisLabelUtil';
 import { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { type AxisGroupDatumTranslation, NiceMode, type TickDatum } from './axisUtil';
-import { type AnyTimeInterval, isLabelFitEnabled } from './generateTicksUtils';
+import type { AnyTimeInterval } from './generateTicksUtils';
 
 export interface AxisPickDatum {
     readonly index: number;
@@ -154,32 +155,55 @@ interface TickLayout<D, TickLayoutMeta> {
     layout?: TickLayoutMeta;
 }
 
+/**
+ * Everything that positions a tick layout: if an input is missing here, a layout is reused at stale positions, so
+ * anything read by `calculateTickLayout` that isn't a domain, option or the zoom must be part of the key. The range is
+ * the one that changes without an option (a container resize, or wider labels on the other axis). The padding and
+ * chart layout fields only change with options, which drop the cache; they are kept as defence in depth.
+ */
 interface TickLayoutCache<D, TickLayoutMeta> {
     domain: D[];
-    rangeExtent: number;
+    /** Whether comparing `domain` by element identity is sound, which it isn't for objects mutated in place. */
+    domainIsPrimitive: boolean;
+    range: [number, number];
     nice: [boolean, boolean];
     gridLength: number;
+    gridPadding: number;
+    seriesAreaPadding: number;
     visibleRange: [number, number];
     initialPrimaryTickCount: AxisPrimaryTickCount | undefined;
-    scrollbarKey: string;
+    chartLayoutKey: string;
     tickLayout: TickLayout<D, TickLayoutMeta>;
+}
+
+type TickLayoutCacheKey<D, TickLayoutMeta> = Omit<
+    TickLayoutCache<D, TickLayoutMeta>,
+    'tickLayout' | 'domainIsPrimitive'
+>;
+
+/** Whether `value` is immutable, so a domain of such values compared by identity can't have changed in place. */
+function isPrimitiveCategory(value: unknown) {
+    return value == null || (typeof value !== 'object' && typeof value !== 'function');
 }
 
 function tickLayoutCacheValid<D, TickLayoutMeta>(
     a: TickLayoutCache<D, TickLayoutMeta>,
-    b: Omit<TickLayoutCache<D, TickLayoutMeta>, 'tickLayout'>
+    b: TickLayoutCacheKey<D, TickLayoutMeta>
 ): boolean {
     return (
-        a.domain === b.domain &&
-        a.rangeExtent === b.rangeExtent &&
+        a.range[0] === b.range[0] &&
+        a.range[1] === b.range[1] &&
         a.nice[0] === b.nice[0] &&
         a.nice[1] === b.nice[1] &&
         a.gridLength === b.gridLength &&
+        a.gridPadding === b.gridPadding &&
+        a.seriesAreaPadding === b.seriesAreaPadding &&
         a.visibleRange[0] === b.visibleRange[0] &&
         a.visibleRange[1] === b.visibleRange[1] &&
-        a.scrollbarKey === b.scrollbarKey &&
+        a.chartLayoutKey === b.chartLayoutKey &&
         a.initialPrimaryTickCount?.unzoomed === b.initialPrimaryTickCount?.unzoomed &&
-        a.initialPrimaryTickCount?.zoomed === b.initialPrimaryTickCount?.zoomed
+        a.initialPrimaryTickCount?.zoomed === b.initialPrimaryTickCount?.zoomed &&
+        (a.domain === b.domain || arraysEqual(a.domain, b.domain))
     );
 }
 
@@ -492,7 +516,8 @@ export abstract class Axis<
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering()),
             // The tick-layout cache key carries no font identity.
-            this.moduleCtx.eventsHub.on('font:load', () => this.invalidateLayoutCache())
+            this.moduleCtx.eventsHub.on('font:load', () => this.invalidateLayoutCache()),
+            this.moduleCtx.formatManager.addListener('format-changed', () => this.invalidateLayoutCache())
         );
     }
 
@@ -665,15 +690,19 @@ export abstract class Axis<
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
+            lineHeight: label.lineHeight,
             padding: label.padding,
             spacing: label.spacing,
         } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
+            const lineHeight = drawnLineHeight(label);
             stylerOutput = this.cachedCallWithContext(label.itemStyler, {
                 ...params,
                 ...defaultStyle,
+                lineHeight,
             });
+            if (stylerOutput) stylerOutput = stylerLineHeightOverrides(stylerOutput, label, lineHeight);
         }
         // OPTIMIZATION: with nothing to merge over it, `defaultStyle` is already the resolved style.
         if (stylerOutput == null && additionalStyles == null) return defaultStyle;
@@ -688,6 +717,7 @@ export abstract class Axis<
             fontSize: merged.fontSize,
             fontStyle: merged.fontStyle,
             fontWeight: merged.fontWeight,
+            lineHeight: merged.lineHeight,
             padding: merged.padding,
             spacing: merged.spacing,
         } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
@@ -712,13 +742,40 @@ export abstract class Axis<
     }
 
     processData() {
-        // Invalidate layout cache
-        this.invalidateLayoutCache();
+        if (this.retainsTickLayoutAcrossData()) {
+            this.tickDatumsStale = true;
+        } else {
+            this.invalidateLayoutCache();
+        }
 
         const { includeInvisibleDomains, boundSeries, direction } = this;
         const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
         const domains = visibleSeries.map((series) => series.getDomain(direction));
         this.setDomains(...domains);
+    }
+
+    /** Whether the tick layout is fully determined by the domain, range and options, and not by the series data. */
+    protected get tickLayoutIgnoresData(): boolean {
+        return false;
+    }
+
+    private get titleOptions() {
+        return (this.options as { title?: { text?: string; formatter?: unknown } }).title;
+    }
+
+    private retainsTickLayoutAcrossData(): boolean {
+        const { formatter, itemStyler } = this.options.label;
+        // Category objects mutated in place compare equal to themselves, so their labels would never be measured again.
+        const { unzoomedTickLayoutCache, tickLayoutCache } = this;
+        return (
+            this.tickLayoutIgnoresData &&
+            formatter == null &&
+            itemStyler == null &&
+            this.titleOptions?.formatter == null &&
+            this.moduleCtx.formatManager.formatter == null &&
+            (unzoomedTickLayoutCache?.domainIsPrimitive ?? true) &&
+            (tickLayoutCache?.domainIsPrimitive ?? true)
+        );
     }
 
     getDomainExtentsNice(): [boolean, boolean] {
@@ -755,14 +812,15 @@ export abstract class Axis<
 
     protected chartLayout?: ChartLayout;
     private unzoomedTickLayoutCache: TickLayoutCache<D, TickLayoutMeta> | undefined;
-    calculateDomain(initialPrimaryTickCount?: AxisPrimaryTickCount, scrollbarKey: string = 'none') {
+    calculateDomain(initialPrimaryTickCount?: AxisPrimaryTickCount, chartLayoutKey: string = 'none') {
         const {
             dataDomain: { domain },
-            range,
             scale,
             gridLength,
+            gridPadding,
+            seriesAreaPadding,
         } = this;
-        const rangeExtent = findRangeExtent(range);
+        const range = this.copyRange();
         const visibleRange = [0, 1] as [number, number];
 
         const nice = this.getDomainExtentsNice();
@@ -770,21 +828,24 @@ export abstract class Axis<
         this.updateScale();
 
         const { unzoomedTickLayoutCache } = this;
+        const key: TickLayoutCacheKey<D, TickLayoutMeta> = {
+            domain,
+            range,
+            nice,
+            gridLength,
+            gridPadding,
+            seriesAreaPadding,
+            visibleRange,
+            initialPrimaryTickCount,
+            chartLayoutKey,
+        };
         let unzoomedTickLayout: TickLayout<D, TickLayoutMeta>;
-        if (
-            unzoomedTickLayoutCache == null ||
-            !tickLayoutCacheValid(unzoomedTickLayoutCache, {
-                domain,
-                rangeExtent,
-                nice,
-                gridLength,
-                visibleRange,
-                initialPrimaryTickCount,
-                scrollbarKey,
-            })
-        ) {
+        let unzoomedReused = false;
+        if (unzoomedTickLayoutCache == null || !tickLayoutCacheValid(unzoomedTickLayoutCache, key)) {
             const scaleRange = scale.range;
             this.setScaleRange([0, 1]);
+            // Band geometry reads `scale.step` after tick generation has restored the scale's domain.
+            scale.domain = domain;
 
             const niceMode = nice.map((n) => (n ? NiceMode.TickAndDomain : NiceMode.Off));
             unzoomedTickLayout = this.calculateTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
@@ -792,28 +853,41 @@ export abstract class Axis<
             scale.range = scaleRange;
 
             this.unzoomedTickLayoutCache = {
-                domain,
-                rangeExtent,
-                nice,
-                gridLength,
-                visibleRange,
-                initialPrimaryTickCount,
-                scrollbarKey,
+                ...key,
+                domainIsPrimitive: domain.every(isPrimitiveCategory),
                 tickLayout: unzoomedTickLayout,
             };
         } else {
             unzoomedTickLayout = unzoomedTickLayoutCache.tickLayout;
+            // So that later passes compare the same array by reference, not element by element.
+            unzoomedTickLayoutCache.domain = domain;
+            unzoomedReused = true;
         }
 
         this.updateScale();
 
         scale.domain = unzoomedTickLayout.niceDomain;
 
-        return { unzoomedTickLayout, domain: scale.domain };
+        return { unzoomedTickLayout, unzoomedReused, domain: scale.domain };
+    }
+
+    private copyRange(): [number, number] {
+        const [start, end] = this.range;
+        return [start, end];
     }
 
     private tickLayoutCache: TickLayoutCache<D, TickLayoutMeta> | undefined;
     protected tickLayout: TickLayoutMeta | undefined = undefined;
+    private tickDatumsStale = false;
+
+    /** Sets the axis state that calculating `layout` set as a side effect, which a reused layout doesn't set again. */
+    protected restoreTickLayoutState(_layout: TickLayoutMeta): void {}
+
+    /** A copy of `layout` whose datums are new objects, so that the nodes bound to them animate as updated, not added. */
+    protected refreshTickDatums(layout: TickLayoutMeta): TickLayoutMeta {
+        return layout;
+    }
+
     calculateLayout(
         initialPrimaryTickCount?: AxisPrimaryTickCount,
         chartLayout?: ChartLayout
@@ -822,48 +896,50 @@ export abstract class Axis<
         bbox?: BBox;
     } {
         this.chartLayout = chartLayout;
-        const scrollbarKey = this.getScrollbarLayoutCacheKey(chartLayout);
+        const chartLayoutKey = this.getChartLayoutCacheKey(chartLayout);
 
         const { visibleRange } = this;
         const unzoomed = visibleRange[0] === 0 && visibleRange[1] === 1;
-        const { unzoomedTickLayout, domain } = this.calculateDomain(initialPrimaryTickCount, scrollbarKey);
+        const { unzoomedTickLayout, unzoomedReused, domain } = this.calculateDomain(
+            initialPrimaryTickCount,
+            chartLayoutKey
+        );
 
         const nice = this.getDomainExtentsNice();
 
         let tickLayout: TickLayout<D, TickLayoutMeta>;
+        let reused: boolean;
         if (unzoomed) {
             tickLayout = unzoomedTickLayout;
+            reused = unzoomedReused;
         } else {
-            const { range, gridLength } = this;
-            const rangeExtent = findRangeExtent(range);
+            const { gridLength, gridPadding, seriesAreaPadding } = this;
             const niceMode = nice.map((n) => (n ? NiceMode.TicksOnly : NiceMode.Off));
             const { tickLayoutCache } = this;
-            if (
-                tickLayoutCache == null ||
-                !tickLayoutCacheValid(tickLayoutCache, {
-                    domain,
-                    rangeExtent,
-                    nice,
-                    gridLength,
-                    visibleRange,
-                    initialPrimaryTickCount,
-                    scrollbarKey,
-                })
-            ) {
+            const key: TickLayoutCacheKey<D, TickLayoutMeta> = {
+                domain,
+                range: this.copyRange(),
+                nice,
+                gridLength,
+                gridPadding,
+                seriesAreaPadding,
+                visibleRange,
+                initialPrimaryTickCount,
+                chartLayoutKey,
+            };
+            if (tickLayoutCache == null || !tickLayoutCacheValid(tickLayoutCache, key)) {
                 tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
 
                 this.tickLayoutCache = {
-                    domain,
-                    rangeExtent,
-                    nice,
-                    gridLength,
-                    visibleRange,
-                    initialPrimaryTickCount,
-                    scrollbarKey,
+                    ...key,
+                    domainIsPrimitive: domain.every(isPrimitiveCategory),
                     tickLayout,
                 };
+                reused = false;
             } else {
                 tickLayout = tickLayoutCache.tickLayout;
+                tickLayoutCache.domain = domain;
+                reused = true;
             }
         }
 
@@ -875,6 +951,14 @@ export abstract class Axis<
                 ? { zoomed: zoomedTickCount, unzoomed: unzoomedTickCount }
                 : undefined;
 
+        if (tickLayout.layout != null) {
+            this.restoreTickLayoutState(tickLayout.layout);
+            if (reused && this.tickDatumsStale) {
+                // Written back so that later passes of this update bind the same datums.
+                tickLayout.layout = this.refreshTickDatums(tickLayout.layout);
+            }
+        }
+        this.tickDatumsStale = false;
         this.tickLayout = tickLayout.layout;
         this.layout.label = {
             fractionDigits: fractionDigits,
@@ -894,15 +978,14 @@ export abstract class Axis<
         this.tickLayout = undefined;
     }
 
-    private getScrollbarLayoutCacheKey(chartLayout?: ChartLayout): string {
-        const scrollbar = chartLayout?.scrollbars?.[this.id];
-        if (!scrollbar?.enabled) {
-            // Fitted labels depend on the axis cap even without a scrollbar.
-            return isLabelFitEnabled(this.options.label as { maxWidth?: number; maxHeight?: number })
-                ? `none:${chartLayout?.sizeLimit}`
-                : 'none';
-        }
-        return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}:${chartLayout?.sizeLimit}`;
+    private getChartLayoutCacheKey(chartLayout?: ChartLayout): string {
+        if (chartLayout == null) return 'none';
+        const { padding, sizeLimit } = chartLayout;
+        const scrollbar = chartLayout.scrollbars?.[this.id];
+        const scrollbarKey = scrollbar?.enabled
+            ? `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}`
+            : 'none';
+        return `${sizeLimit}:${padding.top}:${padding.right}:${padding.bottom}:${padding.left}:${scrollbarKey}`;
     }
 
     abstract calculateTickLayout(
@@ -1228,8 +1311,7 @@ export abstract class Axis<
     protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;
         const boundSeries = this.formatterBoundSeries.get();
-        const title = (this.options as { title?: { text?: string } }).title;
-        return { domain, direction, boundSeries, defaultValue: title?.text };
+        return { domain, direction, boundSeries, defaultValue: this.titleOptions?.text };
     }
 
     protected normaliseDataDomain(d: DomainWithMetadata<D>): { domain: D[]; clipped: boolean } {

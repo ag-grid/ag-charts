@@ -52,6 +52,7 @@ import {
     optionsDefs,
     or,
     positiveNumber,
+    positiveNumberNonZero,
     ratio,
     required,
     strictUnion,
@@ -504,6 +505,7 @@ export const fontOptionsDef: OptionsDefs<TextOptions> = {
     color: colorOrRef,
     fontFamily: fontFamilyFull,
     fontSize: positiveNumber,
+    lineHeight: positiveNumberNonZero,
     fontStyle: union('normal', 'italic', 'oblique'),
     fontWeight: fontWeight,
 };
@@ -537,7 +539,7 @@ export const borderOptionsDef: OptionsDefs<BorderOptions> = {
 
 export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
     border: borderOptionsDef,
-    cornerRadius: number,
+    cornerRadius: positiveNumber,
     padding,
     ...fillOptionsDef,
 };

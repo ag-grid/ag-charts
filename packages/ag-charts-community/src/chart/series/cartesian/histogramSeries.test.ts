@@ -21,7 +21,7 @@ import {
     cartesianChartAssertions,
     clickAction,
     compareImageSnapshot,
-    createChart as createMagnitudeChart,
+    createChart,
     createSceneGeometrySampler,
     deproxy,
     doubleClickAction,
@@ -76,20 +76,19 @@ describe('HistogramSeries', () => {
 
     const nodeDataOf = (c: any) => (deproxy(c).series[0] as any).getNodeData() as any[];
 
-    const createHistogramChart = (example: { options: AgChartOptions }, testOptions: AgCartesianChartOptions = {}) => {
-        return AgCharts.create({
-            ...prepareTestOptions({}),
-            ...(example.options as AgCartesianChartOptions),
-            ...testOptions,
-        });
-    };
+    const exampleOptions = (
+        example: { options: AgChartOptions },
+        testOptions: AgCartesianChartOptions = {}
+    ): AgCartesianChartOptions => ({
+        ...(example.options as AgCartesianChartOptions),
+        ...testOptions,
+    });
 
     describe('#create', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
-                chart = createHistogramChart(example);
-                await waitForChartStability(chart);
+                chart = await createChart(exampleOptions(example));
                 await example.assertions(chart);
             }
         );
@@ -97,7 +96,7 @@ describe('HistogramSeries', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
-                chart = createHistogramChart(example);
+                chart = await createChart(exampleOptions(example));
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -126,8 +125,7 @@ describe('HistogramSeries', () => {
                         reverse: true,
                     },
                 ];
-                chart = createHistogramChart(example, { axes });
-                await waitForChartStability(chart);
+                chart = await createChart(exampleOptions(example, { axes }));
                 await example.assertions(chart);
             });
 
@@ -147,7 +145,7 @@ describe('HistogramSeries', () => {
                         reverse: true,
                     },
                 ];
-                chart = createHistogramChart(example, { axes });
+                chart = await createChart(exampleOptions(example, { axes }));
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -171,10 +169,7 @@ describe('HistogramSeries', () => {
                 }),
             };
 
-            prepareTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createChart(options));
 
             const series = chart.series.find((v: any) => v.type === 'scatter');
             if (series == null) fail('No series found');
@@ -198,54 +193,49 @@ describe('HistogramSeries', () => {
     describe('getItemId', () => {
         const itemIdsOf = (c: any) => nodeDataOf(c).map((n) => n.itemId);
 
-        const createBinnedChart = (
+        const binnedOptions = (
             series: Partial<NonNullable<AgCartesianChartOptions['series']>[number]> = {},
             data?: any[]
-        ) => {
-            const options: AgCartesianChartOptions = {
-                data: data ?? [{ x: 1 }, { x: 5 }, { x: 12 }, { x: 18 }],
-                series: [
-                    {
-                        type: 'histogram',
-                        xKey: 'x',
-                        bins: [
-                            [0, 10],
-                            [10, 20],
-                        ],
-                        ...(series as object),
-                    },
-                ],
-            };
-            prepareTestOptions(options as any);
-            return AgCharts.create(options);
-        };
+        ): AgCartesianChartOptions => ({
+            data: data ?? [{ x: 1 }, { x: 5 }, { x: 12 }, { x: 18 }],
+            series: [
+                {
+                    type: 'histogram',
+                    xKey: 'x',
+                    bins: [
+                        [0, 10],
+                        [10, 20],
+                    ],
+                    ...(series as object),
+                },
+            ],
+        });
 
         it('auto-generates an id from the bin boundaries', async () => {
-            chart = createBinnedChart();
-            await waitForChartStability(chart);
+            chart = await createChart(binnedOptions());
 
             expect(itemIdsOf(chart)).toEqual(['bin:0,10', 'bin:10,20']);
         });
 
         it('disambiguates negative and fractional bin boundaries', async () => {
-            chart = createBinnedChart(
-                {
-                    bins: [
-                        [-10, -5],
-                        [-5, 0.5],
-                    ],
-                },
-                [{ x: -8 }, { x: -1 }]
+            chart = await createChart(
+                binnedOptions(
+                    {
+                        bins: [
+                            [-10, -5],
+                            [-5, 0.5],
+                        ],
+                    },
+                    [{ x: -8 }, { x: -1 }]
+                )
             );
-            await waitForChartStability(chart);
 
             expect(itemIdsOf(chart)).toEqual(['bin:-10,-5', 'bin:-5,0.5']);
         });
 
         it('uses the getItemId callback to override the id', async () => {
             const getItemId = vi.fn((p: { binIndex: number }) => `b${p.binIndex}`);
-            chart = createBinnedChart({ getItemId });
-            await waitForChartStability(chart);
+            chart = await createChart(binnedOptions({ getItemId }));
 
             expect(itemIdsOf(chart)).toEqual(['b0', 'b1']);
             expect(getItemId).toHaveBeenCalledWith(
@@ -262,15 +252,13 @@ describe('HistogramSeries', () => {
         it('passes the chart context to the callback', async () => {
             const context = { tenant: 'acme' };
             const getItemId = vi.fn((p: { context?: any }) => `${p.context?.tenant}`);
-            chart = createBinnedChart({ context, getItemId });
-            await waitForChartStability(chart);
+            chart = await createChart(binnedOptions({ context, getItemId }));
 
             expect(itemIdsOf(chart)).toEqual(['acme', 'acme']);
         });
 
         it('keeps ids stable across a data update that preserves bin boundaries', async () => {
-            chart = createBinnedChart();
-            await waitForChartStability(chart);
+            chart = await createChart(binnedOptions());
             const before = itemIdsOf(chart);
             const frequenciesBefore = nodeDataOf(chart).map((n) => n.frequency);
 
@@ -298,8 +286,7 @@ describe('HistogramSeries', () => {
             const getItemId = () => {
                 throw new Error('boom');
             };
-            chart = createBinnedChart({ getItemId });
-            await waitForChartStability(chart);
+            chart = await createChart(binnedOptions({ getItemId }));
 
             expect(itemIdsOf(chart)).toEqual(['bin:0,10', 'bin:10,20']);
             expectWarningsCalls().toHaveLength(1);
@@ -322,18 +309,15 @@ describe('HistogramSeries', () => {
             [30, 40],
         ];
 
-        const createChart = (series: Partial<NonNullable<AgCartesianChartOptions['series']>[number]> = {}) => {
-            const options: AgCartesianChartOptions = {
-                data: sourceData,
-                series: [{ type: 'histogram', xKey: 'x', bins, ...(series as object) }],
-            };
-            prepareTestOptions(options as any);
-            return AgCharts.create(options);
-        };
+        const binOptions = (
+            series: Partial<NonNullable<AgCartesianChartOptions['series']>[number]> = {}
+        ): AgCartesianChartOptions => ({
+            data: sourceData,
+            series: [{ type: 'histogram', xKey: 'x', bins, ...(series as object) }],
+        });
 
         it('exposes positional bin metadata and raw source rows for every bin (AC1, AC2, TC1)', async () => {
-            chart = createChart();
-            await waitForChartStability(chart);
+            chart = await createChart(binOptions());
             const nodes = nodeDataOf(chart);
 
             // One node per bin, including empty bins, indexed positionally (never -1).
@@ -375,8 +359,7 @@ describe('HistogramSeries', () => {
         ] as const)(
             'computes aggregatedValue for $aggregation aggregation (yKey=$yKey) (AC3)',
             async ({ aggregation, yKey, expected }) => {
-                chart = createChart({ aggregation, yKey });
-                await waitForChartStability(chart);
+                chart = await createChart(binOptions({ aggregation, yKey }));
                 const firstBin = nodeDataOf(chart)[0];
 
                 // frequency is always the row count, regardless of aggregation mode.
@@ -386,24 +369,21 @@ describe('HistogramSeries', () => {
         );
 
         it('does not let areaPlot change aggregatedValue (AC3)', async () => {
-            chart = createChart({ aggregation: 'sum', yKey: 'y', areaPlot: true });
-            await waitForChartStability(chart);
+            chart = await createChart(binOptions({ aggregation: 'sum', yKey: 'y', areaPlot: true }));
             expect(nodeDataOf(chart)[0].aggregatedValue).toBe(6);
         });
 
         it('carries the area-adjusted plotted height as cumulativeValue for the crosshair', async () => {
             // Crosshair snaps to the plotted height (`cumulativeValue`, area-adjusted), not the raw
             // `aggregatedValue`. Bin width is 10, so 6 -> 0.6.
-            chart = createChart({ aggregation: 'sum', yKey: 'y', areaPlot: true });
-            await waitForChartStability(chart);
+            chart = await createChart(binOptions({ aggregation: 'sum', yKey: 'y', areaPlot: true }));
             const firstBin = nodeDataOf(chart)[0];
             expect(firstBin.aggregatedValue).toBe(6);
             expect(firstBin.cumulativeValue).toBeCloseTo(0.6);
         });
 
         it('keeps cumulativeValue and aggregatedValue equal without areaPlot', async () => {
-            chart = createChart({ aggregation: 'sum', yKey: 'y' });
-            await waitForChartStability(chart);
+            chart = await createChart(binOptions({ aggregation: 'sum', yKey: 'y' }));
             const firstBin = nodeDataOf(chart)[0];
             expect(firstBin.cumulativeValue).toBe(6);
             expect(firstBin.aggregatedValue).toBe(6);
@@ -432,9 +412,7 @@ describe('HistogramSeries', () => {
                     },
                 ],
             };
-            prepareTestOptions(options as any);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const [zeroBin, nonZeroBin] = nodeDataOf(chart);
             expect(zeroBin.frequency).toBe(2);
@@ -457,8 +435,7 @@ describe('HistogramSeries', () => {
 
         it('fires seriesNodeClick with the bin params (AC1, AC2)', async () => {
             const seriesNodeClick = vi.fn();
-            chart = createChart({ listeners: { seriesNodeClick } });
-            await waitForChartStability(chart);
+            chart = await createChart(binOptions({ listeners: { seriesNodeClick } }));
 
             await clickFirstBin(chart);
 
@@ -485,8 +462,7 @@ describe('HistogramSeries', () => {
 
         it('fires seriesNodeDoubleClick with the bin params', async () => {
             const seriesNodeDoubleClick = vi.fn();
-            chart = createChart({ listeners: { seriesNodeDoubleClick } });
-            await waitForChartStability(chart);
+            chart = await createChart(binOptions({ listeners: { seriesNodeDoubleClick } }));
 
             const { canvasX: x, canvasY: y } = firstBinCanvasPoint(chart);
             await doubleClickAction(x, y)(chart);
@@ -500,8 +476,7 @@ describe('HistogramSeries', () => {
 
         it('passes the bin params to the tooltip renderer (AC1, AC2)', async () => {
             const renderer = vi.fn((_params: any) => ({}));
-            chart = createChart({ tooltip: { renderer } });
-            await waitForChartStability(chart);
+            chart = await createChart(binOptions({ tooltip: { renderer } }));
 
             const { canvasX: x, canvasY: y } = firstBinCanvasPoint(chart);
             await hoverAction(x, y)(chart);
@@ -524,8 +499,7 @@ describe('HistogramSeries', () => {
         it('resolves distinct tooltip content for each of two consecutive empty bins', async () => {
             // Empty bins all share groupIndex -1; keying by positional binIndex keeps them distinct.
             const renderer = vi.fn((_params: any) => ({}));
-            chart = createChart({ tooltip: { renderer } });
-            await waitForChartStability(chart);
+            chart = await createChart(binOptions({ tooltip: { renderer } }));
 
             const series = deproxy(chart).series[0] as any;
             const emptyBins = (series.getNodeData() as any[]).filter((n) => n.frequency === 0);
@@ -553,23 +527,19 @@ describe('HistogramSeries', () => {
         ];
         const bins: [number, number][] = [[0, 10]];
 
-        const createChart = (label: Record<string, unknown>) => {
-            const options: AgCartesianChartOptions = {
-                data: sourceData,
-                series: [
-                    {
-                        type: 'histogram',
-                        xKey: 'x',
-                        yKey: 'y',
-                        aggregation: 'sum',
-                        bins,
-                        label: { enabled: true, ...label },
-                    },
-                ],
-            };
-            prepareTestOptions(options as any);
-            return AgCharts.create(options);
-        };
+        const labelOptions = (label: Record<string, unknown>): AgCartesianChartOptions => ({
+            data: sourceData,
+            series: [
+                {
+                    type: 'histogram',
+                    xKey: 'x',
+                    yKey: 'y',
+                    aggregation: 'sum',
+                    bins,
+                    label: { enabled: true, ...label },
+                },
+            ],
+        });
 
         const firstBinLabel = (c: any) => {
             const node = nodeDataOf(c)[0];
@@ -577,8 +547,7 @@ describe('HistogramSeries', () => {
         };
 
         it('keeps inside-center at the bar centre (unchanged default)', async () => {
-            chart = createChart({ placement: 'inside-center' });
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions({ placement: 'inside-center' }));
             const { node, label } = firstBinLabel(chart);
             expect(label.x).toBeCloseTo(node.x + node.width / 2);
             expect(label.y).toBeCloseTo(node.y + node.height / 2);
@@ -587,8 +556,7 @@ describe('HistogramSeries', () => {
         });
 
         it('sits the default (no placement) at the bar centre, matching today', async () => {
-            chart = createChart({});
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions({}));
             const { node, label } = firstBinLabel(chart);
             expect(label.x).toBeCloseTo(node.x + node.width / 2);
             expect(label.y).toBeCloseTo(node.y + node.height / 2);
@@ -597,8 +565,7 @@ describe('HistogramSeries', () => {
         });
 
         it('anchors inside-start to the bar base', async () => {
-            chart = createChart({ placement: 'inside-start', spacing: 0 });
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions({ placement: 'inside-start', spacing: 0 }));
             const { node, label } = firstBinLabel(chart);
             expect(label.x).toBeCloseTo(node.x + node.width / 2);
             expect(label.y).toBeCloseTo(node.y + node.height);
@@ -607,8 +574,7 @@ describe('HistogramSeries', () => {
         });
 
         it('anchors inside-end to the bar top', async () => {
-            chart = createChart({ placement: 'inside-end', spacing: 0 });
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions({ placement: 'inside-end', spacing: 0 }));
             const { node, label } = firstBinLabel(chart);
             expect(label.x).toBeCloseTo(node.x + node.width / 2);
             expect(label.y).toBeCloseTo(node.y);
@@ -617,8 +583,7 @@ describe('HistogramSeries', () => {
         });
 
         it('places outside-end above the bar top', async () => {
-            chart = createChart({ placement: 'outside-end', spacing: 0 });
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions({ placement: 'outside-end', spacing: 0 }));
             const { node, label } = firstBinLabel(chart);
             expect(label.x).toBeCloseTo(node.x + node.width / 2);
             expect(label.y).toBeCloseTo(node.y);
@@ -627,8 +592,7 @@ describe('HistogramSeries', () => {
         });
 
         it('places outside-start below the bar base', async () => {
-            chart = createChart({ placement: 'outside-start', spacing: 0 });
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions({ placement: 'outside-start', spacing: 0 }));
             const { node, label } = firstBinLabel(chart);
             expect(label.x).toBeCloseTo(node.x + node.width / 2);
             expect(label.y).toBeCloseTo(node.y + node.height);
@@ -638,24 +602,21 @@ describe('HistogramSeries', () => {
 
         it('applies spacing as an offset from the placement anchor', async () => {
             const spacing = 12;
-            chart = createChart({ placement: 'inside-end', spacing });
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions({ placement: 'inside-end', spacing }));
             const { node, label } = firstBinLabel(chart);
             // inside-end anchors to the bar top; spacing pushes the label down into the bar.
             expect(label.y).toBeCloseTo(node.y + spacing);
         });
 
         it('accepts a placement array and honours its first candidate', async () => {
-            chart = createChart({ placement: ['inside-end', 'inside-center'], spacing: 0 });
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions({ placement: ['inside-end', 'inside-center'], spacing: 0 }));
             const { node, label } = firstBinLabel(chart);
             expect(label.y).toBeCloseTo(node.y);
             expect(label.textBaseline).toBe('top');
         });
 
         it('applies the bar-aligned 8px default gap when spacing is unset', async () => {
-            chart = createChart({ placement: 'inside-end' });
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions({ placement: 'inside-end' }));
             const { node, label } = firstBinLabel(chart);
             // No explicit spacing: the theme's default 8px `spacing` pushes the label in from the bar top.
             expect(label.y).toBeCloseTo(node.y + 8);
@@ -663,21 +624,21 @@ describe('HistogramSeries', () => {
 
         it('folds only the facing side of non-uniform box padding into the offset', async () => {
             // inside-end faces the bar top; only top padding shifts the anchor, not the larger bottom.
-            chart = createChart({
-                placement: 'inside-end',
-                spacing: 0,
-                fill: 'red',
-                padding: { top: 4, right: 6, bottom: 20, left: 2 },
-            });
-            await waitForChartStability(chart);
+            chart = await createChart(
+                labelOptions({
+                    placement: 'inside-end',
+                    spacing: 0,
+                    fill: 'red',
+                    padding: { top: 4, right: 6, bottom: 20, left: 2 },
+                })
+            );
             const { node, label } = firstBinLabel(chart);
             expect(label.y).toBeCloseTo(node.y + 4);
             expect(label.textBaseline).toBe('top');
         });
 
         it('rotates the label a quarter-turn for orientation vertical (bar parity)', async () => {
-            chart = createChart({ placement: 'outside-end', orientation: 'vertical', spacing: 0 });
-            await waitForChartStability(chart);
+            chart = await createChart(labelOptions({ placement: 'outside-end', orientation: 'vertical', spacing: 0 }));
             const { label } = firstBinLabel(chart);
             expect(label.rotation).toBeCloseTo(-Math.PI / 2);
             const series = deproxy(chart).series[0] as any;
@@ -711,18 +672,20 @@ describe('HistogramSeries', () => {
         });
 
         it.each(PLACEMENTS)('renders %s labels as expected', async (placement) => {
-            chart = createHistogramChart(withPlacement({ placement }));
+            chart = await createChart(exampleOptions(withPlacement({ placement })));
             await compare();
         });
 
         it('lets an explicit spacing override the default gap', async () => {
             // spacing: 0 replaces the theme's default 8px spacing, pinning the label flush to the bar top.
-            chart = createHistogramChart(withPlacement({ placement: 'inside-end', spacing: 0 }));
+            chart = await createChart(exampleOptions(withPlacement({ placement: 'inside-end', spacing: 0 })));
             await compare();
         });
 
         it('renders a rotated (vertical) outside-end label clear of the bar', async () => {
-            chart = createHistogramChart(withPlacement({ placement: 'outside-end', orientation: 'vertical' }));
+            chart = await createChart(
+                exampleOptions(withPlacement({ placement: 'outside-end', orientation: 'vertical' }))
+            );
             await compare();
         });
     });
@@ -742,26 +705,25 @@ describe('HistogramSeries', () => {
             [30, 40],
         ];
 
-        const createChart = (series: Partial<NonNullable<AgCartesianChartOptions['series']>[number]> = {}) => {
-            const options: AgCartesianChartOptions = {
-                data: sourceData,
-                series: [{ type: 'histogram', xKey: 'x', yKey: 'y', aggregation: 'sum', bins, ...(series as object) }],
-            };
-            prepareTestOptions(options as any);
-            return AgCharts.create(options);
-        };
+        const stylerOptions = (
+            series: Partial<NonNullable<AgCartesianChartOptions['series']>[number]> = {}
+        ): AgCartesianChartOptions => ({
+            data: sourceData,
+            series: [{ type: 'histogram', xKey: 'x', yKey: 'y', aggregation: 'sum', bins, ...(series as object) }],
+        });
 
         const styleOf = (c: any) => nodeDataOf(c).map((n) => n.style);
 
         it('passes the bin metadata to itemStyler and applies the returned style for every bin', async () => {
             const params: any[] = [];
-            chart = createChart({
-                itemStyler: (p: any) => {
-                    params.push(p);
-                    return { fill: p.frequency > 0 ? 'red' : 'blue' };
-                },
-            });
-            await waitForChartStability(chart);
+            chart = await createChart(
+                stylerOptions({
+                    itemStyler: (p: any) => {
+                        params.push(p);
+                        return { fill: p.frequency > 0 ? 'red' : 'blue' };
+                    },
+                })
+            );
 
             // itemStyler runs for every bin, including the empty one.
             const firstBinParams = params.find((p) => p.binIndex === 0);
@@ -789,13 +751,14 @@ describe('HistogramSeries', () => {
 
         it('applies the series styler to every bin', async () => {
             const params: any[] = [];
-            chart = createChart({
-                styler: (p: any) => {
-                    params.push(p);
-                    return { fill: 'green', strokeWidth: 4 };
-                },
-            });
-            await waitForChartStability(chart);
+            chart = await createChart(
+                stylerOptions({
+                    styler: (p: any) => {
+                        params.push(p);
+                        return { fill: 'green', strokeWidth: 4 };
+                    },
+                })
+            );
 
             expect(params[0]).toMatchObject({
                 seriesId: expect.any(String),
@@ -810,11 +773,12 @@ describe('HistogramSeries', () => {
         });
 
         it('lets itemStyler take precedence over the series styler', async () => {
-            chart = createChart({
-                styler: () => ({ fill: 'green' }),
-                itemStyler: (p: any) => (p.binIndex === 0 ? { fill: 'red' } : undefined),
-            });
-            await waitForChartStability(chart);
+            chart = await createChart(
+                stylerOptions({
+                    styler: () => ({ fill: 'green' }),
+                    itemStyler: (p: any) => (p.binIndex === 0 ? { fill: 'red' } : undefined),
+                })
+            );
 
             const fills = styleOf(chart).map((s) => s.fill);
             expect(fills[0]).toBe('red');
@@ -822,13 +786,15 @@ describe('HistogramSeries', () => {
         });
 
         it('renders itemStyler-driven styles to canvas as expected', async () => {
-            chart = createChart({
-                itemStyler: (p: any) => ({
-                    fill: p.binIndex % 2 === 0 ? '#3366cc' : '#dc3912',
-                    stroke: 'black',
-                    strokeWidth: 2,
-                }),
-            });
+            chart = await createChart(
+                stylerOptions({
+                    itemStyler: (p: any) => ({
+                        fill: p.binIndex % 2 === 0 ? '#3366cc' : '#dc3912',
+                        stroke: 'black',
+                        strokeWidth: 2,
+                    }),
+                })
+            );
             await compare();
         });
     });
@@ -854,8 +820,7 @@ describe('HistogramSeries', () => {
         it.each(Object.entries(examples))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
-                chart = createHistogramChart(example);
-                await waitForChartStability(chart);
+                chart = await createChart(exampleOptions(example));
                 example.assertions(chart);
             }
         );
@@ -864,9 +829,8 @@ describe('HistogramSeries', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare();
             }
         );
@@ -874,6 +838,7 @@ describe('HistogramSeries', () => {
 
     // One CASE per transition the histogram-series-test page exercises; bins are Rects that reveal
     // from the value baseline, mirroring the bar suite's patterns.
+    // Bespoke: the binning-change and sanity tests pass prepared options that are reused by `update`.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -910,8 +875,9 @@ describe('HistogramSeries', () => {
             if (mode != null) {
                 (options as AgChartOptions & { mode: string }).mode = mode;
             }
-            return prepareTestOptions(options);
+            return options;
         };
+        const preparedHistogramOptions = () => prepareTestOptions(histogramOptions());
 
         const rectCount = (sample: SceneGeometrySample) =>
             [...sample.keys()].filter((k) => /^series\[\d+\]\/rect/.test(k)).length;
@@ -953,16 +919,15 @@ describe('HistogramSeries', () => {
         it('auto-binning: a data update that shifts the extent re-bins and grows from the baseline', async () => {
             // The axis views are pinned so only the bins move; an unpinned axis would drown the bin
             // reveal in tick animation.
-            const autoOptions = (data: number[]): AgCartesianChartOptions =>
-                prepareTestOptions({
-                    data: data.map((x) => ({ x })),
-                    series: [{ type: 'histogram', xKey: 'x', label: { enabled: false } }],
-                    axes: {
-                        x: { type: 'number', position: 'bottom', min: 0, max: 60 },
-                        y: { type: 'number', position: 'left', min: 0, max: 10 },
-                    },
-                });
-            const proxy = AgCharts.create(autoOptions(DATA_A));
+            const autoOptions = (data: number[]): AgCartesianChartOptions => ({
+                data: data.map((x) => ({ x })),
+                series: [{ type: 'histogram', xKey: 'x', label: { enabled: false } }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 60 },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                },
+            });
+            const proxy = await createChart(autoOptions(DATA_A));
             chart = proxy;
             const sampleScene = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
@@ -1001,7 +966,7 @@ describe('HistogramSeries', () => {
 
         // "Reset"/initial render — bins reveal from the baseline.
         it('initial load: bins reveal from the baseline', async () => {
-            chart = AgCharts.create(histogramOptions());
+            chart = await createChart(histogramOptions());
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectAllBinsStartCollapsed(trajectory[0]);
@@ -1013,8 +978,7 @@ describe('HistogramSeries', () => {
 
         // Same bins, new totals: bar heights reflow during the update phase while the bands hold.
         it('data update: bin heights reflow toward their new totals during the update phase', async () => {
-            const options = histogramOptions();
-            const proxy = AgCharts.create(options);
+            const proxy = await createChart(histogramOptions());
             chart = proxy;
             const sampleScene = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
@@ -1040,7 +1004,7 @@ describe('HistogramSeries', () => {
 
         // A new bin set replaces the old one: the old rects drop and the fresh set snaps in collapsed then grows.
         it('binning change: a new bin set snaps in collapsed then grows from the baseline', async () => {
-            const options = histogramOptions();
+            const options = preparedHistogramOptions();
             const proxy = AgCharts.create(options);
             chart = proxy;
             const sampleScene = createSceneGeometrySampler(proxy);
@@ -1061,7 +1025,7 @@ describe('HistogramSeries', () => {
 
         // Integrated mode: the initial load must reveal from the baseline exactly as standalone does.
         it('integrated mode: initial load reveals bins from the baseline', async () => {
-            chart = AgCharts.create(histogramOptions('integrated'));
+            chart = await createChart(histogramOptions('integrated'));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectAllBinsStartCollapsed(trajectory[0]);
@@ -1073,7 +1037,7 @@ describe('HistogramSeries', () => {
 
         // The animated route must settle at exactly the pixels a snapped render of the same options produces.
         it('sanity: data update endpoints match static renders', async () => {
-            const options = histogramOptions();
+            const options = preparedHistogramOptions();
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -1082,7 +1046,7 @@ describe('HistogramSeries', () => {
         });
 
         it('sanity: binning change endpoints match static renders', async () => {
-            const options = histogramOptions();
+            const options = preparedHistogramOptions();
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -1099,9 +1063,8 @@ describe('HistogramSeries', () => {
                 }),
                 series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
             };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -1112,9 +1075,8 @@ describe('HistogramSeries', () => {
                 }),
                 series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
             };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -1125,9 +1087,8 @@ describe('HistogramSeries', () => {
                 }),
                 series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
             };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -1140,15 +1101,12 @@ describe('HistogramSeries', () => {
             animate(1200, 1);
 
             const options: AgChartOptions = { ...GALLERY_EXAMPLES.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE.options };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             // Toggle series invisible (simulates legend click)
             animate(1200, 0.5);
             (options.series![0] as any).visible = false;
-            await chart.update(options);
+            await chart.update(prepareTestOptions(options));
             await waitForChartStability(chart);
 
             const chartInstance = deproxy(chart);
@@ -1165,10 +1123,7 @@ describe('HistogramSeries', () => {
             animate(1200, 1);
 
             const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             // Record initial bar heights from the fully-rendered chart.
             const chartInstance = deproxy(chart);
@@ -1184,7 +1139,7 @@ describe('HistogramSeries', () => {
             // Toggle invisible via options update matching the barSeries legend toggle pattern.
             animate(1200, 0.1);
             (options.series![0] as any).visible = false;
-            await chart.update(options);
+            await chart.update(prepareTestOptions(options));
             await waitForChartStability(chart);
 
             const midHeights = getBarHeights();
@@ -1211,10 +1166,7 @@ describe('HistogramSeries', () => {
                     },
                 ],
             };
-            prepareTestOptions(options as AgChartOptions);
-
-            chart = AgCharts.create(options as AgChartOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(options as AgChartOptions);
 
             await compare();
         });
@@ -1240,10 +1192,7 @@ describe('HistogramSeries', () => {
                     },
                 ],
             };
-            prepareTestOptions(options as AgChartOptions);
-
-            chart = AgCharts.create(options as AgChartOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(options as AgChartOptions);
 
             await compare();
         });
@@ -1260,10 +1209,8 @@ describe('HistogramSeries', () => {
                 ],
                 series: [{ type: 'histogram', xKey: 'x', yKey: 'y', aggregation: 'sum', bins: [[0, 10]] }],
             };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const bin = nodeDataOf(chart).find((n: any) => n.aggregatedValue != null);
             expect(bin).toBeDefined();
@@ -1280,10 +1227,8 @@ describe('HistogramSeries', () => {
                 data: xs.map((x) => ({ x })),
                 series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
             };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const series = deproxy(chart).series[0] as unknown as {
                 calculatedBins: { domain: [bigint, bigint]; frequency: number }[];
@@ -1308,10 +1253,8 @@ describe('HistogramSeries', () => {
                 data: [{ x: 10n }, { x: 12n }, { x: 18n }, { x: 20n }, { x: 25.5 }],
                 series: [{ type: 'histogram', xKey: 'x', binCount: 5 }],
             };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const series = deproxy(chart).series[0] as unknown as {
                 calculatedBins: { domain: [AgNumericValue, AgNumericValue]; frequency: number }[];
@@ -1333,13 +1276,11 @@ describe('HistogramSeries', () => {
     describe('bigint values (AG-16608)', () => {
         it('renders a histogram of out-of-safe-range bigint x values', async () => {
             const base = BIG;
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [base, base + 10n, base + 25n, base + 40n, base + 80n, base + 95n].map((x) => ({ x })),
-                    series: [{ type: 'histogram', xKey: 'x', binCount: 5 }],
-                    axes: { x: { type: 'number' }, y: { type: 'number' } },
-                })
-            );
+            chart = await createChart({
+                data: [base, base + 10n, base + 25n, base + 40n, base + 80n, base + 95n].map((x) => ({ x })),
+                series: [{ type: 'histogram', xKey: 'x', binCount: 5 }],
+                axes: { x: { type: 'number' }, y: { type: 'number' } },
+            });
             await compare();
         });
     });
@@ -1351,7 +1292,7 @@ describe('HistogramSeries', () => {
         it('bins a histogram identically when x is scaled beyond Number.MAX_VALUE', async () => {
             await expectPixelIdenticalAcrossMagnitude(
                 ctx,
-                createMagnitudeChart,
+                createChart,
                 magnitudePair(
                     { series: [{ type: 'histogram', xKey: 'x', binCount: 5 }], axes: STRIPPED_NUMBER_AXES },
                     xs([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -1366,9 +1307,7 @@ describe('HistogramSeries', () => {
                 data: [1, 2, 3, 4, 11, 12, 21, 22, 23].map((x) => ({ x })),
                 series: [{ type: 'histogram', xKey: 'x', binCount: 3 }],
             };
-            prepareTestOptions(options as any);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const series = deproxy(chart).series[0] as any;
             const nodeData = series.contextNodeData?.nodeData as Array<{

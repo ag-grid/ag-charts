@@ -1,5 +1,8 @@
 // Undocumented APIs used by Enterprise Modules.
+export * from './chart/test/axisAccessors';
 export * from './chart/test/utils';
+export * from './chart/test/axisTestCases';
+export * from './chart/test/random';
 export * from './chart/test/bigintExamples';
 export * from './chart/test/aggregationStubs';
 export { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from './chart/test/examples-gallery';
@@ -13,3 +16,4 @@ export { themeOptionsDefFor } from './chart/mapping/themes';
 export { isPresetOverridesType } from './chart/themes/chartTheme';
 export * from './chart/test/shadowFixtures';
 export * from './chart/test/prepareOptions';
+export * from './chart/test/syncFixtures';

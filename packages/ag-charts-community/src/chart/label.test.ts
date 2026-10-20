@@ -4,18 +4,10 @@ import { type NormalisedChartLabelStyleOptions, resolveCollideWith } from 'ag-ch
 import { classCast } from 'ag-charts-test';
 import type { AgBarSeriesLabelPlacement, AgChartInstance } from 'ag-charts-types';
 
-import { AgCharts } from '../api/agCharts';
 import { resolvePlacementLabelPadding } from './label';
 import { adjustLabelPlacement } from './labelUtil';
 import { BarSeries } from './series/cartesian/barSeries';
-import {
-    compareImageSnapshot,
-    deproxy,
-    prepareTestOptions,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from './test/utils';
+import { compareImageSnapshot, createChart, deproxy, setupMockCanvas, setupMockConsole } from './test/utils';
 
 describe('Labels', () => {
     setupMockConsole();
@@ -36,7 +28,7 @@ describe('Labels', () => {
 
     describe('AG-8917', () => {
         test('itemStyler auto-enables border', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 data: [
                     { x: "Q1'18", y: 140 },
                     { x: "Q2'18", y: 124 },
@@ -56,7 +48,6 @@ describe('Labels', () => {
                     },
                 ],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
     });
@@ -66,31 +57,28 @@ describe('Labels', () => {
         // ahead of them for fallbacks the label turned out not to need.
         async function placementsStyled(placement: AgBarSeriesLabelPlacement[], barHeight: number) {
             const placements: (string | undefined)[] = [];
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    // The tall bar sets the axis domain, so `barHeight` is what the short bar's label has
-                    // to fit inside; only that bar's styler calls are recorded.
-                    data: [
-                        { x: 'A', y: barHeight },
-                        { x: 'B', y: 100 },
-                    ],
-                    series: [
-                        {
-                            type: 'bar',
-                            xKey: 'x',
-                            yKey: 'y',
-                            label: {
-                                placement,
-                                itemStyler: (params) => {
-                                    if ((params.datum as { x: string }).x === 'A') placements.push(params.placement);
-                                    return {};
-                                },
+            chart = await createChart({
+                // The tall bar sets the axis domain, so `barHeight` is what the short bar's label has
+                // to fit inside; only that bar's styler calls are recorded.
+                data: [
+                    { x: 'A', y: barHeight },
+                    { x: 'B', y: 100 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            placement,
+                            itemStyler: (params) => {
+                                if ((params.datum as { x: string }).x === 'A') placements.push(params.placement);
+                                return {};
                             },
                         },
-                    ],
-                })
-            );
-            await waitForChartStability(chart);
+                    },
+                ],
+            });
             return Array.from(new Set(placements));
         }
 
@@ -109,13 +97,10 @@ describe('Labels', () => {
 
     describe('collision.alwaysShow', () => {
         test('defaults to true (keep the label rather than hide it)', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [{ x: 'A', y: 1 }],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                })
-            );
-            await waitForChartStability(chart);
+            chart = await createChart({
+                data: [{ x: 'A', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
             const barSeries = classCast(deproxy(chart).series[0], BarSeries);
             expect(barSeries.options.label.collision.alwaysShow).toBe(true);
         });

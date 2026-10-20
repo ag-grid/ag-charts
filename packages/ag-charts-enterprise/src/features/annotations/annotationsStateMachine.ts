@@ -15,7 +15,7 @@ import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils
 import { maybeWrapText } from './text/util';
 import { applyAnnotationOptions, isWriteable } from './utils/datum';
 import { hasLineStyle, hasLineText } from './utils/has';
-import { setColor, setLineStyle, setLineTextPosition } from './utils/styles';
+import { resizeFont, setColor, setLineStyle, setLineTextPosition } from './utils/styles';
 import { isEphemeralType, isTextType } from './utils/types';
 
 const ANNOTATIONS_STATE_MACHINE_INHERITED_PROPERTIES = ['snapping', 'datum', 'node'] as const;
@@ -230,10 +230,10 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             if (!datum || !node) return;
 
             if (isTextType(datum)) {
-                datum.fontSize = fontSize;
-                ctx.updateTextInputFontSize(fontSize);
+                resizeFont(datum, fontSize);
+                ctx.updateTextInputFontSize(datum);
             } else if (hasLineText(datum)) {
-                datum.text.fontSize = fontSize;
+                resizeFont(datum.text, fontSize);
             }
 
             ctx.update();

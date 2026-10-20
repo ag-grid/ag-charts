@@ -36,6 +36,7 @@ import {
     isPlainObject,
     isSegmentTruncated,
     isTextTruncated,
+    measureLabelText,
     measureTextSegments,
     normalizeAngle360FromDegrees,
     toPlainText,
@@ -298,9 +299,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 index: i + rawFirstTickIndex,
                 textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
                 fitSource: fitOptions != null && tickLabel !== inputText ? inputText : undefined,
-                textMetrics: isSegmented
-                    ? measureTextSegments(tickLabel, label)
-                    : measurer.measureLines(toTextString(tickLabel)),
+                textMetrics: measureLabelText(tickLabel, label, measurer),
                 translation: BandScale.is(scale) ? translation : Math.floor(translation),
             });
         }
@@ -320,7 +319,7 @@ function labelWrapOptions(
     overflow: WrapOptions['overflow'],
     textWrap: WrapOptions['textWrap'] = label.wrapping ?? 'never'
 ): WrapOptions {
-    return { font: label, maxWidth, maxHeight, overflow, textWrap };
+    return { font: label, maxWidth, maxHeight, lineHeight: label.lineHeight, overflow, textWrap };
 }
 
 function wrapLabelToFit(text: NormalisedTextOrSegments, wrapOptions: WrapOptions, measurer: ITextMeasurer) {
@@ -405,8 +404,7 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
                 label.maxWidth ?? Infinity
             )
         );
-    const measure = (text: NormalisedTextOrSegments) =>
-        isArray(text) ? measureTextSegments(text, label) : measurer.measureLines(toTextString(text));
+    const measure = (text: NormalisedTextOrSegments) => measureLabelText(text, label, measurer);
 
     return ticks.map((tick) => {
         const { tickLabel, textMetrics } = tick;
@@ -645,7 +643,6 @@ export function timeIntervalMaxLabelSize(
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],
     timeInterval: AgTimeInterval | AgTimeIntervalUnit,
-    textMeasurer: ITextMeasurer,
     fitOptions?: WrapOptions
 ) {
     const specifier = labelSpecifier(label.format, timeInterval);
@@ -667,10 +664,11 @@ export function timeIntervalMaxLabelSize(
             ? undefined
             : intervalRange(hierarchy, new Date(domain[0]), new Date(domain.at(-1)!), { extend: true });
 
+    const measurer = cachedTextMeasurer(label);
     // Without primary labels, the labels at hierarchy boundaries are secondary labels, fitted as the rest.
     const primaryFitOptions = primaryLabel?.enabled === true ? undefined : fitOptions;
     const fit = (text: string, wrapOptions: WrapOptions | undefined) =>
-        wrapOptions == null ? text : (wrapLabelToFit(text, wrapOptions, textMeasurer) as string);
+        wrapOptions == null ? text : (wrapLabelToFit(text, wrapOptions, measurer) as string);
 
     let maxWidth = 0;
     let maxHeight = 0;
@@ -690,7 +688,7 @@ export function timeIntervalMaxLabelSize(
         const labelRange = intervalRange(timeInterval, l0, l1, { limit: 50 });
         for (const date of labelRange) {
             const text = fit(labelFormatter(date), fitOptions);
-            const { width, height } = textMeasurer.measureLines(text);
+            const { width, height } = measureLabelText(text, label, measurer);
             maxWidth = Math.max(maxWidth, width + xPadding);
             maxHeight = Math.max(maxHeight, height + yPadding);
         }
@@ -700,9 +698,12 @@ export function timeIntervalMaxLabelSize(
         const padding = expandLabelPadding(primaryLabel);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
+        // The estimate uses the axis label's font, at the parent level's line height.
+        const lineHeight = primaryLabel?.lineHeight ?? label.lineHeight;
+        const primaryFont = lineHeight === label.lineHeight ? label : { ...label, lineHeight };
         for (const date of hierarchyRange) {
             const text = fit(primaryLabelFormatter(date), primaryFitOptions);
-            const { width, height } = textMeasurer.measureLines(text);
+            const { width, height } = measureLabelText(text, primaryFont, measurer);
 
             maxWidth = Math.max(maxWidth, width + xPadding);
             maxHeight = Math.max(maxHeight, height + yPadding);

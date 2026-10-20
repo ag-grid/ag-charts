@@ -8,6 +8,7 @@
     color: var(--ag-charts-chrome-text-color);
     font-family: var(--ag-charts-chrome-font-family);
     font-size: var(--ag-charts-chrome-font-size);
+    line-height: var(--ag-charts-chrome-line-height);
     font-weight: var(--ag-charts-chrome-font-weight);
     box-shadow: var(--ag-charts-popup-shadow);
     z-index: var(--ag-charts-layer-ui-overlay);

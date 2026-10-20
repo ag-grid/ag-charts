@@ -1,13 +1,9 @@
 import type { PaddingOptions } from 'ag-charts-types';
 
 import { isArray } from '../data/typeGuards';
-import {
-    type LabelFit,
-    type LabelFitDescriptor,
-    type MeasuredLabel,
-    measureLabelText,
-} from '../geometry/labelPlacement';
+import { type LabelFit, type LabelFitDescriptor, type MeasuredLabel } from '../geometry/labelPlacement';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
+import { measureLabelText } from '../rendering/textMeasurer';
 import type { FontOptions } from '../types/text';
 import { fitLabelTextOrOverflowAutoSize, fontWithSize } from './textWrapper';
 
@@ -70,7 +66,7 @@ export function measurePlacedLabel(
     const { text, fontSize } = fitLabelTextOrOverflowAutoSize(labelText, policy, ctx.labelFitOverflow, font);
     // The context's measurer is bound to the configured font, so a shrunken label measures on its own.
     let { width, height } =
-        fontSize == null && !isArray(text)
+        fontSize == null && font.lineHeight == null && !isArray(text)
             ? ctx.labelTextMeasurer.measureLines(String(text))
             : measureLabelText(text, fontWithSize(font, fontSize));
     width += ctx.labelPadding.left + ctx.labelPadding.right;

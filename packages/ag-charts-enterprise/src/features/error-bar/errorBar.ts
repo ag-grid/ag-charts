@@ -19,8 +19,14 @@ import {
 import type { Node } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
-import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
-import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
+import type { ErrorBarNodeDatum, ErrorBarStylingOptions, NormalisedErrorBarStyles } from './errorBarNode';
+import {
+    ErrorBarGroup,
+    ErrorBarNode,
+    errorBarCapLength,
+    errorBarDrawnBounds,
+    resolveErrorBarStyles,
+} from './errorBarNode';
 
 const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty } = _ModuleSupport;
 
@@ -40,6 +46,13 @@ type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
 type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
 
+function clearOverlay(datum: ErrorBarNodeDatum) {
+    // Writes only when set, so datums of series without error bars keep their shape.
+    if (datum.overlayBounds == null && datum.overlayBoxes == null) return;
+    datum.overlayBounds = undefined;
+    datum.overlayBoxes = undefined;
+}
+
 export class ErrorBars extends AbstractModuleInstance implements SeriesPluginModuleInstance {
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: ErrorBarGroup;
@@ -49,6 +62,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
+    // Resolved while the series anchors its labels, then drawn by the `data-update` that follows.
+    private readonly anchoredStyles = new Map<ErrorBarNodeDatum, NormalisedErrorBarStyles>();
 
     constructor(private readonly ctx: _ModuleSupport.ChartSeriesRegistry) {
         super();
@@ -72,6 +87,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             series.events.on('data-selection-change', (e) => this.onDataSelectionChange(e)),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             () => this.groupNode.remove(),
+            () => this.clearOverlays(),
             () => annotationSelections.delete(this.sceneSelection)
         );
     }
@@ -195,6 +211,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             this.createNodeData();
             this.update();
         }
+        this.anchoredStyles.clear();
     }
 
     private onDataSelectionChange(_event: null) {
@@ -207,33 +224,84 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
     private createNodeData() {
         const nodeData = this.getNodeData();
-        const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
-        const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
+        if (nodeData == null) return;
 
-        if (!xScale || !yScale || !nodeData) {
+        const { anchoredStyles } = this;
+        for (const datum of nodeData) {
+            if (!anchoredStyles.has(datum)) this.updateWhiskers(datum);
+        }
+    }
+
+    private clearOverlays() {
+        for (const datum of this.cartesianSeries.contextNodeData?.nodeData ?? []) {
+            clearOverlay(datum);
+        }
+    }
+
+    updateNodeDatum(datum: ErrorBarNodeDatum) {
+        const { offsetLabels, itemStyler } = this.options;
+        if (!offsetLabels && itemStyler == null) {
+            if (datum.overlayBounds != null) {
+                datum.overlayBounds = undefined;
+            }
             return;
         }
-
-        for (let i = 0; i < nodeData.length; i++) {
-            const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(nodeData, i);
-            if (midPoint != null) {
-                let xBar, yBar;
-                if (isDefined(xLower) && isDefined(xUpper)) {
-                    xBar = {
-                        lowerPoint: { x: this.convert(xScale, xLower), y: midPoint.y },
-                        upperPoint: { x: this.convert(xScale, xUpper), y: midPoint.y },
-                    };
-                }
-                if (isDefined(yLower) && isDefined(yUpper)) {
-                    yBar = {
-                        lowerPoint: { x: midPoint.x, y: this.convert(yScale, yLower) },
-                        upperPoint: { x: midPoint.x, y: this.convert(yScale, yUpper) },
-                    };
-                }
-                nodeData[i].xBar = xBar;
-                nodeData[i].yBar = yBar;
-            }
+        if (!this.updateWhiskers(datum)) return;
+        const styles = this.resolveStyles(datum);
+        this.anchoredStyles.set(datum, styles);
+        if (this.options.visible && styles.whiskerStyle.offsetLabels) {
+            const capLength = errorBarCapLength(styles.capsStyle ?? {}, datum.capDefaults);
+            datum.overlayBounds = errorBarDrawnBounds(datum, styles.whiskerStyle, styles.capsStyle, capLength);
+        } else {
+            datum.overlayBounds = undefined;
         }
+    }
+
+    /** Writes the datum's whisker end points, returning false (and clearing its overlays) when it has none. */
+    private updateWhiskers(datum: ErrorBarNodeDatum): boolean {
+        const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
+        const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
+        if (!xScale || !yScale || !this.hasErrorBars()) {
+            clearOverlay(datum);
+            return false;
+        }
+        const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(datum);
+        if (midPoint == null) {
+            clearOverlay(datum);
+            return false;
+        }
+
+        let xBar, yBar;
+        if (isDefined(xLower) && isDefined(xUpper)) {
+            xBar = {
+                lowerPoint: { x: this.convert(xScale, xLower), y: midPoint.y },
+                upperPoint: { x: this.convert(xScale, xUpper), y: midPoint.y },
+            };
+        }
+        if (isDefined(yLower) && isDefined(yUpper)) {
+            yBar = {
+                lowerPoint: { x: midPoint.x, y: this.convert(yScale, yLower) },
+                upperPoint: { x: midPoint.x, y: this.convert(yScale, yUpper) },
+            };
+        }
+        datum.xBar = xBar;
+        datum.yBar = yBar;
+        return true;
+    }
+
+    private resolveStyles(datum: ErrorBarNodeDatum): NormalisedErrorBarStyles {
+        const { cartesianSeries: series } = this;
+        const active = this.ctx.highlightManager.getActiveHighlight();
+        const isHighlight = active?.series.id === datum.series.id && active.datumIndex === datum.datumIndex;
+        return resolveErrorBarStyles(
+            datum,
+            this.getDefaultStyle(),
+            this.options,
+            series,
+            series.getHighlightStateString(active, isHighlight, datum.datumIndex),
+            series.getSelectionStateString(datum.datumIndex),
+            series.getCandidateStateString(datum.datumIndex)
+        );
     }
 
     private getMaybeFlippedKeys() {
@@ -273,9 +341,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         return Number(value) + offset;
     }
 
-    private getDatum(nodeData: ErrorBarNodeDatum[], datumIndex: number) {
+    private getDatum(datum: ErrorBarNodeDatum) {
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = this.getMaybeFlippedKeys();
-        const datum = nodeData[datumIndex];
 
         // In stacked bar series, we need to calculate the cumulative error values.
         // But generally, these offsets will both be 0.
@@ -308,22 +375,13 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
-        const active = this.ctx.highlightManager.getActiveHighlight();
-        const isHighlight = active?.series.id === datum.series.id && active.datumIndex === datum.datumIndex;
-
-        const highlightState = this.cartesianSeries.getHighlightStateString(active, isHighlight, datum.datumIndex);
-        const selectionState = this.cartesianSeries.getSelectionStateString(datum.datumIndex);
-        const candidateState = this.cartesianSeries.getCandidateStateString(datum.datumIndex);
         node.datum = datum;
-        node.update(
-            this.getDefaultStyle(),
-            this.options,
-            this.cartesianSeries,
-            highlightState,
-            selectionState,
-            candidateState
-        );
+        const styles = this.anchoredStyles.get(datum) ?? this.resolveStyles(datum);
+        node.draw(styles);
         node.updateBBoxes();
+        const { visible } = this.options;
+        datum.overlayBounds = visible && styles.whiskerStyle.offsetLabels ? node.drawnBounds() : undefined;
+        datum.overlayBoxes = visible ? node.drawnBBoxComponents : undefined;
     }
 
     pickNodeExact(point: Point): PickNodeDatumResult {
@@ -400,6 +458,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             stroke: baseStyle.stroke,
             strokeWidth: baseStyle.strokeWidth,
             strokeOpacity: baseStyle.strokeOpacity,
+            offsetLabels: this.options.offsetLabels,
             cap: mergeDefaults(this.options.cap, baseStyle),
         };
     }

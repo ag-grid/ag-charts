@@ -5,6 +5,7 @@ import type { AgChartOptions } from 'ag-charts-types';
 import type { Chart } from '../chart';
 import {
     createChart,
+    deproxy,
     expectWarningsCalls,
     prepareTestOptions,
     setupMockCanvas,
@@ -28,7 +29,7 @@ describe('Overlay', () => {
     describe('#validation', () => {
         test('invalid objects', async () => {
             const invalidObj = 0 as unknown as object;
-            chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
+            chart = deproxy(await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } }));
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
@@ -44,7 +45,7 @@ describe('Overlay', () => {
         // Skip until we normalize text segment validation
         test.skip('invalid text', async () => {
             const invalidObj = { text: 0 as unknown as string };
-            chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
+            chart = deproxy(await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } }));
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
@@ -59,7 +60,7 @@ describe('Overlay', () => {
 
         test('invalid renderer', async () => {
             const invalidObj = { renderer: 0 as unknown as () => string };
-            chart = await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } });
+            chart = deproxy(await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } }));
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
@@ -75,25 +76,29 @@ describe('Overlay', () => {
 
     describe('#create', () => {
         test('no data', async () => {
-            chart = await createChart({
-                data: [],
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y1' },
-                    { type: 'line', xKey: 'x', yKey: 'y2' },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y1' },
+                        { type: 'line', xKey: 'x', yKey: 'y2' },
+                    ],
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
         test('invalid data', async () => {
-            chart = await createChart({
-                data: [{ invalid: 'invalid' }],
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y1' },
-                    { type: 'line', xKey: 'x', yKey: 'y2' },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [{ invalid: 'invalid' }],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y1' },
+                        { type: 'line', xKey: 'x', yKey: 'y2' },
+                    ],
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -119,81 +124,95 @@ describe('Overlay', () => {
         });
 
         test('primitive data - string', async () => {
-            chart = await createChart({
-                data: ['f'],
-                series: [{ type: 'bar', xKey: 'quarter', yKey: 'iphone' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: ['f'],
+                    series: [{ type: 'bar', xKey: 'quarter', yKey: 'iphone' }],
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
         test('primitive data - number', async () => {
-            chart = await createChart({
-                data: [123, 456],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [123, 456],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
         test('primitive data - mixed types', async () => {
-            chart = await createChart({
-                data: ['string', 123, true, null],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: ['string', 123, true, null],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
         test('mixed valid objects and primitives', async () => {
-            chart = await createChart({
-                data: [{ x: 'a', y: 1 }, 'invalid', { x: 'b', y: 2 }],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [{ x: 'a', y: 1 }, 'invalid', { x: 'b', y: 2 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
             // Should NOT show overlay because there are some valid data items
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl).toBeFalsy();
         });
 
         test('no visible series', async () => {
-            chart = await createChart({
-                data: [
-                    { x: 'a', y1: 2, y2: 1 },
-                    { x: 'b', y1: 3, y2: 1 },
-                    { x: 'c', y1: 5, y2: 2 },
-                ],
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
-                    { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { x: 'a', y1: 2, y2: 1 },
+                        { x: 'b', y1: 3, y2: 1 },
+                        { x: 'c', y1: 5, y2: 2 },
+                    ],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
+                        { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
+                    ],
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No visible series');
         });
 
         test('neither data nor visible series', async () => {
-            chart = await createChart({
-                data: [],
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
-                    { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
+                        { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
+                    ],
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
         test('custom no data text', async () => {
-            chart = await createChart({
-                data: [],
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y1' },
-                    { type: 'line', xKey: 'x', yKey: 'y2' },
-                ],
-                overlays: {
-                    noData: { text: 'TEST CUSTOM NO DATA TEXT' },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y1' },
+                        { type: 'line', xKey: 'x', yKey: 'y2' },
+                    ],
+                    overlays: {
+                        noData: { text: 'TEST CUSTOM NO DATA TEXT' },
+                    },
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO DATA TEXT');
         });
@@ -204,7 +223,7 @@ describe('Overlay', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
                 overlays: { noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div>' } },
             };
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             const { publicApi } = chart;
             expect(publicApi).toBeDefined();
 
@@ -216,13 +235,15 @@ describe('Overlay', () => {
         });
 
         test('custom no data text with html', async () => {
-            chart = await createChart({
-                data: [],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
-                overlays: {
-                    noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div>' },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                    overlays: {
+                        noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div>' },
+                    },
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.children;
             expect(overlayEl).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -234,25 +255,29 @@ HTMLCollection [
         });
 
         test('renderer returning undefined falls through to default no data overlay', async () => {
-            chart = await createChart({
-                data: [],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
-                overlays: {
-                    noData: { renderer: () => undefined },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                    overlays: {
+                        noData: { renderer: () => undefined },
+                    },
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
         test('renderer returning a number is coerced to string content', async () => {
-            chart = await createChart({
-                data: [],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
-                overlays: {
-                    noData: { renderer: () => 42 },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                    overlays: {
+                        noData: { renderer: () => 42 },
+                    },
+                })
+            );
             // textContent is used here (not innerText) because JSDOM's innerText is unreliable
             // for raw text nodes — see overlay.ts where a non-element renderer result is wrapped in tempDiv.
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
@@ -260,27 +285,33 @@ HTMLCollection [
         });
 
         test('renderer returning a Date is coerced to string content', async () => {
-            chart = await createChart({
-                data: [],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
-                overlays: {
-                    // Mid-year noon UTC so the Date stringifies to the same calendar day in every timezone.
-                    noData: { renderer: () => new Date('2026-06-15T12:00:00Z') },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                    overlays: {
+                        // Mid-year noon UTC so the Date stringifies to the same calendar day in every timezone.
+                        noData: { renderer: () => new Date('2026-06-15T12:00:00Z') },
+                    },
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.textContent).toContain('2026');
             expect(overlayEl?.textContent).toContain('Jun');
         });
 
         test('custom no data text with multiple html elements', async () => {
-            chart = await createChart({
-                data: [],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
-                overlays: {
-                    noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div><div>CUSTOM NO DATA TEXT 2</div>' },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                    overlays: {
+                        noData: {
+                            renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div><div>CUSTOM NO DATA TEXT 2</div>',
+                        },
+                    },
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.children;
             expect(overlayEl).toMatchInlineSnapshot(`
 HTMLCollection [
@@ -297,20 +328,22 @@ HTMLCollection [
         });
 
         test('custom no visible series text', async () => {
-            chart = await createChart({
-                data: [
-                    { x: 'a', y1: 2, y2: 1 },
-                    { x: 'b', y1: 3, y2: 1 },
-                    { x: 'c', y1: 5, y2: 2 },
-                ],
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
-                    { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
-                ],
-                overlays: {
-                    noVisibleSeries: { text: 'TEST CUSTOM NO VISIBLE SERIES TEXT' },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { x: 'a', y1: 2, y2: 1 },
+                        { x: 'b', y1: 3, y2: 1 },
+                        { x: 'c', y1: 5, y2: 2 },
+                    ],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
+                        { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
+                    ],
+                    overlays: {
+                        noVisibleSeries: { text: 'TEST CUSTOM NO VISIBLE SERIES TEXT' },
+                    },
+                })
+            );
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO VISIBLE SERIES TEXT');
         });
@@ -319,55 +352,61 @@ HTMLCollection [
             'AG-16074 for %s series',
             (seriesType: 'bar' | 'line' | 'area') => {
                 test('should not show no data overlay when first series has null y-value but other series have data', async () => {
-                    chart = await createChart({
-                        data: [
-                            {
-                                quarter: "Q1'18",
-                                iphone: null, // First series has null
-                                mac: 16,
-                            },
-                        ],
-                        series: [
-                            { type: seriesType, xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
-                            { type: seriesType, xKey: 'quarter', yKey: 'mac', yName: 'Mac' },
-                        ],
-                    });
+                    chart = deproxy(
+                        await createChart({
+                            data: [
+                                {
+                                    quarter: "Q1'18",
+                                    iphone: null, // First series has null
+                                    mac: 16,
+                                },
+                            ],
+                            series: [
+                                { type: seriesType, xKey: 'quarter', yKey: 'iphone', yName: 'iPhone' },
+                                { type: seriesType, xKey: 'quarter', yKey: 'mac', yName: 'Mac' },
+                            ],
+                        })
+                    );
 
                     const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
                 });
 
                 test('should show no data overlay when all series have null values', async () => {
-                    chart = await createChart({
-                        data: [
-                            {
-                                quarter: "Q1'18",
-                                iphone: null,
-                                mac: null,
-                            },
-                        ],
-                        series: [
-                            { type: seriesType, xKey: 'quarter', yKey: 'iphone' },
-                            { type: seriesType, xKey: 'quarter', yKey: 'mac' },
-                        ],
-                    });
+                    chart = deproxy(
+                        await createChart({
+                            data: [
+                                {
+                                    quarter: "Q1'18",
+                                    iphone: null,
+                                    mac: null,
+                                },
+                            ],
+                            series: [
+                                { type: seriesType, xKey: 'quarter', yKey: 'iphone' },
+                                { type: seriesType, xKey: 'quarter', yKey: 'mac' },
+                            ],
+                        })
+                    );
 
                     const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).not.toBe(null);
                 });
 
                 test('should show no data overlay when all series have missing values', async () => {
-                    chart = await createChart({
-                        data: [
-                            {
-                                quarter: "Q1'18",
-                            },
-                        ],
-                        series: [
-                            { type: seriesType, xKey: 'quarter', yKey: 'iphone' },
-                            { type: seriesType, xKey: 'quarter', yKey: 'mac' },
-                        ],
-                    });
+                    chart = deproxy(
+                        await createChart({
+                            data: [
+                                {
+                                    quarter: "Q1'18",
+                                },
+                            ],
+                            series: [
+                                { type: seriesType, xKey: 'quarter', yKey: 'iphone' },
+                                { type: seriesType, xKey: 'quarter', yKey: 'mac' },
+                            ],
+                        })
+                    );
 
                     const seriesTypeCapitalized = seriesType.charAt(0).toUpperCase() + seriesType.slice(1);
                     expectWarningsCalls().toEqual([
@@ -384,35 +423,39 @@ HTMLCollection [
                 });
 
                 test('should not show no data overlay when first series has empty data but other series have data', async () => {
-                    chart = await createChart({
-                        series: [
-                            {
-                                type: seriesType,
-                                data: [], // First series has no data
-                                xKey: 'quarter',
-                                yKey: 'value',
-                            },
-                            {
-                                type: seriesType,
-                                data: [{ quarter: "Q1'18", value: 16 }], // Second series has data
-                                xKey: 'quarter',
-                                yKey: 'value',
-                            },
-                        ],
-                    });
+                    chart = deproxy(
+                        await createChart({
+                            series: [
+                                {
+                                    type: seriesType,
+                                    data: [], // First series has no data
+                                    xKey: 'quarter',
+                                    yKey: 'value',
+                                },
+                                {
+                                    type: seriesType,
+                                    data: [{ quarter: "Q1'18", value: 16 }], // Second series has data
+                                    xKey: 'quarter',
+                                    yKey: 'value',
+                                },
+                            ],
+                        })
+                    );
 
                     const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
                 });
 
                 test('should not show no data overlay when first series has some invalid data', async () => {
-                    chart = await createChart({
-                        data: [
-                            { quarter: "Q1'18", iphone: null },
-                            { quarter: "Q2'18", iphone: 16 },
-                        ],
-                        series: [{ type: seriesType, xKey: 'quarter', yKey: 'iphone' }],
-                    });
+                    chart = deproxy(
+                        await createChart({
+                            data: [
+                                { quarter: "Q1'18", iphone: null },
+                                { quarter: "Q2'18", iphone: 16 },
+                            ],
+                            series: [{ type: seriesType, xKey: 'quarter', yKey: 'iphone' }],
+                        })
+                    );
 
                     const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-no-data-overlay');
                     expect(overlayEl).toBe(null);
@@ -423,13 +466,15 @@ HTMLCollection [
         describe('CRT-1016', () => {
             test('custom renderer text should be available for accessibility (screenreader)', async () => {
                 const customMessage = 'Custom message for missing data';
-                chart = await createChart({
-                    data: [],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
-                    overlays: {
-                        noData: { renderer: () => `<div>${customMessage}</div>` },
-                    },
-                });
+                chart = deproxy(
+                    await createChart({
+                        data: [],
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                        overlays: {
+                            noData: { renderer: () => `<div>${customMessage}</div>` },
+                        },
+                    })
+                );
 
                 const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
                 expect(overlayEl?.textContent?.trim()).toEqual(customMessage);
@@ -441,13 +486,15 @@ HTMLCollection [
 
             test('custom renderer with nested HTML should extract text for accessibility', async () => {
                 const customMessage = 'Nested custom text';
-                chart = await createChart({
-                    data: [],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
-                    overlays: {
-                        noData: { renderer: () => `<div><span><strong>${customMessage}</strong></span></div>` },
-                    },
-                });
+                chart = deproxy(
+                    await createChart({
+                        data: [],
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                        overlays: {
+                            noData: { renderer: () => `<div><span><strong>${customMessage}</strong></span></div>` },
+                        },
+                    })
+                );
 
                 const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
                 expect(overlayEl?.textContent?.trim()).toEqual(customMessage);
@@ -480,7 +527,7 @@ HTMLCollection [
         const overlayContainer = () => chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
 
         test('leaves the content element as the only child of the overlay container', async () => {
-            chart = await createChart(seriesOptions(false));
+            chart = deproxy(await createChart(seriesOptions(false)));
             const { publicApi } = chart;
             if (!publicApi) throw new Error('chart has no public API');
 
@@ -509,22 +556,26 @@ HTMLCollection [
             chart.ctx.agDocument.body.querySelector<HTMLStyleElement>('.ag-charts-overlay--loading style');
 
         test('carries the configured style nonce on the spinner keyframes', async () => {
-            chart = await createChart({
-                loading: true,
-                styleNonce: '416d1177',
-                data: [{ x: 'a', y: 1 }],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    loading: true,
+                    styleNonce: '416d1177',
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
 
             expect(spinnerStyleElement()?.getAttribute('nonce')).toBe('416d1177');
         });
 
         test('omits the nonce attribute when none is configured', async () => {
-            chart = await createChart({
-                loading: true,
-                data: [{ x: 'a', y: 1 }],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    loading: true,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
 
             const styleElement = spinnerStyleElement();
             expect(styleElement).not.toBeNull();

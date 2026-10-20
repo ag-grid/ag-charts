@@ -1,19 +1,23 @@
 import { afterEach, describe, it } from 'vitest';
 
-import type { AgChartOptions, AgRadarAreaSeriesOptions, AgRadarLineSeriesOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import type {
+    AgChartInstance,
+    AgChartOptions,
+    AgRadarAreaSeriesOptions,
+    AgRadarLineSeriesOptions,
+} from 'ag-charts-community';
 import { compareImageSnapshot, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart } from '../test/utils';
 
 describe('Polar Axes', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -71,9 +75,7 @@ describe('Polar Axes', () => {
 
     it(`should render polar axes as expected`, async () => {
         const options: AgChartOptions = { ...EXAMPLE_OPTIONS, series: RADAR_AREA_SERIES };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -85,9 +87,7 @@ describe('Polar Axes', () => {
                 radius: { type: 'radius-number', title: { text: 'Skill Score' } },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -102,9 +102,7 @@ describe('Polar Axes', () => {
                 radius: { type: 'radius-number', title: { text: 'Skill Score' } },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -120,9 +118,7 @@ describe('Polar Axes', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -135,9 +131,7 @@ describe('Polar Axes', () => {
                 radius: { type: 'radius-number', shape: 'circle' },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -164,9 +158,7 @@ describe('Polar Axes', () => {
                 radius: { type: 'radius-number' },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -192,9 +184,7 @@ describe('Polar Axes', () => {
                 radius: { type: 'radius-number' },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -221,9 +211,7 @@ describe('Polar Axes', () => {
                 radius: { type: 'radius-number', shape: 'circle' },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -251,9 +239,7 @@ describe('Polar Axes', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -282,9 +268,7 @@ describe('Polar Axes', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -327,9 +311,7 @@ describe('Polar Axes', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -373,9 +355,7 @@ describe('Polar Axes', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -391,9 +371,7 @@ describe('Polar Axes', () => {
                 radius: { type: 'radius-number', title: { text: 'Skill Score' } },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -409,9 +387,7 @@ describe('Polar Axes', () => {
                 radius: { type: 'radius-number', title: { text: 'Skill Score' } },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -431,9 +407,7 @@ describe('Polar Axes', () => {
                     },
                 },
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -451,9 +425,7 @@ describe('Polar Axes', () => {
                     },
                 },
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -472,9 +444,7 @@ describe('Polar Axes', () => {
                     },
                 },
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -494,9 +464,7 @@ describe('Polar Axes', () => {
                     },
                 },
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });

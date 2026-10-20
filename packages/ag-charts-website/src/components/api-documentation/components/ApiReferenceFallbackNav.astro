@@ -1,0 +1,22 @@
+---
+/**
+ * Server-rendered links through an API reference section, for crawlers that don't execute
+ * JavaScript. Replaced, along with the rest of the fallback, by the interactive navigation tree once
+ * the React reference island mounts.
+ */
+import type { FallbackNavItem } from '@components/api-documentation/apiReferenceFallbackNav';
+import ApiReferenceFallbackNavList from './ApiReferenceFallbackNavList.astro';
+import styles from './ApiReferenceFallback.module.scss';
+
+interface Props {
+    /** Accessible name of the `<nav>`. */
+    label: string;
+    root: FallbackNavItem;
+}
+
+const { label, root } = Astro.props;
+---
+
+<nav class={styles.referenceNav} aria-label={label}>
+    <ApiReferenceFallbackNavList items={[root]} />
+</nav>

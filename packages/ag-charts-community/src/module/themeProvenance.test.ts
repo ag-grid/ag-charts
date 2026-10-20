@@ -21,14 +21,13 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'bar',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 127, maxSkipped: 10, maxRejected: 1, maxIneffective: 14, minContainers: 6 },
-        asymmetries: ['direction'],
+        coverage: { minChecked: 127, maxSkipped: 10, maxRejected: 1, maxIneffective: 15, minContainers: 6 },
     },
     {
         seriesType: 'line',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 118, maxSkipped: 11, maxRejected: 1, maxIneffective: 14, minContainers: 5 },
+        coverage: { minChecked: 118, maxSkipped: 11, maxRejected: 1, maxIneffective: 15, minContainers: 5 },
     },
     {
         seriesType: 'area',
@@ -40,7 +39,7 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'scatter',
         series: { xKey: 'numeric', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 116, maxSkipped: 11, maxRejected: 3, maxIneffective: 14, minContainers: 4 },
+        coverage: { minChecked: 116, maxSkipped: 11, maxRejected: 3, maxIneffective: 15, minContainers: 4 },
     },
     {
         seriesType: 'bubble',
@@ -64,7 +63,7 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'donut',
         series: { angleKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 130, maxSkipped: 11, maxRejected: 9, maxIneffective: 0, minContainers: 8 },
+        coverage: { minChecked: 130, maxSkipped: 11, maxRejected: 10, maxIneffective: 0, minContainers: 8 },
     },
 ];
 

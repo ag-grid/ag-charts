@@ -130,11 +130,6 @@ export interface AgChartAutoSizedBaseLabelOptions<
     TContext = ContextDefault,
 > extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /**
-     * Line height to use for the label.
-     */
-    lineHeight?: FontSize;
-
-    /**
      * If the label does not fit in the container, setting this will allow the label to pick a font size between its normal `fontSize` and `minimumFontSize` to fit within the container.
      */
     minimumFontSize?: FontSize;
@@ -168,7 +163,7 @@ export interface AgChartAutoSizedBaseLabelOptions<
      * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
      * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
      *
-     * @deprecated v14.2.0 Use `truncate` instead.
+     * @deprecated v14.3.0 Use `truncate` instead.
      */
     overflowStrategy?: OverflowStrategy;
 }

@@ -31,11 +31,13 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
+    expectAggregatedMarkersCoverEveryDatumOnce,
     expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
     expectSceneTrajectory,
     expectWarningsCalls,
     getAggregatedMarkerXValues,
+    getSeriesAggregationInternals,
     hoverAction,
     looserSnapshotDefaults,
     prepareTestOptions,
@@ -92,9 +94,7 @@ describe('ScatterSeries', () => {
                 legend: { enabled: false },
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -102,10 +102,8 @@ describe('ScatterSeries', () => {
     describe('null category key', () => {
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = examples.SCATTER_NULL_CATEGORY_KEY_EXAMPLE;
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -120,10 +118,8 @@ describe('ScatterSeries', () => {
 
         it('should accept null category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.SCATTER_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -144,10 +140,8 @@ describe('ScatterSeries', () => {
                 },
                 series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
             };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -173,10 +167,8 @@ describe('ScatterSeries', () => {
                 },
                 series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
             };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -196,10 +188,8 @@ describe('ScatterSeries', () => {
                 },
                 series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
             };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -225,9 +215,7 @@ describe('ScatterSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(looserSnapshotDefaults(0.07, 5));
         });
 
@@ -250,9 +238,7 @@ describe('ScatterSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(looserSnapshotDefaults(0.07));
         });
 
@@ -287,9 +273,7 @@ describe('ScatterSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -325,9 +309,7 @@ describe('ScatterSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -362,9 +344,7 @@ describe('ScatterSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -400,9 +380,7 @@ describe('ScatterSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -423,9 +401,7 @@ describe('ScatterSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -448,9 +424,7 @@ describe('ScatterSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -480,9 +454,7 @@ describe('ScatterSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
     });
@@ -518,9 +490,7 @@ describe('ScatterSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(looserSnapshotDefaults(0.1, 40));
         });
     });
@@ -542,9 +512,7 @@ describe('ScatterSeries', () => {
             },
         };
 
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createChart(options);
         await compare(PATTERN_SNAPSHOT_DEFAULTS);
     });
 
@@ -558,15 +526,16 @@ describe('ScatterSeries', () => {
         const scatterOptions = (
             data: Array<{ x: number; y: number }>,
             seriesOverrides: object = {}
-        ): AgCartesianChartOptions =>
-            prepareTestOptions({
-                data,
-                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 20, ...seriesOverrides }],
-                axes: {
-                    x: { type: 'number', position: 'bottom', min: 0, max: 6 },
-                    y: { type: 'number', position: 'left', min: 0, max: 200 },
-                },
-            });
+        ): AgCartesianChartOptions => ({
+            data,
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 20, ...seriesOverrides }],
+            axes: {
+                x: { type: 'number', position: 'bottom', min: 0, max: 6 },
+                y: { type: 'number', position: 'left', min: 0, max: 200 },
+            },
+        });
+        const preparedScatterOptions = (data: Array<{ x: number; y: number }>) =>
+            prepareTestOptions(scatterOptions(data));
 
         const DATA = [
             { x: 1, y: 40 },
@@ -589,15 +558,15 @@ describe('ScatterSeries', () => {
 
         // Scatter skips the animation batch on every data update (only the initial load animates), so
         // updates SNAP.
-        const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
-            chart = AgCharts.create(options);
+        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+            chart = await createChart(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
         // Markers scale in from zero size during the `initial` phase — their bbox edges slide out from the
         // fixed scaling centre — while the labels fade in during `trailing`; marker opacity holds at 1.
         it('initial load: markers scale in and labels fade in', async () => {
-            chart = AgCharts.create(scatterOptions(DATA, { labelKey: 'x', label: { enabled: true } }));
+            chart = await createChart(scatterOptions(DATA, { labelKey: 'x', label: { enabled: true } }));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             // Anti-vacuity: every marker starts collapsed but fully opaque (a scale-in, not a fade) and
@@ -666,8 +635,9 @@ describe('ScatterSeries', () => {
 
         // The animated route must settle at exactly the pixels a snapped render produces. One chart per
         // test — the mock canvas only snapshots the first chart created.
+        // Bespoke: the prepared options are reused by the updates inside `expectAnimatedEndpointsMatchStatic`.
         it('sanity: update data endpoints match static renders', async () => {
-            const options = scatterOptions(DATA);
+            const options = preparedScatterOptions(DATA);
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -676,7 +646,7 @@ describe('ScatterSeries', () => {
         });
 
         it('sanity: add point endpoints match static renders', async () => {
-            const options = scatterOptions(DATA);
+            const options = preparedScatterOptions(DATA);
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -739,42 +709,39 @@ describe('ScatterSeries', () => {
             beforeEach(async () => {
                 c1 = { name: 'male context' };
                 c2 = { name: 'female context' };
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        legend: { item: { marker: { size: 40 } } },
-                        series: [
-                            {
-                                type: 'scatter',
-                                title: 'Male',
-                                data: maleHeightWeight,
-                                xKey: 'height',
-                                yKey: 'weight',
-                                size: 30,
-                                context: c1,
+                chart = await createChart({
+                    legend: { item: { marker: { size: 40 } } },
+                    series: [
+                        {
+                            type: 'scatter',
+                            title: 'Male',
+                            data: maleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            size: 30,
+                            context: c1,
 
-                                styler: styler.frozen,
-                                shape: 'star', // not ignored
-                                strokeWidth: 0, // not ignored
-                                fill: 'magenta', // ignored
-                            },
-                            {
-                                type: 'scatter',
-                                title: 'Female',
-                                data: femaleHeightWeight,
-                                xKey: 'height',
-                                yKey: 'weight',
-                                size: 30,
-                                context: c2,
+                            styler: styler.frozen,
+                            shape: 'star', // not ignored
+                            strokeWidth: 0, // not ignored
+                            fill: 'magenta', // ignored
+                        },
+                        {
+                            type: 'scatter',
+                            title: 'Female',
+                            data: femaleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            size: 30,
+                            context: c2,
 
-                                styler: styler.frozen,
-                                shape: 'plus', // ignored
-                                fillOpacity: 0.5, // not ignored
-                                strokeWidth: 3, // not ignored
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                            styler: styler.frozen,
+                            shape: 'plus', // ignored
+                            fillOpacity: 0.5, // not ignored
+                            strokeWidth: 3, // not ignored
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -796,46 +763,43 @@ describe('ScatterSeries', () => {
         });
         describe('fill types', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        legend: {},
-                        series: [
-                            {
-                                type: 'scatter',
-                                title: 'Male',
-                                data: maleHeightWeight,
-                                xKey: 'height',
-                                yKey: 'weight',
-                                size: 30,
-                                styler: () => {
-                                    return {
-                                        fill: {
-                                            type: 'gradient',
-                                            colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
-                                        },
-                                    };
-                                },
+                chart = await createChart({
+                    legend: {},
+                    series: [
+                        {
+                            type: 'scatter',
+                            title: 'Male',
+                            data: maleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            size: 30,
+                            styler: () => {
+                                return {
+                                    fill: {
+                                        type: 'gradient',
+                                        colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
+                                    },
+                                };
                             },
-                            {
-                                type: 'scatter',
-                                title: 'Female',
-                                data: femaleHeightWeight,
-                                xKey: 'height',
-                                yKey: 'weight',
-                                size: 30,
-                                styler: () => {
-                                    return {
-                                        fill: {
-                                            type: 'pattern',
-                                            pattern: 'stars',
-                                        },
-                                    };
-                                },
+                        },
+                        {
+                            type: 'scatter',
+                            title: 'Female',
+                            data: femaleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            size: 30,
+                            styler: () => {
+                                return {
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'stars',
+                                    },
+                                };
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -903,8 +867,7 @@ describe('ScatterSeries', () => {
                         },
                     ],
                 };
-                chart = AgCharts.create(prepareTestOptions(opts));
-                await waitForChartStability(chart);
+                chart = await createChart(opts);
             });
             test('snapshot', async () => {
                 await compare();
@@ -926,8 +889,7 @@ describe('ScatterSeries', () => {
                         },
                     ],
                 };
-                chart = AgCharts.create(prepareTestOptions(opts));
-                await waitForChartStability(chart);
+                chart = await createChart(opts);
             });
             test('snapshot', async () => {
                 await compare();
@@ -950,8 +912,7 @@ describe('ScatterSeries', () => {
                         },
                     ],
                 };
-                chart = AgCharts.create(prepareTestOptions(opts));
-                await waitForChartStability(chart);
+                chart = await createChart(opts);
             });
             test('snapshot', async () => {
                 await compare();
@@ -981,24 +942,20 @@ describe('ScatterSeries', () => {
         } satisfies AgCartesianChartOptions;
 
         it('should hide scatter series from legend when showInLegend is false', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 ...commonOptions,
                 title: { text: 'Two series, only female series should be shown in legend' },
                 series: [commonOptions.series[0], { ...commonOptions.series[1], showInLegend: false }],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should show scatter series in legend when showInLegend is true (default)', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 ...commonOptions,
                 title: { text: 'One series, only male series should be shown in legend' },
                 series: [{ ...commonOptions.series[0], showInLegend: true }],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
     });
@@ -1027,9 +984,7 @@ describe('ScatterSeries', () => {
                 series: [{ type: 'scatter', xKey: 'quarter', yKey: 'iphone' }],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -1056,9 +1011,7 @@ describe('ScatterSeries', () => {
                 series: [{ type: 'scatter', xKey: 'quarter', yKey: 'iphone' }],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -1085,16 +1038,14 @@ describe('ScatterSeries', () => {
                 series: [{ type: 'scatter', xKey: 'quarter', yKey: 'iphone' }],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
 
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            create: async (o) => (chart = await createChart(o)),
             compare,
             chartOptions: {
                 data: [
@@ -1113,34 +1064,30 @@ describe('ScatterSeries', () => {
 
     describe('bigint values (AG-16608)', () => {
         it('renders a scatter series with out-of-safe-range bigint x and y values', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: BIG, y: BIG },
-                        { x: BIG * 2n, y: NEG_BIG },
-                        { x: NEG_BIG, y: BIG * 2n },
-                    ],
-                    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-                    axes: { x: { type: 'number' }, y: { type: 'number' } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: BIG, y: BIG },
+                    { x: BIG * 2n, y: NEG_BIG },
+                    { x: NEG_BIG, y: BIG * 2n },
+                ],
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+                axes: { x: { type: 'number' }, y: { type: 'number' } },
+            });
             await compare();
         });
     });
 
     describe('ISO datetime (AG-16654)', () => {
         it('renders a scatter series with ISO-8601 datetime-string x values on a time axis', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { time: '2024-01-15T09:00:00Z', y: 12 },
-                        { time: '2024-01-15T10:30:00Z', y: 15 },
-                        { time: '2024-01-15T11:45:00Z', y: 11 },
-                    ],
-                    series: [{ type: 'scatter', xKey: 'time', yKey: 'y' }],
-                    axes: { x: { type: 'time' }, y: { type: 'number' } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { time: '2024-01-15T09:00:00Z', y: 12 },
+                    { time: '2024-01-15T10:30:00Z', y: 15 },
+                    { time: '2024-01-15T11:45:00Z', y: 11 },
+                ],
+                series: [{ type: 'scatter', xKey: 'time', yKey: 'y' }],
+                axes: { x: { type: 'time' }, y: { type: 'number' } },
+            });
             await compare();
         });
     });
@@ -1180,6 +1127,71 @@ describe('ScatterSeries', () => {
         });
     });
 
+    describe('aggregated clusters', () => {
+        const datum = (i: number) => ({ x: (i * 37) % 211, y: (i * 53) % 97 });
+        const createAggregated = async (data: object[], maxRenderedItems: number) => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', maxRenderedItems }],
+                legend: { enabled: false },
+            };
+            chart = await createChart(options);
+        };
+
+        it('should represent every datum exactly once, with each cluster listed in datum order', async () => {
+            await createAggregated(
+                Array.from({ length: 800 }, (_, i) => datum(i)),
+                80
+            );
+
+            const series = getSeriesAggregationInternals(chart);
+            expect(series.contextNodeData?.nodeData?.length).toBeLessThan(800);
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 800);
+        });
+
+        it('should represent every datum when all of them are at one point', async () => {
+            await createAggregated(
+                Array.from({ length: 300 }, () => ({ x: 4, y: 4 })),
+                50
+            );
+
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 300);
+        });
+
+        it('should keep clusters complete when the data changes', async () => {
+            await createAggregated(
+                Array.from({ length: 500 }, (_, i) => datum(i)),
+                60
+            );
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 500);
+
+            await chart.update(
+                prepareTestOptions({
+                    data: Array.from({ length: 700 }, (_, i) => datum(i + 3)),
+                    series: [{ type: 'scatter', xKey: 'x', yKey: 'y', maxRenderedItems: 60 }],
+                    legend: { enabled: false },
+                })
+            );
+            await waitForChartStability(chart);
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 700);
+        });
+
+        it('should not cluster datums that have no x or y value', async () => {
+            const data = Array.from({ length: 400 }, (_, i) => ({
+                x: i % 25 === 0 ? null : (i * 37) % 211,
+                y: i % 31 === 0 ? null : (i * 53) % 97,
+            }));
+            await createAggregated(data, 60);
+
+            const series = getSeriesAggregationInternals(chart);
+            expect(series.dataAggregation).toBeDefined();
+            const missing = new Set(data.flatMap((d, i) => (d.x == null || d.y == null ? [i] : [])));
+            const clustered = [...series.aggregateIndexSet!.values()].flatMap((indices) => Array.from(indices));
+            expect(clustered.length).toBeGreaterThan(0);
+            expect(clustered.filter((i) => missing.has(i))).toEqual([]);
+        });
+    });
+
     describe('aggregation on a reversed axis', () => {
         const aggregatedOptions = (reverse: { x?: boolean; y?: boolean } = {}): AgCartesianChartOptions => ({
             data: Array.from({ length: 300 }, (_, i) => ({ x: i, y: (i * 7) % 100 })),
@@ -1192,8 +1204,7 @@ describe('ScatterSeries', () => {
         });
 
         const expectSameMarkersWhenReversed = async (reverse: { x?: boolean; y?: boolean }) => {
-            chart = AgCharts.create(prepareTestOptions(aggregatedOptions()));
-            await waitForChartStability(chart);
+            chart = await createChart(aggregatedOptions());
             const expected = getAggregatedMarkerXValues(chart);
             expect(expected.length).toBeGreaterThan(0);
             expect(expected.length).toBeLessThan(300);
@@ -1235,9 +1246,7 @@ describe('ScatterSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             } as AgCartesianChartOptions;
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
         };
 
         // An empty key is matched against the data exactly like a non-empty one, so both take the

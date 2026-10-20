@@ -11,6 +11,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
+    themeLineHeight,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -20,7 +21,6 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         direction: 'vertical',
         fills: {
             $applyCycle: [
-                { $size: { $path: ['./data', { $path: '/data' }] } },
                 {
                     $if: [
                         { $eq: [{ $palette: 'type' }, 'inbuilt'] },
@@ -33,7 +33,6 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         },
         strokes: {
             $applyCycle: [
-                { $size: { $path: ['./data', { $path: '/data' }] } },
                 {
                     $if: [
                         { $eq: [{ $palette: 'type' }, 'inbuilt'] },
@@ -52,6 +51,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'textColor' },

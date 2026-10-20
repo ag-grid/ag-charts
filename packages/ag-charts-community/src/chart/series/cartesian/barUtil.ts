@@ -132,6 +132,10 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
     // category dimension is snapped; the value dimension may legitimately collapse to 0.
     const alignScratch = { start: 0, length: 0 };
     const snapCategory = (rect: BarRect, geom: AnimatableBarDatum): AnimatableBarDatum => {
+        // Non-crisp bars are not snapped at render, so snapping here would make the first frame differ from
+        // later redraws, which write the unsnapped node geometry.
+        if (!rect.datum?.crisp) return geom;
+
         const dir = rect.crispCentreDirection;
         if (dir == null) return geom;
 

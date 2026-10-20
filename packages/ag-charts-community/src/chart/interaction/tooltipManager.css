@@ -17,6 +17,7 @@
     max-width: 100%;
     font-family: var(--ag-charts-chrome-font-family);
     font-size: var(--ag-charts-chrome-font-size);
+    line-height: var(--ag-charts-chrome-line-height);
     font-weight: var(--ag-charts-chrome-font-weight);
     color: var(--ag-charts-tooltip-text-color);
     background: var(--ag-charts-tooltip-background-color);

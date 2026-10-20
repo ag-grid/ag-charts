@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-import type { ContentSegment, ImageSegment, TextSegment } from 'ag-charts-types';
+import type { ContentSegment, ImageSegment, TextSegment, TextWrap } from 'ag-charts-types';
 
 import type { FitRegion } from '../geometry/fitRegion';
 import { measureTextSegments } from '../rendering/textMeasurer';
@@ -104,6 +104,16 @@ function hasOrphanedCombiningMark(str: string): boolean {
         }
     }
     return false;
+}
+
+// mulberry32: a reproducible sequence in [0, 1) per seed, so a failing generated case can be replayed.
+function seededRandom(seed: number) {
+    return () => {
+        seed = Math.trunc(seed + 0x6d2b79f5) % 2 ** 32;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
 }
 
 const E = EllipsisChar; // shorthand for assertions
@@ -435,6 +445,13 @@ describe('wrapLines', () => {
             });
             const lastLine = result.at(-1)!;
             expect(lastLine).toBe('G');
+        });
+
+        it('should place the last line by its lineHeight when the width varies down the block', () => {
+            const maxWidthAt = (top: number) => (top >= 100 ? 20 : 90);
+            const options = { font, maxWidth: 90, maxWidthAt };
+            expect(wrapLines('AA BB CC DD EE FF G', options).at(-1)).toBe('FF G');
+            expect(wrapLines('AA BB CC DD EE FF G', { ...options, lineHeight: 60 }).at(-1)).toBe('G');
         });
     });
 
@@ -945,6 +962,201 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
 
         expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
         expect(textOf(result).replace(/\s+/g, ' ').trim()).toBe('AB CD EF');
+    });
+});
+
+describe('measureTextSegments — lineHeight', () => {
+    const lineHeights = (segments: TextSegment[], font: FontOptions = baseFont) =>
+        measureTextSegments(segments, font).lineMetrics.map(({ height, ascent, descent }) => ({
+            height,
+            ascent,
+            descent,
+        }));
+
+    it('spaces each line by its largest segment lineHeight, even below the natural height', () => {
+        expect(lineHeights([text('A', { lineHeight: 30 }), text('B', { lineHeight: 24 }), text('\nC')])).toEqual([
+            { height: 30, ascent: 16, descent: 14 },
+            { height: 20, ascent: 16, descent: 4 },
+        ]);
+        expect(lineHeights([text('A', { lineHeight: 12 })])).toEqual([{ height: 12, ascent: 16, descent: -4 }]);
+    });
+
+    it('keeps the natural height of segments without a lineHeight on the line', () => {
+        expect(lineHeights([text('A', { lineHeight: 10 }), text('B', { fontSize: 40 })])).toEqual([
+            { height: 20, ascent: 16, descent: 4 },
+        ]);
+    });
+
+    it('spaces empty lines by the inherited lineHeight', () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 40 };
+        expect(measureTextSegments([text('A\n\nB')], font).height).toBe(120);
+    });
+
+    it("keeps an empty line's own lineHeight through fitting", () => {
+        const segments = [text('A', { lineHeight: 40 }), text('\n\nB', { lineHeight: 10 })];
+        expect(measureTextSegments(segments, baseFont).height).toBe(60);
+        const fitted = fitLabelText(
+            segments,
+            { maxWidth: 100, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            baseFont
+        ) as MeasuredSegment[];
+        expect(measureTextSegments(fitted, baseFont).height).toBe(60);
+    });
+
+    it('wraps a segment to the height of its inherited lineHeight', () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
+        const fitted = fitLabelText(
+            [text('AAAA BBBB CCCC', { fontSize: 20 })],
+            { maxWidth: 50, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            font
+        ) as MeasuredSegment[];
+        const { height, lineMetrics } = measureTextSegments(fitted, font);
+        expect(lineMetrics).toHaveLength(1);
+        expect(height).toBe(40);
+    });
+
+    describe('fits the lines as the renderer measures them', () => {
+        interface Bounds {
+            maxWidth: number;
+            maxHeight: number;
+            /** Width lost per pixel down the block, bounding the label by a shape rather than a box. */
+            narrowing?: number;
+            wrapping?: TextWrap;
+        }
+
+        function expectMeasuredFit(segments: ContentSegment[], font: FontOptions, bounds: Bounds, message?: string) {
+            const { maxWidth, maxHeight, narrowing = 0, wrapping = 'on-space' } = bounds;
+            const widthAt = (bottom: number) => Math.max(0, maxWidth - bottom * narrowing);
+            const region: FitRegion | undefined =
+                narrowing === 0
+                    ? undefined
+                    : {
+                          spanAt: (_top, bottom) => [-widthAt(bottom) / 2, widthAt(bottom) / 2],
+                          extentAbove: 0,
+                          extentBelow: maxHeight,
+                      };
+            const fitted = fitLabelText(
+                segments,
+                { maxWidth, maxHeight, region, regionAlign: 'start', wrapping, overflowStrategy: 'ellipsis' },
+                font
+            ) as MeasuredSegment[];
+            let bottom = 0;
+            for (const line of measureTextSegments(fitted, font).lineMetrics) {
+                bottom += line.height;
+                expect(line.width, message).toBeLessThanOrEqual(widthAt(bottom));
+            }
+            expect(bottom, message).toBeLessThanOrEqual(maxHeight);
+        }
+
+        const font10 = (lineHeight: number) => ({ ...baseFont, fontSize: 10, lineHeight });
+
+        it.each<[string, ContentSegment[], FontOptions, Bounds]>([
+            [
+                'a row shared with a taller segment',
+                [text('A ', { fontSize: 30 }), text('BBB CCC DDD', { fontSize: 10 })],
+                font10(20),
+                { maxWidth: 60, maxHeight: 60 },
+            ],
+            [
+                'a row followed by a taller segment',
+                [text('AAA BBB'), text('C', { fontSize: 30 }), text('\nD')],
+                font10(20),
+                { maxWidth: 60, maxHeight: 60 },
+            ],
+            [
+                'a row with an inline image',
+                [text('A '), image('icon', { width: 20 }), text('C DD EE')],
+                font10(30),
+                { maxWidth: 60, maxHeight: 60 },
+            ],
+            [
+                'a row open before a segment wraps',
+                [text('A '), text('BBB CCC')],
+                baseFont,
+                { maxWidth: 40, maxHeight: 40 },
+            ],
+            [
+                'wrapped rows below a taller shared row',
+                [text('A', { fontSize: 20 }), text('BB CC DD EE FF')],
+                font10(30),
+                { maxWidth: 80, maxHeight: 180, narrowing: 0.4 },
+            ],
+            [
+                'a segment joining a taller row',
+                [text('A', { fontSize: 20 }), text('BB CC')],
+                font10(30),
+                { maxWidth: 80, maxHeight: 180, narrowing: 0.4 },
+            ],
+            [
+                'a wrapped segment under a taller row',
+                [text('A ', { lineHeight: 40 }), text('BBB CCC DDD', { lineHeight: 10 })],
+                baseFont,
+                { maxWidth: 60, maxHeight: 60, narrowing: 0.4 },
+            ],
+            [
+                'an ellipsis after the rest of its row',
+                [text('AAA BBB', { lineHeight: 20 }), text('A', { lineHeight: 20 }), text('A', { lineHeight: 40 })],
+                baseFont,
+                { maxWidth: 50, maxHeight: 40, narrowing: 0.25 },
+            ],
+        ])('%s', (_name, segments, font, bounds) => expectMeasuredFit(segments, font, bounds));
+
+        it('for generated segments, line heights, bounds and wrapping modes', () => {
+            const wrappings: TextWrap[] = ['on-space', 'always', 'hyphenate', 'never'];
+            for (let seed = 1; seed <= 200; seed++) {
+                const random = seededRandom(seed);
+                const pick = <T>(values: readonly T[]) => values[Math.floor(random() * values.length)];
+                const word = () => 'A'.repeat(1 + Math.floor(random() * 5));
+                const segments = Array.from({ length: 1 + Math.floor(random() * 4) }, () =>
+                    text(pick(['', ' ', '\n']) + [word(), word(), word()].join(pick([' ', ' ', '\n', '\n\n'])), {
+                        fontSize: pick([10, 14, 30]),
+                        lineHeight: pick([undefined, 8, 16, 40]),
+                    })
+                );
+                const font = { ...baseFont, lineHeight: pick([undefined, 20]) };
+                const bounds = {
+                    maxWidth: 20 + Math.floor(random() * 100),
+                    maxHeight: 15 + Math.floor(random() * 120),
+                    narrowing: pick([0, 0.25, 0.6]),
+                    wrapping: pick(wrappings),
+                };
+                expectMeasuredFit(segments, font, bounds, `seed ${seed}`);
+            }
+        });
+    });
+
+    describe('without a lineHeight', () => {
+        const fit = (segments: TextSegment[], maxWidth: number, maxHeight: number) =>
+            fitLabelText(
+                segments,
+                { maxWidth, maxHeight, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+                baseFont
+            ) as MeasuredSegment[];
+
+        it('counts the row a wrapped segment shares only once', () => {
+            const fitted = fit([text('AAA BBB'), text(' CCC')], 40, 3 * LINE_HEIGHT);
+            expect(fitted.map((segment) => (segment.type === 'image' ? '' : segment.text)).join('')).not.toContain(
+                EllipsisChar
+            );
+            expect(measureTextSegments(fitted, baseFont).lineMetrics).toHaveLength(3);
+        });
+
+        it('truncates a segment that overflows an empty row without adding a blank row', () => {
+            const fitted = fit([text('Spotify'), text('\n$21B')], 30, 3 * LINE_HEIGHT);
+            expect(fitted.map((segment) => (segment.type === 'image' ? '' : segment.text))).toEqual([
+                `S${EllipsisChar}\n`,
+                `$${EllipsisChar}`,
+            ]);
+        });
+    });
+
+    it("inherits the default font's lineHeight in proportion to each segment's fontSize", () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 15 };
+        expect(lineHeights([text('A'), text('\nB', { fontSize: 20 }), text('\nC', { lineHeight: 40 })], font)).toEqual([
+            { height: 15, ascent: 16, descent: -1 },
+            { height: 30, ascent: 16, descent: 14 },
+            { height: 40, ascent: 16, descent: 24 },
+        ]);
     });
 });
 

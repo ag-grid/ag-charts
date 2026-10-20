@@ -6,7 +6,6 @@ import {
     type AgChartInstance,
     type AgChartLabelStylerParams,
     type AgChartOptions,
-    AgCharts,
     type AgErrorBarItemStylerParams,
     AgHierarchyChartOptions,
     AgInitialStateZoomOptions,
@@ -40,7 +39,7 @@ import {
 } from 'ag-charts-community-test';
 import type { CanvasPoint } from 'ag-charts-core';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 async function waitForUnhighlight() {
     // FIXME: SeriesAreaManager.handleHoverHighlight clears highlight with delay = true, but Chart.waitForUpdate
@@ -855,13 +854,6 @@ describe('DataSelection', () => {
         return zoom!;
     }
 
-    async function createChartInstance<T extends AgChartOptions<any, any>>(opts: T) {
-        opts = prepareEnterpriseTestOptions(opts);
-        const result = AgCharts.create(opts);
-        await waitForChartStability(result);
-        return result;
-    }
-
     let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
@@ -912,9 +904,7 @@ describe('DataSelection', () => {
                 },
             };
 
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const seriesId = deproxy(chart).series[0].id;
             const dataSet = deproxy(chart).series[0].data!;
@@ -948,9 +938,7 @@ describe('DataSelection', () => {
                 },
             };
 
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const seriesId = deproxy(chart).series[0].id;
             const dataSet = deproxy(chart).series[0].data!;
@@ -984,9 +972,7 @@ describe('DataSelection', () => {
                 },
             };
 
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const seriesId = deproxy(chart).series[0].id;
             const dataSet = deproxy(chart).series[0].data!;
@@ -1008,7 +994,7 @@ describe('DataSelection', () => {
 
         beforeEach(async () => {
             selectionChange = createSelectionChangeRecorder();
-            chart = await createChartInstance({
+            chart = await createEnterpriseChart({
                 ...createAirGasesOptions(),
                 selection: {
                     enabled: true,
@@ -1078,9 +1064,7 @@ describe('DataSelection', () => {
                 },
             };
 
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
@@ -1101,10 +1085,9 @@ describe('DataSelection', () => {
 
             const expandedIndices = bucketLookup!.getIndexSet(primaryDatumIndex);
             expect(expandedIndices).toBeDefined();
-            expect([...expandedIndices!]).toEqual(expect.arrayContaining(expectedIndices));
-            expect([...expandedIndices!]).toHaveLength(expectedIndices.length);
+            expect([...expandedIndices!]).toEqual([...expectedIndices].sort((a, b) => a - b));
 
-            const itemsToSelect = expectedIndices.map((idx) => ({
+            const itemsToSelect = Array.from(expectedIndices, (idx) => ({
                 seriesId,
                 itemId: dataSet.getItemIdFromIndex(idx),
             }));
@@ -1141,9 +1124,7 @@ describe('DataSelection', () => {
                 },
             };
 
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const seriesId = deproxy(chart).series[0].id;
             const dataSet = deproxy(chart).series[0].data!;
@@ -1180,9 +1161,7 @@ describe('DataSelection', () => {
                 },
             };
 
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
@@ -1236,9 +1215,7 @@ describe('DataSelection', () => {
                 },
             };
 
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const seriesId = deproxy(chart).series[0].id;
             const dataSet = deproxy(chart).series[0].data!;
@@ -1266,9 +1243,7 @@ describe('DataSelection', () => {
                 },
             };
 
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
@@ -1297,7 +1272,7 @@ describe('DataSelection', () => {
             series: NonNullable<AgCartesianChartOptions['series']>,
             listeners?: AgCartesianChartOptions['listeners']
         ): AgCartesianChartOptions => {
-            const options: AgCartesianChartOptions = {
+            return {
                 series,
                 selection: { enabled: true },
                 listeners,
@@ -1306,8 +1281,6 @@ describe('DataSelection', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            prepareEnterpriseTestOptions(options);
-            return options;
         };
 
         const lineSeries = (
@@ -1325,10 +1298,9 @@ describe('DataSelection', () => {
         });
 
         it('renders error-bar selection styling on the selected datum', async () => {
-            chart = AgCharts.create(
+            chart = await createEnterpriseChart(
                 buildOptions([lineSeries(monthsData, 'A', { stroke: 'steelblue', strokeWidth: 3 })])
             );
-            await waitForChartStability(chart);
 
             const seriesId = deproxy(chart).series[0].id;
             const itemId = deproxy(chart).series[0].data!.getItemIdFromIndex(2);
@@ -1337,12 +1309,11 @@ describe('DataSelection', () => {
         });
 
         it('rolls back error-bar selection styling when selectionChange listener calls preventDefault', async () => {
-            chart = AgCharts.create(
+            chart = await createEnterpriseChart(
                 buildOptions([lineSeries(monthsData, 'A', { stroke: 'steelblue', strokeWidth: 3 })], {
                     selectionChange: (event) => event.preventDefault(),
                 })
             );
-            await waitForChartStability(chart);
 
             const seriesId = deproxy(chart).series[0].id;
             const itemId = deproxy(chart).series[0].data!.getItemIdFromIndex(2);
@@ -1355,13 +1326,12 @@ describe('DataSelection', () => {
         });
 
         it('clears error-bar styling on series A when single-selecting on series B', async () => {
-            chart = AgCharts.create(
+            chart = await createEnterpriseChart(
                 buildOptions([
                     lineSeries(monthsData, 'A', { stroke: 'steelblue', strokeWidth: 4 }),
                     lineSeries(colderData, 'B', { stroke: 'crimson', strokeWidth: 4 }),
                 ])
             );
-            await waitForChartStability(chart);
 
             const seriesA = deproxy(chart).series[0];
             const seriesB = deproxy(chart).series[1];
@@ -1420,8 +1390,7 @@ describe('DataSelection', () => {
                 ['line', (data: any[]) => lineSeries(data, 'A', { stroke: 'steelblue', strokeWidth: 3 })],
             ] as const) {
                 it(`dims and restores error bars on a ${seriesType} series without an intervening highlight`, async () => {
-                    chart = AgCharts.create(buildOptions([seriesFactory(monthsData)]));
-                    await waitForChartStability(chart);
+                    chart = await createEnterpriseChart(buildOptions([seriesFactory(monthsData)]));
                     expect(getErrorBarGroupOpacity()).toBe(1);
 
                     const series = deproxy(chart).series[0];
@@ -1438,8 +1407,7 @@ describe('DataSelection', () => {
                 });
 
                 it(`restores error bars on a ${seriesType} series when deselecting after the highlight has cleared`, async () => {
-                    chart = AgCharts.create(buildOptions([seriesFactory(monthsData)]));
-                    await waitForChartStability(chart);
+                    chart = await createEnterpriseChart(buildOptions([seriesFactory(monthsData)]));
 
                     const series = deproxy(chart).series[0];
                     chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
@@ -1462,7 +1430,7 @@ describe('DataSelection', () => {
 
     describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
         it('keeps the tooltip hidden despite the full redraw from the data selection Escape handler', async () => {
-            chart = await createChartInstance({
+            chart = await createEnterpriseChart({
                 data: [
                     { x: 'A', y: 10 },
                     { x: 'B', y: 20 },
@@ -1539,7 +1507,7 @@ describe('DataSelection', () => {
                 beforeEach(async () => {
                     const { data, series, axes, theme, legend } = createBarStackMixOptions();
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         axes,
@@ -1769,7 +1737,7 @@ describe('DataSelection', () => {
                 beforeEach(async () => {
                     const { data, series, axes, theme, legend } = createBarStackMixOptions();
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         axes,
@@ -1976,7 +1944,7 @@ describe('DataSelection', () => {
                     seriesNodeClick = vi.fn<NodeClickListener>((params) => {
                         if (preventDefault) params.preventDefault();
                     });
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         axes,
@@ -2101,7 +2069,7 @@ describe('DataSelection', () => {
             describe('single', () => {
                 beforeEach(async () => {
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         theme,
@@ -2240,7 +2208,7 @@ describe('DataSelection', () => {
             describe('single', () => {
                 beforeEach(async () => {
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         theme,
@@ -2383,7 +2351,7 @@ describe('DataSelection', () => {
                     const { data, series } = createBubbleBioStatOptions();
                     selectionChange = createSelectionChangeRecorder();
 
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         selection: {
@@ -2747,7 +2715,7 @@ describe('DataSelection', () => {
                     const { data, series } = createBubbleBioStatOptions();
                     selectionChange = createSelectionChangeRecorder();
 
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         selection: {
@@ -3126,7 +3094,7 @@ describe('DataSelection', () => {
                 beforeEach(async () => {
                     selectionChange = createSelectionChangeRecorder();
 
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         theme,
@@ -3316,7 +3284,7 @@ describe('DataSelection', () => {
 
                 beforeEach(async () => {
                     const { data = [], series = [] } = createLineAccountingOptions();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         theme: {
@@ -3707,7 +3675,7 @@ describe('DataSelection', () => {
                 beforeEach(async () => {
                     const { data, series, axes, legend } = createLineSineWaveOptions();
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         axes,
@@ -4059,7 +4027,7 @@ describe('DataSelection', () => {
                 beforeEach(async () => {
                     const { data, series, axes, legend } = createAreaSineWaveOptions();
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         axes,
@@ -4651,7 +4619,7 @@ describe('DataSelection', () => {
                 beforeEach(async () => {
                     const { data, series, axes, legend } = createRangeAreaSineWaveOptions();
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         axes,
@@ -4752,7 +4720,7 @@ describe('DataSelection', () => {
                 beforeEach(async () => {
                     const { data, series, legend } = createRadarOptions();
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         legend,
@@ -4862,7 +4830,7 @@ describe('DataSelection', () => {
             describe('containment any', () => {
                 beforeEach(async () => {
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         theme,
@@ -5061,7 +5029,7 @@ describe('DataSelection', () => {
             describe('containment all', () => {
                 beforeEach(async () => {
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         theme,
@@ -5146,7 +5114,7 @@ describe('DataSelection', () => {
             describe('containment any', () => {
                 beforeEach(async () => {
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         theme,
@@ -5219,7 +5187,7 @@ describe('DataSelection', () => {
             describe('containment all', () => {
                 beforeEach(async () => {
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         theme,
@@ -5311,7 +5279,7 @@ describe('DataSelection', () => {
             describe('save/restore 3 points', () => {
                 beforeEach(async () => {
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         theme,
@@ -5400,7 +5368,7 @@ describe('DataSelection', () => {
             describe('save/restore 3 points', () => {
                 beforeEach(async () => {
                     selectionChange = createSelectionChangeRecorder();
-                    chart = await createChartInstance({
+                    chart = await createEnterpriseChart({
                         data,
                         series,
                         theme,
@@ -5504,7 +5472,7 @@ describe('DataSelection', () => {
 
             beforeEach(async () => {
                 selectionChange = createSelectionChangeRecorder();
-                chart = await createChartInstance({
+                chart = await createEnterpriseChart({
                     data,
                     series: [{ type, labelKey: 'name', sizeKey: 'size' }],
                     selection: { enabled: true, enableClick: false, enableDrag: true },
@@ -5576,7 +5544,7 @@ describe('DataSelection', () => {
 
             beforeEach(async () => {
                 selectionChange = createSelectionChangeRecorder<D, C>();
-                chart = await createChartInstance({
+                chart = await createEnterpriseChart({
                     ...baseOptions,
                     selection: { enabled: true },
                     listeners: { selectionChange },
@@ -5642,7 +5610,7 @@ describe('DataSelection', () => {
     describe('series styling', () => {
         test('treemap tiles', async () => {
             const { data, series, theme, legend, title } = createDiskUsageOptions('treemap');
-            chart = await createChartInstance({
+            chart = await createEnterpriseChart({
                 data,
                 series: [
                     {
@@ -5701,9 +5669,7 @@ describe('DataSelection', () => {
                         ],
                         axes: { x: { type: 'category' }, y: { type: 'number' } },
                     };
-                    prepareEnterpriseTestOptions(options);
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
+                    chart = await createEnterpriseChart(options);
 
                     const chartInstance = deproxy(chart) as any;
                     const series = chartInstance.series[0];
@@ -5744,7 +5710,7 @@ describe('DataSelection', () => {
 
             beforeEach(async () => {
                 selectionChange = createSelectionChangeRecorder<D, C>();
-                opts = prepareEnterpriseTestOptions({
+                opts = {
                     data,
                     dataIdKey: 'id',
                     selection: {
@@ -5774,8 +5740,9 @@ describe('DataSelection', () => {
                         },
                     ],
                     listeners: { selectionChange },
-                });
-                chart = await createChartInstance(opts);
+                };
+                chart = await createEnterpriseChart(opts);
+                prepareEnterpriseTestOptions(opts);
                 await setChartSelectionArray([SELECTION]);
             });
             describe('initial', () => {
@@ -5853,7 +5820,7 @@ describe('DataSelection', () => {
     describe('drag rect clamping', () => {
         it('should clamp the in-progress drag rect to the series area', async () => {
             const { data, series } = createBubbleBioStatOptions();
-            chart = await createChartInstance({
+            chart = await createEnterpriseChart({
                 data,
                 series,
                 selection: { containment: 'any', enabled: true, enableDrag: true, enableClick: false },
@@ -5949,7 +5916,7 @@ describe('DataSelection', () => {
             async function createStackMixChart(onSelectionChange?: SelectionChangeCallback<D, C>) {
                 const { data, series, axes, theme, legend } = createBarStackMixOptions();
                 selectionChange = createSelectionChangeRecorder(onSelectionChange);
-                chart = await createChartInstance({
+                chart = await createEnterpriseChart({
                     data,
                     series,
                     axes,

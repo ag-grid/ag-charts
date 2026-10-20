@@ -232,6 +232,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 }
                 const wrapOptions: WrapOptions = {
                     font: labelStyles,
+                    lineHeight: labelStyles.lineHeight,
                     textWrap: optionsMap[depth].wrapping,
                     overflow: optionsMap[depth].truncate ? 'ellipsis' : 'hide',
                     maxWidth,
@@ -364,6 +365,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 fill: boxing.fill,
                 fontFamily: tempText.fontFamily,
                 fontSize: tempText.fontSize,
+                lineHeight: tempText.lineHeight,
                 fontStyle: tempText.fontStyle,
                 fontWeight: tempText.fontWeight,
                 padding: boxing.padding,
@@ -774,6 +776,11 @@ export class GroupedCategoryAxis extends CategoryAxis<
         this.tickScale.range = this.scale.range;
         // Outer padding must equal half inner padding to keep groups center point aligned.
         this.scale.paddingOuter = this.scale.paddingInner / 2;
+    }
+
+    // Its multi-depth layout is computed by its own `calculateLayout()`, not by the cached `calculateTickLayout()`.
+    protected override get tickLayoutIgnoresData() {
+        return false;
     }
 
     override processData() {

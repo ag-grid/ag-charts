@@ -28,7 +28,6 @@ import {
     positiveNumber,
     ratio,
     required,
-    seriesLabelOptionsDefs,
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
@@ -37,7 +36,7 @@ import {
     without,
 } from 'ag-charts-core';
 
-import { fillsOptionsDef, gaugeTooltipOptionsDef } from '../gauge-util/gaugeOptionsDefs';
+import { fillsOptionsDef, gaugeTargetLabelOptionsDef, gaugeTooltipOptionsDef } from '../gauge-util/gaugeOptionsDefs';
 
 export const radialGaugeTargetOptionsDef: OptionsDefs<AgRadialGaugeTarget> = {
     value: required(numericValue),
@@ -50,10 +49,7 @@ export const radialGaugeTargetOptionsDef: OptionsDefs<AgRadialGaugeTarget> = {
     spacing: positiveNumber,
     size: positiveNumber,
     rotation: number,
-    label: {
-        ...seriesLabelOptionsDefs,
-        spacing: positiveNumber,
-    },
+    label: gaugeTargetLabelOptionsDef,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
@@ -124,6 +120,8 @@ export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThem
     label: {
         text: string,
         spacing: positiveNumber,
+        maxWidth: positiveNumber,
+        maxHeight: positiveNumber,
         ...autoSizedLabelOptionsDefs,
     },
     secondaryLabel: {
@@ -136,16 +134,13 @@ export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThem
         defaultTarget: {
             ...radialGaugeTargetOptionsDef,
             value: number,
-            label: {
-                ...seriesLabelOptionsDefs,
-                spacing: number,
-            },
+            label: gaugeTargetLabelOptionsDef,
         },
     }),
 };
 
 export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
-    ...without(commonSeriesOptionsDefs, ['listeners']),
+    ...without(commonSeriesOptionsDefs, ['listeners', 'focusIndex']),
     ...radialGaugeSeriesThemeableOptionsDef,
     type: required(constant('radial-gauge')),
     value: required(numericValue),

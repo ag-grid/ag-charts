@@ -72,6 +72,11 @@ export class CategoryAxis<
         this.nice = false;
     }
 
+    override applyOptions(options: TOptions): void {
+        super.applyOptions(options);
+        this.nice = false;
+    }
+
     override isCategoryLike(): boolean {
         return true;
     }
@@ -90,6 +95,10 @@ export class CategoryAxis<
             return super.getUpdateTypeOnResize();
         }
         return ChartUpdateType.PROCESS_DOMAIN;
+    }
+
+    protected override get tickLayoutIgnoresData() {
+        return CategoryScale.is(this.scale);
     }
 
     protected override updateScale() {

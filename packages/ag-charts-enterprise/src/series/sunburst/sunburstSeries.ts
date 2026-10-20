@@ -7,13 +7,20 @@ import {
     BBox,
     type CallbackParamRules,
     type DynamicContext,
+    type FitRegion,
+    type FittedLabelStack,
     Group,
+    type LabelStackBlock,
     type NormalisedSunburstInnerLabelOptions,
     type NormalisedSunburstSeriesOwnOptions,
     type NormalisedSunburstSeriesStyle,
     type NormalisedTextOrSegments,
+    type OrientationAnchor,
+    type PlacedLabel,
     type Point,
+    type PointLabelDatum,
     PointerEvents,
+    type PositionedLabelCandidate,
     type RequireOptional,
     STROKE_STYLE_THEME_DEFAULTS,
     ScalableGroup,
@@ -21,21 +28,28 @@ import {
     Selection,
     Text,
     TransformableText,
+    cycledValue,
+    drawnLineHeight,
     findDiscreteColorBinLabel,
+    fontWithSize,
     formatValue,
     isGradientFill,
+    measureLabelText,
     mergeDefaults,
     normalizeAngle360,
 } from 'ag-charts-core';
 import type { Path } from 'ag-charts-core';
-import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight } from 'ag-charts-types';
+import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight, PaddingOptions } from 'ag-charts-types';
 
 import { HierarchyNode, HierarchySeries, toHierarchyHighlightString } from '../hierarchy/hierarchySeries';
-import { formatLabels } from '../util/labelFormatter';
+import { autoSizedLabelFit, labelPairBlocks, styledLabelFont } from '../util/autoSizedLabelFit';
 
-const { fromToMotion, createDatumId, fitLabelToContainer, getLabelStyles } = _ModuleSupport;
+const { fromToMotion, createDatumId, expandLabelBoxExtent, fitLabelToContainer, getLabelStyles } = _ModuleSupport;
 
 class SunburstNode extends HierarchyNode<SunburstNode> {
+    labelText: NormalisedTextOrSegments | undefined = undefined;
+    secondaryLabelText: NormalisedTextOrSegments | undefined = undefined;
+    ring: SunburstLabelRing | undefined = undefined;
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
     contentHeight: number = 0;
@@ -58,6 +72,79 @@ interface LabelLayout {
     theta: number;
     width: number;
     height: number;
+}
+
+/** The annular sector a node's labels are fitted to, in the series' centred frame. */
+interface SunburstLabelRing {
+    readonly innerRadius: number;
+    readonly outerRadius: number;
+    readonly sweep: number;
+    readonly theta: number;
+    readonly radiusScale: number;
+    /** The depth-0 sector of a sunburst with no hole, which reaches the centre. */
+    readonly wedge: boolean;
+    /** A sole depth-0 node filling the whole disc. */
+    readonly centreCircle: boolean;
+}
+
+interface SunburstPlacedLabelDatum extends PointLabelDatum {
+    readonly node: SunburstNode;
+    readonly tags: readonly TextNodeTag[];
+}
+
+interface SunburstLabelCandidate extends PositionedLabelCandidate {
+    readonly labelPlacement: LabelPlacement;
+}
+
+const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
+
+/** A region whose width depends only on the height of the stack it holds, minus `padding` on every side. */
+function heightBoundRegion(padding: number, widthFor: (height: number) => number): FitRegion {
+    return {
+        spanAt(top, bottom) {
+            const half = (widthFor(bottom - top + 2 * padding) - 2 * padding) / 2;
+            return half > 0 ? [-half, half] : [0, 0];
+        },
+        extentAbove: Infinity,
+        extentBelow: Infinity,
+    };
+}
+
+/** How far from the centre a sector's labels are drawn, for a stack of the given size. */
+function sectorLabelRadius(
+    ring: SunburstLabelRing,
+    labelPlacement: LabelPlacement,
+    width: number,
+    height: number,
+    padding: number
+): number {
+    const { innerRadius, outerRadius, sweep, radiusScale, wedge } = ring;
+    switch (labelPlacement) {
+        case LabelPlacement.CenterCircle:
+            return 0;
+        case LabelPlacement.Parallel: {
+            const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
+            const idealRadius = outerRadius - (radiusScale - height) * opticalCentering;
+            // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
+            const maximumRadius = Math.sqrt(Math.max(0, (outerRadius - padding) ** 2 - (width / 2) ** 2));
+            return Math.min(idealRadius, maximumRadius);
+        }
+        case LabelPlacement.Perpendicular: {
+            if (!wedge) return (innerRadius + outerRadius) * 0.5;
+            const minimumRadius = height / (2 * Math.tan(sweep * 0.5)) + width * 0.5;
+            const maximumRadius = Math.sqrt(Math.max(0, outerRadius ** 2 - (height * 0.5) ** 2)) - width * 0.5;
+            return (minimumRadius + maximumRadius) * 0.5;
+        }
+    }
+}
+
+function naturalStackHeight(blocks: readonly LabelStackBlock[], spacing: number) {
+    let height = spacing * (blocks.length - 1);
+    for (const { fit } of blocks) {
+        const padding = fit.boxPadding ?? NO_PADDING;
+        height += measureLabelText(fit.text, fit.font).height + padding.top + padding.bottom;
+    }
+    return height;
 }
 
 function setAngleData(node: SunburstNode, startAngle = 0, angleScale = (2 * Math.PI) / node.sumSize) {
@@ -147,6 +234,8 @@ export class SunburstSeries extends HierarchySeries<
     }
 
     updateSelections() {
+        const { label, secondaryLabel } = this.options;
+        this.usesPlacedLabels = label.enabled || secondaryLabel.enabled;
         const highlightedNode = this.getActiveHighlightNode();
         const getDatumId = (node: SunburstNode) => node.datumIndex;
         this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
@@ -221,9 +310,9 @@ export class SunburstSeries extends HierarchySeries<
     private itemStyle(index: number): ItemStyle {
         const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity } = this.options;
         return {
-            fill: fills[index % fills.length],
+            fill: cycledValue(fills, index),
             fillOpacity,
-            stroke: strokes[index % strokes.length],
+            stroke: cycledValue(strokes, index),
             strokeWidth,
             strokeOpacity,
             opacity: 1,
@@ -266,7 +355,6 @@ export class SunburstSeries extends HierarchySeries<
         const { width, height } = chart.seriesRect!;
         const {
             sectorSpacing,
-            padding,
             cornerRadius,
             shadow,
             childrenKey,
@@ -326,10 +414,6 @@ export class SunburstSeries extends HierarchySeries<
         rootNode?.walk((node) => {
             const { datum, depth, startAngle, endAngle, parent, sumSize } = node;
 
-            node.label = undefined;
-            node.secondaryLabel = undefined;
-            node.contentHeight = 0;
-
             let labelValue: NormalisedTextOrSegments | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
@@ -386,6 +470,9 @@ export class SunburstSeries extends HierarchySeries<
                 secondaryLabelValue = undefined;
             }
 
+            node.labelText = labelValue;
+            node.secondaryLabelText = secondaryLabelValue;
+            node.ring = undefined;
             if (depth == null) return;
             // An oversized hole collapses every sector to zero thickness, and fitting a label to a
             // zero-height annulus only yields non-finite geometry.
@@ -393,140 +480,27 @@ export class SunburstSeries extends HierarchySeries<
 
             const innerRadius = hole + depth * radiusScale + baseInset;
             const outerRadius = hole + (depth + 1) * radiusScale - baseInset;
-            const innerAngleOffset = innerRadius > baseInset ? baseInset / innerRadius : baseInset;
-            const outerAngleOffset = outerRadius > baseInset ? baseInset / outerRadius : baseInset;
-            const innerStartAngle = startAngle + innerAngleOffset;
-            const innerEndAngle = endAngle + innerAngleOffset;
-            const deltaInnerAngle = innerEndAngle - innerStartAngle;
-            const outerStartAngle = startAngle + outerAngleOffset;
-            const outerEndAngle = endAngle + outerAngleOffset;
-            const deltaOuterAngle = outerEndAngle - outerStartAngle;
-
-            const sizeFittingHeight = (labelHeight: number) => {
+            node.ring = {
+                innerRadius,
+                outerRadius,
+                sweep: endAngle - startAngle,
+                theta: angleOffset + (startAngle + endAngle) / 2,
+                radiusScale,
                 // With a hole carved, depth 0 is a genuine annulus rather than a disc, so the
                 // centre-circle and wedge-from-centre label forms no longer apply to it.
-                const isCenterCircle = depth === 0 && hole === 0 && parent?.sumSize === sumSize;
-                if (isCenterCircle) {
-                    const labelWidth = 2 * Math.sqrt(outerRadius ** 2 - (labelHeight * 0.5) ** 2);
-                    return { width: labelWidth, height: labelHeight, meta: LabelPlacement.CenterCircle };
-                }
-
-                const parallelHeight = labelHeight;
-                const availableWidthUntilItHitsTheOuterRadius =
-                    2 * Math.sqrt(outerRadius ** 2 - (innerRadius + parallelHeight) ** 2);
-                const availableWidthUntilItHitsTheStraightEdges =
-                    deltaInnerAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaInnerAngle * 0.5) : Infinity;
-                const parallelWidth = Math.min(
-                    availableWidthUntilItHitsTheOuterRadius,
-                    availableWidthUntilItHitsTheStraightEdges
-                );
-
-                const maxPerpendicularAngle = Math.PI / 4;
-                let perpendicularHeight: number;
-                let perpendicularWidth: number;
-                if (depth === 0 && hole === 0) {
-                    // Wedge from center - maximize the width of a box with fixed height
-                    perpendicularHeight = labelHeight;
-                    perpendicularWidth =
-                        Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) -
-                        labelHeight / (2 * Math.tan(deltaOuterAngle * 0.5));
-                } else if (normalizeAngle360(deltaInnerAngle) < maxPerpendicularAngle) {
-                    // Outer wedge - fit the height to the sector, then fit the width
-                    perpendicularHeight = 2 * innerRadius * Math.tan(deltaInnerAngle * 0.5);
-                    perpendicularWidth = Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) - innerRadius;
-                } else {
-                    perpendicularWidth = 0;
-                    perpendicularHeight = 0;
-                }
-
-                return parallelWidth >= perpendicularWidth
-                    ? { width: parallelWidth, height: parallelHeight, meta: LabelPlacement.Parallel }
-                    : { width: perpendicularWidth, height: perpendicularHeight, meta: LabelPlacement.Perpendicular };
+                wedge: depth === 0 && hole === 0,
+                centreCircle: depth === 0 && hole === 0 && parent?.sumSize === sumSize,
             };
-
-            const formatting = formatLabels<LabelPlacement>(
-                // Preserve `ContentSegment[]` (including image segments) instead of flattening to plain
-                // text, so image-bearing labels render like treemap rather than dropping the image.
-                labelValue,
-                this.options.label,
-                secondaryLabelValue,
-                this.options.secondaryLabel,
-                { padding },
-                sizeFittingHeight
-            );
-
-            if (formatting == null) return;
-
-            const { width: labelWidth, height: labelHeight, meta: labelPlacement, label, secondaryLabel } = formatting;
-
-            const theta = angleOffset + (startAngle + endAngle) / 2;
-            const top = Math.sin(theta) >= 0;
-            const right = Math.cos(theta) >= 0;
-            const circleQuarter =
-                (top ? CircleQuarter.Top : CircleQuarter.Bottom) & (right ? CircleQuarter.Right : CircleQuarter.Left);
-
-            let labelRadius: number;
-            switch (labelPlacement) {
-                case LabelPlacement.CenterCircle:
-                    labelRadius = 0;
-                    break;
-                case LabelPlacement.Parallel: {
-                    const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
-                    const idealRadius = outerRadius - (radiusScale - labelHeight) * opticalCentering;
-                    // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
-                    const maximumRadius = Math.sqrt(Math.max(0, (outerRadius - padding) ** 2 - (labelWidth / 2) ** 2));
-                    labelRadius = Math.min(idealRadius, maximumRadius);
-                    break;
-                }
-                case LabelPlacement.Perpendicular:
-                    if (depth === 0 && hole === 0) {
-                        const minimumRadius = labelHeight / (2 * Math.tan(deltaInnerAngle * 0.5)) + labelWidth * 0.5;
-                        const maximumRadius =
-                            Math.sqrt(Math.max(0, outerRadius ** 2 - (labelHeight * 0.5) ** 2)) - labelWidth * 0.5;
-                        labelRadius = (minimumRadius + maximumRadius) * 0.5;
-                    } else {
-                        labelRadius = (innerRadius + outerRadius) * 0.5;
-                    }
-                    break;
-            }
-
-            if (label != null) {
-                const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = this.options.label;
-                node.label = {
-                    ...label,
-                    fontStyle,
-                    fontFamily,
-                    fontWeight,
-                    color,
-                    labelPlacement,
-                    circleQuarter,
-                    radius: labelRadius,
-                    theta,
-                };
-            }
-
-            if (secondaryLabel != null) {
-                const {
-                    fontStyle = 'normal',
-                    fontFamily,
-                    fontWeight = 'normal',
-                    color = 'black',
-                } = this.options.secondaryLabel;
-                node.secondaryLabel = {
-                    ...secondaryLabel,
-                    fontStyle,
-                    fontFamily,
-                    fontWeight,
-                    color,
-                    labelPlacement,
-                    circleQuarter,
-                    radius: labelRadius,
-                    theta,
-                };
-            }
-
-            node.contentHeight = formatting.height;
         });
+
+        // Placed labels are written back once the label manager has fitted them to this layout.
+        if (!this.usesPlacedLabels) {
+            rootNode?.walk((node) => {
+                node.label = undefined;
+                node.secondaryLabel = undefined;
+                node.contentHeight = 0;
+            });
+        }
 
         const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean) => {
             const { depth, startAngle, endAngle } = nodeDatum;
@@ -592,6 +566,227 @@ export class SunburstSeries extends HierarchySeries<
             });
         }
 
+        if (!this.usesPlacedLabels) this.updateLabelNodes();
+
+        if (centre != null && innerLabels.length > 0) {
+            this.updateInnerLabelNodes(centre);
+        }
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.usesPlacedLabels) return [];
+        const data: SunburstPlacedLabelDatum[] = [];
+        this.rootNode?.walk((node) => {
+            const datum = this.sectorLabelDatum(node);
+            if (datum != null) data.push(datum);
+        });
+        return data;
+    }
+
+    private sectorLabelDatum(node: SunburstNode): SunburstPlacedLabelDatum | undefined {
+        const { ring, labelText, secondaryLabelText } = node;
+        if (ring == null) return;
+        const { label, secondaryLabel } = this.options;
+        const primary =
+            label.enabled && labelText != null ? this.styledLabelFit(node, labelText, label, 'label') : undefined;
+        const secondary =
+            secondaryLabel.enabled && secondaryLabelText != null
+                ? this.styledLabelFit(node, secondaryLabelText, secondaryLabel, 'secondaryLabel')
+                : undefined;
+        const fit = primary ?? secondary;
+        if (fit == null) return;
+        const blocks = labelPairBlocks(primary, secondary);
+        const tags: TextNodeTag[] = [];
+        if (primary != null) tags.push(TextNodeTag.Primary);
+        if (secondary != null) tags.push(TextNodeTag.Secondary);
+
+        const { width, height } = measureLabelText(fit.text, fit.font);
+        return {
+            point: { x: 0, y: 0, size: 0 },
+            label: { text: fit.text, width, height },
+            fit,
+            stack: { blocks, spacing: label.spacing ?? 0 },
+            anchor: undefined,
+            placement: undefined,
+            neverDrop: blocks.some((block) => block.fit.fitOverflow != null),
+            positionedCandidates: this.sectorLabelCandidates(ring, naturalStackHeight(blocks, label.spacing ?? 0)),
+            node,
+            tags,
+        };
+    }
+
+    /**
+     * The forms a sector's labels can take. Each holds only the heights at which it is the wider, so a stack
+     * takes the form the sector favours at the size it is fitted at; the form favoured at full size is first.
+     */
+    private sectorLabelCandidates(ring: SunburstLabelRing, naturalHeight: number): SunburstLabelCandidate[] {
+        const { padding } = this.options;
+        const { innerRadius, outerRadius, sweep, wedge } = ring;
+        const chordAt = (offset: number) => Math.sqrt(Math.max(0, outerRadius ** 2 - offset ** 2));
+        if (ring.centreCircle) {
+            const shape = heightBoundRegion(padding, (height) => 2 * chordAt(height * 0.5));
+            return [this.sectorLabelCandidate(ring, LabelPlacement.CenterCircle, shape)];
+        }
+
+        const straightEdges = sweep < Math.PI ? 2 * innerRadius * Math.tan(sweep * 0.5) : Infinity;
+        const parallelWidth = (height: number) => Math.min(2 * chordAt(innerRadius + height), straightEdges);
+        let perpendicularWidth: ((height: number) => number) | undefined;
+        if (wedge) {
+            perpendicularWidth = (height) => {
+                const apex = sweep < Math.PI ? height / (2 * Math.tan(sweep * 0.5)) : 0;
+                return chordAt(height * 0.5) - apex;
+            };
+        } else if (normalizeAngle360(sweep) < Math.PI / 4) {
+            // Measured across the sector's full height at its inner edge, however short the text.
+            const across = chordAt(straightEdges * 0.5) - innerRadius;
+            perpendicularWidth = () => across;
+        }
+        if (perpendicularWidth == null) {
+            return [
+                this.sectorLabelCandidate(ring, LabelPlacement.Parallel, heightBoundRegion(padding, parallelWidth)),
+            ];
+        }
+
+        const widthAcross = perpendicularWidth;
+        const parallelWins = (height: number) => parallelWidth(height) >= widthAcross(height);
+        const parallel = heightBoundRegion(padding, (height) => (parallelWins(height) ? parallelWidth(height) : 0));
+        const perpendicular = heightBoundRegion(padding, (height) => {
+            if (parallelWins(height) || (!wedge && height > straightEdges)) return 0;
+            return widthAcross(height);
+        });
+        const candidates = [
+            this.sectorLabelCandidate(ring, LabelPlacement.Parallel, parallel),
+            this.sectorLabelCandidate(ring, LabelPlacement.Perpendicular, perpendicular),
+        ];
+        return parallelWins(naturalHeight + 2 * padding) ? candidates : candidates.reverse();
+    }
+
+    private sectorLabelCandidate(
+        ring: SunburstLabelRing,
+        labelPlacement: LabelPlacement,
+        shape: FitRegion
+    ): SunburstLabelCandidate {
+        const { translationX: centreX, translationY: centreY } = this.contentGroup;
+        const { padding } = this.options;
+        const { theta } = ring;
+        const cos = Math.cos(theta);
+        const sin = Math.sin(theta);
+        const centreFor = (width: number, height: number) => {
+            const radius = sectorLabelRadius(ring, labelPlacement, width, height, padding);
+            return { x: centreX + cos * radius, y: centreY + sin * radius };
+        };
+        const { x, y } = centreFor(0, 0);
+        const anchor: OrientationAnchor = { x, y, textAlign: 'center', textBaseline: 'middle' };
+        let rotation = 0;
+        if (labelPlacement === LabelPlacement.Parallel) {
+            rotation = theta + Math.PI * 0.5;
+        } else if (labelPlacement === LabelPlacement.Perpendicular) {
+            rotation = theta;
+        }
+        return {
+            box: { x, y, width: 0, height: 0 },
+            region: { x: 0, y: 0, width: 2 * centreX, height: 2 * centreY },
+            rotation: (rotation * 180) / Math.PI,
+            fitTo: { shape, anchor, centreFor, padding: NO_PADDING },
+            labelPlacement,
+        };
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<SunburstNode>[]) {
+        this.rootNode?.walk((node) => {
+            node.label = undefined;
+            node.secondaryLabel = undefined;
+            node.contentHeight = 0;
+        });
+        for (const placedLabel of placed as PlacedLabel<unknown>[]) {
+            if (placedLabel.stack == null) continue;
+            const { labelPlacement } = placedLabel.candidate as SunburstLabelCandidate;
+            this.writeSectorLabels(placedLabel.datum as SunburstPlacedLabelDatum, labelPlacement, placedLabel.stack);
+        }
+        this.updateLabelNodes();
+    }
+
+    private writeSectorLabels(
+        { node, tags, stack: labelStack }: SunburstPlacedLabelDatum,
+        labelPlacement: LabelPlacement,
+        stack: FittedLabelStack
+    ) {
+        const { ring } = node;
+        if (ring == null) return;
+        const { theta } = ring;
+        const { width: labelWidth, height: labelHeight } = stack;
+
+        const top = Math.sin(theta) >= 0;
+        const right = Math.cos(theta) >= 0;
+        const circleQuarter =
+            (top ? CircleQuarter.Top : CircleQuarter.Bottom) & (right ? CircleQuarter.Right : CircleQuarter.Left);
+
+        const labelRadius = sectorLabelRadius(ring, labelPlacement, labelWidth, labelHeight, this.options.padding);
+
+        for (let index = 0; index < tags.length; index++) {
+            const tag = tags[index];
+            const fitted = stack.blocks[index];
+            if (fitted == null) continue;
+            const primary = tag === TextNodeTag.Primary;
+            const props = primary ? this.options.label : this.options.secondaryLabel;
+            const blockFit = labelStack?.blocks[index].fit;
+            const font = blockFit?.font ?? props;
+            const box = blockFit?.boxPadding ?? expandLabelBoxExtent(props);
+            const { fontStyle = 'normal', fontFamily = props.fontFamily, fontWeight = 'normal' } = font;
+            const { color = 'black' } = props;
+            const fittedFont = fontWithSize(font, fitted.fontSize);
+            const layout: LabelLayout = {
+                text: fitted.text,
+                fontSize: fitted.fontSize,
+                lineHeight: drawnLineHeight(fittedFont),
+                fontStyle,
+                fontFamily,
+                fontWeight,
+                color,
+                labelPlacement,
+                circleQuarter,
+                radius: labelRadius,
+                theta,
+                width: fitted.width,
+                height: fitted.height + box.top + box.bottom,
+            };
+            if (primary) {
+                node.label = layout;
+            } else {
+                node.secondaryLabel = layout;
+            }
+        }
+        node.contentHeight = labelHeight;
+    }
+
+    private labelFormatterParams(node: SunburstNode): RequireOptional<AgSunburstSeriesLabelFormatterParams> {
+        const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName } = this.options;
+        return {
+            childrenKey,
+            colorKey,
+            colorName: colorName ?? colorKey,
+            depth: node.depth ?? Number.NaN,
+            labelKey,
+            secondaryLabelKey,
+            sizeKey,
+            sizeName: sizeName ?? sizeKey,
+        };
+    }
+
+    /** Fits the label at rest in its `itemStyler`'s font and box, so restyled text keeps its room. */
+    private styledLabelFit(
+        node: SunburstNode,
+        text: NormalisedTextOrSegments,
+        props: NormalisedSunburstSeriesOwnOptions['label'] | NormalisedSunburstSeriesOwnOptions['secondaryLabel'],
+        key: 'label' | 'secondaryLabel'
+    ) {
+        if (props.itemStyler == null) return autoSizedLabelFit(text, props, expandLabelBoxExtent(props));
+        const path = ['series', `${this.declarationOrder}`, key];
+        const style = getLabelStyles(this, node, this.labelFormatterParams(node), props, false, undefined, path);
+        return autoSizedLabelFit(text, styledLabelFont(props, style), expandLabelBoxExtent(style));
+    }
+
+    private updateLabelNodes() {
         const highlightedNode = this.getActiveHighlightNode();
 
         const updateText = (node: SunburstNode, text: TransformableText, tag: TextNodeTag, highlighted: boolean) => {
@@ -610,18 +805,9 @@ export class SunburstSeries extends HierarchySeries<
             const { opacity: highlightOpacity } =
                 this.getHierarchyHighlightStyles(highlightState, this.options.highlight) ?? {};
 
-            const params: RequireOptional<AgSunburstSeriesLabelFormatterParams> = {
-                childrenKey: this.options.childrenKey,
-                colorKey: this.options.colorKey,
-                colorName: this.options.colorName ?? this.options.colorKey,
-                depth: node.depth ?? Number.NaN,
-                labelKey: this.options.labelKey,
-                secondaryLabelKey: this.options.secondaryLabelKey,
-                sizeKey: this.options.sizeKey,
-                sizeName: this.options.sizeName ?? this.options.sizeKey,
-            };
             const baseLabelStyle = primary ? this.options.label : this.options.secondaryLabel;
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+            const params = this.labelFormatterParams(node);
             const style = getLabelStyles(this, node, params, baseLabelStyle, highlighted, activeHighlight);
             text.text = label.text;
             text.fontSize = label.fontSize;
@@ -670,15 +856,10 @@ export class SunburstSeries extends HierarchySeries<
             }
             text.visible = true;
         };
-        const highlightedDatum = this.getActiveHighlightNode();
         for (const text of this.labelSelection.selectByClass(TransformableText)) {
             // eslint-disable-next-line sonarjs/deprecation
             const datum = text.unsafeClosestDatum();
-            updateText(datum, text, text.tag, datum === highlightedDatum);
-        }
-
-        if (centre != null && innerLabels.length > 0) {
-            this.updateInnerLabelNodes(centre);
+            updateText(datum, text, text.tag, datum === highlightedNode);
         }
     }
 
@@ -690,11 +871,12 @@ export class SunburstSeries extends HierarchySeries<
         const extent = radius * Math.SQRT2;
         const box = { width: extent, height: extent };
         this.innerLabelsSelection.each((text, datum) => {
-            const { fontStyle, fontWeight, fontSize, fontFamily, color } = datum;
+            const { fontStyle, fontWeight, fontSize, fontFamily, lineHeight, color } = datum;
             text.fontStyle = fontStyle;
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
             text.fontFamily = fontFamily;
+            text.lineHeight = lineHeight;
             text.text = fitLabelToContainer(datum.text, undefined, datum, box);
             text.x = 0;
             text.y = 0;

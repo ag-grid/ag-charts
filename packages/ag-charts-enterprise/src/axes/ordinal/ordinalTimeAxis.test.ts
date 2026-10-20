@@ -1,24 +1,24 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type {
-    AgBaseChartOptions,
-    AgCartesianAxisPosition,
-    AgCartesianAxisType,
-    AgCartesianChartOptions,
-    AgPolarChartOptions,
-} from 'ag-charts-community';
+import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { ChartOrProxy } from 'ag-charts-community-test';
 import {
+    applyIntervalBetween,
+    applyIntervalOn,
+    calculateAxisBBox,
     cartesianChartAssertions,
     compareImageSnapshot,
+    deproxy,
     expectWarningsCalls,
-    reverseAxes,
+    getAxisLabelNodes,
+    getAxisLabelTexts,
+    getLabelText,
+    mixinDerivedCases,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { mapValues } from 'ag-charts-core';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -444,79 +444,6 @@ const ORDINAL_TIME_AXIS_REVERSED_ZOOM_END: AgCartesianChartOptions = {
     initialState: { zoom: { ratioX: { start: 0.7, end: 1 } } },
 };
 
-function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
-    };
-}
-
-function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
-    const positionFlip = (position?: AgCartesianAxisPosition) => {
-        switch (position) {
-            case 'top':
-                return 'bottom';
-            case 'left':
-                return 'right';
-            case 'bottom':
-                return 'top';
-            case 'right':
-                return 'left';
-            default:
-                return position;
-        }
-    };
-
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
-    };
-}
-
-const EXAMPLE_GRID_LINE = {
-    width: 2,
-    style: [
-        { fill: 'red', fillOpacity: 0.1, stroke: 'red' },
-        { fill: 'blue', fillOpacity: 0.1, stroke: 'blue' },
-        { fill: 'green', fillOpacity: 0.1, stroke: 'green' },
-        { fill: 'yellow', fillOpacity: 0.1, stroke: 'yellow' },
-    ],
-};
-
-function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
-    return {
-        ...opts,
-        axes:
-            mapValues(opts.axes ?? {}, (axis) =>
-                axis.type === 'ordinal-time'
-                    ? {
-                          ...axis,
-                          interval: { ...(axis.interval ?? {}), placement: 'on' },
-                          gridLine: EXAMPLE_GRID_LINE,
-                          tick: { ...(axis.tick ?? {}), enabled: true },
-                      }
-                    : axis
-            ) ?? undefined,
-    };
-}
-
-function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
-    return {
-        ...opts,
-        axes:
-            mapValues(opts.axes ?? {}, (axis) =>
-                axis.type === 'ordinal-time'
-                    ? {
-                          ...axis,
-                          interval: { ...(axis.interval ?? {}), placement: 'between' },
-                          gridLine: EXAMPLE_GRID_LINE,
-                          tick: { ...(axis.tick ?? {}), enabled: true },
-                      }
-                    : axis
-            ) ?? undefined,
-    };
-}
-
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
     assertions: (chart: ChartOrProxy) => Promise<void> | void;
@@ -524,7 +451,7 @@ type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     compare?: AgCartesianAxisType[];
 };
 const EXAMPLES: Record<string, TestCase> = {
-    ...mixinDerivedCases({
+    ...mixinDerivedCases<TestCase>({
         BASIC_ORDINAL_TIME_AXIS_EXAMPLE: {
             options: BASIC_ORDINAL_TIME_AXIS_EXAMPLE,
             compare: ['ordinal-time'],
@@ -584,40 +511,6 @@ const EXAMPLES: Record<string, TestCase> = {
     }),
 };
 
-function mixinDerivedCases<T extends AgBaseChartOptions>(
-    baseCases: Record<string, TestCase<T>>
-): Record<string, TestCase<T>> {
-    const result = { ...baseCases };
-
-    for (const [name, baseCase] of Object.entries(baseCases)) {
-        // Add manual rotation.
-        result[name + '_MANUAL_ROTATION'] = {
-            ...baseCase,
-            options: applyRotation(baseCase.options, -30),
-        };
-
-        // Add flipped axes.
-        result[name + '_FLIP'] = {
-            ...baseCase,
-            options: applyAxesFlip(baseCase.options),
-        };
-
-        result[name + '_REVERSED_AXES'] = {
-            ...baseCase,
-            options: reverseAxes(baseCase.options, true),
-        };
-    }
-
-    return result;
-}
-
-function calculateAxisBBox(axis: _ModuleSupport.ChartAxis): { x: number; y: number; width: number; height: number } {
-    const bbox = axis.getBBox();
-
-    const { x, y, width, height } = bbox;
-    return { x, y, width, height };
-}
-
 describe('Ordinal Time Axis Examples', () => {
     setupMockConsole();
     let chart: any;
@@ -632,7 +525,7 @@ describe('Ordinal Time Axis Examples', () => {
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
         it(`for ${exampleName} it should create chart instance as expected`, async () => {
-            chart = await createEnterpriseChart(example.options);
+            chart = deproxy(await createEnterpriseChart(example.options));
             await example.assertions(chart);
         });
 
@@ -650,7 +543,7 @@ describe('Ordinal Time Axis Examples', () => {
                 }
             };
 
-            chart = await createEnterpriseChart(example.options);
+            chart = deproxy(await createEnterpriseChart(example.options));
             await axisCompare();
 
             if (example.extraScreenshotActions) {
@@ -668,25 +561,27 @@ describe('Ordinal Time Axis Examples', () => {
                 return { timestamp, price: 1 };
             }).reverse();
 
-            chart = await createEnterpriseChart<AgCartesianChartOptions>({
-                data,
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'timestamp',
-                        yKey: 'price',
-                        marker: { enabled: false },
+            chart = deproxy(
+                await createEnterpriseChart<AgCartesianChartOptions>({
+                    data,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'timestamp',
+                            yKey: 'price',
+                            marker: { enabled: false },
+                        },
+                    ],
+                    axes: {
+                        y: { type: 'number', position: 'left' },
+                        x: {
+                            type: 'ordinal-time',
+                            position: 'bottom',
+                            parentLevel: { enabled: true },
+                        },
                     },
-                ],
-                axes: {
-                    y: { type: 'number', position: 'left' },
-                    x: {
-                        type: 'ordinal-time',
-                        position: 'bottom',
-                        parentLevel: { enabled: true },
-                    },
-                },
-            });
+                })
+            );
 
             const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
 
@@ -716,16 +611,13 @@ describe('Ordinal Time Axis Examples', () => {
             },
         });
 
-        const labelTexts = (chartInstance: _ModuleSupport.Chart): string[] => {
-            const axis = (chartInstance.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
-            return Array.from((axis as any).tickLabelGroupSelection.nodes() as Iterable<any>)
-                .map((node) => node.text)
-                .filter((text): text is string => text != null && text !== '');
-        };
+        // Every node in the scene graph: a base tier that was merely hidden would otherwise pass as removed.
+        const labelTexts = (chartInstance: _ModuleSupport.Chart): string[] =>
+            getAxisLabelTexts(chartInstance, 'bottom', { visibleOnly: false });
 
         const isParentTier = (text: string) => /[A-Za-z]/.test(text);
 
-        chart = await createEnterpriseChart(baseLabelOptions(true));
+        chart = deproxy(await createEnterpriseChart(baseLabelOptions(true)));
         const withBase = labelTexts(chart);
         // Base (numeric day) and parent (month name) tiers both present initially.
         expect(withBase.some((t) => !isParentTier(t))).toBe(true);
@@ -741,13 +633,13 @@ describe('Ordinal Time Axis Examples', () => {
     });
 
     it('should render interval on as expected', async () => {
-        const options = applyIntervalOn(BASIC_ORDINAL_TIME_AXIS_EXAMPLE);
+        const options = applyIntervalOn(BASIC_ORDINAL_TIME_AXIS_EXAMPLE, ['ordinal-time']);
         chart = await createEnterpriseChart(options);
         await compareImageSnapshot(chart, ctx);
     });
 
     it('should render interval between as expected', async () => {
-        const options = applyIntervalBetween(BASIC_ORDINAL_TIME_AXIS_EXAMPLE);
+        const options = applyIntervalBetween(BASIC_ORDINAL_TIME_AXIS_EXAMPLE, ['ordinal-time']);
         chart = await createEnterpriseChart(options);
         await compareImageSnapshot(chart, ctx);
     });
@@ -765,15 +657,17 @@ describe('Ordinal Time Axis Examples', () => {
             open: 100 + Math.sin(i / 100) * 50,
         }));
 
-        chart = await createEnterpriseChart({
-            width: 300,
-            height: 200,
-            data: largeData,
-            axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
-            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
-            zoom: {},
-            initialState: { zoom: { ratioX: { start: 0.499, end: 0.501 } } },
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                width: 300,
+                height: 200,
+                data: largeData,
+                axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
+                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+                zoom: {},
+                initialState: { zoom: { ratioX: { start: 0.499, end: 0.501 } } },
+            })
+        );
 
         await waitForChartStability(chart);
         expect(chart).toBeDefined();
@@ -781,8 +675,8 @@ describe('Ordinal Time Axis Examples', () => {
 
     it('fits a label bounded through an ordinal-time axis theme override', async () => {
         const text = 'A cross line label long enough to need fitting';
-        chart = await createEnterpriseChart(
-            prepareEnterpriseTestOptions({
+        chart = deproxy(
+            await createEnterpriseChart({
                 data: DATA,
                 series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
                 axes: {
@@ -828,13 +722,10 @@ describe('Ordinal Time Axis Examples', () => {
         );
         await waitForChartStability(chart);
 
-        const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
-        const nodes = Array.from((axis as any).tickLabelGroupSelection.nodes() as Iterable<any>).filter(
-            (node) => node.datum.visible
-        );
+        const nodes = getAxisLabelNodes(chart, 'bottom');
         expect(nodes.length).toBeGreaterThan(0);
         for (const node of nodes) {
-            expect(node.datum.text.endsWith('…')).toBe(true);
+            expect(getLabelText(node).endsWith('…')).toBe(true);
             expect(node.getBBox().width).toBeLessThanOrEqual(60.5);
         }
         expectWarningsCalls().toEqual([]);

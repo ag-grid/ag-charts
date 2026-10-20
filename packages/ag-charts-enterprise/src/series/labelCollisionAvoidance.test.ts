@@ -40,8 +40,7 @@ describe('label collision avoidance', () => {
         a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 
     const renderAndSnapshot = async (options: object) => {
-        prepareEnterpriseTestOptions(options as AgChartOptions);
-        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
         await compareImageSnapshot(chart, ctx);
     };
 
@@ -56,9 +55,7 @@ describe('label collision avoidance', () => {
         placement?: string | string[]
     ) => {
         const opts = makeOptions(collision, placement);
-        prepareEnterpriseTestOptions(opts as AgChartOptions);
-        chart = deproxy(AgCharts.create(opts as AgChartOptions));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
         return visibleLabelCount();
     };
 
@@ -99,9 +96,7 @@ describe('label collision avoidance', () => {
             const render = async (config: object) => {
                 chart?.destroy();
                 const opts = markerOptions(config);
-                prepareEnterpriseTestOptions(opts as AgChartOptions);
-                chart = deproxy(AgCharts.create(opts as AgChartOptions));
-                await waitForChartStability(chart);
+                chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
                 const series = chart.series.find((s: any) => s.type === 'map-marker') as unknown as {
                     labelSelection: { nodes(): { visible: boolean }[] };
                 };
@@ -134,7 +129,7 @@ describe('label collision avoidance', () => {
 
         const anchorGap = async (spacing: number) => {
             chart?.destroy();
-            chart = await createEnterpriseChart(singleMarker(spacing));
+            chart = deproxy(await createEnterpriseChart(singleMarker(spacing)));
             const series = chart.series.find((s: any) => s.type === 'map-marker') as unknown as PlacedLabelGeometry;
             return topLabelAnchorGap(series);
         };
@@ -176,9 +171,7 @@ describe('label collision avoidance', () => {
             const render = async (config: object) => {
                 chart?.destroy();
                 const opts = lineOptions(config);
-                prepareEnterpriseTestOptions(opts as AgChartOptions);
-                chart = deproxy(AgCharts.create(opts as AgChartOptions));
-                await waitForChartStability(chart);
+                chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
                 return visibleLabelCount();
             };
 
@@ -431,9 +424,7 @@ describe('label collision avoidance', () => {
 
         it('drops a hideable scatter label overlapping a range-bar baked label', async () => {
             const opts = options();
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts));
             const [rangeBar, scatter] = chart.series as unknown as Parameters<typeof visibleLabelBoxes>[0][];
             const rangeBarBoxes = visibleLabelBoxes(rangeBar);
             const scatterBoxes = visibleLabelBoxes(scatter);
@@ -473,9 +464,7 @@ describe('label collision avoidance', () => {
 
         const renderLabelBoxes = async (label: object, atSeriesLevel: boolean) => {
             const opts = options(label, atSeriesLevel);
-            prepareEnterpriseTestOptions(opts as AgChartOptions);
-            chart = deproxy(AgCharts.create(opts as AgChartOptions));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
             const series = chart.series[0] as unknown as {
                 labelSelection: { nodes(): { visible: boolean; x: number; y: number; text: string }[] };
             };
@@ -589,9 +578,7 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts));
             const series = chart.series[0] as unknown as {
                 labelSelection: { nodes(): { visible: boolean; datum: { label?: { placement?: string } } }[] };
             };
@@ -760,9 +747,7 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts));
             const series = chart.series[0] as unknown as Parameters<typeof visibleLabels>[0];
             const labels = visibleLabels(series);
             // Anti-vacuous guard: both end labels must stay visible (neither hidden for failing inside).
@@ -806,9 +791,7 @@ describe('label collision avoidance', () => {
                 axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10, reverse: true } },
                 series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'low', yHighKey: 'high', label }],
             };
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts));
             const series = chart.series[0] as unknown as {
                 labelSelection: {
                     nodes(): { visible: boolean; datum: { itemType: string }; computeBBox(): Box | undefined }[];
@@ -860,9 +843,7 @@ describe('label collision avoidance', () => {
         const placedLabels = async (options: object): Promise<PlacedLabelInfo[]> => {
             chart?.destroy();
             const opts = options as AgChartOptions;
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(opts));
             const series = chart.series[0] as unknown as { labelSelection: { nodes(): LabelNode[] } };
             const labels: PlacedLabelInfo[] = [];
             for (const node of series.labelSelection.nodes()) {
@@ -1101,7 +1082,7 @@ describe('label collision avoidance', () => {
 
         const render = async (options: object) => {
             chart?.destroy();
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
         };
 
         /** Every stage's label anchor and resolved placement, in stage order. */
@@ -1648,6 +1629,133 @@ describe('label collision avoidance', () => {
 
                 expect(outside).toEqual(centred);
             });
+        });
+    });
+
+    describe('sankey', () => {
+        const data = [
+            { from: 'Alpha source with a long name', to: 'An interior node with a very long label', size: 10 },
+            { from: 'Beta', to: 'Another long interior label here', size: 6 },
+            { from: 'An interior node with a very long label', to: 'Gamma destination', size: 10 },
+            { from: 'Another long interior label here', to: 'Gamma destination', size: 6 },
+            { from: 'Gamma destination', to: 'Delta end of the long flow', size: 16 },
+        ];
+        const options = (label: object) => ({
+            data,
+            series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
+        });
+        type LabelNode = { visible: boolean; text: string; getBBox(): Box };
+        const drawnLabels = () =>
+            (chart.series[0].labelSelection.nodes() as LabelNode[]).filter((node) => node.visible && node.text !== '');
+        const overlappingPairs = () => {
+            const boxes = drawnLabels().map((node) => node.getBBox());
+            let pairs = 0;
+            for (let i = 0; i < boxes.length; i++) {
+                for (let j = i + 1; j < boxes.length; j++) {
+                    if (overlaps(boxes[i], boxes[j])) pairs++;
+                }
+            }
+            return pairs;
+        };
+        // Bespoke: the size is set after preparation, which the factory would overwrite with the default canvas size.
+        const render = async (opts: object, width = 520, height = 360) => {
+            chart?.destroy();
+            prepareEnterpriseTestOptions(opts as AgChartOptions);
+            chart = deproxy(AgCharts.create({ ...opts, width, height } as AgChartOptions));
+            await waitForChartStability(chart);
+        };
+        const plunker = () => ({ ...options({ placement: 'center' }), title: { text: 'Centre placement' } });
+        const interiorText = () => drawnLabels().find((node) => node.text.startsWith('An interior'))?.text;
+
+        it('runs a label past its column even when it cannot run past whole', async () => {
+            await render(plunker(), 480, 400);
+            const runningWhole = interiorText();
+            await render(plunker(), 479, 400);
+            expect(interiorText()?.length).toBeGreaterThanOrEqual(runningWhole!.length - 2);
+        });
+
+        it('keeps centred labels running past their column clear of each other', async () => {
+            await render(options({ placement: 'center' }));
+            expect(drawnLabels().length).toBeGreaterThan(0);
+            expect(overlappingPairs()).toBe(0);
+        });
+
+        it('shrinks the label running past its column rather than the one within its own column', async () => {
+            await render(options({ placement: 'center' }));
+            const texts = drawnLabels().map((node) => node.text);
+            expect(texts).toContain('Alpha source with a…');
+            expect(texts).not.toContain('An interior node with a very long label');
+            expect(texts.some((text) => text.startsWith('An interior') && text.endsWith('…'))).toBe(true);
+        });
+
+        it('rewraps a colliding label onto more lines rather than hiding it', async () => {
+            await render(options({ placement: 'center', wrapping: 'on-space' }));
+            const interior = drawnLabels().filter((node) => node.text.startsWith('An interior'));
+            expect(interior).toHaveLength(1);
+            expect(interior[0].text).toContain('\n');
+            expect(overlappingPairs()).toBe(0);
+        });
+
+        it('reserves the box an itemStyler gives each label', async () => {
+            await render(options({ itemStyler: () => ({ padding: 24, fill: 'white' }) }));
+            expect(drawnLabels().length).toBeGreaterThan(0);
+            expect(overlappingPairs()).toBe(0);
+        });
+
+        describe('collision threshold', () => {
+            const lone = (collision: object) => ({
+                data: [{ from: 'A long source name', to: 'A long destination name', size: 1 }],
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label: { collision } }],
+            });
+
+            it('leaves a label with nothing nearby untouched', async () => {
+                await render(lone({ threshold: 40 }));
+                expect(drawnLabels().map((node) => node.text)).toEqual([
+                    'A long source name',
+                    'A long destination name',
+                ]);
+            });
+
+            it('keeps labels at least the threshold apart', async () => {
+                const threshold = 12;
+                await render(options({ placement: 'center', collision: { threshold } }));
+                const boxes = drawnLabels().map((node) => node.getBBox());
+                expect(boxes.length).toBeGreaterThan(1);
+                const grown = boxes.map(({ x, y, width, height }) => ({
+                    x: x - threshold,
+                    y: y - threshold,
+                    width: width + 2 * threshold,
+                    height: height + 2 * threshold,
+                }));
+                const close = grown.flatMap((a, i) => boxes.filter((b, j) => j !== i && overlaps(a, b)));
+                expect(close).toEqual([]);
+            });
+        });
+
+        describe('when a label cannot shrink clear of a collision', () => {
+            const colliding = 'An interior node with a very long label';
+            const shortSource = data.map((d) => (d.from.startsWith('Alpha') ? { ...d, from: 'Alpha source' } : d));
+            const unshrinkable = (collision: object) => ({
+                ...options({ placement: 'center', wrapping: 'never', truncate: false, collision }),
+                data: shortSource,
+            });
+
+            it('hides it by default', async () => {
+                await render(unshrinkable({}));
+                const texts = drawnLabels().map((node) => node.text);
+                expect(texts).toContain('Alpha source');
+                expect(texts).not.toContain(colliding);
+            });
+
+            it('keeps it when alwaysShow is true', async () => {
+                await render(unshrinkable({ alwaysShow: true }));
+                expect(drawnLabels().map((node) => node.text)).toContain(colliding);
+            });
+        });
+
+        it('renders centred labels shrunk clear of each other', async () => {
+            await render(options({ placement: 'center' }));
+            await compareImageSnapshot(chart, ctx);
         });
     });
 });

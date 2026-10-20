@@ -119,7 +119,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
 
 export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     ...treemapSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight', 'selection', 'showInLegend']),
+    ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight', 'selection', 'showInLegend', 'focusIndex']),
     type: required(constant('treemap')),
     labelKey: string,
     secondaryLabelKey: string,

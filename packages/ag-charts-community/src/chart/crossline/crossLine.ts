@@ -115,6 +115,8 @@ export interface CrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> {
     gridPadding: number;
     /** The drawn label's footprint in canvas coordinates, or `undefined` when it draws no label. */
     getLabelBox?(): BoxBounds | undefined;
+    /** The hit-tested line/fill and label in canvas coordinates, or `undefined` when nothing is drawn. */
+    getFocusBounds?(): BoxBounds | undefined;
     /** Whether the label is kept on collision rather than dropped. Cartesian cross lines only. */
     readonly keepsLabel?: boolean;
     /** The label as a placement candidate in `seriesRect` space. Cartesian cross lines only. */

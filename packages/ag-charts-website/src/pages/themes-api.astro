@@ -1,8 +1,13 @@
 ---
+import type { SpecialTypesMap } from '@components/api-documentation/apiReferenceHelpers';
 import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { THEMES_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePageContent';
+
+const specialTypes: SpecialTypesMap = {
+    AgBaseChartThemeOverrides: 'NestedPage',
+};
 ---
 
 <APIViewLayout title={THEMES_API_PAGE_CONTENT.title} description={THEMES_API_PAGE_CONTENT.description}>
@@ -15,10 +20,15 @@ import { THEMES_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePageC
         breadcrumbs={['options', 'theme']}
         nestedPages={['overrides']}
         basePath="themes-api"
-        specialTypes={{
-            AgBaseChartThemeOverrides: 'NestedPage',
-        }}
+        specialTypes={specialTypes}
     >
-        <ApiReferenceFallback slot="fallback" rootInterface="AgChartTheme" />
+        <ApiReferenceFallback
+            slot="fallback"
+            rootInterface="AgChartTheme"
+            navLabel="Themes API reference"
+            rootLabel="theme"
+            basePath="themes-api"
+            specialTypes={specialTypes}
+        />
     </ApiReferencePage>
 </APIViewLayout>

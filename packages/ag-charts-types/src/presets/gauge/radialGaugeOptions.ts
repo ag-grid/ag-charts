@@ -2,6 +2,9 @@ import type { AgNumericValue } from '../../chart/dataValues';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
+    AgChartLabelAutoFontSizeOptions,
+    AgChartLabelCollisionFitOptions,
+    AgChartLabelFitOptions,
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -67,7 +70,11 @@ export interface AgRadialGaugeNeedleStyle extends AgRadialGaugeSeriesStyle {
 
 export type AgRadialGaugeMarkerShape = AgMarkerShape | 'line';
 
-export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<never, never, ContextDefault> {
+export interface AgRadialGaugeTargetLabelOptions
+    extends
+        AgChartLabelOptions<never, never, ContextDefault>,
+        AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions {
     /** Spacing of the label. */
     spacing?: PixelSize;
 }
@@ -91,11 +98,10 @@ export interface AgRadialGaugeTarget extends AgRadialGaugeSeriesStyle {
     label?: AgRadialGaugeTargetLabelOptions;
 }
 
-export interface AgRadialGaugeLabelOptions extends AgChartAutoSizedLabelOptions<
-    never,
-    AgRadialGaugeLabelFormatterParams,
-    ContextDefault
-> {
+export interface AgRadialGaugeLabelOptions
+    extends
+        AgChartAutoSizedLabelOptions<never, AgRadialGaugeLabelFormatterParams, ContextDefault>,
+        Pick<AgChartLabelFitOptions, 'maxWidth' | 'maxHeight'> {
     /** Text to always display. */
     text?: string;
 }
@@ -153,6 +159,12 @@ export interface AgRadialGaugeThemeableOptions<
 export interface AgRadialGaugePreset<TContext = ContextDefault> extends AgRadialGaugeThemeableOptions<TContext> {
     /** Configuration for the Radial Gauge. */
     type: 'radial-gauge';
+    /**
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series.
+     *
+     * Default: `'gauge'`
+     */
+    id?: string;
     /** Value of the Radial Gauge. */
     value: AgNumericValue;
     /** Configuration for the targets. */

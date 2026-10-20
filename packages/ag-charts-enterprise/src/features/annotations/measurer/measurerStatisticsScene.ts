@@ -209,6 +209,7 @@ export class MeasurerStatisticsScene extends Group {
             fontSize: datum.statistics.fontSize,
             fontStyle: datum.statistics.fontStyle,
             fontWeight: datum.statistics.fontWeight,
+            lineHeight: datum.statistics.lineHeight,
             textAlign: 'left' as const,
             textBaseline: 'top' as const,
         };
@@ -292,6 +293,7 @@ export class QuickMeasurerStatisticsScene extends MeasurerStatisticsScene {
             fontSize: styles.fontSize,
             fontStyle: styles.fontStyle,
             fontWeight: styles.fontWeight,
+            lineHeight: styles.lineHeight,
         };
     }
 

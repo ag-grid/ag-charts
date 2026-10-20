@@ -1,25 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { setupEnterpriseModules } from '../../setup';
+import { resolveSeries } from '../../test/seriesHelpers';
 
 setupEnterpriseModules();
 
 const ITEM_TYPES = ['positive', 'negative', 'total'] as const;
-
-const resolveSeries = (series: object, theme?: object): Record<string, any> => {
-    const options = { series: [series], ...(theme == null ? {} : { theme }) } as unknown as AgChartOptions;
-    const { processedOptions } = new _ModuleSupport.ChartOptions(
-        options,
-        {} as AgChartOptions,
-        {},
-        {},
-        {}
-    ) as unknown as { processedOptions: { series: Record<string, any>[] } };
-    return processedOptions.series[0];
-};
 
 const resolveLabels = (series: object, theme?: object) => {
     const resolved = resolveSeries({ type: 'waterfall', xKey: 'x', yKey: 'y', ...series }, theme);
@@ -383,6 +369,32 @@ describe('waterfall series-level label', () => {
             for (const itemType of ITEM_TYPES) {
                 expect(labels[itemType].enabled).toBe(true);
                 expect(labels[itemType].fontSize).toBe(20);
+            }
+        });
+    });
+
+    describe('lineHeight', () => {
+        const theme = { params: { lineHeight: 1.5 } };
+
+        it('derives each bar type from its own fontSize unless the series label sets one', () => {
+            const labels = resolveLabels(
+                { label: { enabled: true, fontSize: 10 }, item: { positive: { label: { fontSize: 20 } } } },
+                theme
+            );
+
+            expect(labels.positive.lineHeight).toBe(30);
+            expect(labels.negative.lineHeight).toBe(15);
+            expect(labels.total.lineHeight).toBe(15);
+        });
+
+        it('copies a lineHeight set on the series label to every bar type', () => {
+            const labels = resolveLabels(
+                { label: { enabled: true, lineHeight: 18 }, item: { positive: { label: { fontSize: 20 } } } },
+                theme
+            );
+
+            for (const itemType of ITEM_TYPES) {
+                expect(labels[itemType].lineHeight).toBe(18);
             }
         });
     });

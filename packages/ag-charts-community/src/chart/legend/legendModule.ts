@@ -3,6 +3,7 @@ import {
     LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
     legendOptionsDefs,
+    themeLineHeight,
 } from 'ag-charts-core';
 import type { AgChartLegendOptions } from 'ag-charts-types';
 
@@ -82,6 +83,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                 label: {
                     color: { $ref: 'legendLabelColor' },
                     fontSize: { $ref: 'legendLabelFontSize' },
+                    lineHeight: themeLineHeight('legendLabelLineHeight'),
                     fontFamily: { $ref: 'legendLabelFontFamily' },
                     fontWeight: { $ref: 'legendLabelFontWeight' },
                 },
@@ -95,6 +97,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                 label: {
                     color: { $ref: 'legendLabelColor' },
                     fontSize: { $ref: 'legendLabelFontSize' },
+                    lineHeight: themeLineHeight('legendLabelLineHeight'),
                     fontFamily: { $ref: 'legendLabelFontFamily' },
                 },
             },

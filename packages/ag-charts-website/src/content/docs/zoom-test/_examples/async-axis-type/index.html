@@ -1,0 +1,14 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <select onchange="changeAxisType(event.target.value)">
+            <option value="ordinal-time">ordinal-time</option>
+            <option value="unit-time">unit-time</option>
+            <option value="time">time</option>
+        </select>
+        <span class="gap-left" id="requestCount"></span>
+    </div>
+</div>
+<div class="chart-with-log">
+    <div id="myChart"></div>
+    <pre id="requestLog"></pre>
+</div>

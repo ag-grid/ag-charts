@@ -32,7 +32,7 @@ import {
     bakedLabelObstacles,
     barLabelPropsRouteThroughEngine,
     buildBarPositionedLabelDatum,
-    cachedTextMeasurer,
+    cycledValue,
     fontWithSize,
     isArray,
     measureLabelText,
@@ -41,7 +41,6 @@ import {
     resolveLabelFit,
     toNumber,
     toPlainText,
-    toTextString,
     trapezoidBandRect,
     trapezoidBox,
     trapezoidFitRegion,
@@ -230,9 +229,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private itemStyle(index: number = 0): Required<NormalisedPyramidSeriesStyle> & { opacity: number } {
         const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.options;
         return {
-            fill: fills[index % fills.length],
+            fill: cycledValue(fills, index),
             fillOpacity,
-            stroke: strokes[index % strokes.length],
+            stroke: cycledValue(strokes, index),
             strokeWidth,
             strokeOpacity,
             lineDash,
@@ -310,7 +309,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData).domain;
 
         const isRtl = this.ctx.domManager.isRtl;
-        const textMeasurer = cachedTextMeasurer(stageLabel);
         const placeLeft = (stageLabel.placement === 'after') === isRtl;
 
         let textAlign: CanvasTextAlign;
@@ -353,7 +351,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const { width, height } = isArray(text)
                 ? measureTextSegments(text, label)
-                : textMeasurer.measureLines(toTextString(text));
+                : measureLabelText(text, stageLabel);
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 
@@ -1020,7 +1018,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const style = getLabelStyles(this, undefined, params, labelProperties, datumIsHighlighted, activeHighlight);
 
-            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
+            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight } = style;
             label.visible = visible && style.enabled === true;
             label.x = x;
             label.y = y;
@@ -1032,6 +1030,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
+            label.lineHeight = lineHeight;
             label.textAlign = textAlign;
             label.textBaseline = textBaseline;
             label.setBoxing(style);
@@ -1132,8 +1131,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private legendItemSymbol(datumIndex: number) {
         const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.options;
-        const fill = fills[datumIndex] ?? 'black';
-        const stroke = strokes[datumIndex] ?? 'black';
+        const fill = cycledValue(fills, datumIndex) ?? 'black';
+        const stroke = cycledValue(strokes, datumIndex) ?? 'black';
         return {
             marker: {
                 fill,

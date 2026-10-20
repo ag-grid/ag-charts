@@ -174,7 +174,6 @@ const textSegmentValidator = optionsDefs<TextSegment>({
     type: constant('text'),
     text: required(string),
     verticalAlign: verticalAlignValidator,
-    lineHeight: positiveNumber,
     minimumFontSize: and(positiveNumberNonZero, lessThanOrEqual('fontSize')),
     ...fontOptionsDef,
 });
@@ -398,7 +397,7 @@ export const legendOptionsDefs: OptionsDefs<AgChartLegendOptions> = {
     maxHeight: positiveNumber,
     spacing: positiveNumber,
     border: borderOptionsDef,
-    cornerRadius: number,
+    cornerRadius: positiveNumber,
     padding: padding,
     fill: colorUnion,
     fillOpacity: ratio,
@@ -478,7 +477,7 @@ export const gradientLegendOptionsDefs: OptionsDefs<AgGradientLegendOptions> = {
     spacing: positiveNumber,
     reverseOrder: boolean,
     border: borderOptionsDef,
-    cornerRadius: number,
+    cornerRadius: positiveNumber,
     padding: padding,
     fill: colorUnion,
     fillOpacity: ratio,
@@ -534,7 +533,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     seriesArea: {
         border: borderOptionsDef,
         clip: boolean,
-        cornerRadius: number,
+        cornerRadius: positiveNumber,
         padding: or(themeOperator, padding),
     },
     listeners: {
@@ -656,6 +655,7 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     visible: boolean,
     context: () => true,
     data: array,
+    focusIndex: number,
     ...undocumentedDefs({
         seriesGrouping: defined,
     }),
@@ -804,7 +804,6 @@ export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<
 
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
-    lineHeight: positiveNumber,
     minimumFontSize: and(positiveNumber, lessThanOrEqual('fontSize')),
     wrapping: textWrap,
     truncate: boolean,
@@ -814,6 +813,7 @@ export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOpt
 
 export const errorBarThemeableOptionsDefs: OptionsDefs<AgErrorBarThemeableOptions> = {
     visible: boolean,
+    offsetLabels: boolean,
     cap: {
         visible: boolean,
         length: positiveNumber,
@@ -837,6 +837,7 @@ export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
     yUpperName: string,
     itemStyler: callbackDefs<AgErrorBarThemeableOptions>({
         visible: boolean,
+        offsetLabels: boolean,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
         cap: {

@@ -10,7 +10,6 @@ import {
     TimeScale,
     UnitTimeScale,
     axisLabelsOverlap,
-    cachedTextMeasurer,
     calculateNiceSecondaryAxis,
     countFractionDigits,
     estimateTickCount,
@@ -569,7 +568,6 @@ function createTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<T
         primaryLabel,
         niceDomain ?? domain,
         timeInterval,
-        cachedTextMeasurer(label),
         fitOptions
     );
 

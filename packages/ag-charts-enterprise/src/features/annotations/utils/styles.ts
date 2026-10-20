@@ -1,3 +1,6 @@
+import { lineHeightAtSize } from 'ag-charts-core';
+
+import type { FontFields } from '../annotationDatum';
 import type {
     AnnotationLineStyle,
     AnnotationOptionsColorPickerType,
@@ -16,8 +19,14 @@ import { getLineStyle } from './line';
 import { isChannelType, isCrossLineType, isFibonacciType, isTextType } from './types';
 
 export function setFontSize(datum: AnnotationDatum, fontSize: number) {
-    if (isTextType(datum)) datum.fontSize = fontSize;
-    if (hasLineText(datum)) datum.text.fontSize = fontSize;
+    if (isTextType(datum)) resizeFont(datum, fontSize);
+    if (hasLineText(datum)) resizeFont(datum.text, fontSize);
+}
+
+/** Sets the font size, keeping a set `lineHeight` in proportion to it. */
+export function resizeFont(font: FontFields, fontSize: number) {
+    if (font.lineHeight != null) font.lineHeight = lineHeightAtSize(font, fontSize);
+    font.fontSize = fontSize;
 }
 
 export function setLineStyle(

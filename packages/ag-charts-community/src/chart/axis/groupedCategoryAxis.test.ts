@@ -1,15 +1,15 @@
-import { afterEach, describe, expect, it, test } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { BBox, mapValues } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
-    AgCartesianAxisPosition,
     AgCartesianAxisType,
     AgCartesianChartOptions,
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
+import { getAxisLabelNodes, getAxisLabelTexts } from '../test/axisAccessors';
+import { EXAMPLE_GRID_LINE, applyRotationWithoutCollisionAvoidance, mixinDerivedCases } from '../test/axisTestCases';
 import {
     DATA_GROUPED_MULTIPLE_NULLS,
     DATA_GROUPED_NULL_FIRST_LEVEL,
@@ -28,31 +28,10 @@ import {
     deproxy,
     prepareTestOptions,
     repeat,
-    reverseAxes,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-
-const EXAMPLE_GRID_LINE = {
-    width: 2,
-    style: [
-        { fill: 'red', fillOpacity: 0.1, stroke: 'red' },
-        { fill: 'blue', fillOpacity: 0.1, stroke: 'blue' },
-        { fill: 'green', fillOpacity: 0.1, stroke: 'green' },
-        { fill: 'yellow', fillOpacity: 0.1, stroke: 'yellow' },
-    ],
-};
-
-function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({
-            ...axis,
-            label: { ...axis.label, rotation, avoidCollisions: false },
-        })),
-    };
-}
 
 function disableLabelsDepth0<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T): T {
     return {
@@ -67,28 +46,6 @@ function disableLabelsDepth0<T extends AgCartesianChartOptions | AgPolarChartOpt
                   }
                 : axis
         ),
-    };
-}
-
-function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
-    const positionFlip = (position?: AgCartesianAxisPosition) => {
-        switch (position) {
-            case 'top':
-                return 'bottom';
-            case 'left':
-                return 'right';
-            case 'bottom':
-                return 'top';
-            case 'right':
-                return 'left';
-            default:
-                return position;
-        }
-    };
-
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
     };
 }
 
@@ -115,48 +72,51 @@ type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
 };
 
 const EXAMPLES: Record<string, TestCase> = {
-    ...mixinDerivedCases({
-        GROUPED_CATEGORY_AXIS: {
-            options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE,
-            assertions: cartesianChartAssertions({
-                axisTypes: { x: 'grouped-category', y: 'number' },
-                seriesTypes: ['bar'],
-            }),
-            compare: ['grouped-category'],
+    ...mixinDerivedCases<TestCase>(
+        {
+            GROUPED_CATEGORY_AXIS: {
+                options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE,
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'grouped-category', y: 'number' },
+                    seriesTypes: ['bar'],
+                }),
+                compare: ['grouped-category'],
+            },
+            INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: {
+                options: examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'grouped-category', y: 'number' },
+                    seriesTypes: repeat('bar', 3),
+                }),
+                compare: ['grouped-category'],
+            },
+            GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE: {
+                options: examples.GROUPED_CATEGORY_CHART_EXAMPLE,
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'grouped-category', y: 'number' },
+                    seriesTypes: repeat('bar', 3),
+                }),
+                compare: ['grouped-category'],
+            },
+            GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE_LABELS_DISABLED: {
+                options: disableLabelsDepth0(examples.GROUPED_CATEGORY_CHART_EXAMPLE),
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'grouped-category', y: 'number' },
+                    seriesTypes: repeat('bar', 3),
+                }),
+                compare: ['grouped-category'],
+            },
+            GROUPED_CATEGORY_AXIS_WITH_CROSSLINES: {
+                options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE_WITH_CROSSLINES,
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'grouped-category', y: 'number' },
+                    seriesTypes: ['bar'],
+                }),
+                compare: ['grouped-category'],
+            },
         },
-        INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: {
-            options: examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
-            assertions: cartesianChartAssertions({
-                axisTypes: { x: 'grouped-category', y: 'number' },
-                seriesTypes: repeat('bar', 3),
-            }),
-            compare: ['grouped-category'],
-        },
-        GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE: {
-            options: examples.GROUPED_CATEGORY_CHART_EXAMPLE,
-            assertions: cartesianChartAssertions({
-                axisTypes: { x: 'grouped-category', y: 'number' },
-                seriesTypes: repeat('bar', 3),
-            }),
-            compare: ['grouped-category'],
-        },
-        GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE_LABELS_DISABLED: {
-            options: disableLabelsDepth0(examples.GROUPED_CATEGORY_CHART_EXAMPLE),
-            assertions: cartesianChartAssertions({
-                axisTypes: { x: 'grouped-category', y: 'number' },
-                seriesTypes: repeat('bar', 3),
-            }),
-            compare: ['grouped-category'],
-        },
-        GROUPED_CATEGORY_AXIS_WITH_CROSSLINES: {
-            options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE_WITH_CROSSLINES,
-            assertions: cartesianChartAssertions({
-                axisTypes: { x: 'grouped-category', y: 'number' },
-                seriesTypes: ['bar'],
-            }),
-            compare: ['grouped-category'],
-        },
-    }),
+        applyRotationWithoutCollisionAvoidance
+    ),
     INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: {
         options: examples.INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE,
         assertions: cartesianChartAssertions({
@@ -176,44 +136,20 @@ const EXAMPLES: Record<string, TestCase> = {
 };
 
 const EXAMPLES_CLIPPING: Record<string, TestCase> = {
-    ...mixinDerivedCases({
-        GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: {
-            options: axesExamples.GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING,
-            assertions: cartesianChartAssertions({
-                axisTypes: { x: 'grouped-category', y: 'number' },
-                seriesTypes: ['bar'],
-            }),
-            compare: ['grouped-category'],
+    ...mixinDerivedCases<TestCase>(
+        {
+            GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: {
+                options: axesExamples.GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING,
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'grouped-category', y: 'number' },
+                    seriesTypes: ['bar'],
+                }),
+                compare: ['grouped-category'],
+            },
         },
-    }),
+        applyRotationWithoutCollisionAvoidance
+    ),
 };
-
-function mixinDerivedCases<T extends AgBaseChartOptions>(
-    baseCases: Record<string, TestCase<T>>
-): Record<string, TestCase<T>> {
-    const result = { ...baseCases };
-
-    for (const [name, baseCase] of Object.entries(baseCases)) {
-        // Add manual rotation.
-        result[name + '_MANUAL_ROTATION'] = {
-            ...baseCase,
-            options: applyRotation(baseCase.options, -30),
-        };
-
-        // Add flipped axes.
-        result[name + '_FLIP'] = {
-            ...baseCase,
-            options: applyAxesFlip(baseCase.options),
-        };
-
-        result[name + '_REVERSED_AXES'] = {
-            ...baseCase,
-            options: reverseAxes(baseCase.options, true),
-        };
-    }
-
-    return result;
-}
 
 describe('Grouped Category Axis Examples', () => {
     setupMockConsole();
@@ -283,9 +219,8 @@ describe('Grouped Category Axis Examples', () => {
 
     describe('when toggling all series off', () => {
         it('should render correctly', async () => {
-            const options = prepareTestOptions({ ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE });
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const options = { ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE };
+            chart = await createChart(options);
 
             await chart.updateDelta({ series: options.series?.map((s) => ({ ...s, visible: false })) });
             await compare();
@@ -313,9 +248,7 @@ describe('Grouped Category Axis Examples', () => {
                     },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const data = [
                 { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1658289600000 },
@@ -337,9 +270,7 @@ describe('Grouped Category Axis Examples', () => {
 
     describe('AG-17795', () => {
         it('removing the last top-level group drops its grid and separator nodes', async () => {
-            const options = prepareTestOptions({ ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE });
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart({ ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE });
 
             const sampleScene = createSceneGeometrySampler(chart);
             const removedGroup = 'Nebulon';
@@ -365,7 +296,7 @@ describe('Grouped Category Axis Examples', () => {
         });
     });
 
-    test('provides full text for truncated labels', async () => {
+    it('provides full text for truncated labels', async () => {
         const longLabel = 'Extremely long grouped-category axis label that forces truncation';
         const data = Array.from({ length: 6 }, (_, index) => ({
             grouping: [`${longLabel} ${index}`, `Inner ${index}`],
@@ -400,16 +331,13 @@ describe('Grouped Category Axis Examples', () => {
 
         chart = await createChart(options);
 
-        const chartInstance = chart as any;
-        const groupedAxis = chartInstance.axes.find((axis: any) => axis.type === 'grouped-category');
-        expect(groupedAxis).toBeDefined();
-
-        const layout = (groupedAxis?.computedLayout?.tickLabelLayout ?? []) as { textUntruncated?: string }[];
-        expect(layout.some((datum) => datum.textUntruncated?.includes(longLabel))).toBe(true);
+        // Every node the axis drew: a truncated label can be one the layout hid.
+        const nodes = getAxisLabelNodes(chart, 'bottom', { visibleOnly: false });
+        expect(nodes.some((node) => node.datum.textUntruncated?.includes(longLabel))).toBe(true);
     });
 
-    test('AG-14639 label boxing', async () => {
-        const options = prepareTestOptions({
+    it('AG-14639 label boxing', async () => {
+        chart = await createChart({
             data: [
                 { location: ['Europe', 'United Kingdom', 'London'], gold: 27, silver: 23, bronze: 17 },
                 { location: ['Europe', 'United Kingdom', 'Manchester'], gold: 12, silver: 8, bronze: 10 },
@@ -448,7 +376,6 @@ describe('Grouped Category Axis Examples', () => {
                 { type: 'bar', xKey: 'location', yKey: 'bronze' },
             ],
         });
-        chart = AgCharts.create(options);
         await compare();
     });
 
@@ -487,8 +414,8 @@ describe('Grouped Category Axis Examples', () => {
     });
 
     describe('AG-16613 null values in grouped categories', () => {
-        test('handles null at first level of grouped category', async () => {
-            const options = prepareTestOptions({
+        it('handles null at first level of grouped category', async () => {
+            chart = await createChart({
                 data: DATA_GROUPED_NULL_FIRST_LEVEL,
                 axes: {
                     x: { type: 'grouped-category', position: 'bottom' },
@@ -496,12 +423,11 @@ describe('Grouped Category Axis Examples', () => {
                 },
                 series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
 
-        test('handles null at middle level of grouped category', async () => {
-            const options = prepareTestOptions({
+        it('handles null at middle level of grouped category', async () => {
+            chart = await createChart({
                 data: DATA_GROUPED_NULL_MIDDLE_LEVEL,
                 axes: {
                     x: { type: 'grouped-category', position: 'bottom' },
@@ -509,12 +435,11 @@ describe('Grouped Category Axis Examples', () => {
                 },
                 series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
 
-        test('handles null at last level of grouped category', async () => {
-            const options = prepareTestOptions({
+        it('handles null at last level of grouped category', async () => {
+            chart = await createChart({
                 data: DATA_GROUPED_NULL_LAST_LEVEL,
                 axes: {
                     x: { type: 'grouped-category', position: 'bottom' },
@@ -522,12 +447,11 @@ describe('Grouped Category Axis Examples', () => {
                 },
                 series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
 
-        test('handles multiple nulls in same grouping', async () => {
-            const options = prepareTestOptions({
+        it('handles multiple nulls in same grouping', async () => {
+            chart = await createChart({
                 data: DATA_GROUPED_MULTIPLE_NULLS,
                 axes: {
                     x: { type: 'grouped-category', position: 'bottom' },
@@ -535,12 +459,11 @@ describe('Grouped Category Axis Examples', () => {
                 },
                 series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
             });
-            chart = AgCharts.create(options);
             await compare();
         });
 
-        test('distinguishes null from "null" string in grouped categories', async () => {
-            const options = prepareTestOptions({
+        it('distinguishes null from "null" string in grouped categories', async () => {
+            chart = await createChart({
                 data: DATA_GROUPED_NULL_VS_STRING_NULL,
                 axes: {
                     x: { type: 'grouped-category', position: 'bottom' },
@@ -548,8 +471,32 @@ describe('Grouped Category Axis Examples', () => {
                 },
                 series: [{ type: 'bar', xKey: 'grouping', yKey: 'value' }],
             });
-            chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('label lineHeight', () => {
+        const groupLabels = async (label: object) => {
+            const group =
+                'Alpha Bravo Charlie Delta Echo Foxtrot Golf Hotel India Juliet Kilo Lima Mike November Oscar Papa Quebec Romeo Sierra Tango Uniform Victor Whiskey Xray Yankee Zulu Alpha Bravo Charlie';
+            chart = await createChart({
+                data: [
+                    { name: [group, 'One'], value: 1 },
+                    { name: [group, 'Two'], value: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'name', yKey: 'value' }],
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom', thickness: 100, label },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+            return getAxisLabelTexts(chart, 'bottom', { visibleOnly: false });
+        };
+
+        it('wraps group labels to the thickness by their lineHeight', async () => {
+            expect((await groupLabels({})).some((text) => text.includes('\n'))).toBe(true);
+            chart.destroy();
+            expect((await groupLabels({ lineHeight: 60 })).some((text) => text.includes('\n'))).toBe(false);
         });
     });
 
@@ -562,16 +509,13 @@ describe('Grouped Category Axis Examples', () => {
         // reporting `0`, rather than an offset from the inherited `CartesianAxis` override that its
         // labels never took.
         const groupedCategoryLabelLayout = async (label: object) => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    ...examples.GROUPED_CATEGORY_AXIS_EXAMPLE,
-                    axes: {
-                        x: { type: 'grouped-category', position: 'bottom', label },
-                        y: { type: 'number', position: 'left' },
-                    },
-                } as AgCartesianChartOptions)
-            );
-            await waitForChartStability(chart);
+            chart = await createChart({
+                ...examples.GROUPED_CATEGORY_AXIS_EXAMPLE,
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom', label },
+                    y: { type: 'number', position: 'left' },
+                },
+            } as AgCartesianChartOptions);
             const axis = (deproxy(chart) as any).axes.find((a: any) => a.type === 'grouped-category');
             const { label: layout } = axis.getLayoutState();
             chart.destroy();

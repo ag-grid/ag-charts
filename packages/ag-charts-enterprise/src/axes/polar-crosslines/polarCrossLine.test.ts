@@ -60,10 +60,7 @@ describe('PolarCrossLine', () => {
         it.each(Object.entries(examples))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
-                const options: AgPolarChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(example.options);
                 await compare(chart, ctx);
             }
         );
@@ -109,6 +106,8 @@ describe('CrossLine colour references', () => {
         restoreCssVarColorSupport = mockCssVarColorSupport(container, vars);
 
         const options = cartesianOptions([{ type: 'range', range: [1, 3], fill: 'var(--my-colour)' }]);
+        // Bespoke: the tests in this suite create the chart in their own detached container, which the CSS variable shim
+        // is bound to.
         chart = deproxy(AgCharts.create(prepareEnterpriseTestOptions(options, container)));
         await waitForChartStability(chart);
 
@@ -219,8 +218,7 @@ describe('PolarCrossLine theme overrides', () => {
                 },
             },
         };
-        chart = deproxy(AgCharts.create(prepareEnterpriseTestOptions(options)));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(options));
 
         expect(crossLineInstances(chart, 'angle').map((c) => c.stroke)).toEqual(['blue']);
         expect(crossLineInstances(chart, 'radius').map((c) => c.stroke)).toEqual(['blue', 'green']);
@@ -241,7 +239,7 @@ describe('PolarCrossLine theme overrides', () => {
                 },
             },
         };
-        chart = await createEnterpriseChart(options);
+        chart = deproxy(await createEnterpriseChart(options));
 
         expectWarningMessages([
             'AG Charts - Unknown option `axes.radius.crossLines[0][type=line].label.maxWidth`, ignoring.',
@@ -290,11 +288,13 @@ describe('PolarCrossLine listeners', () => {
 
     it('AC3: clicking an angle range fill fires `click` with the cross-line params', async () => {
         const listener = vi.fn();
-        chart = await createEnterpriseChart(
-            polarOptions(
-                'polygon',
-                [{ type: 'range', range: ['Q1', 'Q2'], id: 'band', listeners: { click: listener } }],
-                []
+        chart = deproxy(
+            await createEnterpriseChart(
+                polarOptions(
+                    'polygon',
+                    [{ type: 'range', range: ['Q1', 'Q2'], id: 'band', listeners: { click: listener } }],
+                    []
+                )
             )
         );
 
@@ -316,7 +316,9 @@ describe('PolarCrossLine listeners', () => {
 
     it('AC2: double-clicking a radius line fires `doubleClick`', async () => {
         const listeners: AgCrossLineListeners = { click: vi.fn(), doubleClick: vi.fn() };
-        chart = await createEnterpriseChart(polarOptions('polygon', [], [{ type: 'line', value: 5, listeners }]));
+        chart = deproxy(
+            await createEnterpriseChart(polarOptions('polygon', [], [{ type: 'line', value: 5, listeners }]))
+        );
 
         const { canvasX, canvasY } = pointOnPolarCrossLine(polarCrossLineAt(chart, 'radius'));
         await doubleClickAction(canvasX, canvasY)(chart);
@@ -337,14 +339,16 @@ describe('PolarCrossLine listeners', () => {
     it('a near miss on a labelled radius line does not fire the cross-line listener', async () => {
         const listener = vi.fn();
         const chartClick = vi.fn();
-        chart = await createEnterpriseChart(
-            polarOptions(
-                'polygon',
-                [],
-                [{ type: 'line', value: 5, label: { text: 'Mid' }, listeners: { click: listener } }],
-                {
-                    listeners: { click: chartClick },
-                }
+        chart = deproxy(
+            await createEnterpriseChart(
+                polarOptions(
+                    'polygon',
+                    [],
+                    [{ type: 'line', value: 5, label: { text: 'Mid' }, listeners: { click: listener } }],
+                    {
+                        listeners: { click: chartClick },
+                    }
+                )
             )
         );
         const instance = polarCrossLineAt(chart, 'radius');
@@ -361,8 +365,10 @@ describe('PolarCrossLine listeners', () => {
         'the hole of a %s radius range is not a click target',
         async (shape) => {
             const listener = vi.fn();
-            chart = await createEnterpriseChart(
-                polarOptions(shape, [], [{ type: 'range', range: [4, 8], listeners: { click: listener } }])
+            chart = deproxy(
+                await createEnterpriseChart(
+                    polarOptions(shape, [], [{ type: 'range', range: [4, 8], listeners: { click: listener } }])
+                )
             );
             const instance = polarCrossLineAt(chart, 'radius');
             const { scale, axisInnerRadius, axisOuterRadius } = instance;
@@ -376,8 +382,10 @@ describe('PolarCrossLine listeners', () => {
 
     it('the outer edge of a circle radius range is a click target within tolerance', async () => {
         const listener = vi.fn();
-        chart = await createEnterpriseChart(
-            polarOptions('circle', [], [{ type: 'range', range: [4, 8], listeners: { click: listener } }])
+        chart = deproxy(
+            await createEnterpriseChart(
+                polarOptions('circle', [], [{ type: 'range', range: [4, 8], listeners: { click: listener } }])
+            )
         );
         const instance = polarCrossLineAt(chart, 'radius');
         const { scale, axisInnerRadius, axisOuterRadius } = instance;
@@ -392,7 +400,7 @@ describe('PolarCrossLine listeners', () => {
         const listener = vi.fn();
         const build = (strokeWidth: number) =>
             polarOptions('polygon', [], [{ type: 'line', value: 5, strokeWidth, listeners: { click: listener } }]);
-        chart = await createEnterpriseChart(build(20));
+        chart = deproxy(await createEnterpriseChart(build(20)));
 
         const instance = polarCrossLineAt(chart, 'radius');
         const { scale, axisInnerRadius, axisOuterRadius } = instance;
@@ -416,14 +424,16 @@ describe('PolarCrossLine listeners', () => {
     it('a near miss on an angle line falls through to the chart `click` listener', async () => {
         const listener = vi.fn();
         const chartClick = vi.fn();
-        chart = await createEnterpriseChart(
-            polarOptions(
-                'polygon',
-                [{ type: 'line', value: 'Q3', label: { text: 'Third' }, listeners: { click: listener } }],
-                [],
-                {
-                    listeners: { click: chartClick },
-                }
+        chart = deproxy(
+            await createEnterpriseChart(
+                polarOptions(
+                    'polygon',
+                    [{ type: 'line', value: 'Q3', label: { text: 'Third' }, listeners: { click: listener } }],
+                    [],
+                    {
+                        listeners: { click: chartClick },
+                    }
+                )
             )
         );
         const instance = polarCrossLineAt(chart, 'angle');
@@ -437,11 +447,13 @@ describe('PolarCrossLine listeners', () => {
 
     it('AC4: clicking a cross-line label fires `click`', async () => {
         const listener = vi.fn();
-        chart = await createEnterpriseChart(
-            polarOptions(
-                'polygon',
-                [{ type: 'line', value: 'Q3', label: { text: 'Third' }, listeners: { click: listener } }],
-                []
+        chart = deproxy(
+            await createEnterpriseChart(
+                polarOptions(
+                    'polygon',
+                    [{ type: 'line', value: 'Q3', label: { text: 'Third' }, listeners: { click: listener } }],
+                    []
+                )
             )
         );
 
@@ -453,11 +465,13 @@ describe('PolarCrossLine listeners', () => {
 
     it('AC5: cross lines on both axes are distinguished by `crossLineId`', async () => {
         const listener = vi.fn();
-        chart = await createEnterpriseChart(
-            polarOptions(
-                'polygon',
-                [{ type: 'line', value: 'Q3', id: 'angle-line', listeners: { click: listener } }],
-                [{ type: 'range', range: [0, 2], id: 'radius-band', listeners: { click: listener } }]
+        chart = deproxy(
+            await createEnterpriseChart(
+                polarOptions(
+                    'polygon',
+                    [{ type: 'line', value: 'Q3', id: 'angle-line', listeners: { click: listener } }],
+                    [{ type: 'range', range: [0, 2], id: 'radius-band', listeners: { click: listener } }]
+                )
             )
         );
 
@@ -470,10 +484,12 @@ describe('PolarCrossLine listeners', () => {
     it('a marker on a cross line wins the click over the cross line', async () => {
         const crossLineClick = vi.fn();
         const seriesNodeClick = vi.fn();
-        chart = await createEnterpriseChart(
-            polarOptions('polygon', [{ type: 'line', value: 'Q2', id: 'q2-line' }], [], {
-                listeners: { crossLineClick, seriesNodeClick },
-            })
+        chart = deproxy(
+            await createEnterpriseChart(
+                polarOptions('polygon', [{ type: 'line', value: 'Q2', id: 'q2-line' }], [], {
+                    listeners: { crossLineClick, seriesNodeClick },
+                })
+            )
         );
         const series = chart.series[0] as any;
         const { x, y } = series.contextNodeData.nodeData[1].point;
@@ -495,8 +511,12 @@ describe('PolarCrossLine listeners', () => {
 
     it('AC6: with no cross-line listener the click falls through to the chart `click` listener', async () => {
         const chartClick = vi.fn();
-        chart = await createEnterpriseChart(
-            polarOptions('polygon', [{ type: 'range', range: ['Q1', 'Q2'] }], [], { listeners: { click: chartClick } })
+        chart = deproxy(
+            await createEnterpriseChart(
+                polarOptions('polygon', [{ type: 'range', range: ['Q1', 'Q2'] }], [], {
+                    listeners: { click: chartClick },
+                })
+            )
         );
 
         await click(chart, pointOnPolarCrossLine(polarCrossLineAt(chart, 'angle')));
@@ -518,7 +538,7 @@ describe('PolarCrossLine listeners', () => {
                     { listeners: { click: chartClick } }
                 );
             };
-            chart = await createEnterpriseChart(options(true));
+            chart = deproxy(await createEnterpriseChart(options(true)));
             const point = pointOnPolarCrossLine(polarCrossLineAt(chart, axisId));
 
             await chart.publicApi!.update(prepareEnterpriseTestOptions(options(false)));
@@ -541,7 +561,7 @@ describe('PolarCrossLine listeners', () => {
             listeners: { crossLineClick: chartClick },
         });
         options.axes!.radius = { ...options.axes!.radius, listeners: { crossLineClick: axisClick } };
-        chart = await createEnterpriseChart(options);
+        chart = deproxy(await createEnterpriseChart(options));
 
         await click(chart, pointOnPolarCrossLine(polarCrossLineAt(chart, 'radius')));
 
@@ -555,7 +575,7 @@ describe('PolarCrossLine listeners', () => {
     it('polar axes reject axis click listeners', async () => {
         const options = polarOptions('polygon', [{ type: 'line', value: 'Q2' }], []);
         options.axes!.angle = { ...options.axes!.angle, listeners: { click: vi.fn() } as AgAxisCrossLineListeners };
-        chart = await createEnterpriseChart(options);
+        chart = deproxy(await createEnterpriseChart(options));
 
         expectWarningMessages([
             'AG Charts - Option `axes.angle.listeners.click` is not supported by `radar-line` series, ignoring.',
@@ -564,10 +584,12 @@ describe('PolarCrossLine listeners', () => {
 
     it('AC7: a chart-level `crossLineClick` listener receives the cross-line event', async () => {
         const chartClick = vi.fn();
-        chart = await createEnterpriseChart(
-            polarOptions('polygon', [], [{ type: 'range', range: [0, 2], id: 'band' }], {
-                listeners: { crossLineClick: chartClick },
-            })
+        chart = deproxy(
+            await createEnterpriseChart(
+                polarOptions('polygon', [], [{ type: 'range', range: [0, 2], id: 'band' }], {
+                    listeners: { crossLineClick: chartClick },
+                })
+            )
         );
 
         await click(chart, pointOnPolarCrossLine(polarCrossLineAt(chart, 'radius')));
@@ -599,8 +621,10 @@ describe('PolarCrossLine listeners', () => {
             '$shape angle $crossLine.type',
             async ({ shape, crossLine }) => {
                 const listener = vi.fn();
-                chart = await createEnterpriseChart(
-                    polarOptions(shape, [{ ...crossLine, listeners: { click: listener } }], [])
+                chart = deproxy(
+                    await createEnterpriseChart(
+                        polarOptions(shape, [{ ...crossLine, listeners: { click: listener } }], [])
+                    )
                 );
                 await expectClickTarget(chart, 'angle', listener);
             }
@@ -610,8 +634,10 @@ describe('PolarCrossLine listeners', () => {
             '$shape radius $crossLine.type',
             async ({ shape, crossLine }) => {
                 const listener = vi.fn();
-                chart = await createEnterpriseChart(
-                    polarOptions(shape, [], [{ ...crossLine, listeners: { click: listener } }])
+                chart = deproxy(
+                    await createEnterpriseChart(
+                        polarOptions(shape, [], [{ ...crossLine, listeners: { click: listener } }])
+                    )
                 );
                 await expectClickTarget(chart, 'radius', listener);
             }

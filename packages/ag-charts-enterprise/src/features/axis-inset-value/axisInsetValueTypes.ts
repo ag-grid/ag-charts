@@ -27,6 +27,8 @@ export interface AxisInsetValueOptions {
     width?: number;
     /** Least strip thickness in pixels when `width` is not given. Default: `60` */
     minWidth?: number;
+    /** Space kept clear between the strip and the series area, in pixels. Default: `2` */
+    gap?: number;
     fill?: AgCssColorOrRef;
     fillOpacity?: number;
     /** Datum key holding the axis category each block belongs to. */

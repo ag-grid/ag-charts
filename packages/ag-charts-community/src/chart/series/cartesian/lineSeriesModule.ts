@@ -18,6 +18,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     interpolationThemeTemplate,
+    themeLineHeight,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -53,6 +54,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             padding: 8,

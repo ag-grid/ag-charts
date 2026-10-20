@@ -3,17 +3,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ChartUpdateType, type Point, Sector, Selection, Transformable } from 'ag-charts-core';
 import type { AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
-import { AgCharts } from '../../../api/agCharts';
 import type { ChartOrProxy, PolarTestCase } from '../../test/utils';
 import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     compareImageSnapshot,
+    createChart,
     deproxy,
     hoverAction,
     polarChartAssertions,
-    prepareTestOptions,
     repeat,
     setupMockCanvas,
     setupMockConsole,
@@ -128,10 +127,8 @@ describe('PolarSeries', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgPolarChartOptions = { ...example.options };
-                prepareTestOptions(options);
 
-                chart = deproxy(AgCharts.create(options));
-                await waitForChartStability(chart);
+                chart = deproxy(await createChart(options));
                 await example.assertions(chart);
             }
         );
@@ -140,9 +137,8 @@ describe('PolarSeries', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const options: AgPolarChartOptions = { ...example.options };
-                prepareTestOptions(options);
 
-                chart = deproxy(AgCharts.create(options));
+                chart = deproxy(await createChart(options));
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -165,10 +161,9 @@ describe('PolarSeries', () => {
             };
 
             const options: AgPolarChartOptions = { ...examples.PIE_SERIES };
-            prepareTestOptions(options);
             options.legend = { enabled: true };
 
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             const deproxied = deproxy(chart);
             const reference = await snapshot();
 
@@ -212,11 +207,8 @@ describe('PolarSeries', () => {
                 },
                 ...examples.PIE_SECTORS_LABELS,
             };
-            prepareTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-
-            await waitForChartStability(chart);
+            chart = deproxy(await createChart(options));
 
             const series = chart.series[0];
             const nodeToHighlight = (series as any).nodeData[0];
@@ -241,11 +233,11 @@ describe('PolarSeries', () => {
     }) => {
         const format = (...values: any[]) => values.join(' ');
 
-        const createChart = async (params: {
+        const presetOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): Promise<Chart> => {
+        }): AgPolarChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
                       renderer(rParams: any) {
@@ -257,7 +249,7 @@ describe('PolarSeries', () => {
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
-            const options: AgPolarChartOptions = {
+            return {
                 container: document.body,
                 series: [
                     {
@@ -274,10 +266,6 @@ describe('PolarSeries', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            prepareTestOptions(options);
-            const newChart = deproxy(AgCharts.create(options));
-            await waitForChartStability(newChart);
-            return newChart;
         };
 
         const hoverChartNodes = async (
@@ -330,7 +318,7 @@ describe('PolarSeries', () => {
         };
 
         it(`should render tooltip correctly`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: true })));
             await hoverChartNodes(chart, ({ series, item }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -350,36 +338,38 @@ describe('PolarSeries', () => {
         });
 
         it(`should highlight hovered items`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: true })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: true, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should highlight hovered items when tooltip is disabled`, async () => {
-            chart = await createChart({ hasTooltip: false });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: false })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: false, onNodeClick });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: false, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
+            chart = deproxy(
+                await createChart(presetOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
+            chart = deproxy(await createChart(presetOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 6 })));
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
     };

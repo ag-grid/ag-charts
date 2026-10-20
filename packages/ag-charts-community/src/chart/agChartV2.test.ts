@@ -12,6 +12,7 @@ import {
     cartesianChartAssertions,
     clickAction,
     compareImageSnapshot,
+    createChart,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -29,6 +30,7 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     },
 };
 
+// Bespoke: the bare creates attach the chart to the per-test `container` rather than the default body, which `createChart` cannot do; some also set a size after preparation.
 describe('AgChartV2', () => {
     setupMockConsole();
 
@@ -112,12 +114,12 @@ describe('AgChartV2', () => {
                 ...opts,
                 series: series?.map((s) => ({ ...s, grouped: idx === 0, stacked: idx !== 0 })),
             }));
+            const snapshots: any[] = [];
+
+            chart = await createChart(exampleCycle[0]);
             for (const opts of exampleCycle) {
                 prepareTestOptions(opts);
             }
-            const snapshots: any[] = [];
-
-            chart = AgCharts.create(exampleCycle[0]);
             snapshots[0] = await snapshot();
 
             // Round 0 proves the chart changes; later rounds prove the same options render identically.
@@ -162,12 +164,11 @@ describe('AgChartV2', () => {
                 ...opts,
                 axes: mapValues(axes ?? {}, (a) => adjustPosition(a, idx)),
             }));
+
+            chart = await createChart(exampleCycle[0]);
             for (const opts of exampleCycle) {
                 prepareTestOptions(opts);
             }
-
-            chart = AgCharts.create(exampleCycle[0]);
-            await waitForChartStability(chart);
 
             // Round 0 proves the chart changes; later rounds prove the same options render identically.
             for (let round = 0; round <= 1; round++) {

@@ -8,6 +8,8 @@ export type AgPriceVolumeChartType =
 export interface AgPriceVolumePreset {
     /** Series type used for the OHLC data.
      *
+     * The series has the fixed id `'price'` for every chart type, for use in callbacks.
+     *
      *  Default: `'candlestick'`
      */
     chartType?: AgPriceVolumeChartType;
@@ -50,6 +52,8 @@ export interface AgPriceVolumePreset {
      *
      *  If set to `false`, no volume data is required.
      *
+     * The series has the fixed id `'volume'`, for use in callbacks.
+     *
      * Default: `true`
      */
     volume?: boolean;
@@ -58,6 +62,8 @@ export interface AgPriceVolumePreset {
     /** The height of each Volume Profile price level, in price units.
      *
      * If not set, the smallest gap between the prices in `volumeProfile.data` is used.
+     *
+     * When set, the price crosshair snaps to the nearest multiple of `tickSize`.
      */
     tickSize?: number;
     /** Whether to show the range buttons.
@@ -95,13 +101,19 @@ export interface AgVolumeProfileOptions extends Toggleable {
      * Default: `'price'`
      */
     priceKey?: string;
-    /** The key used to retrieve the up volume of each level from the data. */
+    /** The key used to retrieve the up volume of each level from the data.
+     *
+     * The series has the fixed id `'volumeProfileUp'`, for use in callbacks.
+     */
     upKey: string;
-    /** The key used to retrieve the down volume of each level from the data. */
+    /** The key used to retrieve the down volume of each level from the data.
+     *
+     * The series has the fixed id `'volumeProfileDown'`, for use in callbacks.
+     */
     downKey: string;
     /** The edge of the series area the bars extend from.
      *
-     * Default: `'left'`
+     * Default: `'right'`
      */
     placement?: AgVolumeProfilePlacement;
     /** The length of the longest bar, as a ratio of the series area width.
@@ -111,8 +123,6 @@ export interface AgVolumeProfileOptions extends Toggleable {
     widthRatio?: Ratio;
     /** A fixed-width column showing each level's total volume, set between the price axis and the up and down bars. */
     totalSegment?: AgVolumeProfileTotalSegmentOptions;
-    /** Selection of price levels. */
-    selection?: AgVolumeProfileSelectionOptions;
 }
 
 export interface AgVolumeProfileSelectionOptions extends Toggleable {
@@ -178,12 +188,17 @@ export interface AgVolumeProfileTotalSegmentOptions extends Toggleable {
      * Default: `60`
      */
     minWidth?: PixelSize;
+    /** The space between the segment and the up and down bars, in pixels. The series area shrinks to make room for it.
+     *
+     * Default: `2`
+     */
+    gap?: PixelSize;
     /** The label showing each level's total volume. Text too wide for the segment is truncated. */
     label?: AgVolumeProfileTotalSegmentLabelOptions;
 }
 
 export interface AgVolumeProfileTotalSegmentLabelOptions extends Toggleable, TextOptions {
-    /** A function that converts a level's total volume into the text to display. Without one, the value is abbreviated with a suffix, such as `1.2K` or `3.4M`. */
+    /** A function that converts a level's total volume into the text to display. Without one, the value is abbreviated with a suffix and shown to one decimal place, such as `1.2K` or `3.0M`. */
     formatter?: (params: AgVolumeProfileTotalSegmentLabelFormatterParams) => string;
 }
 

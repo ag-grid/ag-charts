@@ -7,6 +7,30 @@ A Volume Profile shows the traded volume at each price level alongside the price
 
 {% chartExampleRunner title="Volume Profile" name="volume-profile" type="generated" /%}
 
+## Financial Chart
+
+Set `volumeProfile` on a Financial Chart to show a Volume Profile alongside the candles and the volume panel, without composing the series yourself. It has its own `data`, separate from the chart's `data`, with one row per price:
+
+```js format="snippet"
+{
+    volumeProfile: {
+        data: profile,
+        upKey: 'upVolume',
+        downKey: 'downVolume',
+    },
+}
+```
+
+In this configuration:
+
+- `priceKey` is the key holding each row's price. It defaults to `'price'`.
+- `upKey` and `downKey` are the keys holding the volume bought and sold at each price. Their fills come from the up and down colours of the theme, at the same opacity as the volume bars.
+- `placement` is the edge of the series area the bars extend from, `'left'` or `'right'`. It defaults to `'right'`, the same side as the price axis.
+- `widthRatio` is the length of the longest bar as a ratio of the series area width. It defaults to `0.5`.
+- `enabled` set to `false` hides the Volume Profile without removing the rest of the options.
+
+The bars touch one another and, like the volume bars, cannot be hovered or selected. The [status bar](#hovering-price-levels) shows the details of the price level instead. The Volume Profile can be shown together with `volume: true`, and Total Segment and Tick Size, below, apply to it.
+
 ## Volume Profile Chart
 
 Use `AgCharts.createVolumeProfileChart()` to show a Volume Profile on its own, against a price axis.
@@ -30,13 +54,29 @@ Set `totalSegment.enabled` to show a column between the price axis and the bars,
 
 In this example:
 
-- Totals are abbreviated with a suffix, such as `1.2K` or `3.4M`. Supply a `label.formatter` to show them differently.
+- Totals are abbreviated with a suffix and always shown to one decimal place, such as `1.2K`, `3.0M` or `45.0M`, and are aligned towards the bars. Supply a `label.formatter` to show them differently.
 - The column is as wide as its widest label, but never narrower than `minWidth` (60 pixels by default). Set `width` to fix the width instead, in which case labels that do not fit are shortened.
+- A `gap` of 2 pixels separates the column from the bars. Set `gap` to change it.
 - Price levels with no volume have no block, and labels are hidden when the price levels are too close together to read.
+
+## Hovering Price Levels
+
+In a Financial Chart, the Volume Profile bars cannot be hovered and show no tooltip. Instead, moving the pointer over the chart shows the details of the price level at the pointer's price in the status bar, after the values of the hovered candle:
+
+- `Price`: the range of prices the level covers, which is its price plus or minus half the `tickSize`.
+- `Up`: the up volume traded in the level, in the up colour.
+- `Down`: the down volume traded in the level, in the down colour.
+- `Total`: the total volume traded in the level.
+
+If the level does not fit beside the candle values, it moves to a second line below them. It never uses more than two lines, and runs past the edge of the chart if the chart is narrower still.
+
+Nothing is added for price levels with no volume, or if the status bar is disabled with `statusBar: false`. A Volume Profile Chart created with `AgCharts.createVolumeProfileChart()` has no status bar, so it shows a tooltip instead.
 
 ## Selecting Price Levels
 
-Set `selection.enabled` to let users click a price level to select it, highlighting both its up and down segments and the background behind it. In a Financial Chart, set the same options on `volumeProfile.selection`.
+In a Volume Profile Chart created with `AgCharts.createVolumeProfileChart()`, set `selection.enabled` to let users click a price level to select it, highlighting both its up and down segments and the background behind it. Price levels cannot be selected in a Financial Chart.
+
+The two segments have the fixed series ids `'volumeProfileUp'` and `'volumeProfileDown'`, in both chart types, for use in callbacks. In a Volume Profile Chart they can also be used with `setSelection()` and `getSelection()`.
 
 {% chartExampleRunner title="Selecting Price Levels" name="selection" type="generated" /%}
 
@@ -55,3 +95,44 @@ In this example:
 - Click a price level to select it, or click away from the bars to clear the selection.
 - With `enableDrag` set, drag across the chart to select every price level the rectangle touches.
 - Use the Click Mode buttons to switch `selection.clickMode` between `'single'`, where each click replaces the selection, and `'multiple'`, where each click toggles a level.
+
+## Tick Size
+
+In a Financial Chart, set `tickSize` to the price increment of the instrument. Each Volume Profile price level is then one `tickSize` high.
+
+When `tickSize` is set, the price crosshair snaps to the nearest multiple of `tickSize`, so its label always shows a valid price. The axis button for adding a horizontal line snaps in the same way.
+
+To have the price crosshair follow the pointer instead, set `snap` to `false` on the number axis crosshair in the theme overrides:
+
+```js format="snippet"
+{
+    tickSize: 0.25,
+    theme: {
+        overrides: {
+            common: {
+                axes: {
+                    number: {
+                        crosshair: {
+                            snap: false,
+                        },
+                    },
+                },
+            },
+        },
+    },
+}
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgVolumeProfileChartOptions" label="Volume Profile Chart Options" %}
+{% apiReference id="AgVolumeProfileChartOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgFinancialChartOptions" label="Financial Chart Options" %}
+{% apiReference id="AgFinancialChartOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

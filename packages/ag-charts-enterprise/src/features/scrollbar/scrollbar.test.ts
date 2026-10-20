@@ -13,7 +13,14 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
-import { WheelDeltaMode, dispatchEvent, makeMockEvent, mouseEnterEvent } from 'ag-charts-test';
+import {
+    CANVAS_HEIGHT,
+    CANVAS_WIDTH,
+    WheelDeltaMode,
+    dispatchEvent,
+    makeMockEvent,
+    mouseEnterEvent,
+} from 'ag-charts-test';
 import type { AgCartesianAxisPosition, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
@@ -346,7 +353,7 @@ describe('Scrollbar preserves zoom across chart.update', () => {
     });
 
     function createOptions(verticalPosition: 'left' | 'right'): AgCartesianChartOptions {
-        return prepareEnterpriseTestOptions({
+        return {
             width: 400,
             height: 300,
             data: DATA,
@@ -354,7 +361,7 @@ describe('Scrollbar preserves zoom across chart.update', () => {
             axes: { x: { type: 'number' }, y: { type: 'number' } },
             scrollbar: { enabled: true, vertical: { position: verticalPosition } },
             initialState: { zoom: { ratioY: { start: 0.2, end: 0.75 } } },
-        });
+        };
     }
 
     function getZoomY() {
@@ -366,22 +373,20 @@ describe('Scrollbar preserves zoom across chart.update', () => {
     }
 
     it('keeps the vertical scrollbar when switching position from right to left', async () => {
-        proxy = AgCharts.create(createOptions('right'));
-        await waitForChartStability(proxy);
+        proxy = await createEnterpriseChart(createOptions('right'));
         expect(getZoomY()).toEqual({ min: 0.2, max: 0.75 });
         expect(getVerticalLayoutRect()).toBeDefined();
 
-        await proxy.update(createOptions('left'));
+        await proxy.update(prepareEnterpriseTestOptions(createOptions('left')));
         await waitForChartStability(proxy);
         expect(getZoomY()).toEqual({ min: 0.2, max: 0.75 });
         expect(getVerticalLayoutRect()).toBeDefined();
     });
 
     it('keeps the zoom on an unrelated update', async () => {
-        proxy = AgCharts.create(createOptions('right'));
-        await waitForChartStability(proxy);
+        proxy = await createEnterpriseChart(createOptions('right'));
 
-        await proxy.update({ ...createOptions('right'), title: { text: 'changed' } });
+        await proxy.update(prepareEnterpriseTestOptions({ ...createOptions('right'), title: { text: 'changed' } }));
         await waitForChartStability(proxy);
         expect(getZoomY()).toEqual({ min: 0.2, max: 0.75 });
         expect(getVerticalLayoutRect()).toBeDefined();
@@ -417,27 +422,31 @@ describe('Scrollbar visibility on barWidth change', () => {
     }
 
     function createOptions(seriesOverrides?: Record<string, unknown>): AgCartesianChartOptions {
-        return prepareEnterpriseTestOptions({
+        return {
             width: 400,
             height: 300,
             data: BAR_DATA,
             series: [{ type: 'bar', xKey: 'category', yKey: 'value', ...seriesOverrides }],
             scrollbar: { enabled: true },
-        });
+        };
     }
 
     // Changing barWidth at runtime should trigger the scrollbar when bars overflow.
     it('shows scrollbar after increasing barWidth beyond available space', async () => {
         const options = createOptions({ width: 10 });
 
-        proxy = AgCharts.create(options);
-        await waitForChartStability(proxy);
+        proxy = await createEnterpriseChart(options);
 
         expect(getZoomX()?.min).toBe(0);
         expect(getZoomX()?.max).toBe(1);
 
         // Increase barWidth so total required width exceeds the chart width.
-        await proxy.update({ ...options, series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }] });
+        await proxy.update(
+            prepareEnterpriseTestOptions({
+                ...options,
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }],
+            })
+        );
         await waitForChartStability(proxy);
 
         expect(getZoomX()?.max).toBeLessThan(1);
@@ -452,19 +461,28 @@ describe('Scrollbar visibility on barWidth change', () => {
     it('updates zoom on each successive barWidth change', async () => {
         const options = createOptions();
 
-        proxy = AgCharts.create(options);
-        await waitForChartStability(proxy);
+        proxy = await createEnterpriseChart(options);
 
         // No fixed width → bars fit → no scrollbar.
         expect(getZoomX()?.max).toBe(1);
 
         // First change: set width=10 → still fits.
-        await proxy.update({ ...options, series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 10 }] });
+        await proxy.update(
+            prepareEnterpriseTestOptions({
+                ...options,
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 10 }],
+            })
+        );
         await waitForChartStability(proxy);
         expect(getZoomX()?.max).toBe(1);
 
         // Second change: set width=80 → overflows → scrollbar should appear.
-        await proxy.update({ ...options, series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }] });
+        await proxy.update(
+            prepareEnterpriseTestOptions({
+                ...options,
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }],
+            })
+        );
         await waitForChartStability(proxy);
         expect(getZoomX()?.max).toBeLessThan(1);
 
@@ -477,24 +495,23 @@ describe('Scrollbar visibility on barWidth change', () => {
     // At full extent a scrollbar pan is a no-op; skipping the zoom update keeps the span at exactly 1 so
     // floating-point re-anchoring can't drop it below 1 and reveal the scrollbar.
     it('does not issue a zoom update when wheel-scrolling an axis already at its extent', async () => {
-        const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+        const options: AgCartesianChartOptions = {
             width: 400,
             height: 300,
             data: BAR_DATA,
             series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
             scrollbar: { enabled: true },
             zoom: { enabled: false, enableScrolling: true },
-        });
+        };
 
-        proxy = AgCharts.create(options);
-        await waitForChartStability(proxy);
+        proxy = await createEnterpriseChart(options);
 
         // Bars fit → full extent.
         expect(getZoomX()?.min).toBe(0);
         expect(getZoomX()?.max).toBe(1);
 
-        const cx = options.width! / 2;
-        const cy = options.height! / 2;
+        const cx = CANVAS_WIDTH / 2;
+        const cy = CANVAS_HEIGHT / 2;
         await clickAction(cx, cy)(proxy);
 
         const zoomManager = (deproxy(proxy) as any).ctx.zoomManager;
@@ -569,6 +586,8 @@ describe('Scrollbar visibility after deferred (detached -> attached) resize', ()
     it('shows the scrollbar once attached to a container smaller than the fixed-width bars need', async () => {
         const { container, attach } = setupMeasurableContainer();
 
+        // Bespoke: the chart is created in a detached container with no test preparation, and its size is measured from
+        // that container once it is attached.
         // Create + update on the detached (0x0) container: it lays out at the scene default (600x300),
         // where the ten 14px bars fit, so the cross-axis stays at full range and no scrollbar shows.
         proxy = AgCharts.create(createOptions(container));
@@ -594,12 +613,18 @@ describe('Scrollbar thumb hoverStyle.strokeWidth', () => {
     afterEach(() => destroyChartRef(chartRef));
 
     it('applies the hover strokeWidth on hover and restores it on un-hover', async () => {
-        chartRef.current = await createEnterpriseChart({
-            data: DATA,
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            scrollbar: { enabled: true, visible: 'always', thumb: { strokeWidth: 1, hoverStyle: { strokeWidth: 3 } } },
-            initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
-        });
+        chartRef.current = deproxy(
+            await createEnterpriseChart({
+                data: DATA,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                scrollbar: {
+                    enabled: true,
+                    visible: 'always',
+                    thumb: { strokeWidth: 1, hoverStyle: { strokeWidth: 3 } },
+                },
+                initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
+            })
+        );
         const scrollbar = chartRef.current.modulesManager.getModule('scrollbar');
         const { thumb } = scrollbar.state.horizontal;
 
@@ -694,8 +719,9 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
     }));
     const LONG_LABEL_INDEX = LONG_LABEL_DATA.findIndex(({ x }) => x === LONG_LABEL);
 
+    // Bespoke: the size must override the default canvas size that `prepareEnterpriseTestOptions` applies, which the
+    // shared `createEnterpriseChart` would re-apply over it.
     async function createSizedChart(options: AgCartesianChartOptions) {
-        // `prepareEnterpriseTestOptions` sizes the chart to the default canvas, so set the size afterwards.
         const proxy = AgCharts.create({
             ...prepareEnterpriseTestOptions(options),
             width: CHART_WIDTH,
@@ -972,34 +998,61 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
 
 describe('Scrollbar border theme params', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
 
     const chartRef: ChartRef = {};
     afterEach(() => destroyChartRef(chartRef));
 
+    const chartOptions = (params: object): AgCartesianChartOptions => ({
+        data: DATA,
+        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+        scrollbar: { enabled: true, visible: 'always' },
+        initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
+        theme: { params },
+    });
+
     const create = async (params: object) => {
-        chartRef.current = await createEnterpriseChart({
-            data: DATA,
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            scrollbar: { enabled: true, visible: 'always' },
-            initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
-            theme: { params },
-        });
+        chartRef.current = deproxy(await createEnterpriseChart(chartOptions(params)));
         const scrollbar = chartRef.current.modulesManager.getModule('scrollbar');
         return { scrollbar, ...scrollbar.state.horizontal };
     };
 
     const BASE = { borderColor: '#112233', borderWidth: 2 };
 
-    it('uses borderColor at width 1 for a true border, and no width for a false border', async () => {
-        const enabled = await create({ ...BASE, scrollbarTrackBorder: true, scrollbarThumbBorder: true });
-        expect([enabled.track.stroke, enabled.track.strokeWidth]).toEqual(['#112233', 1]);
-        expect([enabled.thumb.stroke, enabled.thumb.strokeWidth]).toEqual(['#112233', 1]);
-        destroyChartRef(chartRef);
+    it('follows borderWidth for a true border', async () => {
+        chartRef.current = await createEnterpriseChart(
+            chartOptions({
+                borderColor: 'red',
+                borderWidth: 4,
+                scrollbarThickness: 20,
+                scrollbarTrackBorder: true,
+                scrollbarThumbBorder: true,
+            })
+        );
+        await compareImageSnapshot(chartRef.current, ctx);
+    });
 
-        const disabled = await create({ ...BASE, scrollbarTrackBorder: false, scrollbarThumbBorder: false });
-        expect(disabled.track.strokeWidth).toBe(0);
-        expect(disabled.thumb.strokeWidth).toBe(0);
+    it('follows borderWidth for a true hover border on a thumb without a border', async () => {
+        chartRef.current = await createEnterpriseChart(
+            chartOptions({
+                borderColor: 'red',
+                borderWidth: 4,
+                scrollbarThickness: 30,
+                scrollbarThumbBorder: false,
+                scrollbarThumbHoverBorder: true,
+            })
+        );
+        hoverHorizontalThumb();
+        await compareImageSnapshot(chartRef.current, ctx);
+    });
+
+    it('uses no width for a false border', async () => {
+        const { track, thumb } = await create({
+            ...BASE,
+            scrollbarTrackBorder: false,
+            scrollbarThumbBorder: false,
+        });
+        expect([track.strokeWidth, thumb.strokeWidth]).toEqual([0, 0]);
     });
 
     it('uses the colour and width of an object border', async () => {
@@ -1026,6 +1079,6 @@ describe('Scrollbar border theme params', () => {
 
         const shown = await create({ ...BASE, scrollbarThumbBorder: true, scrollbarThumbHoverBorder: true });
         shown.scrollbar.handleHoverChange('horizontal', true);
-        expect(shown.thumb.strokeWidth).toBe(1);
+        expect(shown.thumb.strokeWidth).toBe(2);
     });
 });

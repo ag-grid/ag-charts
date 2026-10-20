@@ -1,6 +1,7 @@
 import { fail } from 'assert';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
+import { cycledValue } from 'ag-charts-core';
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
 import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
 
@@ -22,6 +23,10 @@ const data = [
     { label: 'Windows', v1: 2.8, v2: 1.908, v3: 7.48, v4: 5.29, v5: 8.8 },
 ];
 
+const firstCycled = (values: unknown[], count: number) =>
+    Array.from({ length: count }, (_, index) => cycledValue(values, index));
+
+// Bespoke: the bare creates pass unprepared options (or a custom container) so the theme under test reaches the chart unmodified, which `createChart` would prevent.
 describe('ChartTheme', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -173,6 +178,7 @@ describe('ChartTheme', () => {
         };
 
         const serializedOptions = JSON.stringify(cartesianChartOptions);
+        // The chart is also inspected synchronously, before it has settled.
         beforeEach(() => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
         });
@@ -269,6 +275,7 @@ describe('ChartTheme', () => {
 
         const serializedOptions = JSON.stringify(polarChartOptions);
 
+        // The chart is also inspected synchronously, before it has settled.
         beforeEach(() => {
             chart = deproxy(AgCharts.create(polarChartOptions));
         });
@@ -288,8 +295,8 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            expect(pieSeries.options.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
-            expect(pieSeries.options.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
+            expect(firstCycled(pieSeries.options.fills, 5)).toEqual(['red', 'green', 'blue', 'red', 'green']);
+            expect(firstCycled(pieSeries.options.strokes, 5)).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
             expect(pieSeries.options.calloutLabel.enabled).toBe(true);
             expect(pieSeries.options.calloutLabel.color).toBe('yellow');
             expect(pieSeries.options.calloutLabel.fontSize).toBe(18);
@@ -465,8 +472,8 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            expect(pieSeries.options.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
-            expect(pieSeries.options.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
+            expect(firstCycled(pieSeries.options.fills, 5)).toEqual(['red', 'green', 'blue', 'red', 'green']);
+            expect(firstCycled(pieSeries.options.strokes, 5)).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
             expect(pieSeries.options.calloutLabel.enabled).toBe(true);
             expect(pieSeries.options.calloutLabel.color).toBe('yellow');
             expect(pieSeries.options.calloutLabel.fontSize).toBe(18);

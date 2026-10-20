@@ -221,6 +221,7 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> e
     | 'fill'
     | 'fontFamily'
     | 'fontSize'
+    | 'lineHeight'
     | 'fontStyle'
     | 'fontWeight'
     | 'padding'

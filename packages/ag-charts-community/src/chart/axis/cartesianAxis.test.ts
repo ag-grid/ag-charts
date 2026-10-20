@@ -5,12 +5,23 @@ import type {
     AgBaseChartThemeOptions,
     AgCartesianAxisCrossAt,
     AgCartesianChartOptions,
+    AgCategoryAxisOptions,
     AgChartInstance,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import {
+    type AxisLabelNode,
+    getAxisBandExtent,
+    getAxisBandwidth,
+    getAxisLabelNodes,
+    getAxisTitleText,
+    getLabelSegmentAlignments,
+    getLabelText,
+    getSeriesRect,
+} from '../test/axisAccessors';
 import { BIG, expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -18,9 +29,13 @@ import {
     createChart,
     deproxy,
     expectWarningsCalls,
+    getAxisLabelTexts,
+    getAxisTickLayout,
+    getAxisTickLayouts,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAxisTickLayout,
     waitForChartStability,
 } from '../test/utils';
 
@@ -486,6 +501,8 @@ const invalidValueScenarios: Scenario[] = [
     },
 ];
 
+// Bespoke: the bare `AgCharts.create` calls in this suite set the width or height after preparation, which `createChart`
+// would overwrite with the default, or skip preparation to take the auto-size path.
 describe('CartesianAxis', () => {
     setupMockConsole();
     const compare = async (snapshotId: string) => {
@@ -507,10 +524,7 @@ describe('CartesianAxis', () => {
     const ctx = setupMockCanvas();
 
     const renderAndSnapshot = async (factory: OptionsFactory, snapshotId: string) => {
-        const options = factory();
-        prepareTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createChart(factory());
         await compare(snapshotId);
     };
 
@@ -946,9 +960,7 @@ describe('CartesianAxis', () => {
 
             const crossTranslationY = async (value: AgCartesianAxisCrossAt['value']) => {
                 const options = bigintDomainOptions(value);
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 const chartInstance = deproxy(chart as any) as any;
                 const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
                 expect(bottomAxis).toBeDefined();
@@ -994,9 +1006,7 @@ describe('CartesianAxis', () => {
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 };
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 expectWarningsCalls().toHaveLength(0);
             });
 
@@ -1010,9 +1020,7 @@ describe('CartesianAxis', () => {
                     },
                     series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
                 };
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
 
                 const chartInstance = deproxy(chart as any) as any;
                 const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
@@ -1074,19 +1082,10 @@ describe('CartesianAxis', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare('cartesian-axis-rotated-category-label-wrap');
         });
     });
-
-    const getAxisLabelNodes = (chartInstance: AgChartInstance, position: string) => {
-        const chartInternal = deproxy(chartInstance as any) as any;
-        const axis = chartInternal.axes.find((a: any) => a.position === position);
-        expect(axis).toBeDefined();
-        const nodes: any[] = Array.from(axis.tickLabelGroupSelection.nodes());
-        return nodes.filter((n: any) => n.datum.visible);
-    };
 
     const renderChart = async (options: AgCartesianChartOptions, width?: number) => {
         if (chart != null) {
@@ -1135,10 +1134,10 @@ describe('CartesianAxis', () => {
 
         const findLongNode = (position: string, prefix: string) => {
             const node = getAxisLabelNodes(chart, position).find((n) =>
-                n.datum.text.replaceAll('\n', '').startsWith(prefix)
+                getLabelText(n).replaceAll('\n', '').startsWith(prefix)
             );
             expect(node).toBeDefined();
-            return node;
+            return node!;
         };
 
         describe('validation', () => {
@@ -1224,7 +1223,7 @@ describe('CartesianAxis', () => {
                 for (const node of nodes) {
                     expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
                 }
-                expect(findLongNode('left', 'test').datum.text.endsWith('…')).toBe(true);
+                expect(getLabelText(findLongNode('left', 'test')).endsWith('…')).toBe(true);
                 expectWarningsCalls().toEqual([]);
             });
 
@@ -1232,9 +1231,9 @@ describe('CartesianAxis', () => {
                 await renderChart(leftCategoryOptions({ maxWidth: 80, wrapping: 'always' }, labels));
 
                 const node = findLongNode('left', 'one');
-                const lines = node.datum.text.split('\n');
+                const lines = getLabelText(node).split('\n');
                 expect(lines.length).toBeGreaterThan(1);
-                expect(node.datum.text.endsWith('…')).toBe(false);
+                expect(getLabelText(node).endsWith('…')).toBe(false);
                 for (const n of getAxisLabelNodes(chart, 'left')) {
                     expect(Transformable.toCanvas(n).width).toBeLessThanOrEqual(80.5);
                 }
@@ -1245,24 +1244,24 @@ describe('CartesianAxis', () => {
 
                 const node = findLongNode('left', 'one');
                 expect(Transformable.toCanvas(node).height).toBeLessThanOrEqual(20.5);
-                expect(node.datum.text.endsWith('…')).toBe(true);
+                expect(getLabelText(node).endsWith('…')).toBe(true);
             });
 
             it('hides an overflowing label when truncate is false', async () => {
                 await renderChart(leftCategoryOptions({ maxWidth: 30, truncate: false }, labels));
 
                 for (const node of getAxisLabelNodes(chart, 'left')) {
-                    expect(node.datum.text).not.toContain('test');
-                    expect(node.datum.text).not.toContain('one');
+                    expect(getLabelText(node)).not.toContain('test');
+                    expect(getLabelText(node)).not.toContain('one');
                 }
-                expect(getAxisLabelNodes(chart, 'left').some((n) => n.datum.text === 'A')).toBe(true);
+                expect(getAxisLabelNodes(chart, 'left').some((n) => getLabelText(n) === 'A')).toBe(true);
             });
 
             it('still truncates when avoidCollisions is false', async () => {
                 await renderChart(leftCategoryOptions({ maxWidth: 80, avoidCollisions: false }, labels));
 
                 const node = findLongNode('left', 'test');
-                expect(node.datum.text.endsWith('…')).toBe(true);
+                expect(getLabelText(node).endsWith('…')).toBe(true);
                 expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
             });
 
@@ -1296,7 +1295,7 @@ describe('CartesianAxis', () => {
                 expect(nodes.length).toBeGreaterThan(0);
                 for (const node of nodes) {
                     expect(node.datum.rotation).not.toBe(0);
-                    expect(node.datum.text.endsWith('…')).toBe(true);
+                    expect(getLabelText(node).endsWith('…')).toBe(true);
                 }
                 expect(getAxisThickness('bottom')).toBeLessThan(unfittedThickness);
             });
@@ -1311,10 +1310,41 @@ describe('CartesianAxis', () => {
                 expect(nodes.length).toBeGreaterThan(0);
                 for (const node of nodes) {
                     expect(node.datum.rotation).not.toBe(0);
-                    expect(node.datum.text).not.toContain('\n');
-                    expect(node.datum.text.replace('…', '').length).toBeGreaterThan(15);
+                    expect(getLabelText(node)).not.toContain('\n');
+                    expect(getLabelText(node).replace('…', '').length).toBeGreaterThan(15);
                 }
             });
+        });
+    });
+
+    describe('label lineHeight', () => {
+        const seriesAreaHeight = async (label: object, parentLabel: object) => {
+            chart = await createChart({
+                data: [
+                    { date: new Date(2023, 10, 1), value: 2 },
+                    { date: new Date(2024, 0, 1), value: 3 },
+                    { date: new Date(2024, 2, 1), value: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                axes: {
+                    x: {
+                        type: 'time',
+                        position: 'bottom',
+                        label,
+                        parentLevel: { enabled: true, label: { enabled: true, ...parentLabel } },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+            const { height } = deproxy(chart).seriesRect!;
+            chart.destroy();
+            return height;
+        };
+
+        it('reserves axis size by the lineHeight of the parent level labels', async () => {
+            const natural = await seriesAreaHeight({ enabled: false }, { format: '%Y' });
+            const tall = await seriesAreaHeight({ enabled: false }, { format: '%Y', lineHeight: 100 });
+            expect(natural - tall).toBeGreaterThan(50);
         });
     });
 
@@ -1364,12 +1394,9 @@ describe('CartesianAxis', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const chartInstance = deproxy(chart as any) as any;
-            const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
-            expect(categoryAxis).toBeDefined();
-            const labelNodes: any[] = Array.from(categoryAxis.tickLabelGroupSelection.nodes());
-            expect(labelNodes.length).toBeGreaterThan(0);
-            const visibleLabels = labelNodes.filter((node: any) => node.datum.visible);
+            // Every node the axis drew, so the visible subset below is a real selection from it.
+            expect(getAxisLabelNodes(chart, 'bottom', { visibleOnly: false }).length).toBeGreaterThan(0);
+            const visibleLabels = getAxisLabelNodes(chart, 'bottom');
             expect(visibleLabels.length).toBeGreaterThan(0);
             for (const node of visibleLabels) {
                 expect(node.datum.rotation).not.toBe(0);
@@ -1424,8 +1451,7 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare('cartesian-axis-title-max-width');
         });
 
@@ -1448,9 +1474,34 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare('cartesian-axis-title-max-height');
+        });
+
+        it('should clip wrapped title lines by the lineHeight within maxHeight', async () => {
+            chart = await createChart({
+                data: NUMERIC_DATA,
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        title: {
+                            enabled: true,
+                            text: 'This Is A Very Long Axis Title That Should Be Truncated After A Certain Height',
+                            fontSize: 20,
+                            lineHeight: 60,
+                            maxWidth: 150,
+                            maxHeight: 130,
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const lines = getAxisTitleText(chart, 'bottom').split('\n');
+            expect(lines).toHaveLength(2);
+            expect(lines[1]).toContain('\u2026');
         });
 
         it('should not wrap title when wrapping is "never"', async () => {
@@ -1519,8 +1570,7 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare('cartesian-axis-title-wrap-hyphenate');
         });
 
@@ -1543,8 +1593,7 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare('cartesian-axis-title-wrap-on-space');
         });
     });
@@ -1678,10 +1727,8 @@ describe('CartesianAxis', () => {
             chart = AgCharts.create(options);
             await compare('cartesian-axis-wrapped-label-not-truncated');
 
-            const chartInstance = deproxy(chart as any) as any;
-            const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
-            expect(categoryAxis).toBeDefined();
-            const labelNodes: any[] = Array.from(categoryAxis.tickLabelGroupSelection.nodes());
+            // A hidden label would pass the check vacuously, so read every node the axis drew.
+            const labelNodes = getAxisLabelNodes(chart, 'bottom', { visibleOnly: false });
             expect(labelNodes.length).toBeGreaterThan(0);
             for (const node of labelNodes) {
                 expect(node.datum.textUntruncated).toBeUndefined();
@@ -1713,13 +1760,37 @@ describe('CartesianAxis', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const chartInstance = deproxy(chart as any) as any;
-            const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
-            expect(categoryAxis).toBeDefined();
-            const labelNodes: any[] = Array.from(categoryAxis.tickLabelGroupSelection.nodes());
+            const labelNodes = getAxisLabelNodes(chart, 'bottom', { visibleOnly: false });
             expect(labelNodes.length).toBeGreaterThan(0);
-            const truncatedNodes = labelNodes.filter((node: any) => node.datum.textUntruncated != null);
+            const truncatedNodes = labelNodes.filter((node) => node.datum.textUntruncated != null);
             expect(truncatedNodes.length).toBeGreaterThan(0);
+        });
+
+        it('should truncate labels in bands thinner than a line', async () => {
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 60 }, (_, i) => ({
+                    category: `A very long category label that cannot fit ${i}`,
+                    value: i,
+                })),
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: { rotation: 90, truncate: true, wrapping: 'never' },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                seriesArea: { padding: { right: 600 } },
+            };
+
+            chart = await createChart(options);
+
+            const labelNodes = getAxisLabelNodes(chart, 'bottom', { visibleOnly: false });
+            expect(labelNodes.length).toBeGreaterThan(0);
+            for (const node of labelNodes) {
+                expect(node.datum.textUntruncated).toBeDefined();
+            }
         });
     });
 
@@ -1834,19 +1905,12 @@ describe('CartesianAxis', () => {
             series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
         });
 
-        const bottomAxisLabelNodes = () => {
-            const chartInstance = deproxy(chart as any) as any;
-            const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
-            expect(categoryAxis).toBeDefined();
-            const labelNodes: any[] = Array.from(categoryAxis.tickLabelGroupSelection.nodes());
-            return labelNodes;
-        };
+        // Every node in the scene graph: a visible-only count would pass when the labels were merely hidden.
+        const bottomAxisLabelNodes = () => getAxisLabelNodes(chart, 'bottom', { visibleOnly: false });
 
         it('removes the label nodes when labels are disabled at runtime', async () => {
             const options = baseOptions(true);
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expect(bottomAxisLabelNodes().length).toBeGreaterThan(0);
 
@@ -1860,9 +1924,7 @@ describe('CartesianAxis', () => {
 
         it('renders no label nodes when labels are disabled from the initial options', async () => {
             const options = baseOptions(false);
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expect(bottomAxisLabelNodes()).toHaveLength(0);
         });
@@ -1902,9 +1964,7 @@ describe('CartesianAxis', () => {
 
         const expectPickIndexMatchesFormatter = async (reverse: boolean) => {
             const options = baseOptions(reverse);
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const chartInstance = deproxy(chart as any) as any;
             const yAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
@@ -1939,6 +1999,8 @@ describe('CartesianAxis', () => {
         textAlign?: TextAlign;
         verticalAlign?: VerticalAlign;
         wrapping?: 'always' | 'never' | 'on-space';
+        avoidCollisions?: boolean;
+        formatter?: NonNullable<AgCategoryAxisOptions['label']>['formatter'];
     };
 
     // Deliberately unequal label widths: a right-positioned category axis is the only vertical
@@ -2003,20 +2065,19 @@ describe('CartesianAxis', () => {
         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
     });
 
-    const getRightAxisLabelNodes = (chartInstance: AgChartInstance) => getAxisLabelNodes(chartInstance, 'right');
-
-    const getSeriesRect = (chartInstance: AgChartInstance) => {
-        const chartInternal = deproxy(chartInstance as any) as any;
-        expect(chartInternal.seriesRect).toBeDefined();
-        return chartInternal.seriesRect;
+    // The label's own glyph box, before the axis group's transforms.
+    const getLocalBox = (node: AxisLabelNode) => {
+        const box = node.computeBBoxWithoutTransforms();
+        expect(box).toBeDefined();
+        return box!;
     };
 
     // Anchors captured from one chart, keyed by label text so a second chart's nodes (which may
     // come back in a different Selection order) can be compared without relying on array order.
-    const captureAnchorsByText = (nodes: any[]) =>
+    const captureAnchorsByText = (nodes: AxisLabelNode[]) =>
         new Map(
             nodes.map((n) => [
-                n.datum.text,
+                getLabelText(n),
                 {
                     x: n.datum.x,
                     y: n.datum.y,
@@ -2033,16 +2094,10 @@ describe('CartesianAxis', () => {
     describe('axis label textAlign', () => {
         it('computes "left" as the natural alignment for an unconfigured right-positioned axis', async () => {
             const options = rightAxisOptions();
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
-            const nodes = getRightAxisLabelNodes(chart);
-            expect(nodes.map((n) => n.datum.text).sort((a: string, b: string) => a.localeCompare(b))).toEqual([
-                'A',
-                'BBBBBBBBBB',
-                'CCC',
-            ]);
+            const nodes = getAxisLabelNodes(chart, 'right');
+            expect(nodes.map(getLabelText).sort((a, b) => a.localeCompare(b))).toEqual(['A', 'BBBBBBBBBB', 'CCC']);
             for (const node of nodes) {
                 expect(node.datum.textAlign).toBe('left');
             }
@@ -2050,16 +2105,10 @@ describe('CartesianAxis', () => {
 
         it('AC1: "right" textAlign flushes label right edges while left edges keep differing', async () => {
             const options = rightAxisOptions({ textAlign: 'right' });
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
-            const nodes = getRightAxisLabelNodes(chart);
-            expect(nodes.map((n) => n.datum.text).sort((a: string, b: string) => a.localeCompare(b))).toEqual([
-                'A',
-                'BBBBBBBBBB',
-                'CCC',
-            ]);
+            const nodes = getAxisLabelNodes(chart, 'right');
+            expect(nodes.map(getLabelText).sort((a, b) => a.localeCompare(b))).toEqual(['A', 'BBBBBBBBBB', 'CCC']);
 
             const boxes = nodes.map((n) => Transformable.toCanvas(n));
             const rightEdges = boxes.map((b) => b.x + b.width);
@@ -2073,11 +2122,9 @@ describe('CartesianAxis', () => {
 
         it('AC1: "right" textAlign keeps every label clear of the plot area', async () => {
             const options = rightAxisOptions({ textAlign: 'right' });
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
-            const nodes = getRightAxisLabelNodes(chart);
+            const nodes = getAxisLabelNodes(chart, 'right');
             const seriesRect = getSeriesRect(chart);
             const plotBoundary = seriesRect.x + seriesRect.width;
 
@@ -2089,23 +2136,19 @@ describe('CartesianAxis', () => {
 
         it("AC2: textAlign matching the axis's natural alignment produces identical anchors", async () => {
             const naturalOptions = rightAxisOptions();
-            prepareTestOptions(naturalOptions);
-            chart = AgCharts.create(naturalOptions);
-            await waitForChartStability(chart);
-            const naturalAnchors = captureAnchorsByText(getRightAxisLabelNodes(chart));
+            chart = await createChart(naturalOptions);
+            const naturalAnchors = captureAnchorsByText(getAxisLabelNodes(chart, 'right'));
 
             chart.destroy();
             (chart as unknown) = undefined;
 
             const explicitOptions = rightAxisOptions({ textAlign: 'left' });
-            prepareTestOptions(explicitOptions);
-            chart = AgCharts.create(explicitOptions);
-            await waitForChartStability(chart);
-            const explicitNodes = getRightAxisLabelNodes(chart);
+            chart = await createChart(explicitOptions);
+            const explicitNodes = getAxisLabelNodes(chart, 'right');
 
             expect(explicitNodes.length).toBe(naturalAnchors.size);
             for (const node of explicitNodes) {
-                const natural = naturalAnchors.get(node.datum.text);
+                const natural = naturalAnchors.get(getLabelText(node));
                 expect(natural).toBeDefined();
                 expect(node.datum.x).toBeCloseTo(natural!.x, 5);
                 expect(node.datum.rotationCenterX).toBeCloseTo(natural!.rotationCenterX, 5);
@@ -2114,11 +2157,9 @@ describe('CartesianAxis', () => {
 
         it('TC1: a rotated label aligns within its own bounding box, clear of the series area', async () => {
             const options = rightAxisOptions({ rotation: 45, textAlign: 'right' });
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
-            const nodes = getRightAxisLabelNodes(chart);
+            const nodes = getAxisLabelNodes(chart, 'right');
             expect(nodes.length).toBe(3);
 
             const seriesRect = getSeriesRect(chart);
@@ -2149,16 +2190,14 @@ describe('CartesianAxis', () => {
                     (chart as unknown) = undefined;
                 }
                 const options: AgCartesianChartOptions = { ...rightAxisOptions(label), enableRtl };
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 return chart;
             };
 
-            const expectAnchorsMatch = (nodes: any[], expected: ReturnType<typeof captureAnchorsByText>) => {
+            const expectAnchorsMatch = (nodes: AxisLabelNode[], expected: ReturnType<typeof captureAnchorsByText>) => {
                 expect(nodes.length).toBe(expected.size);
                 for (const node of nodes) {
-                    const anchor = expected.get(node.datum.text);
+                    const anchor = expected.get(getLabelText(node));
                     expect(anchor).toBeDefined();
                     expect(node.datum.x).toBeCloseTo(anchor!.x, 5);
                     expect(node.datum.rotationCenterX).toBeCloseTo(anchor!.rotationCenterX, 5);
@@ -2170,11 +2209,11 @@ describe('CartesianAxis', () => {
                 ['end', 'right'],
             ] as const)('AC3: resolves "%s" to "%s" in a left-to-right chart', async (textAlign, resolved) => {
                 await renderRightAxis(false, { textAlign: resolved });
-                const resolvedAnchors = captureAnchorsByText(getRightAxisLabelNodes(chart));
+                const resolvedAnchors = captureAnchorsByText(getAxisLabelNodes(chart, 'right'));
                 expect(resolvedAnchors.size).toBe(3);
 
                 await renderRightAxis(false, { textAlign });
-                const nodes = getRightAxisLabelNodes(chart);
+                const nodes = getAxisLabelNodes(chart, 'right');
                 for (const node of nodes) {
                     expect(node.datum.textAlign).toBe(resolved);
                 }
@@ -2186,11 +2225,11 @@ describe('CartesianAxis', () => {
                 ['end', 'left'],
             ] as const)('AC3: resolves "%s" to "%s" in a right-to-left chart', async (textAlign, resolved) => {
                 await renderRightAxis(true, { textAlign: resolved });
-                const resolvedAnchors = captureAnchorsByText(getRightAxisLabelNodes(chart));
+                const resolvedAnchors = captureAnchorsByText(getAxisLabelNodes(chart, 'right'));
                 expect(resolvedAnchors.size).toBe(3);
 
                 await renderRightAxis(true, { textAlign });
-                const nodes = getRightAxisLabelNodes(chart);
+                const nodes = getAxisLabelNodes(chart, 'right');
                 for (const node of nodes) {
                     expect(node.datum.textAlign).toBe(resolved);
                 }
@@ -2203,10 +2242,10 @@ describe('CartesianAxis', () => {
                 'sends "%s" to opposite sides in the two directions',
                 async (textAlign) => {
                     await renderRightAxis(false, { textAlign });
-                    const ltr = getRightAxisLabelNodes(chart).map((n) => n.datum.textAlign);
+                    const ltr = getAxisLabelNodes(chart, 'right').map((n) => n.datum.textAlign);
 
                     await renderRightAxis(true, { textAlign });
-                    const rtl = getRightAxisLabelNodes(chart).map((n) => n.datum.textAlign);
+                    const rtl = getAxisLabelNodes(chart, 'right').map((n) => n.datum.textAlign);
 
                     expect(new Set(ltr).size).toBe(1);
                     expect(new Set(rtl).size).toBe(1);
@@ -2218,7 +2257,7 @@ describe('CartesianAxis', () => {
             // runs, so under RTL it is `'end'` that must leave the anchors untouched.
             it('AC2: an RTL "end" matching the axis\'s natural alignment produces identical anchors', async () => {
                 await renderRightAxis(true);
-                const naturalNodes = getRightAxisLabelNodes(chart);
+                const naturalNodes = getAxisLabelNodes(chart, 'right');
                 for (const node of naturalNodes) {
                     expect(node.datum.textAlign).toBe('left');
                 }
@@ -2226,13 +2265,13 @@ describe('CartesianAxis', () => {
                 expect(naturalAnchors.size).toBe(3);
 
                 await renderRightAxis(true, { textAlign: 'end' });
-                expectAnchorsMatch(getRightAxisLabelNodes(chart), naturalAnchors);
+                expectAnchorsMatch(getAxisLabelNodes(chart, 'right'), naturalAnchors);
             });
 
             it.each([[false], [true]])('AC4: accepts "start" without warning (enableRtl %j)', async (enableRtl) => {
                 await renderRightAxis(enableRtl, { textAlign: 'start' });
 
-                expect(getRightAxisLabelNodes(chart).length).toBe(3);
+                expect(getAxisLabelNodes(chart, 'right').length).toBe(3);
                 expectWarningsCalls().toEqual([]);
             });
         });
@@ -2240,28 +2279,19 @@ describe('CartesianAxis', () => {
         // A banded scale puts each tick in the middle of its band, so on a horizontal axis the tick
         // position is not an edge anything can align to - the band's own edges are.
         describe('band-scale horizontal axes', () => {
-            const getBandwidth = (chartInstance: AgChartInstance) => {
-                const chartInternal = deproxy(chartInstance as any) as any;
-                const axis = chartInternal.axes.find((a: any) => a.position === 'bottom');
-                expect(axis).toBeDefined();
-                return axis.scale.bandwidth as number;
-            };
-
             const renderBottomAxis = async (label?: TextAlignLabelOptions) => {
                 if (chart != null) {
                     chart.destroy();
                     (chart as unknown) = undefined;
                 }
                 const options = bottomAxisOptions(label);
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 return chart;
             };
 
             it('anchors an aligned label on its band edge instead of the tick', async () => {
                 await renderBottomAxis();
-                const bandwidth = getBandwidth(chart);
+                const bandwidth = getAxisBandwidth(chart, 'bottom');
                 // Anti-vacuous: a zero bandwidth would make every shift below trivially satisfied.
                 expect(bandwidth).toBeGreaterThan(1);
                 const tickAnchors = captureAnchorsByText(getAxisLabelNodes(chart, 'bottom'));
@@ -2269,7 +2299,7 @@ describe('CartesianAxis', () => {
 
                 await renderBottomAxis({ textAlign: 'right' });
                 for (const node of getAxisLabelNodes(chart, 'bottom')) {
-                    const atTick = tickAnchors.get(node.datum.text);
+                    const atTick = tickAnchors.get(getLabelText(node));
                     expect(atTick).toBeDefined();
                     expect(node.datum.x).toBeCloseTo(atTick!.x + bandwidth / 2, 5);
                     expect(node.datum.rotationCenterX).toBeCloseTo(atTick!.x + bandwidth / 2, 5);
@@ -2277,23 +2307,20 @@ describe('CartesianAxis', () => {
 
                 await renderBottomAxis({ textAlign: 'left' });
                 for (const node of getAxisLabelNodes(chart, 'bottom')) {
-                    const atTick = tickAnchors.get(node.datum.text);
+                    const atTick = tickAnchors.get(getLabelText(node));
                     expect(node.datum.x).toBeCloseTo(atTick!.x - bandwidth / 2, 5);
                 }
 
                 // `'center'` means the middle of the band, which is where the tick already is.
                 await renderBottomAxis({ textAlign: 'center' });
                 for (const node of getAxisLabelNodes(chart, 'bottom')) {
-                    const atTick = tickAnchors.get(node.datum.text);
+                    const atTick = tickAnchors.get(getLabelText(node));
                     expect(node.datum.x).toBeCloseTo(atTick!.x, 5);
                 }
             });
 
             it('renders "right"-aligned labels flush with the right edge of their band', async () => {
                 await renderBottomAxis({ textAlign: 'right' });
-                const bandwidth = getBandwidth(chart);
-                const chartInternal = deproxy(chart as any) as any;
-                const axis = chartInternal.axes.find((a: any) => a.position === 'bottom');
                 const nodes = getAxisLabelNodes(chart, 'bottom');
                 expect(nodes.length).toBe(3);
 
@@ -2301,7 +2328,7 @@ describe('CartesianAxis', () => {
                 // the closed form is what the anchor must land on - not a delta off the tick.
                 const renderedRightEdges = new Set<number>();
                 for (const node of nodes) {
-                    const bandRightEdge = axis.scale.convert(node.datum.text) + bandwidth;
+                    const bandRightEdge = getAxisBandExtent(chart, 'bottom', node.datum.text).end;
                     expect(node.datum.x).toBeCloseTo(bandRightEdge, 5);
 
                     // `'right'` anchors the glyphs' right edge, so the rendered box must end on the
@@ -2323,9 +2350,7 @@ describe('CartesianAxis', () => {
                 });
 
                 const naturalOptions = continuousOptions();
-                prepareTestOptions(naturalOptions);
-                chart = AgCharts.create(naturalOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(naturalOptions);
                 const tickAnchors = captureAnchorsByText(getAxisLabelNodes(chart, 'bottom'));
                 expect(tickAnchors.size).toBeGreaterThan(1);
 
@@ -2333,12 +2358,10 @@ describe('CartesianAxis', () => {
                 (chart as unknown) = undefined;
 
                 const alignedOptions = continuousOptions({ textAlign: 'right' });
-                prepareTestOptions(alignedOptions);
-                chart = AgCharts.create(alignedOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(alignedOptions);
 
                 for (const node of getAxisLabelNodes(chart, 'bottom')) {
-                    const natural = tickAnchors.get(node.datum.text);
+                    const natural = tickAnchors.get(getLabelText(node));
                     expect(natural).toBeDefined();
                     expect(node.datum.x).toBeCloseTo(natural!.x, 5);
                 }
@@ -2363,9 +2386,7 @@ describe('CartesianAxis', () => {
                         (chart as unknown) = undefined;
                     }
                     const options = continuousOptions(textAlign);
-                    prepareTestOptions(options);
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
                     return getAxisLabelNodes(chart, 'bottom');
                 };
 
@@ -2376,7 +2397,7 @@ describe('CartesianAxis', () => {
                 expect(nodes.length).toBe(resolvedAnchors.size);
                 for (const node of nodes) {
                     expect(node.datum.textAlign).toBe('left');
-                    const resolved = resolvedAnchors.get(node.datum.text);
+                    const resolved = resolvedAnchors.get(getLabelText(node));
                     expect(resolved).toBeDefined();
                     expect(node.datum.x).toBeCloseTo(resolved!.x, 5);
                 }
@@ -2393,9 +2414,7 @@ describe('CartesianAxis', () => {
                 },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const nodes = getAxisLabelNodes(chart, 'top');
             expect(nodes.length).toBe(3);
@@ -2426,9 +2445,7 @@ describe('CartesianAxis', () => {
                 right: rightAxisOptions,
             }[position];
             const options = factory();
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const nodes = getAxisLabelNodes(chart, position);
             expect(nodes.length).toBeGreaterThan(0);
@@ -2438,13 +2455,11 @@ describe('CartesianAxis', () => {
         });
 
         describe('AC1: differing-height bottom axis labels', () => {
-            const measuredHeights = (nodes: any[]) => nodes.map((n) => Transformable.toCanvas(n).height);
+            const measuredHeights = (nodes: AxisLabelNode[]) => nodes.map((n) => Transformable.toCanvas(n).height);
 
             it('flushes glyph edges while the opposite edges keep differing', async () => {
                 const naturalOptions = wrappedBottomAxisOptions();
-                prepareTestOptions(naturalOptions);
-                chart = AgCharts.create(naturalOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(naturalOptions);
                 const naturalHeights = measuredHeights(getAxisLabelNodes(chart, 'bottom'));
                 // Anti-vacuous: the fixture's unequal word counts must produce a genuine spread of
                 // wrapped label heights, otherwise a flush edge would hold trivially for any align.
@@ -2454,9 +2469,7 @@ describe('CartesianAxis', () => {
                 (chart as unknown) = undefined;
 
                 const bottomOptions = wrappedBottomAxisOptions({ verticalAlign: 'bottom' });
-                prepareTestOptions(bottomOptions);
-                chart = AgCharts.create(bottomOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(bottomOptions);
                 const bottomNodes = getAxisLabelNodes(chart, 'bottom');
                 const bottomBoxes = bottomNodes.map((n) => Transformable.toCanvas(n));
                 const bottomEdges = bottomBoxes.map((b) => b.y + b.height);
@@ -2470,9 +2483,7 @@ describe('CartesianAxis', () => {
                 (chart as unknown) = undefined;
 
                 const topOptions = wrappedBottomAxisOptions({ verticalAlign: 'top' });
-                prepareTestOptions(topOptions);
-                chart = AgCharts.create(topOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(topOptions);
                 const topNodes = getAxisLabelNodes(chart, 'bottom');
                 const topBoxes = topNodes.map((n) => Transformable.toCanvas(n));
                 const topEdges = topBoxes.map((b) => b.y);
@@ -2484,30 +2495,17 @@ describe('CartesianAxis', () => {
             });
 
             it('flushes segmented labels on an unrotated axis, leaving each segment on its own baseline', async () => {
-                const segmentedOptions = (label?: TextAlignLabelOptions) => {
-                    const options = wrappedBottomAxisOptions(label) as any;
-                    return {
-                        ...options,
-                        axes: {
-                            ...options.axes,
-                            x: {
-                                ...options.axes.x,
-                                label: {
-                                    ...options.axes.x.label,
-                                    formatter: ({ value }: { value: unknown }) => [
-                                        { text: String(value).slice(0, 2), fontSize: 18 },
-                                        { text: ` ${String(value)}`, fontSize: 10, verticalAlign: 'top' as const },
-                                    ],
-                                },
-                            },
-                        },
-                    } as AgCartesianChartOptions;
-                };
+                const segmentedOptions = (label?: TextAlignLabelOptions) =>
+                    wrappedBottomAxisOptions({
+                        ...label,
+                        formatter: ({ value }) => [
+                            { text: String(value).slice(0, 2), fontSize: 18 },
+                            { text: ` ${String(value)}`, fontSize: 10, verticalAlign: 'top' as const },
+                        ],
+                    });
 
                 const naturalOptions = segmentedOptions();
-                prepareTestOptions(naturalOptions);
-                chart = AgCharts.create(naturalOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(naturalOptions);
                 const naturalHeights = measuredHeights(getAxisLabelNodes(chart, 'bottom'));
                 expect(Math.max(...naturalHeights) - Math.min(...naturalHeights)).toBeGreaterThan(1);
 
@@ -2515,9 +2513,7 @@ describe('CartesianAxis', () => {
                 (chart as unknown) = undefined;
 
                 const bottomOptions = segmentedOptions({ verticalAlign: 'bottom' });
-                prepareTestOptions(bottomOptions);
-                chart = AgCharts.create(bottomOptions);
-                await waitForChartStability(chart);
+                chart = await createChart(bottomOptions);
                 const nodes = getAxisLabelNodes(chart, 'bottom');
                 const boxes = nodes.map((n) => Transformable.toCanvas(n));
                 const bottomEdges = boxes.map((b) => b.y + b.height);
@@ -2525,11 +2521,11 @@ describe('CartesianAxis', () => {
                 expect(Math.max(...boxes.map((b) => b.y)) - Math.min(...boxes.map((b) => b.y))).toBeGreaterThan(1);
 
                 for (const node of nodes) {
-                    const segments = node.datum.text as { verticalAlign?: string }[];
-                    expect(segments.length).toBeGreaterThan(1);
-                    expect(segments[0].verticalAlign).toBeUndefined();
-                    for (const segment of segments.slice(1)) {
-                        expect(segment.verticalAlign).toBe('top');
+                    const [first, ...rest] = getLabelSegmentAlignments(node);
+                    expect(rest.length).toBeGreaterThan(0);
+                    expect(first).toBeUndefined();
+                    for (const alignment of rest) {
+                        expect(alignment).toBe('top');
                     }
                 }
             });
@@ -2545,9 +2541,7 @@ describe('CartesianAxis', () => {
                         (chart as unknown) = undefined;
                     }
                     const options = factory({ verticalAlign });
-                    prepareTestOptions(options);
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
+                    chart = await createChart(options);
 
                     const nodes = getAxisLabelNodes(chart, position);
                     expect(nodes.length).toBeGreaterThan(0);
@@ -2567,24 +2561,15 @@ describe('CartesianAxis', () => {
         );
 
         it('AC1: a banded right axis anchors "top"/"bottom" to band edges and stays inside the band', async () => {
-            const getBandExtent = (chartInstance: AgChartInstance, text: string) => {
-                const chartInternal = deproxy(chartInstance as any) as any;
-                const axis = chartInternal.axes.find((a: any) => a.position === 'right');
-                const bandwidth = axis.scale.bandwidth as number;
-                const start = axis.scale.convert(text);
-                return {
-                    start: Math.min(start, start + bandwidth),
-                    end: Math.max(start, start + bandwidth),
-                    bandwidth,
-                };
-            };
+            const getBandExtent = (chartInstance: AgChartInstance, text: string) =>
+                getAxisBandExtent(chartInstance, 'right', text);
 
             // The rendered box sits in canvas space, offset from the datum's local `y` anchor by the
             // axis group's own placement - shared across every label on the axis, so it cancels out
             // of a same-axis comparison rather than being predicted from the raw scale value. A
             // `'top'`-baseline box's top edge sits at the anchor; a `'bottom'`-baseline box's bottom
             // edge does, so the edge to read the offset from depends on the baseline.
-            const groupOffsetY = (nodes: any[], edge: (box: { y: number; height: number }) => number) => {
+            const groupOffsetY = (nodes: AxisLabelNode[], edge: (box: { y: number; height: number }) => number) => {
                 const offsets = new Set(
                     nodes.map((n) => Math.round((edge(Transformable.toCanvas(n)) - n.datum.y) * 10))
                 );
@@ -2595,13 +2580,11 @@ describe('CartesianAxis', () => {
             const bottomEdge = (box: { y: number; height: number }) => box.y + box.height;
 
             const topOptions = rightAxisOptions({ verticalAlign: 'top' });
-            prepareTestOptions(topOptions);
-            chart = AgCharts.create(topOptions);
-            await waitForChartStability(chart);
-            const topNodes = getRightAxisLabelNodes(chart);
+            chart = await createChart(topOptions);
+            const topNodes = getAxisLabelNodes(chart, 'right');
             const topOffset = groupOffsetY(topNodes, topEdge);
             for (const node of topNodes) {
-                const { start, end, bandwidth } = getBandExtent(chart, node.datum.text);
+                const { start, end, bandwidth } = getBandExtent(chart, getLabelText(node));
                 expect(bandwidth).toBeGreaterThan(1);
                 const box = Transformable.toCanvas(node);
                 expect(box.y).toBeCloseTo(start + topOffset, 1);
@@ -2613,13 +2596,11 @@ describe('CartesianAxis', () => {
             (chart as unknown) = undefined;
 
             const bottomOptions = rightAxisOptions({ verticalAlign: 'bottom' });
-            prepareTestOptions(bottomOptions);
-            chart = AgCharts.create(bottomOptions);
-            await waitForChartStability(chart);
-            const bottomNodes = getRightAxisLabelNodes(chart);
+            chart = await createChart(bottomOptions);
+            const bottomNodes = getAxisLabelNodes(chart, 'right');
             const bottomOffset = groupOffsetY(bottomNodes, bottomEdge);
             for (const node of bottomNodes) {
-                const { start, end } = getBandExtent(chart, node.datum.text);
+                const { start, end } = getBandExtent(chart, getLabelText(node));
                 const box = Transformable.toCanvas(node);
                 expect(box.y + box.height).toBeCloseTo(end + bottomOffset, 1);
                 expect(box.y).toBeGreaterThanOrEqual(start + bottomOffset - 1);
@@ -2629,9 +2610,7 @@ describe('CartesianAxis', () => {
 
         it("AC1: 'middle' on a horizontal axis centres the glyph box within the reserved band", async () => {
             const topAlignOptions = wrappedBottomAxisOptions({ verticalAlign: 'top' });
-            prepareTestOptions(topAlignOptions);
-            chart = AgCharts.create(topAlignOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(topAlignOptions);
             const topBoxes = getAxisLabelNodes(chart, 'bottom').map((n) => Transformable.toCanvas(n));
             const bandTop = Math.min(...topBoxes.map((b) => b.y));
 
@@ -2639,9 +2618,7 @@ describe('CartesianAxis', () => {
             (chart as unknown) = undefined;
 
             const bottomAlignOptions = wrappedBottomAxisOptions({ verticalAlign: 'bottom' });
-            prepareTestOptions(bottomAlignOptions);
-            chart = AgCharts.create(bottomAlignOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(bottomAlignOptions);
             const bottomBoxes = getAxisLabelNodes(chart, 'bottom').map((n) => Transformable.toCanvas(n));
             const bandBottom = Math.max(...bottomBoxes.map((b) => b.y + b.height));
 
@@ -2649,9 +2626,7 @@ describe('CartesianAxis', () => {
             (chart as unknown) = undefined;
 
             const middleOptions = wrappedBottomAxisOptions({ verticalAlign: 'middle' });
-            prepareTestOptions(middleOptions);
-            chart = AgCharts.create(middleOptions);
-            await waitForChartStability(chart);
+            chart = await createChart(middleOptions);
             const middleBoxes = getAxisLabelNodes(chart, 'bottom').map((n) => Transformable.toCanvas(n));
             const bandCentre = (bandTop + bandBottom) / 2;
             for (const box of middleBoxes) {
@@ -2698,7 +2673,7 @@ describe('CartesianAxis', () => {
 
             // Keyed by `tickId` rather than label text: a time axis routinely repeats a formatted
             // value (e.g. midnight) across several ticks, which `captureAnchorsByText` would collapse.
-            const captureAnchorsByTickId = (nodes: any[]) =>
+            const captureAnchorsByTickId = (nodes: AxisLabelNode[]) =>
                 new Map(
                     nodes.map((n) => [
                         n.datum.tickId,
@@ -2720,9 +2695,7 @@ describe('CartesianAxis', () => {
                 'produces byte-identical datums for a "%s" scale at position "%s"',
                 async (scaleType, position) => {
                     const omittedOptions = scaleOptions(scaleType, position);
-                    prepareTestOptions(omittedOptions);
-                    chart = AgCharts.create(omittedOptions);
-                    await waitForChartStability(chart);
+                    chart = await createChart(omittedOptions);
                     const omittedAnchors = captureAnchorsByTickId(getAxisLabelNodes(chart, position));
                     expect(omittedAnchors.size).toBeGreaterThan(0);
 
@@ -2730,9 +2703,7 @@ describe('CartesianAxis', () => {
                     (chart as unknown) = undefined;
 
                     const explicitOptions = scaleOptions(scaleType, position, { verticalAlign: undefined });
-                    prepareTestOptions(explicitOptions);
-                    chart = AgCharts.create(explicitOptions);
-                    await waitForChartStability(chart);
+                    chart = await createChart(explicitOptions);
                     const explicitNodes = getAxisLabelNodes(chart, position);
 
                     expect(explicitNodes.length).toBe(omittedAnchors.size);
@@ -2747,14 +2718,13 @@ describe('CartesianAxis', () => {
 
         it('TC1: rotation 45 on a bottom axis follows the rotated glyph box, clear of the series area', async () => {
             const options = bottomAxisOptions({ rotation: 45, verticalAlign: 'bottom' });
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const nodes = getAxisLabelNodes(chart, 'bottom');
             expect(nodes.length).toBe(3);
 
-            const seriesBottom = getSeriesRect(chart).y + getSeriesRect(chart).height;
+            const seriesRect = getSeriesRect(chart);
+            const seriesBottom = seriesRect.y + seriesRect.height;
             const boxes = nodes.map((n) => Transformable.toCanvas(n));
             for (const box of boxes) {
                 expect(box.y).toBeGreaterThanOrEqual(seriesBottom - 1);
@@ -2767,7 +2737,7 @@ describe('CartesianAxis', () => {
         });
 
         const canvasBoxesByText = (position: string) =>
-            new Map(getAxisLabelNodes(chart, position).map((n) => [n.datum.text, Transformable.toCanvas(n)]));
+            new Map(getAxisLabelNodes(chart, position).map((n) => [getLabelText(n), Transformable.toCanvas(n)]));
 
         // On a horizontal axis the value the axis computes for itself already flushes the labels to
         // that edge of the band, so asking for it again has nothing left to move.
@@ -2788,7 +2758,7 @@ describe('CartesianAxis', () => {
                     const matchedNodes = getAxisLabelNodes(chart, position);
                     expect(matchedNodes.length).toBe(3);
                     for (const node of matchedNodes) {
-                        const natural = naturalAnchors.get(node.datum.text);
+                        const natural = naturalAnchors.get(getLabelText(node));
                         expect(natural).toBeDefined();
                         expect(node.datum).toMatchObject(natural!);
                     }
@@ -2814,11 +2784,11 @@ describe('CartesianAxis', () => {
                 const nodes = getAxisLabelNodes(chart, 'bottom');
                 expect(nodes.length).toBe(naturalAnchors.size);
                 for (const node of nodes) {
-                    const natural = naturalAnchors.get(node.datum.text);
+                    const natural = naturalAnchors.get(getLabelText(node));
                     expect(natural).toBeDefined();
                     expect(node.datum).toMatchObject(natural!);
 
-                    const naturalBox = naturalBoxes.get(node.datum.text);
+                    const naturalBox = naturalBoxes.get(getLabelText(node));
                     expect(naturalBox).toBeDefined();
                     const box = Transformable.toCanvas(node);
                     expect(box.y).toBeCloseTo(naturalBox!.y, 5);
@@ -2830,11 +2800,9 @@ describe('CartesianAxis', () => {
         // A continuous vertical axis aligns each label around its own tick anchor, not within a band.
         it('AC1: a continuous vertical axis moves each label around its own tick anchor', async () => {
             await renderChart(leftAxisOptions());
-            const chartInternal = deproxy(chart as any) as any;
-            const leftAxis = chartInternal.axes.find((a: any) => a.position === 'left');
             // Anti-vacuous for "own anchor": a continuous scale has no band whose edges a label
             // could have been flushed to instead.
-            expect(leftAxis.scale.bandwidth ?? 0).toBe(0);
+            expect(getAxisBandwidth(chart, 'left')).toBe(0);
 
             const naturalAnchors = captureAnchorsByText(getAxisLabelNodes(chart, 'left'));
             const naturalBoxes = canvasBoxesByText('left');
@@ -2842,7 +2810,7 @@ describe('CartesianAxis', () => {
 
             await renderChart(leftAxisOptions({ verticalAlign: 'middle' }));
             for (const node of getAxisLabelNodes(chart, 'left')) {
-                const natural = naturalAnchors.get(node.datum.text);
+                const natural = naturalAnchors.get(getLabelText(node));
                 expect(natural).toBeDefined();
                 expect(node.datum).toMatchObject(natural!);
             }
@@ -2855,8 +2823,8 @@ describe('CartesianAxis', () => {
                 const nodes = getAxisLabelNodes(chart, 'left');
                 expect(nodes.length).toBe(naturalBoxes.size);
                 for (const node of nodes) {
-                    const natural = naturalAnchors.get(node.datum.text);
-                    const naturalBox = naturalBoxes.get(node.datum.text);
+                    const natural = naturalAnchors.get(getLabelText(node));
+                    const naturalBox = naturalBoxes.get(getLabelText(node));
                     expect(naturalBox).toBeDefined();
                     // The anchor stays on the tick; only the baseline the glyphs hang from changes.
                     expect(node.datum.y).toBeCloseTo(natural!.y, 5);
@@ -2917,9 +2885,9 @@ describe('CartesianAxis', () => {
                 const nodes = getAxisLabelNodes(chart, 'bottom');
                 expect(nodes.length).toBe(3);
                 for (const node of nodes) {
-                    const alongAxis = horizontalOnly.get(node.datum.text);
-                    const acrossAxis = verticalOnly.get(node.datum.text);
-                    const acrossAxisBox = verticalOnlyBoxes.get(node.datum.text);
+                    const alongAxis = horizontalOnly.get(getLabelText(node));
+                    const acrossAxis = verticalOnly.get(getLabelText(node));
+                    const acrossAxisBox = verticalOnlyBoxes.get(getLabelText(node));
                     expect(alongAxis).toBeDefined();
                     expect(acrossAxis).toBeDefined();
                     expect(acrossAxisBox).toBeDefined();
@@ -2946,8 +2914,8 @@ describe('CartesianAxis', () => {
                 const nodes = getAxisLabelNodes(chart, 'right');
                 expect(nodes.length).toBe(3);
                 for (const node of nodes) {
-                    const flushed = horizontalOnly.get(node.datum.text);
-                    const flushedBox = horizontalOnlyBoxes.get(node.datum.text);
+                    const flushed = horizontalOnly.get(getLabelText(node));
+                    const flushedBox = horizontalOnlyBoxes.get(getLabelText(node));
                     expect(flushed).toBeDefined();
                     expect(flushedBox).toBeDefined();
 
@@ -2971,9 +2939,9 @@ describe('CartesianAxis', () => {
         // RELATIVE to its anchor - `computeBBoxWithoutTransforms()` is measured at `node.x`/`node.y`
         // and already carries it, and adding the rotated anchor without subtracting it counts the
         // anchor twice and reports rotated neighbours as clear.
-        const collidingPairs = (nodes: any[]) => {
+        const collidingPairs = (nodes: AxisLabelNode[]) => {
             const boxes = nodes.map((node) => {
-                const local = node.computeBBoxWithoutTransforms();
+                const local = getLocalBox(node);
                 const anchor = rotatePoint(node.x, node.y, -node.rotation);
                 return {
                     x: local.x - node.x + anchor.x,
@@ -3015,34 +2983,25 @@ describe('CartesianAxis', () => {
             it('flushes labels of differing heights to one common edge', async () => {
                 // A per-label font size is the cheapest way to get genuinely differing label heights
                 // under rotation, where the available width no longer forces a wrap.
-                const sizedLabel = ({ value }: { value: unknown }) => [
+                const sizedLabel: NonNullable<TextAlignLabelOptions['formatter']> = ({ value }) => [
                     { text: String(value), fontSize: String(value).length > 3 ? 36 : 12 },
                 ];
 
-                await renderChart(withRotatedFormatter('bottom'));
+                await renderChart(bottomAxisOptions({ rotation: 45, verticalAlign: 'bottom', formatter: sizedLabel }));
                 const nodes = getAxisLabelNodes(chart, 'bottom');
                 expect(nodes.length).toBe(3);
                 const boxes = nodes.map((n) => Transformable.toCanvas(n));
                 // Anti-vacuous: the labels must really differ in height, otherwise one common edge
                 // holds for any band origin.
-                const unrotatedHeights = nodes.map((n: any) =>
-                    Array.isArray(n.datum.text) ? n.datum.text[0].fontSize : 0
-                );
+                const unrotatedHeights = nodes.map((n) => {
+                    const { text } = n.datum;
+                    const first = Array.isArray(text) ? text[0] : undefined;
+                    return first != null && 'fontSize' in first ? (first.fontSize ?? 0) : 0;
+                });
                 expect(Math.max(...unrotatedHeights) - Math.min(...unrotatedHeights)).toBeGreaterThan(1);
 
                 const bottomEdges = boxes.map((b) => b.y + b.height);
                 expect(Math.max(...bottomEdges) - Math.min(...bottomEdges)).toBeLessThanOrEqual(1);
-
-                function withRotatedFormatter(verticalAlign: VerticalAlign): AgCartesianChartOptions {
-                    const options = bottomAxisOptions({ rotation: 45, verticalAlign }) as any;
-                    return {
-                        ...options,
-                        axes: {
-                            ...options.axes,
-                            x: { ...options.axes.x, label: { ...options.axes.x.label, formatter: sizedLabel } },
-                        },
-                    };
-                }
             });
 
             // The flush moves each label across the axis by a different amount, and under rotation a
@@ -3051,7 +3010,10 @@ describe('CartesianAxis', () => {
             describe('collision avoidance', () => {
                 // Alternating short and long labels: a uniform tier flushes as one block, so only
                 // differing sizes can pull neighbours into each other.
-                const denseOptions = (verticalAlign?: VerticalAlign): AgCartesianChartOptions => ({
+                const denseOptions = (
+                    verticalAlign?: VerticalAlign,
+                    avoidCollisions = true
+                ): AgCartesianChartOptions => ({
                     data: Array.from({ length: 30 }, (_, i) => ({
                         category: i % 2 === 0 ? `A${i}` : `ABCDE${i}`,
                         value: i,
@@ -3064,7 +3026,7 @@ describe('CartesianAxis', () => {
                             position: 'bottom',
                             label: {
                                 rotation: 45,
-                                avoidCollisions: true,
+                                avoidCollisions,
                                 ...(verticalAlign == null ? {} : { verticalAlign }),
                             },
                         },
@@ -3077,14 +3039,7 @@ describe('CartesianAxis', () => {
                 // would satisfy for free - so prove the probe can see an overlap in exactly this
                 // geometry before trusting it to say there is none.
                 it('reports the overlaps the same axis has with collision avoidance off', async () => {
-                    const options = denseOptions('middle') as any;
-                    await renderChart({
-                        ...options,
-                        axes: {
-                            ...options.axes,
-                            x: { ...options.axes.x, label: { ...options.axes.x.label, avoidCollisions: false } },
-                        },
-                    });
+                    await renderChart(denseOptions('middle', false));
                     const nodes = getAxisLabelNodes(chart, 'bottom');
                     expect(nodes.length).toBe(30);
                     expect(collidingPairs(nodes)).toBeGreaterThan(0);
@@ -3160,7 +3115,7 @@ describe('CartesianAxis', () => {
             };
 
             // How far the edge of each label's rendered box nearest the axis line sits from the series area.
-            const innerGaps = (nodes: any[], position: Position) => {
+            const innerGaps = (nodes: AxisLabelNode[], position: Position) => {
                 const seriesRect = getSeriesRect(chart);
                 return nodes.map((n) => {
                     const box = Transformable.toCanvas(n);
@@ -3194,7 +3149,7 @@ describe('CartesianAxis', () => {
                     await renderChart(stackedOptions(position, variant, rotation));
                     const nodes = getAxisLabelNodes(chart, position);
                     // Anti-vacuous: the labels must differ in line count, or a common edge holds for any anchor.
-                    const heights = nodes.map((n: any) => n.computeBBoxWithoutTransforms().height);
+                    const heights = nodes.map((n) => getLocalBox(n).height);
                     expect(Math.max(...heights) - Math.min(...heights)).toBeGreaterThan(10);
 
                     for (const gap of innerGaps(nodes, position)) {
@@ -3360,7 +3315,7 @@ describe('CartesianAxis', () => {
                 expect(Math.min(...spacings)).toBeGreaterThan(25);
                 expect(Math.max(...spacings)).toBeLessThan(36);
 
-                const widths = nodes.map((node: any) => node.computeBBoxWithoutTransforms().width);
+                const widths = nodes.map((node) => getLocalBox(node).width);
                 expect(Math.max(...widths) - Math.min(...widths)).toBeGreaterThan(40);
                 // Anti-vacuous: with avoidance off this geometry really does overlap, so the
                 // verdicts below are about the check and not about a layout that cannot collide.
@@ -3478,8 +3433,8 @@ describe('CartesianAxis', () => {
             const nodes = getAxisLabelNodes(chart, 'bottom');
             expect(nodes.length).toBe(naturalAnchors.size);
             for (const node of nodes) {
-                const natural = naturalAnchors.get(node.datum.text);
-                const naturalBox = naturalBoxes.get(node.datum.text);
+                const natural = naturalAnchors.get(getLabelText(node));
+                const naturalBox = naturalBoxes.get(getLabelText(node));
                 expect(natural).toBeDefined();
                 expect(naturalBox).toBeDefined();
 
@@ -3526,7 +3481,7 @@ describe('CartesianAxis', () => {
                 for (const node of topNodes) {
                     // Anti-vacuous: `autoRotate` must have fired, or this is the unrotated case again.
                     expect(node.datum.rotation).not.toBe(0);
-                    expect(node.datum).toMatchObject(naturalAnchors.get(node.datum.text)!);
+                    expect(node.datum).toMatchObject(naturalAnchors.get(getLabelText(node))!);
                 }
                 const topEdges = topNodes.map((n) => Transformable.toCanvas(n).y);
                 expect(Math.max(...topEdges) - Math.min(...topEdges)).toBeLessThanOrEqual(1);
@@ -3581,8 +3536,8 @@ describe('CartesianAxis', () => {
 
             await renderChart(tierOptions('bottom'));
             for (const node of getAxisLabelNodes(chart, 'bottom')) {
-                const natural = naturalAnchors.get(node.datum.text)!;
-                if (isParentTier(node.datum.text)) {
+                const natural = naturalAnchors.get(getLabelText(node))!;
+                if (isParentTier(getLabelText(node))) {
                     expect(node.datum).toMatchObject(natural);
                 } else {
                     expect(node.datum.textBaseline).toBe('bottom');
@@ -3592,8 +3547,8 @@ describe('CartesianAxis', () => {
 
             await renderChart(tierOptions(undefined, 'bottom'));
             for (const node of getAxisLabelNodes(chart, 'bottom')) {
-                const natural = naturalAnchors.get(node.datum.text)!;
-                if (isParentTier(node.datum.text)) {
+                const natural = naturalAnchors.get(getLabelText(node))!;
+                if (isParentTier(getLabelText(node))) {
                     expect(node.datum.textBaseline).toBe('bottom');
                     expect(node.datum.y).not.toBeCloseTo(natural.y, 1);
                 } else {
@@ -3647,25 +3602,11 @@ describe('CartesianAxis', () => {
                 { text: ` ${String(value)}`, fontSize: 10, verticalAlign: 'top' as const },
             ];
 
-            const withFormatter = (
-                options: AgCartesianChartOptions,
-                axis: 'x' | 'y',
-                formatter: (params: { value: unknown }) => unknown
-            ): AgCartesianChartOptions => {
-                const axes = options.axes as any;
-                return {
-                    ...options,
-                    axes: { ...axes, [axis]: { ...axes[axis], label: { ...axes[axis].label, formatter } } },
-                } as AgCartesianChartOptions;
-            };
-
-            const plainText = (text: any): string =>
-                Array.isArray(text) ? text.map((segment: any) => segment.text ?? '').join('') : String(text);
-            const boxesByText = (nodes: any[]) =>
-                new Map(nodes.map((n) => [plainText(n.datum.text), Transformable.toCanvas(n)]));
+            const boxesByText = (nodes: AxisLabelNode[]) =>
+                new Map(nodes.map((n) => [getLabelText(n), Transformable.toCanvas(n)]));
             // Anti-vacuous: the formatter must actually put the label on the segmented measurement
             // path, otherwise every assertion below holds because nothing rich was ever rendered.
-            const expectSegmented = (nodes: any[]) => {
+            const expectSegmented = (nodes: AxisLabelNode[]) => {
                 expect(nodes.length).toBeGreaterThan(0);
                 for (const node of nodes) expect(Array.isArray(node.datum.text)).toBe(true);
             };
@@ -3677,7 +3618,7 @@ describe('CartesianAxis', () => {
                     const plain = boxesByText(getAxisLabelNodes(chart, 'bottom'));
                     expect(plain.size).toBe(3);
 
-                    await renderChart(withFormatter(wrappedBottomAxisOptions({ verticalAlign }), 'x', plainSegment));
+                    await renderChart(wrappedBottomAxisOptions({ verticalAlign, formatter: plainSegment }));
                     const nodes = getAxisLabelNodes(chart, 'bottom');
                     expectSegmented(nodes);
                     const segmented = boxesByText(nodes);
@@ -3695,11 +3636,11 @@ describe('CartesianAxis', () => {
                 'places a "%s"-aligned segmented label where the equivalent plain-text label goes, on a banded vertical axis',
                 async (verticalAlign) => {
                     await renderChart(rightAxisOptions({ verticalAlign }));
-                    const plain = boxesByText(getRightAxisLabelNodes(chart));
+                    const plain = boxesByText(getAxisLabelNodes(chart, 'right'));
                     expect(plain.size).toBe(3);
 
-                    await renderChart(withFormatter(rightAxisOptions({ verticalAlign }), 'y', plainSegment));
-                    const nodes = getRightAxisLabelNodes(chart);
+                    await renderChart(rightAxisOptions({ verticalAlign, formatter: plainSegment }));
+                    const nodes = getAxisLabelNodes(chart, 'right');
                     expectSegmented(nodes);
                     const segmented = boxesByText(nodes);
                     const byText = (a: string, b: string) => a.localeCompare(b);
@@ -3718,9 +3659,7 @@ describe('CartesianAxis', () => {
             it.each([0, 45])(
                 'flushes rich segments to one band on a bottom axis rotated %s degrees',
                 async (rotation) => {
-                    await renderChart(
-                        withFormatter(bottomAxisOptions({ rotation, verticalAlign: 'top' }), 'x', richSegment)
-                    );
+                    await renderChart(bottomAxisOptions({ rotation, verticalAlign: 'top', formatter: richSegment }));
                     const topNodes = getAxisLabelNodes(chart, 'bottom');
                     expectSegmented(topNodes);
                     const topBoxes = topNodes.map((n) => Transformable.toCanvas(n));
@@ -3728,9 +3667,7 @@ describe('CartesianAxis', () => {
                     const bandDepth = Math.max(...topBoxes.map((b) => b.height));
                     expect(Math.max(...topBoxes.map((b) => b.y)) - bandTop).toBeLessThanOrEqual(1);
 
-                    await renderChart(
-                        withFormatter(bottomAxisOptions({ rotation, verticalAlign: 'bottom' }), 'x', richSegment)
-                    );
+                    await renderChart(bottomAxisOptions({ rotation, verticalAlign: 'bottom', formatter: richSegment }));
                     const bottomNodes = getAxisLabelNodes(chart, 'bottom');
                     expectSegmented(bottomNodes);
                     const bottomBoxes = bottomNodes.map((n) => Transformable.toCanvas(n));
@@ -3745,10 +3682,8 @@ describe('CartesianAxis', () => {
             it('keeps rich segments in one column on a rotated right axis', async () => {
                 const columns: number[] = [];
                 for (const verticalAlign of ['top', 'middle', 'bottom'] as const) {
-                    await renderChart(
-                        withFormatter(rightAxisOptions({ rotation: 45, verticalAlign }), 'y', richSegment)
-                    );
-                    const nodes = getRightAxisLabelNodes(chart);
+                    await renderChart(rightAxisOptions({ rotation: 45, verticalAlign, formatter: richSegment }));
+                    const nodes = getAxisLabelNodes(chart, 'right');
                     expectSegmented(nodes);
                     const boxes = nodes.map((n) => Transformable.toCanvas(n));
                     const inner = Math.min(...boxes.map((b) => b.x));
@@ -3771,18 +3706,15 @@ describe('CartesianAxis', () => {
 
                 const boxes: { x: number; y: number; width: number; height: number }[] = [];
                 for (const verticalAlign of ['top', 'middle', 'bottom'] as const) {
-                    await renderChart(withFormatter(rightAxisOptions({ verticalAlign }), 'y', segmentAligned('top')));
-                    const nodes = getRightAxisLabelNodes(chart);
+                    await renderChart(rightAxisOptions({ verticalAlign, formatter: segmentAligned('top') }));
+                    const nodes = getAxisLabelNodes(chart, 'right');
                     expectSegmented(nodes);
                     for (const node of nodes) {
                         // The label node still takes the axis alignment as its own baseline; what
                         // must not happen is that value reaching the segments, which keep the
                         // `verticalAlign` the formatter gave them - `'top'` here, not the axis's.
                         expect(node.datum.textBaseline).toBe(verticalAlign);
-                        expect(node.datum.text.map((segment: any) => segment.verticalAlign)).toEqual([
-                            undefined,
-                            'top',
-                        ]);
+                        expect(getLabelSegmentAlignments(node)).toEqual([undefined, 'top']);
                     }
                     boxes.push(Transformable.toCanvas(nodes[0]));
                 }
@@ -3796,6 +3728,397 @@ describe('CartesianAxis', () => {
                 // nothing about whether the option reached the segments.
                 const [top, , bottom] = boxes;
                 expect(bottom.y).toBeGreaterThan(top.y + 1);
+            });
+        });
+    });
+
+    describe('tick layout across a data update', () => {
+        type Row = { x: number | string; y: number };
+        const numberAxes = {
+            x: { type: 'number', position: 'bottom', nice: false },
+            y: { type: 'number', position: 'left' },
+        };
+        const categoryAxes = {
+            x: { type: 'category', position: 'bottom' },
+            y: { type: 'number', position: 'left' },
+        };
+        const series = [{ type: 'line', xKey: 'x', yKey: 'y' }];
+
+        const sequence = (from: number, count: number, y: (i: number) => number = (i) => i): Row[] =>
+            Array.from({ length: count }, (_, i) => ({ x: from + i, y: y(from + i) }));
+        const categories = (from: number, count: number, y: (i: number) => number = (i) => i): Row[] =>
+            Array.from({ length: count }, (_, i) => ({ x: `Item ${from + i}`, y: y(from + i) }));
+        const alternating = (shift: number) => (i: number) => ((i + shift) % 2) * 10;
+
+        type Size = { width: number; height: number };
+
+        const freshCharts: AgChartInstance[] = [];
+        const autoSizedContainers: HTMLElement[] = [];
+        afterEach(() => {
+            for (const fresh of freshCharts.splice(0)) fresh.destroy();
+            for (const container of autoSizedContainers.splice(0)) container.remove();
+        });
+
+        const create = (options: Record<string, unknown>) =>
+            createChart({ series, animation: { enabled: false }, ...options } as AgCartesianChartOptions);
+
+        const update = async (delta: Record<string, unknown>) => {
+            await chart.updateDelta(delta);
+            await waitForChartStability(chart);
+        };
+
+        // Bespoke: no explicit width/height, so the chart takes the auto-size path that a container resize drives.
+        // `updateDelta({ width })` would drop the layout cache; only this path reaches the cache key's range check.
+        const createAutoSized = async (options: Record<string, unknown>, size: { width: number; height: number }) => {
+            const container = getDocument().createElement('div');
+            getDocument().body.append(container);
+            autoSizedContainers.push(container);
+            const instance = AgCharts.create({
+                container,
+                series,
+                animation: { enabled: false },
+                ...options,
+            } as AgCartesianChartOptions);
+            freshCharts.push(instance);
+            await resizeContainer(instance, size);
+            return instance;
+        };
+
+        const resizeContainer = async (instance: AgChartInstance, { width, height }: Size) => {
+            const internal = deproxy(instance);
+            internal.ctx.domManager.containerSize = { width, height, pixelRatio: 1 };
+            internal.ctx.eventsHub.emit('dom:resize', null);
+            await waitForChartStability(instance);
+        };
+
+        /**
+         * Asserts the chart is indistinguishable from one created from `options`, which never reused a layout. The test
+         * canvas fixes a created chart's size, so a different `size` is applied after creation, which drops its layouts.
+         */
+        const expectMatchesFresh = async (
+            options: Record<string, unknown>,
+            size?: { width: number; height?: number }
+        ) => {
+            const fresh = await create(options);
+            freshCharts.push(fresh);
+            if (size != null) {
+                await fresh.updateDelta(size);
+                await waitForChartStability(fresh);
+            }
+            expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
+        };
+
+        it.each([
+            { name: 'number axes', axes: numberAxes, rows: sequence },
+            { name: 'category x axis', axes: categoryAxes, rows: categories },
+        ])('matches a fresh chart after a row is added ($name)', async ({ axes, rows }) => {
+            const data = (count: number) => rows(0, count, (i) => i * 7);
+            chart = await create({ axes, data: data(10) });
+            const before = getAxisTickLayouts(chart);
+
+            await update({ data: data(11) });
+
+            await expectMatchesFresh({ axes, data: data(11) });
+            expect(getAxisTickLayouts(chart)).not.toEqual(before);
+        });
+
+        it('extends the y axis when an added row lies outside its range', async () => {
+            const data = [...sequence(0, 10), { x: 10, y: 1000 }];
+            chart = await create({ axes: numberAxes, data: sequence(0, 10) });
+            expect(getAxisLabelTexts(chart, 'left')).toEqual(['10', '8', '6', '4', '2', '0']);
+
+            await update({ data });
+
+            await expectMatchesFresh({ axes: numberAxes, data });
+            expect(getAxisLabelTexts(chart, 'left')[0]).toBe('1000');
+        });
+
+        it.each([
+            { name: 'number axes', axes: numberAxes, rows: sequence },
+            { name: 'category x axis', axes: categoryAxes, rows: categories },
+        ])('matches a fresh chart on every tick of a rolling window ($name)', async ({ axes, rows }) => {
+            const y = (i: number) => (i * 37) % 50;
+            chart = await create({ axes, data: rows(0, 12, y) });
+
+            for (let from = 1; from <= 6; from++) {
+                await update({ data: rows(from, 12, y) });
+                await expectMatchesFresh({ axes, data: rows(from, 12, y) });
+            }
+        });
+
+        it('does not recalculate the y ticks while the y domain is unchanged, and does when it changes', async () => {
+            chart = await create({ axes: numberAxes, data: sequence(0, 10, alternating(0)) });
+            const before = getAxisTickLayout(chart, 'left');
+            const yTickLayout = spyOnAxisTickLayout(chart, 'left');
+
+            await update({ data: sequence(0, 10, alternating(1)) });
+
+            expect(yTickLayout).not.toHaveBeenCalled();
+            expect(getAxisTickLayout(chart, 'left')).toEqual(before);
+
+            await update({ data: sequence(0, 10, (i) => (i % 2) * 100) });
+
+            expect(yTickLayout).toHaveBeenCalled();
+            expect(getAxisLabelTexts(chart, 'left')).toContain('100');
+        });
+
+        it('keeps the y ticks when a row is added within the y range, and recalculates the x ticks', async () => {
+            chart = await create({ axes: numberAxes, data: sequence(0, 10, alternating(0)) });
+            const yTickLayout = spyOnAxisTickLayout(chart, 'left');
+            const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+
+            await update({ data: sequence(0, 11, alternating(0)) });
+
+            expect(yTickLayout).not.toHaveBeenCalled();
+            expect(xTickLayout).toHaveBeenCalled();
+            await expectMatchesFresh({ axes: numberAxes, data: sequence(0, 11, alternating(0)) });
+        });
+
+        it('keeps the category x ticks when only the values change', async () => {
+            chart = await create({ axes: categoryAxes, data: categories(0, 8, alternating(0)) });
+            const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+
+            await update({ data: categories(0, 8, alternating(1)) });
+
+            expect(xTickLayout).not.toHaveBeenCalled();
+            await expectMatchesFresh({ axes: categoryAxes, data: categories(0, 8, alternating(1)) });
+        });
+
+        it('follows a new category order', async () => {
+            chart = await create({ axes: categoryAxes, data: categories(0, 4) });
+
+            await update({ data: categories(0, 4).reverse() });
+
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 3', 'Item 2', 'Item 1', 'Item 0']);
+        });
+
+        it('re-runs a label formatter on a data update that leaves the domain unchanged', async () => {
+            let suffix = 'a';
+            const formatter = ({ value }: { value: unknown }) => `${String(value)}${suffix}`;
+            const axes = {
+                x: { type: 'category', position: 'bottom', label: { formatter } },
+                y: { type: 'number', position: 'left', label: { formatter } },
+            };
+            chart = await create({ axes, data: categories(0, 3, alternating(0)) });
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0a', 'Item 1a', 'Item 2a']);
+
+            suffix = 'b';
+            await update({ data: categories(0, 3, alternating(1)) });
+
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0b', 'Item 1b', 'Item 2b']);
+            expect(getAxisLabelTexts(chart, 'left').every((text) => text.endsWith('b'))).toBe(true);
+        });
+
+        it('re-runs a label itemStyler on a data update that leaves the domain unchanged', async () => {
+            let color = 'red';
+            const axes = {
+                x: { type: 'category', position: 'bottom', label: { itemStyler: () => ({ color }) } },
+                y: { type: 'number', position: 'left' },
+            };
+            chart = await create({ axes, data: categories(0, 3, alternating(0)) });
+            const bottomFills = () => getAxisTickLayout(chart, 'bottom').labels.map((label) => label.fill);
+            expect(bottomFills()).toEqual(['red', 'red', 'red']);
+
+            color = 'blue';
+            await update({ data: categories(0, 3, alternating(1)) });
+
+            expect(bottomFills()).toEqual(['blue', 'blue', 'blue']);
+        });
+
+        it('relabels object categories mutated in place', async () => {
+            const items = Array.from({ length: 3 }, (_, i) => ({ name: `Item ${i}`, toString: () => items[i].name }));
+            const data = () => items.map((item, i) => ({ x: item, y: i }));
+            chart = await create({ axes: categoryAxes, data: data() });
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Item 1', 'Item 2']);
+
+            items[1].name = 'Renamed';
+            await update({ data: data() });
+
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Renamed', 'Item 2']);
+        });
+
+        it.each([
+            { name: 'a reversed axis', axisOptions: { reverse: true } },
+            { name: 'a changed category padding', axisOptions: { paddingInner: 0.8, paddingOuter: 0.4 } },
+        ])('applies $name after a data update that kept the domain', async ({ axisOptions }) => {
+            chart = await create({ axes: categoryAxes, data: categories(0, 4, alternating(0)) });
+            await update({ data: categories(0, 4, alternating(1)) });
+
+            await update({ axes: { x: axisOptions } });
+
+            await expectMatchesFresh({
+                axes: { ...categoryAxes, x: { ...categoryAxes.x, ...axisOptions } },
+                data: categories(0, 4, alternating(1)),
+            });
+        });
+
+        // A container resize never drops the layout cache, so only the range in the cache key can catch it.
+        it.each([
+            {
+                name: 'a resize after a data update',
+                steps: [{ data: categories(0, 6, alternating(1)) }, { size: { width: 400, height: 300 } }],
+            },
+            {
+                name: 'a resize and a data update together',
+                steps: [{ data: categories(0, 6, alternating(1)), size: { width: 400, height: 300 } }],
+            },
+            {
+                name: 'resizes between data updates',
+                steps: [
+                    { size: { width: 300, height: 300 } },
+                    { data: categories(0, 6, alternating(1)) },
+                    { size: { width: 900, height: 300 } },
+                    { data: categories(0, 6, alternating(0)) },
+                ],
+            },
+        ])('has no stale axis after $name', async ({ steps }) => {
+            const initial = { width: 600, height: 400 };
+            const options = { axes: categoryAxes, data: categories(0, 6, alternating(0)) };
+            const instance = await createAutoSized(options, initial);
+            const before = getAxisTickLayouts(instance);
+
+            let data: Row[] = options.data;
+            let size: Size = initial;
+            for (const step of steps) {
+                data = step.data ?? data;
+                size = step.size ?? size;
+                if (step.data != null) await instance.updateDelta({ data });
+                if (step.size != null) await resizeContainer(instance, step.size);
+                await waitForChartStability(instance);
+            }
+
+            const fresh = await createAutoSized({ ...options, data }, size);
+            expect(getAxisTickLayouts(instance)).toEqual(getAxisTickLayouts(fresh));
+            expect(getAxisTickLayouts(instance)).not.toEqual(before);
+        });
+
+        describe('with a band-aligned axis and a fixed-width series', () => {
+            const options = (y: (i: number) => number) => ({
+                axes: {
+                    x: { type: 'category', position: 'bottom', bandAlignment: 'end' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', width: 20 }],
+                data: categories(0, 5, y),
+            });
+            const wide = (i: number) => (i + 1) * 100_000;
+
+            it('has no stale axis when the y labels widen, which moves the range without resizing it', async () => {
+                chart = await create(options((i) => i));
+                const before = getAxisTickLayouts(chart);
+
+                await update({ data: categories(0, 5, wide) });
+
+                await expectMatchesFresh(options(wide));
+                expect(getAxisTickLayouts(chart)).not.toEqual(before);
+            });
+
+            it('has no stale axis when the container is resized and then the y labels widen', async () => {
+                const instance = await createAutoSized(
+                    options((i) => i),
+                    { width: 600, height: 400 }
+                );
+
+                await resizeContainer(instance, { width: 900, height: 400 });
+                await instance.updateDelta({ data: categories(0, 5, wide) });
+                await waitForChartStability(instance);
+
+                const fresh = await createAutoSized(options(wide), { width: 900, height: 400 });
+                expect(getAxisTickLayouts(instance)).toEqual(getAxisTickLayouts(fresh));
+            });
+        });
+
+        describe('with an input other than the domain and range', () => {
+            const stable = sequence(0, 9, alternating(0));
+            const moved = sequence(0, 9, alternating(1));
+
+            it.each([
+                { name: 'alone', data: stable },
+                { name: 'with a data update', data: moved },
+            ])('matches a fresh chart after a chart formatter is added ($name)', async ({ data }) => {
+                const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}!` };
+                chart = await create({ axes: numberAxes, data: stable });
+
+                await update({ formatter, data });
+
+                await expectMatchesFresh({ axes: numberAxes, data, formatter });
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10!');
+            });
+
+            it('matches a fresh chart after a chart formatter is removed', async () => {
+                const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}!` };
+                chart = await create({ axes: numberAxes, data: stable, formatter });
+
+                await update({ formatter: undefined });
+
+                await expectMatchesFresh({ axes: numberAxes, data: stable });
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10');
+            });
+
+            it('re-runs a chart formatter on a data update that leaves the domain unchanged', async () => {
+                let suffix = 'a';
+                const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}${suffix}` };
+                chart = await create({ axes: numberAxes, data: stable, formatter });
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10a');
+
+                suffix = 'b';
+                await update({ data: moved });
+
+                await expectMatchesFresh({ axes: numberAxes, data: moved, formatter });
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10b');
+            });
+
+            it('re-measures an axis title whose formatter changes text on a data update that leaves the domain unchanged', async () => {
+                let text = 'Short';
+                const axes = {
+                    ...numberAxes,
+                    y: { ...numberAxes.y, title: { text: 'Title', formatter: () => text } },
+                };
+                chart = await create({ axes, data: stable });
+
+                text = 'Three\nlines\nof text';
+                await update({ data: moved });
+
+                const fresh = await create({ axes, data: moved });
+                freshCharts.push(fresh);
+                expect(deproxy(chart).seriesRect).toEqual(deproxy(fresh).seriesRect);
+                expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
+            });
+
+            it.each([
+                { name: 'alone', data: stable },
+                { name: 'with a data update', data: moved },
+            ])('matches a fresh chart after the direction becomes right-to-left ($name)', async ({ data }) => {
+                const axes = {
+                    ...numberAxes,
+                    x: { ...numberAxes.x, label: { textAlign: 'start' } },
+                };
+                chart = await create({ axes, data: stable });
+
+                await update({ enableRtl: true, data });
+
+                await expectMatchesFresh({ axes, data, enableRtl: true });
+            });
+
+            it.each([
+                { name: 'alone', data: stable },
+                { name: 'with a data update', data: moved },
+            ])('hides the edge label that the padding no longer fits ($name)', async ({ data }) => {
+                const axes = {
+                    ...numberAxes,
+                    x: { ...numberAxes.x, label: { fontSize: 40 } },
+                };
+                const roomOnRight = { left: 0, right: 80, top: 20, bottom: 20 };
+                const roomOnLeft = { left: 80, right: 0, top: 20, bottom: 20 };
+                chart = await create({ axes, data: stable, padding: roomOnRight });
+                const labelled = () =>
+                    getAxisTickLayout(chart, 'bottom').labels.filter((label) => label.text !== '').length;
+                const before = labelled();
+
+                await update({ padding: roomOnLeft, data });
+
+                await expectMatchesFresh({ axes, data, padding: roomOnLeft });
+                expect(labelled()).toBeLessThan(before);
             });
         });
     });

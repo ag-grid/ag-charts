@@ -11,7 +11,9 @@ import {
     clickAction,
     compareImageSnapshot,
     delay,
+    deproxy,
     dragAction,
+    expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
     extractImageData,
     scrollAction,
@@ -21,8 +23,9 @@ import {
     waitForChartStabilityUntil,
 } from 'ag-charts-community-test';
 import { isDate } from 'ag-charts-core';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 // Crosshair and exact-range tooltip are disabled so highlight styling — which races with the
 // clickAction and data-update handling — cannot vary between runs.
@@ -131,15 +134,13 @@ describe('DataSource', () => {
             dataSource: { ...baseOptions.dataSource, ...(dataSourceOptions ?? {}) } as AgChartOptions['dataSource'],
         };
 
-        prepareEnterpriseTestOptions(options);
-        cx = options.width! / 2;
-        cy = options.height! / 2;
+        cx = CANVAS_WIDTH / 2;
+        cy = CANVAS_HEIGHT / 2;
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
 
         // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
         // event is triggered.
-        await waitForChartStability(chart);
         await clickAction(cx, cy)(chart);
     }
 
@@ -367,12 +368,70 @@ describe('DataSource', () => {
 
             const itExpected = axisType === 'ordinal-time' ? it.fails : it;
 
-            itExpected('requests data once per zoom step', async () => {
+            it('requests data once per zoom step', async () => {
                 await prepareZoomableChart();
 
                 const issued = await zoomIn(1);
 
                 expect(issued.map((request) => request.source)).toEqual(['user-interaction']);
+            });
+
+            it('only requests data for the zoom itself across several zoom steps', async () => {
+                await prepareZoomableChart();
+
+                const issued = await zoomIn(6);
+
+                expect(issued.map((request) => request.source)).toEqual(Array(6).fill('user-interaction'));
+            });
+
+            it('keeps the navigator range proportional to the visible time', async () => {
+                await prepareZoomableChart();
+                await zoomIn(3);
+                const [{ start, end }] = requests.slice(-1);
+
+                const { _min: min, _max: max } = deproxy(chart).modulesManager.getModule<any>('navigator').domProxy;
+
+                expect(max - min).toBeCloseTo((end - start) / (dataEnd - dataStart), 1);
+            });
+
+            it('requests the time the navigator minimum handle is dragged to', async () => {
+                await prepareZoomableChart();
+                await zoomIn(3);
+                const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
+                const target = 0.1;
+
+                const issued = await settleAfter(() => {
+                    navigator.onDrag('min', { offsetX: navigator.x + navigator.width * target });
+                    return Promise.resolve();
+                });
+                const [{ start }] = issued.slice(-1);
+
+                expect(Math.abs(start - (dataStart + target * (dataEnd - dataStart)))).toBeLessThan(week * 4);
+            });
+
+            it('only requests data for the pan itself when panning left', async () => {
+                await prepareZoomableChart();
+                await zoomIn(3);
+
+                const issued = await settleAfter(() => dragAction({ x: cx, y: cy }, { x: cx + cx / 4, y: cy })(chart));
+
+                expect(issued.map((request) => request.source)).toEqual(['user-interaction']);
+            });
+
+            it('only requests data for the pan itself when a pan changes the data granularity', async () => {
+                await prepareZoomableChart();
+                for (let step = 0; step < 30; step++) {
+                    const [latest] = (await zoomIn(1)).slice(-1);
+                    if (latest.end - latest.start < week * 13) break;
+                }
+
+                const sources: Array<AgDataSourceRequestSource | undefined> = [];
+                for (const dragTo of [cx + cx / 4, cx - cx / 4, cx + cx / 4, cx - cx / 4]) {
+                    const issued = await settleAfter(() => dragAction({ x: cx, y: cy }, { x: dragTo, y: cy })(chart));
+                    sources.push(...issued.map((request) => request.source));
+                }
+
+                expect(sources.filter((source) => source !== 'user-interaction')).toEqual([]);
             });
 
             itExpected('moves the visible window earlier, without resizing it, when panning left', async () => {
@@ -882,6 +941,7 @@ describe('DataSource', () => {
                 },
             };
             prepareEnterpriseTestOptions(pieOptions);
+            // Bespoke: waits for the loaded data rather than `waitForChartStability`.
             chart = AgCharts.create(pieOptions);
             await waitForChartStabilityUntil(chart, () => chart.chart.data.data.length === 2, 'the initial load');
 
@@ -941,6 +1001,102 @@ describe('DataSource', () => {
             );
             await response;
             await compare();
+        });
+    });
+
+    describe('per-item colours', () => {
+        const ROWS = [
+            { label: 'A', value: 10 },
+            { label: 'B', value: 20 },
+            { label: 'C', value: 30 },
+        ];
+
+        const SERIES_OPTIONS: Record<string, AgChartOptions> = {
+            pie: { series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'label' }] },
+            donut: { series: [{ type: 'donut', angleKey: 'value', legendItemKey: 'label', innerRadiusRatio: 0.5 }] },
+            funnel: { series: [{ type: 'funnel', stageKey: 'label', valueKey: 'value' }] },
+            'cone-funnel': { series: [{ type: 'cone-funnel', stageKey: 'label', valueKey: 'value' }] },
+            pyramid: { series: [{ type: 'pyramid', stageKey: 'label', valueKey: 'value' }] },
+            treemap: { series: [{ type: 'treemap', labelKey: 'label', sizeKey: 'value' }] },
+            sunburst: { series: [{ type: 'sunburst', labelKey: 'label', sizeKey: 'value' }] },
+        };
+
+        // Bespoke: waits for the data service to finish loading rather than `waitForChartStability`.
+        const createLoadedChart = async (options: AgChartOptions) => {
+            const loaded = deproxy(AgCharts.create(prepareEnterpriseTestOptions(options)));
+            await waitForChartStabilityUntil(
+                loaded,
+                () => !loaded.ctx.dataService.isLoading(),
+                'the data source to load'
+            );
+            return loaded;
+        };
+        // `expectPixelIdenticalAcrossUpdate` drives the chart through the public API.
+        const loadPublicChart = async (options: AgChartOptions) => (await createLoadedChart(options)).publicApi!;
+
+        const dataSourceOptions = (base: AgChartOptions, data?: typeof ROWS): AgChartOptions => ({
+            ...base,
+            data,
+            dataSource: {
+                // @ts-expect-error Set undocumented options to instantly resolve for tests
+                requestThrottle: 0,
+                updateThrottle: 0,
+                getData: () => Promise.resolve(ROWS),
+            },
+        });
+
+        const dataOptions = (base: AgChartOptions): AgChartOptions => ({ ...base, data: ROWS });
+
+        for (const [name, base] of Object.entries(SERIES_OPTIONS)) {
+            it(`should colour ${name} items as with inline data when there is no initial data`, async () => {
+                await expectPixelIdenticalAcrossUpdate(
+                    ctx,
+                    loadPublicChart,
+                    dataSourceOptions(base),
+                    dataOptions(base)
+                );
+            });
+
+            it(`should colour ${name} items as with inline data when there are fewer initial rows`, async () => {
+                await expectPixelIdenticalAcrossUpdate(
+                    ctx,
+                    loadPublicChart,
+                    dataSourceOptions(base, ROWS.slice(0, 1)),
+                    dataOptions(base)
+                );
+            });
+        }
+
+        it('should cycle pie colours past one palette period', async () => {
+            const fills = ['#111111', '#222222', '#333333'];
+            const strokes = ['#444444', '#555555'];
+            const rows = Array.from({ length: 32 }, (_, index) => ({ label: `R${index}`, value: 10 + index }));
+            const styled = new Map<string, { fill: unknown; stroke: unknown }>();
+            const loaded = await createLoadedChart({
+                theme: { palette: { fills, strokes } },
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'value',
+                        legendItemKey: 'label',
+                        itemStyler: ({ datum, fill, stroke }) => {
+                            styled.set(datum.label, { fill, stroke });
+                            return undefined;
+                        },
+                    },
+                ],
+                dataSource: {
+                    // @ts-expect-error Set undocumented options to instantly resolve for tests
+                    requestThrottle: 0,
+                    updateThrottle: 0,
+                    getData: () => Promise.resolve(rows),
+                },
+            });
+
+            expect(rows.map(({ label }) => styled.get(label))).toEqual(
+                rows.map((_, i) => ({ fill: fills[i % fills.length], stroke: strokes[i % strokes.length] }))
+            );
+            loaded.destroy();
         });
     });
 });

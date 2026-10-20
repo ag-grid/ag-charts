@@ -10,6 +10,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -24,20 +25,17 @@ export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
         spacing: 2,
         tooltip: SERIES_TOOLTIP_THEME,
         fills: {
-            $applyCycle: [
-                { $size: { $path: ['./data', { $path: '/data' }] } },
-                { $palette: 'fills' },
-                cycledFillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
-            ],
+            $applyCycle: [{ $palette: 'fills' }, cycledFillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS)],
         },
         strokes: {
-            $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
+            $applyCycle: [{ $palette: 'strokes' }],
         },
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             padding: 8,
@@ -56,6 +54,7 @@ export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
             ...LABEL_BOXING_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'textColor' },

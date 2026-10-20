@@ -125,6 +125,10 @@ export abstract class Widget<
         this.elem.textContent = textContent ?? null;
     }
 
+    setAriaRole(role: BaseAttributeTypeMap['role'] | undefined) {
+        setAttribute(this.elem, 'role', role);
+    }
+
     setAriaDescribedBy(ariaDescribedBy: BaseAttributeTypeMap['aria-describedby'] | undefined) {
         setAttribute(this.elem, 'aria-describedby', ariaDescribedBy);
     }
@@ -211,7 +215,7 @@ export abstract class Widget<
         setAttribute(this.elem, 'data-preventdefault', preventDefault);
     }
 
-    setTabIndex(tabIndex: BaseAttributeTypeMap['tabindex']) {
+    setTabIndex(tabIndex: BaseAttributeTypeMap['tabindex'] | undefined) {
         setAttribute(this.elem, 'tabindex', tabIndex);
     }
 

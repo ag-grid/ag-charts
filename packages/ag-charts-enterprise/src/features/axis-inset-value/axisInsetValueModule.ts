@@ -1,5 +1,6 @@
 import { VERSION } from 'ag-charts-community';
 import type { AxisPluginModuleDefinition } from 'ag-charts-core';
+import { themeLineHeight } from 'ag-charts-core';
 
 import { AxisInsetValue } from './axisInsetValue';
 import type { AxisInsetValueOptions } from './axisInsetValueTypes';
@@ -22,6 +23,7 @@ export const AxisInsetValueModule: AxisPluginModuleDefinition<AxisInsetValueOpti
         enabled: false,
         position: 'left',
         minWidth: 60,
+        gap: 2,
         fill: { $palette: 'neutral.fill' },
         fillOpacity: 1,
         label: {
@@ -29,6 +31,7 @@ export const AxisInsetValueModule: AxisPluginModuleDefinition<AxisInsetValueOpti
             color: 'white',
             fontFamily: { $ref: 'fontFamily' },
             fontSize: { $ref: 'fontSize' },
+            lineHeight: themeLineHeight('lineHeight'),
             fontWeight: { $ref: 'fontWeight' },
             padding: 8,
         },

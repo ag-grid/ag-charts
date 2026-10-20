@@ -42,6 +42,7 @@ import {
     findDiscreteColorBinLabel,
     formatValue,
     insetFitRegion,
+    lineHeightAtSize,
     maskFitRegion,
     measurePlacedLabel,
     placedLabelFit,
@@ -90,6 +91,7 @@ import {
     createCandidateStyleResolver,
     getLabelStyles,
     pickPlacementStyle,
+    withOverlayLabelObstacles,
 } from '../../labelUtil';
 import {
     type CategoryLegendDatum,
@@ -410,7 +412,7 @@ export abstract class BubbleScatterSeries<
     protected abstract markerSizeRange(): { size: number; maxSize: number };
 
     private dataAggregation: BubbleAggregation | undefined = undefined;
-    private aggregateIndexSet: Map<number, number[]> | undefined = undefined;
+    private aggregateIndexSet: Map<number, Uint32Array> | undefined = undefined;
     private nodeDatumContext: BubbleSeriesNodeDatumContext | undefined = undefined;
 
     private readonly sizeScale = new LinearScale();
@@ -894,7 +896,7 @@ export abstract class BubbleScatterSeries<
             aggregationOptions
         );
 
-        const aggregateIndexSet = new Map<number, number[]>();
+        const aggregateIndexSet = new Map<number, Uint32Array>();
         for (const { datumIndex, count, dilation, area, indices } of groupedAggregation) {
             scratch.count = count;
             scratch.dilation = dilation;
@@ -1154,6 +1156,10 @@ export abstract class BubbleScatterSeries<
 
     protected override isPathOrSelectionDirty(): boolean {
         return this.markerDirty;
+    }
+
+    getLabelObstacles() {
+        return withOverlayLabelObstacles(undefined, this.contextNodeData?.nodeData);
     }
 
     override getLabelData() {
@@ -1477,6 +1483,7 @@ export abstract class BubbleScatterSeries<
             text.fontWeight = style.fontWeight;
             text.fontSize = datum.label.fontSize ?? style.fontSize;
             text.fontFamily = style.fontFamily;
+            text.lineHeight = lineHeightAtSize(style, datum.label.fontSize);
             text.textBaseline = 'top';
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             text.setBoxing(style);

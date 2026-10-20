@@ -2,19 +2,17 @@ import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import type { ChartTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     compareImageSnapshot,
+    createChart,
     polarChartAssertions,
-    prepareTestOptions,
     repeat,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from '../test/utils';
 import * as examples from './test/examples';
 
@@ -150,10 +148,8 @@ describe('series labels', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart(options);
                 await example.assertions(chart);
             }
         );
@@ -166,9 +162,8 @@ describe('series labels', () => {
                 };
 
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
 
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare(example.imageSnapshotDefaults);
             }
         );

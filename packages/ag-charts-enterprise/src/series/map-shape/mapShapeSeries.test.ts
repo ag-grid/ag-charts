@@ -8,7 +8,6 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -31,6 +30,7 @@ import {
     DEFAULT_DISABLED_SHADOW,
     SMALL_SHADOW,
     collectShapes,
+    createEnterpriseChart,
     prepareEnterpriseTestOptions,
     shadowedShapes,
 } from '../../test/utils';
@@ -82,9 +82,7 @@ describe('MapShapeSeries', () => {
     describe('Simple Chart', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -92,10 +90,7 @@ describe('MapShapeSeries', () => {
     describe('Series Highlighting', () => {
         it.each([0, 1, 2, 3])('should render a highlight at index %i', async (i: number) => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[0] as MapShapeSeries;
             const node = seriesImpl?.['contextNodeData']?.nodeData[i];
@@ -114,21 +109,19 @@ describe('MapShapeSeries', () => {
             series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
         });
 
-        const createChart = async (options: AgChartOptions) => {
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+        const renderSeries = async (options: AgChartOptions) => {
+            chart = deproxy(await createEnterpriseChart(options));
             return chart.series[0];
         };
 
         it('defaults to a disabled shadow', async () => {
-            const series = await createChart(shadowOptions());
+            const series = await renderSeries(shadowOptions());
 
             expect(series['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const series = await createChart(shadowOptions());
+            const series = await renderSeries(shadowOptions());
 
             const shapes = collectShapes(series.contentGroup);
             expect(shapes.length).toBeGreaterThan(0);
@@ -136,7 +129,7 @@ describe('MapShapeSeries', () => {
         });
 
         it('applies an enabled shadow to every shape', async () => {
-            const series = await createChart(shadowOptions(SMALL_SHADOW));
+            const series = await renderSeries(shadowOptions(SMALL_SHADOW));
 
             const shapes = collectShapes(series.contentGroup);
             expect(shapes.length).toBeGreaterThan(0);
@@ -146,13 +139,13 @@ describe('MapShapeSeries', () => {
         });
 
         it('should render a chart with the shadow enabled', async () => {
-            await createChart(shadowOptions(SMALL_SHADOW));
+            await renderSeries(shadowOptions(SMALL_SHADOW));
             await compare();
         });
 
         describe('cutout drawing mode', () => {
             const highlightFirstShape = async (options: AgChartOptions) => {
-                await createChart(options);
+                await renderSeries(options);
 
                 const seriesImpl = chart.series[0] as MapShapeSeries;
                 const node = seriesImpl?.['contextNodeData']?.nodeData[0];
@@ -216,10 +209,7 @@ describe('MapShapeSeries', () => {
                 ...SIMPLIFIED_EXAMPLE,
                 series: [{ type: 'map-shape', idKey: 'name', highlight: { enabled } }],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[0] as MapShapeSeries;
             await hoverFirstShape(seriesImpl);
@@ -236,9 +226,7 @@ describe('MapShapeSeries', () => {
     describe('Heatmap', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...HEATMAP_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -260,10 +248,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[0] as MapShapeSeries;
             const nodeIds = seriesImpl?.['contextNodeData']?.nodeData?.map((datum) => datum.idValue) ?? [];
@@ -297,10 +282,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });
@@ -322,12 +304,33 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
+            });
+        });
+
+        describe('itemStyler font size', () => {
+            const renderSizes = async (label: object) => {
+                const options: AgChartOptions = {
+                    data: usData,
+                    topology: usTopology,
+                    series: [{ type: 'map-shape', idKey: 'name', labelKey: 'code', label: { fontSize: 10, ...label } }],
+                } as AgChartOptions;
+                chart = deproxy(await createEnterpriseChart(options));
+                return (chart.series[0].contextNodeData?.labelData ?? []).map((d: { fontSize: number }) => d.fontSize);
+            };
+
+            it('lays labels out at the styled size', async () => {
+                const sizes = await renderSizes({ itemStyler: () => ({ fontSize: 20 }) });
+                expect(sizes.length).toBeGreaterThan(0);
+                expect(new Set(sizes)).toEqual(new Set([20]));
+            });
+
+            it('shrinks from the styled size rather than the configured one', async () => {
+                const sizes = await renderSizes({ minimumFontSize: 8, itemStyler: () => ({ fontSize: 20 }) });
+                expect(sizes).toContain(20);
+                expect(sizes.some((size: number) => size > 10 && size < 20)).toBe(true);
             });
         });
 
@@ -341,9 +344,7 @@ describe('MapShapeSeries', () => {
                         { type: 'map-shape', idKey: 'name', labelKey: 'label', label: { fontSize: 10, ...label } },
                     ],
                 } as AgChartOptions;
-                prepareEnterpriseTestOptions(options);
-                chart = deproxy(AgCharts.create(options));
-                await waitForChartStability(chart);
+                chart = deproxy(await createEnterpriseChart(options));
                 return (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: string }) => d.text);
             };
 
@@ -401,11 +402,11 @@ describe('MapShapeSeries', () => {
     }) => {
         const format = (...values: any[]) => values.join(': ');
 
-        const createChart = async (params: {
+        const chartOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): Promise<any> => {
+        }): AgCartesianChartOptions | AgPolarChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
                       renderer(rParams: any) {
@@ -434,10 +435,7 @@ describe('MapShapeSeries', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            prepareEnterpriseTestOptions(options);
-            const newChart = deproxy(AgCharts.create(options));
-            await waitForChartStability(newChart);
-            return newChart;
+            return options;
         };
 
         const hoverChartNodes = async (
@@ -490,7 +488,7 @@ describe('MapShapeSeries', () => {
         };
 
         it(`should render tooltip correctly`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
             await hoverChartNodes(chart, ({ series, item }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -510,36 +508,40 @@ describe('MapShapeSeries', () => {
         });
 
         it(`should highlight hovered items`, async () => {
-            chart = await createChart({ hasTooltip: true });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should highlight hovered items when tooltip is disabled`, async () => {
-            chart = await createChart({ hasTooltip: false });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: false })));
             await checkHighlight(chart);
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: false, onNodeClick });
+            chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: false, onNodeClick })));
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = vi.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ hasTooltip: true, onNodeClick, nodeClickRange: 6 }))
+            );
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
     };
@@ -567,7 +569,7 @@ describe('MapShapeSeries', () => {
 
     describe('AG-16858 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            create: async (o) => (chart = await createEnterpriseChart(o)),
             compare,
             chartOptions: {
                 topology: ukTopology,
@@ -591,10 +593,8 @@ describe('MapShapeSeries', () => {
                     { type: 'map-shape', idKey: 'name', data: [{ name: 'Wales' }], legendItemName: 'Group B' },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
             resetMockConsole();
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             expectWarningMessages([
                 `AG Charts - legend item 'Group A' has multiple fill colours, this may cause unexpected behaviour.`,
             ]);
@@ -631,9 +631,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -650,9 +648,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -669,9 +665,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -692,9 +686,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -719,10 +711,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
         });
@@ -747,9 +736,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -760,9 +747,7 @@ describe('MapShapeSeries', () => {
                 ...HEATMAP_EXAMPLE,
                 gradientLegend: { enabled: true },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -781,9 +766,7 @@ describe('MapShapeSeries', () => {
                 legend: { enabled: true },
                 gradientLegend: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -806,9 +789,7 @@ describe('MapShapeSeries', () => {
                 legend: { enabled: true },
                 gradientLegend: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -829,9 +810,7 @@ describe('MapShapeSeries', () => {
                 ],
                 gradientLegend: { enabled: true },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -853,10 +832,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });
@@ -886,10 +862,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });
@@ -920,10 +893,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await compare({
                 failureThreshold: 1,
             });
@@ -933,10 +903,8 @@ describe('MapShapeSeries', () => {
     describe('Logger threading', () => {
         it('routes the map-shape no-topology warning through the chart-scoped logger, not the module fallback', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-            const chartProxy = AgCharts.create(options);
+            const chartProxy = await createEnterpriseChart(options);
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
 
             const scopedWarnOnce = vi.spyOn(chart.ctx.logger, 'warnOnce').mockImplementation(() => {});
             const fallbackWarnOnce = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});

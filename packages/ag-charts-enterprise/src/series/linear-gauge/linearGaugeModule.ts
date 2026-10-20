@@ -4,6 +4,7 @@ import {
     FONT_SIZE,
     FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    LABEL_PLACEMENT_STYLE_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
@@ -11,6 +12,7 @@ import {
     SERIES_TOOLTIP_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -66,15 +68,16 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             placement: 'inside-start',
-            avoidCollisions: true,
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $rem: 2 },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             minimumFontSize: FONT_SIZE.SMALL,
             spacing: 18,
-            color: { $ref: 'chartBackgroundColor' },
             wrapping: 'on-space',
             truncate: AUTO_SIZED_LABEL_TRUNCATE,
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside', 'chartBackgroundColor'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside', 'foregroundColor'),
         },
         tooltip: {
             ...SERIES_TOOLTIP_THEME,
@@ -102,6 +105,7 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
                 spacing: 5,
                 rotation: 0,
                 label: {
+                    ...LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     fontStyle: 'normal',
                     ...FONT_THEME_DEFAULTS,

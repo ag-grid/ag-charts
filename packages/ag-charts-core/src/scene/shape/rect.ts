@@ -9,6 +9,7 @@ import { DeclaredSceneChangeDetection } from '../../rendering/changeDetectable';
 import type { SerializedNodeState, SerializedRectProps } from '../../types/scene';
 import { BBox } from '../bbox';
 import { ExtendedPath2D } from '../extendedPath2D';
+import { shadowPass } from '../shadowPass';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
 import { type CanvasContext } from './shape';
@@ -244,6 +245,24 @@ export function clippedRoundRect(
     path.closePath();
 }
 
+/** The change-detected properties of a rect that only change how its path is painted, never the path itself. */
+const PAINT_ONLY_PROPERTIES: ReadonlySet<string> = new Set([
+    '__fill',
+    '__fillOpacity',
+    '__stroke',
+    '__strokeOpacity',
+    '__opacity',
+    '__fillShadow',
+    '__shadowMode',
+    '__fillBBox',
+    '__fillParams',
+    '__lineDash',
+    '__lineDashOffset',
+    '__lineCap',
+    '__lineJoin',
+    '__miterLimit',
+]);
+
 export class Rect<D = unknown> extends Path<D> implements DistantObject {
     static override readonly className: string = 'Rect';
 
@@ -334,17 +353,26 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
 
     private lastUpdatePathStrokeWidth: number = this.__strokeWidth;
 
+    /** The stroke width is written without marking the path dirty (see `setStyleProperties`), so check it here. */
     protected override isDirtyPath() {
-        return (
-            this.lastUpdatePathStrokeWidth !== this.__strokeWidth ||
-            Boolean(this.path.isDirty() || this.borderPath.isDirty())
-        );
+        return this.lastUpdatePathStrokeWidth !== this.__strokeWidth;
+    }
+
+    protected override affectsPath(property: string): boolean {
+        return !PAINT_ONLY_PROPERTIES.has(property);
     }
 
     private effectiveStrokeWidth: number = this.__strokeWidth;
 
-    private hittester = super.isPointInPath.bind(this);
-    private distanceCalculator = super.distanceSquaredTransformedPoint.bind(this);
+    /** Set by `updatePath` when the corners are square, so hit testing and distance can use the bbox, not the path. */
+    private squareCorners = false;
+
+    /** Set by `updatePath` when just a square rect is filled. Subclasses with own paths clear it. */
+    protected plainRect = false;
+    private plainRectX = 0;
+    private plainRectY = 0;
+    private plainRectWidth = 0;
+    private plainRectHeight = 0;
 
     /**
      * When the rectangle's width or height is less than a pixel
@@ -366,10 +394,15 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         let { __x: x, __y: y, __width: w, __height: h, __strokeWidth: strokeWidth, __clipBBox: clipBBox } = this;
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
         const pixelSize = 1 / pixelRatio;
+        const squareCorners = topLeft === 0 && topRight === 0 && bottomRight === 0 && bottomLeft === 0;
         let microPixelEffectOpacity = 1;
 
         path.clear();
-        borderPath.clear();
+        // Skip `clear()` on an empty border path: it allocates a new Path2D.
+        if (!borderPath.isEmpty()) {
+            borderPath.clear();
+        }
+        this.plainRect = false;
 
         if (w === 0 || h === 0) {
             this.effectiveStrokeWidth = 0;
@@ -477,24 +510,18 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             // Rect.
             this.borderClipPath = undefined;
             clippedRoundRect(path, x, y, w, h, cornerRadii, clipBBox);
-        }
 
-        // Path's isPointInPath and distanceSquared are expensive computations,
-        // so just use a BBox if the corners aren't rounded.
-        if ([topLeft, topRight, bottomRight, bottomLeft].every(areCornersZero)) {
-            const bbox = this.getBBox();
-            this.hittester = bbox.containsPoint.bind(bbox);
-            const rectInstance = this;
-
-            function distanceSquaredFromRect(hitX: number, hitY: number): number {
-                return rectInstance.getBBox().distanceSquared(hitX, hitY);
+            if (clipBBox == null && squareCorners) {
+                this.plainRect = true;
+                this.plainRectX = x;
+                this.plainRectY = y;
+                this.plainRectWidth = w;
+                this.plainRectHeight = h;
             }
-
-            this.distanceSquared = distanceSquaredFromRect;
-        } else {
-            this.hittester = super.isPointInPath;
-            this.distanceCalculator = super.distanceSquaredTransformedPoint;
         }
+
+        // Path's isPointInPath and distanceSquared are expensive, so use the BBox if the corners aren't rounded.
+        this.squareCorners = squareCorners;
 
         this.effectiveStrokeWidth = strokeWidth;
         this.lastUpdatePathStrokeWidth = strokeWidth;
@@ -507,7 +534,10 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     }
 
     override isPointInPath(x: number, y: number): boolean {
-        return this.hittester(x, y);
+        if (this.squareCorners) {
+            return this.getBBox().containsPoint(x, y);
+        }
+        return super.isPointInPath(x, y);
     }
 
     get midPoint(): { x: number; y: number } {
@@ -585,17 +615,22 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     }
 
     override distanceSquared(x: number, y: number): number {
-        return this.distanceCalculator(x, y);
+        if (this.squareCorners) {
+            return this.getBBox().distanceSquared(x, y);
+        }
+        return this.distanceSquaredTransformedPoint(x, y);
     }
 
     protected override applyFillAndAlpha(
-        ctx: CanvasRenderingContext2D,
+        ctx: CanvasContext,
         logger: Logger,
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
         super.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
-        ctx.globalAlpha *= this.microPixelEffectOpacity;
+        if (this.microPixelEffectOpacity !== 1) {
+            ctx.globalAlpha *= this.microPixelEffectOpacity;
+        }
     }
 
     protected override getPaintOpacityScale(): number {
@@ -609,7 +644,45 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
 
     protected override applyStrokeAndAlpha(ctx: CanvasContext): void {
         super.applyStrokeAndAlpha(ctx);
-        ctx.globalAlpha *= this.microPixelEffectOpacity;
+        if (this.microPixelEffectOpacity !== 1) {
+            ctx.globalAlpha *= this.microPixelEffectOpacity;
+        }
+    }
+
+    /** Whether the rect is one `fillRect` of a plain colour: no shadow, cutout, gradient, pattern, image or clip. */
+    private fillsDirectly(): boolean {
+        return (
+            this.plainRect &&
+            shadowPass.state === 'none' &&
+            this.__fillShadow?.enabled !== true &&
+            this.__drawingMode !== 'cutout' &&
+            !this.clip &&
+            this.fillImage == null &&
+            this.fillGradient == null &&
+            this.fillPattern == null
+        );
+    }
+
+    /** A directly filled rect only sets the fill style and restores `globalAlpha`, so it needs no save and restore. */
+    protected override needsIsolatedState(): boolean {
+        return !this.fillsDirectly();
+    }
+
+    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger): void {
+        if (this.fillsDirectly()) {
+            // No path: `executeFill` fills the rect itself, and a plain rect has no stroke to draw.
+            this.fillStroke(ctx, logger);
+        } else {
+            super.drawPath(ctx, logger);
+        }
+    }
+
+    protected override executeFill(ctx: CanvasContext, path?: Path2D) {
+        if (path == null && this.plainRect) {
+            ctx.fillRect(this.plainRectX, this.plainRectY, this.plainRectWidth, this.plainRectHeight);
+        } else {
+            super.executeFill(ctx, path);
+        }
     }
 
     protected override renderStroke(
@@ -645,8 +718,4 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             ctx.globalAlpha = globalAlpha;
         }
     }
-}
-
-function areCornersZero(cornerRadius: number): boolean {
-    return cornerRadius === 0;
 }

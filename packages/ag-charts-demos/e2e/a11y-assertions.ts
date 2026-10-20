@@ -250,7 +250,11 @@ async function expectTabState(tab: Locator, panel: Locator, active: boolean) {
 export async function expectRadioGroupContract(page: Page, spec: RadioGroupSpec) {
     const group = page.getByRole('radiogroup', { name: spec.name, exact: true });
     const radios = group.getByRole('radio');
-    await expect(radios).toHaveText([...spec.options]);
+    await expect(radios).toHaveCount(spec.options.length);
+    // By accessible name, not text: an icon-only radio is named by its aria-label.
+    for (const [index, label] of spec.options.entries()) {
+        await expect(radios.nth(index)).toHaveAccessibleName(label);
+    }
 
     const initial = spec.options.indexOf(spec.initial);
     const expectChecked = async (index: number) => {

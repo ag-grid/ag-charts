@@ -13,7 +13,7 @@ import {
     type TextOptions,
     type WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, themeLineHeight } from 'ag-charts-core';
 
 export const DEFAULT_FIBONACCI_STROKES = [
     '#797b86',
@@ -44,6 +44,7 @@ const handle: WithThemeParams<AgAnnotationHandleStyles> = {
 const font: WithThemeParams<TextOptions> = {
     color: { $ref: 'chartBackgroundColor' },
     fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
+    lineHeight: themeLineHeight('lineHeight'),
     fontFamily: { $ref: 'fontFamily' },
 };
 
@@ -52,6 +53,7 @@ const axisLabel: WithThemeParams<AgAnnotationAxisLabel> = {
     enabled: true,
     fill: { $ref: 'foregroundColor' },
     fontSize: { $ref: 'fontSize' },
+    lineHeight: themeLineHeight('lineHeight'),
 };
 
 const text = {
@@ -76,6 +78,7 @@ const channelText: WithThemeParams<AgChannelAnnotationTextStyles> = {
 export const MEASURER_STATISTICS_THEME: WithThemeParams<AgMeasurerAnnotationStatistics> = {
     ...font,
     fontSize: { $ref: 'fontSize' },
+    lineHeight: themeLineHeight('lineHeight'),
     color: { $ref: 'annotationTextboxTextColor' },
     fill: { $ref: 'annotationTextboxBackgroundColor' },
     stroke: { $ref: 'annotationTextboxBorderColor' },
@@ -101,6 +104,7 @@ const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
         ...font,
         color: undefined,
         fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
+        lineHeight: themeLineHeight('lineHeight'),
     },
 };
 

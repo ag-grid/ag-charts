@@ -37,6 +37,7 @@ export interface FontFields {
     fontWeight?: FontWeight;
     fontSize: number;
     fontFamily: string;
+    lineHeight?: number;
     color?: string;
 }
 

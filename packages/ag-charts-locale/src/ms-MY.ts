@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_MS_MY: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'Volum ${value}',
+    statusBarVolumeProfilePrice: 'Harga',
+    statusBarVolumeProfileUp: 'Naik',
+    statusBarVolumeProfileDown: 'Turun',
+    statusBarVolumeProfileTotal: 'Jumlah',
     tooltipPaginationStatus: '${index}[number] daripada ${count}[number]',
 };

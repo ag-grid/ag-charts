@@ -13,6 +13,7 @@ import {
     clampArray,
     createId,
     fitLabelTextAutoSize,
+    fontWithSize,
     resolveLabelFit,
     toRadians,
 } from 'ag-charts-core';
@@ -131,8 +132,7 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         labelNode.text = text;
         labelNode.textAlign = 'center';
         labelNode.textBaseline = 'middle';
-        labelNode.setFont(label);
-        labelNode.fontSize = fontSize ?? label.fontSize;
+        labelNode.setFont(fontWithSize(label, fontSize));
         labelNode.setBoxing(label);
     }
 
