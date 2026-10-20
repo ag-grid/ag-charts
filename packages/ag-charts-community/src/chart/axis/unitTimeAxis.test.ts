@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { BBox } from 'ag-charts-core';
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
+import { getAxisLabelTexts } from '../test/axisAccessors';
 import { calculateAxisBBox, mixinDerivedCases } from '../test/axisTestCases';
 import {
     type ChartOrProxy,
@@ -549,14 +550,6 @@ describe('Time Axis Examples', () => {
             { date: new Date(2024, 2, 1), value: 2 },
         ];
 
-        const labelTexts = (chartInstance: any, position: 'bottom' | 'left' = 'bottom'): string[] => {
-            const axis = deproxy(chartInstance).axes.find((a: any) => a.position === position) as any;
-            expect(axis).toBeDefined();
-            return Array.from(axis.tickLabelGroupSelection.nodes() as Iterable<any>)
-                .map((node) => node.text)
-                .filter((text): text is string => text != null && text !== '');
-        };
-
         const monthAndYearOptions = (
             labelEnabled: boolean,
             axisType: 'time' | 'unit-time'
@@ -580,7 +573,8 @@ describe('Time Axis Examples', () => {
             async (axisType) => {
                 chart = deproxy(await createChart(monthAndYearOptions(false, axisType)));
 
-                const texts = labelTexts(chart);
+                // Every node, not only the visible ones: a base tier that was merely hidden would otherwise pass as removed.
+                const texts = getAxisLabelTexts(chart, 'bottom', { visibleOnly: false });
                 expect(texts.length).toBeGreaterThan(0);
                 // Parent tier (year) is retained; no base tier (month) text leaks through.
                 expect(texts).toContain('2024');
@@ -594,20 +588,22 @@ describe('Time Axis Examples', () => {
             (options.axes as any).x.parentLevel.tick = { enabled: true };
             chart = deproxy(await createChart(options));
             const axis = deproxy(chart).axes.find((a: any) => a.position === 'bottom') as any;
-            expect(labelTexts(chart)).toContain('2024');
-            expect(axis.labelSource.getLabelObstacles(BBox.zero)).toHaveLength(labelTexts(chart).length);
+            expect(getAxisLabelTexts(chart, 'bottom')).toContain('2024');
+            expect(axis.labelSource.getLabelObstacles(BBox.zero)).toHaveLength(
+                getAxisLabelTexts(chart, 'bottom').length
+            );
         });
 
         it('removes base-tier labels at runtime while the parent tier remains (TC2)', async () => {
             chart = deproxy(await createChart(monthAndYearOptions(true, 'unit-time')));
 
-            const before = labelTexts(chart);
+            const before = getAxisLabelTexts(chart, 'bottom');
             expect(before.some((t) => /Jan|Feb|Mar|Nov|Dec/.test(t))).toBe(true);
 
             await deproxy(chart).publicApi!.update(prepareTestOptions(monthAndYearOptions(false, 'unit-time')));
             await waitForChartStability(chart);
 
-            const after = labelTexts(chart);
+            const after = getAxisLabelTexts(chart, 'bottom', { visibleOnly: false });
             expect(after).toContain('2024');
             expect(after.some((t) => /Jan|Feb|Mar|Nov|Dec/.test(t))).toBe(false);
         });
@@ -624,7 +620,7 @@ describe('Time Axis Examples', () => {
                 })
             );
 
-            expect(labelTexts(chart, 'left')).toEqual([]);
+            expect(getAxisLabelTexts(chart, 'left', { visibleOnly: false })).toEqual([]);
         });
     });
 

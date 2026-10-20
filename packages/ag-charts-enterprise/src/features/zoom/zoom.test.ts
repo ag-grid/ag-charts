@@ -22,6 +22,7 @@ import {
     getAxisLabelDatums,
     getAxisPickTickData,
     getLegendModule,
+    getSeriesRect,
     getSwapChainText,
     hoverAction,
     mouseDownAction,
@@ -638,14 +639,10 @@ describe('Zoom', () => {
             });
         });
 
-        describe('dragging to the plot edge', () => {
+        describe('dragging to the series area edge', () => {
             // minVisibleItems: 0 removes the item-count floor so the assertion isolates the pointer/anchor
             // math from the (separate) minimum-visible-items clamp.
             const stepsPerLeg = 5;
-
-            function plotRect(): { x: number; y: number; width: number; height: number } {
-                return (deproxy(chart) as any).seriesRect;
-            }
 
             function span(axis: 'x' | 'y'): number {
                 const ratio = axis === 'x' ? chart.getState().zoom?.ratioX : chart.getState().zoom?.ratioY;
@@ -661,7 +658,7 @@ describe('Zoom', () => {
                 }
             }
 
-            // Captures the zoomed span before, at and past the plot edge: the zoom must keep updating right up
+            // Captures the zoomed span before, at and past the series area edge: the zoom must keep updating right up
             // to the axis end and stop there.
             async function dragToEdge(
                 axis: 'x' | 'y',
@@ -688,30 +685,30 @@ describe('Zoom', () => {
 
             it('stops zooming the x-axis when the pointer reaches the axis end', async () => {
                 await prepareChart({ minVisibleItems: 0 });
-                const plotLeft = plotRect().x;
+                const seriesLeft = getSeriesRect(chart).x;
                 const axisY = cy * 2 - 30;
 
                 const { spanNearEdge, spanAtEdge, spanPastEdge } = await dragToEdge(
                     'x',
                     { x: cx * 1.5, y: axisY },
-                    { x: plotLeft, y: axisY },
-                    { x: plotLeft - 100, y: axisY }
+                    { x: seriesLeft, y: axisY },
+                    { x: seriesLeft - 100, y: axisY }
                 );
 
                 expect(spanAtEdge).toBeLessThan(spanNearEdge);
                 expect(spanPastEdge).toBeCloseTo(spanAtEdge);
             });
 
-            it('stops zooming the y-axis when the pointer reaches the plot edge', async () => {
+            it('stops zooming the y-axis when the pointer reaches the series area edge', async () => {
                 await prepareChart({ minVisibleItems: 0 });
-                const plotTop = plotRect().y;
+                const seriesTop = getSeriesRect(chart).y;
                 const axisX = 30;
 
                 const { spanNearEdge, spanAtEdge, spanPastEdge } = await dragToEdge(
                     'y',
                     { x: axisX, y: cy * 1.5 },
-                    { x: axisX, y: plotTop },
-                    { x: axisX, y: plotTop - 100 }
+                    { x: axisX, y: seriesTop },
+                    { x: axisX, y: seriesTop - 100 }
                 );
 
                 expect(spanAtEdge).toBeLessThan(spanNearEdge);
