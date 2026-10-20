@@ -10,6 +10,7 @@ import {
     cartesianChartAssertions,
     compareImageSnapshot,
     deproxy,
+    getAxisLabelTexts,
     mixinDerivedCases,
     setupMockCanvas,
     setupMockConsole,
@@ -607,12 +608,9 @@ describe('Ordinal Time Axis Examples', () => {
             },
         });
 
-        const labelTexts = (chartInstance: _ModuleSupport.Chart): string[] => {
-            const axis = (chartInstance.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
-            return Array.from((axis as any).tickLabelGroupSelection.nodes() as Iterable<any>)
-                .map((node) => node.text)
-                .filter((text): text is string => text != null && text !== '');
-        };
+        // Every node in the scene graph: a base tier that was merely hidden would otherwise pass as removed.
+        const labelTexts = (chartInstance: _ModuleSupport.Chart): string[] =>
+            getAxisLabelTexts(chartInstance, 'bottom', { visibleOnly: false });
 
         const isParentTier = (text: string) => /[A-Za-z]/.test(text);
 

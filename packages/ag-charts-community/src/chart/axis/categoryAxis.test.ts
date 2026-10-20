@@ -1,5 +1,5 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
-import { afterEach, beforeAll, describe, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
@@ -333,5 +333,28 @@ describe('Category Axis', () => {
                 await compare();
             }
         );
+    });
+
+    it('should keep nice disabled after an axis options update', async () => {
+        const options = (title: string): AgCartesianChartOptions =>
+            prepareTestOptions({
+                data: [
+                    { year: '2020', value: 5 },
+                    { year: '2021', value: 10 },
+                ],
+                series: [{ type: 'bar', xKey: 'year', yKey: 'value' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom', title: { text: title } },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+        const instance = await createChart(options('Year'));
+        chart = instance;
+        const categoryAxis = () => deproxy(instance).axes.find((axis) => axis.id === 'x')!;
+        expect(categoryAxis().nice).toBe(false);
+
+        await instance.update(options('Years'));
+
+        expect(categoryAxis().nice).toBe(false);
     });
 });

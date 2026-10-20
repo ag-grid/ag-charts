@@ -1,4 +1,5 @@
 // Undocumented APIs used by Enterprise Modules.
+export * from './chart/test/axisAccessors';
 export * from './chart/test/utils';
 export * from './chart/test/axisTestCases';
 export * from './chart/test/random';
@@ -15,3 +16,4 @@ export { themeOptionsDefFor } from './chart/mapping/themes';
 export { isPresetOverridesType } from './chart/themes/chartTheme';
 export * from './chart/test/shadowFixtures';
 export * from './chart/test/prepareOptions';
+export * from './chart/test/syncFixtures';
