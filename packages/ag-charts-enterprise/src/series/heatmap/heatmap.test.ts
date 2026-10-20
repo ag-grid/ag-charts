@@ -10,11 +10,13 @@ import {
     NEG_BIG,
     type SceneGeometrySample,
     assertTooltipSuppressedForMissing,
+    clickAction,
     compareImageSnapshot,
     computeLegendBBox,
     createSceneGeometrySampler,
     deproxy,
     expectNoAnimation,
+    expectNonBlank,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
     hoverAction,
@@ -39,6 +41,7 @@ import {
     renderEnterpriseChartImage,
     shadowedShapes,
 } from '../../test/utils';
+import { HeatmapCellBatch } from './heatmapCellBatch';
 import { HeatmapSeries } from './heatmapSeries';
 
 // Resolves nodeData fresh on every call so it stays valid across `proxy.update(...)` rebuilds.
@@ -3224,6 +3227,460 @@ describe('HeatmapSeries', () => {
                 await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
                 expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).not.toBe(datumIndex);
                 expect(cells(chart)).toEqual(await freshCells(data.map((cell) => (cell.id === '2:2' ? moved : cell))));
+            });
+        });
+    });
+
+    describe('batched cells', () => {
+        type Cell = { id: string; x: string; y: string; v: number | null };
+
+        const grid = (columns: number, rows: number): Cell[] => {
+            const cells: Cell[] = [];
+            for (let x = 0; x < columns; x++) {
+                for (let y = 0; y < rows; y++) {
+                    cells.push({ id: `${x}:${y}`, x: `X${x}`, y: `Y${y}`, v: (x * 7 + y * 3) % 11 });
+                }
+            }
+            return cells;
+        };
+        const GRID = grid(6, 4);
+        const COLOR_SCALE = { fills: [{ color: 'blue' }, { color: 'red' }] };
+        // A highlight shadow that is switched off paints nothing, but keeps the cells out of the batch.
+        const AS_RECTS_HIGHLIGHT = { highlight: { highlightedItem: { shadow: { enabled: false } } } };
+        const SELECTION = { enabled: true, selectedItem: { fill: 'lime' }, unselectedItem: { opacity: 0.3 } };
+
+        const options = (series: Record<string, unknown> = {}, data: Cell[] = GRID, asRects = false) =>
+            prepareEnterpriseTestOptions({
+                data,
+                dataIdKey: 'id',
+                series: [
+                    {
+                        type: 'heatmap' as const,
+                        xKey: 'x',
+                        yKey: 'y',
+                        colorKey: 'v',
+                        colorScale: COLOR_SCALE,
+                        ...series,
+                        ...(asRects ? AS_RECTS_HIGHLIGHT : {}),
+                    },
+                ],
+                legend: { enabled: false },
+            } as AgChartOptions);
+
+        const heatmap = (c: Chart) => classCast(c.series[0], HeatmapSeries);
+        const batchOf = (c: Chart) =>
+            [...heatmap(c).contentGroup.descendants()].find((node) => node instanceof HeatmapCellBatch);
+        const isBatched = (c: Chart) => batchOf(c)?.visible === true;
+        /** The cells drawn as `Rect`s of their own, which is none while the batch paints them. */
+        const rectCellCount = (c: Chart) =>
+            [...heatmap(c).contentGroup.descendants()].filter((node) => node instanceof Rect).length;
+        const cellShapes = (c: Chart) => collectShapes(heatmap(c).contentGroup);
+        const cellFills = (c: Chart) => cellShapes(c).map((shape) => String(shape.fill));
+
+        async function create(series: Record<string, unknown> = {}, data: Cell[] = GRID, asRects = false) {
+            chart = deproxy(await createEnterpriseChart(options(series, data, asRects)));
+        }
+
+        async function update(series: Record<string, unknown>, data: Cell[], asRects: boolean) {
+            await chart.publicApi.update(options(series, data, asRects));
+            await waitForChartStability(chart);
+        }
+
+        /**
+         * Paints the cells as `Rect`s, then as the batch, then as `Rect`s again on one chart (the mock canvas
+         * only tracks the first), and expects the same pixels each time.
+         */
+        async function expectBatchMatchesRects(series: Record<string, unknown> = {}, data: Cell[] = GRID) {
+            await create(series, data, true);
+            expect(isBatched(chart)).toBe(false);
+            const reference = ctx.snapshot();
+            expectNonBlank(reference);
+
+            await update(series, data, false);
+            expect(isBatched(chart)).toBe(true);
+            expect(ctx.snapshot()).toMatchImage(reference);
+
+            await update(series, data, true);
+            expect(isBatched(chart)).toBe(false);
+            expect(ctx.snapshot()).toMatchImage(reference);
+        }
+
+        describe('pixel parity with Rect cells', () => {
+            it('paints a colour scale as the Rects do', async () => {
+                await expectBatchMatchesRects();
+            });
+
+            it('paints an itemStyler fillOpacity as the Rects do', async () => {
+                const itemStyler = ({ datum }: { datum: Cell }) => ({
+                    fillOpacity: (datum.v ?? 0) % 2 === 1 ? 0.4 : 1,
+                });
+                await expectBatchMatchesRects({ itemStyler });
+            });
+
+            it('paints missingDataFill and an itemStyler fill as the Rects do', async () => {
+                const data = GRID.map((cell, i) => (i % 5 === 0 ? { ...cell, v: null } : cell));
+                const itemStyler = ({ datum }: { datum: Cell }) => (datum.id === '2:1' ? { fill: 'magenta' } : {});
+                await expectBatchMatchesRects(
+                    { colorScale: { ...COLOR_SCALE, missingDataFill: '#cccccc' }, itemStyler },
+                    data
+                );
+            });
+
+            it('paints cells narrower than a pixel as the Rects do', async () => {
+                await expectBatchMatchesRects({}, grid(1500, 2));
+            });
+
+            it('paints cells shorter than a pixel as the Rects do', async () => {
+                await expectBatchMatchesRects({}, grid(2, 800));
+            });
+
+            it('paints cells at a non-crisp zoom as the Rects do', async () => {
+                const zoom = { zoom: { enabled: true }, initialState: { zoom: { ratioX: { start: 0.1, end: 0.7 } } } };
+                chart = deproxy(await createEnterpriseChart({ ...options({}, GRID, true), ...zoom }));
+                expect(isBatched(chart)).toBe(false);
+                const reference = ctx.snapshot();
+                expectNonBlank(reference);
+
+                await chart.publicApi.update({ ...options({}, GRID, false), ...zoom });
+                await waitForChartStability(chart);
+                expect(isBatched(chart)).toBe(true);
+                expect(ctx.snapshot()).toMatchImage(reference);
+            });
+        });
+
+        describe('data changes', () => {
+            it('keeps matching the Rects across a domain change, added columns and removed cells', async () => {
+                const SHIFTED = GRID.map((cell, i) => ({ ...cell, v: i === 0 ? 40 : cell.v }));
+                const GROWN = [...SHIFTED, ...grid(8, 4).filter((cell) => cell.x === 'X6' || cell.x === 'X7')];
+                const SHRUNK = GROWN.filter((cell) => cell.y !== 'Y2' && cell.x !== 'X0');
+
+                await create();
+                for (const data of [SHIFTED, GROWN, SHRUNK, GRID]) {
+                    await chart.publicApi.updateDelta({ data });
+                    await waitForChartStability(chart);
+                    expect(isBatched(chart)).toBe(true);
+                    expect(cellShapes(chart)).toHaveLength(data.length);
+                    const batched = ctx.snapshot();
+                    expectNonBlank(batched);
+
+                    await update({}, data, true);
+                    expect(isBatched(chart)).toBe(false);
+                    expect(ctx.snapshot()).toMatchImage(batched);
+                    await update({}, data, false);
+                }
+            });
+
+            it('keeps matching the Rects across transactions that update, add and remove cells', async () => {
+                const UPDATED = GRID.map((cell) => (cell.id === '1:1' ? { ...cell, v: 9 } : cell));
+                const ADDED = [...UPDATED, { id: '9:0', x: 'X9', y: 'Y0', v: 3 }];
+                const REMOVED = ADDED.filter((cell) => cell.id !== '0:0');
+                const transactions = [
+                    { data: UPDATED, transaction: { update: [{ id: '1:1', x: 'X1', y: 'Y1', v: 9 }] } },
+                    { data: ADDED, transaction: { add: [{ id: '9:0', x: 'X9', y: 'Y0', v: 3 }] } },
+                    { data: REMOVED, transaction: { remove: [{ id: '0:0' }] } },
+                ];
+
+                await create();
+                for (const { data, transaction } of transactions) {
+                    await chart.publicApi.applyTransaction(transaction);
+                    await waitForChartStability(chart);
+                    expect(isBatched(chart)).toBe(true);
+                    expect(cellShapes(chart)).toHaveLength(data.length);
+                    const batched = ctx.snapshot();
+                    expectNonBlank(batched);
+
+                    await update({}, data, true);
+                    expect(ctx.snapshot()).toMatchImage(batched);
+                    await update({}, data, false);
+                }
+            });
+        });
+
+        describe('eligibility', () => {
+            const GRADIENT = { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'blue' }] };
+            const ineligible: Record<string, Record<string, unknown>> = {
+                'a corner radius': { cornerRadius: 2 },
+                'a series stroke': { stroke: 'black', strokeWidth: 2 },
+                'an enabled shadow': { shadow: SHADOW },
+                'a highlight shadow': AS_RECTS_HIGHLIGHT,
+                'a gradient fill from the itemStyler': { itemStyler: () => ({ fill: GRADIENT }) },
+                'a stroke on one cell from the itemStyler': {
+                    itemStyler: ({ datum }: { datum: Cell }) =>
+                        datum.id === '3:2' ? { stroke: 'black', strokeWidth: 2 } : {},
+                },
+            };
+
+            it('batches plain cells, and leaves no Rect behind', async () => {
+                await create();
+                expect(isBatched(chart)).toBe(true);
+                expect(rectCellCount(chart)).toBe(0);
+                expect(cellShapes(chart)).toHaveLength(GRID.length);
+            });
+
+            it('batches a zero-width stroke and an itemStyler that only changes the fill', async () => {
+                await create({ stroke: 'black', strokeWidth: 0, itemStyler: () => ({ fill: 'green' }) });
+                expect(isBatched(chart)).toBe(true);
+                expect(cellFills(chart)).toEqual(Array(GRID.length).fill('green'));
+            });
+
+            it.each(Object.keys(ineligible))('paints every cell as a Rect for %s', async (name) => {
+                await create(ineligible[name]);
+                expect(isBatched(chart)).toBe(false);
+                expect(rectCellCount(chart)).toBe(GRID.length);
+                expect(cellShapes(chart)).toHaveLength(GRID.length);
+            });
+        });
+
+        describe('switching representation', () => {
+            async function select(datumIndex: number) {
+                const series = heatmap(chart);
+                const itemId = series.data!.getItemIdFromIndex(datumIndex);
+                chart.publicApi.setSelection([{ seriesId: series.id, itemId }]);
+                await waitForChartStability(chart);
+            }
+
+            it('moves every cell to Rects while a selection strokes one, and back when it is removed', async () => {
+                const selection = {
+                    ...SELECTION,
+                    selectedItem: { stroke: 'black', strokeWidth: 3 },
+                };
+                await create({ selection, tooltip: { enabled: false } });
+                expect(isBatched(chart)).toBe(true);
+                const plain = ctx.snapshot();
+                expectNonBlank(plain);
+
+                await select(5);
+                expect(isBatched(chart)).toBe(false);
+                expect(rectCellCount(chart)).toBe(GRID.length);
+                expect(cellShapes(chart).filter((shape) => shape.strokeWidth === 3)).toHaveLength(1);
+
+                chart.publicApi.setSelection([]);
+                await waitForChartStability(chart);
+                expect(isBatched(chart)).toBe(true);
+                expect(rectCellCount(chart)).toBe(0);
+                expect(cellShapes(chart).filter((shape) => shape.strokeWidth > 0)).toHaveLength(0);
+                expect(ctx.snapshot()).toMatchImage(plain);
+            });
+
+            it('batches a selection that only changes fill and opacity', async () => {
+                const selectedItem = { fill: 'lime', strokeWidth: 0 };
+                await create({ selection: { ...SELECTION, selectedItem }, tooltip: { enabled: false } });
+                await select(5);
+
+                expect(isBatched(chart)).toBe(true);
+                expect(cellFills(chart)[5]).toBe('lime');
+                expect(cellShapes(chart).filter((shape) => shape.fillOpacity === 0.3)).toHaveLength(GRID.length - 1);
+            });
+
+            it('moves every cell to Rects while an itemStyler strokes cells on hover, and back after', async () => {
+                const itemStyler = ({ highlightState }: { highlightState: string }) =>
+                    highlightState === 'unhighlighted-item' ? { stroke: 'black', strokeWidth: 2 } : {};
+                await create({ itemStyler, tooltip: { enabled: false } });
+                expect(isBatched(chart)).toBe(true);
+                const plain = ctx.snapshot();
+
+                await hoverDatumByIndex(chart, 0, 0);
+                expect(isBatched(chart)).toBe(false);
+                expect(rectCellCount(chart)).toBe(GRID.length);
+
+                await hoverAction(1, 1)(chart);
+                await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+                expect(isBatched(chart)).toBe(true);
+                expect(rectCellCount(chart)).toBe(0);
+                expect(ctx.snapshot()).toMatchImage(plain);
+            });
+
+            it('follows a transaction after a switch, with no stale cells', async () => {
+                await create({ selection: { ...SELECTION, selectedItem: { stroke: 'black', strokeWidth: 3 } } });
+                await select(5);
+                chart.publicApi.setSelection([]);
+                await waitForChartStability(chart);
+                expect(isBatched(chart)).toBe(true);
+
+                const UPDATED = GRID.map((cell) => (cell.id === '1:1' ? { ...cell, v: 9 } : cell));
+                await chart.publicApi.applyTransaction({ update: [{ id: '1:1', x: 'X1', y: 'Y1', v: 9 }] });
+                await waitForChartStability(chart);
+
+                const fresh = deproxy(await createEnterpriseChart(options({}, UPDATED)));
+                const expected = cellFills(fresh);
+                fresh.destroy();
+                expect(cellFills(chart)).toEqual(expected);
+            });
+
+            it('switches between representations when an option is updated', async () => {
+                await create();
+                expect(isBatched(chart)).toBe(true);
+
+                await update({ cornerRadius: 2 }, GRID, false);
+                expect(isBatched(chart)).toBe(false);
+                expect(rectCellCount(chart)).toBe(GRID.length);
+                expect(cellShapes(chart)).toHaveLength(GRID.length);
+
+                await update({}, GRID, false);
+                expect(isBatched(chart)).toBe(true);
+                expect(rectCellCount(chart)).toBe(0);
+                expect(cellShapes(chart)).toHaveLength(GRID.length);
+            });
+        });
+
+        describe('interaction', () => {
+            const highlightedIndex = (c: Chart) => c.ctx.highlightManager.getActiveHighlight()?.datumIndex;
+
+            it('shows the tooltip and highlights the hovered cell', async () => {
+                await create();
+                expect(isBatched(chart)).toBe(true);
+
+                for (const datumIndex of [0, 7, GRID.length - 1]) {
+                    await hoverDatumByIndex(chart, 0, datumIndex);
+                    expect(isTooltipVisible(chart)).toBe(true);
+                    expect(highlightedIndex(chart)).toBe(datumIndex);
+                    const highlighted = collectShapes(heatmap(chart).highlightNodeGroup).filter(
+                        (shape) => shape.visible
+                    );
+                    expect(highlighted).toHaveLength(1);
+                    expect(highlighted[0].fill).toBe(cellFills(chart)[datumIndex]);
+                }
+            });
+
+            it('dims the cells as the Rects do while a cell is highlighted, and restores them after', async () => {
+                const series = { highlight: { unhighlightedItem: { opacity: 0.4 } }, tooltip: { enabled: false } };
+                const hoverOpacities = async () => {
+                    await hoverDatumByIndex(chart, 0, 3);
+                    return cellShapes(chart).map((shape) => shape.fillOpacity);
+                };
+
+                await create(series);
+                expect(isBatched(chart)).toBe(true);
+                const batched = await hoverOpacities();
+                expect(batched).toContain(0.4);
+
+                await hoverAction(1, 1)(chart);
+                await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+                expect(cellShapes(chart).map((shape) => shape.fillOpacity)).toEqual(Array(GRID.length).fill(1));
+
+                const asRects = {
+                    ...series,
+                    highlight: { ...series.highlight, highlightedItem: AS_RECTS_HIGHLIGHT.highlight.highlightedItem },
+                };
+                await update(asRects, GRID, false);
+                expect(isBatched(chart)).toBe(false);
+                expect(await hoverOpacities()).toEqual(batched);
+            });
+
+            it('picks the same cell as the Rects at cell centres, corners and outside the cells', async () => {
+                const data = GRID.map((cell, i) => (i === 9 ? { ...cell, v: null } : cell));
+                await create({}, data);
+                const series = heatmap(chart);
+                const { width, height } = series.getNodeData()![9];
+                const points = [
+                    ...[0, 5, 9, 14, GRID.length - 1].map((index) => ({
+                        dx: 0,
+                        dy: 0,
+                        datum: series.getNodeData()![index],
+                    })),
+                    { dx: width / 2 - 1, dy: height / 2 - 1, datum: series.getNodeData()![9] },
+                    { dx: -width / 2 + 1, dy: -height / 2 + 1, datum: series.getNodeData()![9] },
+                    { dx: 0, dy: -height * 20, datum: series.getNodeData()![9] },
+                ];
+
+                const pick = async () => {
+                    const picks: (number | undefined)[] = [];
+                    for (const { dx, dy, datum } of points) {
+                        const { canvasX, canvasY } = Transformable.toCanvasPoint(
+                            series.contentGroup,
+                            datum.point.x + dx,
+                            datum.point.y + dy
+                        );
+                        await hoverAction(canvasX, canvasY)(chart);
+                        await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+                        picks.push(highlightedIndex(chart));
+                    }
+                    return picks;
+                };
+
+                expect(isBatched(chart)).toBe(true);
+                const batched = await pick();
+                await update({}, data, true);
+                expect(isBatched(chart)).toBe(false);
+                const rects = await pick();
+
+                expect(batched).toEqual(rects);
+                expect(batched.slice(0, 5).filter((index) => index != null).length).toBeGreaterThan(0);
+            });
+
+            it('emits seriesNodeClick for the clicked cell', async () => {
+                const seriesNodeClick = vi.fn();
+                await create({ listeners: { seriesNodeClick } });
+                expect(isBatched(chart)).toBe(true);
+                const series = heatmap(chart);
+                const datum = series.getNodeData()![7];
+                const { canvasX, canvasY } = Transformable.toCanvasPoint(
+                    series.contentGroup,
+                    datum.point.x,
+                    datum.point.y
+                );
+
+                await clickAction(canvasX, canvasY)(chart);
+                await waitForChartStability(chart);
+
+                expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(seriesNodeClick.mock.calls[0][0].datum).toMatchObject({ id: GRID[7].id });
+            });
+
+            it('moves the keyboard focus across batched cells', async () => {
+                await create({ label: { enabled: true } });
+                expect(isBatched(chart)).toBe(true);
+
+                await tabIntoChart(chart);
+                await pressKey(chart, 'ArrowRight');
+                const first = highlightedIndex(chart);
+                await pressKey(chart, 'ArrowRight');
+                const second = highlightedIndex(chart);
+
+                expect(first).toBeDefined();
+                expect(second).toBeDefined();
+                expect(second).not.toBe(first);
+                expect(isTooltipVisible(chart)).toBe(true);
+            });
+        });
+
+        describe('scene output', () => {
+            const SVG_IDS = /id="[^"]*"|url\(#[^)]*\)/g;
+            // A zero-width stroke paints nothing, and only the `Rect` path records its colour.
+            const ZERO_STROKE_COLOUR = /( stroke="[^"]*")( stroke-width="0")/g;
+            const toSvg = (c: Chart) => c.ctx.scene.toSVG()!.replace(SVG_IDS, '').replace(ZERO_STROKE_COLOUR, '$2');
+
+            it('serialises to the same SVG as the Rects', async () => {
+                const itemStyler = ({ datum }: { datum: Cell }) => ({
+                    fillOpacity: (datum.v ?? 0) % 2 === 1 ? 0.4 : 1,
+                });
+                await create({ itemStyler });
+                expect(isBatched(chart)).toBe(true);
+                const batched = toSvg(chart);
+
+                await update({ itemStyler }, GRID, true);
+                expect(isBatched(chart)).toBe(false);
+
+                expect(toSvg(chart)).toBe(batched);
+                expect(batched.match(/<path /g)!.length).toBeGreaterThanOrEqual(GRID.length);
+            });
+
+            it('reports one scene geometry entry per cell, as the Rects do', async () => {
+                // The `Rect` path also keeps hidden rects for highlights, whose keys are not the cells' keys.
+                const visibleCells = () =>
+                    [...createSceneGeometrySampler(chart)()]
+                        .filter(([key, props]) => key.startsWith('series[0]/rect[') && props.visible === 1)
+                        .map(([, { x, y, width, height }]) => JSON.stringify({ x, y, width, height }))
+                        .sort((a, b) => a.localeCompare(b));
+
+                await create();
+                const batched = visibleCells();
+                expect(isBatched(chart)).toBe(true);
+                expect(batched).toHaveLength(GRID.length);
+
+                await update({}, GRID, true);
+                expect(isBatched(chart)).toBe(false);
+                expect(visibleCells()).toEqual(batched);
             });
         });
     });
