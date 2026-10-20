@@ -154,16 +154,22 @@ describe('Chart on a detached container with async data and a series-type switch
             expect(wrappers(container)).toHaveLength(1);
         });
 
-        // The switch queues the old chart's teardown, so attaching straight after requesting it lands in the
-        // window before that teardown runs.
+        // The old chart's teardown waits for its in-flight update, so keep one running while the switch is requested:
+        // the container is then attached with the old chart still queued for teardown.
         it('has exactly one chart wrapper once the container is attached before the old chart is torn down', async () => {
             const { container, attach } = setupMeasurableContainer();
             await createCartesian(container);
             const original = deproxy(proxy);
 
+            const inFlight = proxy.updateDelta({ data: [...DATA, { country: 'Brazil', gold: 40 }] });
             const switched = switchToPolar(container);
             attach();
-            await switched;
+            await Promise.resolve();
+            // Teardown ends by freezing the chart, so an unfrozen old chart is still waiting on its update.
+            expect(Object.isFrozen(original)).toBe(false);
+            expect(wrappers(container)).toHaveLength(1);
+
+            await Promise.all([inFlight, switched]);
             await new Promise((resolve) => setTimeout(resolve, 50));
             await proxy.waitForUpdate();
 

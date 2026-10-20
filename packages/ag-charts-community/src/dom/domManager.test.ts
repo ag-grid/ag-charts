@@ -804,6 +804,8 @@ describe('DOMManager', () => {
             expect(lightContainer.contains(dm.getParent('canvas'))).toBe(true);
             expect(shadow.querySelector(styleSelector)).toBeNull();
             expect(shadow.querySelector('style[data-ag-charts]')).toBeNull();
+            // The wrapper moves with its styles element, so stale shadow styles must not travel with it.
+            expect(lightContainer.querySelector('style[data-ag-charts]')).toBeNull();
             expect(doc.head.querySelector(styleSelector)).not.toBeNull();
             expect(doc.head.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
         });
@@ -813,7 +815,8 @@ describe('DOMManager', () => {
             const { shadow: shadowB, container: containerB } = newShadow();
             const dm = new DOMManager(eventsHub, undefined, doc, containerA);
             dm.addStyles(STYLE_ID, '.test { width: 100% }');
-            expect(shadowA.querySelector(styleSelector)).not.toBeNull();
+            const staleStyle = shadowA.querySelector(styleSelector);
+            expect(staleStyle).not.toBeNull();
 
             moveTo(dm, containerB);
 
@@ -821,6 +824,10 @@ describe('DOMManager', () => {
             expect(shadowB.querySelector(styleSelector)).not.toBeNull();
             expect(shadowB.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
             expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
+            // Shadow-root styles live inside the wrapper; they are dropped and recreated rather than carried
+            // along with it into the new root.
+            expect(containerB.querySelectorAll(styleSelector)).toHaveLength(1);
+            expect(containerB.querySelector(styleSelector)).not.toBe(staleStyle);
         });
 
         it('applies a deferred move through setContainer() and the flush', async () => {
@@ -886,7 +893,8 @@ describe('DOMManager', () => {
             expect(shadowWatchers(shadow)).toHaveLength(1);
 
             moveTo(dm, newLightContainer());
-            // Back into the same shadow root: the watcher is registered afresh rather than skipped.
+            // Back into the same shadow root: the watcher is registered afresh rather than skipped, so the
+            // first one is left behind (2 pins that leftover).
             moveTo(dm, shadowContainer);
             dm.updateCSSVariableWatchers(cssVariables);
 
