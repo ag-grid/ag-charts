@@ -426,6 +426,29 @@ describe('AgCharts', () => {
             ]);
         });
     });
+    describe('enableShadowDom', () => {
+        const wrapperRoot = () =>
+            container.querySelector('.ag-charts-wrapper') ??
+            container.firstElementChild?.shadowRoot?.querySelector('.ag-charts-wrapper');
+
+        // Bespoke: the chart must render into the per-test `container`, which `createChart` would override.
+        it('moves the chart into a shadow root of its own and back as the option changes', async () => {
+            const options: AgChartOptions = {
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                enableShadowDom: true,
+            };
+            prepareTestOptions(options, container);
+            chart = AgCharts.create(options);
+            await chart.waitForUpdate();
+            expect(wrapperRoot()?.getRootNode()).toBe(container.firstElementChild?.shadowRoot);
+
+            await chart.update({ ...options, enableShadowDom: false });
+            await chart.waitForUpdate();
+            expect(wrapperRoot()?.parentElement).toBe(container);
+        });
+    });
+
     describe('invalid options', () => {
         const expectedError =
             /^AG Charts - AgCharts\.create\(\) requires a non-empty options object; a minimal chart specifies a `container` and `series` \(or `data`\)\./;

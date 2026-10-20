@@ -348,6 +348,12 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     formatter?: FormatterConfiguration<TDatum, TContext>;
     /** Set to `true` to render the chart in right-to-left mode. If not specified, the chart will detect the `dir` attribute on the container or its ancestors. */
     enableRtl?: boolean;
+    /**
+     * Set to `true` to render the chart in a shadow root of its own, so the page's CSS cannot reach its elements, or `false` to always render it in the page's DOM. If not specified, the chart uses a shadow root only on known pages whose CSS breaks its controls, such as the claude.ai visualiser.
+     *
+     * Page CSS that targets the chart's elements does not reach the shadow root; theme options and CSS variables do. A chart placed in your own shadow DOM does not need this option.
+     */
+    enableShadowDom?: boolean;
 }
 
 /** Configuration common to all charts.  */

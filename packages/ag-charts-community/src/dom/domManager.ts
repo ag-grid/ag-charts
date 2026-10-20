@@ -224,7 +224,8 @@ export class DOMManager extends BaseManager {
         private readonly styleContainer?: HTMLElement,
         private readonly skipCss?: boolean,
         readonly mode: 'normal' | 'minimal' = 'normal',
-        readonly cssVariables?: Record<string, string>
+        readonly cssVariables?: Record<string, string>,
+        private enableShadowDom?: boolean
     ) {
         super();
 
@@ -528,34 +529,12 @@ export class DOMManager extends BaseManager {
             this.sizeMonitor.unobserve(this.container);
         }
 
-        // Shadow-DOM containers hold their own styles; drop them before relocating, both to avoid
-        // conflicts and to avoid a style recalculation. Styles in the head are shared, so stay.
-        if (this.shadowDocumentRoot != null) {
-            for (const id of this.rootElements['styles'].children.keys()) {
-                this.removeChild('styles', id);
-            }
-        }
-
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.agDocument.setContainer(pendingContainer);
-        // Shadow-path watchers live on the shadow root; clearing the mirror for a move within the
-        // same root would re-register duplicates.
-        const previousShadowRoot = this.getShadowRoot();
-        const mountParent = this.updateMountPoint(pendingContainer);
-        if (this.getShadowRoot() !== previousShadowRoot) {
-            this.shadowCssVariableWatchers.clear();
-        }
         this.initiallyConnected = pendingContainer.isConnected;
         this.observeAttachTransition(pendingContainer);
-
-        // Re-assert the page styles: a no-op unless the move left the shadow root, or the container
-        // arrived lazily and needs them in place first.
-        for (const [id, styles] of this.styles) {
-            this.addStyles(id, styles);
-        }
-
-        mountParent.appendChild(this.element);
+        this.mountIn(pendingContainer);
         this.sizeMonitor.observe(
             pendingContainer,
             (size) => {
@@ -570,6 +549,48 @@ export class DOMManager extends BaseManager {
         this.invalidateAllCaches();
         this.updateRtl();
         this.eventsHub.emit('dom:container-change', null);
+    }
+
+    setEnableShadowDom(enableShadowDom: boolean | undefined) {
+        if (enableShadowDom === this.enableShadowDom) return;
+        this.enableShadowDom = enableShadowDom;
+
+        // A container attached later is mounted on attachment; a chart detached for its replacement stays out.
+        const { container } = this;
+        if (container == null || this.initiallyConnected === false || this.element.parentNode == null) return;
+
+        const watchedProperties = new Set([...this.cssVariableWatchers, ...this.shadowCssVariableWatchers]);
+        this.mountIn(container);
+        if (watchedProperties.size > 0) {
+            this.watchCSSVariables(watchedProperties);
+        }
+        this.invalidateAllCaches();
+    }
+
+    private mountIn(container: HTMLElement) {
+        // Shadow-DOM containers hold their own styles; drop them before relocating, both to avoid
+        // conflicts and to avoid a style recalculation. Styles in the head are shared, so stay.
+        if (this.shadowDocumentRoot != null) {
+            for (const id of this.rootElements['styles'].children.keys()) {
+                this.removeChild('styles', id);
+            }
+        }
+
+        // Shadow-path watchers live on the shadow root; clearing the mirror for a move within the
+        // same root would re-register duplicates.
+        const previousShadowRoot = this.getShadowRoot();
+        const mountParent = this.updateMountPoint(container);
+        if (this.getShadowRoot() !== previousShadowRoot) {
+            this.shadowCssVariableWatchers.clear();
+        }
+
+        // Re-assert the page styles: a no-op unless the move left the shadow root, or the container
+        // arrived lazily and needs them in place first.
+        for (const [id, styles] of this.styles) {
+            this.addStyles(id, styles);
+        }
+
+        mountParent.appendChild(this.element);
     }
 
     setDarkTheme(isDark: boolean) {
@@ -825,12 +846,8 @@ export class DOMManager extends BaseManager {
 
     private shouldIsolate(container: HTMLElement) {
         // Styles placed by the caller or skipped for SSR could not reach a shadow root of ours.
-        return (
-            this.mode === 'normal' &&
-            this.styleContainer == null &&
-            this.skipCss !== true &&
-            isInHostWithLeakingStyles(container)
-        );
+        const canIsolate = this.mode === 'normal' && this.styleContainer == null && this.skipCss !== true;
+        return canIsolate && (this.enableShadowDom ?? isInHostWithLeakingStyles(container));
     }
 
     /** Our outermost element in the page's DOM tree: the isolation host when isolating, otherwise the chart element. */
@@ -1164,7 +1181,10 @@ export class DOMManager extends BaseManager {
     updateCSSVariableWatchers(cssVariables?: Record<string, string>) {
         if (!cssVariables) return;
 
-        const properties = strictObjectKeys(cssVariables).map((key) => key.slice(4, -1));
+        this.watchCSSVariables(strictObjectKeys(cssVariables).map((key) => key.slice(4, -1)));
+    }
+
+    private watchCSSVariables(properties: Iterable<string>) {
         if (this.shadowDocumentRoot) {
             this.updateCSSVariableWatchersShadowDOM(properties);
             return;

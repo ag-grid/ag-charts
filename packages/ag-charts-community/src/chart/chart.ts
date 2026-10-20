@@ -481,6 +481,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             styleContainer,
             styleNonce: options.processedOptions.styleNonce,
             skipCss,
+            enableShadowDom: options.processedOptions.enableShadowDom,
             agDocument,
             domMode: options.optionMetadata.domMode,
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
@@ -1776,6 +1777,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         if ('enableRtl' in deltaOptions) {
             this.ctx.domManager.setEnableRtl(deltaOptions.enableRtl);
+        }
+
+        if ('enableShadowDom' in deltaOptions) {
+            this.ctx.domManager.setEnableShadowDom(deltaOptions.enableShadowDom);
         }
 
         if ('container' in deltaOptions) this.setContainer(deltaOptions.container ?? undefined);

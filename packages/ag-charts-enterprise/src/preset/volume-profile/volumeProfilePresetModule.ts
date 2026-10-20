@@ -45,6 +45,7 @@ const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgB
     dataSource: defined,
     formatter: defined,
     enableRtl: boolean,
+    enableShadowDom: boolean,
     ...undocumentedDefs({
         overrideDevicePixelRatio: positiveNumber,
         foreground: defined,

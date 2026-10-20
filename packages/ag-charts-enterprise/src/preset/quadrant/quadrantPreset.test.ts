@@ -367,6 +367,19 @@ describe('Quadrant Preset', () => {
         expect(cartesianOptions).toMatchObject({ overrideDevicePixelRatio: 2 });
     });
 
+    it('forwards enableShadowDom to the cartesian chart options', () => {
+        const cartesianOptions = createQuadrant(
+            { ...BUBBLE_SIZED_NUMERIC, enableShadowDom: true } as AgQuadrantChartOptions,
+            undefined,
+            undefined,
+            undefined,
+            new Logger(),
+            () => undefined
+        );
+
+        expect(cartesianOptions).toMatchObject({ enableShadowDom: true });
+    });
+
     it('accepts overrideDevicePixelRatio without a validation warning', async () => {
         const options = { ...BUBBLE_SIZED_NUMERIC, overrideDevicePixelRatio: 2 } as AgQuadrantChartOptions;
         prepareEnterpriseTestOptions(options);

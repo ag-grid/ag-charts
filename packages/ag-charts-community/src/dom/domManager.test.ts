@@ -47,6 +47,9 @@ describe('DOMManager', () => {
     const shadowWatchers = (shadow: ShadowRoot, name = '--my-color') =>
         Array.from(shadow.children).filter((child) => (child as HTMLElement).dataset.variableName === name);
 
+    // The shadow root DOMManager creates for itself, on a host it puts first in the container.
+    const isolatedRoot = (container: HTMLElement) => container.firstElementChild?.shadowRoot;
+
     describe('for normal container cases', () => {
         it('should initialize the expected DOM', () => {
             const container = doc.createElement('div');
@@ -118,8 +121,6 @@ describe('DOMManager', () => {
             return { container, wrapper };
         };
 
-        const isolatedRoot = (container: HTMLElement) => container.firstElementChild?.shadowRoot;
-
         it('mounts the chart in a shadow root of its own, with its styles inside it', () => {
             const { container } = buildContainer();
             new DOMManager(eventsHub, 'vis', doc, container).addStyles('test', '.test {}');
@@ -139,6 +140,23 @@ describe('DOMManager', () => {
         ] as const)('stays in the light DOM %s', (_, setup, styleContainer) => {
             const { container } = buildContainer(setup);
             const dm = new DOMManager(eventsHub, 'vis-light', doc, container, styleContainer);
+
+            expect(dm.getParent('canvas').getRootNode()).toBe(doc.document);
+        });
+
+        it('stays in the light DOM when enableShadowDom is false', () => {
+            const { container } = buildContainer();
+            const dm = new DOMManager(
+                eventsHub,
+                'vis-opt-out',
+                doc,
+                container,
+                undefined,
+                undefined,
+                'normal',
+                undefined,
+                false
+            );
 
             expect(dm.getParent('canvas').getRootNode()).toBe(doc.document);
         });
@@ -199,6 +217,67 @@ describe('DOMManager', () => {
             dm.destroy();
 
             expect(container.childElementCount).toBe(0);
+        });
+    });
+
+    describe('with enableShadowDom', () => {
+        const cssVariables = { 'var(--my-color)': 'red' };
+
+        const buildManager = (enableShadowDom: boolean | undefined, styleContainer?: HTMLElement) => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(
+                eventsHub,
+                undefined,
+                doc,
+                container,
+                styleContainer,
+                undefined,
+                'normal',
+                undefined,
+                enableShadowDom
+            );
+            dm.addStyles('test', '.test {}');
+            dm.updateCSSVariableWatchers(cssVariables);
+            return { container, dm };
+        };
+
+        it('renders in a shadow root of its own on any page when true', () => {
+            const { container } = buildManager(true);
+
+            const root = isolatedRoot(container);
+            expect(root?.querySelector('.ag-charts-wrapper')).not.toBeNull();
+            expect(root?.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
+        });
+
+        it('stays in the light DOM when true but the caller places the styles', () => {
+            const { dm } = buildManager(true, doc.head);
+
+            expect(dm.getParent('canvas').getRootNode()).toBe(doc.document);
+        });
+
+        it('moves into a shadow root of its own, with its styles and CSS-variable watchers, when turned on', () => {
+            const { container, dm } = buildManager(undefined);
+
+            dm.setEnableShadowDom(true);
+
+            const root = isolatedRoot(container);
+            expect(root).not.toBeNull();
+            expect(root!.querySelector('.ag-charts-wrapper')).not.toBeNull();
+            expect(root!.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
+            expect(shadowWatchers(root!)).toHaveLength(1);
+        });
+
+        it('moves back to the light DOM, with its styles in the head, when turned off', () => {
+            const { container, dm } = buildManager(true);
+
+            dm.setEnableShadowDom(false);
+
+            expect(container.querySelector(':scope > .ag-charts-wrapper')).not.toBeNull();
+            expect(container.childElementCount).toBe(1);
+            expect(doc.head.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
+            expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
         });
     });
 
