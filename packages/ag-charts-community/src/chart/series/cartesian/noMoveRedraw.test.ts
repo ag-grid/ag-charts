@@ -1,5 +1,3 @@
-import * as v8 from 'node:v8';
-import * as vm from 'node:vm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Node, Rect } from 'ag-charts-core';
@@ -7,12 +5,9 @@ import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import {
-    clickAction,
     deproxy,
     expectNonBlank,
-    getBarSeriesKeptInternals,
     getSeriesAggregationInternals,
-    hoverAction,
     measureRedrawWork,
     prepareTestOptions,
     setupMockCanvas,
@@ -63,29 +58,6 @@ describe('BarSeries redraw where nothing moves', () => {
 
     const barHeights = () =>
         (getSeriesAggregationInternals(chart!).contextNodeData?.nodeData as { height: number }[]).map((d) => d.height);
-    const nodeCount = () => getSeriesAggregationInternals(chart!).contextNodeData?.nodeData?.length ?? 0;
-
-    it('rebuilds nothing for the same data in a new array', async () => {
-        const { chart: c } = await createBarChart(200);
-        await settle(c, 200);
-        const before = ctx.snapshot();
-
-        const work = await measureRedrawWork(c, () => c.updateDelta({ data: makeData(200) }));
-
-        expect(nodeCount()).toBe(200);
-        expect(work).toEqual({ nodeDataBuilds: 0, rectPathBuilds: 0 });
-        expect(ctx.snapshot()).toMatchImage(before);
-    });
-
-    it('rebuilds nothing for the same data over and over', async () => {
-        const { chart: c } = await createBarChart(200);
-        await settle(c, 200);
-
-        for (let i = 0; i < 3; i++) {
-            const work = await measureRedrawWork(c, () => c.updateDelta({ data: makeData(200) }));
-            expect(work).toEqual({ nodeDataBuilds: 0, rectPathBuilds: 0 });
-        }
-    });
 
     it('rebuilds nothing for a title change', async () => {
         const { chart: c } = await createBarChart(200);
@@ -127,68 +99,6 @@ describe('BarSeries redraw where nothing moves', () => {
         expect(work.nodeDataBuilds).toBe(1);
     });
 
-    it('redraws when the number of rows changes', async () => {
-        const { chart: c } = await createBarChart(200);
-
-        const work = await measureRedrawWork(c, () => c.updateDelta({ data: makeData(199) }));
-
-        expect(work.nodeDataBuilds).toBe(1);
-        expect(nodeCount()).toBe(199);
-    });
-
-    it('hands tooltips the new datum when a field no series key reads changes', async () => {
-        const { chart: c } = await createBarChart(50);
-
-        const next = makeData(50, 0, 'b');
-        const work = await measureRedrawWork(c, () => c.updateDelta({ data: next }));
-
-        expect(work.nodeDataBuilds).toBe(1);
-        const nodeData = getSeriesAggregationInternals(c).contextNodeData?.nodeData as { datum: Datum }[];
-        expect(nodeData.every((d) => d.datum.note === 'b')).toBe(true);
-    });
-
-    it('redraws once the data moves after a redraw that did not', async () => {
-        const { chart: c } = await createBarChart(200);
-        await settle(c, 200);
-
-        const work = await measureRedrawWork(c, () => c.updateDelta({ data: makeData(200, 3) }));
-
-        expect(work.nodeDataBuilds).toBe(1);
-    });
-
-    it('redraws when the data does not move but the series changes', async () => {
-        const { chart: c } = await createBarChart(200);
-
-        const work = await measureRedrawWork(c, () =>
-            c.updateDelta({
-                data: makeData(200),
-                series: [{ type: 'bar', xKey: 'category', yKey: 'value', fill: '#e67e22', cornerRadius: 4 }],
-            })
-        );
-
-        expect(work.nodeDataBuilds).toBe(1);
-    });
-
-    it('rebuilds nothing when the only callbacks are a tooltip renderer and listeners', async () => {
-        const { chart: c } = await createBarChart(200, {
-            series: [
-                {
-                    type: 'bar',
-                    xKey: 'category',
-                    yKey: 'value',
-                    fill: '#2e86de',
-                    tooltip: { renderer: () => 'tip' },
-                    listeners: { seriesNodeClick: () => {} },
-                },
-            ],
-        });
-        await settle(c, 200);
-
-        const work = await measureRedrawWork(c, () => c.updateDelta({ data: makeData(200) }));
-
-        expect(work).toEqual({ nodeDataBuilds: 0, rectPathBuilds: 0 });
-    });
-
     it('leaves the segments of the bar layer alone when an itemStyler rebuilds identical node data', async () => {
         const { chart: c } = await createBarChart(200, {
             series: [{ type: 'bar', xKey: 'category', yKey: 'value', itemStyler: () => ({ fill: '#2e86de' }) }],
@@ -201,60 +111,6 @@ describe('BarSeries redraw where nothing moves', () => {
 
         expect(work.nodeDataBuilds).toBe(1);
         expect(dataNodeGroup.segments).toBe(segments);
-    });
-
-    const nodeDatums = () =>
-        getSeriesAggregationInternals(chart!).contextNodeData?.nodeData as { datum: Datum; datumIndex: number }[];
-
-    it('hands the node data the rows of the latest data after a redraw that did not move anything', async () => {
-        const { chart: c } = await createBarChart(50);
-        await settle(c, 50);
-
-        const next = makeData(50);
-        const work = await measureRedrawWork(c, () => c.updateDelta({ data: next }));
-
-        expect(work.nodeDataBuilds).toBe(0);
-        expect(nodeDatums().every((d) => d.datum === next[d.datumIndex])).toBe(true);
-    });
-
-    it('keeps handing the node data the rows the user edits in place after an equal replacement', async () => {
-        const { chart: c } = await createBarChart(50);
-        await settle(c, 50);
-        const next = makeData(50);
-        await c.updateDelta({ data: next });
-        await waitForChartStability(c);
-
-        for (const row of next) row.note = 'edited';
-        const work = await measureRedrawWork(c, () => c.updateDelta({ data: next }));
-
-        expect(work.nodeDataBuilds).toBe(0);
-        expect(nodeDatums().every((d) => d.datum === next[d.datumIndex] && d.datum.note === 'edited')).toBe(true);
-    });
-
-    it('fires seriesNodeClick with the row object the user passed after an equal replacement', async () => {
-        const clicked: unknown[] = [];
-        const { chart: c } = await createBarChart(5, {
-            series: [
-                {
-                    type: 'bar',
-                    xKey: 'category',
-                    yKey: 'value',
-                    listeners: { seriesNodeClick: (event: { datum: unknown }) => clicked.push(event.datum) },
-                } as any,
-            ],
-        });
-        await settle(c, 5);
-        const next = makeData(5);
-        await c.updateDelta({ data: next });
-        await waitForChartStability(c);
-
-        const { seriesRect } = deproxy(c);
-        const bar = (nodeDatums() as unknown as { x: number; y: number; width: number; height: number }[])[1];
-        await clickAction(seriesRect!.x + bar.x + bar.width / 2, seriesRect!.y + bar.y + bar.height / 2)(c);
-        await waitForChartStability(c);
-
-        expect(clicked).toHaveLength(1);
-        expect(clicked[0]).toBe(next[1]);
     });
 
     describe('leaves the bar layer clean', () => {
@@ -270,21 +126,10 @@ describe('BarSeries redraw where nothing moves', () => {
             }
         }
 
-        it('for identical data whose node data is kept', async () => {
+        it('for identical data', async () => {
             const { chart: c } = await createBarChart(200);
             await settle(c, 200);
 
-            expect(await countBarsMarkedDirty(c, () => c.updateDelta({ data: makeData(200) }))).toBe(0);
-        });
-
-        it('for identical data whose node data is rebuilt', async () => {
-            const { chart: c } = await createBarChart(200, {
-                series: [{ type: 'bar', xKey: 'category', yKey: 'value', itemStyler: () => ({ fill: '#2e86de' }) }],
-            });
-            await settle(c, 200);
-
-            const rebuilds = (await measureRedrawWork(c, () => c.updateDelta({ data: makeData(200) }))).nodeDataBuilds;
-            expect(rebuilds).toBe(1);
             expect(await countBarsMarkedDirty(c, () => c.updateDelta({ data: makeData(200) }))).toBe(0);
         });
 
@@ -294,32 +139,6 @@ describe('BarSeries redraw where nothing moves', () => {
 
             expect(await countBarsMarkedDirty(c, () => c.updateDelta({ data: makeData(200, 1) }))).toBeGreaterThan(0);
         });
-    });
-
-    it('does not keep earlier generations of processed data alive', async () => {
-        v8.setFlagsFromString('--expose-gc');
-        const gc = vm.runInNewContext('gc') as () => void;
-        const { chart: c } = await createBarChart(200);
-        const series = deproxy(c).series[0] as any;
-
-        const generations: WeakRef<object>[] = [];
-        for (let i = 0; i < 8; i++) {
-            await c.updateDelta({ data: makeData(200) });
-            await waitForChartStability(c);
-            generations.push(new WeakRef(series.processedData));
-        }
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        gc();
-
-        expect(generations.filter((generation) => generation.deref() != null).length).toBeLessThanOrEqual(2);
-    });
-
-    it('redraws when the data does not move but the chart resizes', async () => {
-        const { chart: c } = await createBarChart(200);
-
-        const work = await measureRedrawWork(c, () => c.updateDelta({ data: makeData(200), width: 500 }));
-
-        expect(work.nodeDataBuilds).toBe(1);
     });
 });
 
@@ -464,6 +283,26 @@ describe('BarSeries redraw matches a fresh render', () => {
         expect(actual).toMatchImage(expected);
     });
 
+    it('moves the bars when a value is changed in place along with a colour change', async () => {
+        const moved = makeData(COUNT);
+        moved[5].value += 7;
+        chart = AgCharts.create(options({ data: moved }, { fill: '#27ae60' }));
+        await waitForChartStability(chart);
+        const expected = ctx.snapshot();
+
+        const data = makeData(COUNT);
+        await chart.update(options({ data }));
+        await waitForChartStability(chart);
+        const started = ctx.snapshot();
+
+        data[5].value += 7;
+        await chart.update(options({ data }, { fill: '#27ae60' }));
+        await waitForChartStability(chart);
+
+        expect(ctx.snapshot()).not.toMatchImage(started, { writeDiff: false });
+        expect(ctx.snapshot()).toMatchImage(expected);
+    });
+
     it('hides and shows the series again at the same pixels', async () => {
         chart = AgCharts.create(options());
         await waitForChartStability(chart);
@@ -510,54 +349,10 @@ describe('BarSeries redraw matches a fresh render', () => {
         expect(actual).toMatchImage(expected);
     }
 
-    it('re-runs an itemStyler that now returns something else, for the same data', async () => {
-        await expectFollowsState(
-            (read) => options({}, { fill: undefined, itemStyler: () => ({ fill: read() }) }),
-            () => ({ data: makeData(COUNT) }),
-            { from: '#2e86de', to: '#c0392b' }
-        );
-    });
-
-    it('re-runs a label formatter that now returns something else, for the same data', async () => {
-        const label = (read: () => string) => ({
-            enabled: true,
-            formatter: ({ value }: { value: number }) => `${value}${read()}`,
-        });
-        await expectFollowsState(
-            (read) => options({}, { label: label(read) }),
-            () => ({ data: makeData(COUNT) })
-        );
-    });
-
-    describe('callbacks outside the series options that feed the labels', () => {
+    describe('keeps the callbacks that feed the node data running on a colour change', () => {
         const labelled = { label: { enabled: true } };
 
-        it('re-runs a chart formatter that now returns something else, for the same data', async () => {
-            await expectFollowsState(
-                (read) => options({ formatter: ({ value }: any) => `${value}${read()}` } as any, labelled),
-                () => ({ data: makeData(COUNT) }),
-                { to: 'b' }
-            );
-        });
-
-        it('re-runs an axis label formatter that now returns something else, for the same data', async () => {
-            await expectFollowsState(
-                (read) =>
-                    options(
-                        {
-                            axes: {
-                                x: { type: 'category' },
-                                y: { type: 'number', label: { formatter: ({ value }: any) => `${value}${read()}` } },
-                            },
-                        },
-                        labelled
-                    ),
-                () => ({ data: makeData(COUNT) }),
-                { to: 'b' }
-            );
-        });
-
-        it('re-runs a chart formatter that now returns something else, alongside a colour change', async () => {
+        it('for a chart formatter', async () => {
             await expectFollowsState(
                 (read, fill) =>
                     options({ formatter: ({ value }: any) => `${value}${read()}` } as any, {
@@ -568,40 +363,52 @@ describe('BarSeries redraw matches a fresh render', () => {
                 { to: 'b', fill: '#e67e22' }
             );
         });
+
+        it('for an axis label formatter', async () => {
+            await expectFollowsState(
+                (read, fill) =>
+                    options(
+                        {
+                            axes: {
+                                x: { type: 'category' },
+                                y: { type: 'number', label: { formatter: ({ value }: any) => `${value}${read()}` } },
+                            },
+                        },
+                        { ...labelled, ...(fill == null ? {} : { fill }) }
+                    ),
+                () => ({ series: [{ ...BASE_SERIES, ...labelled, fill: '#e67e22' }] }),
+                { to: 'b', fill: '#e67e22' }
+            );
+        });
+
+        it('for a series label formatter', async () => {
+            let state = 'bb';
+            const formatter = ({ value }: { value: number }) => `${value}${state}`;
+            const series = (fill: string) => ({ ...BASE_SERIES, fill, label: { enabled: true, formatter } });
+            chart = AgCharts.create(options({}, series('#e67e22')));
+            await waitForChartStability(chart);
+            const expected = ctx.snapshot();
+            expectNonBlank(expected);
+
+            state = 'a';
+            await chart.update(options({}, series('#2e86de')));
+            await waitForChartStability(chart);
+            const started = ctx.snapshot();
+
+            state = 'bb';
+            const c = chart;
+            const work = await measureRedrawWork(c, () => c.updateDelta({ series: [series('#e67e22')] }));
+
+            expect(work.nodeDataBuilds).toBe(1);
+            expect(ctx.snapshot()).not.toMatchImage(started, { writeDiff: false });
+            expect(ctx.snapshot()).toMatchImage(expected);
+        });
     });
 
-    it('draws stacked bars where the same data and moved data would put them', async () => {
-        const stacked = (data: Datum[]) =>
-            prepareTestOptions({
-                data,
-                animation: { enabled: false },
-                legend: { enabled: false },
-                series: [
-                    { type: 'bar', xKey: 'category', yKey: 'value', stacked: true },
-                    { type: 'bar', xKey: 'category', yKey: 'other', stacked: true },
-                ],
-                axes: { x: { type: 'category' }, y: { type: 'number' } },
-            } as AgCartesianChartOptions);
-        const rows = (shift: number) =>
-            makeData(COUNT, shift).map((d) => ({ ...d, value: Math.abs(d.value), other: 5 }));
-
-        chart = AgCharts.create(stacked(rows(4)));
-        await waitForChartStability(chart);
-        const expected = ctx.snapshot();
-
-        await chart.update(stacked(rows(0)));
-        await waitForChartStability(chart);
-        await chart.updateDelta({ data: rows(0) });
-        await waitForChartStability(chart);
-        await chart.updateDelta({ data: rows(4) });
-        await waitForChartStability(chart);
-
-        expect(ctx.snapshot()).toMatchImage(expected);
-    });
-
-    it('keeps the bars of a time axis whose dates are new objects holding the same times', async () => {
-        const rows = (shift = 0) =>
-            Array.from({ length: 40 }, (_, i) => ({ date: new Date(2024, 0, i + 1), value: 5 + ((i + shift) % 11) }));
+    it('moves the bars of a time axis when a date in the data is changed in place', async () => {
+        const day = 24 * 60 * 60 * 1000;
+        const base = new Date(2024, 0, 1).getTime();
+        const rows = () => Array.from({ length: 10 }, (_, i) => ({ date: new Date(base + i * day), value: 5 + i }));
         const timeOptions = (data: object[]) =>
             prepareTestOptions({
                 data,
@@ -611,215 +418,23 @@ describe('BarSeries redraw matches a fresh render', () => {
                 axes: { x: { type: 'time' }, y: { type: 'number' } },
             } as AgCartesianChartOptions);
 
-        chart = AgCharts.create(timeOptions(rows(3)));
+        const moved = rows();
+        moved[4].date.setTime(base + 4.5 * day);
+        chart = AgCharts.create(timeOptions(moved));
         await waitForChartStability(chart);
         const expected = ctx.snapshot();
+        expectNonBlank(expected);
 
-        await chart.update(timeOptions(rows()));
-        await waitForChartStability(chart);
-        await chart.updateDelta({ data: rows() });
-        await waitForChartStability(chart);
-        await chart.updateDelta({ data: rows(3) });
-        await waitForChartStability(chart);
-
-        expect(ctx.snapshot()).toMatchImage(expected);
-    });
-});
-
-describe('BarSeries redraw keeps node data only while every input to it holds', () => {
-    const ctx = setupMockCanvas();
-
-    let chart: AgChartInstance | undefined;
-
-    afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
-    });
-
-    // The bar and the line read different keys, so their data is processed as separate requests.
-    type SharedAxisRow = { bx: string; by: number; lx: string; ly: number };
-
-    const sharedAxisRows = (line: number): SharedAxisRow[] =>
-        Array.from({ length: 4 }, (_, i) => ({ bx: `C${i}`, by: 10 + i, lx: `C${i}`, ly: line }));
-
-    function sharedAxisOptions(data: SharedAxisRow[], lineSeries: object = {}): AgCartesianChartOptions {
-        return prepareTestOptions({
-            data,
-            animation: { enabled: false },
-            legend: { enabled: false },
-            series: [
-                { type: 'bar', xKey: 'bx', yKey: 'by', fill: '#2e86de' },
-                { type: 'line', xKey: 'lx', yKey: 'ly', ...lineSeries },
-            ],
-            axes: { x: { type: 'category' }, y: { type: 'number' } },
-        } as AgCartesianChartOptions);
-    }
-
-    const heightsOf = (c: AgChartInstance) =>
-        getBarSeriesKeptInternals(c).contextNodeData!.nodeData.map((d) => d.height);
-
-    /**
-     * Renders the chart as it should end up, then moves the same chart to `start` and applies `change`. The bars must
-     * end where the fresh render put them.
-     */
-    async function expectFreshRender(
-        target: AgCartesianChartOptions,
-        start: AgCartesianChartOptions,
-        change: () => Promise<void>
-    ) {
-        chart = AgCharts.create(target);
-        await waitForChartStability(chart);
-        const expected = { image: ctx.snapshot(), heights: heightsOf(chart) };
-
-        await chart.update(start);
+        const data = rows();
+        await chart.update(timeOptions(data));
         await waitForChartStability(chart);
         const started = ctx.snapshot();
 
-        await change();
+        data[4].date.setTime(base + 4.5 * day);
+        await chart.updateDelta({ data });
         await waitForChartStability(chart);
 
         expect(ctx.snapshot()).not.toMatchImage(started, { writeDiff: false });
-        expect(ctx.snapshot()).toMatchImage(expected.image);
-        expect(heightsOf(chart)).toEqual(expected.heights);
-    }
-
-    describe('another request moves a shared axis', () => {
-        it('redraws the bars at the new scale when the same data array is resubmitted', async () => {
-            const rows = sharedAxisRows(20);
-            await expectFreshRender(sharedAxisOptions(sharedAxisRows(80)), sharedAxisOptions(rows), async () => {
-                for (const row of rows) row.ly = 80;
-                await chart!.updateDelta({ data: rows });
-            });
-        });
-
-        it('redraws the bars at the new scale when a new array of the same rows is submitted', async () => {
-            const rows = sharedAxisRows(20);
-            await expectFreshRender(sharedAxisOptions(sharedAxisRows(80)), sharedAxisOptions(rows), async () => {
-                for (const row of rows) row.ly = 80;
-                await chart!.updateDelta({ data: rows.slice() });
-            });
-        });
-
-        it('redraws the bars at the new scale when the line holds its own data and the chart data is resubmitted', async () => {
-            const lineRows = sharedAxisRows(20);
-            const barRows = sharedAxisRows(0);
-            await expectFreshRender(
-                sharedAxisOptions(barRows, { data: sharedAxisRows(80) }),
-                sharedAxisOptions(barRows, { data: lineRows }),
-                async () => {
-                    for (const row of lineRows) row.ly = 80;
-                    await chart!.updateDelta({ data: barRows.slice() });
-                }
-            );
-        });
-
-        it('redraws the bars at the new scale when the line gets new data in a series delta', async () => {
-            await expectFreshRender(
-                sharedAxisOptions(sharedAxisRows(0), { data: sharedAxisRows(80) }),
-                sharedAxisOptions(sharedAxisRows(0), { data: sharedAxisRows(20) }),
-                async () => {
-                    await chart!.updateDelta({
-                        data: sharedAxisRows(0),
-                        series: [
-                            { type: 'bar', xKey: 'bx', yKey: 'by', fill: '#2e86de' },
-                            { type: 'line', xKey: 'lx', yKey: 'ly', data: sharedAxisRows(80) },
-                        ],
-                    } as any);
-                }
-            );
-        });
-
-        it('keeps the bars when the other series moves without moving the axis', async () => {
-            const rows = sharedAxisRows(5);
-            chart = AgCharts.create(sharedAxisOptions(sharedAxisRows(7)));
-            await waitForChartStability(chart);
-            const expected = ctx.snapshot();
-
-            await chart.update(sharedAxisOptions(rows));
-            await waitForChartStability(chart);
-            await chart.updateDelta({ data: rows.slice() });
-            await waitForChartStability(chart);
-            const heights = heightsOf(chart);
-
-            for (const row of rows) row.ly = 7;
-            const spies = deproxy(chart).series.map((series) => vi.spyOn(series as any, 'createNodeData'));
-            await chart.updateDelta({ data: rows.slice() });
-            await waitForChartStability(chart);
-            const builds = spies.map((spy) => spy.mock.calls.length);
-            for (const spy of spies) spy.mockRestore();
-
-            // The line moved, so it rebuilds; the bars saw the same data under the same scale.
-            expect(builds).toEqual([0, 1]);
-            expect(heightsOf(chart)).toEqual(heights);
-            expect(ctx.snapshot()).toMatchImage(expected);
-        });
-    });
-
-    describe('every datum array a kept series holds', () => {
-        const FILTER_COUNT = 8;
-        type FilterRow = { category: string; value: number; filter: number };
-
-        const filterRows = (): FilterRow[] =>
-            Array.from({ length: FILTER_COUNT }, (_, i) => ({ category: `C${i}`, value: 10 + i, filter: 4 + (i % 3) }));
-
-        const filterOptions = (data: FilterRow[]) =>
-            prepareTestOptions({
-                data,
-                animation: { enabled: false },
-                legend: { enabled: false },
-                series: [
-                    { type: 'bar', xKey: 'category', yKey: 'value', yFilterKey: 'filter', fill: '#2e86de' } as any,
-                ],
-                axes: { x: { type: 'category' }, y: { type: 'number' } },
-            } as AgCartesianChartOptions);
-
-        async function hoverBar(c: AgChartInstance, index: number) {
-            const { seriesRect } = deproxy(c);
-            const bar = getBarSeriesKeptInternals(c).contextNodeData!.nodeData[index];
-            await hoverAction(seriesRect!.x + bar.x + bar.width / 2, seriesRect!.y + bar.y + bar.height / 2)(c);
-            await waitForChartStability(c);
-        }
-
-        /** The copies of the hovered bar that are drawn: the bar itself, and the unfiltered one behind it. */
-        const highlightCopies = (c: AgChartInstance) => {
-            const { highlightNodeGroup, phantomHighlightGroup } = getBarSeriesKeptInternals(c);
-            return {
-                main: [...highlightNodeGroup.children()].length,
-                phantom: [...phantomHighlightGroup.children()].length,
-            };
-        };
-
-        it('points at the rows of equal replacement data, the phantom datums included', async () => {
-            chart = AgCharts.create(filterOptions(filterRows()));
-            await waitForChartStability(chart);
-            await hoverBar(chart, 3);
-
-            const next = filterRows();
-            const work = await measureRedrawWork(chart, () => chart!.updateDelta({ data: next }));
-
-            const { phantomNodeData } = getBarSeriesKeptInternals(chart).contextNodeData!;
-            expect(work.nodeDataBuilds).toBe(0);
-            expect(phantomNodeData).toHaveLength(FILTER_COUNT);
-            expect(phantomNodeData.every((d, i) => d.datum === next[i])).toBe(true);
-            const active = deproxy(chart).ctx.highlightManager.getActiveHighlight() as { datum: unknown } | undefined;
-            expect(active?.datum).toBe(next[3]);
-        });
-
-        it('draws the hovered bar as it was drawn before the equal replacement', async () => {
-            chart = AgCharts.create(filterOptions(filterRows()));
-            await waitForChartStability(chart);
-            await hoverBar(chart, 3);
-            const expected = ctx.snapshot();
-            const expectedCopies = highlightCopies(chart);
-            expect(expectedCopies).toEqual({ main: 1, phantom: 1 });
-
-            await hoverBar(chart, 5);
-            await chart.updateDelta({ data: filterRows() });
-            await waitForChartStability(chart);
-            await hoverBar(chart, 3);
-
-            expect(highlightCopies(chart)).toEqual(expectedCopies);
-            expect(ctx.snapshot()).toMatchImage(expected);
-        });
+        expect(ctx.snapshot()).toMatchImage(expected);
     });
 });

@@ -925,10 +925,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.ctx.chartState.getValue('options', 'touch').dragAction !== 'none'
         );
 
-        if (forceNodeDataRefresh !== false) {
-            const cause = forceNodeDataRefresh === 'data' ? 'data' : undefined;
+        if (forceNodeDataRefresh) {
             for (const series of this.series) {
-                series.markNodeDataDirty(cause);
+                series.markNodeDataDirty();
             }
         }
 
@@ -1802,9 +1801,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if ('loading' in deltaOptions) this.loading = deltaOptions.loading;
         if ('context' in deltaOptions) this.context = deltaOptions.context;
 
-        let forceNodeDataRefresh: boolean | 'data' = false;
+        let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
         if (deltaOptions.series != null) {
+            // Only a delta that leaves `data` out says the data stands; a full update may carry rows changed in place.
+            const { userDeltaKeys } = newChartOptions;
+            this.restyleAllowed = userDeltaKeys != null && !userDeltaKeys.has('data');
             seriesStatus = this.applySeries(this, deltaOptions.series, oldOpts?.series);
             forceNodeDataRefresh = seriesStatus !== 'restyled';
         }
@@ -1828,7 +1830,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                     (miniChartRestyle && key === 'navigator')
             )
         ) {
-            forceNodeDataRefresh ||= this.onlyDataForcesRefresh(deltaOptions) ? 'data' : true;
+            forceNodeDataRefresh = true;
         }
 
         // Only reset data if the user explicitly passed 'data' in their delta.
@@ -1888,12 +1890,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         this.ctx.annotationManager?.setAnnotationStyles(newChartOptions.annotationThemes);
 
-        const refreshForced = this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
-        if (refreshForced === true || (refreshForced === 'data' && forceNodeDataRefresh === false)) {
-            forceNodeDataRefresh = refreshForced;
-        }
+        forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         // A restyle keeps the node data but still needs the legends and layout refreshed.
-        const majorChange = forceNodeDataRefresh !== false || modulesChanged || seriesStatus === 'restyled';
+        const majorChange = forceNodeDataRefresh || modulesChanged || seriesStatus === 'restyled';
         const updateType = majorChange ? ChartUpdateType.FULL : minimumUpdateType;
         this.maybeResetAnimations(seriesStatus);
 
@@ -1992,25 +1991,14 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
     }
 
-    /** Whether `data` is the only key of the delta that needs the series' node data rebuilt. */
-    private onlyDataForcesRefresh(deltaOptions: AgChartOptions) {
-        return (
-            this.axes.length > 0 &&
-            deltaOptions.data != null &&
-            Object.keys(deltaOptions).every((key) => key === 'data' || LAYOUT_ONLY_DELTA_KEYS.has(key))
-        );
-    }
-
-    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptions, seriesStatus: SeriesChangeType): boolean | 'data' {
+    private shouldForceNodeDataRefresh(deltaOptions: AgChartOptions, seriesStatus: SeriesChangeType) {
+        const seriesDataUpdate = !!deltaOptions.data || seriesStatus === 'data-change' || seriesStatus === 'replaced';
         const optionsHaveLegend = ['legend', 'gradientLegend'].some(
             (legendKey) => (deltaOptions as any)[legendKey] != null
         );
         const otherRefreshUpdate =
             (deltaOptions.title != null && deltaOptions.subtitle != null) || (deltaOptions as any).formatter != null;
-        if (seriesStatus === 'data-change' || seriesStatus === 'replaced' || optionsHaveLegend || otherRefreshUpdate) {
-            return true;
-        }
-        return deltaOptions.data ? 'data' : false;
+        return seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
     }
 
     private shouldClearLegendData(options: AgChartOptions, oldOpts: AgChartOptions, seriesStatus: SeriesChangeType) {
@@ -2094,6 +2082,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
     }
 
+    private restyleAllowed = false;
+
     private applySeries(
         chart: SeriesAxesHost,
         optSeries: AgChartOptions['series'],
@@ -2151,7 +2141,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                     const { series, opts, diff, idx } = change;
                     debug(`Chart.applySeries() - applying series diff previous idx ${idx}`, diff, series);
                     this.applySeriesValues(series, opts, diff);
-                    if (change.status === 'update' && series.restyleFor(diff)) {
+                    if (change.status === 'update' && this.restyleAllowed && series.restyleFor(diff)) {
                         restyleCount++;
                     } else {
                         series.markNodeDataDirty();

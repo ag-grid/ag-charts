@@ -321,8 +321,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         });
     }
 
-    protected override readonly keepsNodeDataForUnchangedData = true;
-
     protected override buildItemStyles() {
         return getItemStyles(this.getItemStyle.bind(this));
     }

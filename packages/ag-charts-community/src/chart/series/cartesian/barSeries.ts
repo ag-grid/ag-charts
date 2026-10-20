@@ -396,14 +396,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.phantomHighlightGroup.opacity = 0.2;
     }
 
-    protected override readonly keepsNodeDataForUnchangedData = true;
-
     protected override buildItemStyles() {
         return getItemStyles(this.getItemStyle.bind(this));
-    }
-
-    protected override getRetainedDatums() {
-        return [...super.getRetainedDatums(), this.contextNodeData?.phantomNodeData];
     }
 
     override async processData(dataController: DataController) {

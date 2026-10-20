@@ -266,8 +266,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         });
     }
 
-    protected override readonly keepsNodeDataForUnchangedData = true;
-
     protected override isStyleOnlyChange(diff: object) {
         // A label datum holds the cell style it was built with, so labels need the full rebuild.
         return !this.isLabelEnabled() && Object.keys(diff).every((key) => HEATMAP_STYLE_OPTION_KEYS.has(key));

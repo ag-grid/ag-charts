@@ -629,7 +629,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             }
             return false;
         }
-        this.keepNodeDataForUnchangedInputs();
         const { nodeDataRefresh } = this;
         if (!nodeDataRefresh && !this.isPathOrSelectionDirty()) {
             return false;
@@ -641,7 +640,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
             this.markQuadtreeDirty();
             this._contextNodeData = this.createNodeData();
-            this.recordNodeDataInputs();
             const animationValid = this.isProcessedDataAnimatable();
             if (this._contextNodeData) {
                 this._contextNodeData.animationValid ??= animationValid;
@@ -1661,10 +1659,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     protected override hasLabels() {
         return this.isLabelEnabled();
-    }
-
-    protected override getRetainedDatums() {
-        return [...super.getRetainedDatums(), this._contextNodeData?.labelData];
     }
 
     protected getScaling(scale: Scale<any, any>): Scaling | undefined {

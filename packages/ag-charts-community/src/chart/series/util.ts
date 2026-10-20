@@ -235,13 +235,6 @@ export function resolveMarkerDrawingMode(
     return isOpaqueMarkerFillStyle(style) ? 'cutout' : 'overlay';
 }
 
-/** Points each datum that holds a data row at the row now at its index. */
-export function rebindDatumRows(nodeData: readonly SeriesNodeDatum[] | undefined, rows: readonly unknown[]) {
-    for (const node of nodeData ?? []) {
-        if (node.datum != null) (node as { datum: unknown }).datum = rows[node.datumIndex];
-    }
-}
-
 export function findNodeDatumInArray<D extends SeriesNodeDatum>(
     itemIdOrIndex: AgActiveItemState['itemId'],
     nodeData: D[] | undefined,

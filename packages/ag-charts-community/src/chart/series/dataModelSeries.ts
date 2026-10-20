@@ -6,13 +6,12 @@ import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
 import type { PropertyDefinition } from '../data/dataModelTypes';
 import { DataSet } from '../data/dataSet';
-import { type NodeDataInputs, captureNodeDataInputs, nodeDataInputsUnchanged } from './nodeDataInputs';
 import type { PickFocusInputs, PickFocusOutputs, SeriesNodePickMatch } from './pickTypes';
 import { SeriesNodeDatumSentinel } from './pickTypes';
 import type { SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import { type SeriesNodeDatum } from './seriesTypes';
-import { findNodeDatumInArray, rebindDatumRows } from './util';
+import { findNodeDatumInArray } from './util';
 
 export interface DataModelSeriesNodeDatum extends SeriesNodeDatum {
     // Optional: only aggregated series (e.g. histogram bins) set it; 1:1 series match on datumIndex instead.
@@ -88,39 +87,6 @@ export abstract class DataModelSeries<
             .flat();
     }
 
-    /** Set by series whose node data stands when new data leaves every input it was built from unchanged. */
-    protected readonly keepsNodeDataForUnchangedData: boolean = false;
-
-    private nodeDataInputs?: NodeDataInputs;
-
-    /** Records what the node data just built was built from; call right after building it. */
-    protected recordNodeDataInputs() {
-        if (!this.keepsNodeDataForUnchangedData) return;
-        this.nodeDataInputs = captureNodeDataInputs(this.processedData, this.axes);
-    }
-
-    /**
-     * Withdraws the node data rebuild that new data asked for when the rebuild would read what the last one did.
-     * Call once domains are final, right before node data is consumed. Anything unknown means a rebuild.
-     */
-    protected keepNodeDataForUnchangedInputs(): boolean {
-        const { processedData } = this;
-        if (
-            !this.keepsNodeDataForUnchangedData ||
-            !this.hasDataRefreshOnly() ||
-            this.getNodeData() == null ||
-            this.nodeDataHasCallbacks() ||
-            !nodeDataInputsUnchanged(this.nodeDataInputs, processedData, this.axes)
-        ) {
-            return false;
-        }
-        this.cancelDataRefresh();
-        // The kept node data stands for the new rows, so what it hands to tooltips and events must be those rows.
-        this.rebindNodeDataRows(processedData?.dataSources?.get(this.id)?.data ?? []);
-        this.nodeDataInputs = captureNodeDataInputs(processedData, this.axes);
-        return true;
-    }
-
     // Request data, but with message dispatching to series-options (modules).
     protected async requestDataModel<
         D extends object,
@@ -143,17 +109,6 @@ export abstract class DataModelSeries<
         this.categoryValueLookup = undefined;
         this.events.emit('data-processed', { dataModel, processedData });
         return { dataModel, processedData };
-    }
-
-    /** Every array of datums the series keeps between rebuilds, so that a kept rebuild reaches all of them. */
-    protected getRetainedDatums(): ReadonlyArray<readonly SeriesNodeDatum[] | undefined> {
-        return [this.getNodeData()];
-    }
-
-    private rebindNodeDataRows(rows: readonly unknown[]) {
-        for (const datums of new Set(this.getRetainedDatums())) {
-            rebindDatumRows(datums, rows);
-        }
     }
 
     protected isProcessedDataAnimatable() {

@@ -98,31 +98,6 @@ describe('rect series redraw where nothing moves', () => {
 
     for (const rectCase of CASES) {
         describe(rectCase.name, () => {
-            it('rebuilds nothing for the same data in a new array', async () => {
-                const c = await create(rectCase);
-                const before = ctx.snapshot();
-
-                const work = await measureRedrawWork(c, () => c.updateDelta({ data: rectCase.makeRows(COUNT, 0) }));
-
-                expect(work).toEqual({ nodeDataBuilds: 0, rectPathBuilds: 0 });
-                expect(ctx.snapshot()).toMatchImage(before);
-            });
-
-            it('hands the node data the rows of the latest data when nothing moved', async () => {
-                const c = await create(rectCase);
-                const next = rectCase.makeRows(COUNT, 0);
-
-                const work = await measureRedrawWork(c, () => c.updateDelta({ data: next }));
-
-                const nodeData = (deproxy(c).series[0] as any).contextNodeData.nodeData as {
-                    datum?: unknown;
-                    datumIndex: number;
-                }[];
-                expect(work.nodeDataBuilds).toBe(0);
-                expect(nodeData.length).toBeGreaterThan(0);
-                expect(nodeData.every((d) => d.datum === next[d.datumIndex])).toBe(true);
-            });
-
             it('rebuilds nothing for a title change', async () => {
                 const c = await create(rectCase);
 
@@ -150,16 +125,6 @@ describe('rect series redraw where nothing moves', () => {
 
                 rectCase.mutate(rows[3]);
                 const work = await measureRedrawWork(c, () => c.updateDelta({ data: rows }));
-
-                expect(work.nodeDataBuilds).toBe(1);
-            });
-
-            it('redraws when the number of rows changes', async () => {
-                const c = await create(rectCase);
-
-                const work = await measureRedrawWork(c, () =>
-                    c.updateDelta({ data: rectCase.makeRows(COUNT - 10, 0) })
-                );
 
                 expect(work.nodeDataBuilds).toBe(1);
             });
@@ -226,51 +191,6 @@ const STYLE_CASES: StyleCase[] = [
         ],
     },
 ];
-
-describe('rect series keep node data only while every input to it holds', () => {
-    const ctx = setupMockCanvas();
-    let chart: AgChartInstance | undefined;
-
-    afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
-    });
-
-    // The bars and the line read different keys, so their data is processed as separate requests. Waterfall and
-    // heatmap charts take no other series, so range-bar is the only enterprise rect series to share an axis.
-    const rows = (line: number): Row[] =>
-        Array.from({ length: 4 }, (_, i) => ({ bx: `C${i}`, low: 5, high: 10 + i, lx: `C${i}`, ly: line }));
-
-    const options = (data: Row[]) =>
-        prepareEnterpriseTestOptions({
-            data,
-            animation: { enabled: false },
-            legend: { enabled: false },
-            series: [
-                { type: 'range-bar', xKey: 'bx', yLowKey: 'low', yHighKey: 'high' },
-                { type: 'line', xKey: 'lx', yKey: 'ly' },
-            ],
-            axes: { x: { type: 'category' }, y: { type: 'number' } },
-        } as AgCartesianChartOptions);
-
-    it('redraws the range bars at the new scale when another series moves the shared axis', async () => {
-        chart = await createEnterpriseChart(options(rows(80)));
-        const expected = ctx.snapshot();
-        expectNonBlank(expected);
-
-        const moving = rows(20);
-        await chart.update(options(moving));
-        await waitForChartStability(chart);
-        const started = ctx.snapshot();
-
-        for (const row of moving) row.ly = 80;
-        await chart.updateDelta({ data: moving.slice() });
-        await waitForChartStability(chart);
-
-        (expect(ctx.snapshot()) as any).not.toMatchImage(started, { writeDiff: false });
-        expect(ctx.snapshot()).toMatchImage(expected);
-    });
-});
 
 describe('rect series restyle where nothing moves', () => {
     const ctx = setupMockCanvas();
@@ -439,23 +359,6 @@ describe('rect series restyle where nothing moves', () => {
                 (expect(ctx.snapshot()) as any).not.toMatchImage(started, { writeDiff: false });
                 expect(ctx.snapshot()).toMatchImage(expected);
             });
-
-            it('moves the bars after redraws that did not move them', async () => {
-                chart = await createEnterpriseChart(make(styleCase.base, 4));
-                const expected = ctx.snapshot();
-                await chart.update(make(styleCase.base));
-                await waitForChartStability(chart);
-                const c = chart;
-
-                for (let i = 0; i < 3; i++) {
-                    const work = await measureRedrawWork(c, () => c.updateDelta({ data: styleCase.rows(0) }));
-                    expect(work.nodeDataBuilds).toBe(0);
-                }
-                await c.updateDelta({ data: styleCase.rows(4) });
-                await waitForChartStability(c);
-
-                expect(ctx.snapshot()).toMatchImage(expected);
-            });
         });
     }
 
@@ -534,42 +437,6 @@ describe('rect series restyle where nothing moves', () => {
 
             expect(work.nodeDataBuilds).toBe(1);
         });
-
-        it('hands the labels the rows of the latest data when nothing moved', async () => {
-            const rows = () => heatmapRows(STYLE_COUNT * 3, 0);
-            chart = await createEnterpriseChart(make({ ...base, label: { enabled: true } }));
-            await chart.updateDelta({ data: rows() });
-            await waitForChartStability(chart);
-            const c = chart;
-            const next = rows();
-
-            const work = await measureRedrawWork(c, () => c.updateDelta({ data: next }));
-
-            const labelData = (deproxy(c).series[0] as any).contextNodeData.labelData as {
-                datum: unknown;
-                datumIndex: number;
-            }[];
-            expect(work.nodeDataBuilds).toBe(0);
-            expect(labelData.length).toBeGreaterThan(0);
-            expect(labelData.every((d) => d.datum === next[d.datumIndex])).toBe(true);
-        });
-
-        it('paints the same data again, over and over, as a fresh render would', async () => {
-            chart = await createEnterpriseChart(make(base, 2));
-            const expected = ctx.snapshot();
-
-            await chart.update(make(base));
-            await waitForChartStability(chart);
-            const c = chart;
-            for (let i = 0; i < 3; i++) {
-                await c.updateDelta({ data: heatmapRows(STYLE_COUNT * 3, 0) });
-                await waitForChartStability(c);
-            }
-            await c.updateDelta({ data: heatmapRows(STYLE_COUNT * 3, 2) });
-            await waitForChartStability(c);
-
-            expect(ctx.snapshot()).toMatchImage(expected);
-        });
     });
 });
 
@@ -621,10 +488,6 @@ describe('waterfall labels fed by a chart formatter', () => {
         (expect(actual) as any).not.toMatchImage(started, { writeDiff: false });
         expect(actual).toMatchImage(expected);
     }
-
-    it('re-runs for the same data', async () => {
-        await expectLabelsFollow({ data: valueRows(COUNT, 0) });
-    });
 
     it('re-runs alongside an item colour change', async () => {
         const positive = { fill: '#27ae60' };

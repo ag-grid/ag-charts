@@ -232,8 +232,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     private readonly seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
-    protected override readonly keepsNodeDataForUnchangedData = true;
-
     protected override isStyleOnlyChange(diff: object) {
         const keys = Object.keys(diff);
         if (keys.length !== 1 || keys[0] !== 'item') return false;
