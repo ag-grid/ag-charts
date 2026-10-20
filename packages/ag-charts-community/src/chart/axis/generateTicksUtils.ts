@@ -86,6 +86,8 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     sizeLimit?: number;
     /** Room across the axis for labels, net of ticks and scrollbars; set only when fitting. */
     labelRoom?: number;
+    /** Label options with the `itemStyler` overrides for one label; set only when fitting, so a label is fitted as it renders. */
+    labelStyle?: (tick: unknown, formattedValue: NormalisedTextOrSegments) => ChartAxisLabel;
     isVertical?: boolean;
     inRange?: (value: number) => boolean;
     /**
@@ -247,14 +249,8 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
         const wrapOptions = labelWrapOptions(label, maxWidth, maxHeight, label.truncate ? 'ellipsis' : 'hide');
 
-        let fitOptions: { banded: WrapOptions; unbanded: WrapOptions } | undefined;
-        if (isLabelFitEnabled(label)) {
-            const room = options.labelRoom ?? sizeLimit;
-            fitOptions = {
-                banded: labelFitWrapOptions(label, isVertical, room, maxBandwidth),
-                unbanded: labelFitWrapOptions(label, isVertical, room, Infinity),
-            };
-        }
+        const room = options.labelRoom ?? sizeLimit;
+        const fitOptions = isLabelFitEnabled(label) ? labelFitBounds(label, isVertical, room, maxBandwidth) : undefined;
 
         for (let i = 0; i < rawTicks.length; i++) {
             const tick = rawTicks[i];
@@ -267,16 +263,22 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             let wrappedLabel: NormalisedTextOrSegments | null = null;
             let fontSize: number | undefined;
+            let labelStyle: ChartAxisLabel | undefined;
             if (fitOptions != null && !isPrimary) {
-                // Labels overflowing their band stay full width so they still drive rotation and thinning.
+                labelStyle = options.labelStyle?.(tick, inputText);
+                const fitLabel = labelStyle ?? label;
+                const bounds =
+                    labelStyle == null ? fitOptions : labelFitBounds(labelStyle, isVertical, room, maxBandwidth);
+                let fitted = fitLabelText(inputText, bounds.banded, fitLabel);
+                // Labels overflowing their band even at `minimumFontSize` stay full width, so they still drive
+                // rotation and thinning; truncating within the band is only preferred with `truncate: true`.
                 const fitsBand =
                     maxBandwidth === Infinity ||
-                    (label.avoidCollisions && hasRealChars(wrapTextOrSegments(inputText, wrapOptions)));
-                ({ text: wrappedLabel, fontSize } = fitLabelText(
-                    inputText,
-                    fitsBand ? fitOptions.banded : fitOptions.unbanded,
-                    label
-                ));
+                    (label.avoidCollisions &&
+                        hasRealChars(fitted.text) &&
+                        (label.truncate === true || !isLabelTruncated(fitted.text)));
+                if (!fitsBand) fitted = fitLabelText(inputText, bounds.unbanded, fitLabel);
+                ({ text: wrappedLabel, fontSize } = fitted);
             } else if (label.avoidCollisions) {
                 const wrapped = wrapTextOrSegments(inputText, wrapOptions);
                 wrappedLabel = wrapped === '' ? null : wrapped;
@@ -287,9 +289,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             const tickLabel = wrappedLabel ?? inputText;
             const isSegmented = isArray(tickLabel);
-            const isTruncated =
-                tickLabel !== inputText &&
-                (isSegmented ? isSegmentTruncated(tickLabel.at(-1)) : isTextTruncated(toTextString(tickLabel)));
+            const isTruncated = tickLabel !== inputText && isLabelTruncated(tickLabel);
 
             let tickId: string;
             if (isContinuous) {
@@ -309,7 +309,11 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
                 fitSource: fitOptions != null && tickLabel !== inputText ? inputText : undefined,
                 fontSize,
-                textMetrics: measureFittedLabel(tickLabel, label, fontSize, measurer),
+                labelStyle,
+                textMetrics:
+                    labelStyle == null
+                        ? measureFittedLabel(tickLabel, label, fontSize, measurer)
+                        : measureFittedLabel(tickLabel, labelStyle, fontSize),
                 translation: BandScale.is(scale) ? translation : Math.floor(translation),
             });
         }
@@ -390,6 +394,10 @@ function measureFittedLabel(
         : measureLabelText(text, fontWithSize(label, fontSize));
 }
 
+function isLabelTruncated(text: NormalisedTextOrSegments) {
+    return isArray(text) ? isSegmentTruncated(text.at(-1)) : isTextTruncated(toTextString(text));
+}
+
 export function labelFitOverflow(label: { truncate?: boolean }): WrapOptions['overflow'] {
     return label.truncate === false ? 'hide' : 'ellipsis';
 }
@@ -408,6 +416,13 @@ export function labelTextRoom(
         ? (left + right) * cos + (top + bottom) * sin
         : (left + right) * sin + (top + bottom) * cos;
     return Math.max(0, room - padding);
+}
+
+function labelFitBounds(label: ChartAxisLabel, isVertical: boolean | undefined, room: number, band: number) {
+    return {
+        banded: labelFitWrapOptions(label, isVertical, room, band),
+        unbanded: labelFitWrapOptions(label, isVertical, room, Infinity),
+    };
 }
 
 export function labelFitWrapOptions(
@@ -441,30 +456,33 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
     autoRotation: number,
     keepWidth = false
 ): TickDatum[] {
-    const { label, isVertical } = options;
-    const labelRoom = labelTextRoom(
-        label,
-        isVertical,
-        options.labelRoom ?? options.sizeLimit ?? Infinity,
-        autoRotation
-    );
+    const { isVertical } = options;
+    const room = options.labelRoom ?? options.sizeLimit ?? Infinity;
     const sin = Math.abs(Math.sin(autoRotation));
     const cos = Math.abs(Math.cos(autoRotation));
     const widthFactor = isVertical ? cos : sin;
     const heightFactor = isVertical ? sin : cos;
-    const maxHeight = Math.min(label.maxHeight ?? Infinity, heightFactor === 0 ? Infinity : labelRoom / heightFactor);
-    const widthBudget = (height: number) =>
-        Math.max(
-            0,
-            Math.min(
-                widthFactor === 0 ? Infinity : (labelRoom - height * heightFactor) / widthFactor,
-                label.maxWidth ?? Infinity
-            )
-        );
+    const budgetFor = (label: ChartAxisLabel) => {
+        const labelRoom = labelTextRoom(label, isVertical, room, autoRotation);
+        return {
+            maxHeight: Math.min(label.maxHeight ?? Infinity, heightFactor === 0 ? Infinity : labelRoom / heightFactor),
+            widthBudget: (height: number) =>
+                Math.max(
+                    0,
+                    Math.min(
+                        widthFactor === 0 ? Infinity : (labelRoom - height * heightFactor) / widthFactor,
+                        label.maxWidth ?? Infinity
+                    )
+                ),
+        };
+    };
+    const axisBudget = budgetFor(options.label);
 
     return ticks.map((tick) => {
         const { tickLabel, textMetrics } = tick;
         if (tick.isPrimary || tickLabel == null) return tick;
+        const label = tick.labelStyle ?? options.label;
+        const { maxHeight, widthBudget } = tick.labelStyle == null ? axisBudget : budgetFor(label);
         if (textMetrics.width <= widthBudget(textMetrics.height) && textMetrics.height <= maxHeight) return tick;
 
         const source = tick.fitSource ?? tickLabel;
@@ -488,10 +506,11 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
         }
 
         const { text, fontSize } = fitted;
-        const isTruncated = isArray(text) ? isSegmentTruncated(text.at(-1)) : isTextTruncated(toTextString(text));
+        const isTruncated = isLabelTruncated(text);
         return {
             ...tick,
             tickLabel: text,
+            fitSource: source,
             fontSize,
             textUntruncated: isTruncated ? toPlainText(source) : undefined,
             textMetrics: metrics,

@@ -11,6 +11,7 @@ import { findMinMax } from 'ag-charts-core';
 
 import type { FromToFns } from '../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
+import type { ChartAxisLabel } from '../chartAxis';
 
 export enum NiceMode {
     TickAndDomain,
@@ -29,6 +30,8 @@ export interface TickDatum {
     fitSource?: NormalisedTextOrSegments;
     /** Font size a label shrank to towards `minimumFontSize`; unset when it keeps the label's own size. */
     fontSize?: number;
+    /** Label options with this label's `itemStyler` overrides, which it was fitted with; unset without a styler. */
+    labelStyle?: ChartAxisLabel;
     isPrimary: boolean;
     textMetrics: Size;
 }

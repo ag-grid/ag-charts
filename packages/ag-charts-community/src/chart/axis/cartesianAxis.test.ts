@@ -1490,6 +1490,18 @@ describe('CartesianAxis', () => {
                 }
             });
 
+            it('shrinks labels into their category band before auto-rotating them', async () => {
+                const labels = ['Freight Hub', 'Cargo Depot', 'Supply Yard', 'Rail Siding', 'Dock Gate'];
+                await renderChart(bottomCategoryOptions({ minimumFontSize: 6, wrapping: 'never' }, labels), 400);
+
+                const nodes = getAxisLabelNodes(chart, 'bottom');
+                expect(nodes.map(getLabelText)).toEqual(labels);
+                for (const node of nodes) {
+                    expect(node.datum.rotation).toBe(0);
+                    expect(getFontSize(node)).toBeLessThan(12);
+                }
+            });
+
             it('warns for minimumFontSize larger than fontSize', async () => {
                 await renderChart(leftCategoryOptions({ minimumFontSize: 20 }, ['A']));
                 expectWarningsCalls().toEqual([[expect.stringContaining('minimumFontSize')]]);
@@ -1509,6 +1521,34 @@ describe('CartesianAxis', () => {
                     series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
                 });
                 expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.minimumFontSize')]]);
+            });
+        });
+
+        describe('itemStyler', () => {
+            const MEDIUM = 'Regional Operations Centre';
+            const styled = (label: Record<string, unknown>) => ({
+                ...label,
+                wrapping: 'never',
+                itemStyler: ({ value }: { value: string }) => (value === MEDIUM ? { fontSize: 24 } : undefined),
+            });
+
+            it('fits a label to maxWidth at the font size its itemStyler sets', async () => {
+                await renderChart(leftCategoryOptions(styled({ maxWidth: 120 }), ['A', MEDIUM]));
+
+                const node = findLongNode('left', 'Regional');
+                expect(node.datum.fontSize).toBe(24);
+                expect(getLabelText(node).endsWith('…')).toBe(true);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(120.5);
+            });
+
+            it('shrinks from the font size its itemStyler sets towards minimumFontSize', async () => {
+                await renderChart(leftCategoryOptions(styled({ maxWidth: 200, minimumFontSize: 8 }), ['A', MEDIUM]));
+
+                const node = findLongNode('left', 'Regional');
+                expect(getLabelText(node)).toBe(MEDIUM);
+                expect(node.datum.fontSize).toBeLessThan(24);
+                expect(node.datum.fontSize).toBeGreaterThan(12);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(200.5);
             });
         });
     });
