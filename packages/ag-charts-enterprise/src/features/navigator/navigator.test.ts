@@ -356,6 +356,13 @@ describe('Navigator', () => {
     };
 
     describe('keyboard focus', () => {
+        let host: HTMLElement | undefined;
+
+        afterEach(() => {
+            host?.remove();
+            host = undefined;
+        });
+
         it('should not retain focus override on previous handle after arrow key navigation (CRT-1107)', async () => {
             const options: AgCartesianChartOptions = {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', data: xyData([5, 7, 8, 3, 0, 2]) }],
@@ -380,7 +387,7 @@ describe('Navigator', () => {
         });
 
         it('restores the focus indicator on keydown inside a shadow root', async () => {
-            const host = document.createElement('div');
+            host = document.createElement('div');
             document.body.appendChild(host);
             const container = document.createElement('div');
             host.attachShadow({ mode: 'open' }).appendChild(container);
@@ -398,7 +405,6 @@ describe('Navigator', () => {
             slider!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', code: 'ShiftLeft', bubbles: true }));
 
             expect(slider!.getAttribute('data-focus-override')).toBe('true');
-            host.remove();
         });
     });
 
