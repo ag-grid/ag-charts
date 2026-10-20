@@ -14,8 +14,11 @@ async function readLegendItemStyle(chartContainer: Locator) {
         });
 }
 
-const isInShadowRoot = (chartContainer: Locator) =>
-    chartContainer.evaluate((el) => el.querySelector('.ag-charts-wrapper') == null);
+const locateChartWrapper = (chartContainer: Locator) =>
+    chartContainer.evaluate((el) => {
+        if (el.firstElementChild?.shadowRoot?.querySelector('.ag-charts-wrapper') != null) return 'shadow-root';
+        return el.querySelector('.ag-charts-wrapper') == null ? 'missing' : 'light-dom';
+    });
 
 test.describe('host style isolation', () => {
     setupIntrinsicAssertions(test);
@@ -29,16 +32,32 @@ test.describe('host style isolation', () => {
     }) => {
         const chartContainer = page.locator('#myChart');
 
-        expect(await isInShadowRoot(chartContainer)).toBe(true);
+        expect(await locateChartWrapper(chartContainer)).toBe('shadow-root');
         const style = await readLegendItemStyle(chartContainer);
         expect(style.borderTopStyle).toBe('none');
         expect(style.paddingTop).not.toBe('8px');
     });
 
+    test('inside the claude.ai visualiser, a click elsewhere on the chart closes its context menu', async ({
+        page,
+    }) => {
+        const chartContainer = page.locator('#myChart');
+        const contextMenu = chartContainer.locator('.ag-charts-context-menu');
+        const canvas = await chartContainer.locator(SELECTORS.canvasProxy).boundingBox();
+        expect(canvas).not.toBeNull();
+        const { x, y, width, height } = canvas!;
+
+        await page.mouse.click(x + width / 2, y + height / 2, { button: 'right' });
+        await expect(contextMenu).toBeVisible();
+
+        await page.mouse.click(x + 10, y + 10);
+        await expect(contextMenu).toBeHidden();
+    });
+
     test('outside the visualiser container, the same rules still reach a chart in the light DOM', async ({ page }) => {
         const chartContainer = page.locator('#outsideChart');
 
-        expect(await isInShadowRoot(chartContainer)).toBe(false);
+        expect(await locateChartWrapper(chartContainer)).toBe('light-dom');
         expect(await readLegendItemStyle(chartContainer)).toEqual({ borderTopStyle: 'solid', paddingTop: '8px' });
     });
 });

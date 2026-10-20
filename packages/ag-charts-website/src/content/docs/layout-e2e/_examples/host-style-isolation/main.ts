@@ -1,5 +1,22 @@
 // @ag-skip-fws
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
+
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    NumberAxisModule,
+]);
 
 const data = [
     { quarter: 'Q1', widgets: 420, gadgets: 310 },
