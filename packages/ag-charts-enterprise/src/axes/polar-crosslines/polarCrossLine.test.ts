@@ -9,9 +9,10 @@ import type {
     AgCrossLineListeners,
     AgPolarAxisShape,
     AgPolarChartOptions,
+    AgRadiusCrossLineLabelOptions,
     AgRadiusCrossLineOptions,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import type { Chart } from 'ag-charts-community-test';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -32,7 +33,12 @@ import {
     polarCanvasPoint,
     polarCrossLineAt,
 } from '../../test/polarCrossLines';
-import { createEnterpriseChart, mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    createEnterpriseChart,
+    itemNodes,
+    mockCssVarColorSupport,
+    prepareEnterpriseTestOptions,
+} from '../../test/utils';
 import { PolarCrossLine } from './polarCrossLine';
 import * as examples from './test/examples';
 
@@ -225,6 +231,8 @@ describe('PolarCrossLine theme overrides', () => {
     });
 
     it('rejects the cartesian label fit options', async () => {
+        // `maxWidth` belongs to the cartesian label options: deliberately not a valid polar label option.
+        const cartesianLabel = { text: 'Target', maxWidth: 40 } as AgRadiusCrossLineLabelOptions;
         const options: AgPolarChartOptions = {
             data: [
                 { quarter: "Q1'22", revenue: 1 },
@@ -235,7 +243,7 @@ describe('PolarCrossLine theme overrides', () => {
                 angle: { type: 'angle-category' },
                 radius: {
                     type: 'radius-number',
-                    crossLines: [{ type: 'line', value: 1, label: { text: 'Target', maxWidth: 40 } as any }],
+                    crossLines: [{ type: 'line', value: 1, label: cartesianLabel }],
                 },
             },
         };
@@ -491,9 +499,12 @@ describe('PolarCrossLine listeners', () => {
                 })
             )
         );
-        const series = chart.series[0] as any;
-        const { x, y } = series.contextNodeData.nodeData[1].point;
-        const { canvasX, canvasY } = Transformable.toCanvasPoint(series.contentGroup, x, y);
+        const markers = itemNodes(chart).filter(
+            (node): node is _ModuleSupport.Marker => node instanceof _ModuleSupport.Marker
+        );
+        expect(markers).toHaveLength(4);
+        const { x, y } = markers[1];
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(markers[1].parentNode!, x, y);
 
         await clickAction(canvasX, canvasY)(chart);
 

@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { Chart } from 'ag-charts-community-test';
-import { ChartAxisDirection, Transformable } from 'ag-charts-core';
+import { ChartAxisDirection, Text, Transformable } from 'ag-charts-core';
 
 import type { PolarCrossLine } from '../axes/polar-crosslines/polarCrossLine';
 
@@ -14,6 +14,13 @@ export function crossLineInstances(target: Chart, axisId: string) {
     const plugin =
         _ModuleSupport.getCrossLinesPlugin(axis) ?? axis.getModuleMap().getModule<CrossLinesPlugin>('polarCrossLines');
     return plugin?.getInstances() ?? [];
+}
+
+/** The label text nodes of the cross lines on `axisId`, polar or cartesian, in instance order. */
+export function getCrossLineLabelNodes(target: Chart, axisId: string): Text[] {
+    return crossLineInstances(target, axisId).flatMap((crossLine) =>
+        Array.from(crossLine.labelGroup.children()).filter((node): node is Text => node instanceof Text)
+    );
 }
 
 export function polarCrossLineAt(target: Chart, axisId: string, index = 0) {

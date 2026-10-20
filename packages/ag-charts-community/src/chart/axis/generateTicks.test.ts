@@ -3,13 +3,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LinearScale, OrdinalTimeScale, ScaleAlignment, UnitTimeScale } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import { numericBandsOf, spyOnNumericBandsBuild, tickGenerationParams, tickLabel } from '../test/axisAccessors';
 import { setupMockCanvas } from '../test/utils';
 import { NiceMode } from './axisUtil';
 import { estimateScaleTickCount, generateTicks } from './generateTicks';
 import { timeIntervalMaxLabelSize, withTemporaryDomain } from './generateTicksUtils';
-
-// `numericBands` is a protected derived cache; bracket access keeps it typed without a cast.
-const numericBandsOf = (scale: OrdinalTimeScale) => scale['numericBands'];
 
 // A minTickCount close to tickCount makes buildTickData's overlap loop iterate linearly instead of
 // converging by binary search, which hangs on deeply zoomed ordinal-time domains.
@@ -20,15 +18,15 @@ describe('estimateScaleTickCount', () => {
         scale.domain = domain;
         scale.range = [0, rangeExtent];
 
-        return estimateScaleTickCount({
-            scale,
-            domain,
-            range: [0, rangeExtent] as [number, number],
-            visibleRange: [0.5 - zoomExtent / 2, 0.5 + zoomExtent / 2] as [number, number],
-            label: { enabled: true, fontSize: 14, avoidCollisions: true } as any,
-            defaultTickMinSpacing: 50,
-            interval: undefined,
-        } as any);
+        return estimateScaleTickCount(
+            tickGenerationParams({
+                scale,
+                domain,
+                range: [0, rangeExtent],
+                visibleRange: [0.5 - zoomExtent / 2, 0.5 + zoomExtent / 2],
+                label: tickLabel({ fontSize: 14 }),
+            })
+        );
     }
 
     it('should allow full binary search range for large domains with deep zoom', () => {
@@ -125,23 +123,15 @@ describe('generateTicks on an ordinal-time scale', () => {
     }
 
     function run(scale: OrdinalTimeScale, tickDomain: Date[], niceMode: NiceMode[]) {
-        return generateTicks({
-            label: { enabled: true, fontSize: 12, avoidCollisions: true, autoRotate: false } as any,
-            parallel: true,
-            axisRotation: Math.PI / -2,
-            scale,
-            domain: tickDomain,
-            range: [0, 800],
-            visibleRange: [0, 1],
-            niceMode,
-            reverse: false,
-            primaryTickCount: undefined,
-            defaultTickMinSpacing: 50,
-            labelOffset: 0,
-            sideFlag: -1,
-            interval: undefined,
-            tickFormatter: () => (value: any) => (value instanceof Date ? value.toISOString() : String(value)),
-        } as any);
+        return generateTicks(
+            tickGenerationParams({
+                scale,
+                domain: tickDomain,
+                range: [0, 800],
+                niceMode,
+                tickFormatter: () => (value: unknown) => (value instanceof Date ? value.toISOString() : String(value)),
+            })
+        );
     }
 
     function create(domain: Date[]) {
@@ -204,7 +194,7 @@ describe('generateTicks on an ordinal-time scale', () => {
             ['nice domain', [NiceMode.TickAndDomain]],
             ['ticks only', [NiceMode.TicksOnly]],
         ])('builds none for a tick pass and a few lookups (%s)', (_name, niceMode) => {
-            const builds = vi.spyOn(OrdinalTimeScale.prototype as any, 'numericBands', 'get');
+            const builds = spyOnNumericBandsBuild();
             const scale = create(domain);
 
             run(scale, tickDomain, niceMode);
@@ -261,29 +251,17 @@ describe('labelBandOffsets', () => {
         scale.range = [0, 600];
 
         const requested: number[] = [];
-        const result = generateTicks({
-            label: { enabled: true, fontSize: 12, avoidCollisions: true, autoRotate: false } as any,
-            // A horizontal axis, where `defaultRotation` is a quarter turn and a `verticalAlign`
-            // flush applies.
-            parallel: true,
-            axisRotation: Math.PI / -2,
-            scale,
-            domain: [0, 100],
-            range: [0, 600],
-            visibleRange: [0, 1],
-            niceMode: [],
-            reverse: false,
-            primaryTickCount: undefined,
-            defaultTickMinSpacing: 50,
-            labelOffset: 0,
-            sideFlag: -1,
-            interval: undefined,
-            labelBandOffsets: (_ticks: unknown, rotation: number) => {
-                requested.push(rotation);
-                return undefined;
-            },
-            tickFormatter: () => (value: any) => String(value),
-        } as any);
+        const result = generateTicks(
+            tickGenerationParams<LinearScale, AgNumericValue>({
+                scale,
+                domain: [0, 100],
+                range: [0, 600],
+                labelBandOffsets: (_ticks, rotation) => {
+                    requested.push(rotation);
+                    return undefined;
+                },
+            })
+        );
 
         expect(requested.length).toBeGreaterThan(0);
         for (const rotation of requested) {
@@ -300,23 +278,15 @@ describe('tick label lineHeight', () => {
         scale.domain = [0, 100];
         scale.range = [0, 600];
 
-        const { tickData } = generateTicks({
-            label: { enabled: true, fontSize: 12, lineHeight, avoidCollisions: true, autoRotate: false } as any,
-            parallel: true,
-            axisRotation: Math.PI / -2,
-            scale,
-            domain: [0, 100],
-            range: [0, 600],
-            visibleRange: [0, 1],
-            niceMode: [],
-            reverse: false,
-            primaryTickCount: undefined,
-            defaultTickMinSpacing: 50,
-            labelOffset: 0,
-            sideFlag: -1,
-            interval: undefined,
-            tickFormatter: () => (value: any) => `${value}\nunits`,
-        } as any);
+        const { tickData } = generateTicks(
+            tickGenerationParams<LinearScale, AgNumericValue>({
+                scale,
+                label: tickLabel({ lineHeight }),
+                domain: [0, 100],
+                range: [0, 600],
+                tickFormatter: () => (value: unknown) => `${String(value)}\nunits`,
+            })
+        );
         return tickData.ticks.map((tick) => tick.textMetrics.height);
     }
 
@@ -328,14 +298,14 @@ describe('tick label lineHeight', () => {
     });
 
     it('measures time labels by their lineHeight when estimating their size', () => {
-        const label = { enabled: true, fontSize: 12, lineHeight: 40, format: '%d %b' } as any;
+        const label = tickLabel({ lineHeight: 40, format: '%d %b' });
         const domain = [new Date(2024, 0, 1), new Date(2024, 0, 10)];
         expect(timeIntervalMaxLabelSize(label, undefined, domain, 'day').height).toBe(40);
     });
 
     it('measures parent level time labels by their own lineHeight', () => {
-        const label = { enabled: true, fontSize: 12, lineHeight: 15, format: '%d' } as any;
-        const primaryLabel = { enabled: true, fontSize: 12, lineHeight: 60, format: '%b' } as any;
+        const label = tickLabel({ lineHeight: 15, format: '%d' });
+        const primaryLabel = tickLabel({ lineHeight: 60, format: '%b' });
         const domain = [new Date(2024, 0, 1), new Date(2024, 2, 10)];
         expect(timeIntervalMaxLabelSize(label, primaryLabel, domain, 'day').height).toBe(60);
     });

@@ -1,10 +1,20 @@
-import { expect } from 'vitest';
+import { expect, vi } from 'vitest';
 
-import { type BBox, ChartAxisDirection, type Group, type TransformableText } from 'ag-charts-core';
+import {
+    type BBox,
+    ChartAxisDirection,
+    type Group,
+    OrdinalTimeScale,
+    type Scale,
+    type TransformableText,
+} from 'ag-charts-core';
 
 import type { AxisValuePick } from '../../module/axisContext';
 import type { LabelNodeDatum } from '../axis/axis';
+import type { TickInterval } from '../axis/axisTick';
 import { CartesianAxis } from '../axis/cartesianAxis';
+import type { GenerateTicksOptions } from '../axis/generateTicksUtils';
+import type { ChartAxisLabel } from '../chartAxis';
 import type { AxisLabelSource } from '../layout/axisLabelSource';
 import { type ChartOrProxy, createSceneGeometrySampler, deproxy } from './utils';
 
@@ -167,4 +177,55 @@ export function getAxisGridGroupById(chartOrProxy: ChartOrProxy<any>, id: string
     const { gridGroup } = axis as { gridGroup?: Group };
     expect(gridGroup).toBeDefined();
     return gridGroup!;
+}
+
+/**
+ * A tick label as the axis resolves it: only the options tick generation reads are set, the rest stay unset.
+ * Pass the overrides a test is about (`lineHeight`, `format`, …).
+ */
+export function tickLabel(overrides: Partial<ChartAxisLabel> = {}): ChartAxisLabel {
+    return { enabled: true, fontSize: 12, spacing: 0, avoidCollisions: true, autoRotate: false, ...overrides };
+}
+
+/**
+ * The options of one `generateTicks` pass over a horizontal axis, where `defaultRotation` is a quarter turn and
+ * a `verticalAlign` flush applies. A test supplies the scale, domain and range it is about, plus any overrides.
+ */
+export function tickGenerationParams<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+    params: Pick<GenerateTicksOptions<TScale, TDatum>, 'scale' | 'domain' | 'range'> &
+        Partial<GenerateTicksOptions<TScale, TDatum>>
+): GenerateTicksOptions<TScale, TDatum> {
+    return {
+        label: tickLabel(),
+        parallel: true,
+        axisRotation: Math.PI / -2,
+        visibleRange: [0, 1],
+        niceMode: [],
+        reverse: false,
+        primaryTickCount: undefined,
+        defaultTickMinSpacing: 50,
+        labelOffset: 0,
+        sideFlag: -1,
+        interval: undefined,
+        tickFormatter: () => (value: unknown) => String(value),
+        ...params,
+    };
+}
+
+// `numericBands` is a protected derived cache of `OrdinalTimeScale`; this is the one reach into it.
+interface NumericBandsHost {
+    readonly numericBands: number[];
+}
+
+/** The numeric form of an ordinal-time scale's bands, building it if the scale had not yet. */
+export function numericBandsOf(scale: OrdinalTimeScale): number[] {
+    return (scale as unknown as NumericBandsHost).numericBands;
+}
+
+/**
+ * Spies on the getter through which every read of an ordinal-time scale's `numericBands` passes, and which
+ * builds them on first use. A lookup that never calls it has not paid for the build.
+ */
+export function spyOnNumericBandsBuild() {
+    return vi.spyOn(OrdinalTimeScale.prototype as unknown as NumericBandsHost, 'numericBands', 'get');
 }

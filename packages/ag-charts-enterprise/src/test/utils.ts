@@ -1,10 +1,12 @@
 import { type AgChartInstance, type AgChartOptions, AgCharts, type AgGaugeOptions } from 'ag-charts-community';
 import {
+    type ChartOrProxy,
     type PhasedPropertyExpectation,
     type SceneGeometrySample,
     type SceneNodeExpectation,
     type ScenePropertyExpectation,
     type TrajectoryExpectation,
+    deproxy,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
@@ -148,8 +150,16 @@ export const RED_SHADOW = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset:
 
 export const shadowedShapes = (group: Group) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
 
-/** The drawn item nodes of the first series, typed loosely so tests can read node-specific fields. */
-export const itemNodes = (chart: any): any[] => collectShapes(chart.series[0].contentGroup);
+/** A box-plot or candlestick item, whose whisker path and direction are private to the node class. */
+export interface WhiskerItemNode extends Shape {
+    readonly wickPath: { isEmpty(): boolean };
+    readonly horizontal?: boolean;
+}
+
+/** The drawn item nodes of the first series; `TNode` names the node class's fields a test reads beyond `Shape`. */
+export function itemNodes<TNode extends Shape = Shape>(chartOrProxy: ChartOrProxy<any>): TNode[] {
+    return collectShapes(deproxy(chartOrProxy).series[0].contentGroup) as TNode[];
+}
 
 type MockCanvas = ReturnType<typeof setupMockCanvas>;
 

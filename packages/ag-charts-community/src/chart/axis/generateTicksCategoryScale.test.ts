@@ -2,29 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { CategoryScale } from 'ag-charts-core';
 
+import { tickGenerationParams } from '../test/axisAccessors';
 import { generateTicks } from './generateTicks';
 import { withTemporaryDomain } from './generateTicksUtils';
-
-// A horizontal axis, where `defaultRotation` is a quarter turn and a `verticalAlign` flush applies.
-function horizontalTickParams(scale: unknown, domain: unknown[], extent: number) {
-    return {
-        label: { enabled: true, fontSize: 12, avoidCollisions: true, autoRotate: false },
-        parallel: true,
-        axisRotation: Math.PI / -2,
-        scale,
-        domain,
-        range: [0, extent],
-        visibleRange: [0, 1],
-        niceMode: [],
-        reverse: false,
-        primaryTickCount: undefined,
-        defaultTickMinSpacing: 50,
-        labelOffset: 0,
-        sideFlag: -1,
-        interval: undefined,
-        tickFormatter: () => (value: any) => String(value),
-    } as any;
-}
 
 describe('withTemporaryDomain on a CategoryScale', () => {
     const categories = (count: number) => Array.from({ length: count }, (_, i) => `c${i}`);
@@ -77,7 +57,7 @@ describe('withTemporaryDomain on a CategoryScale', () => {
         const scale = newScale(domain);
         expect(scale.findIndex('c2999')).toBe(2999);
         // The axis hands tick generation its own array of the same categories, so each pass swaps domains.
-        const params = horizontalTickParams(scale, [...domain], 1000);
+        const params = tickGenerationParams({ scale, domain: [...domain], range: [0, 1000] });
 
         // An upper bound: the spy counts writes to every Map, so allow one n-entry index build plus other writes.
         const set = vi.spyOn(Map.prototype, 'set');

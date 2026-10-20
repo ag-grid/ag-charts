@@ -1,13 +1,13 @@
-import { expect, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { calculateNiceSecondaryAxis } from './secondaryAxisTicks';
 
 describe('secondaryAxisTicks', () => {
     const scale = {
-        toDomain: (d: any) => d,
+        toDomain: (d: number) => d,
     };
 
-    test.each([
+    it.each([
         {
             domain: [49.9, 216.4],
             count: 6,
@@ -69,17 +69,17 @@ describe('secondaryAxisTicks', () => {
         expect(ticks).toMatchObject(expected.map((t) => expect.closeTo(t, 10)));
     });
 
-    test('Generates ticks for a single primary axis tick', () => {
+    it('Generates ticks for a single primary axis tick', () => {
         const { ticks } = calculateNiceSecondaryAxis(scale, [5, 10], { unzoomed: 1, zoomed: 1 }, false, [0, 1]);
         expect(ticks).toEqual([4, 6, 8, 10, 12]);
     });
 
-    test('Generates ticks for a single primary axis tick when zoomed', () => {
+    it('Generates ticks for a single primary axis tick when zoomed', () => {
         const { ticks } = calculateNiceSecondaryAxis(scale, [5, 10], { unzoomed: 1, zoomed: 1 }, false, [0.4, 0.6]);
         expect(ticks).toEqual([7, 7.5, 8]);
     });
 
-    test('CRT-1116: heavy primary-axis zoom does not produce fractional steps on secondary axis', () => {
+    it('CRT-1116: heavy primary-axis zoom does not produce fractional steps on secondary axis', () => {
         const { ticks } = calculateNiceSecondaryAxis(
             scale,
             [27385, 31348],
@@ -92,7 +92,7 @@ describe('secondaryAxisTicks', () => {
         expect(ticks.length).toBeGreaterThan(7);
     });
 
-    test.each([
+    it.each([
         // Ensure magnitude is reflected
         { domain: 0.005, expected: [0, 0.002, 0.004, 0.006, 0.008] },
         { domain: 0.05, expected: [0, 0.02, 0.04, 0.06, 0.08] },
