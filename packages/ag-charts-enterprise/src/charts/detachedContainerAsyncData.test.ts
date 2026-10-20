@@ -116,4 +116,59 @@ describe('Chart on a detached container with async data and a series-type switch
 
         expect([scene.width, scene.height]).toEqual(sizeBeforeDestroy);
     });
+
+    describe('when the series type is switched while the container is detached', () => {
+        const wrappers = (container: HTMLElement) => container.querySelectorAll('.ag-charts-wrapper');
+
+        const switchToPolar = (container: HTMLElement) =>
+            proxy.update({
+                container,
+                animation: { enabled: false },
+                data: DATA,
+                series: [{ type: 'radar-area', angleKey: 'country', radiusKey: 'gold' }],
+            });
+
+        const createCartesian = async (container: HTMLElement) => {
+            proxy = AgCharts.create({
+                container,
+                animation: { enabled: false },
+                data: DATA,
+                series: [{ type: 'bar', xKey: 'country', yKey: 'gold' }],
+            });
+            await proxy.waitForUpdate();
+            expect(wrappers(container)).toHaveLength(1);
+        };
+
+        it('has exactly one chart wrapper once the container is attached after the switch settles', async () => {
+            const { container, attach } = setupMeasurableContainer();
+            await createCartesian(container);
+            const original = deproxy(proxy);
+
+            await switchToPolar(container);
+            await proxy.waitForUpdate();
+            expect(deproxy(proxy)).not.toBe(original);
+            attach();
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            await proxy.waitForUpdate();
+
+            expect(wrappers(container)).toHaveLength(1);
+        });
+
+        // The switch queues the old chart's teardown, so attaching straight after requesting it lands in the
+        // window before that teardown runs.
+        it('has exactly one chart wrapper once the container is attached before the old chart is torn down', async () => {
+            const { container, attach } = setupMeasurableContainer();
+            await createCartesian(container);
+            const original = deproxy(proxy);
+
+            const switched = switchToPolar(container);
+            attach();
+            await switched;
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            await proxy.waitForUpdate();
+
+            expect(deproxy(proxy)).not.toBe(original);
+            expect(wrappers(container)).toHaveLength(1);
+        });
+    });
 });
