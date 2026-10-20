@@ -4582,6 +4582,21 @@ describe('BarSeries', () => {
             });
         });
     });
+    describe('AG-18978 missing value', () => {
+        const QUARTERS = [`Q1'18`, `Q2'18`, `Q3'18`, `Q4'18`];
+
+        it('should draw the other categories and leave a gap for a row without the yKey property', async () => {
+            const data = QUARTERS.map((quarter, index) => ({ quarter, iphone: 140 + index, ipad: 14 + index }));
+            delete (data[3] as Partial<(typeof data)[number]>).ipad;
+            chart = await createChart({
+                data,
+                series: ['iphone', 'ipad'].map((yKey) => ({ type: 'bar' as const, xKey: 'quarter', yKey })),
+            });
+
+            const nodeData = (deproxy(chart).series[1] as any).contextNodeData.nodeData as any[];
+            expect(nodeData.map((nodeDatum) => nodeDatum.xValue)).toEqual(QUARTERS.slice(0, 3));
+        });
+    });
 });
 
 // Bespoke: width, height and overrideDevicePixelRatio are set after preparation, which `createChart` would overwrite.

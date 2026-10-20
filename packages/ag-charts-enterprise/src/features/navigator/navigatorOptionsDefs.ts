@@ -235,7 +235,7 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
     enabled: boolean,
     height: positiveNumber,
     spacing: positiveNumber,
-    cornerRadius: number,
+    cornerRadius: positiveNumber,
     mask: navigatorMaskOptionsDef,
     track: navigatorTrackOptionsDef,
     thumb: navigatorThumbOptionsDef,

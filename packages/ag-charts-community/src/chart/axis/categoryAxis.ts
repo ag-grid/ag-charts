@@ -92,6 +92,10 @@ export class CategoryAxis<
         return ChartUpdateType.PROCESS_DOMAIN;
     }
 
+    protected override get tickLayoutIgnoresData() {
+        return CategoryScale.is(this.scale);
+    }
+
     protected override updateScale() {
         super.updateScale();
 

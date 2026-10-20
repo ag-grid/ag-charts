@@ -1811,14 +1811,17 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        this.applyAxes(this, newOpts, seriesStatus);
+        // Re-applying the axis options drops the cached tick layouts, which only a data-only delta leaves valid.
+        const deltaKeys = Object.keys(deltaOptions);
+        const axesChanged = modulesChanged || deltaKeys.some((key) => key !== 'data');
+        this.applyAxes(this, newOpts, seriesStatus, axesChanged);
         const restyled = seriesStatus === 'restyled';
         // The navigator's mini chart mirrors the main series, so a restyle also arrives as a `navigator` delta.
         // That is only restyle-safe when the mini chart's own series report a restyle too (checked below).
         const miniChartRestyle = restyled && isMiniChartSeriesOnlyDelta((deltaOptions as any).navigator);
         if (
             this.axes.length === 0 ||
-            !Object.keys(deltaOptions).every(
+            !deltaKeys.every(
                 (key) =>
                     LAYOUT_ONLY_DELTA_KEYS.has(key) ||
                     (restyled && key === 'series') ||
@@ -2179,7 +2182,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return restyleCount === updateCount ? 'restyled' : 'updated';
     }
 
-    private applyAxes(chart: SeriesAxesHost, options: AgChartOptions, seriesStatus: SeriesChangeType) {
+    private applyAxes(
+        chart: SeriesAxesHost,
+        options: AgChartOptions,
+        seriesStatus: SeriesChangeType,
+        axesChanged = true
+    ) {
         if (!('axes' in options) || !options.axes) {
             return;
         }
@@ -2190,11 +2198,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         // Try to optimise series updates if series count and types didn't change.
         if (matchingTypes) {
-            for (const axis of chart.axes) {
-                const newOpts = axes[axis.id];
-                axis.applyOptions(newOpts as typeof axis.options);
-                syncAxisContext(axis, newOpts);
-                this.applyAxisModules(axis, newOpts);
+            if (axesChanged) {
+                for (const axis of chart.axes) {
+                    const newOpts = axes[axis.id];
+                    axis.applyOptions(newOpts as typeof axis.options);
+                    syncAxisContext(axis, newOpts);
+                    this.applyAxisModules(axis, newOpts);
+                }
             }
         } else {
             debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);

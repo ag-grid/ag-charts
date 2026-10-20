@@ -41,6 +41,7 @@ import type {
     VerticalAlign,
 } from 'ag-charts-types';
 
+import type { AxisLayout } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
@@ -51,7 +52,7 @@ import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
 import { AxisLabelSource } from '../layout/axisLabelSource';
 import type { ScrollbarLayout } from '../layout/layoutManager';
-import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
+import { Axis, AxisGroupZIndexMap, type AxisPickDatum, type LabelNodeDatum } from './axis';
 import {
     type LabelBox,
     type LabelExtent,
@@ -83,6 +84,12 @@ import { generateTicks } from './generateTicks';
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
 
+/** The axis state that calculating a tick layout sets as a side effect. */
+interface CartesianLayoutState extends Pick<AxisLayout, 'labelThickness' | 'scrollbar'> {
+    pickTickData: AxisPickDatum[];
+    titleThickness: number;
+}
+
 interface GeneratedTicks {
     ticks: TickDatum[];
     tickLines: AxisLineDatum[];
@@ -90,6 +97,7 @@ interface GeneratedTicks {
     gridFills: AxisFillDatum[];
     labels: LabelNodeDatum[];
     spacing: number;
+    state: CartesianLayoutState;
 }
 
 export type GridLineStyleTickDatum = Pick<TickDatum, 'index' | 'tickId' | 'translation'>;
@@ -374,6 +382,7 @@ export abstract class CartesianAxis<
                 gridFills: [],
                 labels: [],
                 spacing,
+                state: this.captureLayoutState(),
             };
             return {
                 ticks: [],
@@ -491,9 +500,35 @@ export abstract class CartesianAxis<
         const gridFills = this.calculateGridFills(ticks, p1, p2);
         const tickLines = this.calculateTickLines(ticks, direction, scrollbarThickness);
         const { bbox, spacing } = this.measureAxisLayout(tickDomain, ticks, labels, scrollbar, scrollbarThickness);
-        const layout: GeneratedTicks = { ticks, gridLines, gridFills, tickLines, labels, spacing };
+        const state = this.captureLayoutState();
+        const layout: GeneratedTicks = { ticks, gridLines, gridFills, tickLines, labels, spacing, state };
 
         return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox, layout };
+    }
+
+    private captureLayoutState(): CartesianLayoutState {
+        const { pickTickData, titleThickness } = this;
+        const { labelThickness, scrollbar } = this.layout;
+        return { pickTickData, titleThickness, labelThickness, scrollbar };
+    }
+
+    protected override restoreTickLayoutState({ state }: GeneratedTicks) {
+        this.pickTickData = state.pickTickData;
+        this.titleThickness = state.titleThickness;
+        this.layout.labelThickness = state.labelThickness;
+        this.layout.scrollbar = state.scrollbar;
+    }
+
+    protected override refreshTickDatums(layout: GeneratedTicks): GeneratedTicks {
+        const copy = <T extends object>(datums: T[]) => datums.map((datum) => ({ ...datum }));
+        const { tickLines, gridLines, gridFills, labels } = layout;
+        return {
+            ...layout,
+            tickLines: copy(tickLines),
+            gridLines: copy(gridLines),
+            gridFills: copy(gridFills),
+            labels: copy(labels),
+        };
     }
 
     protected calculateGridLines(ticks: GridLineStyleTickDatum[], p1: number, p2: number) {

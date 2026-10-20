@@ -195,7 +195,7 @@
     "test:vitest": {
       "command": "npx vitest",
       "outputs": ["{workspaceRoot}/reports/ag-charts-website.xml"],
-      "dependsOn": [],
+      "dependsOn": ["^build"],
       "options": {
         "config": "{projectRoot}/vitest.config.mjs",
         "watch": false

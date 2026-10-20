@@ -30,11 +30,6 @@ export default getViteConfig({
             '@ag-grid-types': resolvePath('src/types/ag-grid.d.ts'),
             '@utils': resolvePath('src/utils'),
             '@constants': resolvePath('src/constants.ts'),
-            'ag-charts-enterprise': resolvePath('../ag-charts-enterprise/src/main.ts'),
-            'ag-charts-community': resolvePath('../ag-charts-community/src/main.ts'),
-            'ag-charts-types': resolvePath('../ag-charts-types/src/main.ts'),
-            'ag-charts-locale': resolvePath('../ag-charts-locale/src/main.ts'),
-            'ag-charts-core': resolvePath('../ag-charts-core/src/main.ts'),
         },
     },
 });
