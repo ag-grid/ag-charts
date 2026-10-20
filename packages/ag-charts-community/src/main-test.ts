@@ -16,5 +16,6 @@ export * from './chart/test/legendItemName';
 export { themeOptionsDefFor } from './chart/mapping/themes';
 export { isPresetOverridesType } from './chart/themes/chartTheme';
 export * from './chart/test/shadowFixtures';
+export { expectSamePixels } from './chart/test/expectSamePixels';
 export * from './chart/test/prepareOptions';
 export * from './chart/test/syncFixtures';

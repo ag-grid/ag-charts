@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BBox, Group, Node, Scene, TranslatableGroup } from 'ag-charts-core';
 import type { RenderContext } from 'ag-charts-core';
 
+import { expectSamePixels } from '../chart/test/expectSamePixels';
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { setupMockConsole } from '../util/test/mockConsole';
 
@@ -138,7 +139,7 @@ describe('partial layer repaint of a scene', () => {
 
         const readPixels = () => {
             const { width, height } = scene.canvas.element;
-            return scene.canvas.context.getImageData(0, 0, width, height).data;
+            return scene.canvas.context.getImageData(0, 0, width, height);
         };
         /** Repaints every layer whole, and returns the pixels that paints. */
         const wholeRepaint = () => {
@@ -153,20 +154,11 @@ describe('partial layer repaint of a scene', () => {
             change();
             scene.render();
             return {
-                pixels: readPixels().slice(),
+                pixels: readPixels(),
                 partial: spy!.mock.results.some((result) => result.value != null),
             };
         };
         return { scene, root, shifted, layer, innerLayer, first, second, third, frame, wholeRepaint };
-    }
-
-    function expectSamePixels(actual: Uint8ClampedArray, expected: Uint8ClampedArray) {
-        expect(actual.length).toBe(expected.length);
-        let differing = 0;
-        for (let i = 0; i < actual.length; i++) {
-            if (actual[i] !== expected[i]) differing++;
-        }
-        expect(differing).toBe(0);
     }
 
     describe.each([1, 1.5, 2])('at a pixel ratio of %s', (pixelRatio) => {
@@ -185,7 +177,7 @@ describe('partial layer repaint of a scene', () => {
                 for (const move of moves) {
                     const { pixels, partial } = frame(() => first.update([move]));
                     expect(partial).toBe(true);
-                    expectSamePixels(pixels, wholeRepaint().slice());
+                    expectSamePixels(pixels, wholeRepaint());
                 }
             });
 
@@ -197,7 +189,7 @@ describe('partial layer repaint of a scene', () => {
                 );
 
                 expect(partial).toBe(true);
-                expectSamePixels(pixels, wholeRepaint().slice());
+                expectSamePixels(pixels, wholeRepaint());
             });
 
             it('paints what a whole repaint paints when the regions of two nodes overlap', () => {
@@ -209,7 +201,7 @@ describe('partial layer repaint of a scene', () => {
                 });
 
                 expect(partial).toBe(true);
-                expectSamePixels(pixels, wholeRepaint().slice());
+                expectSamePixels(pixels, wholeRepaint());
             });
 
             it('paints what a whole repaint paints when the node is in a layer within the layer', () => {
@@ -217,11 +209,11 @@ describe('partial layer repaint of a scene', () => {
 
                 const inner = frame(() => third.update([patch(112.25, 62.5, 18.5, 22.5, 'rgba(120, 40, 200, 0.6)')]));
                 expect(inner.partial).toBe(true);
-                expectSamePixels(inner.pixels, wholeRepaint().slice());
+                expectSamePixels(inner.pixels, wholeRepaint());
 
                 const outer = frame(() => first.update([patch(24.5, 24.5, 30.5, 25.5, 'rgba(220, 40, 60, 0.6)')]));
                 expect(outer.partial).toBe(true);
-                expectSamePixels(outer.pixels, wholeRepaint().slice());
+                expectSamePixels(outer.pixels, wholeRepaint());
             });
         });
 
@@ -237,7 +229,7 @@ describe('partial layer repaint of a scene', () => {
                 });
 
                 expect(partial).toBe(false);
-                expectSamePixels(pixels, wholeRepaint().slice());
+                expectSamePixels(pixels, wholeRepaint());
             });
 
             it('paints what a whole repaint paints after the layer is resized', () => {
@@ -249,7 +241,7 @@ describe('partial layer repaint of a scene', () => {
                 });
 
                 expect(partial).toBe(false);
-                expectSamePixels(pixels, wholeRepaint().slice());
+                expectSamePixels(pixels, wholeRepaint());
             });
 
             it('paints what a whole repaint paints after the pixel ratio changes', () => {
@@ -261,7 +253,7 @@ describe('partial layer repaint of a scene', () => {
                 });
 
                 expect(partial).toBe(false);
-                expectSamePixels(pixels, wholeRepaint().slice());
+                expectSamePixels(pixels, wholeRepaint());
             });
 
             it('paints what a whole repaint paints after the layer moves', () => {
@@ -273,7 +265,7 @@ describe('partial layer repaint of a scene', () => {
                 });
 
                 expect(partial).toBe(false);
-                expectSamePixels(pixels, wholeRepaint().slice());
+                expectSamePixels(pixels, wholeRepaint());
             });
 
             it('paints what a whole repaint paints after a render error, and then repaints in part again', () => {
@@ -286,11 +278,11 @@ describe('partial layer repaint of a scene', () => {
 
                 const recovered = frame(() => first.update([patch(26.1, 23.9, 30.4, 25.2, 'rgba(220, 40, 60, 0.6)')]));
                 expect(recovered.partial).toBe(false);
-                expectSamePixels(recovered.pixels, wholeRepaint().slice());
+                expectSamePixels(recovered.pixels, wholeRepaint());
 
                 const next = frame(() => first.update([patch(27.1, 24.9, 30.4, 25.2, 'rgba(220, 40, 60, 0.6)')]));
                 expect(next.partial).toBe(true);
-                expectSamePixels(next.pixels, wholeRepaint().slice());
+                expectSamePixels(next.pixels, wholeRepaint());
             });
         });
     });

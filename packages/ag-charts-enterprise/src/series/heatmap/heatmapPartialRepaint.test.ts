@@ -5,6 +5,7 @@ import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
     deproxy,
+    expectSamePixels,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -88,13 +89,13 @@ describe('HeatmapSeries partial repaint', () => {
         return ctx.snapshot();
     }
 
-    /** Asserts that the canvas holds what a whole repaint paints, and that the last frame was a partial one or not. */
+    /** Asserts that the canvas holds exactly what a whole repaint paints, and that the last frame was a partial one or not. */
     function expectFrameToMatchWholeRepaint(expectPartial?: boolean) {
         const regions = partialRegions();
         spy.mockClear();
         const frame = ctx.snapshot();
         if (expectPartial != null) expect(regions.length > 0).toBe(expectPartial);
-        expect(frame).toMatchImage(repaintWhole());
+        expectSamePixels(frame, repaintWhole());
     }
 
     it('repaints only the region of the updated column, and matches a whole repaint', async () => {
@@ -166,6 +167,23 @@ describe('HeatmapSeries partial repaint', () => {
             { ...cells[200], v: 40 },
             { ...cells[900], v: 1400 },
         ]);
+
+        expectFrameToMatchWholeRepaint(true);
+    });
+
+    it('matches a whole repaint when a single cell is updated', async () => {
+        await create();
+
+        await transact([{ ...GRID[3 * ROWS + 4], v: 120 }]);
+
+        expectFrameToMatchWholeRepaint(true);
+    });
+
+    it('matches a whole repaint when a single narrow cell is updated', async () => {
+        const cells = gridCells(1500, 1);
+        await create(cells);
+
+        await transact([{ ...cells[700], v: 60 }]);
 
         expectFrameToMatchWholeRepaint(true);
     });
@@ -370,7 +388,7 @@ describe('HeatmapCellBatch dirty region', () => {
         const batch = batchOf(8);
         paint(batch);
 
-        // The region reaches cells 2 to 4, and its pixel of margin takes in the edges of 1 and 5.
+        // The region reaches cells 2 to 4, and cells 1 and 5 touch its edges.
         const fills = paint(batch, new BBox(20, 0, 30, 10));
 
         expect(fills.map(([fill]) => fill)).toEqual(['fill1', 'fill2', 'fill3', 'fill4', 'fill5']);
