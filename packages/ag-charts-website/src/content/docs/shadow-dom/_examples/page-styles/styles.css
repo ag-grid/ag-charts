@@ -5,3 +5,13 @@ button:not(#toolbar button) {
     border-radius: 0;
     background: mistyrose;
 }
+
+/* The shared example frame selects the container through `:has(> .ag-charts-wrapper)`, which cannot see into a shadow root. */
+#myChart {
+    padding: 1rem;
+    height: 100%;
+    border-radius: 8px;
+    background-color: var(--chart-bg);
+    border: 1px solid var(--chart-border);
+    overflow: hidden;
+}
