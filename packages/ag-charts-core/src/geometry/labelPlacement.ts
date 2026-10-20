@@ -14,6 +14,7 @@ import {
     fontWithSize,
     hasRealChars,
     isErased,
+    labelTextAtShrinkRatio,
     resolveMinimumFontSize,
 } from '../text/textWrapper';
 import type { Point, SizedPoint } from '../types/scene';
@@ -2733,29 +2734,50 @@ function fitPositionedCandidate(
     const floorFont = fontWithSize(font, floor);
     keptLineContainer.width = fitTo.container.width;
     keptLineContainer.height = Math.max(fitTo.container.height, drawnLineHeight(floorFont));
+    // Every segment at its own floor too, so no part of the label grows back as its container shrinks.
+    const floorFit = { ...fit, text: labelTextAtShrinkRatio(fit.text, fit.policy.minimumFontSize, font, 0).text };
     // Too narrow for even one character: overflow by the least a truncated label can show.
-    if (!fitKeptAtFloor(fit, floorFont)) {
-        keptLineContainer.width = Math.max(keptLineContainer.width, leadCharacterWidth(fit.text, floorFont));
-        if (!fitKeptAtFloor(fit, floorFont) && !fitLabelToCandidate(fit, floorFont, undefined, undefined, false)) {
+    if (!fitKeptAtFloor(floorFit, floorFont)) {
+        keptLineContainer.width = Math.max(keptLineContainer.width, leadCharacterWidth(floorFit.text, floorFont));
+        if (
+            !fitKeptAtFloor(floorFit, floorFont) &&
+            !fitLabelToCandidate(floorFit, floorFont, undefined, undefined, false)
+        ) {
             return false;
         }
     }
-    fittedLabel.fontSize = floor < font.fontSize ? floor : undefined;
+    if (floor < font.fontSize) {
+        fittedLabel.fontSize = floor;
+    }
     return true;
 }
 
-/** A label kept at its smallest size: a larger one would grow back as its container shrinks. */
 function fitKeptAtFloor(fit: LabelFitDescriptor, floorFont: FontOptions): boolean {
     return fitLabelToCandidate(fit, floorFont, undefined, keptLineContainer, false) && hasRealChars(fittedLabel.text);
 }
 
-/** Width of the text's first character followed by an ellipsis. */
+/**
+ * Width of the text's first character followed by an ellipsis, in the font that character is drawn in. Each is
+ * measured on its own, as truncation budgets them.
+ */
 function leadCharacterWidth(text: NormalisedTextOrSegments, font: FontOptions): number {
-    const first = isArray(text) ? text.find((segment) => segment.type !== 'image')?.text : text;
-    const lead = graphemeSegments(toTextString(first).trimStart())[0];
-    if (lead == null) return 0;
-    const measurer = cachedTextMeasurer(font);
-    return measurer.textWidth(lead) + measurer.textWidth(EllipsisChar);
+    if (!isArray(text)) {
+        const lead = leadCharacter(toTextString(text));
+        return lead == null ? 0 : measureLabelText(lead, font).width + measureLabelText(EllipsisChar, font).width;
+    }
+    for (const segment of text) {
+        if (segment.type === 'image') continue;
+        const lead = leadCharacter(toTextString(segment.text));
+        if (lead != null) {
+            const leadWidth = measureLabelText([{ ...segment, text: lead }], font).width;
+            return leadWidth + measureLabelText([{ ...segment, text: EllipsisChar }], font).width;
+        }
+    }
+    return 0;
+}
+
+function leadCharacter(text: string): string | undefined {
+    return graphemeSegments(text.trimStart())[0];
 }
 
 /** Fits a stack into {@link candidateStack}; one that fits only without the threshold's clearance is kept. */
