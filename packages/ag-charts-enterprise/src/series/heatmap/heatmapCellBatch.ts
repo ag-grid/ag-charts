@@ -44,10 +44,7 @@ export class HeatmapCellBatch extends Node {
     private _crisp = true;
     /** Whether the aligned arrays were written for a `crisp` or pixel ratio other than the current ones. */
     private alignmentStale = false;
-    /**
-     * The bounds of the aligned cells written since the batch last painted, old geometry as well as new, for a layer
-     * that repaints only what changed. Empty while `minX > maxX`; `regionUnknown` when a write can't be bounded.
-     */
+    /** Bounds of the aligned cells written since the last paint, old and new; empty while `minX > maxX`. */
     private regionMinX = Infinity;
     private regionMinY = Infinity;
     private regionMaxX = -Infinity;
@@ -96,8 +93,8 @@ export class HeatmapCellBatch extends Node {
         this.strokes.length = count;
         // Cells past the old count were not realigned along the way, so what they hold can't be trusted.
         if (count > this.count) this.alignmentStale = true;
-        // Cells were added or dropped, which no region of the written cells bounds.
-        if (count !== this.count) this.regionUnknown = true;
+        // A resize starts a full rewrite, which no region bounds, so `set` need not track one.
+        this.regionUnknown = true;
         this.count = count;
     }
 
@@ -134,6 +131,7 @@ export class HeatmapCellBatch extends Node {
 
     /** Adds the aligned rect a cell holds to the region the next repaint covers. */
     private includeInRegion(index: number) {
+        if (this.regionUnknown) return;
         // Stale geometry is of a different alignment or pixel ratio, so it bounds nothing the canvas holds.
         if (this.alignmentStale) {
             this.regionUnknown = true;
@@ -147,10 +145,7 @@ export class HeatmapCellBatch extends Node {
         this.regionMaxY = Math.max(this.regionMaxY, y + this.alignedHeights[index]);
     }
 
-    /**
-     * The aligned rects of the cells written since the batch last painted, old and new, for a layer that repaints only
-     * what changed. `undefined` when the written cells can't be bounded, so the layer repaints whole.
-     */
+    /** The bounds of the cells written since the last paint, or `undefined` when they can't be bounded. */
     override getDirtyRegion(): BBox | undefined {
         if (this.regionUnknown || this.alignmentStale || this.regionMinX > this.regionMaxX) return;
         return new BBox(
@@ -206,11 +201,7 @@ export class HeatmapCellBatch extends Node {
         this.microPixelOpacities[index] = microPixelOpacity;
     }
 
-    /**
-     * One dirty notification for any number of `set` calls. A layer repaints whole after it, and after any `resize`, or
-     * change of `crisp` or the pixel ratio. To have the layer repaint only the cells written, call `markDirtyRegion`
-     * instead, when every call since the last paint only restyled cells or moved them within the batch.
-     */
+    /** One dirty notification for any number of `set` calls; the layer repaints whole. */
     commit() {
         this.markDirty();
     }
@@ -265,13 +256,12 @@ export class HeatmapCellBatch extends Node {
         const baseAlpha = ctx.globalAlpha;
         let lastFill: string | undefined;
 
-        // OPTIMIZATION: only the cells that reach the region of a partial repaint are painted. The clip would discard
-        // the rest, and every cell that reaches it is painted in order, so overlaps and anti-aliasing are as in a full
-        // repaint. A transform that isn't a scale and a translation paints every cell, still within the clip.
+        // OPTIMIZATION: skip cells outside a partial repaint's region; those that reach it paint in order, as in a full one.
         let regionMinX = -Infinity;
         let regionMinY = -Infinity;
         let regionMaxX = Infinity;
         let regionMaxY = Infinity;
+        let culling = false;
         let scaleX = 1;
         let scaleY = 1;
         let translateX = 0;
@@ -287,6 +277,7 @@ export class HeatmapCellBatch extends Node {
                 scaleY = d;
                 translateX = e;
                 translateY = f;
+                culling = true;
             }
         }
 
@@ -297,15 +288,17 @@ export class HeatmapCellBatch extends Node {
             if (fill == null || fill === 'none' || opacity <= 0 || Number.isNaN(opacity)) continue;
             if (this.widths[i] === 0 || this.heights[i] === 0) continue;
 
-            const deviceX = alignedXs[i] * scaleX + translateX;
-            const deviceY = alignedYs[i] * scaleY + translateY;
-            if (
-                deviceX > regionMaxX ||
-                deviceY > regionMaxY ||
-                deviceX + alignedWidths[i] * scaleX < regionMinX ||
-                deviceY + alignedHeights[i] * scaleY < regionMinY
-            ) {
-                continue;
+            if (culling) {
+                const deviceX = alignedXs[i] * scaleX + translateX;
+                const deviceY = alignedYs[i] * scaleY + translateY;
+                if (
+                    deviceX > regionMaxX ||
+                    deviceY > regionMaxY ||
+                    deviceX + alignedWidths[i] * scaleX < regionMinX ||
+                    deviceY + alignedHeights[i] * scaleY < regionMinY
+                ) {
+                    continue;
+                }
             }
 
             const microPixelOpacity = microPixelOpacities[i];

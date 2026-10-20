@@ -1062,8 +1062,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         if (touchedDatumIndices != null && !this.restyledEveryCell && cellBatch.size === nodeData.length) {
             // OPTIMIZATION: only the updated cells differ from what the batch already holds.
             for (const datumIndex of touchedDatumIndices) writeCell(datumIndex);
-            if (crisp && !crispChanged) {
-                // OPTIMIZATION: the layer repaints only where those cells are, rather than all of them.
+            if (crisp && !crispChanged && this.chart?.isMiniChart !== true) {
+                // OPTIMIZATION: the layer repaints only where those cells are. The mini chart's always repaints whole.
                 cellBatch.markDirtyRegion();
                 return;
             }

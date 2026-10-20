@@ -31,10 +31,7 @@ interface OffscreenImageBitmap {
 
 let sharedOffscreenCanvas: HdpiOffscreenCanvas | undefined;
 
-/**
- * Past this share of a layer's area, clearing and repainting the dirty region, with the clip that bounds it, costs
- * more than repainting the layer whole, so the layer is repainted whole.
- */
+/** Past this share of a layer's area, a clipped partial repaint costs more than repainting the layer whole. */
 const PARTIAL_REPAINT_MAX_AREA_SHARE = 0.5;
 
 /** How far the layer's transform may be from `scale(pixelRatio)` plus a translation before it counts as different. */
@@ -61,10 +58,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     private readonly childNodes = new Set<Node>();
 
     public dirty = false;
-    /**
-     * Whether the group changed in a way {@link markDirtyRegion} doesn't bound. A dirty group that isn't fully dirty
-     * has only changed within the regions its {@link regionSources} report, so a layer may repaint just those.
-     */
+    /** Whether the group changed in a way {@link regionSources} don't bound. */
     private fullDirty = true;
     /** The descendants that marked only a region dirty since the layer was last painted, if this group owns a layer. */
     private regionSources: Set<Node> | undefined = undefined;
@@ -227,11 +221,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         super.markDirty(property);
     }
 
-    /**
-     * A group that owns a layer records the source, and its parents get an ordinary mark: only that layer can repaint
-     * in part. A group that draws to a bitmap of its own, or has no layer yet, takes it as an ordinary mark. Any other
-     * group is only dirtied, so that the render pass reaches the source, and hands the source on.
-     */
+    /** Only the nearest layer owner records the source; anything that can't repaint in part takes an ordinary mark. */
     override markDirtyRegionOf(source: Node): void {
         if (this.batchLevel > 0) {
             super.markDirtyRegionOf(source);
@@ -382,10 +372,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         return layer != null && this.layerValid && (this.regionSources?.size ?? 0) > 0 ? 'partial' : 'full';
     }
 
-    /**
-     * The region of the layer to repaint, in device pixels, when everything that changed since its last paint is
-     * bounded by its sources and the layer is painted as it was. `undefined` when it must be repainted whole.
-     */
+    /** The device-pixel region to repaint when the sources bound everything that changed, else `undefined`. */
     private resolveDirtyRegion(renderCtx: RenderContext, transform: DOMMatrix): BBox | undefined {
         const { layerTransform: last, regionSources } = this;
         const { width, height, devicePixelRatio: pixelRatio } = renderCtx;

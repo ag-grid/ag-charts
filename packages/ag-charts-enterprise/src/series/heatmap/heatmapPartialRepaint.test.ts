@@ -261,6 +261,20 @@ describe('HeatmapSeries partial repaint', () => {
         }
     });
 
+    it('repaints the navigator mini chart whole while the main chart repaints in part', async () => {
+        await create(GRID, {}, { navigator: { enabled: true, miniChart: { enabled: true } } });
+        await waitForChartStability(chart);
+        spy.mockClear();
+
+        await transact(column(3, (y) => 150 + y));
+
+        const { seriesRoot } = chart.modulesManager.getModule<any>('navigator').miniChart;
+        const partialLayers = spy.mock.contexts.filter((_, index) => spy.mock.results[index].value != null);
+        // Only the main chart's series layer repaints in part; the mini chart's takes an ordinary mark.
+        expect(partialLayers).toHaveLength(1);
+        expect(spy.mock.contexts).not.toContain(seriesRoot);
+    });
+
     it('repaints in full when every cell is restyled', async () => {
         await create();
 
@@ -306,6 +320,16 @@ describe('HeatmapCellBatch dirty region', () => {
         expect(batch.getDirtyRegion()).toEqual(new BBox(20, 0, CELL, CELL));
 
         batch.resize(4);
+        expect(batch.getDirtyRegion()).toBeUndefined();
+    });
+
+    it('has no region after a resize to the same count, as a full rewrite follows it', () => {
+        const batch = batchOf(5);
+        paint(batch);
+
+        batch.resize(5);
+        rewrite(batch, 2);
+
         expect(batch.getDirtyRegion()).toBeUndefined();
     });
 
