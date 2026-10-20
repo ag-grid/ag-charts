@@ -37,22 +37,25 @@ describe('enterprise test accessors', () => {
         it('returns the label node a cross line rendered', async () => {
             chart = await createEnterpriseChart(crossLineOptions(true));
 
-            const nodes = getCrossLineLabelNodes(deproxy(chart), 'x');
+            const nodes = getCrossLineLabelNodes(chart, 'x');
 
             expect(nodes).toHaveLength(1);
             expect(nodes[0].text).toBe('Target');
         });
 
-        it('returns no node for a cross line without a label', async () => {
+        it('returns an empty text node for a cross line without a label', async () => {
             chart = await createEnterpriseChart(crossLineOptions(false));
 
-            expect(getCrossLineLabelNodes(deproxy(chart), 'x').filter((node) => node.text != null)).toEqual([]);
+            const nodes = getCrossLineLabelNodes(chart, 'x');
+
+            expect(nodes).toHaveLength(1);
+            expect(nodes[0].text).toBeUndefined();
         });
 
         it('returns no node for an axis without cross lines', async () => {
             chart = await createEnterpriseChart(crossLineOptions(true));
 
-            expect(getCrossLineLabelNodes(deproxy(chart), 'y')).toEqual([]);
+            expect(getCrossLineLabelNodes(chart, 'y')).toEqual([]);
         });
     });
 

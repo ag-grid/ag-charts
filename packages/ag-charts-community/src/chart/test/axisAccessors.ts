@@ -212,14 +212,14 @@ export function tickGenerationParams<TScale extends Scale<TDatum, number, TickIn
     };
 }
 
-// `numericBands` is a protected derived cache of `OrdinalTimeScale`; this is the one reach into it.
+// `numericBands` is a protected derived cache of `OrdinalTimeScale`; `vi.spyOn` needs it as a public key.
 interface NumericBandsHost {
     readonly numericBands: number[];
 }
 
 /** The numeric form of an ordinal-time scale's bands, building it if the scale had not yet. */
 export function numericBandsOf(scale: OrdinalTimeScale): number[] {
-    return (scale as unknown as NumericBandsHost).numericBands;
+    return scale['numericBands'];
 }
 
 /**

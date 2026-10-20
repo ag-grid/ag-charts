@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Chart } from 'ag-charts-community-test';
+import { type Chart, type ChartOrProxy, deproxy } from 'ag-charts-community-test';
 import { ChartAxisDirection, Text, Transformable } from 'ag-charts-core';
 
 import type { PolarCrossLine } from '../axes/polar-crosslines/polarCrossLine';
@@ -17,8 +17,8 @@ export function crossLineInstances(target: Chart, axisId: string) {
 }
 
 /** The label text nodes of the cross lines on `axisId`, polar or cartesian, in instance order. */
-export function getCrossLineLabelNodes(target: Chart, axisId: string): Text[] {
-    return crossLineInstances(target, axisId).flatMap((crossLine) =>
+export function getCrossLineLabelNodes(chartOrProxy: ChartOrProxy<any>, axisId: string): Text[] {
+    return crossLineInstances(deproxy(chartOrProxy), axisId).flatMap((crossLine) =>
         Array.from(crossLine.labelGroup.children()).filter((node): node is Text => node instanceof Text)
     );
 }

@@ -256,6 +256,9 @@ describe('labelBandOffsets', () => {
                 scale,
                 domain: [0, 100],
                 range: [0, 600],
+                // A quarter-turn `defaultRotation`, so the two rotation frames differ.
+                parallel: true,
+                axisRotation: Math.PI / -2,
                 labelBandOffsets: (_ticks, rotation) => {
                     requested.push(rotation);
                     return undefined;
