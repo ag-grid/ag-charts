@@ -44,10 +44,19 @@ const options: AgPolarChartOptions = {
                     id: 'band',
                     type: 'range',
                     range: ['Mar', 'Apr'],
+                    fill: '#43a047',
+                    stroke: '#2e7d32',
                     label: { text: 'Peak Season' },
                     listeners: crossLineListeners,
                 },
-                { id: 'spoke', type: 'line', value: 'Jan', listeners: crossLineListeners },
+                {
+                    id: 'spoke',
+                    type: 'line',
+                    value: 'Feb',
+                    stroke: '#8e24aa',
+                    strokeWidth: 2,
+                    listeners: crossLineListeners,
+                },
             ],
             listeners: axisListeners,
         },
@@ -57,16 +66,34 @@ const options: AgPolarChartOptions = {
             min: 0,
             max: 10,
             crossLines: [
-                { id: 'threshold', type: 'line', value: 5, listeners: crossLineListeners },
-                { id: 'ring', type: 'range', range: [7, 8], listeners: crossLineListeners },
+                {
+                    id: 'threshold',
+                    type: 'line',
+                    value: 5,
+                    stroke: '#ffd700',
+                    strokeWidth: 2,
+                    listeners: crossLineListeners,
+                },
+                {
+                    id: 'ring',
+                    type: 'range',
+                    range: [7, 8],
+                    fill: '#00897b',
+                    stroke: '#00695c',
+                    listeners: crossLineListeners,
+                },
                 // No listener at any level, so it is not keyboard-focusable.
-                { id: 'target', type: 'line', value: 9 },
+                { id: 'target', type: 'line', value: 9, stroke: '#757575' },
             ],
         },
     },
 };
 
 const chart = AgCharts.create(options);
+
+function onPopEvents() {
+    console.log(events.splice(0));
+}
 
 function onUpdate() {
     const angleShape = (document.getElementById('angleShape') as HTMLSelectElement).value as AgPolarAxisShape;

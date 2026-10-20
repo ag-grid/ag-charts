@@ -34,8 +34,8 @@ const CROSS_LINES: Array<{ params: CrossLineParams; text: string; levels: Level[
         levels: ['crossLine', 'axis'],
     },
     {
-        params: { axisId: 'angle', direction: 'angle', crossLineId: 'spoke', crossLineType: 'line', value: 'Jan' },
-        text: 'Jan',
+        params: { axisId: 'angle', direction: 'angle', crossLineId: 'spoke', crossLineType: 'line', value: 'Feb' },
+        text: 'Feb',
         levels: ['crossLine', 'axis'],
     },
     {
