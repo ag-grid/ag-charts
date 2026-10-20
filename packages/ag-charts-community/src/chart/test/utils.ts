@@ -522,7 +522,7 @@ export function getAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: str
 }
 
 /** The label texts of the axis at `position`, in order along the axis. */
-export function getAxisLabelTexts(chartOrProxy: ChartOrProxy<any>, position: string): string[] {
+export function getAxisTickLayoutLabelTexts(chartOrProxy: ChartOrProxy<any>, position: string): string[] {
     return getAxisTickLayout(chartOrProxy, position).labels.map((label) => label.text);
 }
 
