@@ -2003,9 +2003,24 @@ function shrinkPositionedCandidate(
         return false;
     }
     const styledFont = fitTo.font;
-    const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
     const { width, height } = shrinkReduction;
-    if (!refitCandidateShrunk(fit, styledFont ?? fit.font, source, fitTo.padding, width, height)) return false;
+    // Truncated at the floor size, never above it: a label only gives up text once it can shrink no further.
+    const font = styledFont ?? fit.font;
+    const floor =
+        fit.policy.minimumFontSize == null
+            ? font.fontSize
+            : resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
+    if (floor < font.fontSize) {
+        const floorFont = fontWithSize(font, floor);
+        const floorFit = { ...fit, text: labelTextAtShrinkRatio(fit.text, fit.policy.minimumFontSize, font, 0).text };
+        if (!refitCandidateShrunk(floorFit, floorFont, undefined, fitTo.padding, width, height)) {
+            return false;
+        }
+        candidateFontSize = floor;
+    } else {
+        const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
+        if (!refitCandidateShrunk(fit, font, source, fitTo.padding, width, height)) return false;
+    }
     resizeCandidateBox(c, candidateLabel.width, candidateLabel.height);
     slideShrunkCandidate(rawRegion, c.region != null && c.flushToRegion !== false);
     return shrunkCandidateIsClear(region, inflate);

@@ -715,7 +715,23 @@ describe('series label fit', () => {
                 }
             });
 
-            it.each(['middle-before', 'middle-center'])(
+            it('truncates a label clear of its stage only at its minimum font size', async () => {
+                const truncated: string[] = [];
+                for (let width = 200; width >= 100; width -= 10) {
+                    await renderAt(width, 440, 'cone-funnel', { placement: 'start-center' });
+                    for (const node of stageLabels()) {
+                        if (node.text.includes(ELLIPSIS)) {
+                            truncated.push(
+                                `stage ${node.datum.datumIndex} at ${width}px: ${node.fontSize}px ${node.text}`
+                            );
+                        }
+                    }
+                }
+                expect(truncated.length).toBeGreaterThan(0);
+                expect(truncated.filter((label) => !label.includes(`: ${MINIMUM}px `))).toEqual([]);
+            });
+
+            it.each(['start-center', 'middle-before', 'middle-center'])(
                 'keeps a truncated %s label truncated as its stage narrows',
                 async (placement) => {
                     const truncated = new Set<number>();
