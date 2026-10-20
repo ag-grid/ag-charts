@@ -1,0 +1,26 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <div class="button-group" role="group" aria-label="Render Chart In">
+            <input
+                type="radio"
+                id="render-page-dom"
+                name="render-chart-in"
+                value="page-dom"
+                checked
+                onchange="setShadowDom(event)"
+            />
+            <label for="render-page-dom">Page DOM</label>
+            <input
+                type="radio"
+                id="render-shadow-root"
+                name="render-chart-in"
+                value="shadow-root"
+                onchange="setShadowDom(event)"
+            />
+            <label for="render-shadow-root">Shadow Root</label>
+        </div>
+    </div>
+</div>
+<div id="app">
+    <div id="myChart"></div>
+</div>

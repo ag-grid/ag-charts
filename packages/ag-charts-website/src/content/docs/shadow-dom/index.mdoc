@@ -1,0 +1,35 @@
+---
+title: 'Shadow DOM'
+description: '$framework Charts can render a chart in a shadow root of its own, so the page CSS cannot restyle it.'
+---
+
+A chart renders into the page's DOM, so a page rule that outranks the chart's own styles, such as one scoped by an ID, can restyle its controls. Set `enableShadowDom` to render the chart in a shadow root of its own, which page CSS cannot reach.
+
+## Isolating a Chart from Page Styles
+
+{% chartExampleRunner title="Page Styles" name="page-styles" type="generated" /%}
+
+```js format="snippet"
+{
+    enableShadowDom: true,
+}
+```
+
+In this example:
+
+- The page has an `#app button` rule, which outranks the chart's styles and restyles the legend items.
+- Select Shadow Root to set `enableShadowDom: true`, and the legend items go back to the chart's own styling.
+
+Page CSS that targets chart elements, such as the `.ag-charts-tooltip` rules in [Tooltips](./tooltips/), does not reach a chart in a shadow root. Theme options and CSS variables still apply.
+
+## Automatic Detection
+
+When `enableShadowDom` is not set, the chart uses a shadow root only on known pages whose CSS breaks its controls, such as the claude.ai visualiser. Set `enableShadowDom: false` to keep the chart in the page's DOM on those pages.
+
+## API Reference
+
+{% tabs %}
+{% tabItem id="AgBaseChartOptions" label="Chart" %}
+{% apiReference id="AgBaseChartOptions" include=["enableShadowDom"] /%}
+{% /tabItem %}
+{% /tabs %}

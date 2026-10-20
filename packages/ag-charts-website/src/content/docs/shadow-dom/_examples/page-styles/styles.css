@@ -1,0 +1,7 @@
+/* A rule for the app's own buttons: its ID outranks the chart's class rules, so it also restyles the legend items. */
+#app button {
+    padding: 8px 16px;
+    border: 2px dashed crimson;
+    border-radius: 0;
+    background: mistyrose;
+}
