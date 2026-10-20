@@ -110,7 +110,7 @@ export const cartesianChartOptionsDefs: OptionsDefs<CartesianChartDefOptions> = 
     seriesArea: {
         border: borderOptionsDef,
         clip: boolean,
-        cornerRadius: number,
+        cornerRadius: positiveNumber,
         padding: or(themeOperator, padding),
     },
 };

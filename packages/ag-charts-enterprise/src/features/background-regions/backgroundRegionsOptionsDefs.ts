@@ -9,6 +9,7 @@ import {
     labelFitOptionsDefs,
     number,
     padding,
+    positiveNumber,
     string,
     strokeOptionsDef,
     union,
@@ -29,7 +30,7 @@ const backgroundRegionLabelDef: OptionsDefs<AgSeriesAreaBackgroundRegionLabel> =
     ...fontOptionsDef,
     ...fillOptionsDef,
     border: borderOptionsDef,
-    cornerRadius: number,
+    cornerRadius: positiveNumber,
     enabled: boolean,
     padding: padding,
     position: union(
