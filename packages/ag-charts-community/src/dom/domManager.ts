@@ -439,11 +439,18 @@ export class DOMManager extends BaseManager {
 
         if (this.container == null) {
             this.shadowDocumentRoot = undefined;
+        } else if (this.element.parentNode == null) {
+            // detachFromContainer() took the chart out for its replacement, so it must stay out.
+            this.shadowDocumentRoot = this.getShadowDocumentRoot(this.container);
         } else {
             // Detection needs the attached page, so a container connected late is mounted again.
             const mountParent = this.updateMountPoint(this.container);
             if (this.element.parentNode !== mountParent) {
                 mountParent.appendChild(this.element);
+            }
+            // Watchers registered while detached took the light-DOM path, whose `@property` a shadow root ignores.
+            if (this.shadowDocumentRoot != null && this.cssVariableWatchers.size > 0) {
+                this.updateCSSVariableWatchersShadowDOM(this.cssVariableWatchers);
             }
         }
         this.initiallyConnected = true;
@@ -1157,13 +1164,13 @@ export class DOMManager extends BaseManager {
     updateCSSVariableWatchers(cssVariables?: Record<string, string>) {
         if (!cssVariables) return;
 
+        const properties = strictObjectKeys(cssVariables).map((key) => key.slice(4, -1));
         if (this.shadowDocumentRoot) {
-            this.updateCSSVariableWatchersShadowDOM(cssVariables);
+            this.updateCSSVariableWatchersShadowDOM(properties);
             return;
         }
 
-        for (const key of strictObjectKeys(cssVariables)) {
-            const property = key.slice(4, -1);
+        for (const property of properties) {
             if (this.cssVariableWatchers.has(property)) continue;
             this.cssVariableWatchers.add(property);
 
@@ -1188,7 +1195,7 @@ export class DOMManager extends BaseManager {
         }
     }
 
-    private updateCSSVariableWatchersShadowDOM(cssVariables: Record<string, string>) {
+    private updateCSSVariableWatchersShadowDOM(properties: Iterable<string>) {
         const shadowRoot = this.getShadowRoot() as HTMLElement | undefined;
         if (!shadowRoot || !('addEventListener' in shadowRoot)) return;
 
@@ -1204,15 +1211,14 @@ export class DOMManager extends BaseManager {
             });
         }
 
-        for (const key of strictObjectKeys(cssVariables)) {
-            const property = key.slice(4, -1);
+        for (const property of properties) {
             if (this.shadowCssVariableWatchers.has(property)) continue;
             this.shadowCssVariableWatchers.add(property);
 
             // Unlike normal DOM, here we transition directly on the color property since we need to combine the style
             // and sensor into a single element.
             const styleElement = createElement('div');
-            styleElement.style.color = key;
+            styleElement.style.color = `var(${property})`;
             styleElement.style.setProperty('transition', 'color 1ms', 'important');
             styleElement.dataset.variableName = property;
 

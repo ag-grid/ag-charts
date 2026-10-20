@@ -167,6 +167,21 @@ describe('DOMManager', () => {
                 expect(isolatedRoot(container)?.querySelector('.ag-charts-wrapper')).not.toBeNull();
                 expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
             });
+
+            it('watches CSS variables from its shadow root once the container joins the visualiser', () => {
+                const { wrapper } = buildContainer();
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'vis-late-css', doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+                wrapper.append(container);
+                dm.setDeferring(false);
+                vi.runAllTimers();
+
+                const root = isolatedRoot(container);
+                expect(root).not.toBeNull();
+                expect(shadowWatchers(root!)).toHaveLength(1);
+            });
         });
 
         it('bounds overlays by the window, as in the light DOM', () => {
@@ -423,26 +438,22 @@ describe('DOMManager', () => {
             });
         });
 
-        // A manager created detached registers light-DOM watchers and nothing re-registers them on attach (AG-18985).
-        it.fails(
-            'registers the shadow-path CSS-variable watcher when a detached container is attached into a shadow root',
-            () => {
-                const component = doc.createElement('div');
-                const container = doc.createElement('div');
-                const dm = new DOMManager(eventsHub, 'late-watchers', doc, container);
+        it('registers the shadow-path CSS-variable watcher when a detached container is attached into a shadow root', () => {
+            const component = doc.createElement('div');
+            const container = doc.createElement('div');
+            const dm = new DOMManager(eventsHub, 'late-watchers', doc, container);
 
-                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
-                expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
+            dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+            expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
 
-                doc.body.append(component);
-                const shadow = component.attachShadow({ mode: 'open' });
-                shadow.appendChild(container);
-                dm.setDeferring(false);
-                vi.runAllTimers();
+            doc.body.append(component);
+            const shadow = component.attachShadow({ mode: 'open' });
+            shadow.appendChild(container);
+            dm.setDeferring(false);
+            vi.runAllTimers();
 
-                expect(shadowWatchers(shadow)).toHaveLength(1);
-            }
-        );
+            expect(shadowWatchers(shadow)).toHaveLength(1);
+        });
 
         it('should keep styles inside the shadow root when attached to a shadow DOM', () => {
             const component = doc.createElement('div');
