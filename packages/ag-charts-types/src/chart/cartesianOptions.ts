@@ -146,14 +146,14 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
      */
     truncate?: boolean;
     /**
-     * Used to constrain the size of each label along the text direction, in pixels.
+     * Maximum size of each label along the text direction, in pixels.
      *
      * Labels are also kept within the space the axis has available, clear of any scrollbar.
      * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
      */
     maxWidth?: PixelSize;
     /**
-     * Used to constrain the size of each label across the text direction, in pixels.
+     * Maximum size of each label across the text direction, in pixels.
      *
      * Labels are also kept within the space the axis has available, clear of any scrollbar.
      * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
@@ -186,14 +186,14 @@ export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> ex
      */
     truncate?: boolean;
     /**
-     * Used to constrain the size of each label along the text direction, in pixels.
+     * Maximum size of each label along the text direction, in pixels.
      *
      * Labels are also kept within the space the axis has available, clear of any scrollbar.
      * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
      */
     maxWidth?: PixelSize;
     /**
-     * Used to constrain the size of each label across the text direction, in pixels.
+     * Maximum size of each label across the text direction, in pixels.
      *
      * Labels are also kept within the space the axis has available, clear of any scrollbar.
      * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
@@ -268,14 +268,14 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> e
      */
     truncate?: boolean;
     /**
-     * Used to constrain the size of each label along the text direction, in pixels.
+     * Maximum size of each label along the text direction, in pixels.
      *
      * Labels are also kept within the space the axis has available, clear of any scrollbar.
      * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
      */
     maxWidth?: PixelSize;
     /**
-     * Used to constrain the size of each label across the text direction, in pixels.
+     * Maximum size of each label across the text direction, in pixels.
      *
      * Labels are also kept within the space the axis has available, clear of any scrollbar.
      * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
