@@ -1,5 +1,5 @@
-import type { BoxBounds, ButtonWidget, DynamicContext, ListWidget } from 'ag-charts-core';
-import { CleanupRegistry } from 'ag-charts-core';
+import type { BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget } from 'ag-charts-core';
+import { CleanupRegistry, Path, Transformable, createSvgElement } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartAxis } from '../chartAxis';
@@ -8,11 +8,25 @@ import type { CrossLinesPlugin } from './crossLinesPlugin';
 import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 
 const DOM_MANAGER_ID = 'cross-lines';
+const FOCUS_PATH_CLASS = 'ag-charts-proxy-cross-line-focus-path';
 
 interface ProxyEntry {
     readonly plugin: CrossLinesPlugin;
     readonly crossLine: CrossLine;
     readonly bounds: BoxBounds;
+    readonly focusPath?: string;
+}
+
+/** A `Path` is outlined as drawn; any other focus region is outlined by its proxy button. */
+function toCanvasFocus(focus: BBox | Path): { bounds: BoxBounds; focusPath?: string } {
+    if (!(focus instanceof Path)) return { bounds: focus };
+
+    const bounds = Transformable.toCanvas(focus, focus.path.computeBBox());
+    const focusPath = focus.svgPathData((x, y) => {
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(focus, x, y);
+        return { x: canvasX, y: canvasY };
+    });
+    return { bounds, focusPath };
 }
 
 /** Unlocalised placeholder text, kept in one place until a localised format is agreed. */
@@ -33,6 +47,8 @@ export class CrossLinesDOMProxy {
     private readonly cleanup = new CleanupRegistry();
     private readonly list: ListWidget;
     private readonly buttons: ButtonWidget[] = [];
+    /** Drawn beside the button they outline, as a button's text content would replace them. */
+    private readonly focusPaths: (SVGSVGElement | undefined)[] = [];
     private entries: ProxyEntry[] = [];
     private dirty = true;
 
@@ -76,8 +92,8 @@ export class CrossLinesDOMProxy {
             for (const crossLine of plugin.getInstances()) {
                 if (!plugin.isKeyboardClickable(crossLine)) continue;
 
-                const bounds = crossLine.getFocusBounds?.();
-                if (bounds != null) entries.push({ plugin, crossLine, bounds });
+                const focus = crossLine.computeFocusBounds?.();
+                if (focus != null) entries.push({ plugin, crossLine, ...toCanvasFocus(focus) });
             }
         }
         this.entries = entries;
@@ -87,13 +103,43 @@ export class CrossLinesDOMProxy {
         while (buttons.length > entries.length) {
             buttons.pop()?.destroy();
         }
+        this.focusPaths.length = Math.min(this.focusPaths.length, entries.length);
         while (buttons.length < entries.length) {
             buttons.push(this.createButton(buttons.length));
         }
         for (let i = 0; i < entries.length; i++) {
-            const { crossLine, bounds } = entries[i];
+            const { crossLine, bounds, focusPath } = entries[i];
             buttons[i].setBounds(bounds);
             buttons[i].setTextContent(getAccessibleText(crossLine));
+            this.updateFocusPath(i, bounds, focusPath);
+        }
+    }
+
+    private updateFocusPath(index: number, { x, y, width, height }: BoxBounds, d: string | undefined) {
+        const button = this.buttons[index];
+        button.toggleClass(FOCUS_PATH_CLASS, d != null);
+
+        let svg = this.focusPaths[index];
+        if (d == null) {
+            svg?.remove();
+            this.focusPaths[index] = undefined;
+            return;
+        }
+        if (svg == null) {
+            svg = createSvgElement('svg');
+            svg.setAttribute('aria-hidden', 'true');
+            for (const className of ['ag-charts-focus-svg-outer-path', 'ag-charts-focus-svg-inner-path']) {
+                const path = createSvgElement('path');
+                path.classList.add(className);
+                svg.append(path);
+            }
+            button.getElement().after(svg);
+            this.focusPaths[index] = svg;
+        }
+        // The path is in canvas coordinates, and the button spans exactly `bounds` of the canvas.
+        svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
+        for (const path of Array.from(svg.children)) {
+            path.setAttribute('d', d);
         }
     }
 

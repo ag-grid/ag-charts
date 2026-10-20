@@ -19,7 +19,7 @@ import {
     normalizeAngle360,
     normalizeAngle360FromDegrees,
 } from 'ag-charts-core';
-import type { BBox, Node } from 'ag-charts-core';
+import type { BBox, ExtendedPath2D, Node, Point } from 'ag-charts-core';
 
 import { drawPolygonRing } from '../polygonRing';
 
@@ -31,6 +31,40 @@ export type PolarCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions;
 /** A polar label offsets along a radius, so only a uniform numeric padding can position it. */
 function labelOffset(label: PolarCrossLineLabelOptions): number {
     return typeof label.padding === 'number' ? label.padding : 0;
+}
+
+/** Circumradius per unit apothem of a regular `sides`-gon: moving its edges out by `d` grows its radius by `d` times this. */
+function polygonRadiusRatio(sides: number): number {
+    return sides >= 3 ? 1 / Math.cos(Math.PI / sides) : 1;
+}
+
+function toPolygonPoints(angles: readonly number[], radius: number): Point[] {
+    return angles.map((angle) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) }));
+}
+
+/** A closed circle at `outer`, and another at `inner` when it is above zero. */
+function traceCircleRing(path: ExtendedPath2D, outer: number, inner: number) {
+    path.moveTo(outer, 0);
+    path.arc(0, 0, outer, 0, 2 * Math.PI);
+    path.closePath();
+    if (inner > 0) {
+        path.moveTo(inner, 0);
+        path.arc(0, 0, inner, 0, 2 * Math.PI);
+        path.closePath();
+    }
+}
+
+/** Moves the first and last points `distance` further along their edges, away from the open polyline. */
+function extendEnds(points: Point[], distance: number) {
+    if (points.length < 2) return;
+    const extend = (end: Point, neighbour: Point) => {
+        const length = Math.hypot(end.x - neighbour.x, end.y - neighbour.y);
+        if (length === 0) return;
+        end.x += ((end.x - neighbour.x) / length) * distance;
+        end.y += ((end.y - neighbour.y) / length) * distance;
+    };
+    extend(points[0], points[1]);
+    extend(points.at(-1)!, points.at(-2)!);
 }
 
 /**
@@ -86,6 +120,10 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
     private readonly crossLineRange = new Group();
     private readonly labelNode = new RotatableText();
 
+    private readonly focusNode = new Path();
+    /** The tick angles the angle `range` polygon is drawn through. */
+    private polygonAngles: number[] = [];
+
     private outerRadius = 0;
     private innerRadius = 0;
 
@@ -100,6 +138,10 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
             this.crossLineRange.append(this.lineNode);
         }
         this.labelGroup.append(this.labelNode);
+
+        // Never drawn: it only carries the focus outline and the transform into canvas coordinates.
+        this.focusNode.visible = false;
+        this.crossLineRange.append(this.focusNode);
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions) {
@@ -137,6 +179,124 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
         const { x, y } = Transformable.fromCanvasPoint(this.crossLineRange, point);
         const hit = this.type === 'range' ? this.rangeContainsPoint(x, y) : this.lineContainsPoint(x, y);
         return hit || (this.getLabelBox()?.containsPoint(point.canvasX, point.canvasY) ?? false);
+    }
+
+    computeFocusBounds(): Path | undefined {
+        return this.traceFocusPath() ? this.focusNode : undefined;
+    }
+
+    /** Traces the drawn shape widened by {@link crossLineHitTolerance} into `focusNode`, if it is drawn. */
+    private traceFocusPath(): boolean {
+        const group = this.type === 'range' ? this.rangeGroup : this.lineGroup;
+        if (!this.scale || !group.visible) return false;
+
+        const tolerance = crossLineHitTolerance(this.strokeWidth);
+        const { path } = this.focusNode;
+        path.clear(true);
+        if (this.direction === ChartAxisDirection.Radius) {
+            return this.shape === 'circle'
+                ? this.traceRadiusCircleFocus(path, tolerance)
+                : this.traceRadiusPolygonFocus(path, tolerance);
+        } else if (this.type === 'line') {
+            return this.traceAngleLineFocus(path, tolerance);
+        }
+        return this.shape === 'circle'
+            ? this.traceAngleCircleFocus(path, tolerance)
+            : this.traceAnglePolygonFocus(path, tolerance);
+    }
+
+    private traceAngleLineFocus(path: ExtendedPath2D, tolerance: number): boolean {
+        const { lineNode, scale, axisInnerRadius, axisOuterRadius } = this;
+        if (!lineNode.visible || !scale) return false;
+
+        const angle = scale.convert(this.value);
+        const [ux, uy] = [Math.cos(angle), Math.sin(angle)];
+        const [nx, ny] = [-uy * tolerance, ux * tolerance];
+        const r0 = axisInnerRadius - tolerance;
+        const r1 = axisOuterRadius + tolerance;
+        path.moveTo(r0 * ux + nx, r0 * uy + ny);
+        path.lineTo(r1 * ux + nx, r1 * uy + ny);
+        path.lineTo(r1 * ux - nx, r1 * uy - ny);
+        path.lineTo(r0 * ux - nx, r0 * uy - ny);
+        path.closePath();
+        return true;
+    }
+
+    private traceAngleCircleFocus(path: ExtendedPath2D, tolerance: number): boolean {
+        const { sectorNode: sector } = this;
+        if (!sector.visible) return false;
+
+        const outer = sector.outerRadius + tolerance;
+        const inner = Math.max(0, sector.innerRadius - tolerance);
+        // Widens the ends by the tolerance at the outer arc, so the region stays a sector.
+        const startAngle = sector.startAngle - tolerance / outer;
+        const endAngle = sector.endAngle + tolerance / outer;
+        // `arc` would wrap a sweep past a full turn down to a sliver.
+        if (endAngle - startAngle >= 2 * Math.PI) {
+            traceCircleRing(path, outer, inner);
+            return true;
+        }
+        path.moveTo(outer * Math.cos(startAngle), outer * Math.sin(startAngle));
+        path.arc(0, 0, outer, startAngle, endAngle);
+        if (inner > 0) {
+            path.lineTo(inner * Math.cos(endAngle), inner * Math.sin(endAngle));
+            path.arc(0, 0, inner, endAngle, startAngle, true);
+        } else {
+            path.lineTo(0, 0);
+        }
+        path.closePath();
+        return true;
+    }
+
+    private traceAnglePolygonFocus(path: ExtendedPath2D, tolerance: number): boolean {
+        const { polygonNode, polygonAngles: angles, ticks, axisInnerRadius, axisOuterRadius } = this;
+        if (!polygonNode.visible || angles.length === 0) return false;
+
+        const offset = tolerance * polygonRadiusRatio(ticks.length);
+        const outer = toPolygonPoints(angles, axisOuterRadius + offset);
+        extendEnds(outer, tolerance);
+
+        const inner = Math.max(0, axisInnerRadius - offset);
+        const innerPoints = inner > 0 ? toPolygonPoints(angles, inner) : [{ x: 0, y: 0 }];
+        if (inner > 0) extendEnds(innerPoints, tolerance);
+
+        innerPoints.reverse();
+        const points = outer.concat(innerPoints);
+        for (const [index, { x, y }] of points.entries()) {
+            if (index === 0) {
+                path.moveTo(x, y);
+            } else {
+                path.lineTo(x, y);
+            }
+        }
+        path.closePath();
+        return true;
+    }
+
+    private traceRadiusCircleFocus(path: ExtendedPath2D, tolerance: number): boolean {
+        const { sectorNode: sector } = this;
+        if (!sector.visible) return false;
+
+        const outer = sector.outerRadius + tolerance;
+        const inner = Math.max(0, sector.innerRadius - tolerance);
+        traceCircleRing(path, outer, inner);
+        return true;
+    }
+
+    private traceRadiusPolygonFocus(path: ExtendedPath2D, tolerance: number): boolean {
+        const { polygonNode, gridAngles, type, innerRadius, outerRadius } = this;
+        if (!polygonNode.visible || gridAngles == null) return false;
+
+        const padding = this.getRadiusPadding();
+        const drawnOuter = outerRadius - padding;
+        const drawnInner = type === 'line' ? drawnOuter : innerRadius + padding;
+        const offset = tolerance * polygonRadiusRatio(gridAngles.length);
+        drawPolygonRing(path, gridAngles, Math.max(drawnOuter, drawnInner) + offset);
+        const inner = Math.min(drawnOuter, drawnInner) - offset;
+        if (inner > 0) {
+            drawPolygonRing(path, gridAngles, inner);
+        }
+        return true;
     }
 
     private rangeContainsPoint(x: number, y: number): boolean {
@@ -269,6 +429,7 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
                 ? ticks.slice(startIndex, endIndex + 1)
                 : ticks.slice(startIndex).concat(ticks.slice(0, endIndex + 1));
         const angles = stops.map((value: unknown) => scale.convert(value));
+        this.polygonAngles = angles;
 
         polygon.visible = true;
         this.setSectorNodeProps(polygon);

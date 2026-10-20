@@ -16,6 +16,28 @@
     pointer-events: none;
 }
 
+/* A cross line whose focus region is not a box shows an SVG path in place of the outline. */
+.ag-charts-proxy-cross-lines .ag-charts-proxy-cross-line-focus-path:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.ag-charts-proxy-cross-lines .ag-charts-proxy-cross-line-focus-path + svg {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.ag-charts-proxy-cross-lines .ag-charts-proxy-cross-line-focus-path:focus-visible + svg {
+    display: block;
+}
+
 .ag-charts-proxy-elem {
     -webkit-appearance: none;
     appearance: none;

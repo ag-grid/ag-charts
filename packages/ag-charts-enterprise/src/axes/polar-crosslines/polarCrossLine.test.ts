@@ -599,6 +599,19 @@ describe('PolarCrossLine listeners', () => {
         );
     });
 
+    it('the focus outline of a circle angle range spanning every category is a full ring', async () => {
+        // Half-step padding at both ends makes the sector sweep exactly 2π before the outline widens it.
+        chart = deproxy(
+            await createEnterpriseChart(polarOptions('circle', [{ type: 'range', range: ['Q1', 'Q4'] }], []))
+        );
+        const instance = polarCrossLineAt(chart, 'angle');
+
+        const focus = instance.computeFocusBounds()!;
+        const { width, height } = focus.path.computeBBox();
+        expect(width).toBeGreaterThanOrEqual(2 * instance.axisOuterRadius);
+        expect(height).toBeGreaterThanOrEqual(2 * instance.axisOuterRadius);
+    });
+
     describe('TC1: every axis, type and shape combination is a click target', () => {
         const shapes: AgPolarAxisShape[] = ['polygon', 'circle'];
         const angleCases: AgAngleCrossLineOptions[] = [
