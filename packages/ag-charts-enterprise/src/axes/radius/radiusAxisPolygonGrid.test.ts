@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
-import { getAxisGridGroup, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import { getAxisGridGroupById, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 import { Path } from 'ag-charts-core';
 
 import { collectShapes, createEnterpriseChart } from '../../test/utils';
@@ -36,7 +36,7 @@ describe('RadiusAxis polygon grid', () => {
 
     async function readGridRings(categories: number): Promise<Ring[]> {
         chart = await createEnterpriseChart(createOptions(categories));
-        const gridPaths = collectShapes(getAxisGridGroup(chart, 'radius')).filter(
+        const gridPaths = collectShapes(getAxisGridGroupById(chart, 'radius')).filter(
             (shape): shape is Path => shape instanceof Path
         );
 

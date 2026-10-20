@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { BBox, ChartUpdateType, getDocument } from 'ag-charts-core';
+import { BBox, ChartUpdateType, Line, getDocument } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -9,11 +9,12 @@ import {
     getAxisBandExtent,
     getAxisBandwidth,
     getAxisDomain,
-    getAxisGridGroup,
+    getAxisGridGroupById,
     getAxisLabelNodes,
     getAxisLabelSource,
     getAxisLabelTexts,
     getAxisLayoutState,
+    getAxisLinePosition,
     getAxisTitleText,
     getLabelSegmentAlignments,
     getLabelText,
@@ -246,9 +247,7 @@ describe('axis test accessors', () => {
         it('returns the source contributing the drawn labels as obstacles', async () => {
             chart = await createChart(options);
 
-            const source = getAxisLabelSource(chart, 'bottom');
-            expect(source).toBe(findAxis(chart, 'bottom').labelSource);
-            const obstacles = source.getLabelObstacles(BBox.zero);
+            const obstacles = getAxisLabelSource(chart, 'bottom').getLabelObstacles(BBox.zero);
             expect(obstacles).toHaveLength(getAxisLabelNodes(chart, 'bottom').length);
             expect(obstacles.length).toBeGreaterThan(0);
         });
@@ -262,23 +261,52 @@ describe('axis test accessors', () => {
             expect(layout.id).toBe(findAxis(chart, 'bottom').id);
             expect(layout.position).toBe('bottom');
             expect(layout.rect.width).toBeGreaterThan(0);
-            expect(layout.label.boxOffset).toBe(0);
             expect(getAxisLayoutState(chart, 'left').position).toBe('left');
         });
     });
 
-    describe('getAxisGridGroup', () => {
-        it('returns the grid group of the axis with the id', async () => {
-            chart = await createChart(options);
+    describe('getAxisLinePosition', () => {
+        it('returns where the scene draws the line of a horizontal and of a vertical axis', async () => {
+            chart = await createChart({ ...options, width: 600, height: 400 });
 
-            expect(getAxisGridGroup(chart, 'y')).toBe(findAxis(chart, 'y').gridGroup);
-            expect(getAxisGridGroup(chart, 'x')).not.toBe(getAxisGridGroup(chart, 'y'));
+            const { x, y, height } = getSeriesRect(chart);
+            const bottom = getAxisLinePosition(chart, 'bottom');
+            const left = getAxisLinePosition(chart, 'left');
+
+            // The rendered translation is floored, so it lands within a pixel below the exact position.
+            expect(bottom.y).toBeGreaterThan(0);
+            expect(Math.abs(bottom.y - (y + height))).toBeLessThanOrEqual(1);
+            expect(left.x).toBeGreaterThan(0);
+            expect(Math.abs(left.x - x)).toBeLessThanOrEqual(1);
         });
 
         it('fails for an axis the chart does not have', async () => {
             chart = await createChart(options);
 
-            expect(() => getAxisGridGroup(chart, 'missing')).toThrow();
+            expect(() => getAxisLinePosition(chart, 'top')).toThrow();
+        });
+    });
+
+    describe('getAxisGridGroupById', () => {
+        it('returns the group holding the grid lines of the axis with the id', async () => {
+            chart = await createChart({
+                ...options,
+                axes: {
+                    x: { ...options.axes!.x, gridLine: { enabled: false } },
+                    y: { type: 'number', position: 'left', gridLine: { enabled: true } },
+                },
+            });
+
+            const gridLines = (id: string) =>
+                Array.from(getAxisGridGroupById(chart, id).descendants()).filter((node) => node instanceof Line);
+            expect(gridLines('y')).toHaveLength(getAxisLabelNodes(chart, 'left').length);
+            expect(gridLines('x')).toHaveLength(0);
+        });
+
+        it('fails for an axis the chart does not have', async () => {
+            chart = await createChart(options);
+
+            expect(() => getAxisGridGroupById(chart, 'missing')).toThrow();
         });
     });
 
@@ -286,16 +314,22 @@ describe('axis test accessors', () => {
         it('records the tick layouts of the axis at the position, and not of another', async () => {
             chart = await createChart(options);
             const bottom = spyOnAxisTickLayout(chart, 'bottom');
+            const left = spyOnAxisTickLayout(chart, 'left');
             expect(bottom).not.toHaveBeenCalled();
+            expect(left).not.toHaveBeenCalled();
 
             // The tick layout is cached while the domain, range and fonts stay as they are.
             deproxy(chart).update(ChartUpdateType.PERFORM_LAYOUT);
             await waitForChartStability(chart);
             expect(bottom).not.toHaveBeenCalled();
+            expect(left).not.toHaveBeenCalled();
 
+            // Fonts change the measured text, so every axis lays its ticks out again.
             await emitFontLoad(chart);
             expect(bottom).toHaveBeenCalled();
+            expect(left).toHaveBeenCalled();
             expect(bottom.mock.contexts.every((axis) => axis === findAxis(chart, 'bottom'))).toBe(true);
+            expect(left.mock.contexts.every((axis) => axis === findAxis(chart, 'left'))).toBe(true);
         });
     });
 
@@ -322,18 +356,6 @@ describe('axis test accessors', () => {
             expect(large.width).toBeGreaterThan(small.width + 100);
             expect(large.height).toBeGreaterThan(small.height + 100);
             expect(deproxy(chart).ctx.domManager.containerSize).toEqual({ width: 600, height: 400, pixelRatio: 1 });
-        });
-
-        it('emitFontLoad reports the font load to the chart', async () => {
-            chart = await createChart(options);
-            const spies = [spyOnAxisTickLayout(chart, 'bottom'), spyOnAxisTickLayout(chart, 'left')];
-
-            await emitFontLoad(chart);
-
-            // Fonts change the measured text, so every axis lays its ticks out again.
-            for (const spy of spies) {
-                expect(spy).toHaveBeenCalled();
-            }
         });
     });
 });

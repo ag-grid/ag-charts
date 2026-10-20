@@ -6,7 +6,7 @@ import type { AxisValuePick } from '../../module/axisContext';
 import type { LabelNodeDatum } from '../axis/axis';
 import { CartesianAxis } from '../axis/cartesianAxis';
 import type { AxisLabelSource } from '../layout/axisLabelSource';
-import { type ChartOrProxy, deproxy } from './utils';
+import { type ChartOrProxy, createSceneGeometrySampler, deproxy } from './utils';
 
 /** A tick-label node as drawn by an axis, with the datum the axis layout wrote onto it. */
 export type AxisLabelNode = TransformableText<LabelNodeDatum> & { datum: LabelNodeDatum };
@@ -153,8 +153,19 @@ export function spyOnAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: s
     return vi.spyOn(findAxis(chartOrProxy, position), 'calculateTickLayout');
 }
 
+/**
+ * Where the scene draws the axis line at `position`: the translation of its line group, floored to the pixel it is
+ * placed on, as drawn rather than as the axis computed it.
+ */
+export function getAxisLinePosition(chartOrProxy: ChartOrProxy<any>, position: string): { x: number; y: number } {
+    const { id } = findAxis(chartOrProxy, position);
+    const line = createSceneGeometrySampler(chartOrProxy)().get(`axis[${position}]/group[${id}-Axis-line]`);
+    expect(line).toBeDefined();
+    return { x: line!.translationX, y: line!.translationY };
+}
+
 /** The group holding the grid of the axis with `id`; polar axes included, which `findAxis` does not look up. */
-export function getAxisGridGroup(chartOrProxy: ChartOrProxy<any>, id: string): Group {
+export function getAxisGridGroupById(chartOrProxy: ChartOrProxy<any>, id: string): Group {
     const axis: unknown = deproxy(chartOrProxy).axes.findById(id);
     expect(axis).toBeDefined();
     // `ChartAxis`, the type `findById` returns, does not declare `gridGroup`; every `Axis` has one.

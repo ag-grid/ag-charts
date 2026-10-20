@@ -17,6 +17,7 @@ import {
     getAxisBandExtent,
     getAxisBandwidth,
     getAxisLabelNodes,
+    getAxisLinePosition,
     getAxisTitleText,
     getLabelSegmentAlignments,
     getLabelText,
@@ -28,7 +29,6 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     createChart,
-    createSceneGeometrySampler,
     deproxy,
     expectWarningsCalls,
     getAxisTickLayout,
@@ -964,12 +964,11 @@ describe('CartesianAxis', () => {
             // Where the axis line is drawn, as the scene places it, and the series rect it was placed against.
             const crossPositionY = async (value: AgCartesianAxisCrossAt['value']) => {
                 chart = await createChart(bigintDomainOptions(value));
-                const line = createSceneGeometrySampler(chart)().get('axis[bottom]/group[x-Axis-line]');
-                expect(line).toBeDefined();
+                const { y: translationY } = getAxisLinePosition(chart, 'bottom');
                 const { y, height } = getSeriesRect(chart);
                 chart.destroy();
                 (chart as unknown) = undefined;
-                return { translationY: line!.translationY, bottom: y + height, height };
+                return { translationY, bottom: y + height, height };
             };
 
             // The axis moves with the cross position: one at the domain minimum sits on the edge, and makes room for
@@ -1588,14 +1587,6 @@ describe('CartesianAxis', () => {
         const resizeTo = (width: number, height: number) =>
             resizeChartContainer(chart, { width, height, pixelRatio: PIXEL_RATIO });
 
-        // Where the scene draws the axis line, floored to the pixel it is placed on.
-        const axisLinePosition = (position: 'bottom' | 'left', along: 'translationX' | 'translationY') => {
-            const id = position === 'bottom' ? 'x' : 'y';
-            const line = createSceneGeometrySampler(chart)().get(`axis[${position}]/group[${id}-Axis-line]`);
-            expect(line).toBeDefined();
-            return line![along];
-        };
-
         // A sweep that never resizes the chart would pass every stability check below, so each one asserts the series
         // rect followed the container.
         const expectResized = (sizes: number[]) => expect(new Set(sizes).size).toBeGreaterThan(1);
@@ -1620,7 +1611,7 @@ describe('CartesianAxis', () => {
             const sizes: number[] = [];
             for (let width = 300; width <= 320; width++) {
                 await resizeTo(width, 200);
-                positions.add(axisLinePosition('bottom', 'translationY'));
+                positions.add(getAxisLinePosition(chart, 'bottom').y);
                 sizes.push(getSeriesRect(chart).width);
             }
 
@@ -1635,7 +1626,7 @@ describe('CartesianAxis', () => {
             const sizes: number[] = [];
             for (let height = 300; height <= 320; height++) {
                 await resizeTo(400, height);
-                positions.add(axisLinePosition('left', 'translationX'));
+                positions.add(getAxisLinePosition(chart, 'left').x);
                 sizes.push(getSeriesRect(chart).height);
             }
 
@@ -1664,7 +1655,7 @@ describe('CartesianAxis', () => {
             const sizes: number[] = [];
             for (let width = 300; width <= 320; width++) {
                 await resizeTo(width, 200);
-                positions.push(axisLinePosition('left', 'translationX'));
+                positions.push(getAxisLinePosition(chart, 'left').x);
                 sizes.push(getSeriesRect(chart).width);
             }
 
@@ -1679,7 +1670,7 @@ describe('CartesianAxis', () => {
             const sizes: number[] = [];
             for (let height = 300; height <= 320; height++) {
                 await resizeTo(400, height);
-                positions.push(axisLinePosition('bottom', 'translationY'));
+                positions.push(getAxisLinePosition(chart, 'bottom').y);
                 sizes.push(getSeriesRect(chart).height);
             }
 
