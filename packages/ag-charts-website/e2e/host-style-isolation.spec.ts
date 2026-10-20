@@ -54,6 +54,32 @@ test.describe('host style isolation', () => {
         await expect(contextMenu).toBeHidden();
     });
 
+    test('inside the claude.ai visualiser, the colour picker keeps its own input styles and typed text', async ({
+        page,
+    }) => {
+        const chartContainer = page.locator('#financialChart');
+        const canvas = chartContainer.locator(SELECTORS.canvasProxy);
+
+        await chartContainer.getByTitle('Fibonacci').click();
+        await chartContainer.getByText('Fib Retracement').click();
+        await canvas.hover({ position: { x: 100, y: 200 } });
+        await canvas.click({ position: { x: 100, y: 200 } });
+        await canvas.hover({ position: { x: 300, y: 80 } });
+        await canvas.click({ position: { x: 300, y: 80 } });
+        await chartContainer.getByTitle('Line Color').click();
+
+        const colorInput = chartContainer.locator('.ag-charts-color-picker__color-input');
+        const style = await colorInput.evaluate((el) => {
+            const { borderTopStyle, paddingTop } = getComputedStyle(el);
+            return { borderTopStyle, paddingTop };
+        });
+        expect(style).toEqual({ borderTopStyle: 'none', paddingTop: '7px' });
+
+        await colorInput.fill('');
+        await colorInput.pressSequentially('#00ff00');
+        await expect(colorInput).toHaveValue('#00ff00');
+    });
+
     test('outside the visualiser container, the same rules still reach a chart in the light DOM', async ({ page }) => {
         const chartContainer = page.locator('#outsideChart');
 

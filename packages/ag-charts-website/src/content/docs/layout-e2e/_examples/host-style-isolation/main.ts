@@ -2,21 +2,12 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    BarSeriesModule,
-    CategoryAxisModule,
-    ContextMenuModule,
-    LegendModule,
+    AgFinancialChartOptions,
+    AllEnterpriseModule,
     ModuleRegistry,
-    NumberAxisModule,
 } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([
-    BarSeriesModule,
-    CategoryAxisModule,
-    ContextMenuModule,
-    LegendModule,
-    NumberAxisModule,
-]);
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 const data = [
     { quarter: 'Q1', widgets: 420, gadgets: 310 },
@@ -43,5 +34,29 @@ const outsideOptions: AgCartesianChartOptions = {
     series,
 };
 
+// The colour picker's text field is the one chart `input` the visualiser's input rule can reach.
+const financialData = Array.from({ length: 30 }, (_, i) => {
+    const open = 100 + 10 * Math.sin(i / 3);
+    const close = open + (i % 2 === 0 ? 3 : -3);
+    return {
+        date: new Date(2024, 3, i + 1),
+        open,
+        high: Math.max(open, close) + 2,
+        low: Math.min(open, close) - 2,
+        close,
+    };
+});
+
+const financialOptions: AgFinancialChartOptions = {
+    container: document.getElementById('financialChart'),
+    data: financialData,
+    rangeButtons: false,
+    navigator: false,
+    toolbar: true,
+    volume: false,
+    zoom: false,
+};
+
 AgCharts.create(visualiserOptions);
 AgCharts.create(outsideOptions);
+AgCharts.createFinancialChart(financialOptions);

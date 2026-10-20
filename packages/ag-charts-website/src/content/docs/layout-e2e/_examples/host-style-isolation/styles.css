@@ -16,6 +16,7 @@ button:not(#action-btns button, :where(#vis-container ~ #larger-btns) button):no
 }
 
 #myChart,
+#financialChart,
 #outsideChart {
     height: 300px;
 }
