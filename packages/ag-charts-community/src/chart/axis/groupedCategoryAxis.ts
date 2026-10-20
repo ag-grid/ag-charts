@@ -134,8 +134,10 @@ export class GroupedCategoryAxis extends CategoryAxis<
         scrollbarThickness: number,
         tickSpacing: number
     ) {
+        // `sizeLimit` already excludes `label.spacing`; `usedRoomAtDepth()` takes off every depth's own spacing.
         const room =
-            (this.chartLayout?.sizeLimit ?? Infinity) -
+            (this.chartLayout?.sizeLimit ?? Infinity) +
+            this.options.label.spacing -
             scrollbarThickness -
             tickSpacing -
             this.getOuterScrollbarSize(scrollbar);
@@ -216,9 +218,11 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const labelOrder = fitEnabled
             ? Array.from(treeLabels.keys()).sort((a, b) => treeLabels[b].depth - treeLabels[a].depth)
             : treeLabels.keys();
+        // Every depth adds its spacing to the axis, so all of it is set aside before fitting any label.
+        let totalSpacing = 0;
+        for (const options of optionsMap) totalSpacing += options.spacing;
         const usedRoomAtDepth = (depth: number) => {
-            let used = 0;
-            for (let d = 0; d <= depth; d++) used += optionsMap[d]?.spacing ?? 0;
+            let used = totalSpacing;
             for (let d = 0; d < depth; d++) used += depthLabelMaxSize[d] ?? 0;
             return used;
         };
@@ -268,8 +272,9 @@ export class GroupedCategoryAxis extends CategoryAxis<
                     labelRoom - usedRoomAtDepth(depth),
                     toRadians(rotation)
                 );
-                let width = horizontal ? maxWidth : textRoom;
-                let height = horizontal ? textRoom : maxWidth;
+                const along = depthOptionsAt.avoidCollisions ? maxWidth : Infinity;
+                let width = horizontal ? along : textRoom;
+                let height = horizontal ? textRoom : along;
                 if (rotation !== 0) ({ width, height } = getInnerRectSize(rotation, width, height));
                 const fitted = fitAxisLabel(
                     text,

@@ -1420,6 +1420,29 @@ describe('CartesianAxis', () => {
                 expect(getAxisThickness('left')).toBeLessThanOrEqual(sizeLimit + 1);
                 expect(getAxisLabelNodes(chart, 'left').some((n) => n.datum.fontSize < 12)).toBe(true);
             });
+
+            it('counts the label spacing once when fitting to the room the axis has', async () => {
+                const label = { minimumFontSize: 4, wrapping: 'never', spacing: 40, rotation: 0 };
+                await renderChart(groupedOptions('left', label, [{}, { label: { spacing: 5 } }]), 400);
+                const { sizeLimit } = (deproxy(chart) as any).axes.find((a: any) => a.position === 'left').chartLayout;
+
+                expect(getAxisThickness('left')).toBeLessThanOrEqual(sizeLimit + label.spacing + 1);
+                expect(getAxisThickness('left')).toBeGreaterThan(sizeLimit + label.spacing - 10);
+            });
+
+            it('lets labels overflow their band when avoidCollisions is false', async () => {
+                const leaves = ['Freight Hub', 'Cargo Depot', 'Supply Yard'];
+                const label = {
+                    maxWidth: 120,
+                    wrapping: 'never',
+                    avoidCollisions: false,
+                    truncate: false,
+                    rotation: 0,
+                };
+                await renderChart(groupedOptions('bottom', label, undefined, leaves), 200);
+
+                expect(getAxisLabelNodes(chart, 'bottom').map(getLabelText)).toEqual(leaves);
+            });
         });
 
         describe('minimumFontSize', () => {
