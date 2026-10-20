@@ -1214,16 +1214,22 @@ describe('CartesianAxis', () => {
                 expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.maxWidth')]]);
             });
 
-            it('warns for maxWidth on a grouped-category axis label', async () => {
+            it('accepts the fitting options on a grouped-category axis label and depthOptions label', async () => {
                 await renderChart({
                     data: GROUPED_CATEGORY_DATA,
                     axes: {
-                        x: { type: 'grouped-category', position: 'bottom', label: { maxWidth: 50 } },
+                        x: {
+                            type: 'grouped-category',
+                            position: 'bottom',
+                            label: { maxWidth: 50, maxHeight: 40, minimumFontSize: 8 },
+                            depthOptions: [{}, { label: { maxWidth: 80, maxHeight: 30, minimumFontSize: 6 } }],
+                        },
                         y: { type: 'number', position: 'left' },
                     },
                     series: [{ type: 'bar', xKey: 'location', yKey: 'gold' }],
                 } as AgCartesianChartOptions);
-                expectWarningsCalls().toEqual([[expect.stringContaining('label.maxWidth')]]);
+                expect(getAxisLabelNodes(chart, 'bottom').length).toBeGreaterThan(0);
+                expectWarningsCalls().toEqual([]);
             });
         });
 
@@ -1328,6 +1334,91 @@ describe('CartesianAxis', () => {
                     expect(getLabelText(node)).not.toContain('\n');
                     expect(getLabelText(node).replace('…', '').length).toBeGreaterThan(15);
                 }
+            });
+        });
+
+        describe('grouped-category axis', () => {
+            const groupedOptions = (
+                position: 'left' | 'bottom',
+                label: Record<string, unknown>,
+                depthOptions?: Record<string, unknown>[],
+                leaves = [LONG_WITH_SPACES, 'B', LONG_NO_SPACES]
+            ): AgCartesianChartOptions => ({
+                data: [
+                    { location: ['Northern Hemisphere Region', leaves[0]], value: 3 },
+                    { location: ['Northern Hemisphere Region', leaves[1]], value: 5 },
+                    { location: ['Southern Hemisphere Region', leaves[2]], value: 4 },
+                ],
+                axes: {
+                    x: { type: 'grouped-category', position, label, depthOptions } as any,
+                    y: { type: 'number', position: position === 'left' ? 'bottom' : 'left' },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        direction: position === 'left' ? 'horizontal' : 'vertical',
+                        xKey: 'location',
+                        yKey: 'value',
+                    },
+                ],
+            });
+
+            // Unfitted long leaves on a bottom axis fill the axis cap and leave no room for the group depth.
+            const SHORT_LEAVES = ['A', 'B', 'C'];
+            const leafNode = (position: string, prefix: string) => findLongNode(position, prefix);
+
+            it('truncates leaf labels to maxWidth on a vertical axis', async () => {
+                await renderChart(groupedOptions('left', { maxWidth: 80, wrapping: 'never' }));
+
+                const node = leafNode('left', 'test');
+                expect(getLabelText(node).endsWith('…')).toBe(true);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
+                expect(getAxisLabelNodes(chart, 'left').some((n) => getLabelText(n) === 'B')).toBe(true);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('applies depthOptions limits to their own depth only', async () => {
+                await renderChart(
+                    groupedOptions('bottom', {}, [{}, { label: { maxWidth: 60, wrapping: 'never' } }], SHORT_LEAVES)
+                );
+
+                const group = leafNode('bottom', 'Northern');
+                expect(getLabelText(group).endsWith('…')).toBe(true);
+                expect(Transformable.toCanvas(group).width).toBeLessThanOrEqual(60.5);
+                expect(getAxisLabelNodes(chart, 'bottom').some((n) => getLabelText(n) === 'B')).toBe(true);
+            });
+
+            it('shrinks a group label towards its depth minimumFontSize', async () => {
+                await renderChart(
+                    groupedOptions(
+                        'bottom',
+                        {},
+                        [{}, { label: { maxWidth: 140, minimumFontSize: 6, wrapping: 'never' } }],
+                        SHORT_LEAVES
+                    )
+                );
+
+                const group = leafNode('bottom', 'Northern');
+                expect(getLabelText(group)).toBe('Northern Hemisphere Region');
+                expect(group.datum.fontSize).toBeLessThan(12);
+                expect(Transformable.toCanvas(group).width).toBeLessThanOrEqual(140.5);
+            });
+
+            it('hides a label that does not fit when truncate is false', async () => {
+                await renderChart(groupedOptions('left', { maxWidth: 30, wrapping: 'never', truncate: false }));
+
+                const texts = getAxisLabelNodes(chart, 'left').map(getLabelText);
+                expect(texts).toContain('B');
+                expect(texts.some((text) => text.startsWith('test'))).toBe(false);
+            });
+
+            it('fits every depth within the room the axis has', async () => {
+                const options = groupedOptions('left', { minimumFontSize: 4, wrapping: 'never' });
+                await renderChart(options, 400);
+                const { sizeLimit } = (deproxy(chart) as any).axes.find((a: any) => a.position === 'left').chartLayout;
+
+                expect(getAxisThickness('left')).toBeLessThanOrEqual(sizeLimit + 1);
+                expect(getAxisLabelNodes(chart, 'left').some((n) => n.datum.fontSize < 12)).toBe(true);
             });
         });
 

@@ -3,6 +3,7 @@ import {
     BandScale,
     DiscreteTimeScale,
     EllipsisChar,
+    type FontOptions,
     type ITextMeasurer,
     type NormalisedTextOrSegments,
     OrdinalTimeScale,
@@ -350,10 +351,10 @@ function wrapLabelToFit(text: NormalisedTextOrSegments, wrapOptions: WrapOptions
  * Fits `text` at the largest size between `label.minimumFontSize` and `maxFontSize` that holds it whole; only
  * at the minimum may it be truncated or hidden. `fontSize` is `undefined` when the label keeps its own size.
  */
-function fitLabelText(
+export function fitLabelText(
     text: NormalisedTextOrSegments,
     wrapOptions: WrapOptions,
-    label: ChartAxisLabel,
+    label: FontOptions & { minimumFontSize?: number },
     maxFontSize = label.fontSize
 ): { text: NormalisedTextOrSegments; fontSize: number | undefined } {
     const minimumFontSize = Math.min(label.minimumFontSize ?? maxFontSize, maxFontSize);
@@ -389,12 +390,17 @@ function measureFittedLabel(
         : measureLabelText(text, fontWithSize(label, fontSize));
 }
 
-function labelFitOverflow(label: ChartAxisLabel): WrapOptions['overflow'] {
+export function labelFitOverflow(label: { truncate?: boolean }): WrapOptions['overflow'] {
     return label.truncate === false ? 'hide' : 'ellipsis';
 }
 
 /** Room left for the text once the padding around it, rotated with the label, is taken out. */
-function labelTextRoom(label: ChartAxisLabel, isVertical: boolean | undefined, room: number, rotation: number) {
+export function labelTextRoom(
+    label: Parameters<typeof expandLabelPadding>[0],
+    isVertical: boolean | undefined,
+    room: number,
+    rotation: number
+) {
     const { left, right, top, bottom } = expandLabelPadding(label);
     const sin = Math.abs(Math.sin(rotation));
     const cos = Math.abs(Math.cos(rotation));

@@ -268,11 +268,15 @@ const cartesianAxisLabelBaseDefs: OptionsDefs<Omit<AgBaseCartesianAxisLabelOptio
     ...commonAxisLabelOptionsDefs,
 };
 
-export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabelOptions> = {
-    ...cartesianAxisLabelBaseDefs,
+const axisLabelFitDefs: OptionsDefs<Pick<AgBaseCartesianAxisLabelOptions, AxisLabelFitKeys>> = {
     maxWidth: positiveNumber,
     maxHeight: positiveNumber,
     minimumFontSize: and(positiveNumberNonZero, lessThanOrEqual('fontSize')),
+};
+
+export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabelOptions> = {
+    ...cartesianAxisLabelBaseDefs,
+    ...axisLabelFitDefs,
 };
 
 export const cartesianNumericAxisLabel: OptionsDefs<AgCartesianAxisLabelOptions> = {
@@ -539,7 +543,7 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
 export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     type: constant('grouped-category'),
-    label: cartesianAxisLabelBaseDefs,
+    label: { ...cartesianAxisLabelBaseDefs, ...axisLabelFitDefs },
     crosshair: cartesianAxisCrosshairOptions(),
     bandHighlight: cartesianAxisBandHighlightOptions,
     paddingInner: ratio,
@@ -553,6 +557,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
                 truncate: boolean,
                 rotation: number,
                 spacing: number,
+                ...axisLabelFitDefs,
                 ...fontOptionsDef,
                 ...labelBoxOptionsDef,
             },

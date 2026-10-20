@@ -800,16 +800,19 @@ export abstract class CartesianAxis<
         }
     }
 
+    /** Room an outer scrollbar takes from the axis cap; an inner one is counted by `getScrollbarThickness()`. */
+    protected getOuterScrollbarSize(scrollbar: ScrollbarLayout | undefined): number {
+        return scrollbar?.enabled && scrollbar.placement !== 'inner' ? scrollbar.spacing + scrollbar.thickness : 0;
+    }
+
     private getLabelRoom(scrollbar: ScrollbarLayout | undefined, scrollbarThickness: number) {
-        const outerScrollbar =
-            scrollbar?.enabled && scrollbar.placement !== 'inner' ? scrollbar.spacing + scrollbar.thickness : 0;
         const room =
             (this.chartLayout?.sizeLimit ?? Infinity) -
             this.getTickSize() -
             this.getTickSpacing() -
             this.seriesAreaPadding -
             scrollbarThickness -
-            outerScrollbar;
+            this.getOuterScrollbarSize(scrollbar);
         return Math.max(0, Math.floor(room));
     }
 

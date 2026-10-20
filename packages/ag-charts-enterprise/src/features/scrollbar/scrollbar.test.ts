@@ -953,6 +953,32 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         expect(far).toBeCloseTo(axisThickness, 0);
     });
 
+    it.each<{ limit: Record<string, number> }>([{ limit: { maxWidth: 120 } }, { limit: { minimumFontSize: 6 } }])(
+        'keeps a fitted grouped-category label clear of the scrollbar with $limit',
+        async ({ limit }) => {
+            const chart = await createSizedChart({
+                data: LONG_LABEL_DATA.map(({ x, y }, index) => ({ x: [`group${Math.floor(index / 10)}`, x], y })),
+                series: [{ type: 'bar', direction: 'horizontal', xKey: 'x', yKey: 'y', width: 20 }],
+                axes: { y: { type: 'grouped-category', position: 'left', label: limit } },
+                scrollbar: { enabled: true },
+                legend: { enabled: false },
+            });
+
+            await scrollLongLabelIntoView(chart, 'left');
+
+            const track = getTrackExtent(chart, 'left');
+            const fitted = getFittedLongLabelExtent(chart, 'left');
+            expect(fitted.far).toBeLessThanOrEqual(track.near + 0.5);
+            expectTrackBetweenSeriesAndPaddingEdge(chart, 'left');
+            if (limit.maxWidth != null) {
+                await compareImageSnapshot(chart, ctx, {
+                    ...IMAGE_SNAPSHOT_DEFAULTS,
+                    customSnapshotIdentifier: 'ag-18833-scrollbar-grouped-long-label-fitted',
+                });
+            }
+        }
+    );
+
     it('keeps the scrollbar inside the chart when two category axes are stacked on its side', async () => {
         const chart = await createLongLabelChart({ position: 'left', stacked: true });
 

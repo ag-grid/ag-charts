@@ -146,14 +146,14 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
      */
     truncate?: boolean;
     /**
-     * Used to constrain the size of each label along the text direction before wrapping or truncation.
+     * Used to constrain the size of each label along the text direction, in pixels.
      *
      * Labels are also kept within the space the axis has available, clear of any scrollbar.
      * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
      */
     maxWidth?: PixelSize;
     /**
-     * Used to constrain the size of each label across the text direction before wrapping or truncation.
+     * Used to constrain the size of each label across the text direction, in pixels.
      *
      * Labels are also kept within the space the axis has available, clear of any scrollbar.
      * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
@@ -185,6 +185,26 @@ export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> ex
      * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
      */
     truncate?: boolean;
+    /**
+     * Used to constrain the size of each label along the text direction, in pixels.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxWidth?: PixelSize;
+    /**
+     * Used to constrain the size of each label across the text direction, in pixels.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxHeight?: PixelSize;
+    /**
+     * If a label does not fit within `maxWidth`, `maxHeight` or the space the axis has available, setting this
+     * allows the label to pick a font size between its normal `fontSize` and `minimumFontSize` to fit.
+     * The label is only truncated or hidden when it still does not fit at `minimumFontSize`.
+     */
+    minimumFontSize?: FontSize;
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }
@@ -247,6 +267,26 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> e
      * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
      */
     truncate?: boolean;
+    /**
+     * Used to constrain the size of each label along the text direction, in pixels.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxWidth?: PixelSize;
+    /**
+     * Used to constrain the size of each label across the text direction, in pixels.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxHeight?: PixelSize;
+    /**
+     * If a label does not fit within `maxWidth`, `maxHeight` or the space the axis has available, setting this
+     * allows the label to pick a font size between its normal `fontSize` and `minimumFontSize` to fit.
+     * The label is only truncated or hidden when it still does not fit at `minimumFontSize`.
+     */
+    minimumFontSize?: FontSize;
 }
 
 export type AgGroupedCategoryDepthTickOptions = Pick<AgAxisBaseTickOptions, 'enabled' | 'stroke' | 'width'>;

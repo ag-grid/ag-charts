@@ -64,7 +64,7 @@ Use `label.maxWidth` and `label.maxHeight` to limit the size of each label, in p
 
 When either limit is set, labels also stay within the space available to the axis and clear of an axis scrollbar. Labels wrap within the limits according to `label.wrapping`; wrapping is not switched on automatically.
 
-These options, and `label.minimumFontSize` below, are available on Number, Log, Time, Unit Time, Ordinal Time and Category axes. They are not available on Grouped Category axes or on `parentLevel.label`.
+These options, and `label.minimumFontSize` below, are available on all cartesian axes except on `parentLevel.label`. On Grouped Category axes they can also be set per level with `depthOptions[].label`.
 
 ### Font Size Reduction
 
