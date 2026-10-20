@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
-import { type Group, Path } from 'ag-charts-core';
+import { getAxisGridGroupById, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import { Path } from 'ag-charts-core';
 
 import { collectShapes, createEnterpriseChart } from '../../test/utils';
 
@@ -36,10 +36,9 @@ describe('RadiusAxis polygon grid', () => {
 
     async function readGridRings(categories: number): Promise<Ring[]> {
         chart = await createEnterpriseChart(createOptions(categories));
-        // `gridGroup` is public on `Axis`; the `ChartAxis` interface `findById` returns just doesn't declare it.
-        const axis = deproxy(chart).axes.findById('radius') as { gridGroup: Group } | undefined;
-        expect(axis).toBeDefined();
-        const gridPaths = collectShapes(axis!.gridGroup).filter((shape): shape is Path => shape instanceof Path);
+        const gridPaths = collectShapes(getAxisGridGroupById(chart, 'radius')).filter(
+            (shape): shape is Path => shape instanceof Path
+        );
 
         const rings: Ring[] = [];
         for (const node of gridPaths) {

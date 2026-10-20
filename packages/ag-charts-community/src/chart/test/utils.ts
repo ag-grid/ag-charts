@@ -1296,6 +1296,23 @@ export async function pressKey(chart: ChartOrProxy, key: string) {
     await waitForChartStability(chart);
 }
 
+// Auto-sizing reads the container size, so a chart created without an explicit width and height follows this resize.
+export async function resizeChartContainer(
+    chart: ChartOrProxy,
+    size: { width: number; height: number; pixelRatio: number }
+) {
+    const { ctx } = deproxy(chart);
+    ctx.domManager.containerSize = size;
+    ctx.eventsHub.emit('dom:resize', null);
+    await waitForChartStability(chart);
+}
+
+// Text metrics change when a web font arrives, so everything laid out from them is re-measured.
+export async function emitFontLoad(chart: ChartOrProxy) {
+    deproxy(chart).ctx.eventsHub.emit('font:load', null);
+    await waitForChartStability(chart);
+}
+
 /**
  * The canonical chart factory for tests. Returns the public `AgChartInstance`; wrap the result in `deproxy()` where a
  * test needs chart internals, so that the internal access is visible at the call site.

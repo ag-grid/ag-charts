@@ -1,10 +1,12 @@
 import { expect } from 'vitest';
 
-import type { BBox, TransformableText } from 'ag-charts-core';
+import { type BBox, ChartAxisDirection, type Group, type TransformableText } from 'ag-charts-core';
 
+import type { AxisValuePick } from '../../module/axisContext';
 import type { LabelNodeDatum } from '../axis/axis';
 import { CartesianAxis } from '../axis/cartesianAxis';
-import { type ChartOrProxy, deproxy } from './utils';
+import type { AxisLabelSource } from '../layout/axisLabelSource';
+import { type ChartOrProxy, createSceneGeometrySampler, deproxy } from './utils';
 
 /** A tick-label node as drawn by an axis, with the datum the axis layout wrote onto it. */
 export type AxisLabelNode = TransformableText<LabelNodeDatum> & { datum: LabelNodeDatum };
@@ -107,4 +109,62 @@ export function getAxisBandExtent(
     const bandwidth = scale.bandwidth ?? 0;
     const start: number = scale.convert(value);
     return { start, end: start + bandwidth, bandwidth };
+}
+
+/** The axis' scale domain: the numbers, dates or categories the axis was fitted to, after any nicing. */
+export function getAxisDomain(chartOrProxy: ChartOrProxy<any>, position: string): unknown[] {
+    return [...findAxis(chartOrProxy, position).scale.domain];
+}
+
+/**
+ * What the axis picks at `value`. The canvas point is where the axis' own scale puts `value` along the axis, from the
+ * axis' translation, so a point the axis draws is a point it must resolve back to the same datum.
+ */
+export function pickAxisValue(
+    chartOrProxy: ChartOrProxy<any>,
+    position: string,
+    value: unknown
+): AxisValuePick | undefined {
+    const axis = findAxis(chartOrProxy, position);
+    const { translation } = axis.getLayoutState();
+    const along: number = axis.scale.convert(value);
+    return axis.pickValue(
+        axis.direction === ChartAxisDirection.X
+            ? { canvasX: translation.x + along, canvasY: translation.y }
+            : { canvasX: translation.x, canvasY: translation.y + along }
+    );
+}
+
+/** The source through which the axis contributes its drawn tick labels as obstacles to label placement. */
+export function getAxisLabelSource(chartOrProxy: ChartOrProxy<any>, position: string): AxisLabelSource {
+    return findAxis(chartOrProxy, position).labelSource;
+}
+
+/** The layout the axis reports to the rest of the chart, as it stands after the last layout pass. */
+export function getAxisLayoutState(
+    chartOrProxy: ChartOrProxy<any>,
+    position: string
+): ReturnType<CartesianAxis['getLayoutState']> {
+    return findAxis(chartOrProxy, position).getLayoutState();
+}
+
+/**
+ * Where the scene draws the axis line at `position`: the translation of its line group, floored to the pixel it is
+ * placed on, as drawn rather than as the axis computed it.
+ */
+export function getAxisLinePosition(chartOrProxy: ChartOrProxy<any>, position: string): { x: number; y: number } {
+    const { id } = findAxis(chartOrProxy, position);
+    const line = createSceneGeometrySampler(chartOrProxy)().get(`axis[${position}]/group[${id}-Axis-line]`);
+    expect(line).toBeDefined();
+    return { x: line!.translationX, y: line!.translationY };
+}
+
+/** The group holding the grid of the axis with `id`; polar axes included, which `findAxis` does not look up. */
+export function getAxisGridGroupById(chartOrProxy: ChartOrProxy<any>, id: string): Group {
+    const axis: unknown = deproxy(chartOrProxy).axes.findById(id);
+    expect(axis).toBeDefined();
+    // `ChartAxis`, the type `findById` returns, does not declare `gridGroup`; every `Axis` has one.
+    const { gridGroup } = axis as { gridGroup?: Group };
+    expect(gridGroup).toBeDefined();
+    return gridGroup!;
 }
