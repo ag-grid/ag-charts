@@ -213,6 +213,54 @@ describe('HeatmapSeries partial repaint', () => {
         expectFrameToMatchWholeRepaint(false);
     });
 
+    it('repaints in full, and matches a whole repaint, when cells with labels are updated', async () => {
+        await create(GRID, { label: { enabled: true } });
+
+        await transact(column(3, (y) => 100 + y));
+
+        expectFrameToMatchWholeRepaint(false);
+    });
+
+    it('clears a cell that an update makes invisible, and paints it again when it returns', async () => {
+        const itemStyler = ({ datum }: { datum: GridCell }) => ({ fillOpacity: datum.v === 42 ? 0 : 1 });
+        await create(GRID, { itemStyler });
+
+        await transact(column(3, (y) => (y === 2 ? 42 : 100 + y)));
+        expectFrameToMatchWholeRepaint(true);
+
+        await transact(column(3, (y) => 100 + y));
+        expectFrameToMatchWholeRepaint(true);
+    });
+
+    it('repaints in full, and matches a whole repaint, when the cells have a stroke', async () => {
+        await create(GRID, { stroke: 'black', strokeWidth: 2 });
+
+        await transact(column(3, (y) => 100 + y));
+
+        expectFrameToMatchWholeRepaint(false);
+    });
+
+    it('repaints in full when a transaction adds and removes cells', async () => {
+        await create();
+        const [removed, kept] = [GRID[0], GRID[1]];
+        const added = { id: 'new', x: 'X0', y: 'Y0', v: 77 };
+
+        await chart.publicApi!.applyTransaction({ remove: [removed], add: [added], update: [{ ...kept, v: 120 }] });
+        await waitForChartStability(chart);
+
+        expectFrameToMatchWholeRepaint(false);
+    });
+
+    it('keeps matching a whole repaint over many transactions in a row', async () => {
+        await create();
+
+        // The first and last columns hold the extremes, which a rewrite would move, and so restyle every cell.
+        for (let i = 0; i < 12; i++) {
+            await transact(column(1 + ((i * 7) % (COLUMNS - 2)), (y) => 50 + i * 3 + y));
+            expectFrameToMatchWholeRepaint(true);
+        }
+    });
+
     it('repaints in full when every cell is restyled', async () => {
         await create();
 
