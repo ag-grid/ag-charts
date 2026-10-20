@@ -119,7 +119,7 @@ export class ChartSync extends AbstractModuleInstance {
         this.cleanup.register(
             moduleContext.chartState.observe((get) => {
                 const sync = get('options', 'sync');
-                const enabled = !this.disabledByValidation && (sync?.enabled ?? false);
+                const enabled = sync?.enabled ?? false;
                 const groupId = sync?.groupId;
                 const axes = sync?.axes ?? 'x';
                 const nodeInteraction = sync?.nodeInteraction ?? true;
@@ -157,7 +157,7 @@ export class ChartSync extends AbstractModuleInstance {
             }),
             moduleContext.chartState.observe((get) => {
                 get('options');
-                this.onOptionsChange();
+                this.revalidateRejected(this.groupId);
             })
         );
     }
@@ -515,9 +515,9 @@ export class ChartSync extends AbstractModuleInstance {
         this.onEnabledChange();
     }
 
-    private onOptionsChange() {
+    private revalidateRejected(groupId: string | undefined) {
         for (const chartSync of ChartSync.rejectedByValidation) {
-            if (chartSync.groupId === this.groupId) chartSync.revalidate();
+            if (chartSync.groupId === groupId) chartSync.revalidate();
         }
     }
 
@@ -628,6 +628,7 @@ export class ChartSync extends AbstractModuleInstance {
         syncManager.subscribe(newValue);
         this.updateSiblings(oldValue);
         this.updateSiblings(newValue);
+        this.revalidateRejected(oldValue);
     }
 
     private onAxesChange() {
@@ -661,6 +662,7 @@ export class ChartSync extends AbstractModuleInstance {
         const { syncManager } = this.moduleContext;
         syncManager.unsubscribe(this.groupId);
         this.updateSiblings();
+        this.revalidateRejected(this.groupId);
         this.disableZoomSync?.();
         super.destroy();
     }

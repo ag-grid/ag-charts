@@ -389,6 +389,37 @@ describe('ChartSync', () => {
             });
         });
 
+        it('should leave the old group when a chart that resumed synchronisation changes group', async () => {
+            charts = [AgCharts.create(yAxisChart({ max: 100 }, 1)), AgCharts.create(yAxisChart({ max: 200 }, 1))];
+            await waitForAllChartStability();
+            await charts[1].update(yAxisChart({ max: 100 }, 1));
+            await waitForAllChartStability();
+
+            const movedGroupId = `${groupId}-moved`;
+            const moved = yAxisChart({ max: 100 }, 1);
+            moved.sync = { groupId: movedGroupId, axes: 'y' };
+            await charts[1].update(moved);
+            await waitForAllChartStability();
+
+            expectWarningsCalls().toEqual([[SINGLE_SERIES_WARNING]]);
+            expect([syncGroupSize(charts[0], groupId), syncGroupSize(charts[1], movedGroupId)]).toEqual([1, 1]);
+        });
+
+        it('should resume synchronisation when the mismatched reference chart is destroyed', async () => {
+            charts = [
+                AgCharts.create(yAxisChart({ max: 100 }, 1)),
+                AgCharts.create(yAxisChart({ max: 200 }, 1)),
+                AgCharts.create(yAxisChart({ max: 200 }, 1)),
+            ];
+            await waitForAllChartStability();
+
+            charts.shift()!.destroy();
+            await waitForAllChartStability();
+
+            expectWarningsCalls().toEqual([[SINGLE_SERIES_WARNING], [SINGLE_SERIES_WARNING]]);
+            expect(groupSizes()).toEqual([2, 2]);
+        });
+
         it('should keep synchronisation when identical charts have a differently bounded secondary axis', async () => {
             const options = yAxisChart({}, 1);
             options.axes = { ...options.axes, ySecondary: { type: 'number', position: 'right', min: 0, max: 1 } };
