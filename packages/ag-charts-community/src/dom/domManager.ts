@@ -15,6 +15,7 @@ import {
     entries,
     isDirectionRtl,
     isDocumentFragment,
+    isElement,
     isNode,
     isObject,
     kebabCase,
@@ -1217,24 +1218,29 @@ export class DOMManager extends BaseManager {
         }
     }
 
+    private listenForCSSVariableChanges(shadowRoot: HTMLElement) {
+        // The chart's own controls transition too, so only the watcher elements signal a change.
+        const handleTransitionEnd = ({ target }: Event) => {
+            if (isElement(target) && target.hasAttribute('data-variable-name')) {
+                this.eventsHub.emit('chart:request-refresh', null);
+            }
+        };
+        shadowRoot.addEventListener('transitionend', handleTransitionEnd);
+        this.cleanup.register(() => {
+            shadowRoot.removeEventListener('transitionend', handleTransitionEnd);
+        });
+    }
+
     private updateCSSVariableWatchersShadowDOM(properties: Iterable<string>) {
         const shadowRoot = this.getShadowRoot() as HTMLElement | undefined;
         if (!shadowRoot || !('addEventListener' in shadowRoot)) return;
 
-        // Attach a single event listener to the shadow root to catch the bubbled events for every property, rather
-        // than a different event for each property.
-        if (this.shadowCssVariableWatchers.size === 0) {
-            const handleTransitionEnd = () => {
-                this.eventsHub.emit('chart:request-refresh', null);
-            };
-            shadowRoot.addEventListener('transitionend', handleTransitionEnd);
-            this.cleanup.register(() => {
-                shadowRoot.removeEventListener('transitionend', handleTransitionEnd);
-            });
-        }
-
         for (const property of properties) {
             if (this.shadowCssVariableWatchers.has(property)) continue;
+            // One listener per shadow root catches the bubbled events for every property.
+            if (this.shadowCssVariableWatchers.size === 0) {
+                this.listenForCSSVariableChanges(shadowRoot);
+            }
             this.shadowCssVariableWatchers.add(property);
 
             // Unlike normal DOM, here we transition directly on the color property since we need to combine the style

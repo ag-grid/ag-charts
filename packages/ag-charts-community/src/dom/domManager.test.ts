@@ -401,6 +401,37 @@ describe('DOMManager', () => {
             expect(styleEl).not.toBeNull();
             expect(styleEl!.hasAttribute('nonce')).toBe(false);
         });
+
+        describe('in a shadow root', () => {
+            const countRefreshes = (dispatch: () => void) => {
+                const refresh = vi.fn();
+                const off = eventsHub.on('chart:request-refresh', refresh);
+                dispatch();
+                off();
+                return refresh.mock.calls.length;
+            };
+            const transitionEnd = (target: Element) =>
+                target.dispatchEvent(new Event('transitionend', { bubbles: true }));
+
+            it('refreshes once per watched transition however often the watchers are updated', () => {
+                const { shadow, container } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+                for (let i = 0; i < 3; i++) {
+                    dm.updateCSSVariableWatchers({});
+                    dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+                }
+
+                expect(countRefreshes(() => transitionEnd(shadowWatchers(shadow)[0]))).toBe(1);
+            });
+
+            it("ignores transitions on the chart's own elements", () => {
+                const { container } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+                expect(countRefreshes(() => transitionEnd(dm.getParent('canvas')))).toBe(0);
+            });
+        });
     });
 
     describe('when connecting after initialisation', () => {
