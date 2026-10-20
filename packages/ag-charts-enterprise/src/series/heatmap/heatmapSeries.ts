@@ -987,10 +987,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const batched = this.canBatchCells();
         if (batched === this.batched) return;
-        // The base class only rewrites the nodes after a restyle that moved something, so do it here.
         this.setBatched(batched);
         datumSelection.update(batched ? [] : nodeData);
-        this.updateDatumNodes({ datumSelection, isHighlight: false });
     }
 
     protected override updateDatumNodes({
@@ -1053,7 +1051,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 height,
                 style.fill as string,
                 (style.fillOpacity ?? 1) * opacity,
-                (style.strokeOpacity ?? 1) * opacity
+                (style.strokeOpacity ?? 1) * opacity,
+                typeof style.stroke === 'string' ? style.stroke : undefined
             );
         };
 

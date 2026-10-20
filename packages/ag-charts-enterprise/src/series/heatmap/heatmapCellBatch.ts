@@ -22,16 +22,35 @@ export class HeatmapCellBatch extends Node {
     private ys = new Float64Array(0);
     private widths = new Float64Array(0);
     private heights = new Float64Array(0);
+    // OPTIMIZATION: the geometry a cell paints with only changes with its box, `crisp` or the pixel ratio, so it is
+    // aligned when written rather than on every repaint.
+    private alignedXs = new Float64Array(0);
+    private alignedYs = new Float64Array(0);
+    private alignedWidths = new Float64Array(0);
+    private alignedHeights = new Float64Array(0);
+    private microPixelOpacities = new Float64Array(0);
     /** Fill opacity and style opacity, combined as a `Rect` does. */
     private opacities = new Float64Array(0);
     /** Only the SVG form reads this: a plain cell has no stroke to paint. */
     private strokeOpacities = new Float64Array(0);
     private fills: string[] = [];
+    /** Only the SVG form reads this: a plain cell has no stroke to paint. */
+    private strokes: (string | undefined)[] = [];
     private count = 0;
     private pixelRatio = 1;
+    private _crisp = true;
+    /** Whether the aligned arrays were written for a `crisp` or pixel ratio other than the current ones. */
+    private alignmentStale = false;
 
     /** Whether cells snap to the device pixel grid, as a crisp `Rect` does. */
-    crisp = true;
+    get crisp() {
+        return this._crisp;
+    }
+    set crisp(crisp: boolean) {
+        if (crisp === this._crisp) return;
+        this._crisp = crisp;
+        this.alignmentStale = true;
+    }
 
     /** The datum behind each cell, which only the serialised form reads. */
     datums: ReadonlyArray<{ readonly xValue?: unknown }> = [];
@@ -55,8 +74,14 @@ export class HeatmapCellBatch extends Node {
             this.heights = new Float64Array(capacity);
             this.opacities = new Float64Array(capacity);
             this.strokeOpacities = new Float64Array(capacity);
+            this.alignedXs = new Float64Array(capacity);
+            this.alignedYs = new Float64Array(capacity);
+            this.alignedWidths = new Float64Array(capacity);
+            this.alignedHeights = new Float64Array(capacity);
+            this.microPixelOpacities = new Float64Array(capacity);
         }
         this.fills.length = count;
+        this.strokes.length = count;
         this.count = count;
     }
 
@@ -68,7 +93,8 @@ export class HeatmapCellBatch extends Node {
         height: number,
         fill: string,
         opacity: number,
-        strokeOpacity: number
+        strokeOpacity: number,
+        stroke: string | undefined
     ) {
         this.xs[index] = x;
         this.ys[index] = y;
@@ -77,6 +103,45 @@ export class HeatmapCellBatch extends Node {
         this.fills[index] = fill;
         this.opacities[index] = opacity;
         this.strokeOpacities[index] = strokeOpacity;
+        this.strokes[index] = stroke;
+        if (!this.alignmentStale) this.align(index);
+    }
+
+    private setPixelRatio(pixelRatio: number) {
+        if (pixelRatio === this.pixelRatio) return;
+        this.pixelRatio = pixelRatio;
+        this.alignmentStale = true;
+    }
+
+    private ensureAligned() {
+        if (!this.alignmentStale) return;
+        this.alignmentStale = false;
+        for (let index = 0; index < this.count; index++) this.align(index);
+    }
+
+    /** Writes the geometry a cell paints with. A cell with no area paints nothing, as a `Rect` leaves it empty. */
+    private align(index: number) {
+        const { pixelRatio, crisp } = this;
+        let x = this.xs[index];
+        let y = this.ys[index];
+        let width = this.widths[index];
+        let height = this.heights[index];
+
+        let microPixelOpacity = 1;
+        if (crisp) {
+            const pixelSize = 1 / pixelRatio;
+            if (width <= pixelSize) microPixelOpacity *= width / pixelSize;
+            if (height <= pixelSize) microPixelOpacity *= height / pixelSize;
+            width = align(pixelRatio, x, width);
+            x = align(pixelRatio, x);
+            height = align(pixelRatio, y, height);
+            y = align(pixelRatio, y);
+        }
+        this.alignedXs[index] = x;
+        this.alignedYs[index] = y;
+        this.alignedWidths[index] = width;
+        this.alignedHeights[index] = height;
+        this.microPixelOpacities[index] = microPixelOpacity;
     }
 
     /** One dirty notification for any number of `set` calls. */
@@ -96,7 +161,7 @@ export class HeatmapCellBatch extends Node {
     }
 
     override preRender(renderCtx: RenderContext) {
-        this.pixelRatio = renderCtx.devicePixelRatio;
+        this.setPixelRatio(renderCtx.devicePixelRatio);
         return super.preRender(renderCtx, this.count);
     }
 
@@ -124,9 +189,11 @@ export class HeatmapCellBatch extends Node {
         super.render(renderCtx);
     }
 
-    private paint({ ctx, devicePixelRatio: pixelRatio }: RenderContext) {
-        const { fills, opacities, count } = this;
-        this.pixelRatio = pixelRatio;
+    private paint({ ctx, devicePixelRatio }: RenderContext) {
+        this.setPixelRatio(devicePixelRatio);
+        this.ensureAligned();
+        const { fills, opacities, microPixelOpacities, alignedXs, alignedYs, alignedWidths, alignedHeights, count } =
+            this;
         const baseAlpha = ctx.globalAlpha;
         let lastFill: string | undefined;
 
@@ -135,48 +202,28 @@ export class HeatmapCellBatch extends Node {
             const opacity = opacities[i];
             // `Number.isNaN` as well, so a cell with an undefined opacity stays unpainted as a `Rect` leaves it.
             if (fill == null || fill === 'none' || opacity <= 0 || Number.isNaN(opacity)) continue;
+            if (this.widths[i] === 0 || this.heights[i] === 0) continue;
 
-            const cell = this.alignedCell(i);
-            if (cell == null) continue;
-
-            const alphaChanged = opacity !== 1 || cell.microPixelOpacity !== 1;
+            const microPixelOpacity = microPixelOpacities[i];
+            const alphaChanged = opacity !== 1 || microPixelOpacity !== 1;
             if (opacity !== 1) ctx.globalAlpha *= opacity;
-            if (cell.microPixelOpacity !== 1) ctx.globalAlpha *= cell.microPixelOpacity;
+            if (microPixelOpacity !== 1) ctx.globalAlpha *= microPixelOpacity;
             if (fill !== lastFill) {
                 ctx.fillStyle = fill;
                 lastFill = fill;
             }
-            ctx.fillRect(cell.x, cell.y, cell.width, cell.height);
+            ctx.fillRect(alignedXs[i], alignedYs[i], alignedWidths[i], alignedHeights[i]);
             if (alphaChanged) ctx.globalAlpha = baseAlpha;
         }
     }
 
-    /** The geometry a cell paints with, or `undefined` for a cell with no area, which a `Rect` leaves empty. */
-    private alignedCell(index: number) {
-        const { pixelRatio, crisp } = this;
-        let x = this.xs[index];
-        let y = this.ys[index];
-        let width = this.widths[index];
-        let height = this.heights[index];
-        if (width === 0 || height === 0) return undefined;
-
-        let microPixelOpacity = 1;
-        if (crisp) {
-            const pixelSize = 1 / pixelRatio;
-            if (width <= pixelSize) microPixelOpacity *= width / pixelSize;
-            if (height <= pixelSize) microPixelOpacity *= height / pixelSize;
-            width = align(pixelRatio, x, width);
-            x = align(pixelRatio, x);
-            height = align(pixelRatio, y, height);
-            y = align(pixelRatio, y);
-        }
-        return { x, y, width, height, microPixelOpacity };
-    }
-
     private cellPathData(index: number) {
-        const cell = this.alignedCell(index);
-        if (cell == null) return '';
-        const { x, y, width, height } = cell;
+        if (this.widths[index] === 0 || this.heights[index] === 0) return '';
+        this.ensureAligned();
+        const x = this.alignedXs[index];
+        const y = this.alignedYs[index];
+        const width = this.alignedWidths[index];
+        const height = this.alignedHeights[index];
         return `M ${x} ${y} L ${x + width} ${y} L ${x + width} ${y + height} L ${x} ${y + height} Z`;
     }
 
@@ -207,7 +254,7 @@ export class HeatmapCellBatch extends Node {
             element.setAttribute('fill', this.fills[index]);
             element.setAttribute('fill-opacity', String(this.opacities[index]));
             setSvgStrokeAttributes(element, {
-                stroke: undefined,
+                stroke: this.strokes[index],
                 strokeWidth: 0,
                 strokeOpacity: this.strokeOpacities[index],
             });

@@ -29,8 +29,9 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { CallbackResultMemo, type Rect, Transformable } from 'ag-charts-core';
-import { classCast } from 'ag-charts-test';
+import { CallbackResultMemo, Group, Rect, Transformable } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
+import { classCast, testLogger } from 'ag-charts-test';
 
 import {
     DEFAULT_DISABLED_SHADOW,
@@ -3645,10 +3646,52 @@ describe('HeatmapSeries', () => {
         });
 
         describe('scene output', () => {
+            it('realigns its cells to the device pixel grid when the pixel ratio changes', () => {
+                const boxes = [
+                    [10.3, 5.2, 20.4, 8.6],
+                    [40.7, 5.2, 0.3, 8.6],
+                ];
+                const batch = new HeatmapCellBatch();
+                batch.resize(boxes.length);
+                for (const [index, [x, y, width, height]] of boxes.entries()) {
+                    batch.set(index, x, y, width, height, 'red', 1, 1, undefined);
+                }
+                batch.commit();
+
+                const canvasCtx = document.createElement('canvas').getContext('2d')!;
+                const fillRect = vi.spyOn(canvasCtx, 'fillRect');
+                const fillRects = (devicePixelRatio: number) => {
+                    fillRect.mockClear();
+                    const renderCtx = {
+                        ctx: canvasCtx,
+                        direction: 'ltr' as const,
+                        width: 100,
+                        height: 50,
+                        devicePixelRatio,
+                        logger: testLogger,
+                        debugNodes: {},
+                    };
+                    batch.preRender(renderCtx);
+                    batch.render(renderCtx);
+                    return fillRect.mock.calls;
+                };
+
+                expect(fillRects(1)).toEqual([
+                    [10, 5, 21, 9],
+                    [41, 5, 1, 9],
+                ]);
+                expect(fillRects(2)).toEqual([
+                    [10.5, 5, 20, 9],
+                    [40.5, 5, 0.5, 9],
+                ]);
+                expect(fillRects(1)).toEqual([
+                    [10, 5, 21, 9],
+                    [41, 5, 1, 9],
+                ]);
+            });
+
             const SVG_IDS = /id="[^"]*"|url\(#[^)]*\)/g;
-            // A zero-width stroke paints nothing, and only the `Rect` path records its colour.
-            const ZERO_STROKE_COLOUR = /( stroke="[^"]*")( stroke-width="0")/g;
-            const toSvg = (c: Chart) => c.ctx.scene.toSVG()!.replace(SVG_IDS, '').replace(ZERO_STROKE_COLOUR, '$2');
+            const toSvg = (c: Chart) => c.ctx.scene.toSVG()!.replace(SVG_IDS, '');
 
             it('serialises to the same SVG as the Rects', async () => {
                 const itemStyler = ({ datum }: { datum: Cell }) => ({
