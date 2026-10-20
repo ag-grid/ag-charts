@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
 
-import { locateChartWrapper } from '../chart/test/utils';
 import type { EventsHub } from '../core/eventsHub';
 import { DOMManager } from './domManager';
+import { locateChartWrapper } from './test/testUtils';
 
 describe('DOMManager', () => {
     const doc = new AgDocument(getDocument());

@@ -12,12 +12,12 @@ import {
     deproxy,
     expectErrorsCalls,
     expectWarningsCalls,
-    locateChartWrapper,
     prepareTestOptions,
     resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
 } from '../chart/test/utils';
+import { locateChartWrapper } from '../dom/test/testUtils';
 import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
 import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
 
