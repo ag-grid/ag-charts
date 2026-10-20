@@ -23,9 +23,12 @@ const numberFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 4,
 });
 
+const data = getData();
+const averageClose = data.reduce((sum, { close }) => sum + close, 0) / data.length;
+
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
-    data: getData(),
+    data,
     title: {
         text: 'USD/GBP',
     },
@@ -102,13 +105,15 @@ const options: AgCartesianChartOptions<DataType> = {
             crossLines: [
                 {
                     type: 'line',
-                    value: 0.8016,
+                    value: averageClose,
                     lineDash: [6, 3],
                     strokeWidth: 1.5,
                     label: {
-                        text: 'Avg: 0.8016',
+                        text: `Avg: ${numberFormatter.format(averageClose)}`,
                         placement: 'top-left',
                         padding: 4,
+                        fill: { ref: 'backgroundColor' },
+                        fillOpacity: 0.8,
                     },
                 },
             ],
@@ -129,7 +134,7 @@ const options: AgCartesianChartOptions<DataType> = {
         },
     },
     formatter: {
-        y: ({ value }) => `£${Number(value).toFixed(3)}`,
+        y: ({ value }) => `£${numberFormatter.format(Number(value))}`,
     },
 };
 AgCharts.create(options);
