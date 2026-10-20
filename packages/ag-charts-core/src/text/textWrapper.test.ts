@@ -1210,6 +1210,27 @@ describe('fitLabelText', () => {
         );
     });
 
+    it('clips explicit line breaks to maxHeight when wrapping is disabled and asked to', () => {
+        const fit = { maxWidth: 100, maxHeight: 40, wrapping: 'never', clipLineBreaks: true } as const;
+        expect(fitLabelText('one\ntwo\nthree', { ...fit, overflowStrategy: 'ellipsis' }, font)).toBe(`one\ntwo${E}`);
+        expect(fitLabelText('one\ntwo\nthree', { ...fit, overflowStrategy: 'hide' }, font)).toBe('');
+    });
+
+    it('hides the label when even the ellipsis is wider than maxWidth', () => {
+        const fit = {
+            maxWidth: 5,
+            wrapping: 'never',
+            overflowStrategy: 'ellipsis',
+            hideOverflowingEllipsis: true,
+        } as const;
+        expect(fitLabelText('Hello', fit, font)).toBe('');
+        expect(fitLabelText([text('Hello')], fit, font)).toEqual([]);
+    });
+
+    it('draws the ellipsis alone when it is wider than maxWidth and hiding is not asked for', () => {
+        expect(fitLabelText('Hello', { maxWidth: 5, wrapping: 'never', overflowStrategy: 'ellipsis' }, font)).toBe(E);
+    });
+
     it('drops no segment when text overhangs alongside an image narrower than the bound', () => {
         const segments = [image('flag', { width: 20, height: 20 }), text(' Verylongcaption here')];
         const result = fitLabelText(segments, { maxWidth: 60, wrapping: 'on-space' }, font);

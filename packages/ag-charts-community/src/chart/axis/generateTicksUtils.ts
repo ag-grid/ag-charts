@@ -1,10 +1,12 @@
 import {
+    type AutoSizedLabelText,
     type AxisPrimaryTickCount,
     BandScale,
     DiscreteTimeScale,
     EllipsisChar,
     type FontOptions,
     type ITextMeasurer,
+    type LabelFit,
     type NormalisedTextOrSegments,
     OrdinalTimeScale,
     type ResolvedTextAlign,
@@ -16,12 +18,11 @@ import {
     type WrapOptions,
     buildDateFormatter,
     cachedTextMeasurer,
-    clipLines,
     compareDates,
     createIdsGenerator,
     dropFirstWhile,
     dropLastWhile,
-    findLargestFittingFontSize,
+    fitLabelTextAutoSize,
     fontWithSize,
     getInnerRectSize,
     getMaxInnerRectSize,
@@ -41,15 +42,22 @@ import {
     isTextTruncated,
     labelTextAtShrinkRatio,
     measureLabelText,
-    measureTextSegments,
     normalizeAngle360FromDegrees,
+    resolveMinimumFontSize,
     toPlainText,
     toRadians,
     toTextString,
     toTimeInterval,
     wrapTextOrSegments,
 } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, VerticalAlign } from 'ag-charts-types';
+import type {
+    AgTimeInterval,
+    AgTimeIntervalUnit,
+    DateFormatterStyle,
+    OverflowStrategy,
+    TextWrap,
+    VerticalAlign,
+} from 'ag-charts-types';
 
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { expandLabelPadding } from '../label';
@@ -247,7 +255,14 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             maxHeight = innerRect.height;
         }
 
-        const wrapOptions = labelWrapOptions(label, maxWidth, maxHeight, label.truncate ? 'ellipsis' : 'hide');
+        const wrapOptions: WrapOptions = {
+            font: label,
+            maxWidth,
+            maxHeight,
+            lineHeight: label.lineHeight,
+            overflow: label.truncate ? 'ellipsis' : 'hide',
+            textWrap: label.wrapping ?? 'never',
+        };
 
         const room = options.labelRoom ?? sizeLimit;
         const fitOptions = isLabelFitEnabled(label) ? labelFitBounds(label, isVertical, room, maxBandwidth) : undefined;
@@ -269,7 +284,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 const fitLabel = labelStyle ?? label;
                 const bounds =
                     labelStyle == null ? fitOptions : labelFitBounds(labelStyle, isVertical, room, maxBandwidth);
-                let fitted = fitLabelText(inputText, bounds.banded, fitLabel);
+                let fitted = fitAxisLabel(inputText, bounds.banded, fitLabel);
                 // Labels overflowing their band even at `minimumFontSize` stay full width, so they still drive
                 // rotation and thinning; truncating within the band is only preferred with `truncate: true`.
                 const fitsBand =
@@ -277,7 +292,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                     (label.avoidCollisions &&
                         hasRealChars(fitted.text) &&
                         (label.truncate === true || !isLabelTruncated(fitted.text)));
-                if (!fitsBand) fitted = fitLabelText(inputText, bounds.unbanded, fitLabel);
+                if (!fitsBand) fitted = fitAxisLabel(inputText, bounds.unbanded, fitLabel);
                 ({ text: wrappedLabel, fontSize } = fitted);
             } else if (label.avoidCollisions) {
                 const wrapped = wrapTextOrSegments(inputText, wrapOptions);
@@ -326,61 +341,40 @@ export function isLabelFitEnabled(label: { maxWidth?: number; maxHeight?: number
     return label.maxWidth != null || label.maxHeight != null || label.minimumFontSize != null;
 }
 
-function labelWrapOptions(
-    label: ChartAxisLabel,
+/** The label engine's fit policy for an axis label bounded to `maxWidth` by `maxHeight`. */
+export function labelFitPolicy(
+    label: { wrapping?: TextWrap; truncate?: boolean; minimumFontSize?: number },
     maxWidth: number,
     maxHeight: number,
-    overflow: WrapOptions['overflow'],
-    textWrap: WrapOptions['textWrap'] = label.wrapping ?? 'never'
-): WrapOptions {
-    return { font: label, maxWidth, maxHeight, lineHeight: label.lineHeight, overflow, textWrap };
-}
-
-function wrapLabelToFit(text: NormalisedTextOrSegments, wrapOptions: WrapOptions, measurer: ITextMeasurer) {
-    let fitted = wrapTextOrSegments(text, wrapOptions);
-    if (!isArray(fitted) && wrapOptions.textWrap === 'never') {
-        // `textWrap: 'never'` does not apply maxHeight, to a single line or to explicit line breaks.
-        fitted = clipLines(fitted.split('\n'), measurer, wrapOptions).join('\n');
-    }
-    // A width narrower than the ellipsis still gets one, so a label that needs it is hidden.
-    const { maxWidth } = wrapOptions;
-    const ellipsisOverflows = isArray(fitted)
-        ? fitted.some((s) => s.type !== 'image' && s.text.includes(EllipsisChar)) &&
-          measureTextSegments(fitted, wrapOptions.font).width > maxWidth
-        : fitted.includes(EllipsisChar) && measurer.textWidth(EllipsisChar) > maxWidth;
-    return ellipsisOverflows ? '' : fitted;
+    wrapping: TextWrap | undefined
+): LabelFit {
+    return {
+        maxWidth,
+        maxHeight,
+        wrapping,
+        overflowStrategy: labelFitOverflow(label),
+        minimumFontSize: label.minimumFontSize,
+        clipLineBreaks: true,
+        hideOverflowingEllipsis: true,
+    };
 }
 
 /**
- * Fits `text` at the largest size between `label.minimumFontSize` and `maxFontSize` that holds it whole; only
- * at the minimum may it be truncated or hidden. `fontSize` is `undefined` when the label keeps its own size.
+ * Fits an axis label through the label engine's auto-sizing fit. `fontSize` starts the search below the
+ * label's own size, for a re-fit of a label that already shrank; it comes back unset at the label's own size.
  */
-export function fitLabelText(
+export function fitAxisLabel(
     text: NormalisedTextOrSegments,
-    wrapOptions: WrapOptions,
+    fit: LabelFit,
     label: FontOptions & { minimumFontSize?: number },
-    maxFontSize = label.fontSize
-): { text: NormalisedTextOrSegments; fontSize: number | undefined } {
-    const minimumFontSize = Math.min(label.minimumFontSize ?? maxFontSize, maxFontSize);
-    const fitAt = (size: number, atFloor: boolean) => {
-        const ratio =
-            label.fontSize === minimumFontSize ? 1 : (size - minimumFontSize) / (label.fontSize - minimumFontSize);
-        const sized = labelTextAtShrinkRatio(text, label.minimumFontSize, label, ratio).text;
-        const font = fontWithSize(label, size);
-        const fitted = wrapLabelToFit(
-            sized,
-            {
-                ...wrapOptions,
-                font,
-                lineHeight: font.lineHeight,
-                overflow: atFloor ? wrapOptions.overflow : 'hide',
-            },
-            cachedTextMeasurer(font)
-        );
-        if (!atFloor && !hasRealChars(fitted)) return undefined;
-        return { text: fitted, fontSize: size === label.fontSize ? undefined : size };
-    };
-    return findLargestFittingFontSize(minimumFontSize, maxFontSize, fitAt) ?? fitAt(minimumFontSize, true)!;
+    fontSize = label.fontSize
+): AutoSizedLabelText {
+    if (fontSize === label.fontSize) return fitLabelTextAutoSize(text, fit, label);
+    const minimum = resolveMinimumFontSize(label.minimumFontSize, label.fontSize);
+    const ratio = (fontSize - minimum) / (label.fontSize - minimum);
+    const sized = labelTextAtShrinkRatio(text, label.minimumFontSize, label, ratio).text;
+    const fitted = fitLabelTextAutoSize(sized, fit, fontWithSize(label, fontSize));
+    return { text: fitted.text, fontSize: fitted.fontSize ?? fontSize };
 }
 
 function measureFittedLabel(
@@ -398,7 +392,7 @@ function isLabelTruncated(text: NormalisedTextOrSegments) {
     return isArray(text) ? isSegmentTruncated(text.at(-1)) : isTextTruncated(toTextString(text));
 }
 
-export function labelFitOverflow(label: { truncate?: boolean }): WrapOptions['overflow'] {
+function labelFitOverflow(label: { truncate?: boolean }): OverflowStrategy {
     return label.truncate === false ? 'hide' : 'ellipsis';
 }
 
@@ -420,28 +414,29 @@ export function labelTextRoom(
 
 function labelFitBounds(label: ChartAxisLabel, isVertical: boolean | undefined, room: number, band: number) {
     return {
-        banded: labelFitWrapOptions(label, isVertical, room, band),
-        unbanded: labelFitWrapOptions(label, isVertical, room, Infinity),
+        banded: axisLabelFit(label, isVertical, room, band),
+        unbanded: axisLabelFit(label, isVertical, room, Infinity),
     };
 }
 
-export function labelFitWrapOptions(
+/** The fit policy for a label given `room` across the axis and `along` it. */
+export function axisLabelFit(
     label: ChartAxisLabel,
     isVertical: boolean | undefined,
     room: number,
     along: number
-): WrapOptions {
+): LabelFit {
     const textRoom = labelTextRoom(label, isVertical, room, toRadians(label.rotation ?? 0));
     let width = isVertical ? textRoom : along;
     let height = isVertical ? along : textRoom;
     if (label.rotation != null && label.rotation !== 0) {
         ({ width, height } = getInnerRectSize(label.rotation, width, height));
     }
-    return labelWrapOptions(
+    return labelFitPolicy(
         label,
         Math.max(0, Math.min(width, label.maxWidth ?? Infinity)),
         Math.max(0, Math.min(height, label.maxHeight ?? Infinity)),
-        labelFitOverflow(label)
+        label.wrapping ?? 'never'
     );
 }
 
@@ -489,12 +484,7 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
         const heightLimit = Math.min(maxHeight, textMetrics.height);
         const widthLimit = Math.min(label.maxWidth ?? Infinity, keepWidth ? textMetrics.width : Infinity);
         const fit = (maxWidth: number) =>
-            fitLabelText(
-                source,
-                labelWrapOptions(label, maxWidth, heightLimit, labelFitOverflow(label), 'never'),
-                label,
-                tick.fontSize
-            );
+            fitAxisLabel(source, labelFitPolicy(label, maxWidth, heightLimit, 'never'), label, tick.fontSize);
 
         // Narrowing never adds lines, so the height measured here bounds the final label.
         let fitted = fit(widthLimit);
@@ -721,7 +711,7 @@ export function timeIntervalMaxLabelSize(
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],
     timeInterval: AgTimeInterval | AgTimeIntervalUnit,
-    fitOptions?: WrapOptions
+    fitOptions?: LabelFit
 ) {
     const specifier = labelSpecifier(label.format, timeInterval);
 
@@ -745,9 +735,9 @@ export function timeIntervalMaxLabelSize(
     const measurer = cachedTextMeasurer(label);
     // Without primary labels, the labels at hierarchy boundaries are secondary labels, fitted as the rest.
     const primaryFitOptions = primaryLabel?.enabled === true ? undefined : fitOptions;
-    const measureFitted = (text: string, font: ChartAxisLabel, wrapOptions: WrapOptions | undefined) => {
-        if (wrapOptions == null) return measureLabelText(text, font, measurer);
-        const fitted = fitLabelText(text, wrapOptions, label);
+    const measureFitted = (text: string, font: ChartAxisLabel, fit: LabelFit | undefined) => {
+        if (fit == null) return measureLabelText(text, font, measurer);
+        const fitted = fitAxisLabel(text, fit, label);
         return measureFittedLabel(fitted.text, font, fitted.fontSize);
     };
 

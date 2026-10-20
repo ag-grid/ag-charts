@@ -33,13 +33,13 @@ import {
     type AnyTimeInterval,
     type GenerateTicksOptions,
     type TickData,
+    axisLabelFit,
     calculateLabelRotation,
     formatTicks,
     getTextAlign,
     getTextBaseline,
     getTimeIntervalTicks,
     isLabelFitEnabled,
-    labelFitWrapOptions,
     refitAutoRotatedLabels,
     ticksEqual,
     ticksSpacing,
@@ -561,7 +561,7 @@ function createTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<T
     const { label, labelOffset, primaryLabel, domain } = options;
     // Secondary labels are fitted on a continuous scale, which has no band to limit them.
     const fitOptions = isLabelFitEnabled(label)
-        ? labelFitWrapOptions(label, options.isVertical, options.labelRoom ?? options.sizeLimit ?? Infinity, Infinity)
+        ? axisLabelFit(label, options.isVertical, options.labelRoom ?? options.sizeLimit ?? Infinity, Infinity)
         : undefined;
     const { width, height } = timeIntervalMaxLabelSize(
         label,

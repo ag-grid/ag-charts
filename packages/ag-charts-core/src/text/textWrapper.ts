@@ -69,6 +69,10 @@ export interface LabelFit {
      * the block spans rather than to the room its own row offers.
      */
     readonly boxed?: boolean;
+    /** `'never'` text keeps the explicit lines that fit `maxHeight`, ellipsising the last, rather than overflowing it. */
+    readonly clipLineBreaks?: boolean;
+    /** Hide a label whose ellipsis is wider than `maxWidth`, rather than drawing that ellipsis alone. */
+    readonly hideOverflowingEllipsis?: boolean;
 }
 
 /** Where a region-bounded block of text sits against its anchor; see {@link LabelFit.regionAlign}. */
@@ -106,6 +110,8 @@ export interface WrapOptions {
     maxWidthAt?: (top: number, bottom: number) => number;
     /** A label fit drops a `'never'` line taller than `maxHeight`; other callers clip or keep it themselves. */
     rejectTallFirstLine?: boolean;
+    /** See {@link LabelFit.clipLineBreaks}. */
+    clipLineBreaks?: boolean;
 }
 
 /** Width the line spanning `[top, bottom]` of the block may use, capped by the label's own `maxWidth`. */
@@ -172,13 +178,28 @@ export function fitLabelText(
         textWrap: wrapping,
         overflow,
         rejectTallFirstLine: true,
+        clipLineBreaks: fit.clipLineBreaks,
     };
     // This caller writes the text where it already is, so the fit has to be the one the anchor can draw:
     // an offset chosen to exploit an asymmetric shape would be discarded here and the text overflow it.
     // A caller that can move the label as well calls {@link fitLabelTextToRegion} instead.
-    return region == null
-        ? wrapTextOrSegments(text, options)
-        : wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed).text;
+    if (region != null) {
+        return wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed).text;
+    }
+    const fitted = wrapTextOrSegments(text, options);
+    if (!fit.hideOverflowingEllipsis || !ellipsisOverflows(fitted, options)) return fitted;
+    return isArray(fitted) ? [] : '';
+}
+
+/** A width narrower than the ellipsis still gets one, so a fit that needs it is drawn wider than its bound. */
+function ellipsisOverflows(fitted: string | MeasuredSegment[], options: WrapOptions) {
+    const { font, maxWidth } = options;
+    if (!isArray(fitted))
+        return fitted.includes(EllipsisChar) && cachedTextMeasurer(font).textWidth(EllipsisChar) > maxWidth;
+    return (
+        fitted.some((segment) => segment.type !== 'image' && segment.text.includes(EllipsisChar)) &&
+        measureTextSegments(fitted, font).width > maxWidth
+    );
 }
 
 /**
@@ -784,7 +805,8 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             widthOffset = 0;
         }
         if (firstLineOverflows(result, measurer, options)) return [];
-        return shouldHideOverflow(result, options, text) ? [] : result;
+        const clipped = options.clipLineBreaks ? clipLines(result, measurer, options) : result;
+        return shouldHideOverflow(clipped, options, text) ? [] : clipped;
     }
 
     const wrapHyphenate = options.textWrap === 'hyphenate';

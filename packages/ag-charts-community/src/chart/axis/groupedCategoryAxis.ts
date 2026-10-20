@@ -41,7 +41,7 @@ import type { AxisPickDatum, LabelNodeDatum } from './axis';
 import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
-import { fitLabelText, isLabelFitEnabled, labelFitOverflow, labelTextRoom } from './generateTicksUtils';
+import { fitAxisLabel, isLabelFitEnabled, labelFitPolicy, labelTextRoom } from './generateTicksUtils';
 import { type GroupedCategoryKey, type TreeLayout, treeLayout } from './tree';
 
 export const MIN_CATEGORY_SPACING = 5;
@@ -271,16 +271,14 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 let width = horizontal ? maxWidth : textRoom;
                 let height = horizontal ? textRoom : maxWidth;
                 if (rotation !== 0) ({ width, height } = getInnerRectSize(rotation, width, height));
-                const fitted = fitLabelText(
+                const fitted = fitAxisLabel(
                     text,
-                    {
-                        font: labelStyles,
-                        lineHeight: labelStyles.lineHeight,
-                        textWrap: depthOptionsAt.wrapping,
-                        overflow: labelFitOverflow(depthOptionsAt),
-                        maxWidth: Math.max(0, Math.min(width, depthOptionsAt.maxWidth ?? Infinity)),
-                        maxHeight: Math.max(0, Math.min(height, depthOptionsAt.maxHeight ?? Infinity)),
-                    },
+                    labelFitPolicy(
+                        depthOptionsAt,
+                        Math.max(0, Math.min(width, depthOptionsAt.maxWidth ?? Infinity)),
+                        Math.max(0, Math.min(height, depthOptionsAt.maxHeight ?? Infinity)),
+                        depthOptionsAt.wrapping
+                    ),
                     { ...labelStyles, minimumFontSize: depthOptionsAt.minimumFontSize }
                 );
                 if (!hasRealChars(fitted.text)) continue;
