@@ -398,7 +398,7 @@ export const legendOptionsDefs: OptionsDefs<AgChartLegendOptions> = {
     maxHeight: positiveNumber,
     spacing: positiveNumber,
     border: borderOptionsDef,
-    cornerRadius: number,
+    cornerRadius: positiveNumber,
     padding: padding,
     fill: colorUnion,
     fillOpacity: ratio,
@@ -478,7 +478,7 @@ export const gradientLegendOptionsDefs: OptionsDefs<AgGradientLegendOptions> = {
     spacing: positiveNumber,
     reverseOrder: boolean,
     border: borderOptionsDef,
-    cornerRadius: number,
+    cornerRadius: positiveNumber,
     padding: padding,
     fill: colorUnion,
     fillOpacity: ratio,
@@ -534,7 +534,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     seriesArea: {
         border: borderOptionsDef,
         clip: boolean,
-        cornerRadius: number,
+        cornerRadius: positiveNumber,
         padding: or(themeOperator, padding),
     },
     listeners: {
