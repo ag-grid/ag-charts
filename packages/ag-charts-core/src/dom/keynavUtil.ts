@@ -4,7 +4,7 @@ import { CleanupRegistry } from '../state/cleanupRegistry';
 import { getAttribute, setAttribute } from './attributeUtil';
 import { attachListener } from './domEvents';
 import { isDirectionRtl } from './domUtil';
-import { isElement, isNode } from './globalsProxy';
+import { isElement } from './globalsProxy';
 
 export function addEscapeEventListener(
     elem: HTMLElement,
@@ -33,8 +33,8 @@ export function addMouseCloseListener(menu: HTMLElement, hideCallback: () => voi
 export function addTouchCloseListener(menu: HTMLElement, hideCallback: () => void): () => void {
     const elWin = menu.ownerDocument.defaultView!;
     const removeEvent = attachListener(elWin, 'touchstart', (event: TouchEvent) => {
-        const touches = Array.from(event.targetTouches);
-        if (touches.some((touch) => !containsEvent(menu, touch))) {
+        // Target touches all started on the event's target, so the event's path covers them.
+        if (event.targetTouches.length > 0 && !containsEvent(menu, event)) {
             hideCallback();
             removeEvent();
         }
@@ -42,11 +42,9 @@ export function addTouchCloseListener(menu: HTMLElement, hideCallback: () => voi
     return removeEvent;
 }
 
-function containsEvent(container: Element, event: Pick<MouseEvent & TouchEvent, 'target' | 'clientX' | 'clientY'>) {
-    if (isElement(event.target) && event.target.shadowRoot != null) {
-        return true;
-    }
-    return isNode(event.target) && container.contains(event.target);
+// A listener outside a shadow root sees its host as the target, so look for the container along the composed path.
+function containsEvent(container: Element, event: Event) {
+    return event.composedPath().includes(container);
 }
 
 export function addOverrideFocusVisibleEventListener(

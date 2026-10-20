@@ -54,6 +54,18 @@ test.describe('host style isolation', () => {
         await expect(contextMenu).toBeHidden();
     });
 
+    test('inside the claude.ai visualiser, a click on another chart closes a toolbar menu', async ({ page }) => {
+        const menu = page.locator('#financialChart .ag-charts-menu');
+        const otherCanvas = await page.locator('#myChart').locator(SELECTORS.canvasProxy).boundingBox();
+        expect(otherCanvas).not.toBeNull();
+
+        await page.locator('#financialChart').getByTitle('Chart Type').click();
+        await expect(menu).toBeVisible();
+
+        await page.mouse.click(otherCanvas!.x + otherCanvas!.width / 2, otherCanvas!.y + otherCanvas!.height / 2);
+        await expect(menu).toBeHidden();
+    });
+
     test('inside the claude.ai visualiser, the colour picker keeps its own input styles and typed text', async ({
         page,
     }) => {
