@@ -11,6 +11,9 @@ import {
     shadowPass,
 } from 'ag-charts-core';
 
+/** Slack for the float error of placing an aligned cell in device pixels, against the whole pixels of a region. */
+const REGION_EPSILON = 1e-6;
+
 /**
  * OPTIMIZATION: paints every plain heatmap cell in one pass from typed arrays, instead of walking one `Rect` per cell.
  * A cell paints with the same `fillStyle` and `fillRect` calls as a square-cornered, unstroked, unshadowed `Rect`.
@@ -41,6 +44,15 @@ export class HeatmapCellBatch extends Node {
     private _crisp = true;
     /** Whether the aligned arrays were written for a `crisp` or pixel ratio other than the current ones. */
     private alignmentStale = false;
+    /**
+     * The bounds of the aligned cells written since the batch last painted, old geometry as well as new, for a layer
+     * that repaints only what changed. Empty while `minX > maxX`; `regionUnknown` when a write can't be bounded.
+     */
+    private regionMinX = Infinity;
+    private regionMinY = Infinity;
+    private regionMaxX = -Infinity;
+    private regionMaxY = -Infinity;
+    private regionUnknown = false;
 
     /** Whether cells snap to the device pixel grid, as a crisp `Rect` does. */
     get crisp() {
@@ -84,6 +96,8 @@ export class HeatmapCellBatch extends Node {
         this.strokes.length = count;
         // Cells past the old count were not realigned along the way, so what they hold can't be trusted.
         if (count > this.count) this.alignmentStale = true;
+        // Cells were added or dropped, which no region of the written cells bounds.
+        if (count !== this.count) this.regionUnknown = true;
         this.count = count;
     }
 
@@ -103,6 +117,8 @@ export class HeatmapCellBatch extends Node {
             y !== this.ys[index] ||
             width !== this.widths[index] ||
             height !== this.heights[index];
+        // What the cell painted before is repainted too, so it joins the region ahead of the write.
+        if (moved) this.includeInRegion(index);
         this.xs[index] = x;
         this.ys[index] = y;
         this.widths[index] = width;
@@ -113,6 +129,44 @@ export class HeatmapCellBatch extends Node {
         this.strokes[index] = stroke;
         // A write that only restyles the cell leaves its aligned geometry as it is.
         if (moved && !this.alignmentStale) this.alignCell(index);
+        this.includeInRegion(index);
+    }
+
+    /** Adds the aligned rect a cell holds to the region the next repaint covers. */
+    private includeInRegion(index: number) {
+        // Stale geometry is of a different alignment or pixel ratio, so it bounds nothing the canvas holds.
+        if (this.alignmentStale) {
+            this.regionUnknown = true;
+            return;
+        }
+        const x = this.alignedXs[index];
+        const y = this.alignedYs[index];
+        this.regionMinX = Math.min(this.regionMinX, x);
+        this.regionMinY = Math.min(this.regionMinY, y);
+        this.regionMaxX = Math.max(this.regionMaxX, x + this.alignedWidths[index]);
+        this.regionMaxY = Math.max(this.regionMaxY, y + this.alignedHeights[index]);
+    }
+
+    /**
+     * The aligned rects of the cells written since the batch last painted, old and new, for a layer that repaints only
+     * what changed. `undefined` when the written cells can't be bounded, so the layer repaints whole.
+     */
+    override getDirtyRegion(): BBox | undefined {
+        if (this.regionUnknown || this.alignmentStale || this.regionMinX > this.regionMaxX) return;
+        return new BBox(
+            this.regionMinX,
+            this.regionMinY,
+            this.regionMaxX - this.regionMinX,
+            this.regionMaxY - this.regionMinY
+        );
+    }
+
+    private resetRegion() {
+        this.regionMinX = Infinity;
+        this.regionMinY = Infinity;
+        this.regionMaxX = -Infinity;
+        this.regionMaxY = -Infinity;
+        this.regionUnknown = false;
     }
 
     private setPixelRatio(pixelRatio: number) {
@@ -152,7 +206,11 @@ export class HeatmapCellBatch extends Node {
         this.microPixelOpacities[index] = microPixelOpacity;
     }
 
-    /** One dirty notification for any number of `set` calls. */
+    /**
+     * One dirty notification for any number of `set` calls. A layer repaints whole after it, and after any `resize`, or
+     * change of `crisp` or the pixel ratio. To have the layer repaint only the cells written, call `markDirtyRegion`
+     * instead, when every call since the last paint only restyled cells or moved them within the batch.
+     */
     commit() {
         this.markDirty();
     }
@@ -193,11 +251,13 @@ export class HeatmapCellBatch extends Node {
         // A shadow mask holds only what casts a shadow, and a plain cell casts none.
         if (shadowPass.state !== 'mask') {
             this.paint(renderCtx);
+            // Whatever was written has now been painted, whether over the region alone or over the whole layer.
+            this.resetRegion();
         }
         super.render(renderCtx);
     }
 
-    private paint({ ctx, devicePixelRatio }: RenderContext) {
+    private paint({ ctx, devicePixelRatio, dirtyRegion }: RenderContext) {
         this.setPixelRatio(devicePixelRatio);
         this.ensureAligned();
         const { fills, opacities, microPixelOpacities, alignedXs, alignedYs, alignedWidths, alignedHeights, count } =
@@ -205,12 +265,48 @@ export class HeatmapCellBatch extends Node {
         const baseAlpha = ctx.globalAlpha;
         let lastFill: string | undefined;
 
+        // OPTIMIZATION: only the cells that reach the region of a partial repaint are painted. The clip would discard
+        // the rest, and every cell that reaches it is painted in order, so overlaps and anti-aliasing are as in a full
+        // repaint. A transform that isn't a scale and a translation paints every cell, still within the clip.
+        let regionMinX = -Infinity;
+        let regionMinY = -Infinity;
+        let regionMaxX = Infinity;
+        let regionMaxY = Infinity;
+        let scaleX = 1;
+        let scaleY = 1;
+        let translateX = 0;
+        let translateY = 0;
+        if (dirtyRegion != null) {
+            const { a, b, c, d, e, f } = ctx.getTransform();
+            if (b === 0 && c === 0 && a > 0 && d > 0) {
+                regionMinX = dirtyRegion.x - REGION_EPSILON;
+                regionMinY = dirtyRegion.y - REGION_EPSILON;
+                regionMaxX = dirtyRegion.x + dirtyRegion.width + REGION_EPSILON;
+                regionMaxY = dirtyRegion.y + dirtyRegion.height + REGION_EPSILON;
+                scaleX = a;
+                scaleY = d;
+                translateX = e;
+                translateY = f;
+            }
+        }
+
         for (let i = 0; i < count; i++) {
             const fill = fills[i];
             const opacity = opacities[i];
             // `Number.isNaN` as well, so a cell with an undefined opacity stays unpainted as a `Rect` leaves it.
             if (fill == null || fill === 'none' || opacity <= 0 || Number.isNaN(opacity)) continue;
             if (this.widths[i] === 0 || this.heights[i] === 0) continue;
+
+            const deviceX = alignedXs[i] * scaleX + translateX;
+            const deviceY = alignedYs[i] * scaleY + translateY;
+            if (
+                deviceX > regionMaxX ||
+                deviceY > regionMaxY ||
+                deviceX + alignedWidths[i] * scaleX < regionMinX ||
+                deviceY + alignedHeights[i] * scaleY < regionMinY
+            ) {
+                continue;
+            }
 
             const microPixelOpacity = microPixelOpacities[i];
             const alphaChanged = opacity !== 1 || microPixelOpacity !== 1;
