@@ -14,10 +14,8 @@ type GroupId = string | symbol;
 export type SyncAxisLike = {
     boundSeries: ISeries<any, any, any>[];
     direction: ChartAxisDirection;
-    reverse?: boolean;
     nice: boolean;
-    min?: number;
-    max?: number;
+    options: { min?: unknown; max?: unknown; reverse?: boolean };
 };
 
 export type SyncStatus = 'init' | 'domains-calculated' | 'ready';
@@ -81,9 +79,19 @@ export class SyncManager {
 
     unsubscribe(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         const groupState = this.get(groupId);
-        groupState?.members.delete(this.chart);
-        delete groupState?.domains?.x?.sources?.[this.chart.id];
-        delete groupState?.domains?.y?.sources?.[this.chart.id];
+        if (!groupState) return this;
+
+        groupState.members.delete(this.chart);
+        const derivedDomains = [
+            ...Object.values(groupState.domains ?? {}),
+            ...Object.values(groupState.domainsById ?? {}),
+            ...Object.values(groupState.domainsByPosition ?? {}),
+        ];
+        for (const derivedDomain of derivedDomains) {
+            if (!(this.chart.id in derivedDomain.sources)) continue;
+            delete derivedDomain.sources[this.chart.id];
+            derivedDomain.dirty = true;
+        }
         return this;
     }
 

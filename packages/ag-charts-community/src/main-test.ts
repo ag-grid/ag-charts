@@ -15,3 +15,4 @@ export { themeOptionsDefFor } from './chart/mapping/themes';
 export { isPresetOverridesType } from './chart/themes/chartTheme';
 export * from './chart/test/shadowFixtures';
 export * from './chart/test/prepareOptions';
+export * from './chart/test/syncFixtures';

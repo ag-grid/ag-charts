@@ -17,7 +17,6 @@ import {
     findMinMax,
     isDate,
     isDefined,
-    isFiniteNumber,
     isObjectWithStringProperty,
     unique,
 } from 'ag-charts-core';
@@ -50,6 +49,19 @@ function syncedDirections(axes: 'x' | 'y' | 'xy' = 'x') {
         case 'xy':
             return [ChartAxisDirection.X, ChartAxisDirection.Y];
     }
+}
+
+function boundsEqual(a: unknown, b: unknown) {
+    return isDate(a) && isDate(b) ? a.getTime() === b.getTime() : a === b;
+}
+
+function axesCompatible(a: _ModuleSupport.SyncAxisLike, b: _ModuleSupport.SyncAxisLike) {
+    return (
+        a.nice === b.nice &&
+        a.options.reverse === b.options.reverse &&
+        boundsEqual(a.options.min, b.options.min) &&
+        boundsEqual(a.options.max, b.options.max)
+    );
 }
 
 function domainChanged(scale: Scale<unknown, unknown>, a: unknown[], b: unknown[]) {
@@ -444,7 +456,6 @@ export class ChartSync extends AbstractModuleInstance {
         axis: _ModuleSupport.CartesianAxis<any, any>,
         groupState: _ModuleSupport.SyncGroupState
     ) {
-        const { min, max, nice, reverse } = axis as _ModuleSupport.SyncAxisLike;
         const matchingKeys = new Set(axis.boundSeries.flatMap((s) => s.getKeys(axis.direction)));
 
         for (const member of groupState.members) {
@@ -458,12 +469,7 @@ export class ChartSync extends AbstractModuleInstance {
             if (keyMatchedAxes.length === 0) continue;
 
             const [firstAxis] = keyMatchedAxes;
-            if (
-                firstAxis.min !== min ||
-                firstAxis.max !== max ||
-                firstAxis.nice !== nice ||
-                firstAxis.reverse !== reverse
-            ) {
+            if (!axesCompatible(axis, firstAxis)) {
                 this.moduleContext.logger.warnOnce(
                     'To allow synchronization, ensure that all synchronized axes with matching keys have matching min, max, nice, and reverse properties.'
                 );
@@ -480,16 +486,10 @@ export class ChartSync extends AbstractModuleInstance {
         const members = groupState.members;
         const [{ axes: syncAxes }] = members;
 
-        const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
         for (const nextAxis of syncAxes) {
-            if (direction !== nextAxis.direction) continue;
+            if (axis.direction !== nextAxis.direction) continue;
 
-            if (
-                nice !== nextAxis.nice ||
-                reverse !== nextAxis.reverse ||
-                (min !== nextAxis.min && (isFiniteNumber(min) || isFiniteNumber(nextAxis.min))) ||
-                (max !== nextAxis.max && (isFiniteNumber(max) || isFiniteNumber(nextAxis.max)))
-            ) {
+            if (!axesCompatible(axis, nextAxis)) {
                 this.moduleContext.logger.warnOnce(
                     'To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.'
                 );

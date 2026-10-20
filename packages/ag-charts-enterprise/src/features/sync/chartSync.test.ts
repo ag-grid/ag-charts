@@ -6,6 +6,9 @@ import {
     expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
+    syncGroupSize,
+    syncedPeakChartOptions,
+    syncedYDomain,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection } from 'ag-charts-core';
@@ -161,12 +164,202 @@ describe('ChartSync', () => {
             ];
             await waitForAllChartStability();
 
-            const yDomain = (c: AgChartInstance<AgCartesianChartOptions>) =>
-                deproxy(c).axes.find((axis) => axis.direction === ChartAxisDirection.Y)!.dataDomain.domain;
-            // The nice number axis extends the low end to the Number 0; the high end stays the exact
-            // bigint union maximum contributed by the second chart.
-            expect(yDomain(charts[0])).toEqual([0, BIG * 8n]);
-            expect(yDomain(charts[1])).toEqual([0, BIG * 8n]);
+            expect(syncedYDomain(charts[0])).toEqual([BIG, BIG * 8n]);
+            expect(syncedYDomain(charts[1])).toEqual([BIG, BIG * 8n]);
+        });
+    });
+
+    describe('group membership changes', () => {
+        let groupCount = 0;
+        let groupId: string;
+
+        beforeEach(() => {
+            groupId = `membership-${groupCount++}`;
+        });
+
+        const peakChartOptions = (peak: number, xTitle?: string) =>
+            prepareEnterpriseTestOptions(syncedPeakChartOptions(peak, groupId, xTitle));
+
+        const createPeakCharts = async (peaks: number[]) => {
+            charts = peaks.map((peak) => AgCharts.create(peakChartOptions(peak)));
+            await waitForAllChartStability();
+        };
+
+        const yDomains = () => charts.map(syncedYDomain);
+
+        const groupSize = (chart: AgChartInstance<AgCartesianChartOptions>) => syncGroupSize(chart, groupId);
+
+        // Framework wrappers re-pass a fresh but equal options object to every mounted chart on each render.
+        const repassOptions = (peaks: number[]) =>
+            Promise.all(peaks.map((peak, i) => charts[i].update(peakChartOptions(peak))));
+
+        it('should widen every chart to the domain of a chart that joins the group', async () => {
+            await createPeakCharts([10, 20, 50]);
+            expect(yDomains()).toEqual([
+                [0, 50],
+                [0, 50],
+                [0, 50],
+            ]);
+
+            charts.push(AgCharts.create(peakChartOptions(100)));
+            await waitForAllChartStability();
+
+            expect(yDomains()).toEqual([
+                [0, 100],
+                [0, 100],
+                [0, 100],
+                [0, 100],
+            ]);
+            expect(charts.map(groupSize)).toEqual([4, 4, 4, 4]);
+        });
+
+        it('should widen every chart when a chart joins while the others are re-passed their options', async () => {
+            await createPeakCharts([10, 20, 50]);
+
+            charts.push(AgCharts.create(peakChartOptions(100)));
+            await repassOptions([10, 20, 50, 100]);
+            await waitForAllChartStability();
+
+            expect(yDomains()).toEqual([
+                [0, 100],
+                [0, 100],
+                [0, 100],
+                [0, 100],
+            ]);
+            expect(charts.map(groupSize)).toEqual([4, 4, 4, 4]);
+        });
+
+        it('should widen every chart when a chart joins after the others had their axis options changed', async () => {
+            await createPeakCharts([10, 20, 50]);
+            await Promise.all(charts.map((chart, i) => chart.update(peakChartOptions([10, 20, 50][i], 'Years'))));
+            await waitForAllChartStability();
+
+            charts.push(AgCharts.create(peakChartOptions(100, 'Years')));
+            await waitForAllChartStability();
+
+            expect(yDomains()).toEqual([
+                [0, 100],
+                [0, 100],
+                [0, 100],
+                [0, 100],
+            ]);
+            expect(charts.map(groupSize)).toEqual([4, 4, 4, 4]);
+        });
+
+        it('should shrink the remaining charts to their own domain when a chart leaves the group', async () => {
+            await createPeakCharts([10, 20, 50]);
+
+            charts.pop()!.destroy();
+            await waitForAllChartStability();
+
+            expect(yDomains()).toEqual([
+                [0, 20],
+                [0, 20],
+            ]);
+            expect(charts.map(groupSize)).toEqual([2, 2]);
+        });
+
+        it('should shrink the remaining charts when a chart leaves while the others are re-passed their options', async () => {
+            await createPeakCharts([10, 20, 50]);
+
+            charts.pop()!.destroy();
+            await repassOptions([10, 20]);
+            await waitForAllChartStability();
+
+            expect(yDomains()).toEqual([
+                [0, 20],
+                [0, 20],
+            ]);
+            expect(charts.map(groupSize)).toEqual([2, 2]);
+        });
+    });
+
+    describe('axis compatibility validation', () => {
+        const SINGLE_SERIES_WARNING =
+            'AG Charts - To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.';
+        const MULTI_SERIES_WARNING =
+            'AG Charts - To allow synchronization, ensure that all synchronized axes with matching keys have matching min, max, nice, and reverse properties.';
+
+        let groupCount = 0;
+        let groupId: string;
+
+        beforeEach(() => {
+            groupId = `validation-${groupCount++}`;
+        });
+
+        const yAxisChart = (y: object, seriesCount: number): AgCartesianChartOptions =>
+            prepareEnterpriseTestOptions({
+                width: 250,
+                height: 300,
+                data: [
+                    { year: '2020', a: 5, b: 3 },
+                    { year: '2021', a: 10, b: 6 },
+                ],
+                series: ['a', 'b']
+                    .slice(0, seriesCount)
+                    .map((yKey) => ({ type: 'bar', xKey: 'year', yKey }) as const),
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', ...y },
+                },
+                sync: { groupId, axes: 'y' },
+            });
+
+        const timeAxisChart = (seriesCount: number): AgCartesianChartOptions =>
+            prepareEnterpriseTestOptions({
+                width: 250,
+                height: 300,
+                data: [
+                    { date: new Date(2020, 0, 1), a: 5, b: 3 },
+                    { date: new Date(2021, 0, 1), a: 10, b: 6 },
+                ],
+                series: ['a', 'b']
+                    .slice(0, seriesCount)
+                    .map((yKey) => ({ type: 'line', xKey: 'date', yKey }) as const),
+                axes: {
+                    x: { type: 'time', position: 'bottom', min: new Date(2019, 0, 1), max: new Date(2022, 0, 1) },
+                    y: { type: 'number', position: 'left' },
+                },
+                sync: { groupId, axes: 'x' },
+            });
+
+        const groupSizes = () => charts.map((chart) => syncGroupSize(chart, groupId));
+
+        describe.each([
+            ['single-series', 1, SINGLE_SERIES_WARNING],
+            ['multi-series', 2, MULTI_SERIES_WARNING],
+        ])('for %s charts', (_name, seriesCount, warning) => {
+            it.each([
+                ['min', { min: -10 }, { min: -20 }],
+                ['max', { max: 100 }, { max: 200 }],
+                ['reverse', { reverse: false }, { reverse: true }],
+            ])('should disable synchronisation when the axes have a mismatched %s', async (_option, first, second) => {
+                charts = [
+                    AgCharts.create(yAxisChart(first, seriesCount)),
+                    AgCharts.create(yAxisChart(second, seriesCount)),
+                ];
+                await waitForAllChartStability();
+
+                expectWarningsCalls().toEqual([[warning]]);
+                expect(groupSizes()).toEqual([1, 1]);
+            });
+
+            it('should keep synchronisation when the axes have equal bounds', async () => {
+                charts = [
+                    AgCharts.create(yAxisChart({ min: -10, max: 100, reverse: true }, seriesCount)),
+                    AgCharts.create(yAxisChart({ min: -10, max: 100, reverse: true }, seriesCount)),
+                ];
+                await waitForAllChartStability();
+
+                expect(groupSizes()).toEqual([2, 2]);
+            });
+
+            it('should keep synchronisation when time axes have equal date bounds', async () => {
+                charts = [AgCharts.create(timeAxisChart(seriesCount)), AgCharts.create(timeAxisChart(seriesCount))];
+                await waitForAllChartStability();
+
+                expect(groupSizes()).toEqual([2, 2]);
+            });
         });
     });
 });

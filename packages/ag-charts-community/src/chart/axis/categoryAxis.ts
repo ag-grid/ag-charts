@@ -72,6 +72,11 @@ export class CategoryAxis<
         this.nice = false;
     }
 
+    override applyOptions(options: TOptions): void {
+        super.applyOptions(options);
+        this.nice = false;
+    }
+
     override isCategoryLike(): boolean {
         return true;
     }

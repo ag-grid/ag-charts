@@ -42,7 +42,9 @@
       "dependsOn": ["pack"],
       "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-vue3/"],
-      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
+      "options": {
+        "command": "tools/package/extract-contents.sh {projectRoot}"
+      }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
@@ -52,6 +54,32 @@
         "commands": [
           "node tools/package/sanity-check-package.js --allowed-ext map -- dist/packages/contents/ag-charts-vue3/package"
         ]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "projects": ["ag-charts-core", "ag-charts-test"],
+          "target": "build"
+        }
+      ],
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/packages/ag-charts-enterprise/src/**/*",
+        "{workspaceRoot}/packages/ag-charts-enterprise/vitest.setup.ts"
+      ],
+      "outputs": ["{workspaceRoot}/reports/ag-charts-vue3.xml"],
+      "cache": true,
+      "options": {
+        "command": "npx vitest run --config {projectRoot}/vitest.config.ts"
+      },
+      "configurations": {
+        "ci": {},
+        "watch": {
+          "command": "npx vitest --config {projectRoot}/vitest.config.ts"
+        }
       }
     }
   },
