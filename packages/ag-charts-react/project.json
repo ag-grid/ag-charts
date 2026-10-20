@@ -58,9 +58,7 @@
       "dependsOn": ["pack"],
       "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-react/"],
-      "options": {
-        "command": "tools/package/extract-contents.sh {projectRoot}"
-      }
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
     },
     "pack:verify": {
       "executor": "nx:run-commands",

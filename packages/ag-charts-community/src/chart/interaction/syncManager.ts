@@ -12,6 +12,8 @@ type GroupId = string | symbol;
 
 /** Breaks circular dependencies which occur when importing ChartAxis. */
 export type SyncAxisLike = {
+    id: string;
+    position?: string;
     boundSeries: ISeries<any, any, any>[];
     direction: ChartAxisDirection;
     nice: boolean;

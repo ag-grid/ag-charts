@@ -295,9 +295,7 @@ describe('ChartSync', () => {
                     { year: '2020', a: 5, b: 3 },
                     { year: '2021', a: 10, b: 6 },
                 ],
-                series: ['a', 'b']
-                    .slice(0, seriesCount)
-                    .map((yKey) => ({ type: 'bar', xKey: 'year', yKey }) as const),
+                series: ['a', 'b'].slice(0, seriesCount).map((yKey) => ({ type: 'bar', xKey: 'year', yKey }) as const),
                 axes: {
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left', ...y },
@@ -313,9 +311,7 @@ describe('ChartSync', () => {
                     { date: new Date(2020, 0, 1), a: 5, b: 3 },
                     { date: new Date(2021, 0, 1), a: 10, b: 6 },
                 ],
-                series: ['a', 'b']
-                    .slice(0, seriesCount)
-                    .map((yKey) => ({ type: 'line', xKey: 'date', yKey }) as const),
+                series: ['a', 'b'].slice(0, seriesCount).map((yKey) => ({ type: 'line', xKey: 'date', yKey }) as const),
                 axes: {
                     x: { type: 'time', position: 'bottom', min: new Date(2019, 0, 1), max: new Date(2022, 0, 1) },
                     y: { type: 'number', position: 'left' },
@@ -360,6 +356,46 @@ describe('ChartSync', () => {
 
                 expect(groupSizes()).toEqual([2, 2]);
             });
+
+            it('should resume synchronisation when the mismatched chart is updated to match', async () => {
+                charts = [
+                    AgCharts.create(yAxisChart({ max: 100 }, seriesCount)),
+                    AgCharts.create(yAxisChart({ max: 200 }, seriesCount)),
+                ];
+                await waitForAllChartStability();
+                expect(groupSizes()).toEqual([1, 1]);
+
+                await charts[1].update(yAxisChart({ max: 100 }, seriesCount));
+                await waitForAllChartStability();
+
+                expectWarningsCalls().toEqual([[warning]]);
+                expect(groupSizes()).toEqual([2, 2]);
+            });
+
+            it('should resume synchronisation when charts are updated to new bounds one at a time', async () => {
+                charts = [
+                    AgCharts.create(yAxisChart({ max: 100 }, seriesCount)),
+                    AgCharts.create(yAxisChart({ max: 100 }, seriesCount)),
+                ];
+                await waitForAllChartStability();
+
+                await charts[1].update(yAxisChart({ max: 200 }, seriesCount));
+                await waitForAllChartStability();
+                await charts[0].update(yAxisChart({ max: 200 }, seriesCount));
+                await waitForAllChartStability();
+
+                expectWarningsCalls().toEqual([[warning]]);
+                expect(groupSizes()).toEqual([2, 2]);
+            });
+        });
+
+        it('should keep synchronisation when identical charts have a differently bounded secondary axis', async () => {
+            const options = yAxisChart({}, 1);
+            options.axes = { ...options.axes, ySecondary: { type: 'number', position: 'right', min: 0, max: 1 } };
+            charts = [AgCharts.create(options), AgCharts.create(options)];
+            await waitForAllChartStability();
+
+            expect(groupSizes()).toEqual([2, 2]);
         });
     });
 });

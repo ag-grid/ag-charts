@@ -76,6 +76,8 @@ function domainChanged(scale: Scale<unknown, unknown>, a: unknown[], b: unknown[
 }
 
 export class ChartSync extends AbstractModuleInstance {
+    private static readonly rejectedByValidation = new Set<ChartSync>();
+
     private readonly domainSync = new AsyncAwaitQueue();
     private disabledByValidation = false;
 
@@ -152,6 +154,10 @@ export class ChartSync extends AbstractModuleInstance {
                     this.onZoomChange();
                     prevZoom = zoom;
                 }
+            }),
+            moduleContext.chartState.observe((get) => {
+                get('options');
+                this.onOptionsChange();
             })
         );
     }
@@ -483,11 +489,14 @@ export class ChartSync extends AbstractModuleInstance {
         axis: _ModuleSupport.CartesianAxis<any, any>,
         groupState: _ModuleSupport.SyncGroupState
     ) {
-        const members = groupState.members;
-        const [{ axes: syncAxes }] = members;
+        const [reference] = groupState.members;
+        if (reference === this.moduleContext.syncManager.getChart()) return;
 
-        for (const nextAxis of syncAxes) {
+        const domainMode = this.opts.domainMode ?? 'id';
+        for (const nextAxis of reference.axes) {
             if (axis.direction !== nextAxis.direction) continue;
+            if (domainMode === 'id' && axis.id !== nextAxis.id) continue;
+            if (domainMode === 'position' && axis.position !== nextAxis.position) continue;
 
             if (!axesCompatible(axis, nextAxis)) {
                 this.moduleContext.logger.warnOnce(
@@ -502,7 +511,21 @@ export class ChartSync extends AbstractModuleInstance {
     private disableSelf() {
         if (this.disabledByValidation) return;
         this.disabledByValidation = true;
+        ChartSync.rejectedByValidation.add(this);
         this.onEnabledChange();
+    }
+
+    private onOptionsChange() {
+        for (const chartSync of ChartSync.rejectedByValidation) {
+            if (chartSync.groupId === this.groupId) chartSync.revalidate();
+        }
+    }
+
+    private revalidate() {
+        this.disabledByValidation = false;
+        ChartSync.rejectedByValidation.delete(this);
+        this.onEnabledChange();
+        this.updateChart(this.moduleContext.syncManager.getChart());
     }
 
     private calculateDerivedDomain(
@@ -634,6 +657,7 @@ export class ChartSync extends AbstractModuleInstance {
     }
 
     override destroy() {
+        ChartSync.rejectedByValidation.delete(this);
         const { syncManager } = this.moduleContext;
         syncManager.unsubscribe(this.groupId);
         this.updateSiblings();
