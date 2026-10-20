@@ -1,4 +1,4 @@
-import { expect, vi } from 'vitest';
+import { expect } from 'vitest';
 
 import { type BBox, ChartAxisDirection, type Group, type TransformableText } from 'ag-charts-core';
 
@@ -146,11 +146,6 @@ export function getAxisLayoutState(
     position: string
 ): ReturnType<CartesianAxis['getLayoutState']> {
     return findAxis(chartOrProxy, position).getLayoutState();
-}
-
-/** Spies on the axis' tick layout, which it recomputes only when its domain, range or fonts change. */
-export function spyOnAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string) {
-    return vi.spyOn(findAxis(chartOrProxy, position), 'calculateTickLayout');
 }
 
 /**

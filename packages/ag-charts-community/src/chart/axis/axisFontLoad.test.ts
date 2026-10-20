@@ -3,13 +3,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { ChartUpdateType } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import { spyOnAxisTickLayout } from '../test/axisAccessors';
 import {
     createChart,
     deproxy,
     emitFontLoad,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAxisTickLayout,
     waitForChartStability,
 } from '../test/utils';
 

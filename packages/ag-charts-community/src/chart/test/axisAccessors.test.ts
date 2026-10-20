@@ -20,7 +20,6 @@ import {
     getLabelText,
     getSeriesRect,
     pickAxisValue,
-    spyOnAxisTickLayout,
 } from './axisAccessors';
 import {
     createChart,
@@ -29,8 +28,22 @@ import {
     resizeChartContainer,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAxisTickLayout,
     waitForChartStability,
 } from './utils';
+
+/**
+ * The error `fn` throws. An accessor that gives up on a missing axis must fail on its own `expect(...).toBeDefined()`,
+ * an `AssertionError`; a `TypeError` from using the `undefined` it was handed means that check has gone.
+ */
+function errorFrom(fn: () => unknown): Error | undefined {
+    try {
+        fn();
+    } catch (error) {
+        return error as Error;
+    }
+    return undefined;
+}
 
 describe('axis test accessors', () => {
     setupMockConsole();
@@ -77,7 +90,7 @@ describe('axis test accessors', () => {
         it('fails for an axis the chart does not have', async () => {
             chart = await createChart(options);
 
-            expect(() => findAxis(chart, 'top')).toThrow();
+            expect(errorFrom(() => findAxis(chart, 'top'))?.name).toBe('AssertionError');
         });
     });
 
@@ -283,7 +296,7 @@ describe('axis test accessors', () => {
         it('fails for an axis the chart does not have', async () => {
             chart = await createChart(options);
 
-            expect(() => getAxisLinePosition(chart, 'top')).toThrow();
+            expect(errorFrom(() => getAxisLinePosition(chart, 'top'))?.name).toBe('AssertionError');
         });
     });
 
@@ -306,7 +319,7 @@ describe('axis test accessors', () => {
         it('fails for an axis the chart does not have', async () => {
             chart = await createChart(options);
 
-            expect(() => getAxisGridGroupById(chart, 'missing')).toThrow();
+            expect(errorFrom(() => getAxisGridGroupById(chart, 'missing'))?.name).toBe('AssertionError');
         });
     });
 
