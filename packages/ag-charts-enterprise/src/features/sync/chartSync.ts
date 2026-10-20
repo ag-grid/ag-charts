@@ -17,7 +17,6 @@ import {
     findMinMax,
     isDate,
     isDefined,
-    isFiniteNumber,
     isObjectWithStringProperty,
     unique,
 } from 'ag-charts-core';
@@ -52,6 +51,19 @@ function syncedDirections(axes: 'x' | 'y' | 'xy' = 'x') {
     }
 }
 
+function boundsEqual(a: unknown, b: unknown) {
+    return isDate(a) && isDate(b) ? a.getTime() === b.getTime() : a === b;
+}
+
+function axesCompatible(a: _ModuleSupport.SyncAxisLike, b: _ModuleSupport.SyncAxisLike) {
+    return (
+        a.nice === b.nice &&
+        a.options.reverse === b.options.reverse &&
+        boundsEqual(a.options.min, b.options.min) &&
+        boundsEqual(a.options.max, b.options.max)
+    );
+}
+
 function domainChanged(scale: Scale<unknown, unknown>, a: unknown[], b: unknown[]) {
     if (TimeScale.is(scale) || UnitTimeScale.is(scale)) {
         return !arraysEqual(
@@ -64,6 +76,8 @@ function domainChanged(scale: Scale<unknown, unknown>, a: unknown[], b: unknown[
 }
 
 export class ChartSync extends AbstractModuleInstance {
+    private static readonly rejectedByValidation = new Set<ChartSync>();
+
     private readonly domainSync = new AsyncAwaitQueue();
     private disabledByValidation = false;
 
@@ -105,7 +119,7 @@ export class ChartSync extends AbstractModuleInstance {
         this.cleanup.register(
             moduleContext.chartState.observe((get) => {
                 const sync = get('options', 'sync');
-                const enabled = !this.disabledByValidation && (sync?.enabled ?? false);
+                const enabled = sync?.enabled ?? false;
                 const groupId = sync?.groupId;
                 const axes = sync?.axes ?? 'x';
                 const nodeInteraction = sync?.nodeInteraction ?? true;
@@ -140,6 +154,10 @@ export class ChartSync extends AbstractModuleInstance {
                     this.onZoomChange();
                     prevZoom = zoom;
                 }
+            }),
+            moduleContext.chartState.observe((get) => {
+                get('options');
+                this.revalidateRejected(this.groupId);
             })
         );
     }
@@ -444,7 +462,6 @@ export class ChartSync extends AbstractModuleInstance {
         axis: _ModuleSupport.CartesianAxis<any, any>,
         groupState: _ModuleSupport.SyncGroupState
     ) {
-        const { min, max, nice, reverse } = axis as _ModuleSupport.SyncAxisLike;
         const matchingKeys = new Set(axis.boundSeries.flatMap((s) => s.getKeys(axis.direction)));
 
         for (const member of groupState.members) {
@@ -458,12 +475,7 @@ export class ChartSync extends AbstractModuleInstance {
             if (keyMatchedAxes.length === 0) continue;
 
             const [firstAxis] = keyMatchedAxes;
-            if (
-                firstAxis.min !== min ||
-                firstAxis.max !== max ||
-                firstAxis.nice !== nice ||
-                firstAxis.reverse !== reverse
-            ) {
+            if (!axesCompatible(axis, firstAxis)) {
                 this.moduleContext.logger.warnOnce(
                     'To allow synchronization, ensure that all synchronized axes with matching keys have matching min, max, nice, and reverse properties.'
                 );
@@ -477,19 +489,16 @@ export class ChartSync extends AbstractModuleInstance {
         axis: _ModuleSupport.CartesianAxis<any, any>,
         groupState: _ModuleSupport.SyncGroupState
     ) {
-        const members = groupState.members;
-        const [{ axes: syncAxes }] = members;
+        const [reference] = groupState.members;
+        if (reference === this.moduleContext.syncManager.getChart()) return;
 
-        const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
-        for (const nextAxis of syncAxes) {
-            if (direction !== nextAxis.direction) continue;
+        const domainMode = this.opts.domainMode ?? 'id';
+        for (const nextAxis of reference.axes) {
+            if (axis.direction !== nextAxis.direction) continue;
+            if (domainMode === 'id' && axis.id !== nextAxis.id) continue;
+            if (domainMode === 'position' && axis.position !== nextAxis.position) continue;
 
-            if (
-                nice !== nextAxis.nice ||
-                reverse !== nextAxis.reverse ||
-                (min !== nextAxis.min && (isFiniteNumber(min) || isFiniteNumber(nextAxis.min))) ||
-                (max !== nextAxis.max && (isFiniteNumber(max) || isFiniteNumber(nextAxis.max)))
-            ) {
+            if (!axesCompatible(axis, nextAxis)) {
                 this.moduleContext.logger.warnOnce(
                     'To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.'
                 );
@@ -502,7 +511,21 @@ export class ChartSync extends AbstractModuleInstance {
     private disableSelf() {
         if (this.disabledByValidation) return;
         this.disabledByValidation = true;
+        ChartSync.rejectedByValidation.add(this);
         this.onEnabledChange();
+    }
+
+    private revalidateRejected(groupId: string | undefined) {
+        for (const chartSync of ChartSync.rejectedByValidation) {
+            if (chartSync.groupId === groupId) chartSync.revalidate();
+        }
+    }
+
+    private revalidate() {
+        this.disabledByValidation = false;
+        ChartSync.rejectedByValidation.delete(this);
+        this.onEnabledChange();
+        this.updateChart(this.moduleContext.syncManager.getChart());
     }
 
     private calculateDerivedDomain(
@@ -605,6 +628,7 @@ export class ChartSync extends AbstractModuleInstance {
         syncManager.subscribe(newValue);
         this.updateSiblings(oldValue);
         this.updateSiblings(newValue);
+        this.revalidateRejected(oldValue);
     }
 
     private onAxesChange() {
@@ -634,9 +658,11 @@ export class ChartSync extends AbstractModuleInstance {
     }
 
     override destroy() {
+        ChartSync.rejectedByValidation.delete(this);
         const { syncManager } = this.moduleContext;
         syncManager.unsubscribe(this.groupId);
         this.updateSiblings();
+        this.revalidateRejected(this.groupId);
         this.disableZoomSync?.();
         super.destroy();
     }
