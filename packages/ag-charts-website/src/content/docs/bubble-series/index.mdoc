@@ -69,6 +69,10 @@ Using the above configuration
 
 To reverse the mapping so that larger values produce smaller markers, reverse the `sizeDomain` bounds, for example `sizeDomain: [100, 0]`.
 
+Use `sizeMode` to choose how values map onto marker sizes. With the default `'diameter'`, the marker diameter grows linearly with the value. With `'area'`, the marker area grows linearly instead, so equal steps in value give equal steps in area. The area is only strictly proportional to the value when `minSize` is `0` and `sizeDomain` starts at `0`.
+
+Use the buttons in the example to switch between the two modes.
+
 {% chartExampleRunner title="Bubble Size Mode" name="bubble-size-mode" type="generated" /%}
 
 ### Customisation
