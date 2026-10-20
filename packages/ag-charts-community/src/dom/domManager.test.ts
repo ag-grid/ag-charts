@@ -218,6 +218,19 @@ describe('DOMManager', () => {
 
             expect(container.childElementCount).toBe(0);
         });
+
+        it('watches CSS variables from the light DOM once moved out of the visualiser', () => {
+            const { container } = buildContainer();
+            const dm = new DOMManager(eventsHub, 'vis-move-out', doc, container);
+            dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+            const outside = doc.createElement('div');
+            doc.body.append(outside);
+            dm.setContainer(outside);
+            dm.updateContainer();
+
+            expect(outside.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
+        });
     });
 
     describe('with enableShadowDom', () => {
@@ -278,6 +291,35 @@ describe('DOMManager', () => {
             expect(container.childElementCount).toBe(1);
             expect(doc.head.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
             expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
+        });
+
+        it('watches CSS variables from the light DOM when turned off before a detached container attaches', () => {
+            vi.useFakeTimers();
+            try {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(
+                    eventsHub,
+                    undefined,
+                    doc,
+                    container,
+                    undefined,
+                    undefined,
+                    'normal',
+                    undefined,
+                    true
+                );
+                dm.updateCSSVariableWatchers(cssVariables);
+
+                dm.setEnableShadowDom(false);
+                doc.body.append(container);
+                dm.setDeferring(false);
+                vi.runAllTimers();
+
+                expect(container.querySelector(':scope > .ag-charts-wrapper')).not.toBeNull();
+                expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
+            } finally {
+                vi.useRealTimers();
+            }
         });
     });
 

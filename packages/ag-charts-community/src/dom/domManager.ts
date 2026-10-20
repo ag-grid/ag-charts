@@ -449,10 +449,6 @@ export class DOMManager extends BaseManager {
             if (this.element.parentNode !== mountParent) {
                 mountParent.appendChild(this.element);
             }
-            // Watchers registered while detached took the light-DOM path, whose `@property` a shadow root ignores.
-            if (this.shadowDocumentRoot != null && this.cssVariableWatchers.size > 0) {
-                this.updateCSSVariableWatchersShadowDOM(this.cssVariableWatchers);
-            }
         }
         this.initiallyConnected = true;
         // Remove styles from our DOM tree before re-adding to correct location
@@ -559,11 +555,7 @@ export class DOMManager extends BaseManager {
         const { container } = this;
         if (container == null || this.initiallyConnected === false || this.element.parentNode == null) return;
 
-        const watchedProperties = new Set([...this.cssVariableWatchers, ...this.shadowCssVariableWatchers]);
         this.mountIn(container);
-        if (watchedProperties.size > 0) {
-            this.watchCSSVariables(watchedProperties);
-        }
         this.invalidateAllCaches();
     }
 
@@ -576,13 +568,7 @@ export class DOMManager extends BaseManager {
             }
         }
 
-        // Shadow-path watchers live on the shadow root; clearing the mirror for a move within the
-        // same root would re-register duplicates.
-        const previousShadowRoot = this.getShadowRoot();
         const mountParent = this.updateMountPoint(container);
-        if (this.getShadowRoot() !== previousShadowRoot) {
-            this.shadowCssVariableWatchers.clear();
-        }
 
         // Re-assert the page styles: a no-op unless the move left the shadow root, or the container
         // arrived lazily and needs them in place first.
@@ -827,8 +813,24 @@ export class DOMManager extends BaseManager {
         return this._cachedRawOverlayRect;
     }
 
-    /** Returns the node the chart element belongs under: our own shadow root when isolating, otherwise the container. */
+    /** Returns the node the chart element belongs under, moving the CSS-variable watchers to a new root. */
     private updateMountPoint(container: HTMLElement): ParentNode {
+        // Shadow-path watchers live on the shadow root; re-registering for a move within the same root
+        // would duplicate them.
+        const previousShadowRoot = this.getShadowRoot();
+        const watchedProperties = new Set([...this.cssVariableWatchers, ...this.shadowCssVariableWatchers]);
+        const mountParent = this.resolveMountPoint(container);
+        if (this.getShadowRoot() !== previousShadowRoot) {
+            this.shadowCssVariableWatchers.clear();
+            if (watchedProperties.size > 0) {
+                this.watchCSSVariables(watchedProperties);
+            }
+        }
+        return mountParent;
+    }
+
+    /** Our own shadow root when isolating, otherwise the container. */
+    private resolveMountPoint(container: HTMLElement): ParentNode {
         if (this.shouldIsolate(container)) {
             this.isolationHost ??= createIsolationHost();
             if (this.isolationHost.parentNode !== container) {
