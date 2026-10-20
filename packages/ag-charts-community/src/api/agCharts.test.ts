@@ -12,6 +12,7 @@ import {
     deproxy,
     expectErrorsCalls,
     expectWarningsCalls,
+    locateChartWrapper,
     prepareTestOptions,
     resetMockConsole,
     setupMockCanvas,
@@ -427,10 +428,6 @@ describe('AgCharts', () => {
         });
     });
     describe('enableShadowDom', () => {
-        const wrapperRoot = () =>
-            container.querySelector('.ag-charts-wrapper') ??
-            container.firstElementChild?.shadowRoot?.querySelector('.ag-charts-wrapper');
-
         // Bespoke: the chart must render into the per-test `container`, which `createChart` would override.
         it('moves the chart into a shadow root of its own and back as the option changes', async () => {
             const options: AgChartOptions = {
@@ -441,11 +438,11 @@ describe('AgCharts', () => {
             prepareTestOptions(options, container);
             chart = AgCharts.create(options);
             await chart.waitForUpdate();
-            expect(wrapperRoot()?.getRootNode()).toBe(container.firstElementChild?.shadowRoot);
+            expect(locateChartWrapper(container)).toBe('shadow-root');
 
             await chart.update({ ...options, enableShadowDom: false });
             await chart.waitForUpdate();
-            expect(wrapperRoot()?.parentElement).toBe(container);
+            expect(locateChartWrapper(container)).toBe('light-dom');
         });
     });
 

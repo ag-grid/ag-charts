@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
 
+import { locateChartWrapper } from '../chart/test/utils';
 import type { EventsHub } from '../core/eventsHub';
 import { DOMManager } from './domManager';
 
@@ -127,7 +128,7 @@ describe('DOMManager', () => {
 
             const root = isolatedRoot(container);
             expect(container.childElementCount).toBe(1);
-            expect(root?.querySelector('.ag-charts-wrapper')).not.toBeNull();
+            expect(locateChartWrapper(container)).toBe('shadow-root');
             expect(root?.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
             expect(root?.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
             expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
@@ -176,13 +177,13 @@ describe('DOMManager', () => {
                 const { wrapper } = buildContainer();
                 const container = doc.createElement('div');
                 const dm = new DOMManager(eventsHub, 'vis-late', doc, container);
-                expect(container.querySelector(':scope > .ag-charts-wrapper')).not.toBeNull();
+                expect(locateChartWrapper(container)).toBe('light-dom');
 
                 wrapper.append(container);
                 dm.setDeferring(false);
                 vi.runAllTimers();
 
-                expect(isolatedRoot(container)?.querySelector('.ag-charts-wrapper')).not.toBeNull();
+                expect(locateChartWrapper(container)).toBe('shadow-root');
                 expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
             });
 
@@ -259,7 +260,7 @@ describe('DOMManager', () => {
             const { container } = buildManager(true);
 
             const root = isolatedRoot(container);
-            expect(root?.querySelector('.ag-charts-wrapper')).not.toBeNull();
+            expect(locateChartWrapper(container)).toBe('shadow-root');
             expect(root?.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
             expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
         });
@@ -277,7 +278,7 @@ describe('DOMManager', () => {
 
             const root = isolatedRoot(container);
             expect(root).not.toBeNull();
-            expect(root!.querySelector('.ag-charts-wrapper')).not.toBeNull();
+            expect(locateChartWrapper(container)).toBe('shadow-root');
             expect(root!.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
             expect(shadowWatchers(root!)).toHaveLength(1);
         });
@@ -287,7 +288,7 @@ describe('DOMManager', () => {
 
             dm.setEnableShadowDom(false);
 
-            expect(container.querySelector(':scope > .ag-charts-wrapper')).not.toBeNull();
+            expect(locateChartWrapper(container)).toBe('light-dom');
             expect(container.childElementCount).toBe(1);
             expect(doc.head.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
             expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
@@ -315,7 +316,7 @@ describe('DOMManager', () => {
                 dm.setDeferring(false);
                 vi.runAllTimers();
 
-                expect(container.querySelector(':scope > .ag-charts-wrapper')).not.toBeNull();
+                expect(locateChartWrapper(container)).toBe('light-dom');
                 expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
             } finally {
                 vi.useRealTimers();
