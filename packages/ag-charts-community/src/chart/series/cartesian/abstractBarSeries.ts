@@ -45,7 +45,6 @@ export interface AbstractBarSeriesNodeDataContext<
     TLabel extends SeriesNodeDatum = TDatum,
 > extends CartesianSeriesNodeDataContext<TDatum, TLabel> {
     groupScale: Scaling | undefined;
-    styles?: object;
 }
 
 /**
@@ -65,39 +64,9 @@ export type AbstractBarSeriesAnimationData<TTypes extends AbstractBarSeriesTypes
     ContextOf<TTypes>
 >;
 
-/** The options that only change how a bar is painted: not where it is, nor its size, labels or corners. */
-const BAR_PAINT_OPTION_KEYS: ReadonlySet<string> = new Set([
-    'fill',
-    'fillOpacity',
-    'stroke',
-    'strokeOpacity',
-    'lineDash',
-    'lineDashOffset',
-]);
-
 export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> extends CartesianSeries<TTypes> {
     protected smallestDataInterval?: AgNumericValue = undefined;
     protected largestDataInterval?: AgNumericValue = undefined;
-
-    /** The item styles held in the node data. A series that returns them can restyle in place; the default can't. */
-    protected buildItemStyles(): object | undefined {
-        return undefined;
-    }
-
-    protected isPaintOption(key: string) {
-        return BAR_PAINT_OPTION_KEYS.has(key);
-    }
-
-    protected override isStyleOnlyChange(diff: object) {
-        return this.buildItemStyles() != null && Object.keys(diff).every((key) => this.isPaintOption(key));
-    }
-
-    protected override refreshNodeDataStyles() {
-        const { contextNodeData } = this;
-        if (contextNodeData) {
-            contextNodeData.styles = this.buildItemStyles();
-        }
-    }
 
     protected padBandExtent(keys: any[], alignStart?: boolean) {
         const ratio = typeof alignStart === 'boolean' ? 1 : 0.5;

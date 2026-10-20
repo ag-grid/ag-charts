@@ -7,6 +7,7 @@ import {
     BBox,
     type CanvasPoint,
     Group,
+    Node,
     type OffsetPoint,
     Rect,
     alignCentre,
@@ -15,7 +16,6 @@ import {
     mapValues,
     snapDeviceCentre,
 } from 'ag-charts-core';
-import type { Node } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -1985,6 +1985,18 @@ export async function measureRedrawWork(chart: AgChartInstance, update: () => Pr
     } finally {
         pathSpy.mockRestore();
         for (const spy of nodeDataSpies) spy.mockRestore();
+    }
+}
+
+/** Runs `update` on a stabilised `chart`, and counts the rects it marks dirty: each one makes its layer rasterise again. */
+export async function countRectsMarkedDirty(chart: AgChartInstance, update: () => Promise<void>): Promise<number> {
+    const spy = vi.spyOn(Node.prototype, 'markDirty');
+    try {
+        await update();
+        await waitForChartStability(chart);
+        return spy.mock.contexts.filter((node) => node instanceof Rect).length;
+    } finally {
+        spy.mockRestore();
     }
 }
 

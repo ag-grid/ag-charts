@@ -263,6 +263,10 @@ const PAINT_ONLY_PROPERTIES: ReadonlySet<string> = new Set([
     '__miterLimit',
 ]);
 
+function sameClipValues(clip: readonly [number, number, number, number], bbox: BBox) {
+    return clip[0] === bbox.x && clip[1] === bbox.y && clip[2] === bbox.width && clip[3] === bbox.height;
+}
+
 export class Rect<D = unknown> extends Path<D> implements DistantObject {
     static override readonly className: string = 'Rect';
 
@@ -599,6 +603,18 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         return true;
     }
 
+    // The clip's values as last applied: a series may edit the clip object it handed over in place, so comparing
+    // objects can't tell that it moved.
+    private appliedClip?: readonly [number, number, number, number];
+
+    private clipUnchanged(clipBBox: BBox | undefined) {
+        const { appliedClip, __clipBBox: held } = this;
+        if (appliedClip == null || clipBBox == null || held == null) {
+            return appliedClip == null && clipBBox == null && held == null;
+        }
+        return sameClipValues(appliedClip, clipBBox) && sameClipValues(appliedClip, held);
+    }
+
     /**
      * High-performance animation reset that bypasses the decorator system entirely.
      * Writes directly to backing fields (__x, __y, etc.) to avoid:
@@ -618,11 +634,8 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         clipBBox: BBox | undefined
     ): void {
         // A rect left where it was needs neither its path rebuilt nor the scene redrawn.
-        const sameClip =
-            this.__clipBBox === clipBBox ||
-            (this.__clipBBox != null && clipBBox != null && this.__clipBBox.equals(clipBBox));
         if (
-            sameClip &&
+            this.clipUnchanged(clipBBox) &&
             this.__x === x &&
             this.__y === y &&
             this.__width === width &&
@@ -639,6 +652,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         this.__height = height;
         this.__opacity = opacity;
         this.__clipBBox = clipBBox;
+        this.appliedClip = clipBBox && [clipBBox.x, clipBBox.y, clipBBox.width, clipBBox.height];
         this.dirtyPath = true;
 
         // Single dirty notification for the batch

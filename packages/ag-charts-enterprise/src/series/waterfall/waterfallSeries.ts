@@ -232,22 +232,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     private readonly seriesItemTypes: Set<AgWaterfallSeriesItemType> = new Set(['positive', 'negative', 'total']);
 
-    protected override isStyleOnlyChange(diff: object) {
-        const keys = Object.keys(diff);
-        if (keys.length !== 1 || keys[0] !== 'item') return false;
-        const { item } = diff as { item: Record<string, unknown> };
-        return Object.values(item).every(
-            (itemDiff) =>
-                itemDiff != null &&
-                typeof itemDiff === 'object' &&
-                Object.keys(itemDiff).every((key) => this.isPaintOption(key))
-        );
-    }
-
-    protected override buildItemStyles() {
-        return getItemStylesPerItemId(this.getItemStyle.bind(this), 'total', 'subtotal', 'positive', 'negative');
-    }
-
     override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yKey, totals = [] } = this.options;
         const { data } = this;
@@ -467,7 +451,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             scales: this.calculateScaling(),
             groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
             visible: this.visible,
-            styles: this.buildItemStyles(),
+            styles: getItemStylesPerItemId(this.getItemStyle.bind(this), 'total', 'subtotal', 'positive', 'negative'),
         };
     }
 

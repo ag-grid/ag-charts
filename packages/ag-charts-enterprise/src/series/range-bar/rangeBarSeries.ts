@@ -321,10 +321,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         });
     }
 
-    protected override buildItemStyles() {
-        return getItemStyles(this.getItemStyle.bind(this));
-    }
-
     override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yLowKey, yHighKey } = this.options;
 
@@ -864,7 +860,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             scales: this.calculateScaling(),
             groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
             visible: this.visible,
-            styles: this.buildItemStyles(),
+            styles: getItemStyles(this.getItemStyle.bind(this)),
             segments,
         };
     }

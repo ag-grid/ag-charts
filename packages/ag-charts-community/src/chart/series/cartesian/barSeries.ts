@@ -396,10 +396,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.phantomHighlightGroup.opacity = 0.2;
     }
 
-    protected override buildItemStyles() {
-        return getItemStyles(this.getItemStyle.bind(this));
-    }
-
     override async processData(dataController: DataController) {
         if (!this.data) return;
 
@@ -1549,7 +1545,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             scales: this.calculateScaling(),
             visible: this.visible || ctx.animationEnabled,
             groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
-            styles: this.buildItemStyles(),
+            styles: getItemStyles(this.getItemStyle.bind(this)),
             segments: undefined,
         };
     }

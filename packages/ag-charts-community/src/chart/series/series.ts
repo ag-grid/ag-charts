@@ -455,10 +455,8 @@ export abstract class Series<
     }
 
     setChartData(input: DataSet | undefined) {
-        // A restyled series keeps its node data, which the very same data set still stands for.
-        const restyledOnSameData = this._restyle && this._chartData === input;
         this._chartData = input;
-        if (this.data === input && !restyledOnSameData) {
+        if (this.data === input) {
             this.onDataChange();
         }
     }
@@ -766,43 +764,6 @@ export abstract class Series<
         this.nodeDataRefresh = true;
         this._pickNodeCache.clear();
         this.visibleMaybeChanged();
-    }
-
-    private _restyle = false;
-
-    /** Whether `diff` changes only how this series' items are drawn, so that their node data still stands. */
-    protected isStyleOnlyChange(_diff: object): boolean {
-        // For override by series that can restyle their node data without rebuilding it.
-        return false;
-    }
-
-    /** Applies an options `diff` that only restyles the series, keeping its node data. False if it can't. */
-    restyleFor(diff: object | undefined): boolean {
-        if (diff == null || this.nodeDataHasCallbacks() || !this.isStyleOnlyChange(diff)) return false;
-        this._restyle = true;
-        return true;
-    }
-
-    /** Whether the series was restyled since it last updated; reading resets it. */
-    protected takeRestyle(): boolean {
-        const restyle = this._restyle;
-        this._restyle = false;
-        return restyle;
-    }
-
-    /** Whether labels are shown, whichever option they live under. Assumed so unless a series says otherwise. */
-    protected hasLabels(): boolean {
-        return true;
-    }
-
-    /** Whether a callback whose result is held in the node data is set: it only re-runs when node data is rebuilt. */
-    protected nodeDataHasCallbacks(): boolean {
-        if (hasCallback(this.options, 4)) return true;
-        if (!this.hasLabels()) return false;
-        // Label text also runs through the chart-wide formatter and the axis label formatter.
-        const { formatter } = this.ctx.formatManager;
-        if (typeof formatter === 'function' || (formatter != null && hasCallback(formatter, 1))) return true;
-        return Object.values(this.axes).some((axis) => typeof (axis?.options as any)?.label?.formatter === 'function');
     }
 
     // TODO: is there a better way to pass width through here?
@@ -2037,16 +1998,6 @@ export abstract class Series<
     needsDataModelDiff(): boolean {
         return !this.ctx.animationManager.isSkipped() || !!this.chart?.flashOnUpdateEnabled;
     }
-}
-
-const NON_NODE_DATA_CALLBACK_KEYS: ReadonlySet<string> = new Set(['tooltip', 'listeners']);
-
-function hasCallback(value: unknown, depth: number): boolean {
-    if (typeof value === 'function') return true;
-    if (depth === 0 || value == null || typeof value !== 'object' || Array.isArray(value)) return false;
-    return Object.keys(value).some(
-        (key) => !NON_NODE_DATA_CALLBACK_KEYS.has(key) && hasCallback((value as any)[key], depth - 1)
-    );
 }
 
 function hasShadowOption(options: object): options is { shadow?: NormalisedDropShadowOptions } {

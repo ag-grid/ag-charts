@@ -839,6 +839,27 @@ describe('Rect', () => {
             }
         });
 
+        it('rebuilds the path when the clip it was given is edited in place', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const rect = plainRect();
+            const updatePath = vi.spyOn(rect, 'updatePath');
+            const clip = new BBox(0, 0, 40, 40);
+            const reset = () => rect.resetAnimationProperties(10, 10, 30, 30, 1, clip);
+
+            reset();
+            paint(rect, ctx);
+            expect(updatePath).toHaveBeenCalledTimes(1);
+
+            reset();
+            paint(rect, ctx);
+            expect(updatePath).toHaveBeenCalledTimes(1);
+
+            clip.height = 20;
+            reset();
+            paint(rect, ctx);
+            expect(updatePath).toHaveBeenCalledTimes(2);
+        });
+
         it('hit tests where the rect is now, without a new pre-render', () => {
             const ctx = canvasCtx.getRenderContext2D();
             const rect = plainRect({ x: 0, y: 0, width: 10, height: 10 });

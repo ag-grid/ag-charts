@@ -371,10 +371,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const { _contextNodeData: previousContextData } = this;
 
         const resize = this.checkResize(seriesRect);
-        const restyled = this.takeRestyle();
-        if (restyled) {
-            this.refreshNodeDataStyles();
-        }
         const itemHighlighted = this.updateHighlightSelection();
 
         const series = this;
@@ -387,7 +383,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             if (!sameSegments(nextSegments, dataNodeGroup.segments)) {
                 dataNodeGroup.segments = nextSegments;
             }
-            series.updateNodes(itemHighlighted, resize || dataChanged || restyled);
+            series.updateNodes(itemHighlighted, resize || dataChanged);
         });
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
@@ -612,11 +608,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
      */
     protected assembleResult(_ctx: CreateNodeDataContextOf<TTypes>, result: ContextOf<TTypes>): ContextOf<TTypes> {
         return result;
-    }
-
-    /** Rebuilds the styles held in the node data from the current options, for a series that restyles in place. */
-    protected refreshNodeDataStyles(): void {
-        // For override by series that return true from `isStyleOnlyChange`.
     }
 
     protected updateSelections() {
@@ -1656,10 +1647,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     protected abstract isLabelEnabled(): boolean;
-
-    protected override hasLabels() {
-        return this.isLabelEnabled();
-    }
 
     protected getScaling(scale: Scale<any, any>): Scaling | undefined {
         if (scale instanceof LogScale) {

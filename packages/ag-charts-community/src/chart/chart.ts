@@ -122,25 +122,7 @@ interface SeriesAxesHost {
 }
 
 type SeriesChangeType =
-    | 'no-op'
-    | 'no-change'
-    | 'restyled'
-    | 'replaced'
-    | 'data-change'
-    | 'series-grouping-change'
-    | 'series-count-changed'
-    | 'updated';
-
-/** Whether a `navigator` delta carries nothing but `miniChart.series`, i.e. no other navigator option moved. */
-function isMiniChartSeriesOnlyDelta(navigator: unknown): boolean {
-    if (navigator == null || typeof navigator !== 'object') return false;
-    const keys = Object.keys(navigator);
-    if (keys.length !== 1 || keys[0] !== 'miniChart') return false;
-    const miniChart = (navigator as { miniChart?: unknown }).miniChart;
-    if (miniChart == null || typeof miniChart !== 'object') return false;
-    const miniChartKeys = Object.keys(miniChart);
-    return miniChartKeys.length === 1 && miniChartKeys[0] === 'series';
-}
+    'no-op' | 'no-change' | 'replaced' | 'data-change' | 'series-grouping-change' | 'series-count-changed' | 'updated';
 
 const MINI_CHART_LABEL_EXCLUDED: ReadonlySet<string> = new Set([
     'interval',
@@ -1804,11 +1786,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
         if (deltaOptions.series != null) {
-            // Only a delta that leaves `data` out says the data stands; a full update may carry rows changed in place.
-            const { userDeltaKeys } = newChartOptions;
-            this.restyleAllowed = userDeltaKeys != null && !userDeltaKeys.has('data');
             seriesStatus = this.applySeries(this, deltaOptions.series, oldOpts?.series);
-            forceNodeDataRefresh = seriesStatus !== 'restyled';
+            forceNodeDataRefresh = true;
         }
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
@@ -1817,19 +1796,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const deltaKeys = Object.keys(deltaOptions);
         const axesChanged = modulesChanged || deltaKeys.some((key) => key !== 'data');
         this.applyAxes(this, newOpts, seriesStatus, axesChanged);
-        const restyled = seriesStatus === 'restyled';
-        // The navigator's mini chart mirrors the main series, so a restyle also arrives as a `navigator` delta.
-        // That is only restyle-safe when the mini chart's own series report a restyle too (checked below).
-        const miniChartRestyle = restyled && isMiniChartSeriesOnlyDelta((deltaOptions as any).navigator);
-        if (
-            this.axes.length === 0 ||
-            !deltaKeys.every(
-                (key) =>
-                    LAYOUT_ONLY_DELTA_KEYS.has(key) ||
-                    (restyled && key === 'series') ||
-                    (miniChartRestyle && key === 'navigator')
-            )
-        ) {
+        if (this.axes.length === 0 || !deltaKeys.every((key) => LAYOUT_ONLY_DELTA_KEYS.has(key))) {
             forceNodeDataRefresh = true;
         }
 
@@ -1879,10 +1846,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const miniChartSeries =
             (newOpts.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? newOpts.series;
         if (miniChart?.enabled === true && miniChartSeries != null) {
-            const miniChartStatus = this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
-            if (miniChartRestyle && miniChartStatus !== 'restyled' && miniChartStatus !== 'no-op') {
-                forceNodeDataRefresh = true;
-            }
+            this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
         } else if (miniChart?.enabled === false) {
             miniChart.setSeries([]);
             miniChart.setAxes(new ChartAxes());
@@ -1891,8 +1855,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         this.ctx.annotationManager?.setAnnotationStyles(newChartOptions.annotationThemes);
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
-        // A restyle keeps the node data but still needs the legends and layout refreshed.
-        const majorChange = forceNodeDataRefresh || modulesChanged || seriesStatus === 'restyled';
+        const majorChange = forceNodeDataRefresh || modulesChanged;
         const updateType = majorChange ? ChartUpdateType.FULL : minimumUpdateType;
         this.maybeResetAnimations(seriesStatus);
 
@@ -2022,7 +1985,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         miniChartSeries: NonNullable<AgChartOptions['series']>,
         completeOptions: AgChartOptions,
         oldOpts: AgChartOptions & { type?: SeriesType }
-    ): SeriesChangeType {
+    ) {
         const oldSeries =
             (oldOpts?.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? oldOpts?.series;
         const miniChartSeriesStatus = this.applySeries(
@@ -2047,8 +2010,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             axis.nice = axis.direction === domainDirection ? (mainDomainAxis?.nice ?? true) : false;
             axis.interactionEnabled = false;
         }
-
-        return miniChartSeriesStatus;
     }
 
     private applyModules() {
@@ -2082,8 +2043,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
     }
 
-    private restyleAllowed = false;
-
     private applySeries(
         chart: SeriesAxesHost,
         optSeries: AgChartOptions['series'],
@@ -2109,7 +2068,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
         let groupingChanged = false;
         let isUpdated = false;
         let seriesCountChanged = false;
-        let restyleCount = 0;
 
         const changes = matchResult.changes.toSorted((a, b) => a.targetIdx - b.targetIdx);
         for (const change of changes) {
@@ -2141,11 +2099,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                     const { series, opts, diff, idx } = change;
                     debug(`Chart.applySeries() - applying series diff previous idx ${idx}`, diff, series);
                     this.applySeriesValues(series, opts, diff);
-                    if (change.status === 'update' && this.restyleAllowed && series.restyleFor(diff)) {
-                        restyleCount++;
-                    } else {
-                        series.markNodeDataDirty();
-                    }
+                    series.markNodeDataDirty();
                     seriesInstances.push(series);
                 }
             }
@@ -2164,12 +2118,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (dataChanged) {
             return 'data-change';
         }
-        if (!isUpdated) {
-            return 'no-op';
-        }
-        // Every series that changed only restyled, so none has node data to rebuild.
-        const updateCount = changes.filter((change) => change.status !== 'no-op').length;
-        return restyleCount === updateCount ? 'restyled' : 'updated';
+        return isUpdated ? 'updated' : 'no-op';
     }
 
     private applyAxes(
