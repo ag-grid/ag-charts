@@ -29,8 +29,8 @@ import {
     createChart,
     deproxy,
     expectWarningsCalls,
-    getAxisLabelTexts,
     getAxisTickLayout,
+    getAxisTickLayoutLabelTexts,
     getAxisTickLayouts,
     prepareTestOptions,
     setupMockCanvas,
@@ -3607,12 +3607,12 @@ describe('CartesianAxis', () => {
         it('extends the y axis when an added row lies outside its range', async () => {
             const data = [...sequence(0, 10), { x: 10, y: 1000 }];
             chart = await create({ axes: numberAxes, data: sequence(0, 10) });
-            expect(getAxisLabelTexts(chart, 'left')).toEqual(['10', '8', '6', '4', '2', '0']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'left')).toEqual(['10', '8', '6', '4', '2', '0']);
 
             await update({ data });
 
             await expectMatchesFresh({ axes: numberAxes, data });
-            expect(getAxisLabelTexts(chart, 'left')[0]).toBe('1000');
+            expect(getAxisTickLayoutLabelTexts(chart, 'left')[0]).toBe('1000');
         });
 
         it.each([
@@ -3641,7 +3641,7 @@ describe('CartesianAxis', () => {
             await update({ data: sequence(0, 10, (i) => (i % 2) * 100) });
 
             expect(yTickLayout).toHaveBeenCalled();
-            expect(getAxisLabelTexts(chart, 'left')).toContain('100');
+            expect(getAxisTickLayoutLabelTexts(chart, 'left')).toContain('100');
         });
 
         it('keeps the y ticks when a row is added within the y range, and recalculates the x ticks', async () => {
@@ -3671,7 +3671,7 @@ describe('CartesianAxis', () => {
 
             await update({ data: categories(0, 4).reverse() });
 
-            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 3', 'Item 2', 'Item 1', 'Item 0']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 3', 'Item 2', 'Item 1', 'Item 0']);
         });
 
         it('re-runs a label formatter on a data update that leaves the domain unchanged', async () => {
@@ -3682,13 +3682,13 @@ describe('CartesianAxis', () => {
                 y: { type: 'number', position: 'left', label: { formatter } },
             };
             chart = await create({ axes, data: categories(0, 3, alternating(0)) });
-            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0a', 'Item 1a', 'Item 2a']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0a', 'Item 1a', 'Item 2a']);
 
             suffix = 'b';
             await update({ data: categories(0, 3, alternating(1)) });
 
-            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0b', 'Item 1b', 'Item 2b']);
-            expect(getAxisLabelTexts(chart, 'left').every((text) => text.endsWith('b'))).toBe(true);
+            expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0b', 'Item 1b', 'Item 2b']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'left').every((text) => text.endsWith('b'))).toBe(true);
         });
 
         it('re-runs a label itemStyler on a data update that leaves the domain unchanged', async () => {
@@ -3711,12 +3711,12 @@ describe('CartesianAxis', () => {
             const items = Array.from({ length: 3 }, (_, i) => ({ name: `Item ${i}`, toString: () => items[i].name }));
             const data = () => items.map((item, i) => ({ x: item, y: i }));
             chart = await create({ axes: categoryAxes, data: data() });
-            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Item 1', 'Item 2']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Item 1', 'Item 2']);
 
             items[1].name = 'Renamed';
             await update({ data: data() });
 
-            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Renamed', 'Item 2']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Renamed', 'Item 2']);
         });
 
         it.each([
@@ -3824,7 +3824,7 @@ describe('CartesianAxis', () => {
                 await update({ formatter, data });
 
                 await expectMatchesFresh({ axes: numberAxes, data, formatter });
-                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10!');
+                expect(getAxisTickLayoutLabelTexts(chart, 'left')[0]).toBe('10!');
             });
 
             it('matches a fresh chart after a chart formatter is removed', async () => {
@@ -3834,20 +3834,20 @@ describe('CartesianAxis', () => {
                 await update({ formatter: undefined });
 
                 await expectMatchesFresh({ axes: numberAxes, data: stable });
-                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10');
+                expect(getAxisTickLayoutLabelTexts(chart, 'left')[0]).toBe('10');
             });
 
             it('re-runs a chart formatter on a data update that leaves the domain unchanged', async () => {
                 let suffix = 'a';
                 const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}${suffix}` };
                 chart = await create({ axes: numberAxes, data: stable, formatter });
-                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10a');
+                expect(getAxisTickLayoutLabelTexts(chart, 'left')[0]).toBe('10a');
 
                 suffix = 'b';
                 await update({ data: moved });
 
                 await expectMatchesFresh({ axes: numberAxes, data: moved, formatter });
-                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10b');
+                expect(getAxisTickLayoutLabelTexts(chart, 'left')[0]).toBe('10b');
             });
 
             it('re-measures an axis title whose formatter changes text on a data update that leaves the domain unchanged', async () => {
