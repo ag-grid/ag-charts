@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import { delay, deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { setupEnterpriseModules } from '../setup';
 
@@ -148,7 +148,7 @@ describe('Chart on a detached container with async data and a series-type switch
             await proxy.waitForUpdate();
             expect(deproxy(proxy)).not.toBe(original);
             attach();
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            await delay(50);
             await proxy.waitForUpdate();
 
             expect(wrappers(container)).toHaveLength(1);
@@ -159,19 +159,22 @@ describe('Chart on a detached container with async data and a series-type switch
         it('has exactly one chart wrapper once the container is attached before the old chart is torn down', async () => {
             const { container, attach } = setupMeasurableContainer();
             await createCartesian(container);
-            const original = deproxy(proxy);
+            const original = deproxy(proxy) as any;
+            const overlaysDestroy = vi.spyOn(original.overlays, 'destroy');
 
             const inFlight = proxy.updateDelta({ data: [...DATA, { country: 'Brazil', gold: 40 }] });
             const switched = switchToPolar(container);
             attach();
             await Promise.resolve();
-            // Teardown ends by freezing the chart, so an unfrozen old chart is still waiting on its update.
-            expect(Object.isFrozen(original)).toBe(false);
+            // Teardown destroys the overlays, so an old chart that has not yet done so is still waiting on its update.
+            expect(overlaysDestroy).not.toHaveBeenCalled();
             expect(wrappers(container)).toHaveLength(1);
 
             await Promise.all([inFlight, switched]);
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            await delay(50);
             await proxy.waitForUpdate();
+
+            expect(overlaysDestroy).toHaveBeenCalledTimes(1);
 
             expect(deproxy(proxy)).not.toBe(original);
             expect(wrappers(container)).toHaveLength(1);

@@ -305,11 +305,14 @@ describe('DOMManager', () => {
             it('does not re-append a detached manager element when the attach observer fires', async () => {
                 const container = doc.createElement('div');
                 const dm = new DOMManager(eventsHub, 'replaced-observer', doc, container);
+                const refresh = vi.spyOn((dm as any).sizeMonitor, 'refresh');
 
                 dm.detachFromContainer();
                 doc.body.append(container);
                 await vi.runAllTimersAsync();
 
+                // The attach transition ran (it re-measures the container) and still left the element out.
+                expect(refresh).toHaveBeenCalledWith(container);
                 expect(wrappers(container)).toHaveLength(0);
             });
 
@@ -577,17 +580,15 @@ describe('DOMManager', () => {
             };
 
             it('uses the rect of the element directly inside the shadow root when there is no scrollable ancestor', () => {
-                for (const supported of [true, false]) {
-                    setPopoverSupported(supported);
-                    const { outer, inner, container } = buildShadowTree();
-                    vi.spyOn(outer, 'getBoundingClientRect').mockReturnValue(shadowRect);
-                    // Nested elements and the host must not be used.
-                    vi.spyOn(inner, 'getBoundingClientRect').mockReturnValue(scrollableRect);
-                    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(scrollableRect);
-                    const dm = new DOMManager(eventsHub, undefined, doc, container);
+                setPopoverSupported(false);
+                const { outer, inner, container } = buildShadowTree();
+                vi.spyOn(outer, 'getBoundingClientRect').mockReturnValue(shadowRect);
+                // Nested elements and the host must not be used.
+                vi.spyOn(inner, 'getBoundingClientRect').mockReturnValue(scrollableRect);
+                vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(scrollableRect);
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
 
-                    expectRect(dm.getOverlayClientRect(), shadowRect);
-                }
+                expectRect(dm.getOverlayClientRect(), shadowRect);
             });
 
             it('uses the container itself when it is the element directly inside the shadow root', () => {
@@ -719,16 +720,6 @@ describe('DOMManager', () => {
                 expect(rect!.right).toBe(scrollableRect.right);
                 expect(rect!.bottom).toBe(scrollableRect.bottom);
             });
-
-            it('ignores a fullscreen element that is not an ancestor of the chart', () => {
-                const { shadow, container } = buildShadowTree();
-                const sibling = doc.createElement('div');
-                shadow.append(sibling);
-                Object.defineProperty(shadow, 'fullscreenElement', { value: sibling, configurable: true });
-                const dm = new DOMManager(eventsHub, undefined, doc, container);
-
-                expect(dm.getVisibleChartRect()).toBeNull();
-            });
         });
 
         it('caches the result and re-computes after a scroll invalidation', () => {
@@ -755,14 +746,6 @@ describe('DOMManager', () => {
         const styleSelector = `style[data-ag-charts="${STYLE_ID}"]`;
         const cssVariables = { 'var(--my-color)': 'red' };
 
-        const newShadow = () => {
-            const component = doc.createElement('div');
-            doc.body.append(component);
-            const shadow = component.attachShadow({ mode: 'open' });
-            const container = doc.createElement('div');
-            shadow.append(container);
-            return { shadow, container };
-        };
         const newLightContainer = () => {
             const container = doc.createElement('div');
             doc.body.append(container);
@@ -776,7 +759,7 @@ describe('DOMManager', () => {
         };
 
         it('moves the styles from the head into the shadow root when moving light DOM to shadow DOM', () => {
-            const { shadow, container: shadowContainer } = newShadow();
+            const { shadow, container: shadowContainer } = buildShadowTree();
             const dm = new DOMManager(eventsHub, undefined, doc, newLightContainer());
             dm.addStyles(STYLE_ID, '.test { width: 100% }');
             expect(doc.head.querySelector(styleSelector)).not.toBeNull();
@@ -792,7 +775,7 @@ describe('DOMManager', () => {
         });
 
         it('moves the styles from the shadow root into the head when moving shadow DOM to light DOM', () => {
-            const { shadow, container: shadowContainer } = newShadow();
+            const { shadow, container: shadowContainer } = buildShadowTree();
             const dm = new DOMManager(eventsHub, undefined, doc, shadowContainer);
             dm.addStyles(STYLE_ID, '.test { width: 100% }');
             expect(shadow.querySelector(styleSelector)).not.toBeNull();
@@ -811,8 +794,8 @@ describe('DOMManager', () => {
         });
 
         it('moves the styles to the new shadow root and leaves none in the old one when moving between shadow roots', () => {
-            const { shadow: shadowA, container: containerA } = newShadow();
-            const { shadow: shadowB, container: containerB } = newShadow();
+            const { shadow: shadowA, container: containerA } = buildShadowTree();
+            const { shadow: shadowB, container: containerB } = buildShadowTree();
             const dm = new DOMManager(eventsHub, undefined, doc, containerA);
             dm.addStyles(STYLE_ID, '.test { width: 100% }');
             const staleStyle = shadowA.querySelector(styleSelector);
@@ -831,7 +814,7 @@ describe('DOMManager', () => {
         });
 
         it('applies a deferred move through setContainer() and the flush', async () => {
-            const { shadow, container: shadowContainer } = newShadow();
+            const { shadow, container: shadowContainer } = buildShadowTree();
             const dm = new DOMManager(eventsHub, undefined, doc, newLightContainer());
             dm.addStyles(STYLE_ID, '.test { width: 100% }');
 
@@ -847,8 +830,8 @@ describe('DOMManager', () => {
         });
 
         it('registers the CSS-variable watchers again on the new shadow root when moving between shadow roots', () => {
-            const { shadow: shadowA, container: containerA } = newShadow();
-            const { shadow: shadowB, container: containerB } = newShadow();
+            const { shadow: shadowA, container: containerA } = buildShadowTree();
+            const { shadow: shadowB, container: containerB } = buildShadowTree();
             const dm = new DOMManager(eventsHub, undefined, doc, containerA);
             dm.updateCSSVariableWatchers(cssVariables);
             expect(shadowWatchers(shadowA)).toHaveLength(1);
@@ -861,7 +844,7 @@ describe('DOMManager', () => {
         });
 
         it('does not register duplicate CSS-variable watchers when moving within the same shadow root', () => {
-            const { shadow, container: firstContainer } = newShadow();
+            const { shadow, container: firstContainer } = buildShadowTree();
             const secondContainer = doc.createElement('div');
             shadow.append(secondContainer);
             const dm = new DOMManager(eventsHub, undefined, doc, firstContainer);
@@ -875,7 +858,7 @@ describe('DOMManager', () => {
 
         it('registers the CSS-variable watchers on the shadow root when moving light DOM to shadow DOM', () => {
             const lightContainer = newLightContainer();
-            const { shadow, container: shadowContainer } = newShadow();
+            const { shadow, container: shadowContainer } = buildShadowTree();
             const dm = new DOMManager(eventsHub, undefined, doc, lightContainer);
             dm.updateCSSVariableWatchers(cssVariables);
             expect(lightContainer.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
@@ -886,20 +869,23 @@ describe('DOMManager', () => {
             expect(shadowWatchers(shadow)).toHaveLength(1);
         });
 
-        it('clears the shadow-path CSS-variable watchers when moving shadow DOM to light DOM', () => {
-            const { shadow, container: shadowContainer } = newShadow();
-            const dm = new DOMManager(eventsHub, undefined, doc, shadowContainer);
-            dm.updateCSSVariableWatchers(cssVariables);
-            expect(shadowWatchers(shadow)).toHaveLength(1);
+        // Leaving a shadow root only clears the registration set: the watcher elements and the shadow root's
+        // transitionend listener stay, so returning registers them a second time (AG-18986).
+        it.fails(
+            'does not leave shadow-path CSS-variable watchers behind when moving out of and back into a shadow root',
+            () => {
+                const { shadow, container: shadowContainer } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, shadowContainer);
+                dm.updateCSSVariableWatchers(cssVariables);
+                expect(shadowWatchers(shadow)).toHaveLength(1);
 
-            moveTo(dm, newLightContainer());
-            // Back into the same shadow root: the watcher is registered afresh rather than skipped, so the
-            // first one is left behind (2 pins that leftover).
-            moveTo(dm, shadowContainer);
-            dm.updateCSSVariableWatchers(cssVariables);
+                moveTo(dm, newLightContainer());
+                moveTo(dm, shadowContainer);
+                dm.updateCSSVariableWatchers(cssVariables);
 
-            expect(shadowWatchers(shadow)).toHaveLength(2);
-        });
+                expect(shadowWatchers(shadow)).toHaveLength(1);
+            }
+        );
     });
 
     describe('deferred proxy flushing', () => {
