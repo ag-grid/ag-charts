@@ -18,7 +18,14 @@ import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import type { PlacedLabelSource } from '../layout/labelManager';
-import type { CrossLine, CrossLineValuePick, PendingCrossLineCallbackParam, PolarCrossLine } from './crossLine';
+import {
+    type CrossLine,
+    type CrossLineValuePick,
+    type PendingCrossLineCallbackParam,
+    type PendingCrossLineCallbacks,
+    type PolarCrossLine,
+    fireAllPendingCrossLineCallbacks,
+} from './crossLine';
 
 /** One solve group of an axis's cross line labels: kept labels resolve before series labels, droppable ones after. */
 class CrossLineLabelSource implements PlacedLabelSource {
@@ -167,52 +174,71 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private onSeriesAreaCanvasClick(event: SeriesAreaCanvasClickEvent): void {
         const picks = this.pickCrosslines(event);
         if (picks.length > 0) {
-            const callbacks = event.pendingCrossLineCallbacks;
-            const isClick = event.type === 'click';
-
-            const allParamsOnThisAxis = this.toParamsArray(
-                picks,
-                [],
-                isClick ? 'crossLineClick' : 'crossLineDoubleClick'
-            );
-            callbacks.allMatchedParams.push(...allParamsOnThisAxis);
-
-            // Use `Forbid` to ensure that allMatchedParams and rootLevelParams do have conflicting keys,
-            // otherwise the `...` spreading could silently and unintentionally override something. `type` is
-            // exempt: an entry carries the same event type as the root, so overriding it is intentional.
-            type ParamType = (typeof allParamsOnThisAxis)[number];
-            type EventType = PendingCrossLineCallbackParam;
-            const rootLevelParams: Forbid<EventType, Exclude<keyof ParamType, 'type'>> = {
-                event: event.sourceEvent,
-                type: isClick ? 'crossLineClick' : 'crossLineDoubleClick',
-            };
-            const params: CallbackParamRules<EventType> = {
-                allMatchedParams: undefined,
-                ...allParamsOnThisAxis[0],
-                ...rootLevelParams,
-            };
-            const callers = [this.axisCtx.caller, this.ctx.chartService];
-
-            // `chart.axes[].crossLines[].listeners` level:
-            const { listeners } = this.axisCtx;
-            for (const crossLine of picks) {
-                const { internalId } = crossLine;
-                const crossLineListener = isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick;
-                if (crossLineListener) {
-                    callbacks.crossLines.set(internalId, { callers, fn: crossLineListener, params });
-                }
-            }
-
-            // `chart.axes[].listeners` level:
-            const axisId = this.axisCtx.userAxisId;
-            const axisListener = isClick ? listeners?.crossLineClick : listeners?.crossLineDoubleClick;
-            if (axisListener && !callbacks.axes.has(axisId)) {
-                callbacks.axes.set(axisId, { callers, fn: axisListener, params });
-            }
-
-            // `chart.listeners` level:
-            callbacks.chart ??= { callers, fn: (p: any) => this.ctx.chartService.callListener(p), params };
+            this.collectClickCallbacks(picks, event.type, event.sourceEvent, event.pendingCrossLineCallbacks);
         }
+    }
+
+    /** Whether activating `crossLine` from the keyboard would reach a `click` listener at any level. */
+    isKeyboardClickable(crossLine: CrossLine): boolean {
+        return (
+            crossLine.listeners?.click != null ||
+            this.axisCtx.listeners?.crossLineClick != null ||
+            this.ctx.chartService.listeners.crossLineClick != null
+        );
+    }
+
+    /** Fires the `click` listeners of `crossLine` alone, as no pointer position picks overlapping elements. */
+    keyboardClick(crossLine: CrossLine, sourceEvent: Event): void {
+        const callbacks: PendingCrossLineCallbacks = { allMatchedParams: [], axes: new Map(), crossLines: new Map() };
+        this.collectClickCallbacks([crossLine], 'click', sourceEvent, callbacks);
+        fireAllPendingCrossLineCallbacks(callbacks, []);
+    }
+
+    private collectClickCallbacks(
+        picks: CrossLine[],
+        type: SeriesAreaCanvasClickEvent['type'],
+        sourceEvent: Event,
+        callbacks: PendingCrossLineCallbacks
+    ): void {
+        const isClick = type === 'click';
+
+        const allParamsOnThisAxis = this.toParamsArray(picks, [], isClick ? 'crossLineClick' : 'crossLineDoubleClick');
+        callbacks.allMatchedParams.push(...allParamsOnThisAxis);
+
+        // `Forbid` stops rootLevelParams silently overriding a key spread from allMatchedParams; `type` is
+        // exempt, as each entry carries the root's event type.
+        type ParamType = (typeof allParamsOnThisAxis)[number];
+        type EventType = PendingCrossLineCallbackParam;
+        const rootLevelParams: Forbid<EventType, Exclude<keyof ParamType, 'type'>> = {
+            event: sourceEvent,
+            type: isClick ? 'crossLineClick' : 'crossLineDoubleClick',
+        };
+        const params: CallbackParamRules<EventType> = {
+            allMatchedParams: undefined,
+            ...allParamsOnThisAxis[0],
+            ...rootLevelParams,
+        };
+        const callers = [this.axisCtx.caller, this.ctx.chartService];
+
+        // `chart.axes[].crossLines[].listeners` level:
+        const { listeners } = this.axisCtx;
+        for (const crossLine of picks) {
+            const { internalId } = crossLine;
+            const crossLineListener = isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick;
+            if (crossLineListener) {
+                callbacks.crossLines.set(internalId, { callers, fn: crossLineListener, params });
+            }
+        }
+
+        // `chart.axes[].listeners` level:
+        const axisId = this.axisCtx.userAxisId;
+        const axisListener = isClick ? listeners?.crossLineClick : listeners?.crossLineDoubleClick;
+        if (axisListener && !callbacks.axes.has(axisId)) {
+            callbacks.axes.set(axisId, { callers, fn: axisListener, params });
+        }
+
+        // `chart.listeners` level:
+        callbacks.chart ??= { callers, fn: (p: any) => this.ctx.chartService.callListener(p), params };
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions[] | undefined): void {

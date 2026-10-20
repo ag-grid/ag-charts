@@ -13,6 +13,7 @@ import { Chart } from './chart';
 import { CartesianChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
+import { CrossLinesDOMProxy } from './crossline/crossLinesDOMProxy';
 import { getCrossLinesPlugin } from './crossline/getCrossLinesPlugin';
 import type { LayoutContext, ScrollbarLayoutMap, SeriesInsetMap } from './layout/layoutManager';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
@@ -71,9 +72,16 @@ export class CartesianChart extends Chart {
     }
 
     private lastAreaWidths?: AreaWidthMap;
+    private readonly crossLinesDOMProxy: CrossLinesDOMProxy;
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
+        this.crossLinesDOMProxy = new CrossLinesDOMProxy(this.ctx, () => this.axes);
+    }
+
+    override destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
+        this.crossLinesDOMProxy.destroy();
+        return super.destroy(opts);
     }
 
     override onAxisChange(newValue: CartesianAxis[], oldValue?: CartesianAxis[]) {

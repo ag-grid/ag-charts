@@ -3,7 +3,12 @@ import { SectorBox } from 'ag-charts-core';
 import type { Sector } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
-import { createAngleMotionCalculator, fixRadialColumnAnimationStatus } from '../radial-column/radialColumnUtil';
+import {
+    createAngleMotionCalculator,
+    fixRadialColumnAnimationStatus,
+    gapVisibility,
+    hasRadii,
+} from '../radial-column/radialColumnUtil';
 
 const { motion } = _ModuleSupport;
 
@@ -42,7 +47,11 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
         return { innerRadius, outerRadius, startAngle, endAngle, clipSector, phase };
     };
 
-    const toFn = (_sect: Sector, datum: RadialColumnNodeDatum, status: _ModuleSupport.NodeUpdateState) => {
+    const toFn = (
+        sect: Sector<RadialColumnNodeDatum>,
+        datum: RadialColumnNodeDatum,
+        status: _ModuleSupport.NodeUpdateState
+    ) => {
         const { startAngle, endAngle } = angles.to(datum);
         let innerRadius: number;
         let outerRadius: number;
@@ -60,7 +69,8 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
             if (Number.isNaN(clipOuterRadius)) clipOuterRadius = axisZeroRadius;
             clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
         }
-        return { innerRadius, outerRadius, startAngle, endAngle, clipSector };
+        const visibility = status === 'removed' ? undefined : gapVisibility(datum, sect.previousDatum);
+        return { innerRadius, outerRadius, startAngle, endAngle, clipSector, ...visibility };
     };
 
     return { toFn, fromFn };
@@ -70,5 +80,5 @@ export function resetNightingaleSelectionFn(_sect: Sector, datum: RadialColumnNo
     const { startAngle, endAngle } = datum;
     const { innerRadius, outerRadius, clipInnerRadius, clipOuterRadius } = getRadii(datum);
     const clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
-    return { innerRadius, outerRadius, startAngle, endAngle, clipSector };
+    return { innerRadius, outerRadius, startAngle, endAngle, clipSector, visible: hasRadii(datum) };
 }

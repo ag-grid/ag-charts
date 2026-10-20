@@ -102,7 +102,7 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     // Signed: label padding positions the label relative to the line, so negative values are meaningful.
     padding: signedPadding,
     border: borderOptionsDef,
-    cornerRadius: number,
+    cornerRadius: positiveNumber,
     ...fontOptionsDef,
     ...fillOptionsDef,
     ...undocumentedDefs({ overflow: union('pad-chart', 'realign-text', 'clip-text') }),

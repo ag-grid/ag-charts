@@ -341,12 +341,12 @@ export abstract class RadialColumnSeriesBase<
             // eslint-disable-next-line sonarjs/different-types-comparison
             if (angleDatum === undefined && !this.options.allowNullKeys) return;
 
-            const radiusDatum = radiusRawValues[datumIndex];
+            // An absent radius key resolves to `undefined`; treat it like `null` so the category is left as a gap.
+            const radiusDatum = radiusRawValues[datumIndex] ?? null;
             const isPositive = radiusDatum >= 0 && !Object.is(radiusDatum, -0);
-            const innerRadiusDatum = radiusStartValues[datumIndex];
-            const outerRadiusDatum = radiusEndValues[datumIndex];
+            const innerRadiusDatum = radiusStartValues[datumIndex] ?? null;
+            const outerRadiusDatum = radiusEndValues[datumIndex] ?? null;
             const negative = isPositive === radiusAxisReversed;
-            if (innerRadiusDatum === undefined || outerRadiusDatum === undefined) return;
 
             let startAngle: number;
             let endAngle: number;

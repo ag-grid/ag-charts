@@ -1432,4 +1432,107 @@ describe('RadialColumnSeries', () => {
             });
         });
     });
+
+    describe('AG-18978 missing radius value', () => {
+        const QUARTERS = [`Q1'18`, `Q2'18`, `Q3'18`, `Q4'18`];
+
+        const missingValueOptions = (
+            missingIndex: number,
+            missingValue: 'absent' | null,
+            stacked = false
+        ): AgChartOptions => ({
+            data: QUARTERS.map((quarter, index) => {
+                const row: Record<string, unknown> = {
+                    quarter,
+                    iphone: 140 + index,
+                    mac: 16 + index,
+                    ipad: 14 + index,
+                };
+                if (index === missingIndex) {
+                    if (missingValue === 'absent') {
+                        delete row.ipad;
+                    } else {
+                        row.ipad = missingValue;
+                    }
+                }
+                return row;
+            }),
+            series: ['iphone', 'mac', 'ipad'].map((radiusKey) => ({
+                type: 'radial-column' as const,
+                angleKey: 'quarter',
+                radiusKey,
+                stacked,
+                label: { enabled: true },
+            })),
+        });
+
+        const summariseNodeData = (nodeData: any[]) =>
+            nodeData.map(({ radiusValue, negative, innerRadius, outerRadius, startAngle, endAngle, label }) => ({
+                radiusValue,
+                negative,
+                innerRadius,
+                outerRadius,
+                startAngle,
+                endAngle,
+                label: label ? { text: label.text, x: label.x, y: label.y } : undefined,
+            }));
+
+        const createMissingValueChart = async (options: AgChartOptions) => {
+            chart = deproxy(await createEnterpriseChart(options));
+            return chart.series[2].contextNodeData.nodeData as any[];
+        };
+
+        it.each([
+            { row: 'first', missingIndex: 0, stacked: false },
+            { row: 'middle', missingIndex: 1, stacked: false },
+            { row: 'last', missingIndex: 3, stacked: false },
+            { row: 'last', missingIndex: 3, stacked: true },
+        ])(
+            'should leave a gap at the $row row and draw the other rows (stacked: $stacked)',
+            async ({ missingIndex, stacked }) => {
+                const nodeData = await createMissingValueChart(missingValueOptions(missingIndex, 'absent', stacked));
+
+                expect(nodeData).toHaveLength(QUARTERS.length);
+                for (const [index, nodeDatum] of nodeData.entries()) {
+                    const drawn = Number.isFinite(nodeDatum.innerRadius) && Number.isFinite(nodeDatum.outerRadius);
+                    expect(drawn).toBe(index !== missingIndex);
+                }
+
+                const absentSummary = summariseNodeData(nodeData);
+                chart.destroy();
+                const nullNodeData = await createMissingValueChart(missingValueOptions(missingIndex, null, stacked));
+                expect(absentSummary).toEqual(summariseNodeData(nullNodeData));
+            }
+        );
+
+        it('should render an absent value as a gap', async () => {
+            chart = await createEnterpriseChart(missingValueOptions(3, 'absent'));
+            await compare();
+        });
+
+        describe('during the initial animation', () => {
+            const frames = spyOnAnimationFrames();
+
+            it('should keep the missing column hidden on every frame', async () => {
+                const proxy = await createEnterpriseChart(missingValueOptions(3, 'absent'));
+                chart = deproxy(proxy);
+                const sampleNodes = () =>
+                    (chart.series[2].itemSelection.nodes() as any[]).map((node) => ({
+                        missing: !Number.isFinite(node.datum.outerRadius),
+                        visible: node.visible,
+                        outerRadius: node.outerRadius,
+                    }));
+                const trajectory = await frames.captureAnimationFrames(proxy, sampleNodes);
+                await frames.runToEnd(proxy);
+
+                for (const frame of trajectory) {
+                    expect(frame).toHaveLength(QUARTERS.length);
+                    expect(frame.filter((node) => node.missing)).toEqual([expect.objectContaining({ visible: false })]);
+                }
+                // Guards against passing vacuously: the drawn columns must grow over the captured frames.
+                const drawnRadii = trajectory.map((frame) => frame.find((node) => !node.missing)!.outerRadius);
+                expect(drawnRadii.at(-1)).toBeGreaterThan(drawnRadii[0]);
+            });
+        });
+    });
 });

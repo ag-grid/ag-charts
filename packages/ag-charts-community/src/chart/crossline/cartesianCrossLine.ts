@@ -160,13 +160,11 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
      * pointer coordinates carried by pointer events.
      */
     containsPoint(point: CanvasPoint): boolean {
-        const group = this.type === 'range' ? this.rangeGroup : this.lineGroup;
-        if (!this.enabled || this.data == null || !group.visible) {
+        const bbox = this.getLineHitBox();
+        if (bbox == null) {
             return false;
         }
 
-        const tolerance = crossLineHitTolerance(this.strokeWidth);
-        const bbox = Transformable.toCanvas(this.crossLineRange).clone().grow(tolerance);
         if (bbox.containsPoint(point.canvasX, point.canvasY)) {
             return true;
         }
@@ -174,6 +172,24 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         // The label is only rendered under the same conditions `updateNodes` applies, so an
         // unlabelled cross line must not report a hit on its zero-sized label node.
         return this.getLabelBox()?.containsPoint(point.canvasX, point.canvasY) ?? false;
+    }
+
+    /** The canvas-space box enclosing both regions {@link containsPoint} tests, for the keyboard focus proxy. */
+    getFocusBounds(): BBox | undefined {
+        const lineBox = this.getLineHitBox();
+        if (lineBox == null) return;
+
+        const labelBox = this.getLabelBox();
+        return labelBox == null ? lineBox : BBox.merge([lineBox, labelBox]);
+    }
+
+    /** The rendered line/fill in canvas space, widened by {@link crossLineHitTolerance}. */
+    private getLineHitBox(): BBox | undefined {
+        const group = this.type === 'range' ? this.rangeGroup : this.lineGroup;
+        if (!this.enabled || this.data == null || !group.visible) return;
+
+        const tolerance = crossLineHitTolerance(this.strokeWidth);
+        return Transformable.toCanvas(this.crossLineRange).clone().grow(tolerance);
     }
 
     private _isRange: boolean | undefined = undefined;
