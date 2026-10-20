@@ -730,4 +730,36 @@ describe('Ordinal Time Axis Examples', () => {
         }
         expectWarningsCalls().toEqual([]);
     });
+
+    it('shrinks a formatted label towards label.minimumFontSize to fit maxWidth', async () => {
+        chart = await createEnterpriseChart(
+            prepareEnterpriseTestOptions({
+                data: DATA.slice(0, 3),
+                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+                axes: {
+                    x: {
+                        type: 'ordinal-time',
+                        position: 'bottom',
+                        label: {
+                            maxWidth: 60,
+                            minimumFontSize: 6,
+                            wrapping: 'never',
+                            formatter: () => 'Formatted label',
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            })
+        );
+        await waitForChartStability(chart);
+
+        const nodes = getAxisLabelNodes(chart, 'bottom');
+        expect(nodes.length).toBeGreaterThan(0);
+        for (const node of nodes) {
+            expect(getLabelText(node)).toBe('Formatted label');
+            expect(node.datum.fontSize).toBeLessThan(12);
+            expect(node.getBBox().width).toBeLessThanOrEqual(60.5);
+        }
+        expectWarningsCalls().toEqual([]);
+    });
 });

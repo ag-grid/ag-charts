@@ -81,6 +81,7 @@ import {
     deprecated,
     greaterThan,
     lessThan,
+    lessThanOrEqual,
     number,
     numericValue,
     object,
@@ -257,7 +258,7 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     ...labelBoxOptionsDef,
 };
 
-type AxisLabelFitKeys = 'maxWidth' | 'maxHeight';
+type AxisLabelFitKeys = 'maxWidth' | 'maxHeight' | 'minimumFontSize';
 
 const cartesianAxisLabelBaseDefs: OptionsDefs<Omit<AgBaseCartesianAxisLabelOptions, AxisLabelFitKeys>> = {
     autoRotate: boolean,
@@ -271,6 +272,7 @@ export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabel
     ...cartesianAxisLabelBaseDefs,
     maxWidth: positiveNumber,
     maxHeight: positiveNumber,
+    minimumFontSize: and(positiveNumberNonZero, lessThanOrEqual('fontSize')),
 };
 
 export const cartesianNumericAxisLabel: OptionsDefs<AgCartesianAxisLabelOptions> = {

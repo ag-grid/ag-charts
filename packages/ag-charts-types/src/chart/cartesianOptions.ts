@@ -39,6 +39,7 @@ import type {
     DatumDefault,
     Degree,
     FontFamilyFull,
+    FontSize,
     PixelSize,
     Ratio,
     TextWrap,
@@ -116,7 +117,7 @@ export interface AgTimeAxisParentLevel<TContext = ContextDefault> {
 
 export interface AgTimeAxisParentLevelLabelOptions<TContext = ContextDefault> extends Omit<
     AgCartesianTimeAxisLabelOptions<TContext>,
-    'maxWidth' | 'maxHeight'
+    'maxWidth' | 'maxHeight' | 'minimumFontSize'
 > {}
 
 export interface AgCartesianAxisLabelOptions<TContext = ContextDefault>
@@ -148,16 +149,22 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
      * Used to constrain the size of each label along the text direction before wrapping or truncation.
      *
      * Labels are also kept within the space the axis has available, clear of any scrollbar.
-     * Text that still does not fit after wrapping is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
      */
     maxWidth?: PixelSize;
     /**
      * Used to constrain the size of each label across the text direction before wrapping or truncation.
      *
      * Labels are also kept within the space the axis has available, clear of any scrollbar.
-     * Text that still does not fit after wrapping is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
      */
     maxHeight?: PixelSize;
+    /**
+     * If a label does not fit within `maxWidth`, `maxHeight` or the space the axis has available, setting this
+     * allows the label to pick a font size between its normal `fontSize` and `minimumFontSize` to fit.
+     * The label is only truncated or hidden when it still does not fit at `minimumFontSize`.
+     */
+    minimumFontSize?: FontSize;
 }
 
 export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> extends Omit<

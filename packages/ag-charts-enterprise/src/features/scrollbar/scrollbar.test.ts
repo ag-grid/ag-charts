@@ -905,6 +905,10 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         { position: 'right', limit: { maxHeight: 20 } },
         { position: 'top', limit: { maxHeight: 20 } },
         { position: 'bottom', limit: { maxHeight: 20 } },
+        { position: 'left', limit: { minimumFontSize: 6 } },
+        { position: 'right', limit: { minimumFontSize: 6 } },
+        { position: 'top', limit: { minimumFontSize: 6 } },
+        { position: 'bottom', limit: { minimumFontSize: 6 } },
     ])('keeps a fitted label clear of a $position scrollbar with $limit', async ({ position, limit }) => {
         const vertical = isVerticalPosition(position);
         const label = { ...(vertical ? {} : { rotation: 90 }), ...limit };
@@ -920,6 +924,12 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
             await compareImageSnapshot(chart, ctx, {
                 ...IMAGE_SNAPSHOT_DEFAULTS,
                 customSnapshotIdentifier: 'ag-18833-scrollbar-long-label-fitted',
+            });
+        }
+        if (position === 'left' && limit.minimumFontSize != null) {
+            await compareImageSnapshot(chart, ctx, {
+                ...IMAGE_SNAPSHOT_DEFAULTS,
+                customSnapshotIdentifier: 'ag-18833-scrollbar-long-label-shrunk',
             });
         }
     });

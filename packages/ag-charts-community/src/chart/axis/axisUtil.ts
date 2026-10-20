@@ -27,6 +27,8 @@ export interface TickDatum {
     textUntruncated: string | undefined;
     /** Formatter output of a label changed by maxWidth / maxHeight fitting, kept so it can be re-fitted. */
     fitSource?: NormalisedTextOrSegments;
+    /** Font size a label shrank to towards `minimumFontSize`; unset when it keeps the label's own size. */
+    fontSize?: number;
     isPrimary: boolean;
     textMetrics: Size;
 }

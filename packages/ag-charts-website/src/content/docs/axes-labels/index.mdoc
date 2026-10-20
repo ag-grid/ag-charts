@@ -17,7 +17,7 @@ In this example:
 - The first dropdown allows enabling and disabling collision avoidance altogether.
 - The second dropdown buttons allows changing the length of the labels. This more easily shows the [wrapping](#wrapping) and [skipping](#skipping) behaviour.
 - The [Rotation](#rotation), [Wrapping](#wrapping) and [Truncation](#truncation) controls enable exploration of their behaviour with all the available options.
-- If enabled, labels try [wrapping](#wrapping), then [truncation](#truncation), [rotation](#rotation), and finally [skipping](#skipping) if needed.
+- If enabled, labels try [wrapping](#wrapping) and [font size reduction](#font-size-reduction), then [truncation](#truncation), [rotation](#rotation), and finally [skipping](#skipping) if needed.
 
 Collision avoidance is enabled by default, to disable set `label.avoidCollisions` to false.
 
@@ -64,7 +64,24 @@ Use `label.maxWidth` and `label.maxHeight` to limit the size of each label, in p
 
 When either limit is set, labels also stay within the space available to the axis and clear of an axis scrollbar. Labels wrap within the limits according to `label.wrapping`; wrapping is not switched on automatically.
 
-These options are available on Number, Log, Time, Unit Time, Ordinal Time and Category axes. They are not available on Grouped Category axes or on `parentLevel.label`.
+These options, and `label.minimumFontSize` below, are available on Number, Log, Time, Unit Time, Ordinal Time and Category axes. They are not available on Grouped Category axes or on `parentLevel.label`.
+
+### Font Size Reduction
+
+Set `label.minimumFontSize` to let a label that does not fit shrink towards that size instead of being truncated.
+
+```js format="snippet"
+{
+    label: {
+        maxWidth: 120,
+        minimumFontSize: 8,
+    },
+}
+```
+
+Each label takes the largest font size between `label.fontSize` and `label.minimumFontSize` at which it fits whole, wrapping according to `label.wrapping` at each size, so labels on the same axis can end up at different sizes. A label is only truncated, or hidden with `truncate: false`, when it still does not fit at `minimumFontSize`.
+
+Labels fit within `maxWidth` and `maxHeight` when set, and within the space available to the axis and clear of an axis scrollbar. With only `minimumFontSize` set, labels shrink to fit the space available to the axis.
 
 ### Truncation
 
@@ -73,7 +90,7 @@ This ensures as much as possible of each label remains readable without reducing
 
 When truncation occurs, hovering over the truncated text will display a tooltip with the full label text.
 
-A label that still exceeds `maxWidth` or `maxHeight` after wrapping is truncated with an ellipsis, even when `truncate` is not set. Set `truncate: false` to hide such a label instead.
+A label that still exceeds `maxWidth` or `maxHeight` after wrapping and font size reduction is truncated with an ellipsis, even when `truncate` is not set. Set `truncate: false` to hide such a label instead.
 
 {%note%}
 Truncation takes precedence over auto-rotation. When truncation is enabled, auto-rotation will not apply.

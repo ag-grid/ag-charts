@@ -1192,6 +1192,21 @@ describe('CartesianAxis', () => {
                 expectWarningsCalls().toEqual([]);
             });
 
+            it.each(Object.keys(axisOptions))(
+                'accepts label.minimumFontSize on a %s axis without warning',
+                async (type) => {
+                    const options = axisOptions[type]();
+                    for (const axis of Object.values(options.axes as Record<string, any>)) {
+                        if (axis.label != null) axis.label = { minimumFontSize: 8 };
+                    }
+                    await renderChart(options);
+                    expect(
+                        getAxisLabelNodes(chart, 'bottom').length + getAxisLabelNodes(chart, 'left').length
+                    ).toBeGreaterThan(0);
+                    expectWarningsCalls().toEqual([]);
+                }
+            );
+
             it('warns for maxWidth on a time axis parentLevel label', async () => {
                 const options = axisOptions.time();
                 (options.axes as any).x.parentLevel = { enabled: true, label: { maxWidth: 50 } };
@@ -1313,6 +1328,96 @@ describe('CartesianAxis', () => {
                     expect(getLabelText(node)).not.toContain('\n');
                     expect(getLabelText(node).replace('…', '').length).toBeGreaterThan(15);
                 }
+            });
+        });
+
+        describe('minimumFontSize', () => {
+            const MEDIUM = 'Regional Operations Centre';
+            const getFontSize = (node: AxisLabelNode) => node.datum.fontSize;
+
+            it('shrinks a label that does not fit maxWidth instead of truncating it', async () => {
+                await renderChart(
+                    leftCategoryOptions({ maxWidth: 120, minimumFontSize: 8, wrapping: 'never' }, ['A', MEDIUM])
+                );
+
+                const node = findLongNode('left', 'Regional');
+                expect(getLabelText(node)).toBe(MEDIUM);
+                expect(getFontSize(node)).toBeLessThan(12);
+                expect(getFontSize(node)).toBeGreaterThanOrEqual(8);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(120.5);
+                expect(getFontSize(getAxisLabelNodes(chart, 'left').find((n) => getLabelText(n) === 'A')!)).toBe(12);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('truncates at minimumFontSize when the label still does not fit', async () => {
+                await renderChart(
+                    leftCategoryOptions({ maxWidth: 80, minimumFontSize: 10, wrapping: 'never' }, [LONG_NO_SPACES])
+                );
+
+                const node = findLongNode('left', 'test');
+                expect(getFontSize(node)).toBe(10);
+                expect(getLabelText(node).endsWith('…')).toBe(true);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
+            });
+
+            it('hides a label that does not fit at minimumFontSize when truncate is false', async () => {
+                await renderChart(
+                    leftCategoryOptions({ maxWidth: 80, minimumFontSize: 10, wrapping: 'never', truncate: false }, [
+                        'A',
+                        LONG_NO_SPACES,
+                    ])
+                );
+
+                expect(getAxisLabelNodes(chart, 'left').map(getLabelText)).toEqual(['A']);
+            });
+
+            it('wraps before shrinking when wrapping is enabled', async () => {
+                await renderChart(
+                    leftCategoryOptions({ maxWidth: 120, minimumFontSize: 8, wrapping: 'on-space' }, [MEDIUM])
+                );
+
+                const node = findLongNode('left', 'Regional');
+                expect(getFontSize(node)).toBe(12);
+                expect(getLabelText(node).split('\n').length).toBeGreaterThan(1);
+            });
+
+            it('shrinks to the room in the axis cap with only minimumFontSize set', async () => {
+                const label = `${'Operations '.repeat(5)}Centre`;
+                await renderChart(leftCategoryOptions({ minimumFontSize: 4, wrapping: 'never' }, ['A', label]), 600);
+
+                const node = findLongNode('left', 'Operations');
+                expect(getLabelText(node)).toBe(label);
+                expect(getFontSize(node)).toBeLessThan(12);
+                expect(getAxisThickness('left')).toBeLessThan(600 / 2);
+            });
+
+            it('keeps the label font size when labels fit', async () => {
+                await renderChart(leftCategoryOptions({ maxWidth: 200, minimumFontSize: 8 }, ['A', 'BB', 'CCC']));
+
+                for (const node of getAxisLabelNodes(chart, 'left')) {
+                    expect(getFontSize(node)).toBe(12);
+                }
+            });
+
+            it('warns for minimumFontSize larger than fontSize', async () => {
+                await renderChart(leftCategoryOptions({ minimumFontSize: 20 }, ['A']));
+                expectWarningsCalls().toEqual([[expect.stringContaining('minimumFontSize')]]);
+            });
+
+            it('warns for minimumFontSize on a time axis parentLevel label', async () => {
+                await renderChart({
+                    data: TIME_DATA,
+                    axes: {
+                        x: {
+                            type: 'time',
+                            position: 'bottom',
+                            parentLevel: { enabled: true, label: { minimumFontSize: 8 } },
+                        } as any,
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                });
+                expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.minimumFontSize')]]);
             });
         });
     });

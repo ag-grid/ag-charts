@@ -29,6 +29,7 @@ import {
     drawnLineHeight,
     findMinMax,
     isPlainObject,
+    lineHeightAtSize,
     resolveEdgeLabelOverflow,
     resolveTextAlign,
 } from 'ag-charts-core';
@@ -1133,8 +1134,11 @@ export abstract class CartesianAxis<
         const x = horizontal ? translation + bandEdgeOffset : labelOffset;
         const y = horizontal ? -labelOffset : translation + bandEdgeOffsetY;
 
+        const style = this.getLabelStyles({ value: datum.tick, formattedValue: text }, undefined, label);
         return {
-            ...this.getLabelStyles({ value: datum.tick, formattedValue: text }, undefined, label),
+            ...(datum.fontSize == null
+                ? style
+                : { ...style, fontSize: datum.fontSize, lineHeight: lineHeightAtSize(style, datum.fontSize) }),
             tickId,
             rotation,
             text,

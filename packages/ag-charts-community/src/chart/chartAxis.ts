@@ -173,4 +173,5 @@ export interface ChartAxisLabel extends TextOptions {
     wrapping?: TextWrap;
     maxWidth?: number;
     maxHeight?: number;
+    minimumFontSize?: number;
 }
