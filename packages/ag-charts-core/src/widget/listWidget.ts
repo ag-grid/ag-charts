@@ -1,10 +1,10 @@
 import { setAttribute, setElementStyle } from '../dom/attributeUtil';
 import { createElement } from '../dom/domElements';
+import type { ButtonWidget } from './buttonWidget';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
-import type { SwitchWidget } from './switchWidget';
 import { type BeforeWidget, Widget } from './widget';
 
-type TChildWidget = SwitchWidget;
+type TChildWidget = ButtonWidget;
 
 function removeFromDOM(child: Widget) {
     const elem = child.getElement();

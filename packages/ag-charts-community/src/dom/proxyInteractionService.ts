@@ -47,7 +47,7 @@ type ContainerParams<T extends ProxyContainerType> = {
 type ProxyMeta = {
     // Elements
     button: {
-        params: ParentProperties<GroupWidget> &
+        params: ParentProperties<GroupWidget | ListWidget> &
             InteractParams<'button'> & {
                 readonly textContent: string | TranslationKey;
             };
