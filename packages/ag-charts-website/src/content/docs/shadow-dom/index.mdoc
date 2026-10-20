@@ -17,7 +17,7 @@ A chart renders into the page's DOM, so a page rule that outranks the chart's ow
 
 In this example:
 
-- The page has an `#app button` rule, which outranks the chart's styles and restyles the legend items.
+- The page has a `button:not(#toolbar button)` rule. The ID gives it enough weight to outrank the chart's styles, so it restyles the legend items.
 - Select Shadow Root to set `enableShadowDom: true`, and the legend items go back to the chart's own styling.
 
 Page CSS that targets chart elements, such as the `.ag-charts-tooltip` rules in [Tooltips](./tooltips/), does not reach a chart in a shadow root. Theme options and CSS variables still apply.

@@ -1,5 +1,5 @@
-/* A rule for the app's own buttons: its ID outranks the chart's class rules, so it also restyles the legend items. */
-#app button {
+/* Exempting `#toolbar` gives this page-wide rule ID weight, which outranks the chart's class rules. */
+button:not(#toolbar button) {
     padding: 8px 16px;
     border: 2px dashed crimson;
     border-radius: 0;
