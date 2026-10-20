@@ -59,3 +59,15 @@ What to test:
 _Auto-tested via Playwright._
 
 {% chartExampleRunner title="Cross Line Keyboard Click" name="cross-line-keyboard-click" type="generated" /%}
+
+### cross-line-keyboard-click-polar
+
+_Auto-tested via Playwright._
+
+What to test:
+
+- With each combination of angle and radius `shape`, Tab reaches the band, spoke, threshold and ring, but not the target line, which has no click listener
+- The focus indicator follows each cross line's shape: smooth arcs for `circle`, straight edges for `polygon`
+- Enter or Space on a focused cross line reaches its cross-line and axis listeners
+
+{% chartExampleRunner title="Cross Line Keyboard Click (Polar)" name="cross-line-keyboard-click-polar" type="generated" /%}
