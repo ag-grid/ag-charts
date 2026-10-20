@@ -51,7 +51,7 @@ import type { PickFocusOutputs, PickViewportFocusInputs, SeriesNodePickMatch } f
 import type { SeriesDirectionKeysMapping } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
-import { countExpandingSearch, rebindDatumRows, visibleRangeIndices } from '../util';
+import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
@@ -629,6 +629,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             }
             return false;
         }
+        this.keepNodeDataForUnchangedInputs();
         const { nodeDataRefresh } = this;
         if (!nodeDataRefresh && !this.isPathOrSelectionDirty()) {
             return false;
@@ -640,6 +641,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
             this.markQuadtreeDirty();
             this._contextNodeData = this.createNodeData();
+            this.recordNodeDataInputs();
             const animationValid = this.isProcessedDataAnimatable();
             if (this._contextNodeData) {
                 this._contextNodeData.animationValid ??= animationValid;
@@ -1661,10 +1663,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return this.isLabelEnabled();
     }
 
-    protected override rebindNodeDataRows(rows: readonly unknown[]) {
-        super.rebindNodeDataRows(rows);
-        const { nodeData, labelData } = this._contextNodeData ?? {};
-        if (labelData !== nodeData) rebindDatumRows(labelData, rows);
+    protected override getRetainedDatums() {
+        return [...super.getRetainedDatums(), this._contextNodeData?.labelData];
     }
 
     protected getScaling(scale: Scale<any, any>): Scaling | undefined {

@@ -402,6 +402,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return getItemStyles(this.getItemStyle.bind(this));
     }
 
+    protected override getRetainedDatums() {
+        return [...super.getRetainedDatums(), this.contextNodeData?.phantomNodeData];
+    }
+
     override async processData(dataController: DataController) {
         if (!this.data) return;
 

@@ -227,6 +227,51 @@ const STYLE_CASES: StyleCase[] = [
     },
 ];
 
+describe('rect series keep node data only while every input to it holds', () => {
+    const ctx = setupMockCanvas();
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    // The bars and the line read different keys, so their data is processed as separate requests. Waterfall and
+    // heatmap charts take no other series, so range-bar is the only enterprise rect series to share an axis.
+    const rows = (line: number): Row[] =>
+        Array.from({ length: 4 }, (_, i) => ({ bx: `C${i}`, low: 5, high: 10 + i, lx: `C${i}`, ly: line }));
+
+    const options = (data: Row[]) =>
+        prepareEnterpriseTestOptions({
+            data,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            series: [
+                { type: 'range-bar', xKey: 'bx', yLowKey: 'low', yHighKey: 'high' },
+                { type: 'line', xKey: 'lx', yKey: 'ly' },
+            ],
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+        } as AgCartesianChartOptions);
+
+    it('redraws the range bars at the new scale when another series moves the shared axis', async () => {
+        chart = await createEnterpriseChart(options(rows(80)));
+        const expected = ctx.snapshot();
+        expectNonBlank(expected);
+
+        const moving = rows(20);
+        await chart.update(options(moving));
+        await waitForChartStability(chart);
+        const started = ctx.snapshot();
+
+        for (const row of moving) row.ly = 80;
+        await chart.updateDelta({ data: moving.slice() });
+        await waitForChartStability(chart);
+
+        (expect(ctx.snapshot()) as any).not.toMatchImage(started, { writeDiff: false });
+        expect(ctx.snapshot()).toMatchImage(expected);
+    });
+});
+
 describe('rect series restyle where nothing moves', () => {
     const ctx = setupMockCanvas();
     let chart: AgChartInstance | undefined;

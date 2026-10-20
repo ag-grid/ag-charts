@@ -1,7 +1,7 @@
 import type { ProcessedData } from './dataModelTypes';
 import type { DataSet } from './dataSet';
 
-function sameValue(a: unknown, b: unknown): boolean {
+export function sameValue(a: unknown, b: unknown): boolean {
     if (a === b) return true;
     // NaN is the only value not equal to itself.
     if (a !== a && b !== b) return true;
@@ -9,7 +9,7 @@ function sameValue(a: unknown, b: unknown): boolean {
     return a instanceof Date && b instanceof Date && a.getTime() === b.getTime();
 }
 
-function sameArray(a: readonly unknown[], b: readonly unknown[]): boolean {
+export function sameArray(a: readonly unknown[], b: readonly unknown[]): boolean {
     const length = a.length;
     if (length !== b.length) return false;
     for (let i = 0; i < length; i++) {

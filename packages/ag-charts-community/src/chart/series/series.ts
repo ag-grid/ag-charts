@@ -830,6 +830,11 @@ export abstract class Series<
         this.itemShadowPass = undefined;
     }
 
+    /** Whether a node data rebuild is due only because new data asked for it. */
+    protected hasDataRefreshOnly() {
+        return this._dataRefreshPending && !this._nodeDataRefresh;
+    }
+
     /** Withdraws a node data rebuild that only new data asked for; a rebuild anything else asked for stays. */
     protected cancelDataRefresh() {
         if (this._nodeDataRefresh || !this._dataRefreshPending) return false;

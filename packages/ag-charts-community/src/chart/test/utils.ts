@@ -379,6 +379,27 @@ export interface SeriesAggregationInternals {
         | undefined;
 }
 
+/** A bar datum as a bar series keeps it between rebuilds. */
+export interface KeptBarDatum {
+    datum: unknown;
+    datumIndex: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+/** Typed accessor for what a bar series keeps between rebuilds, and the copies of a hovered bar it draws. */
+export interface BarSeriesKeptInternals {
+    contextNodeData?: { nodeData: KeptBarDatum[]; phantomNodeData: KeptBarDatum[] };
+    highlightNodeGroup: Group;
+    phantomHighlightGroup: Group;
+}
+
+export function getBarSeriesKeptInternals(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): BarSeriesKeptInternals {
+    return deproxy(chartOrProxy).series[seriesIndex] as unknown as BarSeriesKeptInternals;
+}
+
 export function getSeriesAggregationInternals(
     chartOrProxy: ChartOrProxy<any>,
     seriesIndex = 0
