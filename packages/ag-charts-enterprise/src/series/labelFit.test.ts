@@ -582,6 +582,7 @@ describe('series label fit', () => {
                 { stage: 'Renewed', value: 4, label: 'Annual renewals completed' },
             ];
             const renderAt = (width: number, height: number, type: string, label: object) => {
+                chart?.destroy();
                 const options = {
                     data: stages,
                     legend: { enabled: false },
