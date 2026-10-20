@@ -23,7 +23,7 @@ export class HeatmapCellBatch extends Node {
     private widths = new Float64Array(0);
     private heights = new Float64Array(0);
     // OPTIMIZATION: the geometry a cell paints with only changes with its box, `crisp` or the pixel ratio, so it is
-    // aligned when written rather than on every repaint.
+    // aligned when its box is written rather than on every repaint.
     private alignedXs = new Float64Array(0);
     private alignedYs = new Float64Array(0);
     private alignedWidths = new Float64Array(0);
@@ -82,6 +82,8 @@ export class HeatmapCellBatch extends Node {
         }
         this.fills.length = count;
         this.strokes.length = count;
+        // Cells past the old count were not realigned along the way, so what they hold can't be trusted.
+        if (count > this.count) this.alignmentStale = true;
         this.count = count;
     }
 
@@ -96,6 +98,11 @@ export class HeatmapCellBatch extends Node {
         strokeOpacity: number,
         stroke: string | undefined
     ) {
+        const moved =
+            x !== this.xs[index] ||
+            y !== this.ys[index] ||
+            width !== this.widths[index] ||
+            height !== this.heights[index];
         this.xs[index] = x;
         this.ys[index] = y;
         this.widths[index] = width;
@@ -104,7 +111,8 @@ export class HeatmapCellBatch extends Node {
         this.opacities[index] = opacity;
         this.strokeOpacities[index] = strokeOpacity;
         this.strokes[index] = stroke;
-        if (!this.alignmentStale) this.align(index);
+        // A write that only restyles the cell leaves its aligned geometry as it is.
+        if (moved && !this.alignmentStale) this.alignCell(index);
     }
 
     private setPixelRatio(pixelRatio: number) {
@@ -116,11 +124,11 @@ export class HeatmapCellBatch extends Node {
     private ensureAligned() {
         if (!this.alignmentStale) return;
         this.alignmentStale = false;
-        for (let index = 0; index < this.count; index++) this.align(index);
+        for (let index = 0; index < this.count; index++) this.alignCell(index);
     }
 
     /** Writes the geometry a cell paints with. A cell with no area paints nothing, as a `Rect` leaves it empty. */
-    private align(index: number) {
+    alignCell(index: number) {
         const { pixelRatio, crisp } = this;
         let x = this.xs[index];
         let y = this.ys[index];

@@ -3514,6 +3514,102 @@ describe('HeatmapSeries', () => {
             });
         });
 
+        describe('alignment', () => {
+            it('leaves the aligned geometry alone when a hover or selection only restyles the cells', async () => {
+                const itemStyler = ({ highlightState }: { highlightState: string }) =>
+                    highlightState === 'unhighlighted-item' ? { fillOpacity: 0.4 } : {};
+                await create({
+                    itemStyler,
+                    selection: { ...SELECTION, selectedItem: { fill: 'lime', strokeWidth: 0 } },
+                    tooltip: { enabled: false },
+                });
+                expect(isBatched(chart)).toBe(true);
+                const align = vi.spyOn(HeatmapCellBatch.prototype, 'alignCell');
+
+                const plain = cellShapes(chart).map((shape) => shape.fillOpacity);
+
+                await hoverDatumByIndex(chart, 0, 0);
+                expect(cellShapes(chart).map((shape) => shape.fillOpacity)).not.toEqual(plain);
+                await select(5);
+                expect(cellFills(chart)[5]).toBe('lime');
+                expect(isBatched(chart)).toBe(true);
+                expect(align).not.toHaveBeenCalled();
+            });
+
+            const BOXES = [
+                [10.3, 5.2, 20.4, 8.6],
+                [40.7, 5.2, 0.3, 8.6],
+            ];
+            const AT_RATIO_1 = [
+                [10, 5, 21, 9],
+                [41, 5, 1, 9],
+            ];
+            const AT_RATIO_2 = [
+                [10.5, 5, 20, 9],
+                [40.5, 5, 0.5, 9],
+            ];
+
+            function createBatch() {
+                const batch = new HeatmapCellBatch();
+                batch.resize(BOXES.length);
+                writeBoxes(batch);
+                return batch;
+            }
+
+            function writeBoxes(batch: HeatmapCellBatch) {
+                for (const [index, [x, y, width, height]] of BOXES.entries()) {
+                    batch.set(index, x, y, width, height, 'red', 1, 1, undefined);
+                }
+                batch.commit();
+            }
+
+            /** The `fillRect` calls one render of the batch makes. */
+            function paint(batch: HeatmapCellBatch, devicePixelRatio: number) {
+                const canvasCtx = document.createElement('canvas').getContext('2d')!;
+                const fillRect = vi.spyOn(canvasCtx, 'fillRect');
+                const renderCtx = {
+                    ctx: canvasCtx,
+                    direction: 'ltr' as const,
+                    width: 100,
+                    height: 50,
+                    devicePixelRatio,
+                    logger: testLogger,
+                    debugNodes: {},
+                };
+                batch.preRender(renderCtx);
+                batch.render(renderCtx);
+                return fillRect.mock.calls;
+            }
+
+            it('realigns its cells to the device pixel grid when the pixel ratio changes', () => {
+                const batch = createBatch();
+
+                expect(paint(batch, 1)).toEqual(AT_RATIO_1);
+                expect(paint(batch, 2)).toEqual(AT_RATIO_2);
+                expect(paint(batch, 1)).toEqual(AT_RATIO_1);
+            });
+
+            it('realigns a cell written again after the batch shrank and grew, with its box unchanged', () => {
+                const batch = createBatch();
+                expect(paint(batch, 1)).toEqual(AT_RATIO_1);
+
+                batch.resize(1);
+                expect(paint(batch, 2)).toEqual(AT_RATIO_2.slice(0, 1));
+                batch.resize(BOXES.length);
+                writeBoxes(batch);
+                expect(paint(batch, 2)).toEqual(AT_RATIO_2);
+            });
+
+            it('realigns the cells when they move', async () => {
+                await create();
+                const align = vi.spyOn(HeatmapCellBatch.prototype, 'alignCell');
+
+                await chart.publicApi.update({ ...options(), width: 420, height: 260 });
+                await waitForChartStability(chart);
+                expect(align).toHaveBeenCalled();
+            });
+        });
+
         describe('switching representation', () => {
             it('moves every cell to Rects while a selection strokes one, and back when it is removed', async () => {
                 const selection = {
@@ -3742,50 +3838,6 @@ describe('HeatmapSeries', () => {
         });
 
         describe('scene output', () => {
-            it('realigns its cells to the device pixel grid when the pixel ratio changes', () => {
-                const boxes = [
-                    [10.3, 5.2, 20.4, 8.6],
-                    [40.7, 5.2, 0.3, 8.6],
-                ];
-                const batch = new HeatmapCellBatch();
-                batch.resize(boxes.length);
-                for (const [index, [x, y, width, height]] of boxes.entries()) {
-                    batch.set(index, x, y, width, height, 'red', 1, 1, undefined);
-                }
-                batch.commit();
-
-                const canvasCtx = document.createElement('canvas').getContext('2d')!;
-                const fillRect = vi.spyOn(canvasCtx, 'fillRect');
-                const fillRects = (devicePixelRatio: number) => {
-                    fillRect.mockClear();
-                    const renderCtx = {
-                        ctx: canvasCtx,
-                        direction: 'ltr' as const,
-                        width: 100,
-                        height: 50,
-                        devicePixelRatio,
-                        logger: testLogger,
-                        debugNodes: {},
-                    };
-                    batch.preRender(renderCtx);
-                    batch.render(renderCtx);
-                    return fillRect.mock.calls;
-                };
-
-                expect(fillRects(1)).toEqual([
-                    [10, 5, 21, 9],
-                    [41, 5, 1, 9],
-                ]);
-                expect(fillRects(2)).toEqual([
-                    [10.5, 5, 20, 9],
-                    [40.5, 5, 0.5, 9],
-                ]);
-                expect(fillRects(1)).toEqual([
-                    [10, 5, 21, 9],
-                    [41, 5, 1, 9],
-                ]);
-            });
-
             const SVG_IDS = /id="[^"]*"|url\(#[^)]*\)/g;
             const toSvg = (c: Chart) => c.ctx.scene.toSVG()!.replace(SVG_IDS, '');
 
