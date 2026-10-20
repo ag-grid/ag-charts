@@ -111,7 +111,13 @@ const POLAR_SHAPES = ['circle', 'polygon'] as const;
 // In proxy order. The `target` line has no listener at any level, so it has no proxy.
 const KEYBOARD_POLAR: Array<{ params: CrossLineParams; text: string; levels: Level[] }> = [
     {
-        params: { axisId: 'angle', direction: 'angle', crossLineId: 'band', crossLineType: 'range', range: ['Mar', 'Apr'] },
+        params: {
+            axisId: 'angle',
+            direction: 'angle',
+            crossLineId: 'band',
+            crossLineType: 'range',
+            range: ['Mar', 'Apr'],
+        },
         text: 'Peak Season, Mar - Apr',
         levels: ['crossLine', 'axis'],
     },
