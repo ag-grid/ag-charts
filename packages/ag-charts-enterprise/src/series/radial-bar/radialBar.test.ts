@@ -1060,4 +1060,34 @@ describe('RadialBarSeries', () => {
     });
 
     // Magnitude-invariance is omitted: the angle-number scale routes through Number, so MAX_VALUE-scaling overflows it.
+
+    describe('AG-18978 missing value', () => {
+        const QUARTERS = [`Q1'18`, `Q2'18`, `Q3'18`, `Q4'18`];
+
+        it.each([false, true])(
+            'should draw the other categories and leave a gap for a row without the angleKey property (stacked: %s)',
+            async (stacked) => {
+                const data = QUARTERS.map((quarter, index) => ({ quarter, iphone: 140 + index, ipad: 14 + index }));
+                delete (data[3] as Partial<(typeof data)[number]>).ipad;
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data,
+                        series: ['iphone', 'ipad'].map((angleKey) => ({
+                            type: 'radial-bar' as const,
+                            radiusKey: 'quarter',
+                            angleKey,
+                            stacked,
+                        })),
+                    })
+                );
+
+                const nodeData = chart.series[1].contextNodeData.nodeData as any[];
+                expect(nodeData).toHaveLength(QUARTERS.length);
+                for (const [index, { clipSector }] of nodeData.entries()) {
+                    const drawn = Number.isFinite(clipSector.startAngle) && Number.isFinite(clipSector.endAngle);
+                    expect(drawn).toBe(index !== 3);
+                }
+            }
+        );
+    });
 });
