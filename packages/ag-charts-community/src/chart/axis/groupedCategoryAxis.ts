@@ -778,6 +778,11 @@ export class GroupedCategoryAxis extends CategoryAxis<
         this.scale.paddingOuter = this.scale.paddingInner / 2;
     }
 
+    // Its multi-depth layout is computed by its own `calculateLayout()`, not by the cached `calculateTickLayout()`.
+    protected override get tickLayoutIgnoresData() {
+        return false;
+    }
+
     override processData() {
         const { direction } = this;
         const flatDomains = this.boundSeries

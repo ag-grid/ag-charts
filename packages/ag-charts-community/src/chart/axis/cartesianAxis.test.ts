@@ -18,9 +18,13 @@ import {
     createChart,
     deproxy,
     expectWarningsCalls,
+    getAxisLabelTexts,
+    getAxisTickLayout,
+    getAxisTickLayouts,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAxisTickLayout,
     waitForChartStability,
 } from '../test/utils';
 
@@ -3593,6 +3597,397 @@ describe('CartesianAxis', () => {
                 // nothing about whether the option reached the segments.
                 const [top, , bottom] = boxes;
                 expect(bottom.y).toBeGreaterThan(top.y + 1);
+            });
+        });
+    });
+
+    describe('tick layout across a data update', () => {
+        type Row = { x: number | string; y: number };
+        const numberAxes = {
+            x: { type: 'number', position: 'bottom', nice: false },
+            y: { type: 'number', position: 'left' },
+        };
+        const categoryAxes = {
+            x: { type: 'category', position: 'bottom' },
+            y: { type: 'number', position: 'left' },
+        };
+        const series = [{ type: 'line', xKey: 'x', yKey: 'y' }];
+
+        const sequence = (from: number, count: number, y: (i: number) => number = (i) => i): Row[] =>
+            Array.from({ length: count }, (_, i) => ({ x: from + i, y: y(from + i) }));
+        const categories = (from: number, count: number, y: (i: number) => number = (i) => i): Row[] =>
+            Array.from({ length: count }, (_, i) => ({ x: `Item ${from + i}`, y: y(from + i) }));
+        const alternating = (shift: number) => (i: number) => ((i + shift) % 2) * 10;
+
+        type Size = { width: number; height: number };
+
+        const freshCharts: AgChartInstance[] = [];
+        const autoSizedContainers: HTMLElement[] = [];
+        afterEach(() => {
+            for (const fresh of freshCharts.splice(0)) fresh.destroy();
+            for (const container of autoSizedContainers.splice(0)) container.remove();
+        });
+
+        const create = (options: Record<string, unknown>) =>
+            createChart({ series, animation: { enabled: false }, ...options } as AgCartesianChartOptions);
+
+        const update = async (delta: Record<string, unknown>) => {
+            await chart.updateDelta(delta);
+            await waitForChartStability(chart);
+        };
+
+        // Bespoke: no explicit width/height, so the chart takes the auto-size path that a container resize drives.
+        // `updateDelta({ width })` would drop the layout cache; only this path reaches the cache key's range check.
+        const createAutoSized = async (options: Record<string, unknown>, size: { width: number; height: number }) => {
+            const container = getDocument().createElement('div');
+            getDocument().body.append(container);
+            autoSizedContainers.push(container);
+            const instance = AgCharts.create({
+                container,
+                series,
+                animation: { enabled: false },
+                ...options,
+            } as AgCartesianChartOptions);
+            freshCharts.push(instance);
+            await resizeContainer(instance, size);
+            return instance;
+        };
+
+        const resizeContainer = async (instance: AgChartInstance, { width, height }: Size) => {
+            const internal = deproxy(instance);
+            internal.ctx.domManager.containerSize = { width, height, pixelRatio: 1 };
+            internal.ctx.eventsHub.emit('dom:resize', null);
+            await waitForChartStability(instance);
+        };
+
+        /**
+         * Asserts the chart is indistinguishable from one created from `options`, which never reused a layout. The test
+         * canvas fixes a created chart's size, so a different `size` is applied after creation, which drops its layouts.
+         */
+        const expectMatchesFresh = async (
+            options: Record<string, unknown>,
+            size?: { width: number; height?: number }
+        ) => {
+            const fresh = await create(options);
+            freshCharts.push(fresh);
+            if (size != null) {
+                await fresh.updateDelta(size);
+                await waitForChartStability(fresh);
+            }
+            expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
+        };
+
+        it.each([
+            { name: 'number axes', axes: numberAxes, rows: sequence },
+            { name: 'category x axis', axes: categoryAxes, rows: categories },
+        ])('matches a fresh chart after a row is added ($name)', async ({ axes, rows }) => {
+            const data = (count: number) => rows(0, count, (i) => i * 7);
+            chart = await create({ axes, data: data(10) });
+            const before = getAxisTickLayouts(chart);
+
+            await update({ data: data(11) });
+
+            await expectMatchesFresh({ axes, data: data(11) });
+            expect(getAxisTickLayouts(chart)).not.toEqual(before);
+        });
+
+        it('extends the y axis when an added row lies outside its range', async () => {
+            const data = [...sequence(0, 10), { x: 10, y: 1000 }];
+            chart = await create({ axes: numberAxes, data: sequence(0, 10) });
+            expect(getAxisLabelTexts(chart, 'left')).toEqual(['10', '8', '6', '4', '2', '0']);
+
+            await update({ data });
+
+            await expectMatchesFresh({ axes: numberAxes, data });
+            expect(getAxisLabelTexts(chart, 'left')[0]).toBe('1000');
+        });
+
+        it.each([
+            { name: 'number axes', axes: numberAxes, rows: sequence },
+            { name: 'category x axis', axes: categoryAxes, rows: categories },
+        ])('matches a fresh chart on every tick of a rolling window ($name)', async ({ axes, rows }) => {
+            const y = (i: number) => (i * 37) % 50;
+            chart = await create({ axes, data: rows(0, 12, y) });
+
+            for (let from = 1; from <= 6; from++) {
+                await update({ data: rows(from, 12, y) });
+                await expectMatchesFresh({ axes, data: rows(from, 12, y) });
+            }
+        });
+
+        it('does not recalculate the y ticks while the y domain is unchanged, and does when it changes', async () => {
+            chart = await create({ axes: numberAxes, data: sequence(0, 10, alternating(0)) });
+            const before = getAxisTickLayout(chart, 'left');
+            const yTickLayout = spyOnAxisTickLayout(chart, 'left');
+
+            await update({ data: sequence(0, 10, alternating(1)) });
+
+            expect(yTickLayout).not.toHaveBeenCalled();
+            expect(getAxisTickLayout(chart, 'left')).toEqual(before);
+
+            await update({ data: sequence(0, 10, (i) => (i % 2) * 100) });
+
+            expect(yTickLayout).toHaveBeenCalled();
+            expect(getAxisLabelTexts(chart, 'left')).toContain('100');
+        });
+
+        it('keeps the y ticks when a row is added within the y range, and recalculates the x ticks', async () => {
+            chart = await create({ axes: numberAxes, data: sequence(0, 10, alternating(0)) });
+            const yTickLayout = spyOnAxisTickLayout(chart, 'left');
+            const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+
+            await update({ data: sequence(0, 11, alternating(0)) });
+
+            expect(yTickLayout).not.toHaveBeenCalled();
+            expect(xTickLayout).toHaveBeenCalled();
+            await expectMatchesFresh({ axes: numberAxes, data: sequence(0, 11, alternating(0)) });
+        });
+
+        it('keeps the category x ticks when only the values change', async () => {
+            chart = await create({ axes: categoryAxes, data: categories(0, 8, alternating(0)) });
+            const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+
+            await update({ data: categories(0, 8, alternating(1)) });
+
+            expect(xTickLayout).not.toHaveBeenCalled();
+            await expectMatchesFresh({ axes: categoryAxes, data: categories(0, 8, alternating(1)) });
+        });
+
+        it('follows a new category order', async () => {
+            chart = await create({ axes: categoryAxes, data: categories(0, 4) });
+
+            await update({ data: categories(0, 4).reverse() });
+
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 3', 'Item 2', 'Item 1', 'Item 0']);
+        });
+
+        it('re-runs a label formatter on a data update that leaves the domain unchanged', async () => {
+            let suffix = 'a';
+            const formatter = ({ value }: { value: unknown }) => `${String(value)}${suffix}`;
+            const axes = {
+                x: { type: 'category', position: 'bottom', label: { formatter } },
+                y: { type: 'number', position: 'left', label: { formatter } },
+            };
+            chart = await create({ axes, data: categories(0, 3, alternating(0)) });
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0a', 'Item 1a', 'Item 2a']);
+
+            suffix = 'b';
+            await update({ data: categories(0, 3, alternating(1)) });
+
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0b', 'Item 1b', 'Item 2b']);
+            expect(getAxisLabelTexts(chart, 'left').every((text) => text.endsWith('b'))).toBe(true);
+        });
+
+        it('re-runs a label itemStyler on a data update that leaves the domain unchanged', async () => {
+            let color = 'red';
+            const axes = {
+                x: { type: 'category', position: 'bottom', label: { itemStyler: () => ({ color }) } },
+                y: { type: 'number', position: 'left' },
+            };
+            chart = await create({ axes, data: categories(0, 3, alternating(0)) });
+            const bottomFills = () => getAxisTickLayout(chart, 'bottom').labels.map((label) => label.fill);
+            expect(bottomFills()).toEqual(['red', 'red', 'red']);
+
+            color = 'blue';
+            await update({ data: categories(0, 3, alternating(1)) });
+
+            expect(bottomFills()).toEqual(['blue', 'blue', 'blue']);
+        });
+
+        it('relabels object categories mutated in place', async () => {
+            const items = Array.from({ length: 3 }, (_, i) => ({ name: `Item ${i}`, toString: () => items[i].name }));
+            const data = () => items.map((item, i) => ({ x: item, y: i }));
+            chart = await create({ axes: categoryAxes, data: data() });
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Item 1', 'Item 2']);
+
+            items[1].name = 'Renamed';
+            await update({ data: data() });
+
+            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Renamed', 'Item 2']);
+        });
+
+        it.each([
+            { name: 'a reversed axis', axisOptions: { reverse: true } },
+            { name: 'a changed category padding', axisOptions: { paddingInner: 0.8, paddingOuter: 0.4 } },
+        ])('applies $name after a data update that kept the domain', async ({ axisOptions }) => {
+            chart = await create({ axes: categoryAxes, data: categories(0, 4, alternating(0)) });
+            await update({ data: categories(0, 4, alternating(1)) });
+
+            await update({ axes: { x: axisOptions } });
+
+            await expectMatchesFresh({
+                axes: { ...categoryAxes, x: { ...categoryAxes.x, ...axisOptions } },
+                data: categories(0, 4, alternating(1)),
+            });
+        });
+
+        // A container resize never drops the layout cache, so only the range in the cache key can catch it.
+        it.each([
+            {
+                name: 'a resize after a data update',
+                steps: [{ data: categories(0, 6, alternating(1)) }, { size: { width: 400, height: 300 } }],
+            },
+            {
+                name: 'a resize and a data update together',
+                steps: [{ data: categories(0, 6, alternating(1)), size: { width: 400, height: 300 } }],
+            },
+            {
+                name: 'resizes between data updates',
+                steps: [
+                    { size: { width: 300, height: 300 } },
+                    { data: categories(0, 6, alternating(1)) },
+                    { size: { width: 900, height: 300 } },
+                    { data: categories(0, 6, alternating(0)) },
+                ],
+            },
+        ])('has no stale axis after $name', async ({ steps }) => {
+            const initial = { width: 600, height: 400 };
+            const options = { axes: categoryAxes, data: categories(0, 6, alternating(0)) };
+            const instance = await createAutoSized(options, initial);
+            const before = getAxisTickLayouts(instance);
+
+            let data: Row[] = options.data;
+            let size: Size = initial;
+            for (const step of steps) {
+                data = step.data ?? data;
+                size = step.size ?? size;
+                if (step.data != null) await instance.updateDelta({ data });
+                if (step.size != null) await resizeContainer(instance, step.size);
+                await waitForChartStability(instance);
+            }
+
+            const fresh = await createAutoSized({ ...options, data }, size);
+            expect(getAxisTickLayouts(instance)).toEqual(getAxisTickLayouts(fresh));
+            expect(getAxisTickLayouts(instance)).not.toEqual(before);
+        });
+
+        describe('with a band-aligned axis and a fixed-width series', () => {
+            const options = (y: (i: number) => number) => ({
+                axes: {
+                    x: { type: 'category', position: 'bottom', bandAlignment: 'end' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', width: 20 }],
+                data: categories(0, 5, y),
+            });
+            const wide = (i: number) => (i + 1) * 100_000;
+
+            it('has no stale axis when the y labels widen, which moves the range without resizing it', async () => {
+                chart = await create(options((i) => i));
+                const before = getAxisTickLayouts(chart);
+
+                await update({ data: categories(0, 5, wide) });
+
+                await expectMatchesFresh(options(wide));
+                expect(getAxisTickLayouts(chart)).not.toEqual(before);
+            });
+
+            it('has no stale axis when the container is resized and then the y labels widen', async () => {
+                const instance = await createAutoSized(
+                    options((i) => i),
+                    { width: 600, height: 400 }
+                );
+
+                await resizeContainer(instance, { width: 900, height: 400 });
+                await instance.updateDelta({ data: categories(0, 5, wide) });
+                await waitForChartStability(instance);
+
+                const fresh = await createAutoSized(options(wide), { width: 900, height: 400 });
+                expect(getAxisTickLayouts(instance)).toEqual(getAxisTickLayouts(fresh));
+            });
+        });
+
+        describe('with an input other than the domain and range', () => {
+            const stable = sequence(0, 9, alternating(0));
+            const moved = sequence(0, 9, alternating(1));
+
+            it.each([
+                { name: 'alone', data: stable },
+                { name: 'with a data update', data: moved },
+            ])('matches a fresh chart after a chart formatter is added ($name)', async ({ data }) => {
+                const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}!` };
+                chart = await create({ axes: numberAxes, data: stable });
+
+                await update({ formatter, data });
+
+                await expectMatchesFresh({ axes: numberAxes, data, formatter });
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10!');
+            });
+
+            it('matches a fresh chart after a chart formatter is removed', async () => {
+                const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}!` };
+                chart = await create({ axes: numberAxes, data: stable, formatter });
+
+                await update({ formatter: undefined });
+
+                await expectMatchesFresh({ axes: numberAxes, data: stable });
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10');
+            });
+
+            it('re-runs a chart formatter on a data update that leaves the domain unchanged', async () => {
+                let suffix = 'a';
+                const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}${suffix}` };
+                chart = await create({ axes: numberAxes, data: stable, formatter });
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10a');
+
+                suffix = 'b';
+                await update({ data: moved });
+
+                await expectMatchesFresh({ axes: numberAxes, data: moved, formatter });
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10b');
+            });
+
+            it('re-measures an axis title whose formatter changes text on a data update that leaves the domain unchanged', async () => {
+                let text = 'Short';
+                const axes = {
+                    ...numberAxes,
+                    y: { ...numberAxes.y, title: { text: 'Title', formatter: () => text } },
+                };
+                chart = await create({ axes, data: stable });
+
+                text = 'Three\nlines\nof text';
+                await update({ data: moved });
+
+                const fresh = await create({ axes, data: moved });
+                freshCharts.push(fresh);
+                expect(deproxy(chart).seriesRect).toEqual(deproxy(fresh).seriesRect);
+                expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
+            });
+
+            it.each([
+                { name: 'alone', data: stable },
+                { name: 'with a data update', data: moved },
+            ])('matches a fresh chart after the direction becomes right-to-left ($name)', async ({ data }) => {
+                const axes = {
+                    ...numberAxes,
+                    x: { ...numberAxes.x, label: { textAlign: 'start' } },
+                };
+                chart = await create({ axes, data: stable });
+
+                await update({ enableRtl: true, data });
+
+                await expectMatchesFresh({ axes, data, enableRtl: true });
+            });
+
+            it.each([
+                { name: 'alone', data: stable },
+                { name: 'with a data update', data: moved },
+            ])('hides the edge label that the padding no longer fits ($name)', async ({ data }) => {
+                const axes = {
+                    ...numberAxes,
+                    x: { ...numberAxes.x, label: { fontSize: 40 } },
+                };
+                const roomOnRight = { left: 0, right: 80, top: 20, bottom: 20 };
+                const roomOnLeft = { left: 80, right: 0, top: 20, bottom: 20 };
+                chart = await create({ axes, data: stable, padding: roomOnRight });
+                const labelled = () =>
+                    getAxisTickLayout(chart, 'bottom').labels.filter((label) => label.text !== '').length;
+                const before = labelled();
+
+                await update({ padding: roomOnLeft, data });
+
+                await expectMatchesFresh({ axes, data, padding: roomOnLeft });
+                expect(labelled()).toBeLessThan(before);
             });
         });
     });
