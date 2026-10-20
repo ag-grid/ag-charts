@@ -42,6 +42,18 @@ function toPolygonPoints(angles: readonly number[], radius: number): Point[] {
     return angles.map((angle) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) }));
 }
 
+/** A closed circle at `outer`, and another at `inner` when it is above zero. */
+function traceCircleRing(path: ExtendedPath2D, outer: number, inner: number) {
+    path.moveTo(outer, 0);
+    path.arc(0, 0, outer, 0, 2 * Math.PI);
+    path.closePath();
+    if (inner > 0) {
+        path.moveTo(inner, 0);
+        path.arc(0, 0, inner, 0, 2 * Math.PI);
+        path.closePath();
+    }
+}
+
 /** Moves the first and last points `distance` further along their edges, away from the open polyline. */
 function extendEnds(points: Point[], distance: number) {
     if (points.length < 2) return;
@@ -219,6 +231,11 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
         // Widens the ends by the tolerance at the outer arc, so the region stays a sector.
         const startAngle = sector.startAngle - tolerance / outer;
         const endAngle = sector.endAngle + tolerance / outer;
+        // `arc` would wrap a sweep past a full turn down to a sliver.
+        if (endAngle - startAngle >= 2 * Math.PI) {
+            traceCircleRing(path, outer, inner);
+            return true;
+        }
         path.moveTo(outer * Math.cos(startAngle), outer * Math.sin(startAngle));
         path.arc(0, 0, outer, startAngle, endAngle);
         if (inner > 0) {
@@ -262,14 +279,7 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
 
         const outer = sector.outerRadius + tolerance;
         const inner = Math.max(0, sector.innerRadius - tolerance);
-        path.moveTo(outer, 0);
-        path.arc(0, 0, outer, 0, 2 * Math.PI);
-        path.closePath();
-        if (inner > 0) {
-            path.moveTo(inner, 0);
-            path.arc(0, 0, inner, 0, 2 * Math.PI);
-            path.closePath();
-        }
+        traceCircleRing(path, outer, inner);
         return true;
     }
 
