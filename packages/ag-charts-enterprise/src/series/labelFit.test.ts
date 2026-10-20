@@ -1477,8 +1477,14 @@ describe('series label fit', () => {
             );
             const series = chart.series[0];
             const cells = new Map<number, BBox>();
-            for (const rect of series.datumSelection.nodes()) {
-                cells.set(rect.datum.datumIndex, Transformable.toCanvas(rect));
+            // Read from the node data, since a plain heatmap paints its cells from one batched node.
+            for (const { datumIndex, point, width, height } of series.getNodeData()) {
+                const topLeft = Transformable.toCanvasPoint(
+                    series.contentGroup,
+                    point.x - width / 2,
+                    point.y - height / 2
+                );
+                cells.set(datumIndex, { x: topLeft.canvasX, y: topLeft.canvasY, width, height });
             }
             const labels = (series.labelSelection.nodes() as any[]).filter((node) => node.visible && node.text !== '');
             expect(labels.length).toBe(cells.size);

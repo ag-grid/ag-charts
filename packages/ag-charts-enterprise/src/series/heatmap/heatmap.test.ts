@@ -2393,7 +2393,8 @@ describe('HeatmapSeries', () => {
         };
 
         it('repaints the cells in their new colours without rebuilding their paths', async () => {
-            chart = deproxy(await createEnterpriseChart(rawOptions()));
+            // Rounded corners keep every cell a `Rect` of its own, which the cell batch would otherwise replace.
+            chart = deproxy(await createEnterpriseChart(rawOptions({ cornerRadius: 2 })));
             const before = cellFills(chart);
             const updatePaths = cellRects(chart).map((rect) => vi.spyOn(rect as Rect, 'updatePath'));
             const updated = () => updatePaths.filter((spy) => spy.mock.calls.length > 0).length;
@@ -2599,7 +2600,9 @@ describe('HeatmapSeries', () => {
         }
 
         it('rebuilds and restyles only the updated cell', async () => {
-            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
+            // Rounded corners keep every cell a `Rect` of its own, which the cell batch would otherwise replace.
+            const rounded = { cornerRadius: 2 };
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, rounded)));
             const before = cells(chart);
             const nodes = rects(chart);
             const spy = spyOnCellRebuilds();
@@ -2615,7 +2618,7 @@ describe('HeatmapSeries', () => {
 
             const after = cells(chart);
             expect(after).not.toEqual(before);
-            expect(after).toEqual(await freshCells(withUpdates(UPDATED('1:1', 7))));
+            expect(after).toEqual(await freshCells(withUpdates(UPDATED('1:1', 7)), rounded));
             expect(rects(chart).every((rect, i) => rect === nodes[i])).toBe(true);
         });
 
