@@ -38,13 +38,23 @@ async function popPartialClear(page: Page) {
     });
 }
 
-/** The pixels that the visible chart canvas holds. */
-function readPixels(page: Page) {
-    return page.evaluate(() => {
+/** Keeps the pixels that the visible chart canvas holds, in the page, so only a count crosses to the test. */
+function keepPixels(page: Page, key: 'partial' | 'full') {
+    return page.evaluate((slot) => {
         const canvas = document.querySelector<HTMLCanvasElement>('#myChart canvas')!;
         const { width, height } = canvas;
         const { data } = canvas.getContext('2d')!.getImageData(0, 0, width, height);
-        return { width, height, data: Array.from(data) };
+        ((window as any).agE2EPixels ??= {})[slot] = { width, height, data };
+    }, key);
+}
+
+/** The size of the two kept frames, and the number of bytes in which they differ. */
+function comparePixels(page: Page) {
+    return page.evaluate(() => {
+        const { partial, full } = (window as any).agE2EPixels;
+        let differing = 0;
+        for (let i = 0; i < full.data.length; i++) if (full.data[i] !== partial.data[i]) differing++;
+        return { partial: [partial.width, partial.height], full: [full.width, full.height], differing };
     });
 }
 
@@ -71,16 +81,15 @@ test.describe('heatmap partial repaint', () => {
                     await waitForAllChartUpdates(page);
                     // The frame must have been a partial one, or the comparison below proves nothing.
                     expect(await popPartialClear(page)).toBe(true);
-                    const partial = await readPixels(page);
+                    await keepPixels(page, 'partial');
 
                     await page.evaluate(() => (window as any).agE2E.forceFullRedraw());
                     await waitForAllChartUpdates(page);
                     expect(await popPartialClear(page)).toBe(false);
-                    const full = await readPixels(page);
+                    await keepPixels(page, 'full');
 
-                    expect(full.width).toBe(partial.width);
-                    expect(full.height).toBe(partial.height);
-                    const differing = full.data.reduce((n, byte, i) => n + (byte === partial.data[i] ? 0 : 1), 0);
+                    const { partial, full, differing } = await comparePixels(page);
+                    expect(full).toEqual(partial);
                     expect(differing).toBe(0);
                 }
             });

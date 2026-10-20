@@ -444,7 +444,9 @@ describe('Group', () => {
 
         it('places the region of a node under a translated group', () => {
             const { frame, node, inner, layerGroup } = setup();
-            const shifted = new (TranslatableGroup as any)({ name: 'shifted' }) as InstanceType<typeof TranslatableGroup>;
+            const shifted = new (TranslatableGroup as any)({ name: 'shifted' }) as InstanceType<
+                typeof TranslatableGroup
+            >;
             inner.appendChild(shifted);
             node.remove();
             shifted.appendChild(node);
