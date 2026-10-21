@@ -2038,7 +2038,7 @@ describe('HeatmapSeries', () => {
                 it('runs once per cell on creation and once per cell on each full update', async () => {
                     const itemStyler = vi.fn((_params: StylerParams) => result());
                     const options = rawOptions({ ...NO_TOOLTIP, itemStyler }, ROWS);
-                    await createStable(options);
+                    chart = deproxy(await createEnterpriseChart(options));
                     prepareEnterpriseTestOptions(options);
                     expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
 
@@ -2059,7 +2059,7 @@ describe('HeatmapSeries', () => {
                 const itemStyler = ({ datum }: StylerParams) =>
                     datum.spending % 2 === 0 ? undefined : { strokeWidth: width };
                 const options = rawOptions({ ...NO_TOOLTIP, itemStyler }, ROWS);
-                await createStable(options);
+                chart = deproxy(await createEnterpriseChart(options));
                 prepareEnterpriseTestOptions(options);
                 const unstyled = await freshCellFills(rawOptions({}, ROWS), strokeWidths);
 
@@ -2078,7 +2078,7 @@ describe('HeatmapSeries', () => {
                     highlightState === 'unhighlighted-item' ? { strokeWidth: 6 } : undefined
                 );
                 const options = rawOptions({ ...NO_TOOLTIP, itemStyler });
-                await createStable(options);
+                chart = deproxy(await createEnterpriseChart(options));
                 prepareEnterpriseTestOptions(options);
                 const before = strokeWidths(chart);
                 expect(before).not.toContain(6);
@@ -2100,7 +2100,7 @@ describe('HeatmapSeries', () => {
                 const itemStyler = ({ highlightState }: StylerParams) =>
                     highlightState === 'highlighted-item' ? { strokeWidth: 9 } : { strokeWidth: width };
                 const options = rawOptions({ ...NO_TOOLTIP, itemStyler });
-                await createStable(options);
+                chart = deproxy(await createEnterpriseChart(options));
                 prepareEnterpriseTestOptions(options);
                 await hoverDatumByIndex(chart, 0, 1);
                 expect(highlightWidths()).toEqual([9]);
@@ -2121,7 +2121,7 @@ describe('HeatmapSeries', () => {
                     highlightState === 'unhighlighted-item'
                         ? { strokeWidth: 7 }
                         : { strokeWidth: 1 + (datum.spending >= 30 ? 1 : 0) };
-                await createStable(rawOptions({ ...NO_TOOLTIP, itemStyler }));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, itemStyler })));
                 await hoverDatumByIndex(chart, 0, 0);
                 expect(strokeWidths(chart)).toEqual([7, 7, 7, 7]);
                 await hoverAway();
@@ -2135,7 +2135,7 @@ describe('HeatmapSeries', () => {
             it('applies a selection over cells whose styler returns nothing, and clears it again', async () => {
                 const itemStyler = vi.fn(() => undefined);
                 const options = rawOptions({ ...NO_TOOLTIP, selection: SELECTION, itemStyler });
-                await createStable(options);
+                chart = deproxy(await createEnterpriseChart(options));
                 prepareEnterpriseTestOptions(options);
                 const unselected = cellFills(chart);
                 expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
@@ -2161,7 +2161,9 @@ describe('HeatmapSeries', () => {
             it('keeps the styler result on cells alongside a selection', async () => {
                 const itemStyler = ({ datum }: StylerParams) =>
                     datum.person === 'B' ? { stroke: 'black', strokeWidth: 4 } : undefined;
-                await createStable(rawOptions({ ...NO_TOOLTIP, selection: SELECTION, itemStyler }));
+                chart = deproxy(
+                    await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, selection: SELECTION, itemStyler }))
+                );
                 const widths = strokeWidths(chart);
 
                 await select(1);
@@ -2172,7 +2174,9 @@ describe('HeatmapSeries', () => {
 
             it('does not run a styler that returned nothing again when a selection restyles the cells', async () => {
                 const itemStyler = vi.fn((_params: StylerParams) => undefined);
-                await createStable(rawOptions({ ...NO_TOOLTIP, selection: SELECTION, itemStyler }, ROWS));
+                chart = deproxy(
+                    await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, selection: SELECTION, itemStyler }, ROWS))
+                );
                 expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
 
                 await select(0);
@@ -2218,7 +2222,7 @@ describe('HeatmapSeries', () => {
                     ['returns a fill', () => ({ fill: 'lime' })],
                 ])('is skipped for a styler that %s when nothing is highlighted or selected', async (_name, result) => {
                     const options = rawOptions({ ...NO_TOOLTIP, itemStyler: result }, ROWS);
-                    await createStable(options);
+                    chart = deproxy(await createEnterpriseChart(options));
                     prepareEnterpriseTestOptions(options);
                     const writes = watchCellStyleWrites();
 
@@ -2230,7 +2234,7 @@ describe('HeatmapSeries', () => {
 
                 it('still happens on a full update while a cell is highlighted', async () => {
                     const options = rawOptions({ ...NO_TOOLTIP, itemStyler: () => undefined }, ROWS);
-                    await createStable(options);
+                    chart = deproxy(await createEnterpriseChart(options));
                     prepareEnterpriseTestOptions(options);
                     await hoverDatumByIndex(chart, 0, 1);
                     const writes = watchCellStyleWrites();
@@ -2246,7 +2250,7 @@ describe('HeatmapSeries', () => {
                         { ...NO_TOOLTIP, selection: SELECTION, itemStyler: () => undefined },
                         ROWS
                     );
-                    await createStable(options);
+                    chart = deproxy(await createEnterpriseChart(options));
                     prepareEnterpriseTestOptions(options);
                     await select(0);
                     const writes = watchCellStyleWrites();
@@ -2266,7 +2270,7 @@ describe('HeatmapSeries', () => {
                     return { strokeWidth: 8 };
                 });
                 const options = rawOptions({ ...NO_TOOLTIP, itemStyler });
-                await createStable(options);
+                chart = deproxy(await createEnterpriseChart(options));
                 prepareEnterpriseTestOptions(options);
 
                 expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
@@ -2289,7 +2293,7 @@ describe('HeatmapSeries', () => {
                 resolvePartial.mock.calls.filter(([, value]) => value != null && 'fill' in value);
 
             async function updateWatchingResolvePartial(options: ReturnType<typeof rawOptions>) {
-                await createStable(options);
+                chart = deproxy(await createEnterpriseChart(options));
                 prepareEnterpriseTestOptions(options);
                 const resolvePartial = vi.spyOn(chart.series[0].ctx.optionsGraphService, 'resolvePartial');
                 chart.publicApi.update(options);
@@ -2326,7 +2330,7 @@ describe('HeatmapSeries', () => {
 
             it('forgets the remembered results when a data update restyles every cell', async () => {
                 const itemStyler = ({ datum }: StylerParams) => ({ strokeWidth: datum.spending / 10 });
-                await createStable(rawOptions({ itemStyler }));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ itemStyler })));
                 const clear = vi.spyOn(CallbackResultMemo.prototype, 'clear');
 
                 try {
