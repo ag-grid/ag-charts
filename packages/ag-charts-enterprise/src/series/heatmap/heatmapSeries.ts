@@ -436,7 +436,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         if (id === undefined) resetRememberedResults(this.options?.itemStyler);
     }
 
-    /** A transaction does not clear the datum callback cache, so a styler result cached for a changed datum would outlive it. */
+    /**
+     * A transaction leaves the datum callback cache alone, so touched datums are cleared one by one.
+     * Clearing the value-keyed memo only bounds its size.
+     */
     private resetStaleCallbackResults(
         previous: HeatmapBuildSignature | undefined,
         next: HeatmapBuildSignature,
