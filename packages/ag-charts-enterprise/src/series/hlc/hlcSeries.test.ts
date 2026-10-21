@@ -173,6 +173,23 @@ describe('HlcSeries', () => {
             expect(legendData[0].label.text).toBe('S&P 500');
         });
 
+        it('renders the high, close and low lines over the two bands as the symbol', async () => {
+            await renderSeries({ ...withSeries({ yName: 'HLC' }), theme: UP_DOWN_THEME, legend: { enabled: true } });
+            await compare();
+        });
+
+        it.each([
+            ['the series markers are enabled', { marker: { enabled: true } }],
+            ['the close marker is enabled', { item: { close: { marker: { enabled: true } } } }],
+        ])('renders the close line and marker as the symbol when %s', async (_name, overrides) => {
+            await renderSeries({
+                ...withSeries({ yName: 'HLC', ...overrides }),
+                theme: UP_DOWN_THEME,
+                legend: { enabled: true },
+            });
+            await compare();
+        });
+
         it('hides both bands, every stroke and the markers when the series is hidden', async () => {
             await renderSeries(withSeries({ marker: { enabled: true }, visible: false }));
             await compare();

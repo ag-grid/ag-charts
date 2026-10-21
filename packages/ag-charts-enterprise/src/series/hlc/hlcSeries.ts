@@ -45,6 +45,7 @@ import {
     aggregateOhlcDataFromDataModel,
     aggregateOhlcDataFromDataModelPartial,
 } from '../ohlc/ohlcAggregation';
+import { hlcBandsMarker } from './hlcLegendSymbol';
 import { type HlcContext, type HlcMarkerDatum, type HlcSeriesParams, prepareHlcPathAnimation } from './hlcUtil';
 
 // A bucket's close is its last datum's close, as ohlc takes it.
@@ -1306,9 +1307,14 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         );
     }
 
-    /** The legend symbol is the close line, the value the series is read by. */
+    // An enabled close marker takes over from the bands symbol: the close line, the value the series is read by.
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.getStyle(undefined).item.close;
+        const { item } = this.getStyle(undefined);
+        if (!this.options.item.close.marker.enabled) {
+            return { marker: hlcBandsMarker(item.high, item.low, item.close) };
+        }
+
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = item.close;
 
         return {
             marker: {
@@ -1336,16 +1342,20 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
             return [];
         }
 
-        const { id: seriesId, visible } = this;
-        const { closeKey, closeName, yName, legendItemName, showInLegend } = this.options;
-        const legendItemText = legendItemName ?? yName ?? closeName ?? closeKey;
+        const {
+            id: seriesId,
+            visible,
+            ctx: { legendManager },
+        } = this;
+        const { yName, legendItemName, showInLegend } = this.options;
+        const legendItemText = legendItemName ?? yName ?? seriesId;
         return [
             {
                 legendType: 'category',
                 id: seriesId,
-                itemId: closeKey,
+                itemId: seriesId,
                 seriesId,
-                enabled: visible,
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: seriesId }) ?? true),
                 label: { text: `${legendItemText}` },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
