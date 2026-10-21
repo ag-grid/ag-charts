@@ -1430,6 +1430,17 @@ describe('CartesianAxis', () => {
                 expect(getAxisThickness('left')).toBeGreaterThan(sizeLimit + label.spacing - 10);
             });
 
+            it('keeps a rotated leaf label whole when its rotated extent fits the room', async () => {
+                const leaves = ['Cargo', 'Depot', 'Yard'];
+                const options = groupedOptions('left', { maxWidth: 100, rotation: 30 }, undefined, leaves);
+                (options.axes as any).x.thickness = 70;
+                await renderChart(options);
+
+                const texts = getAxisLabelNodes(chart, 'left').map(getLabelText);
+                expect(leaves.every((leaf) => texts.includes(leaf))).toBe(true);
+                expect(getAxisThickness('left')).toBeLessThanOrEqual(70);
+            });
+
             it('lets labels overflow their band when avoidCollisions is false', async () => {
                 const leaves = ['Freight Hub', 'Cargo Depot', 'Supply Yard'];
                 const label = {
@@ -1442,6 +1453,23 @@ describe('CartesianAxis', () => {
                 await renderChart(groupedOptions('bottom', label, undefined, leaves), 200);
 
                 expect(getAxisLabelNodes(chart, 'bottom').map(getLabelText)).toEqual(leaves);
+            });
+        });
+
+        describe('rotated labels', () => {
+            it('keeps a rotated label whole when its rotated extent fits the room', async () => {
+                const labels = ['A', 'Cargo', 'Depot'];
+                const options = leftCategoryOptions({ maxWidth: 100, rotation: 30 }, labels);
+                (options.axes as any).x.thickness = 60;
+                await renderChart(options);
+
+                const nodes = getAxisLabelNodes(chart, 'left');
+                expect(nodes.map(getLabelText)).toEqual(labels);
+                for (const node of nodes) {
+                    expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(
+                        getAxis('left').chartLayout.sizeLimit
+                    );
+                }
             });
         });
 

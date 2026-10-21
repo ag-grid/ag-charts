@@ -16,7 +16,6 @@ import {
     createIdsGenerator,
     extent,
     extractDomain,
-    getInnerRectSize,
     getMaxInnerRectSize,
     hasRealChars,
     inRange,
@@ -41,7 +40,7 @@ import type { AxisPickDatum, LabelNodeDatum } from './axis';
 import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
-import { fitAxisLabel, isLabelFitEnabled, labelFitPolicy, labelTextRoom } from './generateTicksUtils';
+import { fitAxisLabel, isLabelFitEnabled, labelTextRoom, rotatedLabelFit } from './generateTicksUtils';
 import { type GroupedCategoryKey, type TreeLayout, treeLayout } from './tree';
 
 export const MIN_CATEGORY_SPACING = 5;
@@ -273,15 +272,13 @@ export class GroupedCategoryAxis extends CategoryAxis<
                     toRadians(rotation)
                 );
                 const along = depthOptionsAt.avoidCollisions ? maxWidth : Infinity;
-                let width = horizontal ? along : textRoom;
-                let height = horizontal ? textRoom : along;
-                if (rotation !== 0) ({ width, height } = getInnerRectSize(rotation, width, height));
                 const fitted = fitAxisLabel(
                     text,
-                    labelFitPolicy(
+                    rotatedLabelFit(
                         depthOptionsAt,
-                        Math.max(0, Math.min(width, depthOptionsAt.maxWidth ?? Infinity)),
-                        Math.max(0, Math.min(height, depthOptionsAt.maxHeight ?? Infinity)),
+                        rotation,
+                        horizontal ? along : textRoom,
+                        horizontal ? textRoom : along,
                         depthOptionsAt.wrapping
                     ),
                     { ...labelStyles, minimumFontSize: depthOptionsAt.minimumFontSize }
