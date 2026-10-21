@@ -115,7 +115,7 @@ describe('rect series redraw where nothing moves', () => {
 
                 expect(work.nodeDataBuilds).toBe(1);
                 expect(builds(c)).toBeGreaterThan(version);
-                (expect(ctx.snapshot()) as any).not.toMatchImage(before, { writeDiff: false });
+                expect(ctx.snapshot()).not.toMatchImage(before, { writeDiff: false });
             });
 
             it('redraws when the data array is mutated in place', async () => {

@@ -11,6 +11,7 @@ import {
     Node,
     type OffsetPoint,
     Rect,
+    type SegmentedGroup,
     Transformable,
     alignCentre,
     fromPairs,
@@ -386,6 +387,11 @@ export function getSeriesAggregationInternals(
     seriesIndex = 0
 ): SeriesAggregationInternals {
     return deproxy(chartOrProxy).series[seriesIndex] as unknown as SeriesAggregationInternals;
+}
+
+/** The group a cartesian series draws its data nodes into, for tests that compare its `segments` by identity. */
+export function getSeriesDataNodeGroup(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): SegmentedGroup {
+    return (deproxy(chartOrProxy).series[seriesIndex] as unknown as { dataNodeGroup: SegmentedGroup }).dataNodeGroup;
 }
 
 /**

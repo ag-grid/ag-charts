@@ -5,9 +5,9 @@ import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 import { AgCharts } from '../../../api/agCharts';
 import {
     countRectsMarkedDirty,
-    deproxy,
     expectNonBlank,
     getSeriesAggregationInternals,
+    getSeriesDataNodeGroup,
     measureRedrawWork,
     prepareTestOptions,
     setupMockCanvas,
@@ -75,7 +75,7 @@ describe('BarSeries redraw where nothing moves', () => {
 
         expect(work.nodeDataBuilds).toBe(1);
         expect(work.rectPathBuilds).toBeGreaterThan(0);
-        (expect(ctx.snapshot()) as any).not.toMatchImage(before, { writeDiff: false });
+        expect(ctx.snapshot()).not.toMatchImage(before, { writeDiff: false });
     });
 
     it('redraws when the data array is mutated in place', async () => {
@@ -104,7 +104,7 @@ describe('BarSeries redraw where nothing moves', () => {
             series: [{ type: 'bar', xKey: 'category', yKey: 'value', itemStyler: () => ({ fill: '#2e86de' }) }],
         });
         await settle(c, 200);
-        const { dataNodeGroup } = deproxy(c).series[0] as any;
+        const dataNodeGroup = getSeriesDataNodeGroup(c);
         const segments = dataNodeGroup.segments;
 
         const work = await measureRedrawWork(c, () => c.updateDelta({ data: makeData(200) }));
