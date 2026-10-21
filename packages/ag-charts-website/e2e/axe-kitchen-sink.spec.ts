@@ -17,7 +17,12 @@ test.describe('axe-kitchen-sink', () => {
         const captions = page.locator('div[role="button"].ag-charts-proxy-elem');
         await expect(captions).toHaveCount(3);
         for (const text of ['Regional Sales and Performance', '(units sold and financial indicators', 'Source:']) {
-            await expect(captions.filter({ hasText: text })).toHaveCount(1);
+            const caption = captions.filter({ hasText: text });
+            await expect(caption).toHaveCount(1);
+            // The context menu alone also makes a caption a button, but only a click listener makes it focusable
+            // (tabindex 0, not -1) with a pointer cursor.
+            await expect(caption).toHaveAttribute('tabindex', '0');
+            await expect(caption).toHaveCSS('cursor', 'pointer');
         }
     });
 
