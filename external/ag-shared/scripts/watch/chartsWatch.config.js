@@ -11,7 +11,8 @@ if ((process.env.BUILD_FWS ?? '0') !== '1') {
 // Ordering matters: tuples are processed sequentially (one nx run-many at a time).
 // The dev server serves dist/umd and dist/package, so build:umd and build:package are both
 // reloadable and listed first: the browser reloads once, after both are fresh. build:types
-// (slow tsc) follows every reloadable tuple so it never delays the reload.
+// (slow tsc) follows every reloadable tuple and runs in the background lane (see
+// `backgroundTargets`), so it never delays the reload or a later save.
 //
 // Fan-out: upstream changes trigger downstream rebuilds in dependency order. build:package
 // depends on ^build:package, so a core edit also rebuilds core's dist/package before the reload.
@@ -87,5 +88,7 @@ module.exports = {
         'build:watch',
         'generate-examples',
     ],
+    // Run only when nothing else is queued; a save stops them and re-queues them. Never reload targets.
+    backgroundTargets: ['build:types'],
     getProjectBuildTargets,
 };
