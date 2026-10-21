@@ -1428,6 +1428,8 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
     let reshaped = false;
     let lineWidth = 0;
     let totalHeight = 0;
+    // The empty line a segment's trailing whitespace broke onto, kept only if a later segment fills it.
+    let trailingWsLine: MeasuredTextSegment | undefined;
     const maxWidth = (height = 0) => lineMaxWidth(options, totalHeight, totalHeight + height);
 
     function truncateLastSegment() {
@@ -1482,6 +1484,8 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
         const cleanLines = wrappedLines.map(unguardTextEdges);
         const firstContentIndex = cleanLines.findIndex((line) => line.trim() !== '');
         const lastContentIndex = cleanLines.findLastIndex((line) => line.trim() !== '');
+        // A break inside the trailing whitespace ends the line at the last word, where the space draws nothing.
+        const brokeInTrailingWs = lastContentIndex !== -1 && lastContentIndex < cleanLines.length - 1;
 
         const lastIndex = cleanLines.length - 1;
         for (let i = 0; i < cleanLines.length; i++) {
@@ -1489,13 +1493,14 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
             if (leadingWs !== '' && i === firstContentIndex) {
                 cleanLine = leadingWs + cleanLine.trimStart();
             }
-            if (trailingWs !== '' && i === lastContentIndex) {
+            if (trailingWs !== '' && i === lastContentIndex && !brokeInTrailingWs) {
                 cleanLine = cleanLine.trimEnd() + trailingWs;
             }
             const textMetrics = measurer.measureText(cleanLine);
             const subSegment = { ...segment, text: cleanLine, textMetrics };
             if (i === lastIndex) {
                 lineWidth += textMetrics.width;
+                if (brokeInTrailingWs) trailingWsLine = subSegment;
             } else {
                 subSegment.text += '\n';
                 lineWidth = 0;
@@ -1565,13 +1570,26 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
         return true;
     }
 
+    // Drops the trailing-whitespace line when nothing followed onto it, leaving the break before it in place.
+    function dropEmptyTrailingWsLine() {
+        if (trailingWsLine == null || result.at(-1) !== trailingWsLine || trailingWsLine.text !== '') return false;
+        result.pop();
+        totalHeight -= trailingWsLine.lineHeight ?? trailingWsLine.textMetrics.height;
+        trailingWsLine = undefined;
+        return true;
+    }
+
     const { lineMetrics } = measureTextSegments(textSegments, options.font);
     for (let i = 0; i < lineMetrics.length; i++) {
         if (i > 0) {
-            appendLineBreak(result, options.font);
+            if (!dropEmptyTrailingWsLine()) appendLineBreak(result, options.font);
             lineWidth = 0;
         }
         if (!wrapLine(lineMetrics[i])) break;
+    }
+    if (dropEmptyTrailingWsLine()) {
+        const last = result.at(-1);
+        if (last != null && last.type !== 'image') last.text = last.text.replace(/\n$/, '');
     }
 
     return { result, reshaped, height: totalHeight };

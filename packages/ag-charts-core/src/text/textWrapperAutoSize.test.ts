@@ -9,6 +9,7 @@ import {
     fitLabelTextAutoSize,
     fontWithSize,
     labelTextAtShrinkRatio,
+    wrapTextOrSegments,
 } from './textWrapper';
 
 // Metrics scale with the font so the font-size search has something to search over; kept out of the
@@ -45,6 +46,7 @@ vi.mock('../rendering/textMeasurer', async (importOriginal) => {
 
 const ELLIPSIS = '…';
 const font = { fontSize: 20, fontFamily: 'sans-serif' } as const;
+const textOf = (segments: MeasuredSegment[]) => segments.map((s) => (s.type === 'image' ? '' : s.text)).join('');
 
 describe('fitLabelTextAutoSize', () => {
     it('keeps the configured size when no minimum is set', () => {
@@ -396,6 +398,23 @@ describe('fitLabelTextAutoSize turned', () => {
         expect(fitted.map((s) => (s.type === 'image' ? '' : s.text)).join('')).toMatch(/^a\s*fghi\s*d\s*e$/);
     });
 
+    it('finds a whole rich-text fit narrower than a width whose wrap loses the label', () => {
+        // At 128.8px 'j' fits after 'ab cdefg hi ' but its trailing space does not; at 100px every character
+        // fits in a 72 x 34.5 block spanning 79.2 x 68.2 at 33 degrees.
+        const segments = [
+            { text: 'ab cdefg hi ', fontSize: 9 },
+            { text: 'j ', fontSize: 14 },
+        ] as NormalisedContentSegment[];
+        const fit = {
+            maxHeight: 149,
+            wrapping: 'on-space',
+            overflowStrategy: 'hide',
+            rotated: { rotation: 33, width: 108, height: 167 },
+        } as const;
+        const fitted = fitLabelTextAutoSize(segments, fit, { fontSize: 10, fontFamily: 'sans-serif' }).text;
+        expect(textOf(fitted as MeasuredSegment[]).replaceAll(/\s/g, '')).toBe('abcdefghij');
+    });
+
     it('stops once the text breaks into no more lines, however much height the room has', () => {
         // Nearly flat, the unbounded room has height for thousands of lines, but an unbreakable word takes one.
         const fit = {
@@ -406,5 +425,38 @@ describe('fitLabelTextAutoSize turned', () => {
         measurerRequests.count = 0;
         expect(String(fitLabelTextAutoSize('x'.repeat(100), fit, small).text)).toMatch(/^x+…$/);
         expect(measurerRequests.count).toBeLessThan(100);
+    });
+});
+
+describe('wrapTextOrSegments edge whitespace', () => {
+    const base = { fontSize: 10, fontFamily: 'sans-serif' } as const;
+    const wrap = (segments: object[], maxWidth: number, overflow: 'hide' | 'ellipsis') =>
+        textOf(
+            wrapTextOrSegments(segments as NormalisedContentSegment[], {
+                font: base,
+                maxWidth,
+                textWrap: 'on-space',
+                overflow,
+            })
+        );
+
+    it('ends a line on the last word that fits when only its trailing space overflows', () => {
+        // 'ab cdefg hi ' is 108px and 'j' 14px, inside 128px; the space after 'j' would take the line to 136px.
+        const segments = [
+            { text: 'ab cdefg hi ', fontSize: 9 },
+            { text: 'j ', fontSize: 14 },
+        ];
+        for (const overflow of ['hide', 'ellipsis'] as const) {
+            expect(wrap(segments, 128, overflow).trimEnd()).toBe('ab cdefg hi j');
+        }
+    });
+
+    it('starts the next segment on a new line after a trailing space that did not fit', () => {
+        const segments = [
+            { text: 'ab cdefg hi ', fontSize: 9 },
+            { text: 'j ', fontSize: 14 },
+            { text: 'k', fontSize: 14 },
+        ];
+        expect(wrap(segments, 128, 'hide')).toMatch(/^ab cdefg hi j\s*\nk$/);
     });
 });
