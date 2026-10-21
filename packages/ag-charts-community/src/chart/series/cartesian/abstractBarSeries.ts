@@ -118,13 +118,14 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         return this.axes[direction];
     }
 
-    protected override visibleRangeSortOrder(axisKey: string, bucketed?: boolean): 1 | -1 | undefined {
+    protected override visibleRangeSortOrder(axisKey: string, bucketed: boolean): 1 | -1 | undefined {
         const categoryAxis = this.getCategoryAxis();
         // Category positions follow domain (insertion) order, not key value order.
         if (axisKey === 'xValue' && CategoryScale.is(categoryAxis?.scale)) {
             return categoryAxis.isReversed() ? -1 : 1;
         }
-        return super.visibleRangeSortOrder(axisKey, bucketed);
+        // Aggregation buckets are ordered by axis position, whatever the order of the data.
+        return bucketed ? 1 : super.visibleRangeSortOrder(axisKey, bucketed);
     }
 
     /**

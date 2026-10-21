@@ -467,8 +467,7 @@ export function createAggregationIndices(
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const domainCount = xValues.length;
 
-    // Pre-fill with sentinel values for continuous case (potentially sparse data), and in split mode, where a
-    // bucket can be empty on one side.
+    // Pre-fill with sentinels wherever a bucket can be empty: sparse continuous data, or one side of a split.
     if (continuous || split) {
         valueData.fill(nan);
         indexData.fill(AGGREGATION_INDEX_UNSET);
