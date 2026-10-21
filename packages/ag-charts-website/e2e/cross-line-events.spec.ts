@@ -8,6 +8,7 @@ import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     canvasToPageTransformer,
+    createConsoleLogs,
     gotoExample,
     locateCanvas,
     setupIntrinsicAssertions,
@@ -135,6 +136,75 @@ const KEYBOARD_POLAR: Array<{ params: CrossLineParams; text: string; levels: Lev
         params: { axisId: 'radius', direction: 'radius', crossLineId: 'ring', crossLineType: 'range', range: [7, 8] },
         text: '7 - 8',
         levels: ['crossLine'],
+    },
+];
+
+const CONTEXT_MENU = '.ag-charts-context-menu';
+const CONTEXT_MENU_ITEMS = `${CONTEXT_MENU}__item`;
+
+type ContextMenuCase = { crossLineId: string; arrowDowns: number; text: string; item: string; log: string };
+
+// In proxy order. Each `item` is the example's `cross-line` menu item and `log` is what its action prints.
+const CONTEXT_MENU_POLAR: ContextMenuCase[] = [
+    {
+        crossLineId: 'band',
+        arrowDowns: 0,
+        text: 'Q2 - Q3',
+        item: 'Say hello to range cross line band',
+        log: 'Hello angle-range undefined!',
+    },
+    {
+        crossLineId: 'spoke',
+        arrowDowns: 1,
+        text: 'Q1',
+        item: 'Say hello to line cross line spoke',
+        log: 'Hello angle-line Q1!',
+    },
+    {
+        crossLineId: 'threshold',
+        arrowDowns: 2,
+        text: '5',
+        item: 'Say hello to line cross line threshold',
+        log: 'Hello radius-line 5!',
+    },
+    {
+        crossLineId: 'ring',
+        arrowDowns: 3,
+        text: '7 - 8',
+        item: 'Say hello to range cross line ring',
+        log: 'Hello radius-range undefined!',
+    },
+];
+
+// One cross line of each direction and type. Every cross line has a proxy, as the chart listens for clicks.
+const CONTEXT_MENU_CARTESIAN: ContextMenuCase[] = [
+    {
+        crossLineId: 'first-lockdown',
+        arrowDowns: 0,
+        text: 'First lockdown, Mon Mar 23 2020 00:00:00 GMT+0000 (Coordinated Universal Time) - Mon Jun 01 2020 00:00:00 GMT+0000 (Coordinated Universal Time)',
+        item: 'Say hello to range cross line first-lockdown',
+        log: 'Hello x-range undefined!',
+    },
+    {
+        crossLineId: 'alpha-variant',
+        arrowDowns: 3,
+        text: 'Alpha, Tue Dec 01 2020 00:00:00 GMT+0000 (Coordinated Universal Time)',
+        item: 'Say hello to line cross line alpha-variant',
+        log: 'Hello x-line Tue Dec 01 2020 00:00:00 GMT+0000 (Coordinated Universal Time)!',
+    },
+    {
+        crossLineId: 'icu-capacity',
+        arrowDowns: 6,
+        text: 'ICU capacity (700 beds), 700',
+        item: 'Say hello to line cross line icu-capacity',
+        log: 'Hello y-line 700!',
+    },
+    {
+        crossLineId: 'surge-zone',
+        arrowDowns: 7,
+        text: 'Surge zone, 500 - 600',
+        item: 'Say hello to range cross line surge-zone',
+        log: 'Hello y-range undefined!',
     },
 ];
 
@@ -377,6 +447,127 @@ test.describe('cross-line-events', () => {
                             });
                         });
                     }
+                });
+            });
+        }
+    });
+    test.describe('keyboard context menu', () => {
+        const consoleLogs = createConsoleLogs();
+
+        // `expectNoListenerCalls` asserts that no cross line listener ran, as each example reports them differently.
+        function contextMenuTests(
+            cases: ContextMenuCase[],
+            screenshotPrefix: string,
+            expectNoListenerCalls: (page: Page) => Promise<void>
+        ) {
+            test.describe('press Tab 2 times', () => {
+                test.beforeEach(async ({ page }) => {
+                    await page.keyboard.press('Tab'); // -> series area
+                    await page.keyboard.press('Tab'); // -> first cross line
+                });
+
+                for (const { crossLineId, arrowDowns, text, item, log } of cases) {
+                    test.describe(`press ArrowDown ${arrowDowns} times`, () => {
+                        test.beforeEach(async ({ page }) => {
+                            for (let i = 0; i < arrowDowns; i++) {
+                                await page.keyboard.press('ArrowDown');
+                            }
+                            expect(await focusedText(page)).toBe(text);
+                        });
+
+                        test.describe('press ContextMenu', () => {
+                            test.beforeEach(async ({ page }) => {
+                                consoleLogs.clear();
+                                await page.keyboard.press('ContextMenu');
+                                await expect(page.locator(CONTEXT_MENU)).toBeVisible();
+                            });
+
+                            // The menu holds the focused cross line's item alone, whatever lies at its centre.
+                            test.describe('checks', () => {
+                                test('screenshot', async ({ page }) => {
+                                    await expectChartScreenshot(page, page, `${screenshotPrefix}-${crossLineId}.png`, {
+                                        animations: 'disabled',
+                                    });
+                                });
+                                test('items', async ({ page }) => {
+                                    await expect(page.locator(CONTEXT_MENU_ITEMS)).toHaveText(['Download', item]);
+                                });
+                                test('activeElement', async ({ page }) => {
+                                    expect(await page.evaluate(() => document.activeElement?.textContent)).toBe(
+                                        'Download'
+                                    );
+                                });
+                                test('listeners', async ({ page }) => {
+                                    await expectNoListenerCalls(page);
+                                });
+                            });
+
+                            test.describe('press Escape', () => {
+                                test.beforeEach(async ({ page }) => {
+                                    await page.keyboard.press('Escape');
+                                });
+
+                                test.describe('checks', () => {
+                                    test('menu', async ({ page }) => {
+                                        await expect(page.locator(CONTEXT_MENU)).toBeHidden();
+                                    });
+                                    test('textContent', async ({ page }) => {
+                                        expect(await focusedText(page)).toBe(text);
+                                    });
+                                });
+                            });
+
+                            test.describe('press ArrowDown, Enter', () => {
+                                test.beforeEach(async ({ page }) => {
+                                    await page.keyboard.press('ArrowDown'); // Download -> cross line item
+                                    await page.keyboard.press('Enter');
+                                });
+
+                                test.describe('checks', () => {
+                                    test('console', async () => {
+                                        await consoleLogs.expectLogs([log]);
+                                    });
+                                    test('listeners', async ({ page }) => {
+                                        await expectNoListenerCalls(page);
+                                    });
+                                });
+                            });
+                        });
+                    });
+                }
+            });
+        }
+
+        test.describe('cartesian', () => {
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(
+                    page,
+                    toExamplePageUrl('events-e2e', 'cross-line-contextmenu-event-cartesian', 'vanilla').url
+                );
+            });
+
+            // The example's listeners log to the console with a `[listener name]` prefix.
+            contextMenuTests(CONTEXT_MENU_CARTESIAN, 'cross-line-contextmenu-cartesian', async (page) => {
+                await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+                expect(consoleLogs.getLogs().filter((log) => log.startsWith('['))).toEqual([]);
+            });
+        });
+
+        for (const shape of POLAR_SHAPES) {
+            test.describe(`polar shape ${shape}`, () => {
+                test.beforeEach(async ({ page }) => {
+                    await gotoExample(
+                        page,
+                        toExamplePageUrl('events-e2e', 'cross-line-contextmenu-event-polar', 'vanilla').url
+                    );
+                    await page.locator('#angleShape').selectOption(shape);
+                    await page.locator('#radiusShape').selectOption(shape);
+                    await page.locator('#update').click();
+                    await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+                });
+
+                contextMenuTests(CONTEXT_MENU_POLAR, `cross-line-contextmenu-polar-${shape}`, async (page) => {
+                    expect(await popEvents(page)).toEqual([]);
                 });
             });
         }
