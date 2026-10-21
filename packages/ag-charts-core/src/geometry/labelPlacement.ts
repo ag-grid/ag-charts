@@ -14,6 +14,7 @@ import {
     fontWithSize,
     hasRealChars,
     isErased,
+    labelTextAtShrinkRatio,
     resolveMinimumFontSize,
 } from '../text/textWrapper';
 import type { Point, SizedPoint } from '../types/scene';
@@ -2002,9 +2003,24 @@ function shrinkPositionedCandidate(
         return false;
     }
     const styledFont = fitTo.font;
-    const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
     const { width, height } = shrinkReduction;
-    if (!refitCandidateShrunk(fit, styledFont ?? fit.font, source, fitTo.padding, width, height)) return false;
+    // Truncated at the floor size, never above it: a label only gives up text once it can shrink no further.
+    const font = styledFont ?? fit.font;
+    const floor =
+        fit.policy.minimumFontSize == null
+            ? font.fontSize
+            : resolveMinimumFontSize(fit.policy.minimumFontSize, font.fontSize);
+    if (floor < font.fontSize) {
+        const floorFont = fontWithSize(font, floor);
+        const floorFit = { ...fit, text: labelTextAtShrinkRatio(fit.text, fit.policy.minimumFontSize, font, 0).text };
+        if (!refitCandidateShrunk(floorFit, floorFont, undefined, fitTo.padding, width, height)) {
+            return false;
+        }
+        candidateFontSize = floor;
+    } else {
+        const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
+        if (!refitCandidateShrunk(fit, font, source, fitTo.padding, width, height)) return false;
+    }
     resizeCandidateBox(c, candidateLabel.width, candidateLabel.height);
     slideShrunkCandidate(rawRegion, c.region != null && c.flushToRegion !== false);
     return shrunkCandidateIsClear(region, inflate);
@@ -2733,15 +2749,50 @@ function fitPositionedCandidate(
     const floorFont = fontWithSize(font, floor);
     keptLineContainer.width = fitTo.container.width;
     keptLineContainer.height = Math.max(fitTo.container.height, drawnLineHeight(floorFont));
-    if (fitLabelToCandidate(fit, font, source, keptLineContainer, fontSearch) && hasRealChars(fittedLabel.text)) {
-        return true;
+    // Every segment at its own floor too, so no part of the label grows back as its container shrinks.
+    const floorFit = { ...fit, text: labelTextAtShrinkRatio(fit.text, fit.policy.minimumFontSize, font, 0).text };
+    // Too narrow for even one character: overflow by the least a truncated label can show.
+    if (!fitKeptAtFloor(floorFit, floorFont)) {
+        keptLineContainer.width = Math.max(keptLineContainer.width, leadCharacterWidth(floorFit.text, floorFont));
+        if (
+            !fitKeptAtFloor(floorFit, floorFont) &&
+            !fitLabelToCandidate(floorFit, floorFont, undefined, undefined, false)
+        ) {
+            return false;
+        }
     }
-    // Too narrow for even one character: the text overflows its container whole, at its smallest size.
-    if (!fitLabelToCandidate(fit, floorFont, undefined, undefined, false)) return false;
     if (floor < font.fontSize) {
         fittedLabel.fontSize = floor;
     }
     return true;
+}
+
+function fitKeptAtFloor(fit: LabelFitDescriptor, floorFont: FontOptions): boolean {
+    return fitLabelToCandidate(fit, floorFont, undefined, keptLineContainer, false) && hasRealChars(fittedLabel.text);
+}
+
+/**
+ * Width of the text's first character followed by an ellipsis, in the font that character is drawn in. Each is
+ * measured on its own, as truncation budgets them.
+ */
+function leadCharacterWidth(text: NormalisedTextOrSegments, font: FontOptions): number {
+    if (!isArray(text)) {
+        const lead = leadCharacter(toTextString(text));
+        return lead == null ? 0 : measureLabelText(lead, font).width + measureLabelText(EllipsisChar, font).width;
+    }
+    for (const segment of text) {
+        if (segment.type === 'image') continue;
+        const lead = leadCharacter(toTextString(segment.text));
+        if (lead != null) {
+            const leadWidth = measureLabelText([{ ...segment, text: lead }], font).width;
+            return leadWidth + measureLabelText([{ ...segment, text: EllipsisChar }], font).width;
+        }
+    }
+    return 0;
+}
+
+function leadCharacter(text: string): string | undefined {
+    return graphemeSegments(text.trimStart())[0];
 }
 
 /** Fits a stack into {@link candidateStack}; one that fits only without the threshold's clearance is kept. */
