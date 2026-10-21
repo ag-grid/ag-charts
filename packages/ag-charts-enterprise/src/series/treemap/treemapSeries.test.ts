@@ -33,6 +33,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
+    stubChartImageLoader,
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -386,11 +387,6 @@ describe('TreemapSeries', () => {
                 preloaded = Object.fromEntries(entries);
             });
 
-            function stubChartImageLoader(chartInstance: any) {
-                const imageLoader = (chartInstance as Chart).ctx.scene.imageLoader as any;
-                imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
-            }
-
             it.each(['top', 'middle', 'bottom'] as const)(
                 'renders block-leading image segments aligned %s of the two-line text column',
                 async (verticalAlign) => {
@@ -438,7 +434,7 @@ describe('TreemapSeries', () => {
                     };
                     prepareEnterpriseTestOptions(options);
                     chart = deproxy(AgCharts.create(options));
-                    stubChartImageLoader(chart);
+                    stubChartImageLoader(chart, preloaded);
                     await compare();
                     expectWarningsCalls().toHaveLength(0);
                 }
@@ -490,7 +486,7 @@ describe('TreemapSeries', () => {
                 };
                 prepareEnterpriseTestOptions(options);
                 chart = deproxy(AgCharts.create(options));
-                stubChartImageLoader(chart);
+                stubChartImageLoader(chart, preloaded);
                 await compare();
                 expectWarningsCalls().toHaveLength(0);
             });
@@ -609,7 +605,7 @@ describe('TreemapSeries', () => {
                 };
                 prepareEnterpriseTestOptions(options);
                 chart = deproxy(AgCharts.create(options));
-                stubChartImageLoader(chart);
+                stubChartImageLoader(chart, preloaded);
                 // Snapshot guards against an image overflowing its tile and shifting pixels.
                 await compare();
                 expectWarningsCalls().toHaveLength(0);
@@ -676,7 +672,7 @@ describe('TreemapSeries', () => {
                 };
                 prepareEnterpriseTestOptions(options);
                 chart = deproxy(AgCharts.create(options));
-                stubChartImageLoader(chart);
+                stubChartImageLoader(chart, preloaded);
                 await compare();
                 expectWarningsCalls().toHaveLength(0);
             });

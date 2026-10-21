@@ -1,10 +1,9 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
-import { afterEach, beforeAll, describe, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import type { Chart } from '../chart';
 import { applyIntervalBetween, applyIntervalOn } from '../test/axisTestCases';
 import { DOCS_EXAMPLES } from '../test/examples';
 import type { ChartOrProxy } from '../test/utils';
@@ -17,6 +16,7 @@ import {
     repeat,
     setupMockCanvas,
     setupMockConsole,
+    stubChartImageLoader,
 } from '../test/utils';
 
 const DATA = [
@@ -222,11 +222,6 @@ describe('Category Axis', () => {
             preloaded = Object.fromEntries(entries);
         });
 
-        function stubChartImageLoader(chartInstance: Chart) {
-            const imageLoader = (chartInstance.ctx.scene as any).imageLoader;
-            imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
-        }
-
         const DAY_DATA = [
             { day: 'Mon', value: 4 },
             { day: 'Tue', value: 7 },
@@ -236,8 +231,8 @@ describe('Category Axis', () => {
 
         // Bespoke: the image loader must be stubbed before the first render, so it cannot follow `createChart`'s wait.
         async function createStubbedChart(options: AgCartesianChartOptions) {
-            chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })) as any);
-            stubChartImageLoader(chart);
+            chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })));
+            stubChartImageLoader(chart, preloaded);
             await compare();
         }
 
@@ -333,5 +328,28 @@ describe('Category Axis', () => {
                 await compare();
             }
         );
+    });
+
+    it('should keep nice disabled after an axis options update', async () => {
+        const options = (title: string): AgCartesianChartOptions =>
+            prepareTestOptions({
+                data: [
+                    { year: '2020', value: 5 },
+                    { year: '2021', value: 10 },
+                ],
+                series: [{ type: 'bar', xKey: 'year', yKey: 'value' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom', title: { text: title } },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+        const instance = await createChart(options('Year'));
+        chart = instance;
+        const categoryAxis = () => deproxy(instance).axes.find((axis) => axis.id === 'x')!;
+        expect(categoryAxis().nice).toBe(false);
+
+        await instance.update(options('Years'));
+
+        expect(categoryAxis().nice).toBe(false);
     });
 });

@@ -1,6 +1,7 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
+import type { Image as SkiaImage } from 'skia-canvas';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
 import {
@@ -10,6 +11,7 @@ import {
     Node,
     type OffsetPoint,
     Rect,
+    Transformable,
     alignCentre,
     fromPairs,
     getDocument,
@@ -523,7 +525,7 @@ export function getAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: str
 }
 
 /** The label texts of the axis at `position`, in order along the axis. */
-export function getAxisLabelTexts(chartOrProxy: ChartOrProxy<any>, position: string): string[] {
+export function getAxisTickLayoutLabelTexts(chartOrProxy: ChartOrProxy<any>, position: string): string[] {
     return getAxisTickLayout(chartOrProxy, position).labels.map((label) => label.text);
 }
 
@@ -1294,6 +1296,23 @@ export async function pressKey(chart: ChartOrProxy, key: string) {
     const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
     expect(seriesArea).not.toBeNull();
     seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+    await waitForChartStability(chart);
+}
+
+// Auto-sizing reads the container size, so a chart created without an explicit width and height follows this resize.
+export async function resizeChartContainer(
+    chart: ChartOrProxy,
+    size: { width: number; height: number; pixelRatio: number }
+) {
+    const { ctx } = deproxy(chart);
+    ctx.domManager.containerSize = size;
+    ctx.eventsHub.emit('dom:resize', null);
+    await waitForChartStability(chart);
+}
+
+// Text metrics change when a web font arrives, so everything laid out from them is re-measured.
+export async function emitFontLoad(chart: ChartOrProxy) {
+    deproxy(chart).ctx.eventsHub.emit('font:load', null);
     await waitForChartStability(chart);
 }
 
@@ -2395,13 +2414,37 @@ export interface LegendTestItemNode {
 }
 
 export interface LegendTestInternals {
-    itemSelection: { nodes(): LegendTestItemNode[] };
+    itemSelection: { nodes(): (LegendTestItemNode & Node)[] };
     onHover(event: FocusEvent | MouseEvent, node: unknown, fromKeyboardFocus?: boolean): void;
     onLeave(fromKeyboardFocus?: boolean): void;
 }
 
 export function getLegendModule(chart: Chart): LegendTestInternals {
     return chart.modulesManager.getModule('legend') as LegendTestInternals;
+}
+
+/**
+ * Clicks the legend item at `index` (legend order) the way a pointer does: moves onto the centre of its bounding box
+ * and clicks there, through the proxy button the legend puts over the item. The pointer stays on the item, so a test
+ * that goes on to compare the chart moves it off again (`hoverAction`) to clear the item's highlight.
+ */
+export async function clickLegendItem(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const items = getLegendModule(deproxy(chartOrProxy)).itemSelection.nodes();
+    expect(items.length).toBeGreaterThan(index);
+
+    const { x, y, width, height } = Transformable.toCanvas(items[index]);
+    const [centreX, centreY] = [x + width / 2, y + height / 2];
+    await hoverAction(centreX, centreY)(chartOrProxy);
+    await clickAction(centreX, centreY)(chartOrProxy);
+}
+
+/**
+ * Makes the chart's scene resolve each image URL in `images` to the preloaded image, so a block-image segment
+ * or an image fill renders synchronously. The loader has to be stubbed before the first render that needs the
+ * images, which is why charts using it are created bare (`AgCharts.create`) rather than through `createChart`.
+ */
+export function stubChartImageLoader(chartOrProxy: ChartOrProxy<any>, images: Record<string, SkiaImage>): void {
+    deproxy(chartOrProxy).ctx.scene.imageLoader.loadImage = (uri: string) => images[uri] as unknown as HTMLImageElement;
 }
 
 export function getCursor(chart: Chart | AgChartProxy): string {

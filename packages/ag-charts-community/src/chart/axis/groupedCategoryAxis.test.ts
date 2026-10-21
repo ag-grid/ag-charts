@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { BBox, mapValues } from 'ag-charts-core';
 import type {
@@ -8,6 +8,7 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
+import { getAxisLabelNodes, getAxisLabelSource, getAxisLabelTexts, getAxisLayoutState } from '../test/axisAccessors';
 import { EXAMPLE_GRID_LINE, applyRotationWithoutCollisionAvoidance, mixinDerivedCases } from '../test/axisTestCases';
 import {
     DATA_GROUPED_MULTIPLE_NULLS,
@@ -202,17 +203,17 @@ describe('Grouped Category Axis Examples', () => {
     describe('axis label obstacles', () => {
         it('contributes its drawn labels and invalidates them on update', async () => {
             chart = await createChart({ ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE });
-            const axis = deproxy(chart).axes.find((a: any) => a.position === 'bottom') as any;
-            const obstacles = axis.labelSource.getLabelObstacles(BBox.zero);
+            const labelSource = getAxisLabelSource(chart, 'bottom');
+            const obstacles = labelSource.getLabelObstacles(BBox.zero);
             expect(obstacles.length).toBeGreaterThan(0);
-            expect(obstacles.length).toBe(axis.tickLabelGroupSelection.nodes().length);
+            expect(obstacles.length).toBe(getAxisLabelNodes(chart, 'bottom', { visibleOnly: false }).length);
 
-            const version = axis.labelSource.nodeDataVersion;
+            const version = labelSource.nodeDataVersion;
             await deproxy(chart).publicApi!.update(
                 prepareTestOptions({ ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE, width: 700 })
             );
             await waitForChartStability(chart);
-            expect(axis.labelSource.nodeDataVersion).toBeGreaterThan(version);
+            expect(labelSource.nodeDataVersion).toBeGreaterThan(version);
         });
     });
 
@@ -295,7 +296,7 @@ describe('Grouped Category Axis Examples', () => {
         });
     });
 
-    test('provides full text for truncated labels', async () => {
+    it('provides full text for truncated labels', async () => {
         const longLabel = 'Extremely long grouped-category axis label that forces truncation';
         const data = Array.from({ length: 6 }, (_, index) => ({
             grouping: [`${longLabel} ${index}`, `Inner ${index}`],
@@ -330,15 +331,12 @@ describe('Grouped Category Axis Examples', () => {
 
         chart = await createChart(options);
 
-        const chartInstance = deproxy(chart) as any;
-        const groupedAxis = chartInstance.axes.find((axis: any) => axis.type === 'grouped-category');
-        expect(groupedAxis).toBeDefined();
-
-        const layout = (groupedAxis?.computedLayout?.tickLabelLayout ?? []) as { textUntruncated?: string }[];
-        expect(layout.some((datum) => datum.textUntruncated?.includes(longLabel))).toBe(true);
+        // Every node the axis drew: a truncated label can be one the layout hid.
+        const nodes = getAxisLabelNodes(chart, 'bottom', { visibleOnly: false });
+        expect(nodes.some((node) => node.datum.textUntruncated?.includes(longLabel))).toBe(true);
     });
 
-    test('AG-14639 label boxing', async () => {
+    it('AG-14639 label boxing', async () => {
         chart = await createChart({
             data: [
                 { location: ['Europe', 'United Kingdom', 'London'], gold: 27, silver: 23, bronze: 17 },
@@ -416,7 +414,7 @@ describe('Grouped Category Axis Examples', () => {
     });
 
     describe('AG-16613 null values in grouped categories', () => {
-        test('handles null at first level of grouped category', async () => {
+        it('handles null at first level of grouped category', async () => {
             chart = await createChart({
                 data: DATA_GROUPED_NULL_FIRST_LEVEL,
                 axes: {
@@ -428,7 +426,7 @@ describe('Grouped Category Axis Examples', () => {
             await compare();
         });
 
-        test('handles null at middle level of grouped category', async () => {
+        it('handles null at middle level of grouped category', async () => {
             chart = await createChart({
                 data: DATA_GROUPED_NULL_MIDDLE_LEVEL,
                 axes: {
@@ -440,7 +438,7 @@ describe('Grouped Category Axis Examples', () => {
             await compare();
         });
 
-        test('handles null at last level of grouped category', async () => {
+        it('handles null at last level of grouped category', async () => {
             chart = await createChart({
                 data: DATA_GROUPED_NULL_LAST_LEVEL,
                 axes: {
@@ -452,7 +450,7 @@ describe('Grouped Category Axis Examples', () => {
             await compare();
         });
 
-        test('handles multiple nulls in same grouping', async () => {
+        it('handles multiple nulls in same grouping', async () => {
             chart = await createChart({
                 data: DATA_GROUPED_MULTIPLE_NULLS,
                 axes: {
@@ -464,7 +462,7 @@ describe('Grouped Category Axis Examples', () => {
             await compare();
         });
 
-        test('distinguishes null from "null" string in grouped categories', async () => {
+        it('distinguishes null from "null" string in grouped categories', async () => {
             chart = await createChart({
                 data: DATA_GROUPED_NULL_VS_STRING_NULL,
                 axes: {
@@ -492,8 +490,7 @@ describe('Grouped Category Axis Examples', () => {
                     y: { type: 'number', position: 'left' },
                 },
             });
-            const axis = (deproxy(chart) as any).axes.find((a: any) => a.type === 'grouped-category');
-            return axis.tickLabelGroupSelection.nodes().map((node: any) => String(node.text)) as string[];
+            return getAxisLabelTexts(chart, 'bottom', { visibleOnly: false });
         };
 
         it('wraps group labels to the thickness by their lineHeight', async () => {
@@ -519,8 +516,7 @@ describe('Grouped Category Axis Examples', () => {
                     y: { type: 'number', position: 'left' },
                 },
             } as AgCartesianChartOptions);
-            const axis = (deproxy(chart) as any).axes.find((a: any) => a.type === 'grouped-category');
-            const { label: layout } = axis.getLayoutState();
+            const { label: layout } = getAxisLayoutState(chart, 'bottom');
             chart.destroy();
             (chart as unknown) = undefined;
             return layout;

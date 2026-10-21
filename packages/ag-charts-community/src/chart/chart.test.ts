@@ -29,6 +29,7 @@ import { DataSet } from './data/dataSet';
 import { Marker } from './marker/marker';
 import { BarSeries } from './series/cartesian/barSeries';
 import { LineSeries } from './series/cartesian/lineSeries';
+import { getSeriesRect } from './test/axisAccessors';
 import {
     MIN_TOOLTIP_HIDE_DELAY,
     captureUncaught,
@@ -220,7 +221,7 @@ describe('Chart', () => {
             offsetY?: boolean
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                const seriesAreaCenter = (chartInstance as any).seriesRect.computeCenter();
+                const seriesAreaCenter = getSeriesRect(chartInstance).computeCenter();
 
                 if (offsetX) {
                     x += x < seriesAreaCenter.x ? 5 : -5;
@@ -1445,7 +1446,7 @@ describe('Chart', () => {
 
         /** Clicks clear of every mark, so the click reaches the chart listener rather than a series node. */
         async function clickAtEmptyPlot(canvasX?: number) {
-            const { x, y, width } = (chart as any).seriesRect;
+            const { x, y, width } = getSeriesRect(chart);
             await clickAction(canvasX ?? x + width / 2, y + 5)(chartInstance);
         }
 

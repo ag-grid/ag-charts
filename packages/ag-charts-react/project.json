@@ -67,6 +67,32 @@
       "options": {
         "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-react/package"]
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "projects": ["ag-charts-core", "ag-charts-test"],
+          "target": "build"
+        }
+      ],
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/packages/ag-charts-enterprise/src/**/*",
+        "{workspaceRoot}/packages/ag-charts-enterprise/vitest.setup.ts"
+      ],
+      "outputs": ["{workspaceRoot}/reports/ag-charts-react.xml"],
+      "cache": true,
+      "options": {
+        "command": "npx vitest run --config {projectRoot}/vitest.config.ts"
+      },
+      "configurations": {
+        "ci": {},
+        "watch": {
+          "command": "npx vitest --config {projectRoot}/vitest.config.ts"
+        }
+      }
     }
   },
   "implicitDependencies": ["ag-charts-community"]

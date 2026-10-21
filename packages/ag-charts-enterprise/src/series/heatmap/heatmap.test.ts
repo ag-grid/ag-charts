@@ -23,6 +23,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
+    stubChartImageLoader,
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -1167,11 +1168,6 @@ describe('HeatmapSeries', () => {
             preloaded = Object.fromEntries(entries);
         });
 
-        function stubChartImageLoader(chartInstance: any) {
-            const imageLoader = (chartInstance as Chart).ctx.scene.imageLoader as any;
-            imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
-        }
-
         it('renders a block-leading image segment in heatmap cell labels', async () => {
             const options = prepareEnterpriseTestOptions({
                 ...EXAMPLE_OPTIONS,
@@ -1194,7 +1190,7 @@ describe('HeatmapSeries', () => {
             });
 
             chart = deproxy(AgCharts.create(options));
-            stubChartImageLoader(chart);
+            stubChartImageLoader(chart, preloaded);
             // The snapshot is the guard: if the series flattened the formatter's segment array to
             // plain text the stubbed image would not render and the baseline would diff.
             await compare();

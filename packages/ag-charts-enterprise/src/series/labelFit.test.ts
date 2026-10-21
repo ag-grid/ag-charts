@@ -582,6 +582,7 @@ describe('series label fit', () => {
                 { stage: 'Renewed', value: 4, label: 'Annual renewals completed' },
             ];
             const renderAt = (width: number, height: number, type: string, label: object) => {
+                chart?.destroy();
                 const options = {
                     data: stages,
                     legend: { enabled: false },
@@ -686,6 +687,70 @@ describe('series label fit', () => {
                     }
                 );
             });
+
+            // The largest size anything in the label is drawn at, so a segment with its own size is held too.
+            const drawnFontSize = (node: StageLabel) => {
+                const segments = Array.isArray(node.text) ? (node.text as { fontSize?: number }[]) : [];
+                return Math.max(node.fontSize, ...segments.map((segment) => segment.fontSize ?? 0));
+            };
+
+            it.each([
+                ['plain', (p: any) => p.datum.label],
+                ['segmented', (p: any) => [{ text: p.datum.label, fontSize: FONT_SIZE }]],
+            ])('never grows a %s label as the chart gets shorter', async (_, formatter) => {
+                const previous = new Map<number, number>();
+                for (let height = 200; height >= 140; height -= 4) {
+                    await renderAt(380, height, 'funnel', {
+                        placement: 'inside-center',
+                        wrapping: 'on-space',
+                        formatter,
+                    });
+                    for (const node of stageLabels()) {
+                        const index = node.datum.datumIndex;
+                        expect(drawnFontSize(node), `stage ${index} at ${height}px`).toBeLessThanOrEqual(
+                            previous.get(index) ?? FONT_SIZE
+                        );
+                        previous.set(index, drawnFontSize(node));
+                    }
+                }
+            });
+
+            it('truncates a label clear of its stage only at its minimum font size', async () => {
+                const truncated: string[] = [];
+                for (let width = 200; width >= 100; width -= 10) {
+                    await renderAt(width, 440, 'cone-funnel', { placement: 'start-center' });
+                    for (const node of stageLabels()) {
+                        if (node.text.includes(ELLIPSIS)) {
+                            truncated.push(
+                                `stage ${node.datum.datumIndex} at ${width}px: ${node.fontSize}px ${node.text}`
+                            );
+                        }
+                    }
+                }
+                expect(truncated.length).toBeGreaterThan(0);
+                expect(truncated.filter((label) => !label.includes(`: ${MINIMUM}px `))).toEqual([]);
+            });
+
+            it.each(['start-center', 'middle-before', 'middle-center'])(
+                'keeps a truncated %s label truncated as its stage narrows',
+                async (placement) => {
+                    const truncated = new Set<number>();
+                    const restored: string[] = [];
+                    for (let width = 230; width >= 100; width -= 10) {
+                        await renderAt(width, 440, 'cone-funnel', { placement });
+                        for (const node of stageLabels()) {
+                            const index = node.datum.datumIndex;
+                            if (node.text.includes(ELLIPSIS)) {
+                                truncated.add(index);
+                            } else if (truncated.has(index)) {
+                                restored.push(`stage ${index} at ${width}px: ${node.text}`);
+                            }
+                        }
+                    }
+                    expect(truncated.size).toBeGreaterThan(0);
+                    expect(restored).toEqual([]);
+                }
+            );
 
             it.each([
                 ['outside-end', 'on-space', 380, 440],

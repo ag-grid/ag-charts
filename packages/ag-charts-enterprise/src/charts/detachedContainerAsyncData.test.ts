@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import { delay, deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { setupEnterpriseModules } from '../setup';
 
@@ -115,5 +115,69 @@ describe('Chart on a detached container with async data and a series-type switch
         chart.ctx.eventsHub.emit('dom:resize', null);
 
         expect([scene.width, scene.height]).toEqual(sizeBeforeDestroy);
+    });
+
+    describe('when the series type is switched while the container is detached', () => {
+        const wrappers = (container: HTMLElement) => container.querySelectorAll('.ag-charts-wrapper');
+
+        const switchToPolar = (container: HTMLElement) =>
+            proxy.update({
+                container,
+                animation: { enabled: false },
+                data: DATA,
+                series: [{ type: 'radar-area', angleKey: 'country', radiusKey: 'gold' }],
+            });
+
+        const createCartesian = async (container: HTMLElement) => {
+            proxy = AgCharts.create({
+                container,
+                animation: { enabled: false },
+                data: DATA,
+                series: [{ type: 'bar', xKey: 'country', yKey: 'gold' }],
+            });
+            await proxy.waitForUpdate();
+            expect(wrappers(container)).toHaveLength(1);
+        };
+
+        it('has exactly one chart wrapper once the container is attached after the switch settles', async () => {
+            const { container, attach } = setupMeasurableContainer();
+            await createCartesian(container);
+            const original = deproxy(proxy);
+
+            await switchToPolar(container);
+            await proxy.waitForUpdate();
+            expect(deproxy(proxy)).not.toBe(original);
+            attach();
+            await delay(50);
+            await proxy.waitForUpdate();
+
+            expect(wrappers(container)).toHaveLength(1);
+        });
+
+        // The old chart's teardown waits for its in-flight update, so keep one running while the switch is requested:
+        // the container is then attached with the old chart still queued for teardown.
+        it('has exactly one chart wrapper once the container is attached before the old chart is torn down', async () => {
+            const { container, attach } = setupMeasurableContainer();
+            await createCartesian(container);
+            const original = deproxy(proxy) as any;
+            const overlaysDestroy = vi.spyOn(original.overlays, 'destroy');
+
+            const inFlight = proxy.updateDelta({ data: [...DATA, { country: 'Brazil', gold: 40 }] });
+            const switched = switchToPolar(container);
+            attach();
+            await Promise.resolve();
+            // Teardown destroys the overlays, so an old chart that has not yet done so is still waiting on its update.
+            expect(overlaysDestroy).not.toHaveBeenCalled();
+            expect(wrappers(container)).toHaveLength(1);
+
+            await Promise.all([inFlight, switched]);
+            await delay(50);
+            await proxy.waitForUpdate();
+
+            expect(overlaysDestroy).toHaveBeenCalledTimes(1);
+
+            expect(deproxy(proxy)).not.toBe(original);
+            expect(wrappers(container)).toHaveLength(1);
+        });
     });
 });

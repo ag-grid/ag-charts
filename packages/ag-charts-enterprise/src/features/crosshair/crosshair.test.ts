@@ -12,6 +12,7 @@ import {
     applyAxesFlip,
     compareImageSnapshot,
     deproxy,
+    getSeriesRect,
     hoverAction,
     mouseDownAction,
     mouseUpAction,
@@ -831,8 +832,6 @@ describe('Crosshair', () => {
                 return { visible: crosshair.crosshairGroup.visible && line.visible, y: line.y1 };
             };
 
-            const seriesRect = () => (deproxy(chart) as any).seriesRect;
-
             const dragTo = async (x: number, y: number) => {
                 await hoverAction(x, y)(chart);
                 await waitForChartStability(chart);
@@ -860,7 +859,7 @@ describe('Crosshair', () => {
                 const from = await startDrag(annotation);
                 expect(crosshairLine('y').visible, 'inside').toBe(true);
 
-                const rect = seriesRect();
+                const rect = getSeriesRect(chart);
                 await dragOut(from.x, rect.y - 20, 0, -20);
                 expect(crosshairLine('y').visible, 'above').toBe(false);
                 expect(visibleLabels('y'), 'y label above').toBe(0);
@@ -880,7 +879,7 @@ describe('Crosshair', () => {
                 const from = await startDrag({ type: 'vertical-line', value: 5 });
                 expect(crosshairLine('x').visible, 'inside').toBe(true);
 
-                const rect = seriesRect();
+                const rect = getSeriesRect(chart);
                 await dragOut(rect.x - 20, from.y, -20, 0);
                 expect(crosshairLine('x').visible, 'left').toBe(false);
                 expect(visibleLabels('x'), 'x label left').toBe(0);

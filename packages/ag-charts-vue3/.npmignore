@@ -13,4 +13,5 @@ tslint.json
 vue.config.js
 !dist/types/src
 eslint.*
+vitest.*
 .snyk

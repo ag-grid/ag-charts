@@ -6,16 +6,18 @@ import type { ChartOrProxy } from 'ag-charts-community-test';
 import {
     applyIntervalBetween,
     applyIntervalOn,
-    calculateAxisBBox,
     cartesianChartAssertions,
+    compareAxisSnapshots,
     compareImageSnapshot,
     deproxy,
+    getAxisLabelTexts,
     mixinDerivedCases,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
+import { getCrossLineLabelNodes } from '../../test/polarCrossLines';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const DATA = [
@@ -526,18 +528,7 @@ describe('Ordinal Time Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = async () => {
-                for (const axis of chart.axes) {
-                    if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
-                        continue;
-                    }
-
-                    await waitForChartStability(chart);
-                    const axisBbox = calculateAxisBBox(axis);
-
-                    await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
-                }
-            };
+            const axisCompare = () => compareAxisSnapshots(chart, ctx, { types: example.compare });
 
             chart = deproxy(await createEnterpriseChart(example.options));
             await axisCompare();
@@ -579,11 +570,7 @@ describe('Ordinal Time Axis Examples', () => {
                 })
             );
 
-            const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
-
-            const axisBbox = calculateAxisBBox(axis);
-
-            await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
+            await compareAxisSnapshots(chart, ctx, { types: ['ordinal-time'] });
         });
     });
 
@@ -607,12 +594,9 @@ describe('Ordinal Time Axis Examples', () => {
             },
         });
 
-        const labelTexts = (chartInstance: _ModuleSupport.Chart): string[] => {
-            const axis = (chartInstance.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
-            return Array.from((axis as any).tickLabelGroupSelection.nodes() as Iterable<any>)
-                .map((node) => node.text)
-                .filter((text): text is string => text != null && text !== '');
-        };
+        // Every node in the scene graph: a base tier that was merely hidden would otherwise pass as removed.
+        const labelTexts = (chartInstance: _ModuleSupport.Chart): string[] =>
+            getAxisLabelTexts(chartInstance, 'bottom', { visibleOnly: false });
 
         const isParentTier = (text: string) => /[A-Za-z]/.test(text);
 
@@ -694,8 +678,8 @@ describe('Ordinal Time Axis Examples', () => {
             })
         );
 
-        const [crossLine] = _ModuleSupport.getCrossLinesPlugin(chart.axes.findById('x'))!.getInstances() as any[];
-        const [node] = crossLine.labelGroup.children();
+        const [node] = getCrossLineLabelNodes(chart, 'x');
+        expect(node).toBeDefined();
         expect(node.text).toContain('\n');
         expect(node.getBBox().width).toBeLessThanOrEqual(40);
     });

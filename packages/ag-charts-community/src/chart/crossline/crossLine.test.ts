@@ -37,9 +37,11 @@ import {
     createChart,
     deproxy,
     doubleClickAction,
+    emitFontLoad,
     expectWarningMessages,
     prepareTestOptions,
     repeat,
+    resizeChartContainer,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -2011,11 +2013,7 @@ describe('CrossLine', () => {
             // Bespoke: custom container, and the size is removed after preparation.
             chart = deproxy(AgCharts.create(options));
 
-            const resizeTo = async (width: number) => {
-                chart.ctx.domManager.containerSize = { width, height: 400, pixelRatio: 1 };
-                chart.ctx.eventsHub.emit('dom:resize', null);
-                await waitForChartStability(chart);
-            };
+            const resizeTo = (width: number) => resizeChartContainer(chart, { width, height: 400, pixelRatio: 1 });
 
             try {
                 await resizeTo(400);
@@ -3141,8 +3139,7 @@ describe('CrossLine label fitting', () => {
         const fittedBeforeLoad = (crossLine as any).fitted;
 
         cachedTextMeasurer.clear();
-        chart.ctx.eventsHub.emit('font:load', null);
-        await waitForChartStability(chart);
+        await emitFontLoad(chart);
 
         expect((crossLine as any).fitted).not.toBe(fittedBeforeLoad);
     });

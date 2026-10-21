@@ -209,8 +209,12 @@ export abstract class DataModelSeries<
         );
     }
 
+    protected clampDatumIndex(datumIndex: number): number {
+        return clamp(0, datumIndex, this.dataCount() - 1);
+    }
+
     private findFocus(opts: PickFocusInputs, nodeData: TDatum[]): Pick<PickFocusOutputs, 'datum' | 'datumIndex'> {
-        const clampedDatumIndex = clamp(0, opts.datumIndex, this.dataCount() - 1);
+        const clampedDatumIndex = this.clampDatumIndex(opts.datumIndex);
         const [lower, upper] = this.findNodeDataIndexBounds(clampedDatumIndex, nodeData);
 
         const searchBackward = (nodeDatumIndex: number, delta: number): number | undefined => {

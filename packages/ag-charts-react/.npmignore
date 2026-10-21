@@ -6,6 +6,7 @@ src
 tsconfig.*
 project.json
 jest.*
+vitest.*
 CONTRIBUTING.md
 eslint.*
 

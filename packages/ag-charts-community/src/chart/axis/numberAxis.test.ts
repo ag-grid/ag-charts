@@ -2,8 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
+import { getAxisDomain, getAxisLabelTexts } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
-import { createChart, deproxy, expectWarningMessages, setupMockCanvas, setupMockConsole } from '../test/utils';
+import { createChart, expectWarningMessages, setupMockCanvas, setupMockConsole } from '../test/utils';
 
 // BigInt numeric-axis ticks must render at full precision end-to-end, so these drive a real chart.
 describe('NumberAxis BigInt labels', () => {
@@ -19,14 +20,6 @@ describe('NumberAxis BigInt labels', () => {
         }
     });
 
-    const yAxisLabelText = (chartInstance: AgChartInstance): string[] => {
-        const axis = deproxy(chartInstance as any).axes.find((a: any) => a.direction === 'y') as any;
-        expect(axis).toBeDefined();
-        return Array.from(axis.tickLabelGroupSelection.nodes() as Iterable<any>)
-            .map((node) => node.text)
-            .filter((text): text is string => text != null && text !== '');
-    };
-
     const lineOptions = (data: unknown[]): AgCartesianChartOptions => ({
         data: data as AgCartesianChartOptions['data'],
         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -41,7 +34,7 @@ describe('NumberAxis BigInt labels', () => {
             ])
         );
 
-        const labels = yAxisLabelText(chart);
+        const labels = getAxisLabelTexts(chart, 'left');
         // 2 × 10^20 — exact only if the tick value reached the formatter as a BigInt.
         expect(labels).toContain('200,000,000,000,000,000,000');
         expect(labels).toContain('1,000,000,000,000,000,000,000');
@@ -56,7 +49,7 @@ describe('NumberAxis BigInt labels', () => {
             ])
         );
 
-        const labels = yAxisLabelText(chart);
+        const labels = getAxisLabelTexts(chart, 'left');
         expect(labels).toContain('9,007,199,254,740,991');
         expect(labels).toContain('9,007,199,254,740,993');
         expect(labels).toContain('9,007,199,254,740,995');
@@ -83,7 +76,7 @@ describe('NumberAxis BigInt labels', () => {
         chart = await createChart(options);
 
         // The custom formatter returns the bigint verbatim, so labels are plain digit strings (no grouping).
-        expect(yAxisLabelText(chart)).toContain('1000000000000000000000');
+        expect(getAxisLabelTexts(chart, 'left')).toContain('1000000000000000000000');
     });
 });
 
@@ -160,18 +153,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         },
     });
 
-    const xAxis = () => {
-        const axis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'x');
-        expect(axis).toBeDefined();
-        return axis;
-    };
-
-    const xDomain = (): number[] => xAxis().scale.domain.map(Number);
-
-    const xLabels = (): string[] =>
-        Array.from(xAxis().tickLabelGroupSelection.nodes() as Iterable<any>)
-            .map((node) => node.text)
-            .filter((text): text is string => text != null && text !== '');
+    const xDomain = (): number[] => getAxisDomain(chart, 'bottom').map(Number);
 
     it('keeps the x domain fitted to the data when interval.step is dense', async () => {
         chart = await createChart(barOptions({ interval: { step: 100 } }));
@@ -222,8 +204,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         };
         chart = await createChart(options);
 
-        const yAxis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'y');
-        expect(yAxis.scale.domain.map(Number)).toEqual([-150, 50]);
+        expect(getAxisDomain(chart, 'left').map(Number)).toEqual([-150, 50]);
     });
 
     it('still reduces colliding labels when the step is too dense for the scale to honour', async () => {
@@ -248,7 +229,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
 
         // Automatic ticks are not pinned, so the overlap search is still free to thin them:
         // ending the search after the first pass would leave three labels colliding here.
-        expect(xLabels().length).toBe(2);
+        expect(getAxisLabelTexts(chart, 'bottom').length).toBe(2);
         // The search does keep decaying tickCount here, so this is the path that proves niceDomain
         // itself honours the configured interval rather than widening to a power of ten.
         expect(xDomain()).toEqual([-500, 8500]);
