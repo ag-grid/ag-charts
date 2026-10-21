@@ -18,6 +18,32 @@ function seedFilters(manager: AggregationManager<MockFilter>, dataLength: number
 }
 
 describe('AggregationManager', () => {
+    describe('discard()', () => {
+        it('drops filters that markStale would keep and notifies subscribers', () => {
+            const manager = new AggregationManager<MockFilter>();
+            seedFilters(manager, 1000);
+            manager.markStale(1200);
+            expect(manager.filters).toBeDefined();
+
+            let notified = 0;
+            manager.events.on('filtersChanged', () => notified++);
+            manager.discard();
+
+            expect(manager.filters).toBeUndefined();
+            expect(manager.getFilterForRange(500)).toBeUndefined();
+            expect(notified).toBe(1);
+        });
+
+        it('does not notify subscribers when there are no filters', () => {
+            const manager = new AggregationManager<MockFilter>();
+            let notified = 0;
+            manager.events.on('filtersChanged', () => notified++);
+            manager.discard();
+
+            expect(notified).toBe(0);
+        });
+    });
+
     describe('markStale()', () => {
         it('should discard filters on large increase (1000 -> 5000)', () => {
             const manager = new AggregationManager<MockFilter>();

@@ -1,5 +1,6 @@
 import {
     BandScale,
+    CategoryScale,
     ChartAxisDirection,
     ContinuousScale,
     IrregularBandScale,
@@ -115,6 +116,15 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     protected getCategoryAxis(): ChartAxis | undefined {
         const direction = this.getCategoryDirection();
         return this.axes[direction];
+    }
+
+    protected override visibleRangeSortOrder(axisKey: string): 1 | -1 | undefined {
+        const categoryAxis = this.getCategoryAxis();
+        // Category positions follow domain (insertion) order, not key value order.
+        if (axisKey === 'xValue' && CategoryScale.is(categoryAxis?.scale)) {
+            return categoryAxis.isReversed() ? -1 : 1;
+        }
+        return super.visibleRangeSortOrder(axisKey);
     }
 
     /**

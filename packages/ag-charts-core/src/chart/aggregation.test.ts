@@ -1,6 +1,10 @@
 import { nextPowerOf2 } from '../data/numberArray';
 import {
+    AGGREGATION_INDEX_UNSET,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_SPAN,
     aggregationRangeFittingPoints,
+    createAggregationIndices,
     epochColumnForTimeScale,
     narrowBigIntColumn,
     narrowBigIntColumnRelative,
@@ -121,5 +125,28 @@ describe('aggregationRangeFittingPoints', () => {
         const maxRange = aggregationRangeFittingPoints(xValues, 0, 2 ** 28, { smallestKeyInterval: 1 });
 
         expect(maxRange).toBeLessThanOrEqual(nextPowerOf2(xValues.length));
+    });
+});
+
+describe('createAggregationIndices', () => {
+    it('leaves empty split-mode buckets unset on a category domain', () => {
+        const count = 64;
+        const xValues = Array.from({ length: count }, (_, i) => `c${i}`);
+        const yValues = Array.from({ length: count }, (_, i) => i + 1);
+
+        const { indexData, negativeIndexData } = createAggregationIndices(
+            xValues,
+            yValues,
+            yValues,
+            Number.NaN,
+            Number.NaN,
+            16,
+            { split: true, xNeedsValueOf: false, yNeedsValueOf: false }
+        );
+
+        for (let i = 0; i < 16; i++) {
+            expect(indexData[i * AGGREGATION_SPAN + AGGREGATION_INDEX_X_MIN]).not.toBe(AGGREGATION_INDEX_UNSET);
+            expect(negativeIndexData![i * AGGREGATION_SPAN + AGGREGATION_INDEX_X_MIN]).toBe(AGGREGATION_INDEX_UNSET);
+        }
     });
 });

@@ -610,7 +610,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     protected override createBucketLookupFeature(): BucketLookupFeature {
         return new SplitBucketLookupManager({
             series: this,
-            getXAxis: () => this.axes[ChartAxisDirection.X],
+            getXAxis: () => this.getCategoryAxis(),
             getDataModel: () => this.dataModel,
             getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
@@ -624,9 +624,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
         this.aggregationManager.markStale(processedData.input.count);
 
-        if (processedDataIsAnimatable(processedData)) return;
+        if (processedDataIsAnimatable(processedData)) {
+            this.aggregationManager.discard();
+            return;
+        }
 
-        const xAxis = this.axes[ChartAxisDirection.X];
+        const xAxis = this.getCategoryAxis();
         if (xAxis == null) return;
 
         const targetRange = this.estimateTargetRange();
@@ -656,7 +659,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     private estimateTargetRange(): number {
-        const xAxis = this.axes[ChartAxisDirection.X];
+        const xAxis = this.getCategoryAxis();
         if (xAxis?.scale?.range) {
             const [r0, r1] = xAxis.scale.range;
             return Math.abs(r1 - r0);
@@ -1283,12 +1286,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 if (xMinIndex === AGGREGATION_INDEX_UNSET) continue;
                 if (ctx.xValues[yMaxIndex] == null || ctx.xValues[yMinIndex] == null) continue;
 
-                const x = xPosition(Math.trunc((xMinIndex + xMaxIndex) / 2));
+                const xMin = xPosition(xMinIndex);
+                const xMax = xPosition(xMaxIndex);
+                const x = Math.min(xMin, xMax);
                 // The width of the shape is the width from the left of the first bar to the right of the second bar
-                const width = Math.abs(xPosition(xMaxIndex) - xPosition(xMinIndex)) + ctx.barWidth;
+                const width = Math.abs(xMax - xMin) + ctx.barWidth;
 
                 // start & end may be incorrect when there's a lot of missing data
-                if (x - width < 0 || x > ctx.range) continue;
+                if (x + width < 0 || x > ctx.range) continue;
 
                 const bandCount = Math.abs(xMaxIndex - xMinIndex) + 1;
                 // This means the density of the fill is higher than it would be if we drew the bars individually.

@@ -133,7 +133,7 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
         const ratio = this._dataLength > 0 ? dataLength / this._dataLength : 0;
         const filtersDiscarded = ratio >= 2 || ratio <= 0.5 || this._dataLength === 0;
         if (filtersDiscarded) {
-            this._filters = undefined;
+            this.discard();
         } else if (this._filters) {
             for (const f of this._filters) {
                 (f as TFilter & { stale?: boolean }).stale = true;
@@ -142,12 +142,15 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
 
         this._dataLength = dataLength;
         this.executor.cancel();
+    }
 
-        if (filtersDiscarded) {
-            // Filters were dropped — notify subscribers so they can release closures over the
-            // now-orphaned `indexData` TypedArrays.
-            this.events.emit('filtersChanged', undefined);
-        }
+    discard(): void {
+        this.executor.cancel();
+        if (this._filters == null) return;
+
+        this._filters = undefined;
+        // Notify subscribers so they can release closures over the now-orphaned `indexData` TypedArrays.
+        this.events.emit('filtersChanged', undefined);
     }
 
     private mergeFilters(deferredFilters: TFilter[]): void {
