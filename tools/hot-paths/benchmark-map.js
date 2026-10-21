@@ -110,6 +110,11 @@ const RULES = [
     { re: series('range-bar'), types: ['range-bar'] },
     { re: series('range-area'), types: ['range-area'] },
 
+    // Hierarchy series with an example.
+    { re: series('organization'), types: ['organization'] },
+    // The organization series is the only consumer of the network folder.
+    { re: /(^|\/)series\/network\//, types: ['organization'] },
+
     // Series with no benchmark example — tagged so the uncovered-type note fires.
     { re: series('waterfall'), types: ['waterfall'] },
     { re: series('box-plot'), types: ['box-plot'] },
@@ -131,7 +136,6 @@ const RULES = [
     { re: series('funnel'), types: ['funnel'] },
     { re: series('cone-funnel'), types: ['cone-funnel'] },
     { re: series('pyramid'), types: ['pyramid'] },
-    { re: series('organization'), types: ['organization'] },
     { re: series('map-line'), types: ['map-line'] },
     { re: series('map-marker'), types: ['map-marker'] },
     { re: series('map-shape'), types: ['map-shape'] },
