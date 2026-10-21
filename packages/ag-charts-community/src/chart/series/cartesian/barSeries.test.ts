@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ChartAxisDirection, Transformable } from 'ag-charts-core';
+import { type BandScale, ChartAxisDirection, Transformable } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 import type {
     AgBarSeriesItemStylerParams,
@@ -1616,6 +1616,44 @@ describe('BarSeries', () => {
             for (let i = 1; i < nodes.length; i++) {
                 expect(nodes[i].datumIndex).toBeLessThan(nodes[i - 1].datumIndex);
             }
+        });
+
+        describe('when another series sets the category order', () => {
+            const ascending = ['A', 'B', 'C', 'D', 'E'];
+            const values: Record<string, number> = { A: 10, B: 20, C: 30, D: 40, E: 50 };
+            const twoSeriesOptions = (order: string[]) => ({
+                series: [
+                    { type: 'bar' as const, xKey: 'x', yKey: 'y', data: ascending.map((x) => ({ x, y: 1 })) },
+                    { type: 'bar' as const, xKey: 'x', yKey: 'y', data: order.map((x) => ({ x, y: values[x] })) },
+                ],
+                axes: { x: { type: 'category' as const }, y: { type: 'number' as const } },
+            });
+
+            // The value range of the second series over the bands of categories A and B.
+            const visibleRangeOfAB = () => {
+                const series = deproxy(chart).series[1];
+                const scale = series.axes[ChartAxisDirection.X]!.scale as BandScale<string>;
+                return series.getRange(ChartAxisDirection.Y, [
+                    scale.convert('A'),
+                    scale.convert('B') + scale.bandwidth,
+                ]);
+            };
+
+            it.each([
+                ['reversed', ['E', 'D', 'C', 'B', 'A']],
+                ['shuffled', ['C', 'A', 'E', 'B', 'D']],
+            ])('autoscales to the visible categories of a series listing them %s', async (_, order) => {
+                chart = await createChart(twoSeriesOptions(order));
+                expect(visibleRangeOfAB()).toEqual([0, 20]);
+            });
+
+            it('rechecks the order when the data changes', async () => {
+                chart = await createChart(twoSeriesOptions(ascending));
+                expect(visibleRangeOfAB()).toEqual([0, 20]);
+
+                await chart.update(prepareTestOptions(twoSeriesOptions(ascending.toReversed())));
+                expect(visibleRangeOfAB()).toEqual([0, 20]);
+            });
         });
 
         it('converges on the same bars when updated in place across the aggregation threshold', async () => {
