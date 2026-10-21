@@ -15,7 +15,12 @@ import {
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { numericBandsOf, spyOnNumericBandsBuild, tickGenerationParams, tickLabel } from '../test/axisAccessors';
+import {
+    tickLabel as axisLabel,
+    numericBandsOf,
+    spyOnNumericBandsBuild,
+    tickGenerationParams,
+} from '../test/axisAccessors';
 import { setupMockCanvas } from '../test/utils';
 import { NiceMode } from './axisUtil';
 import { estimateScaleTickCount, generateTicks } from './generateTicks';
@@ -36,7 +41,7 @@ describe('estimateScaleTickCount', () => {
                 domain,
                 range: [0, rangeExtent],
                 visibleRange: [0.5 - zoomExtent / 2, 0.5 + zoomExtent / 2],
-                label: tickLabel({ fontSize: 14 }),
+                label: axisLabel({ fontSize: 14 }),
             })
         );
     }
@@ -788,7 +793,7 @@ describe('tick label lineHeight', () => {
         const { tickData } = generateTicks(
             tickGenerationParams<LinearScale, AgNumericValue>({
                 scale,
-                label: tickLabel({ lineHeight }),
+                label: axisLabel({ lineHeight }),
                 domain: [0, 100],
                 range: [0, 600],
                 tickFormatter: () => (value: unknown) => `${String(value)}\nunits`,
@@ -805,14 +810,14 @@ describe('tick label lineHeight', () => {
     });
 
     it('measures time labels by their lineHeight when estimating their size', () => {
-        const label = tickLabel({ lineHeight: 40, format: '%d %b' });
+        const label = axisLabel({ lineHeight: 40, format: '%d %b' });
         const domain = [new Date(2024, 0, 1), new Date(2024, 0, 10)];
         expect(timeIntervalMaxLabelSize(label, undefined, domain, 'day').height).toBe(40);
     });
 
     it('measures parent level time labels by their own lineHeight', () => {
-        const label = tickLabel({ lineHeight: 15, format: '%d' });
-        const primaryLabel = tickLabel({ lineHeight: 60, format: '%b' });
+        const label = axisLabel({ lineHeight: 15, format: '%d' });
+        const primaryLabel = axisLabel({ lineHeight: 60, format: '%b' });
         const domain = [new Date(2024, 0, 1), new Date(2024, 2, 10)];
         expect(timeIntervalMaxLabelSize(label, primaryLabel, domain, 'day').height).toBe(60);
     });
