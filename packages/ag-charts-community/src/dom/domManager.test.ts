@@ -44,9 +44,17 @@ describe('DOMManager', () => {
         return { component, shadow, outer, inner, container };
     };
 
-    // The shadow-path watchers are direct children of the shadow root.
     const shadowWatchers = (shadow: ShadowRoot, name = '--my-color') =>
-        Array.from(shadow.children).filter((child) => (child as HTMLElement).dataset.variableName === name);
+        Array.from(shadow.querySelectorAll(`div[data-variable-name="${name}"]`));
+
+    const countRefreshes = (dispatch: () => void) => {
+        const refresh = vi.fn();
+        const off = eventsHub.on('chart:request-refresh', refresh);
+        dispatch();
+        off();
+        return refresh.mock.calls.length;
+    };
+    const transitionEnd = (target: Element) => target.dispatchEvent(new Event('transitionend', { bubbles: true }));
 
     // The shadow root DOMManager creates for itself, on a host it puts first in the container.
     const isolatedRoot = (container: HTMLElement) => container.firstElementChild?.shadowRoot;
@@ -283,6 +291,15 @@ describe('DOMManager', () => {
             expect(shadowWatchers(root!)).toHaveLength(1);
         });
 
+        // The host is `display: contents`, so anything else at the top of its shadow root is laid out in the container.
+        it('puts nothing but the chart at the top of its own shadow root', () => {
+            const { container, dm } = buildManager(true);
+
+            expect(Array.from(isolatedRoot(container)?.children ?? [])).toEqual([
+                dm.getParent('canvas').closest('.ag-charts-wrapper'),
+            ]);
+        });
+
         it('moves back to the light DOM, with its styles in the head, when turned off', () => {
             const { container, dm } = buildManager(true);
 
@@ -404,16 +421,6 @@ describe('DOMManager', () => {
         });
 
         describe('in a shadow root', () => {
-            const countRefreshes = (dispatch: () => void) => {
-                const refresh = vi.fn();
-                const off = eventsHub.on('chart:request-refresh', refresh);
-                dispatch();
-                off();
-                return refresh.mock.calls.length;
-            };
-            const transitionEnd = (target: Element) =>
-                target.dispatchEvent(new Event('transitionend', { bubbles: true }));
-
             it('refreshes once per watched transition however often the watchers are updated', () => {
                 const { shadow, container } = buildShadowTree();
                 const dm = new DOMManager(eventsHub, undefined, doc, container);
@@ -431,6 +438,27 @@ describe('DOMManager', () => {
                 dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
 
                 expect(countRefreshes(() => transitionEnd(dm.getParent('canvas')))).toBe(0);
+            });
+
+            it("keeps the watchers in the chart's sensor container, out of the shadow root's layout", () => {
+                const { shadow, container } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+                expect(shadowWatchers(shadow).map((watcher) => watcher.parentElement?.className)).toEqual([
+                    'ag-charts-style-sensors',
+                ]);
+            });
+
+            it("keeps a minimal-mode chart's watchers on the shadow root, removing them when destroyed", () => {
+                const { shadow, container } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, container, undefined, undefined, 'minimal');
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+                expect(shadowWatchers(shadow).map((watcher) => watcher.parentNode)).toEqual([shadow]);
+
+                dm.destroy();
+
+                expect(shadowWatchers(shadow)).toHaveLength(0);
             });
         });
     });
@@ -1120,23 +1148,31 @@ describe('DOMManager', () => {
             expect(shadowWatchers(shadow)).toHaveLength(1);
         });
 
-        // Leaving a shadow root only clears the registration set: the watcher elements and the shadow root's
-        // transitionend listener stay, so returning registers them a second time (AG-18986).
-        it.fails(
-            'does not leave shadow-path CSS-variable watchers behind when moving out of and back into a shadow root',
-            () => {
-                const { shadow, container: shadowContainer } = buildShadowTree();
-                const dm = new DOMManager(eventsHub, undefined, doc, shadowContainer);
-                dm.updateCSSVariableWatchers(cssVariables);
-                expect(shadowWatchers(shadow)).toHaveLength(1);
+        it('does not leave shadow-path CSS-variable watchers behind when moving out of and back into a shadow root', () => {
+            const { shadow, container: shadowContainer } = buildShadowTree();
+            const dm = new DOMManager(eventsHub, undefined, doc, shadowContainer);
+            dm.updateCSSVariableWatchers(cssVariables);
+            expect(shadowWatchers(shadow)).toHaveLength(1);
 
-                moveTo(dm, newLightContainer());
-                moveTo(dm, shadowContainer);
-                dm.updateCSSVariableWatchers(cssVariables);
+            moveTo(dm, newLightContainer());
+            moveTo(dm, shadowContainer);
+            dm.updateCSSVariableWatchers(cssVariables);
 
-                expect(shadowWatchers(shadow)).toHaveLength(1);
-            }
-        );
+            expect(shadowWatchers(shadow)).toHaveLength(1);
+            expect(countRefreshes(() => transitionEnd(shadowWatchers(shadow)[0]))).toBe(1);
+        });
+
+        it('removes the shadow-path CSS-variable watchers when moving to the light DOM', () => {
+            const { container: shadowContainer } = buildShadowTree();
+            const lightContainer = newLightContainer();
+            const dm = new DOMManager(eventsHub, undefined, doc, shadowContainer);
+            dm.updateCSSVariableWatchers(cssVariables);
+
+            moveTo(dm, lightContainer);
+
+            expect(lightContainer.querySelectorAll('div[data-variable-name]')).toHaveLength(0);
+            expect(lightContainer.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
+        });
     });
 
     describe('deferred proxy flushing', () => {

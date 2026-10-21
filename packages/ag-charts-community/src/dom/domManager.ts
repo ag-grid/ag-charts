@@ -15,7 +15,6 @@ import {
     entries,
     isDirectionRtl,
     isDocumentFragment,
-    isElement,
     isNode,
     isObject,
     kebabCase,
@@ -177,10 +176,10 @@ export class DOMManager extends BaseManager {
     private isolationHost?: HTMLElement = undefined;
     private shadowDocumentRoot?: HTMLElement = undefined;
     // OPTIMIZATION: mirrors the registered CSS-variable watchers so `updateCSSVariableWatchers`
-    // skips an O(children) DOM scan. Normal-path watchers are children of `this.element` and move
-    // with it; shadow-path watchers live on the shadow root, so that set is cleared when it changes.
+    // skips an O(children) DOM scan. Shadow-path watchers suit only the root they were made for, so
+    // each maps to its removal, run when that root changes.
     private readonly cssVariableWatchers = new Set<string>();
-    private readonly shadowCssVariableWatchers = new Set<string>();
+    private readonly shadowCssVariableWatchers = new Map<string, () => void>();
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
     private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
@@ -344,6 +343,7 @@ export class DOMManager extends BaseManager {
             this.sizeMonitor.unobserve(this.container);
         }
         this.pendingContainer = undefined;
+        this.removeShadowCSSVariableWatchers();
 
         for (const el of Object.values(this.rootElements)) {
             for (const c of el.children.values()) {
@@ -816,13 +816,12 @@ export class DOMManager extends BaseManager {
 
     /** Returns the node the chart element belongs under, moving the CSS-variable watchers to a new root. */
     private updateMountPoint(container: HTMLElement): ParentNode {
-        // Shadow-path watchers live on the shadow root; re-registering for a move within the same root
-        // would duplicate them.
+        // A move within the same root keeps its shadow-path watchers.
         const previousShadowRoot = this.getShadowRoot();
-        const watchedProperties = new Set([...this.cssVariableWatchers, ...this.shadowCssVariableWatchers]);
+        const watchedProperties = new Set([...this.cssVariableWatchers, ...this.shadowCssVariableWatchers.keys()]);
         const mountParent = this.resolveMountPoint(container);
         if (this.getShadowRoot() !== previousShadowRoot) {
-            this.shadowCssVariableWatchers.clear();
+            this.removeShadowCSSVariableWatchers();
             if (watchedProperties.size > 0) {
                 this.watchCSSVariables(watchedProperties);
             }
@@ -1218,30 +1217,14 @@ export class DOMManager extends BaseManager {
         }
     }
 
-    private listenForCSSVariableChanges(shadowRoot: HTMLElement) {
-        // The chart's own controls transition too, so only the watcher elements signal a change.
-        const handleTransitionEnd = ({ target }: Event) => {
-            if (isElement(target) && target.hasAttribute('data-variable-name')) {
-                this.eventsHub.emit('chart:request-refresh', null);
-            }
-        };
-        shadowRoot.addEventListener('transitionend', handleTransitionEnd);
-        this.cleanup.register(() => {
-            shadowRoot.removeEventListener('transitionend', handleTransitionEnd);
-        });
-    }
-
     private updateCSSVariableWatchersShadowDOM(properties: Iterable<string>) {
         const shadowRoot = this.getShadowRoot() as HTMLElement | undefined;
         if (!shadowRoot || !('addEventListener' in shadowRoot)) return;
 
+        // Minimal mode has no laid-out sensor container, so its watchers sit on the shadow root.
+        const sensorParent = this.mode === 'normal' ? this.rootElements['style-sensors'].element : shadowRoot;
         for (const property of properties) {
             if (this.shadowCssVariableWatchers.has(property)) continue;
-            // One listener per shadow root catches the bubbled events for every property.
-            if (this.shadowCssVariableWatchers.size === 0) {
-                this.listenForCSSVariableChanges(shadowRoot);
-            }
-            this.shadowCssVariableWatchers.add(property);
 
             // Unlike normal DOM, here we transition directly on the color property since we need to combine the style
             // and sensor into a single element.
@@ -1249,9 +1232,24 @@ export class DOMManager extends BaseManager {
             styleElement.style.color = `var(${property})`;
             styleElement.style.setProperty('transition', 'color 1ms', 'important');
             styleElement.dataset.variableName = property;
+            sensorParent.prepend(styleElement);
 
-            shadowRoot.prepend(styleElement);
+            const handleTransitionEnd = () => {
+                this.eventsHub.emit('chart:request-refresh', null);
+            };
+            styleElement.addEventListener('transitionend', handleTransitionEnd);
+            this.shadowCssVariableWatchers.set(property, () => {
+                styleElement.removeEventListener('transitionend', handleTransitionEnd);
+                styleElement.remove();
+            });
         }
+    }
+
+    private removeShadowCSSVariableWatchers() {
+        for (const removeWatcher of this.shadowCssVariableWatchers.values()) {
+            removeWatcher();
+        }
+        this.shadowCssVariableWatchers.clear();
     }
 
     private updateContainerClassName() {
