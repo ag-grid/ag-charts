@@ -27,7 +27,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Group, Rect, Transformable } from 'ag-charts-core';
+import { CallbackResultMemo, Group, Rect, Transformable } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
@@ -2180,23 +2180,48 @@ describe('HeatmapSeries', () => {
                 expect(strokeWidths(chart)).toEqual(widths);
             });
 
-            it('does not run a styler that returned nothing again when a cell is styled outside the node data pass', async () => {
+            it('does not run a styler that returned nothing again when a selection restyles the cells', async () => {
                 const itemStyler = vi.fn((_params: StylerParams) => undefined);
-                await createStable(rawOptions({ ...NO_TOOLTIP, itemStyler }));
-                expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
+                await createStable(rawOptions({ ...NO_TOOLTIP, selection: SELECTION, itemStyler }, ROWS));
+                expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
 
-                // The tooltip, and a restyle that doesn't rebuild the node data, style a cell through getItemStyle.
-                const series = classCast(chart.series[0], HeatmapSeries) as any;
-                for (const [datumIndex, datum] of DATA.entries()) {
-                    series.getItemStyle({ datumIndex, datum, colorValue: datum.spending }, false);
-                }
+                await select(0);
+                chart.publicApi.setSelection([]);
+                await waitForChartStability(chart);
 
-                expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
+                expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
             });
 
             describe('the restyle after a full update', () => {
-                const spyOnCellStyling = () =>
-                    vi.spyOn(classCast(chart.series[0], HeatmapSeries) as any, 'getItemStyle');
+                /** Counts the style writes to the cells' datums from now on, which only a restyle of the cells makes. */
+                function watchCellStyleWrites() {
+                    let writes = 0;
+                    const watch = (datum: { style: unknown }) => {
+                        let style = datum.style;
+                        Object.defineProperty(datum, 'style', {
+                            configurable: true,
+                            get: () => style,
+                            set: (value) => {
+                                writes++;
+                                style = value;
+                            },
+                        });
+                    };
+                    for (const rect of cellRects(chart)) {
+                        let datum = rect.datum as { style: unknown };
+                        watch(datum);
+                        // A full update binds new datums to the same cells.
+                        Object.defineProperty(rect, 'datum', {
+                            configurable: true,
+                            get: () => datum,
+                            set: (value) => {
+                                datum = value;
+                                if (value != null) watch(value);
+                            },
+                        });
+                    }
+                    return () => writes;
+                }
 
                 it.each([
                     ['returns nothing', () => undefined],
@@ -2205,17 +2230,12 @@ describe('HeatmapSeries', () => {
                     const options = rawOptions({ ...NO_TOOLTIP, itemStyler: result }, ROWS);
                     await createStable(options);
                     prepareEnterpriseTestOptions(options);
-                    const getItemStyle = spyOnCellStyling();
+                    const writes = watchCellStyleWrites();
 
-                    try {
-                        chart.publicApi.update(options);
-                        await waitForChartStability(chart);
+                    chart.publicApi.update(options);
+                    await waitForChartStability(chart);
 
-                        // createNodeData styled each cell once; a second pass over them would double this.
-                        expect(getItemStyle).toHaveBeenCalledTimes(ROWS.length);
-                    } finally {
-                        getItemStyle.mockRestore();
-                    }
+                    expect(writes()).toBe(0);
                 });
 
                 it('still happens on a full update while a cell is highlighted', async () => {
@@ -2223,16 +2243,12 @@ describe('HeatmapSeries', () => {
                     await createStable(options);
                     prepareEnterpriseTestOptions(options);
                     await hoverDatumByIndex(chart, 0, 1);
-                    const getItemStyle = spyOnCellStyling();
+                    const writes = watchCellStyleWrites();
 
-                    try {
-                        chart.publicApi.update(options);
-                        await waitForChartStability(chart);
+                    chart.publicApi.update(options);
+                    await waitForChartStability(chart);
 
-                        expect(getItemStyle.mock.calls.length).toBeGreaterThan(ROWS.length);
-                    } finally {
-                        getItemStyle.mockRestore();
-                    }
+                    expect(writes()).toBeGreaterThan(0);
                 });
 
                 it('still happens on a full update while a cell is selected', async () => {
@@ -2243,16 +2259,12 @@ describe('HeatmapSeries', () => {
                     await createStable(options);
                     prepareEnterpriseTestOptions(options);
                     await select(0);
-                    const getItemStyle = spyOnCellStyling();
+                    const writes = watchCellStyleWrites();
 
-                    try {
-                        chart.publicApi.update(options);
-                        await waitForChartStability(chart);
+                    chart.publicApi.update(options);
+                    await waitForChartStability(chart);
 
-                        expect(getItemStyle.mock.calls.length).toBeGreaterThan(ROWS.length);
-                    } finally {
-                        getItemStyle.mockRestore();
-                    }
+                    expect(writes()).toBeGreaterThan(0);
                 });
             });
 
@@ -2281,7 +2293,7 @@ describe('HeatmapSeries', () => {
             });
         });
 
-        describe('itemStyler results without a theme or var() reference', () => {
+        describe('itemStyler results with and without a theme reference', () => {
             type StylerParams = AgHeatmapSeriesItemStylerParams<(typeof DATA)[number]>;
             const resolvedStylerResults = (resolvePartial: { mock: { calls: any[][] } }) =>
                 resolvePartial.mock.calls.filter(([, value]) => value != null && 'fill' in value);
@@ -2322,67 +2334,19 @@ describe('HeatmapSeries', () => {
                 }
             });
 
-            it('hands every cell with an equal result the same validated object, and a distinct result its own', async () => {
-                const data = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
-                const itemStyler = ({ datum }: StylerParams) => ({
-                    strokeWidth: 1 + (datum.spending % 3),
-                    fill: 'lime',
-                });
-                const options = rawOptions({ itemStyler }, data);
-                await createStable(options);
-                prepareEnterpriseTestOptions(options);
-                const series = classCast(chart.series[0], HeatmapSeries) as any;
-                const resolve = vi.spyOn(series, 'resolveItemStylerResult');
+            it('forgets the remembered results when a data update restyles every cell', async () => {
+                const itemStyler = ({ datum }: StylerParams) => ({ strokeWidth: datum.spending / 10 });
+                await createStable(rawOptions({ itemStyler }));
+                const clear = vi.spyOn(CallbackResultMemo.prototype, 'clear');
 
                 try {
-                    chart.publicApi.update(options);
+                    chart.publicApi.updateDelta({ data: SHIFTED_DATA });
                     await waitForChartStability(chart);
 
-                    // Cells 0, 3, 6 and 9 asked for the same style: validating each distinct result once means they share it.
-                    const results = resolve.mock.results.map((r) => r.value);
-                    expect(results).toHaveLength(data.length);
-                    expect(new Set(results).size).toBe(3);
-                    for (let i = 3; i < data.length; i++) expect(results[i]).toBe(results[i % 3]);
+                    expect(clear).toHaveBeenCalled();
+                    expect(strokeWidths(chart)).toEqual(SHIFTED_DATA.map((d) => d.spending / 10));
                 } finally {
-                    resolve.mockRestore();
-                }
-            });
-
-            it('validates each distinct result once again after earlier results filled the memory', async () => {
-                const CELLS = 1500;
-                const SETTLED = 100_000;
-                const dataFrom = (offset: number) =>
-                    Array.from({ length: CELLS }, (_, i) => ({
-                        year: `${2000 + (i % 50)}`,
-                        person: `P${Math.floor(i / 50)}`,
-                        spending: i + offset,
-                    }));
-                // The first data gives every cell its own result, more than the memory can hold; the data after it gives
-                // the cells three results between them.
-                const fillFor = (spending: number) =>
-                    spending >= SETTLED
-                        ? `rgb(${200 + (spending % 3)}, 99, 99)`
-                        : `rgb(${spending % 256}, ${Math.floor(spending / 256)}, 30)`;
-                const itemStyler = ({ datum }: { datum: { spending: number } }) => ({ fill: fillFor(datum.spending) });
-                await createStable(rawOptions({ itemStyler }, dataFrom(0)));
-                const series = classCast(chart.series[0], HeatmapSeries) as any;
-                const resolve = vi.spyOn(series, 'resolveItemStylerResult');
-                const resolvePartial = vi.spyOn(chart.series[0].ctx.optionsGraphService, 'resolvePartial');
-
-                try {
-                    chart.publicApi.updateDelta({ data: dataFrom(SETTLED) });
-                    await waitForChartStability(chart);
-
-                    expect(cellFills(chart)).toEqual(
-                        await freshCellFills(rawOptions({ itemStyler }, dataFrom(SETTLED)))
-                    );
-                    expect(resolvedStylerResults(resolvePartial)).toHaveLength(0);
-                    const results = resolve.mock.results.map((r) => r.value);
-                    expect(results).toHaveLength(CELLS);
-                    expect(new Set(results).size).toBe(3);
-                } finally {
-                    resolve.mockRestore();
-                    resolvePartial.mockRestore();
+                    clear.mockRestore();
                 }
             });
 

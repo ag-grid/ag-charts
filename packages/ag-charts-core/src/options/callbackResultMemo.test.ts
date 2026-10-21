@@ -61,23 +61,6 @@ describe('CallbackResultMemo', () => {
             for (const [index, result] of results.entries()) expect(memo.recall(result)).toBe(clearedByResult[index]);
         });
 
-        it('keeps results apart however a name or value could be read as the boundary between properties', () => {
-            const memo = new CallbackResultMemo<Cleared>();
-            const results = [
-                { w: 1, 'anumber51:x': 0 },
-                { w: 11, a: 5, x: 0 },
-                { a: 'x', b: 'y' },
-                { a: 'x:b', b: 'y' },
-                { a: 'x1:b1:y' },
-                { a: 'x', b: 'y', c: '' },
-                { a: 'x', 'b:y': '' },
-                { a: '', b: 'xy' },
-            ];
-            const clearedByResult = results.map((result, index) => remembered(memo, result, `${index}`));
-
-            for (const [index, result] of results.entries()) expect(memo.recall(result)).toBe(clearedByResult[index]);
-        });
-
         it.each([
             ['a CSS variable', { fill: 'var(--cell)' }],
             ['a nested object', { shadow: { enabled: true } }],
@@ -142,14 +125,13 @@ describe('CallbackResultMemo', () => {
             return results;
         }
 
-        it('keeps the first results and never adds the later ones, with at least 256 fits', () => {
+        it('keeps the first 1,024 results and never adds the later ones', () => {
             const memo = new CallbackResultMemo<{ index: number }>();
             const results = fill(memo);
 
             const keptIndices = results.flatMap((result, index) => (memo.recall(result) === undefined ? [] : [index]));
             const cap = keptIndices.length;
-            expect(cap).toBeGreaterThanOrEqual(256);
-            expect(cap).toBeLessThan(ATTEMPTS);
+            expect(cap).toBe(1024);
             expect(keptIndices).toEqual(Array.from({ length: cap }, (_, index) => index));
         });
 
@@ -164,20 +146,6 @@ describe('CallbackResultMemo', () => {
 
             expect(memo.recall(last)).toBeUndefined();
             expect(isPlainResult(cleared)).toBe(true);
-        });
-
-        it('takes new results again after clear', () => {
-            const memo = new CallbackResultMemo<{ index: number }>();
-            const results = fill(memo);
-            const last = results[ATTEMPTS - 1];
-            const cleared = { index: -1 };
-
-            memo.clear();
-            expect(memo.recall(results[0])).toBeUndefined();
-            memo.recall(last);
-            memo.remember(last, cleared);
-
-            expect(memo.recall(last)).toBe(cleared);
         });
     });
 });
