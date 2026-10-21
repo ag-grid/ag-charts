@@ -53,7 +53,15 @@ env:
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-    AG_SHARD_COUNT: 5
+    # Shards are balanced by per-example cost (tools/benchmark/benchmark-costs.json), so each extra
+    # shard cuts the critical path almost for free: runner time stays near-constant because every
+    # shard pays ~4 minutes of fixed setup in parallel. With the checked-in costs the estimated
+    # heaviest shard is 29.9 min at 5 shards and 24.5 min at 6; 7 would only reach ~21.
+    AG_SHARD_COUNT: 6
+    # Per-example timeout. The healthy maximum for one pass of any example is 218s (a memory pass,
+    # which heap sampling slows); the slowest timing pass is 160s. A hung example is skipped in the
+    # shard's later passes, so it costs this once per shard.
+    AG_EXAMPLE_TIMEOUT_MS: 360000
     # Repeat each side N times per shard. The report job aggregates the runs and gates on
     # cross-run CV — a single run per side cannot separate a real change from shared-runner CPU
     # drift (~half the suite has a >10% run-to-run noise floor on hosted VMs).
@@ -284,8 +292,9 @@ jobs:
     benchmark:
         runs-on: ubuntu-24.04
         # Hosted runners are ~2x slower than the previous bare-metal runner and we now run each
-        # side AG_BENCHMARK_RUNS times, so the slowest shards need generous headroom.
-        timeout-minutes: 90
+        # side AG_BENCHMARK_RUNS times. A balanced shard takes ~30 min of benchmarking plus setup,
+        # and a hung example adds one AG_EXAMPLE_TIMEOUT_MS, so 60 leaves roughly 1.5x headroom.
+        timeout-minutes: 60
         needs: [resolve, build]
         strategy:
             fail-fast: false
@@ -342,24 +351,39 @@ jobs:
             # per-runner hardware differences. We interleave head/base across AG_BENCHMARK_RUNS
             # passes (head,base,head,base,…) so each pair is adjacent in time, and the report job
             # gates on the cross-run variance of the per-run medians.
+            # An example that times out is dropped from this shard's later passes (head and base, and the
+            # memory pass below): a hang repeats every pass and would otherwise cost the whole timeout
+            # each time. An example that merely errors still runs in every pass.
             - name: Run benchmarks (interleaved head/base, repeated)
+              env:
+                  SHARD_EXAMPLES: ${{ matrix.examples }}
               run: |
                   mkdir -p reports/browser-benchmarks/shards
+                  shard_reports=(reports/browser-benchmarks/shards/*-${{ strategy.job-index }}.r*.json)
                   run_one() {
                     local role=$1
                     local port=$2
                     local run=$3
+                    local remaining
+                    remaining=$(node ./tools/benchmark/shard-failures.js remaining --examples "${SHARD_EXAMPLES}" ${shard_reports[@]+"${shard_reports[@]}"})
+                    # An empty --examples would mean "every example", so never invoke the runner without any.
+                    if [[ -z "${remaining}" ]]; then
+                      echo "::warning::${role} run ${run}: every example in this shard timed out earlier; skipping"
+                      return 0
+                    fi
+                    local output="reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.r${run}.json"
                     ./tools/benchmark/serve-and-run.sh \
                         --dist "${RUNNER_TEMP}/site-${role}" \
                         --port "${port}" \
-                        --output "reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.r${run}.json" \
-                        -- --examples "${{ matrix.examples }}" --timeout 600000 || {
+                        --output "${output}" \
+                        -- --examples "${remaining}" --timeout "${AG_EXAMPLE_TIMEOUT_MS}" || {
                       if [[ "${AG_BENCHMARK_SOFT_FAIL}" == "true" ]]; then
                         echo "::warning::${role} run ${run} benchmarks had failures (soft-fail mode)"
                       else
                         return 1
                       fi
                     }
+                    shard_reports+=("${output}")
                   }
                   for run in $(seq 1 "${AG_BENCHMARK_RUNS}"); do
                     run_one head 4601 "${run}"
@@ -373,24 +397,31 @@ jobs:
                   SHARD_EXAMPLES: ${{ matrix.examples }}
               run: |
                   mkdir -p reports/browser-benchmarks/shards
-                  memory_examples=$(tr ',' '\n' <<< "${SHARD_EXAMPLES// /,}" | grep -E "${AG_MEMORY_EXAMPLE_PATTERN}" | paste -sd, - || true)
+                  shard_reports=(reports/browser-benchmarks/shards/*-${{ strategy.job-index }}.r*.json)
+                  candidates=$(node ./tools/benchmark/shard-failures.js remaining --examples "${SHARD_EXAMPLES}" ${shard_reports[@]+"${shard_reports[@]}"})
+                  memory_examples=$(tr ',' '\n' <<< "${candidates}" | grep -E "${AG_MEMORY_EXAMPLE_PATTERN}" | paste -sd, - || true)
                   if [[ -z "${memory_examples}" ]]; then
-                    echo "No examples in this shard match AG_MEMORY_EXAMPLE_PATTERN; skipping the memory pass."
+                    echo "No examples in this shard match AG_MEMORY_EXAMPLE_PATTERN (or all timed out earlier); skipping the memory pass."
                     exit 0
                   fi
                   echo "Memory pass examples: ${memory_examples}"
                   memory_one() {
                     local role=$1
                     local port=$2
+                    local output="reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.mem.json"
                     ./tools/benchmark/serve-and-run.sh \
                         --dist "${RUNNER_TEMP}/site-${role}" \
                         --port "${port}" \
-                        --output "reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.mem.json" \
-                        -- --examples "${memory_examples}" --timeout 600000 --memory || \
+                        --output "${output}" \
+                        -- --examples "${memory_examples}" --timeout "${AG_EXAMPLE_TIMEOUT_MS}" --memory || \
                       echo "::warning::${role} memory pass had failures; allocation data may be incomplete"
+                    # A hang in the head's memory pass is not repeated on the base side.
+                    memory_examples=$(node ./tools/benchmark/shard-failures.js remaining --examples "${memory_examples}" "${output}")
                   }
                   memory_one head 4601
-                  memory_one base "${BASE_PORT}"
+                  if [[ -n "${memory_examples}" ]]; then
+                    memory_one base "${BASE_PORT}"
+                  fi
 
             - name: Upload shard results
               if: always()
@@ -431,19 +462,25 @@ jobs:
                   merge-multiple: true
 
             # Merge each run's shards into one head/base report per run, then hand every run to
-            # the comparison so it can median across runs and gate on cross-run CV. Two integrity
-            # checks keep a degraded run out of the gate: a wholly missing shard would silently
-            # shrink a run, so per-run shard counts are enforced; and AG_BENCHMARK_SOFT_FAIL lets a
+            # the comparison so it can median across runs and gate on cross-run CV. A wholly missing
+            # shard would silently shrink a run, so per-run shard counts are enforced; a flaky run is
+            # tolerated as long as >=2 complete runs survive (the minimum for a cross-run variance
+            # estimate). Failures are contained per example, not per run: AG_BENCHMARK_SOFT_FAIL lets a
             # shard finish with errored/timed-out examples (the report is written before the runner
-            # exits non-zero), so each shard's failure counts are inspected too. A flaky run is
-            # tolerated as long as >=2 clean runs survive (the minimum for a cross-run variance
-            # estimate).
+            # exits non-zero), and every example that errored or timed out in any pass of any shard is
+            # left out of all runs and listed by the comparison, so one hung example costs its own
+            # comparison rather than the whole report.
             - name: Merge shard results
               env:
                   SHARDS: ${{ needs.resolve.outputs.shards }}
               run: |
                   shopt -s nullglob
                   expected=$(echo "$SHARDS" | jq length)
+                  node ./tools/benchmark/shard-failures.js excluded \
+                      --shards-dir reports/browser-benchmarks/shards \
+                      --output reports/browser-benchmarks/excluded.json | while IFS= read -r line; do
+                    echo "::warning::Excluded from the comparison: ${line}"
+                  done
                   good_runs=0
                   for run in $(seq 1 "${AG_BENCHMARK_RUNS}"); do
                     head_shards=(reports/browser-benchmarks/shards/head-*.r${run}.json)
@@ -452,21 +489,8 @@ jobs:
                       echo "::warning::Run ${run} incomplete (expected ${expected}, head: ${#head_shards[@]}, base: ${#base_shards[@]}); skipping"
                       continue
                     fi
-                    failed=0
-                    failed_names=()
-                    for f in "${head_shards[@]}" "${base_shards[@]}"; do
-                      failed=$((failed + $(jq '(.summary.error // 0) + (.summary.timeout // 0)' "$f")))
-                      side=$(basename "$f" | cut -d- -f1)
-                      while IFS= read -r name; do
-                        failed_names+=("${side}:${name}")
-                      done < <(jq -r '.examples | to_entries[] | select(.value.status == "error" or .value.status == "timeout") | "\(.key) (\(.value.status))"' "$f")
-                    done
-                    if [[ $failed -ne 0 ]]; then
-                      echo "::warning::Run ${run} has ${failed} failed/timed-out example(s) across its shards; skipping: ${failed_names[*]}"
-                      continue
-                    fi
-                    node ./tools/benchmark/merge-browser-results.js --output "reports/browser-benchmarks/head.r${run}.json" "${head_shards[@]}"
-                    node ./tools/benchmark/merge-browser-results.js --output "reports/browser-benchmarks/base.r${run}.json" "${base_shards[@]}"
+                    node ./tools/benchmark/merge-browser-results.js --exclude reports/browser-benchmarks/excluded.json --output "reports/browser-benchmarks/head.r${run}.json" "${head_shards[@]}"
+                    node ./tools/benchmark/merge-browser-results.js --exclude reports/browser-benchmarks/excluded.json --output "reports/browser-benchmarks/base.r${run}.json" "${base_shards[@]}"
                     good_runs=$((good_runs + 1))
                   done
                   if [[ $good_runs -lt 2 ]]; then
@@ -479,7 +503,7 @@ jobs:
                   for side in head base; do
                     mem_shards=(reports/browser-benchmarks/shards/${side}-*.mem.json)
                     if [[ ${#mem_shards[@]} -gt 0 ]]; then
-                      node ./tools/benchmark/merge-browser-results.js --output "reports/browser-benchmarks/${side}.mem.json" "${mem_shards[@]}" || \
+                      node ./tools/benchmark/merge-browser-results.js --exclude reports/browser-benchmarks/excluded.json --output "reports/browser-benchmarks/${side}.mem.json" "${mem_shards[@]}" || \
                         echo "::warning::${side} memory reports could not be merged; allocation omitted"
                     fi
                   done
@@ -498,6 +522,7 @@ jobs:
                   compare() {
                     node ./tools/benchmark/compare-browser-results.js \
                         "${base_args[@]}" "${compare_args[@]}" ${memory_args[@]+"${memory_args[@]}"} \
+                        --excluded reports/browser-benchmarks/excluded.json \
                         --base-label "${{ needs.resolve.outputs.base-label }}" \
                         --compare-label "${{ needs.resolve.outputs.branch }}" \
                         --report-only --format "$1"
