@@ -320,6 +320,12 @@ export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
         this.intrinsicCardSize = { width: bbox.width, height: bbox.height };
     }
 
+    // Hides the card's text and image without changing any measured size: the card and layout read the
+    // tier nodes directly, not through `contentGroup`.
+    setDetailVisible(visible: boolean) {
+        this.contentGroup.visible = visible;
+    }
+
     updateBBox(bbox: BBox, direction: AgNetworkSeriesTreeLayoutDirection) {
         this.shapeNode.width = bbox.width;
         this.shapeNode.height = bbox.height;
