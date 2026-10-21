@@ -16,10 +16,10 @@ import {
 import type { AgNumericValue } from 'ag-charts-types';
 
 import {
-    tickLabel as axisLabel,
     numericBandsOf,
     spyOnNumericBandsBuild,
     tickGenerationParams,
+    tickLabel as tickLabelOptions,
 } from '../test/axisAccessors';
 import { setupMockCanvas } from '../test/utils';
 import { NiceMode } from './axisUtil';
@@ -41,7 +41,7 @@ describe('estimateScaleTickCount', () => {
                 domain,
                 range: [0, rangeExtent],
                 visibleRange: [0.5 - zoomExtent / 2, 0.5 + zoomExtent / 2],
-                label: axisLabel({ fontSize: 14 }),
+                label: tickLabelOptions({ fontSize: 14 }),
             })
         );
     }
@@ -793,7 +793,7 @@ describe('tick label lineHeight', () => {
         const { tickData } = generateTicks(
             tickGenerationParams<LinearScale, AgNumericValue>({
                 scale,
-                label: axisLabel({ lineHeight }),
+                label: tickLabelOptions({ lineHeight }),
                 domain: [0, 100],
                 range: [0, 600],
                 tickFormatter: () => (value: unknown) => `${String(value)}\nunits`,
@@ -810,14 +810,14 @@ describe('tick label lineHeight', () => {
     });
 
     it('measures time labels by their lineHeight when estimating their size', () => {
-        const label = axisLabel({ lineHeight: 40, format: '%d %b' });
+        const label = tickLabelOptions({ lineHeight: 40, format: '%d %b' });
         const domain = [new Date(2024, 0, 1), new Date(2024, 0, 10)];
         expect(timeIntervalMaxLabelSize(label, undefined, domain, 'day').height).toBe(40);
     });
 
     it('measures parent level time labels by their own lineHeight', () => {
-        const label = axisLabel({ lineHeight: 15, format: '%d' });
-        const primaryLabel = axisLabel({ lineHeight: 60, format: '%b' });
+        const label = tickLabelOptions({ lineHeight: 15, format: '%d' });
+        const primaryLabel = tickLabelOptions({ lineHeight: 60, format: '%b' });
         const domain = [new Date(2024, 0, 1), new Date(2024, 2, 10)];
         expect(timeIntervalMaxLabelSize(label, primaryLabel, domain, 'day').height).toBe(60);
     });
