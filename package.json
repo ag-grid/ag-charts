@@ -172,6 +172,11 @@
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
+  "dependenciesMeta": {
+    "skia-canvas": {
+      "built": true
+    }
+  },
   "lavamoat": {
     "allowScripts": {
       "@carbon/icons-react#11.80.0": false,

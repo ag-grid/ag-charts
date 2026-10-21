@@ -1,19 +1,49 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { BBox, ChartUpdateType, Line, getDocument } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
+import { AgCharts } from '../../api/agCharts';
 import {
     findAxis,
     getAxisBandExtent,
     getAxisBandwidth,
+    getAxisDomain,
+    getAxisGridGroupById,
     getAxisLabelNodes,
+    getAxisLabelSource,
     getAxisLabelTexts,
+    getAxisLayoutState,
+    getAxisLinePosition,
     getAxisTitleText,
     getLabelSegmentAlignments,
     getLabelText,
     getSeriesRect,
+    pickAxisValue,
 } from './axisAccessors';
-import { createChart, setupMockCanvas, setupMockConsole } from './utils';
+import {
+    createChart,
+    deproxy,
+    emitFontLoad,
+    resizeChartContainer,
+    setupMockCanvas,
+    setupMockConsole,
+    spyOnAxisTickLayout,
+    waitForChartStability,
+} from './utils';
+
+/**
+ * The error `fn` throws. An accessor that gives up on a missing axis must fail on its own `expect(...).toBeDefined()`,
+ * an `AssertionError`; a `TypeError` from using the `undefined` it was handed means that check has gone.
+ */
+function errorFrom(fn: () => unknown): Error | undefined {
+    try {
+        fn();
+    } catch (error) {
+        return error as Error;
+    }
+    return undefined;
+}
 
 describe('axis test accessors', () => {
     setupMockConsole();
@@ -60,7 +90,7 @@ describe('axis test accessors', () => {
         it('fails for an axis the chart does not have', async () => {
             chart = await createChart(options);
 
-            expect(() => findAxis(chart, 'top')).toThrow();
+            expect(errorFrom(() => findAxis(chart, 'top'))?.name).toBe('AssertionError');
         });
     });
 
@@ -174,6 +204,171 @@ describe('axis test accessors', () => {
             expect(a.end - a.start).toBeCloseTo(a.bandwidth, 5);
             // Unreversed, A is the first band and C the last (see above); reversed, A comes after C.
             expect(a.start).toBeGreaterThanOrEqual(c.end);
+        });
+    });
+
+    describe('getAxisDomain', () => {
+        it('returns the domain of a category and of a number axis', async () => {
+            chart = await createChart(options);
+
+            expect(getAxisDomain(chart, 'bottom')).toEqual(['A', 'B', 'C']);
+            const [min, max] = getAxisDomain(chart, 'left').map(Number);
+            expect(min).toBe(0);
+            expect(max).toBeGreaterThanOrEqual(20);
+        });
+
+        it('returns a copy that cannot move the scale', async () => {
+            chart = await createChart(options);
+
+            getAxisDomain(chart, 'bottom').push('D');
+            expect(getAxisDomain(chart, 'bottom')).toEqual(['A', 'B', 'C']);
+        });
+    });
+
+    describe('pickAxisValue', () => {
+        it('picks the datum the axis draws at a value', async () => {
+            chart = await createChart(options);
+
+            for (const [index, value] of ['A', 'B', 'C'].entries()) {
+                const pick = pickAxisValue(chart, 'bottom', value);
+                expect(pick).toMatchObject({ value, index });
+            }
+        });
+
+        it('picks along the vertical direction of a vertical axis', async () => {
+            chart = await createChart(options);
+
+            const pick = pickAxisValue(chart, 'left', 10);
+            expect(pick).toBeDefined();
+            expect(pick!.axisId).toBe(findAxis(chart, 'left').id);
+            expect(Number(pick!.value)).toBeCloseTo(10, 0);
+        });
+
+        it('picks the same datum on a reversed axis', async () => {
+            chart = await createChart({
+                ...options,
+                axes: { ...options.axes, x: { type: 'category', position: 'bottom', reverse: true } },
+            });
+
+            // The index counts from the first tick drawn, so it runs the other way here.
+            expect(pickAxisValue(chart, 'bottom', 'A')).toMatchObject({ value: 'A', index: 2 });
+            expect(pickAxisValue(chart, 'bottom', 'C')).toMatchObject({ value: 'C', index: 0 });
+        });
+    });
+
+    describe('getAxisLabelSource', () => {
+        it('returns the source contributing the drawn labels as obstacles', async () => {
+            chart = await createChart(options);
+
+            const obstacles = getAxisLabelSource(chart, 'bottom').getLabelObstacles(BBox.zero);
+            expect(obstacles).toHaveLength(getAxisLabelNodes(chart, 'bottom').length);
+            expect(obstacles.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('getAxisLayoutState', () => {
+        it('returns the layout the axis reports for its position', async () => {
+            chart = await createChart(options);
+
+            const layout = getAxisLayoutState(chart, 'bottom');
+            expect(layout.id).toBe(findAxis(chart, 'bottom').id);
+            expect(layout.position).toBe('bottom');
+            expect(layout.rect.width).toBeGreaterThan(0);
+            expect(getAxisLayoutState(chart, 'left').position).toBe('left');
+        });
+    });
+
+    describe('getAxisLinePosition', () => {
+        it('returns where the scene draws the line of a horizontal and of a vertical axis', async () => {
+            chart = await createChart({ ...options, width: 600, height: 400 });
+
+            const { x, y, height } = getSeriesRect(chart);
+            const bottom = getAxisLinePosition(chart, 'bottom');
+            const left = getAxisLinePosition(chart, 'left');
+
+            // The rendered translation is floored, so it lands within a pixel below the exact position.
+            expect(bottom.y).toBeGreaterThan(0);
+            expect(Math.abs(bottom.y - (y + height))).toBeLessThanOrEqual(1);
+            expect(left.x).toBeGreaterThan(0);
+            expect(Math.abs(left.x - x)).toBeLessThanOrEqual(1);
+        });
+
+        it('fails for an axis the chart does not have', async () => {
+            chart = await createChart(options);
+
+            expect(errorFrom(() => getAxisLinePosition(chart, 'top'))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getAxisGridGroupById', () => {
+        it('returns the group holding the grid lines of the axis with the id', async () => {
+            chart = await createChart({
+                ...options,
+                axes: {
+                    x: { ...options.axes!.x, gridLine: { enabled: false } },
+                    y: { type: 'number', position: 'left', gridLine: { enabled: true } },
+                },
+            });
+
+            const gridLines = (id: string) =>
+                Array.from(getAxisGridGroupById(chart, id).descendants()).filter((node) => node instanceof Line);
+            expect(gridLines('y')).toHaveLength(getAxisLabelNodes(chart, 'left').length);
+            expect(gridLines('x')).toHaveLength(0);
+        });
+
+        it('fails for an axis the chart does not have', async () => {
+            chart = await createChart(options);
+
+            expect(errorFrom(() => getAxisGridGroupById(chart, 'missing'))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('spyOnAxisTickLayout', () => {
+        it('records the tick layouts of the axis at the position, and not of another', async () => {
+            chart = await createChart(options);
+            const bottom = spyOnAxisTickLayout(chart, 'bottom');
+            const left = spyOnAxisTickLayout(chart, 'left');
+            expect(bottom).not.toHaveBeenCalled();
+            expect(left).not.toHaveBeenCalled();
+
+            // The tick layout is cached while the domain, range and fonts stay as they are.
+            deproxy(chart).update(ChartUpdateType.PERFORM_LAYOUT);
+            await waitForChartStability(chart);
+            expect(bottom).not.toHaveBeenCalled();
+            expect(left).not.toHaveBeenCalled();
+
+            // Fonts change the measured text, so every axis lays its ticks out again.
+            await emitFontLoad(chart);
+            expect(bottom).toHaveBeenCalled();
+            expect(left).toHaveBeenCalled();
+            expect(bottom.mock.contexts.every((axis) => axis === findAxis(chart, 'bottom'))).toBe(true);
+            expect(left.mock.contexts.every((axis) => axis === findAxis(chart, 'left'))).toBe(true);
+        });
+    });
+
+    describe('harness actions', () => {
+        let container: HTMLElement;
+
+        beforeEach(() => {
+            container = getDocument().createElement('div');
+            getDocument().body.append(container);
+        });
+
+        afterEach(() => container.remove());
+
+        it('resizeChartContainer resizes an auto-sized chart to the container size', async () => {
+            // Bespoke: no width or height, so the chart follows the container.
+            chart = AgCharts.create({ ...options, container });
+            await waitForChartStability(chart);
+
+            await resizeChartContainer(chart, { width: 300, height: 200, pixelRatio: 1 });
+            const small = { ...getSeriesRect(chart) };
+            await resizeChartContainer(chart, { width: 600, height: 400, pixelRatio: 1 });
+            const large = getSeriesRect(chart);
+
+            expect(large.width).toBeGreaterThan(small.width + 100);
+            expect(large.height).toBeGreaterThan(small.height + 100);
+            expect(deproxy(chart).ctx.domManager.containerSize).toEqual({ width: 600, height: 400, pixelRatio: 1 });
         });
     });
 });

@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import { getAxisLabelTexts } from '../test/axisAccessors';
+import { getAxisDomain, getAxisLabelTexts } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
-import { createChart, deproxy, expectWarningMessages, setupMockCanvas, setupMockConsole } from '../test/utils';
+import { createChart, expectWarningMessages, setupMockCanvas, setupMockConsole } from '../test/utils';
 
 // BigInt numeric-axis ticks must render at full precision end-to-end, so these drive a real chart.
 describe('NumberAxis BigInt labels', () => {
@@ -153,13 +153,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         },
     });
 
-    const xAxis = () => {
-        const axis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'x');
-        expect(axis).toBeDefined();
-        return axis;
-    };
-
-    const xDomain = (): number[] => xAxis().scale.domain.map(Number);
+    const xDomain = (): number[] => getAxisDomain(chart, 'bottom').map(Number);
 
     it('keeps the x domain fitted to the data when interval.step is dense', async () => {
         chart = await createChart(barOptions({ interval: { step: 100 } }));
@@ -210,8 +204,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         };
         chart = await createChart(options);
 
-        const yAxis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'y');
-        expect(yAxis.scale.domain.map(Number)).toEqual([-150, 50]);
+        expect(getAxisDomain(chart, 'left').map(Number)).toEqual([-150, 50]);
     });
 
     it('still reduces colliding labels when the step is too dense for the scale to honour', async () => {

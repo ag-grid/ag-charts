@@ -17,10 +17,12 @@ import {
     getAxisBandExtent,
     getAxisBandwidth,
     getAxisLabelNodes,
+    getAxisLinePosition,
     getAxisTitleText,
     getLabelSegmentAlignments,
     getLabelText,
     getSeriesRect,
+    pickAxisValue,
 } from '../test/axisAccessors';
 import { BIG, expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import {
@@ -29,10 +31,11 @@ import {
     createChart,
     deproxy,
     expectWarningsCalls,
-    getAxisLabelTexts,
     getAxisTickLayout,
+    getAxisTickLayoutLabelTexts,
     getAxisTickLayouts,
     prepareTestOptions,
+    resizeChartContainer,
     setupMockCanvas,
     setupMockConsole,
     spyOnAxisTickLayout,
@@ -958,25 +961,31 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             });
 
-            const crossTranslationY = async (value: AgCartesianAxisCrossAt['value']) => {
-                const options = bigintDomainOptions(value);
-                chart = await createChart(options);
-                const chartInstance = deproxy(chart as any) as any;
-                const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
-                expect(bottomAxis).toBeDefined();
-                const { y } = bottomAxis.crossAxisTranslation;
+            // Where the axis line is drawn, as the scene places it, and the series rect it was placed against.
+            const crossPositionY = async (value: AgCartesianAxisCrossAt['value']) => {
+                chart = await createChart(bigintDomainOptions(value));
+                const { y: translationY } = getAxisLinePosition(chart, 'bottom');
+                const { y, height } = getSeriesRect(chart);
                 chart.destroy();
                 (chart as unknown) = undefined;
-                return y;
+                return { translationY, bottom: y + height, height };
             };
 
+            // The axis moves with the cross position: one at the domain minimum sits on the edge, and makes room for
+            // its labels, so the offsets stay inside the domain to compare positions under one series rect.
             it('resolves adjacent bigints beyond MAX_SAFE_INTEGER to distinct cross positions', async () => {
-                const at0 = await crossTranslationY(BIG);
-                const at1 = await crossTranslationY(BIG + 1n);
-                const at2 = await crossTranslationY(BIG + 2n);
+                const offsets = [1n, 2n, 3n];
+                const positions = [];
+                for (const offset of offsets) {
+                    positions.push(await crossPositionY(BIG + offset));
+                }
 
-                expect(new Set([at0, at1, at2]).size).toBe(3);
-                expect(at1 - at0).toBeCloseTo(at2 - at1, 6);
+                expect(new Set(positions.map((position) => position.translationY)).size).toBe(3);
+                // The domain is BIG to BIG + 4, so each step moves the axis a quarter of the height. The rendered
+                // translation is floored, so it lands within a pixel below the exact position.
+                for (const [i, { translationY, bottom, height }] of positions.entries()) {
+                    expect(Math.abs(translationY - (bottom - ((i + 1) * height) / 4))).toBeLessThanOrEqual(1);
+                }
             });
 
             it('renders a bigint crossAt value identically to the equivalent number', async () => {
@@ -1011,20 +1020,17 @@ describe('CartesianAxis', () => {
             });
 
             it('degrades to the uncrossed fallback for a bigint crossAt value on a category axis', async () => {
-                const options: AgCartesianChartOptions = {
+                const options = (crossAt?: AgCartesianAxisCrossAt): AgCartesianChartOptions => ({
                     data: CATEGORY_DATA,
                     theme: THEME,
                     axes: {
                         x: { type: 'category', position: 'bottom' },
-                        y: { type: 'number', position: 'left', crossAt: { value: 1n } },
+                        y: { type: 'number', position: 'left', ...(crossAt ? { crossAt } : {}) },
                     },
                     series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-                };
-                chart = await createChart(options);
+                });
 
-                const chartInstance = deproxy(chart as any) as any;
-                const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
-                expect(leftAxis.crossAxisTranslation).toEqual({ x: 0, y: 0 });
+                await expectPixelIdenticalAcrossUpdate(ctx, createChart, options({ value: 1n }), options());
                 expectWarningsCalls().toHaveLength(0);
             });
         });
@@ -2095,11 +2101,12 @@ describe('CartesianAxis', () => {
         afterEach(() => container.remove());
 
         // Drive the auto-size path; explicit width/height would short-circuit the device-pixel offset.
-        const resizeTo = async (chartInstance: any, width: number, height: number) => {
-            chartInstance.ctx.domManager.containerSize = { width, height, pixelRatio: PIXEL_RATIO };
-            chartInstance.ctx.eventsHub.emit('dom:resize', null);
-            await waitForChartStability(chart);
-        };
+        const resizeTo = (width: number, height: number) =>
+            resizeChartContainer(chart, { width, height, pixelRatio: PIXEL_RATIO });
+
+        // A sweep that never resizes the chart would pass every stability check below, so each one asserts the series
+        // rect followed the container.
+        const expectResized = (sizes: number[]) => expect(new Set(sizes).size).toBeGreaterThan(1);
 
         const createAutoSizedChart = () => {
             const options: AgCartesianChartOptions = {
@@ -2112,32 +2119,35 @@ describe('CartesianAxis', () => {
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             };
             chart = AgCharts.create(options);
-            return deproxy(chart as any) as any;
         };
 
         it('keeps the bottom axis Y position fixed as the container width grows', async () => {
-            const chartInstance = createAutoSizedChart();
+            createAutoSizedChart();
 
             const positions = new Set<number>();
+            const sizes: number[] = [];
             for (let width = 300; width <= 320; width++) {
-                await resizeTo(chartInstance, width, 200);
-                const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
-                positions.add(bottomAxis.translation.y);
+                await resizeTo(width, 200);
+                positions.add(getAxisLinePosition(chart, 'bottom').y);
+                sizes.push(getSeriesRect(chart).width);
             }
 
+            expectResized(sizes);
             expect(positions.size).toBe(1);
         });
 
         it('keeps the left axis X position fixed as the container height grows', async () => {
-            const chartInstance = createAutoSizedChart();
+            createAutoSizedChart();
 
             const positions = new Set<number>();
+            const sizes: number[] = [];
             for (let height = 300; height <= 320; height++) {
-                await resizeTo(chartInstance, 400, height);
-                const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
-                positions.add(leftAxis.translation.x);
+                await resizeTo(400, height);
+                positions.add(getAxisLinePosition(chart, 'left').x);
+                sizes.push(getSeriesRect(chart).height);
             }
 
+            expectResized(sizes);
             expect(positions.size).toBe(1);
         });
 
@@ -2156,28 +2166,32 @@ describe('CartesianAxis', () => {
         };
 
         it('moves the left axis X position monotonically as the container width grows', async () => {
-            const chartInstance = createAutoSizedChart();
+            createAutoSizedChart();
 
             const positions: number[] = [];
+            const sizes: number[] = [];
             for (let width = 300; width <= 320; width++) {
-                await resizeTo(chartInstance, width, 200);
-                const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
-                positions.push(leftAxis.translation.x);
+                await resizeTo(width, 200);
+                positions.push(getAxisLinePosition(chart, 'left').x);
+                sizes.push(getSeriesRect(chart).width);
             }
 
+            expectResized(sizes);
             expect(directionReversals(positions)).toBe(0);
         });
 
         it('moves the bottom axis Y position monotonically as the container height grows', async () => {
-            const chartInstance = createAutoSizedChart();
+            createAutoSizedChart();
 
             const positions: number[] = [];
+            const sizes: number[] = [];
             for (let height = 300; height <= 320; height++) {
-                await resizeTo(chartInstance, 400, height);
-                const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
-                positions.push(bottomAxis.translation.y);
+                await resizeTo(400, height);
+                positions.push(getAxisLinePosition(chart, 'bottom').y);
+                sizes.push(getSeriesRect(chart).height);
             }
 
+            expectResized(sizes);
             expect(directionReversals(positions)).toBe(0);
         });
     });
@@ -2253,16 +2267,12 @@ describe('CartesianAxis', () => {
             const options = baseOptions(reverse);
             chart = await createChart(options);
 
-            const chartInstance = deproxy(chart as any) as any;
-            const yAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
-            expect(yAxis).toBeDefined();
             expect(formatterIndexByValue.size).toBeGreaterThan(0);
 
-            const { x, y } = yAxis.getLayoutTranslation();
             for (const [value, formatterIndex] of formatterIndexByValue) {
-                const pick = yAxis.pickValue({ canvasX: x, canvasY: y + yAxis.scale.convert(value) });
+                const pick = pickAxisValue(chart, 'left', value);
                 expect(pick).toBeDefined();
-                expect(pick.index).toBe(formatterIndex);
+                expect(pick!.index).toBe(formatterIndex);
             }
         };
 
@@ -4112,12 +4122,12 @@ describe('CartesianAxis', () => {
         it('extends the y axis when an added row lies outside its range', async () => {
             const data = [...sequence(0, 10), { x: 10, y: 1000 }];
             chart = await create({ axes: numberAxes, data: sequence(0, 10) });
-            expect(getAxisLabelTexts(chart, 'left')).toEqual(['10', '8', '6', '4', '2', '0']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'left')).toEqual(['10', '8', '6', '4', '2', '0']);
 
             await update({ data });
 
             await expectMatchesFresh({ axes: numberAxes, data });
-            expect(getAxisLabelTexts(chart, 'left')[0]).toBe('1000');
+            expect(getAxisTickLayoutLabelTexts(chart, 'left')[0]).toBe('1000');
         });
 
         it.each([
@@ -4146,7 +4156,7 @@ describe('CartesianAxis', () => {
             await update({ data: sequence(0, 10, (i) => (i % 2) * 100) });
 
             expect(yTickLayout).toHaveBeenCalled();
-            expect(getAxisLabelTexts(chart, 'left')).toContain('100');
+            expect(getAxisTickLayoutLabelTexts(chart, 'left')).toContain('100');
         });
 
         it('keeps the y ticks when a row is added within the y range, and recalculates the x ticks', async () => {
@@ -4176,7 +4186,7 @@ describe('CartesianAxis', () => {
 
             await update({ data: categories(0, 4).reverse() });
 
-            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 3', 'Item 2', 'Item 1', 'Item 0']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 3', 'Item 2', 'Item 1', 'Item 0']);
         });
 
         it('re-runs a label formatter on a data update that leaves the domain unchanged', async () => {
@@ -4187,13 +4197,13 @@ describe('CartesianAxis', () => {
                 y: { type: 'number', position: 'left', label: { formatter } },
             };
             chart = await create({ axes, data: categories(0, 3, alternating(0)) });
-            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0a', 'Item 1a', 'Item 2a']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0a', 'Item 1a', 'Item 2a']);
 
             suffix = 'b';
             await update({ data: categories(0, 3, alternating(1)) });
 
-            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0b', 'Item 1b', 'Item 2b']);
-            expect(getAxisLabelTexts(chart, 'left').every((text) => text.endsWith('b'))).toBe(true);
+            expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0b', 'Item 1b', 'Item 2b']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'left').every((text) => text.endsWith('b'))).toBe(true);
         });
 
         it('re-runs a label itemStyler on a data update that leaves the domain unchanged', async () => {
@@ -4216,12 +4226,12 @@ describe('CartesianAxis', () => {
             const items = Array.from({ length: 3 }, (_, i) => ({ name: `Item ${i}`, toString: () => items[i].name }));
             const data = () => items.map((item, i) => ({ x: item, y: i }));
             chart = await create({ axes: categoryAxes, data: data() });
-            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Item 1', 'Item 2']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Item 1', 'Item 2']);
 
             items[1].name = 'Renamed';
             await update({ data: data() });
 
-            expect(getAxisLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Renamed', 'Item 2']);
+            expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Renamed', 'Item 2']);
         });
 
         it.each([
@@ -4329,7 +4339,7 @@ describe('CartesianAxis', () => {
                 await update({ formatter, data });
 
                 await expectMatchesFresh({ axes: numberAxes, data, formatter });
-                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10!');
+                expect(getAxisTickLayoutLabelTexts(chart, 'left')[0]).toBe('10!');
             });
 
             it('matches a fresh chart after a chart formatter is removed', async () => {
@@ -4339,20 +4349,20 @@ describe('CartesianAxis', () => {
                 await update({ formatter: undefined });
 
                 await expectMatchesFresh({ axes: numberAxes, data: stable });
-                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10');
+                expect(getAxisTickLayoutLabelTexts(chart, 'left')[0]).toBe('10');
             });
 
             it('re-runs a chart formatter on a data update that leaves the domain unchanged', async () => {
                 let suffix = 'a';
                 const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}${suffix}` };
                 chart = await create({ axes: numberAxes, data: stable, formatter });
-                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10a');
+                expect(getAxisTickLayoutLabelTexts(chart, 'left')[0]).toBe('10a');
 
                 suffix = 'b';
                 await update({ data: moved });
 
                 await expectMatchesFresh({ axes: numberAxes, data: moved, formatter });
-                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10b');
+                expect(getAxisTickLayoutLabelTexts(chart, 'left')[0]).toBe('10b');
             });
 
             it('re-measures an axis title whose formatter changes text on a data update that leaves the domain unchanged', async () => {

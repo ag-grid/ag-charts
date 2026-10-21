@@ -8,7 +8,7 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
-import { getAxisLabelNodes, getAxisLabelTexts } from '../test/axisAccessors';
+import { getAxisLabelNodes, getAxisLabelSource, getAxisLabelTexts, getAxisLayoutState } from '../test/axisAccessors';
 import { EXAMPLE_GRID_LINE, applyRotationWithoutCollisionAvoidance, mixinDerivedCases } from '../test/axisTestCases';
 import {
     DATA_GROUPED_MULTIPLE_NULLS,
@@ -203,17 +203,17 @@ describe('Grouped Category Axis Examples', () => {
     describe('axis label obstacles', () => {
         it('contributes its drawn labels and invalidates them on update', async () => {
             chart = await createChart({ ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE });
-            const axis = deproxy(chart).axes.find((a: any) => a.position === 'bottom') as any;
-            const obstacles = axis.labelSource.getLabelObstacles(BBox.zero);
+            const labelSource = getAxisLabelSource(chart, 'bottom');
+            const obstacles = labelSource.getLabelObstacles(BBox.zero);
             expect(obstacles.length).toBeGreaterThan(0);
-            expect(obstacles.length).toBe(axis.tickLabelGroupSelection.nodes().length);
+            expect(obstacles.length).toBe(getAxisLabelNodes(chart, 'bottom', { visibleOnly: false }).length);
 
-            const version = axis.labelSource.nodeDataVersion;
+            const version = labelSource.nodeDataVersion;
             await deproxy(chart).publicApi!.update(
                 prepareTestOptions({ ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE, width: 700 })
             );
             await waitForChartStability(chart);
-            expect(axis.labelSource.nodeDataVersion).toBeGreaterThan(version);
+            expect(labelSource.nodeDataVersion).toBeGreaterThan(version);
         });
     });
 
@@ -516,8 +516,7 @@ describe('Grouped Category Axis Examples', () => {
                     y: { type: 'number', position: 'left' },
                 },
             } as AgCartesianChartOptions);
-            const axis = (deproxy(chart) as any).axes.find((a: any) => a.type === 'grouped-category');
-            const { label: layout } = axis.getLayoutState();
+            const { label: layout } = getAxisLayoutState(chart, 'bottom');
             chart.destroy();
             (chart as unknown) = undefined;
             return layout;
