@@ -1122,7 +1122,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         indices?: Uint32Array | number[],
         sortOrderParams?: { sortOrder: 1 | -1 }
     ): [number, number] {
-        const sortOrder = sortOrderParams?.sortOrder ?? this.visibleRangeSortOrder(axisKey) ?? 1;
+        const sortOrder = sortOrderParams?.sortOrder ?? this.visibleRangeSortOrder(axisKey, indices != null) ?? 1;
 
         const xValues = this.keysOrValues(axisKey);
         // @todo(AG-7083) - figure out how to determine this
@@ -1140,8 +1140,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return start < end ? [start, end] : [end, start];
     }
 
-    protected visibleRangeSortOrder(axisKey: string): 1 | -1 | undefined {
-        return this.sortOrder(axisKey);
+    protected visibleRangeSortOrder(axisKey: string, bucketed = false): 1 | -1 | undefined {
+        // Aggregation buckets are ordered by axis position, whatever the order of the data.
+        return bucketed ? 1 : this.sortOrder(axisKey);
     }
 
     protected domainForVisibleRange(
