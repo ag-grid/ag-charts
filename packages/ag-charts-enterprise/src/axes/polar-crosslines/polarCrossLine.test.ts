@@ -423,7 +423,6 @@ describe('PolarCrossLine listeners', () => {
 
         listener.mockClear();
         await chart.publicApi!.update(prepareEnterpriseTestOptions(build(1)));
-        await waitForChartStability(chart);
         await click(chart, point);
 
         expect(listener).not.toHaveBeenCalled();
@@ -553,7 +552,6 @@ describe('PolarCrossLine listeners', () => {
             const point = pointOnPolarCrossLine(polarCrossLineAt(chart, axisId));
 
             await chart.publicApi!.update(prepareEnterpriseTestOptions(options(false)));
-            await waitForChartStability(chart);
             const instance = polarCrossLineAt(chart, axisId);
             expect(instance.rangeGroup.visible).toBe(false);
             expect(instance.labelGroup.visible).toBe(false);

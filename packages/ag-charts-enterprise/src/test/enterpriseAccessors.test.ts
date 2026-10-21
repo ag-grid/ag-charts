@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import { deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
+import type { HierarchyNode } from '../series/hierarchy/hierarchySeries';
 import { getCrossLineLabelNodes } from './polarCrossLines';
+import { getHierarchyRootNode } from './seriesAccessors';
 import { WhiskerItemNode, createEnterpriseChart, itemNodes } from './utils';
 
 describe('enterprise test accessors', () => {
@@ -74,6 +76,45 @@ describe('enterprise test accessors', () => {
             expect(nodes).toHaveLength(2);
             expect(itemNodes(deproxy(chart))).toEqual(nodes);
             expect(nodes.every((node) => node.wickPath != null)).toBe(true);
+        });
+    });
+
+    describe('getHierarchyRootNode', () => {
+        const hierarchyData = [
+            {
+                name: 'Root',
+                children: [
+                    { name: 'A', size: 3 },
+                    { name: 'B', children: [{ name: 'B1', size: 2 }] },
+                ],
+            },
+        ];
+
+        it.each(['treemap', 'sunburst'] as const)('returns the root of the tree a %s series built', async (type) => {
+            chart = await createEnterpriseChart({
+                data: hierarchyData,
+                series: [{ type, labelKey: 'name', sizeKey: 'size' }],
+            });
+
+            const root = getHierarchyRootNode(chart);
+
+            // The series' own root sits above the data rows, which are its children.
+            const [top] = root?.children ?? [];
+            expect(root?.children.map((child: HierarchyNode) => child.datum?.name)).toEqual(['Root']);
+            expect(top.children.map((child: HierarchyNode) => child.datum?.name)).toEqual(['A', 'B']);
+            expect(top.children[1].children.map((child: HierarchyNode) => child.datum?.name)).toEqual(['B1']);
+            expect(getHierarchyRootNode(deproxy(chart))).toBe(root);
+        });
+
+        it('fails for a series that is not a hierarchy series', async () => {
+            chart = await createEnterpriseChart({
+                data: [{ x: 'A', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
+
+            const bar = chart;
+
+            expect(() => getHierarchyRootNode(bar)).toThrow();
         });
     });
 });

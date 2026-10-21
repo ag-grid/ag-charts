@@ -14,6 +14,7 @@ import {
 } from 'ag-charts-core';
 import { expectWarningsCalls } from 'ag-charts-test';
 import type {
+    AgCartesianAxisOptions,
     AgCartesianChartOptions,
     AgCartesianCrossLineLabelOptions,
     AgCartesianCrossLineOptions,
@@ -27,7 +28,9 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { Chart } from '../chart';
+import { getSeriesRect } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
+import { getSeriesSelectionNodes } from '../test/seriesAccessors';
 import type { CartesianTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -50,6 +53,7 @@ import { CartesianCrossLine } from './cartesianCrossLine';
 import type { CrossLineType } from './crossLine';
 import { CROSS_LINE_TYPES } from './crossLinesModule';
 import { getCrossLinesPlugin } from './getCrossLinesPlugin';
+import { getCrossLineFittedLabel } from './test/crossLineAccessors';
 import * as examples from './test/examples';
 
 type ViFn = ReturnType<typeof vi.fn>;
@@ -1586,11 +1590,11 @@ describe('CrossLine', () => {
             });
 
             chart = deproxy(await createChart(build('pad-chart')));
-            const padded = (chart as any).seriesRect.clone();
+            const padded = getSeriesRect(chart).clone();
 
             await chart.publicApi!.update(build('realign-text'));
             await waitForChartStability(chart);
-            const realigned = (chart as any).seriesRect;
+            const realigned = getSeriesRect(chart);
 
             expect(realigned.height).toBeGreaterThan(padded.height);
         });
@@ -1616,10 +1620,9 @@ describe('CrossLine', () => {
             const reservedFor = async (top: number) => {
                 await chart.publicApi!.update(build(false, top));
                 await waitForChartStability(chart);
-                const withoutLabel = (chart as any).seriesRect.y;
+                const withoutLabel = getSeriesRect(chart).y;
                 await chart.publicApi!.update(build(true, top));
-                await waitForChartStability(chart);
-                return (chart as any).seriesRect.y - withoutLabel;
+                return getSeriesRect(chart).y - withoutLabel;
             };
 
             chart = deproxy(await createChart(build(false, 0)));
@@ -1634,7 +1637,7 @@ describe('CrossLine', () => {
             // `placement: 'left'` on the left-hand axis pads horizontally, so a very wide label is what
             // outgrows the space available.
             const veryLongLabel = 'A'.repeat(400);
-            const { x, y } = examples.LINE_CROSSLINES.axes as any;
+            const { x, y } = examples.LINE_CROSSLINES.axes as Record<'x' | 'y', AgCartesianAxisOptions>;
 
             chart = deproxy(
                 await createChart({
@@ -1651,16 +1654,16 @@ describe('CrossLine', () => {
                 })
             );
 
-            const seriesRect = (chart as any).seriesRect;
+            const seriesRect = getSeriesRect(chart);
 
-            expect((chart as any).seriesRoot.visible).toBe(true);
+            expect(chart.seriesRoot.visible).toBe(true);
             expect(seriesRect.width).toBeGreaterThan(0);
             expect(seriesRect.height).toBeGreaterThan(0);
         });
 
         it('clip-text truncates a label that would run past the container edge', async () => {
             const veryLongLabel = 'A cross line label far too long to fit the chart it is drawn on';
-            const { x, y } = examples.LINE_CROSSLINES.axes as any;
+            const { x, y } = examples.LINE_CROSSLINES.axes as Record<'x' | 'y', AgCartesianAxisOptions>;
             const build = (overflow: CrossLineLabelOverflow): AgCartesianChartOptions => ({
                 ...examples.LINE_CROSSLINES,
                 axes: {
@@ -1695,7 +1698,7 @@ describe('CrossLine', () => {
         it('clip-text shortens monotonically as the room runs out, ending at an ellipsis', async () => {
             // A rotated label extends along the axis's short side, which is the only direction whose room
             // a label padding can exhaust; upright text is bounded by the far wider horizontal extent.
-            const { x, y } = examples.LINE_CROSSLINES.axes as any;
+            const { x, y } = examples.LINE_CROSSLINES.axes as Record<'x' | 'y', AgCartesianAxisOptions>;
             const build = (padding: number): AgCartesianChartOptions => ({
                 ...examples.LINE_CROSSLINES,
                 axes: {
@@ -1886,8 +1889,8 @@ describe('CrossLine', () => {
         function labelsShown(axisId = 'x') {
             const axis = chart.axes.findById(axisId)!;
             return (getCrossLinesPlugin(axis)?.getInstances() ?? []).map((crossLine) => {
-                const [crossLineLabel] = crossLine.labelGroup.children() as any;
-                return crossLineLabel.visible as boolean;
+                const [crossLineLabel] = crossLine.labelGroup.children();
+                return crossLineLabel.visible;
             });
         }
 
@@ -1970,7 +1973,6 @@ describe('CrossLine', () => {
             const settled = { top: chart.seriesRect!.y, shown: labelsShown() };
 
             await chart.publicApi!.update(collisionChart({ stroke: 'green' }));
-            await waitForChartStability(chart);
 
             expect({ top: chart.seriesRect!.y, shown: labelsShown() }).toEqual(settled);
         });
@@ -2180,7 +2182,6 @@ describe('CrossLine', () => {
             const settled = { seriesRect: chart.seriesRect!.clone(), box: placedLabelBox() };
 
             await chart.publicApi!.update(prepareTestOptions({ ...options, title: { text: 'Again' } }));
-            await waitForChartStability(chart);
             const again = placedLabelBox();
 
             expect(again!.x - chart.seriesRect!.x).toBeCloseTo(settled.box!.x - settled.seriesRect.x);
@@ -2389,7 +2390,7 @@ describe('CrossLine', () => {
         }
 
         function shownSeriesLabelBoxes() {
-            return ((chart as any).series[0].labelSelection.nodes() as any[])
+            return getSeriesSelectionNodes(chart, 'labelSelection')
                 .filter((node) => node.visible)
                 .map((node) => Transformable.toCanvas(node));
         }
@@ -2415,7 +2416,6 @@ describe('CrossLine', () => {
 
             // The reserved box is read back off the drawn node, so a relayout must reserve the same space.
             await chart.publicApi!.update({ ...build(true), title: { text: 'relayout' } });
-            await waitForChartStability(chart);
             const relaidOut = clearOfCrossLine();
 
             // Guards the assertions below: without the opt-in the labels must genuinely be in the way.
@@ -2800,7 +2800,6 @@ describe('CrossLine theme colour references', () => {
         await chart.publicApi!.update(
             prepareTestOptions(chartOptions(crossLines, { params: { ...PARAMS, foregroundColor: '#0000ff' } }))
         );
-        await waitForChartStability(chart);
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#0000ff']);
     });
@@ -3136,12 +3135,12 @@ describe('CrossLine label fitting', () => {
     it('refits the label once a web font loads', async () => {
         chart = deproxy(await createChart(fitChart(lineWith({ maxWidth: 80 }))));
         const { crossLine } = renderedLabel();
-        const fittedBeforeLoad = (crossLine as any).fitted;
+        const fittedBeforeLoad = getCrossLineFittedLabel(crossLine);
 
         cachedTextMeasurer.clear();
         await emitFontLoad(chart);
 
-        expect((crossLine as any).fitted).not.toBe(fittedBeforeLoad);
+        expect(getCrossLineFittedLabel(crossLine)).not.toBe(fittedBeforeLoad);
     });
 
     it('ellipsises a wrapped clip-text label once, within the chart', async () => {
@@ -3197,7 +3196,6 @@ describe('CrossLine label fitting', () => {
         expect(labelInsideBand()).toBe(true);
 
         await chart.publicApi!.update(options(100));
-        await waitForChartStability(chart);
         expect(labelInsideBand()).toBe(false);
         expect(renderedLabel('x').text).toBe(zoomedIn);
     });
@@ -3213,23 +3211,27 @@ describe('CrossLine label fitting', () => {
                 return i + 1;
             };
             const value = xValue(2);
-            chart = deproxy(
-                await createChart({
-                    data: Array.from({ length: 5 }, (_, i) => ({ x: xValue(i), y: i })),
-                    series: [{ type: axisType === 'log' ? 'line' : 'bar', xKey: 'x', yKey: 'y' } as any],
-                    axes: {
-                        x: { type: axisType, position: 'bottom', crossLines: [{ type: 'line', value }] } as any,
-                        y: { type: 'number', position: 'left' },
-                    },
-                    theme: {
-                        overrides: {
-                            common: {
-                                axes: { [axisType]: { crossLines: { label: { text: LONG_TEXT, maxWidth: 40 } } } },
-                            },
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 5 }, (_, i) => ({ x: xValue(i), y: i })),
+                series: [{ type: axisType === 'log' ? 'line' : 'bar', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    // `axisType` is a union, which the discriminated axis options cannot express.
+                    x: {
+                        type: axisType,
+                        position: 'bottom',
+                        crossLines: [{ type: 'line', value }],
+                    } as AgCartesianAxisOptions,
+                    y: { type: 'number', position: 'left' },
+                },
+                theme: {
+                    overrides: {
+                        common: {
+                            axes: { [axisType]: { crossLines: { label: { text: LONG_TEXT, maxWidth: 40 } } } },
                         },
                     },
-                })
-            );
+                },
+            };
+            chart = deproxy(await createChart(options));
 
             const rendered = renderedLabel('x');
             expect(rendered.text.includes('\n')).toBe(true);

@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
-import { type Chart, deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import {
+    type Chart,
+    deproxy,
+    getSeriesContextNodeData,
+    getSeriesSelectionNodes,
+    setupMockCanvas,
+    setupMockConsole,
+} from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../test/utils';
 import { ukData } from './map-test/ukData';
@@ -49,9 +56,13 @@ describe('series label lineHeight', () => {
         },
     ])('measures $name label boxes by their lineHeight', async ({ options }) => {
         chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
-        const { labelData } = (chart.series.at(-1) as any).contextNodeData;
+        // The map-marker chart draws a background series first; the labelled series is always the last one.
+        const [{ labelData }] = getSeriesContextNodeData<unknown, { label: { height: number } }>(
+            chart,
+            chart.series.length - 1
+        );
         expect(labelData.length).toBeGreaterThan(0);
-        expect(labelData.map((datum: any) => datum.label.height)).toEqual(labelData.map(() => 72));
+        expect(labelData.map((datum) => datum.label.height)).toEqual(labelData.map(() => 72));
     });
 
     it('hides chord labels whose lineHeight overlaps their neighbours', async () => {
@@ -64,7 +75,7 @@ describe('series label lineHeight', () => {
                     series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
                 })
             );
-            return (chart.series[0] as any).labelSelection.nodes().length;
+            return getSeriesSelectionNodes(chart, 'labelSelection').length;
         };
 
         expect(await labelCount({})).toBe(nodeNames.length);
@@ -93,9 +104,7 @@ describe('series label lineHeight', () => {
                     ],
                 })
             );
-            const heights: number[] = [];
-            (chart.series[0] as any).datumSelection.each((node: any) => heights.push(node.getBBox().height));
-            return Math.max(...heights);
+            return Math.max(...getSeriesSelectionNodes(chart, 'datumSelection').map((node) => node.getBBox().height));
         };
 
         expect((await seriesHeight()) - (await seriesHeight(60))).toBeGreaterThan(30);

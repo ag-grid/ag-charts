@@ -123,7 +123,9 @@ const createChartOptionsWithInvalidCrossLines = (
                 return axis.position === 'left'
                     ? {
                           ...axis,
-                          crossLines: [{ ...baseInvalidCrossLineOptions, ...invalidCrossLineOptions }] as any,
+                          crossLines: [
+                              { ...baseInvalidCrossLineOptions, ...invalidCrossLineOptions },
+                          ] as unknown as AgCartesianCrossLineOptions[],
                       }
                     : axis;
             }),
