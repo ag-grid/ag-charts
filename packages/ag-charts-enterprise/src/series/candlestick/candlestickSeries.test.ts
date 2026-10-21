@@ -19,6 +19,7 @@ import {
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
+    type WhiskerItemNode,
     createEnterpriseChart,
     itemNodes,
     prepareEnterpriseTestOptions,
@@ -401,7 +402,7 @@ describe('CandlestickSeries', () => {
 
         it('keeps shared wicks on the body path and styled wicks on their own path', async () => {
             const shared: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
-            for (const node of itemNodes(shared)) {
+            for (const node of itemNodes<WhiskerItemNode>(shared)) {
                 expect(node['wickPath'].isEmpty()).toBe(true);
             }
             shared.destroy();
@@ -410,7 +411,7 @@ describe('CandlestickSeries', () => {
             const styled: any = deproxy(
                 await createEnterpriseChart(buildOptions(SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS }))
             );
-            for (const node of itemNodes(styled)) {
+            for (const node of itemNodes<WhiskerItemNode>(styled)) {
                 expect(node['wickPath'].isEmpty()).toBe(false);
                 expect(node.shadowMode).toBe('silhouette');
                 expect(node.fillShadow).toMatchObject(SHADOW);

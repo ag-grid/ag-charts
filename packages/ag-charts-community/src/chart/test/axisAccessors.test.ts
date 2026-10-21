@@ -1,9 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { BBox, ChartUpdateType, Line, getDocument } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
+import { BBox, ChartUpdateType, Line, LinearScale, OrdinalTimeScale, getDocument } from 'ag-charts-core';
+import type { AgCartesianChartOptions, AgChartInstance, AgNumericValue } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { generateTicks } from '../axis/generateTicks';
 import {
     findAxis,
     getAxisBandExtent,
@@ -19,7 +20,11 @@ import {
     getLabelSegmentAlignments,
     getLabelText,
     getSeriesRect,
+    numericBandsOf,
     pickAxisValue,
+    spyOnNumericBandsBuild,
+    tickGenerationParams,
+    tickLabel,
 } from './axisAccessors';
 import {
     createChart,
@@ -369,6 +374,97 @@ describe('axis test accessors', () => {
             expect(large.width).toBeGreaterThan(small.width + 100);
             expect(large.height).toBeGreaterThan(small.height + 100);
             expect(deproxy(chart).ctx.domManager.containerSize).toEqual({ width: 600, height: 400, pixelRatio: 1 });
+        });
+    });
+});
+
+describe('tick generation helpers', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    const linearScale = () => {
+        const scale = new LinearScale();
+        scale.domain = [0, 100];
+        scale.range = [0, 600];
+        return scale;
+    };
+
+    describe('tickLabel', () => {
+        it('enables the label and applies the overrides over the defaults', () => {
+            expect(tickLabel()).toMatchObject({ enabled: true, avoidCollisions: true, fontSize: 12 });
+            expect(tickLabel({ fontSize: 20, lineHeight: 40 })).toMatchObject({ fontSize: 20, lineHeight: 40 });
+        });
+    });
+
+    describe('tickGenerationParams', () => {
+        it('describes a pass that generates ticks over the scale it is given', () => {
+            const { tickData } = generateTicks(
+                tickGenerationParams<LinearScale, AgNumericValue>({
+                    scale: linearScale(),
+                    domain: [0, 100],
+                    range: [0, 600],
+                })
+            );
+
+            expect(tickData.ticks.length).toBeGreaterThan(1);
+        });
+
+        it('lets the overrides replace a default', () => {
+            const { tickData } = generateTicks(
+                tickGenerationParams<LinearScale, AgNumericValue>({
+                    scale: linearScale(),
+                    domain: [0, 100],
+                    range: [0, 600],
+                    tickFormatter: () => () => 'formatted',
+                })
+            );
+
+            expect(tickData.ticks.map((tick) => tick.tickLabel)).toEqual(tickData.ticks.map(() => 'formatted'));
+        });
+    });
+
+    describe('numericBandsOf', () => {
+        const dates = Array.from({ length: 5 }, (_, i) => new Date(2024, 0, 1 + i));
+
+        it('returns the bands of the scale as numbers', () => {
+            const scale = new OrdinalTimeScale();
+            scale.domain = dates;
+
+            expect(numericBandsOf(scale)).toEqual(dates.map((d) => d.valueOf()));
+        });
+
+        it('returns the cached array on every read', () => {
+            const scale = new OrdinalTimeScale();
+            scale.domain = dates;
+
+            expect(numericBandsOf(scale)).toBe(numericBandsOf(scale));
+        });
+    });
+
+    describe('spyOnNumericBandsBuild', () => {
+        const scaleOf = () => {
+            const scale = new OrdinalTimeScale();
+            scale.domain = Array.from({ length: 5 }, (_, i) => new Date(2024, 0, 1 + i));
+            return scale;
+        };
+
+        it('records a read of the numeric bands', () => {
+            const builds = spyOnNumericBandsBuild();
+
+            numericBandsOf(scaleOf());
+
+            expect(builds).toHaveBeenCalledTimes(1);
+        });
+
+        it('records nothing while the numeric bands are left unread', () => {
+            const builds = spyOnNumericBandsBuild();
+
+            // Reading `bands` and `domain` does not need the numeric form.
+            const { bands } = scaleOf();
+
+            expect(bands).toHaveLength(5);
+            expect(builds).not.toHaveBeenCalled();
         });
     });
 });

@@ -17,6 +17,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
+import { getCrossLineLabelNodes } from '../../test/polarCrossLines';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const DATA = [
@@ -677,8 +678,8 @@ describe('Ordinal Time Axis Examples', () => {
             })
         );
 
-        const [crossLine] = _ModuleSupport.getCrossLinesPlugin(chart.axes.findById('x'))!.getInstances() as any[];
-        const [node] = crossLine.labelGroup.children();
+        const [node] = getCrossLineLabelNodes(chart, 'x');
+        expect(node).toBeDefined();
         expect(node.text).toContain('\n');
         expect(node.getBBox().width).toBeLessThanOrEqual(40);
     });

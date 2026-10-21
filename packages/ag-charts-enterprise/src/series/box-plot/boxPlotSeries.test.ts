@@ -39,6 +39,7 @@ import {
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
+    type WhiskerItemNode,
     createEnterpriseChart,
     itemNodes,
     prepareEnterpriseTestOptions,
@@ -424,7 +425,7 @@ describe('BoxPlotSeries', () => {
             async (direction) => {
                 const chart: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW, undefined, direction)));
 
-                const shapes = itemNodes(chart);
+                const shapes = itemNodes<WhiskerItemNode>(chart);
                 expect(shapes).toHaveLength(4);
                 for (const shape of shapes) {
                     expect(shape.shadowMode).toBe('silhouette');
@@ -437,7 +438,7 @@ describe('BoxPlotSeries', () => {
 
         it('keeps shared whiskers on the box path and styled whiskers on their own path', async () => {
             const shared: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
-            for (const node of itemNodes(shared)) {
+            for (const node of itemNodes<WhiskerItemNode>(shared)) {
                 expect(node['wickPath'].isEmpty()).toBe(true);
             }
             shared.destroy();
@@ -446,7 +447,7 @@ describe('BoxPlotSeries', () => {
             const styled: any = deproxy(
                 await createEnterpriseChart(buildOptions(SHADOW, { whisker: STYLED_WHISKERS }))
             );
-            for (const node of itemNodes(styled)) {
+            for (const node of itemNodes<WhiskerItemNode>(styled)) {
                 expect(node['wickPath'].isEmpty()).toBe(false);
                 expect(node.shadowMode).toBe('silhouette');
                 expect(node.fillShadow).toMatchObject(SHADOW);
