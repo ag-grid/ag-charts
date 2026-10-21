@@ -324,6 +324,7 @@ export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
     // tier nodes directly, not through `contentGroup`.
     setDetailVisible(visible: boolean) {
         this.contentGroup.visible = visible;
+        this.expanderNode?.setTextVisible(visible);
     }
 
     updateBBox(bbox: BBox, direction: AgNetworkSeriesTreeLayoutDirection) {
@@ -647,9 +648,15 @@ class OrganizationExpanderNode extends TranslatableGroup {
         this.updateShapeNode(bbox, styles);
     }
 
+    setTextVisible(visible: boolean) {
+        if (this.countNode) this.countNode.visible = visible;
+    }
+
     private updateCountNode(expanderText: NormalisedTextOrSegments, styles: NormalisedOrganizationNodeStyle) {
         this.countNode ??= this.appendChild(new Text({ tag: OrganizationNodeTag.Expander }));
         this.countNode.text = expanderText;
+        // Layout skips invisible nodes, so it must always measure the text as shown.
+        this.countNode.visible = true;
 
         this.countNode.y = styles.expander.padding.top;
         applyTextStyles(this.countNode, styles.expander.text);
