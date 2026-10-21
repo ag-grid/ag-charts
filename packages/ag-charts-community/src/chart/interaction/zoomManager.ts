@@ -258,6 +258,9 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
     public panToBBoxScalingMode = PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYDisproportionally;
 
+    /** A zoom change only moves a scene transform, so it needs a re-render and not a node data or layout pass. */
+    public zoomIsSceneTransform = false;
+
     // The initial state memento can not be restored until the chart has performed its first layout. Instead save it as
     // pending and restore then delete it on the first layout.
     private pendingMemento:

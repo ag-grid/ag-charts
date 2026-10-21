@@ -44,6 +44,7 @@ export class StandaloneChart extends Chart {
         if (!zoomManager) return;
 
         const wantsZoom = this.series.some((s) => s.supportsStandaloneZoom);
+        zoomManager.zoomIsSceneTransform = wantsZoom;
         if (wantsZoom === this.standaloneZoomRegistered) return;
 
         zoomManager.setAxes(wantsZoom ? [this.xAxis, this.yAxis] : []);

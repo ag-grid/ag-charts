@@ -345,7 +345,7 @@ export class Zoom extends AbstractModuleInstance {
             paddedRect,
             panner,
             selector,
-            ctx: { interactionManager, tooltipManager, eventsHub },
+            ctx: { interactionManager, tooltipManager, eventsHub, zoomManager },
         } = this;
 
         if (!enabled || !paddedRect || !this.isState(InteractionState.ZoomDraggable) || this.isIgnoredTouch(event)) {
@@ -371,7 +371,7 @@ export class Zoom extends AbstractModuleInstance {
             tooltipManager.updateTooltip(TOOLTIP_ID);
         }
         eventsHub.emit('chart:request-update', {
-            type: ChartUpdateType.PERFORM_LAYOUT,
+            type: zoomManager.zoomIsSceneTransform ? ChartUpdateType.PRE_SCENE_RENDER : ChartUpdateType.PERFORM_LAYOUT,
             opts: { skipAnimations: true },
         });
     }

@@ -619,6 +619,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
             ctx.eventsHub.on('zoom:change-complete', () => {
+                if (ctx.zoomManager?.zoomIsSceneTransform) return;
+
                 const initialPhase = this.chartAnimationPhase === 'initial';
                 for (const s of this.series) {
                     (s as any).animationState?.transition('updateData');
