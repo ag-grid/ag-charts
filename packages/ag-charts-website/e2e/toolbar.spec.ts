@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import { test } from './fixture';
+import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
@@ -308,5 +308,23 @@ test.describe('toolbar', () => {
         });
 
         await expectChartScreenshot(page, page, 'AG-17497-colour-picker-tall-tracks.png', { animations: 'disabled' });
+    });
+
+    test('colour picker keeps the colour text as typed while its input has focus', async ({ page }) => {
+        await gotoExample(page, url);
+
+        await page.getByTitle('Fibonacci').click();
+        await page.getByText('Fib Retracement').click();
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: 250 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 250 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 350, y: 100 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 350, y: 100 } });
+        await page.getByTitle('Line Color').click();
+
+        // Each valid prefix (`#00f`) updates the colour; rewriting the input then would mangle the rest of the text.
+        const colorInput = page.locator('.ag-charts-color-picker__color-input');
+        await colorInput.fill('');
+        await colorInput.pressSequentially('#00ff00');
+        await expect(colorInput).toHaveValue('#00ff00');
     });
 });

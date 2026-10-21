@@ -389,6 +389,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Shadow DOM",
+                            "path": "shadow-dom"
+                        },
+                        {
+                            "type": "item",
                             "title": "Text",
                             "path": "text"
                         },
