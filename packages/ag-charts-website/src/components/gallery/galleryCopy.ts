@@ -560,6 +560,15 @@ export const GALLERY_EXAMPLE_COPY: Record<string, GalleryExampleCopy> = {
         intro: 'This example shows a [candlestick chart](/r/candlestick-series/) built with AG Charts in its hollow form: [series items](/r/candlestick-series/#customisation) for rising periods are outlined rather than filled, which keeps a long run of dense marks legible while still showing direction. [Zoom](/r/zoom/) scrolls and pans the full history, [crosshairs](/r/axes-crosshairs/#enabling-crosshairs) read both axes, an [ordinal time axis](/r/axes-time/#ordinal-time) skips non-trading days, and [cross lines](/r/axes-cross-lines/#adding-cross-lines) mark two price levels.',
     },
 
+    // ── HLC ──────────────────────────────────────────────────────────────
+    hlc: {
+        title: 'HLC Chart Example - JavaScript Data Visualization | AG Charts',
+        h1: 'HLC Chart Example',
+        description:
+            'An interactive HLC chart built with AG Charts, showing high, low and close as shaded bands around a close line, with grouped date labels and an average cross line. Explore the live example.',
+        intro: "This example shows an [HLC chart](/r/hlc-series/) built with AG Charts, drawing each period's close as a line with shaded bands reaching to its high and low, so the trading range reads alongside the trend. An [ordinal time axis](/r/axes-time/#ordinal-time) with [parent levels](/r/axes-time/#parent-levels) groups the date labels, a [custom tooltip](/r/tooltips/#modifying-content) reports the period's range, and a [cross line](/r/axes-cross-lines/#adding-cross-lines) marks the average close.",
+    },
+
     // ── OHLC ─────────────────────────────────────────────────────────────
     ohlc: {
         title: 'OHLC Chart Example - JavaScript Data Visualization | AG Charts',
