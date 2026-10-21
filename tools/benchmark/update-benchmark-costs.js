@@ -19,9 +19,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { discoverExamples } = require('./benchmark-examples');
-
-const COSTS_PATH = path.resolve(__dirname, 'benchmark-costs.json');
+const { COSTS_PATH, discoverExamples } = require('./benchmark-examples');
 
 function findReports(dir) {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

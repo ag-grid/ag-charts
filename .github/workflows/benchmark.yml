@@ -53,14 +53,11 @@ env:
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-    # Shards are balanced by per-example cost (tools/benchmark/benchmark-costs.json), so each extra
-    # shard cuts the critical path almost for free: runner time stays near-constant because every
-    # shard pays ~4 minutes of fixed setup in parallel. With the checked-in costs the estimated
-    # heaviest shard is 29.9 min at 5 shards and 24.5 min at 6; 7 would only reach ~21.
+    # Shards are balanced by per-example cost (tools/benchmark/benchmark-costs.json), so an extra shard
+    # shortens the critical path for little extra runner time: setup runs in parallel.
     AG_SHARD_COUNT: 6
-    # Per-example timeout. The healthy maximum for one pass of any example is 218s (a memory pass,
-    # which heap sampling slows); the slowest timing pass is 160s. A hung example is skipped in the
-    # shard's later passes, so it costs this once per shard.
+    # Per-example timeout, above the slowest healthy pass (a memory pass, slowed by heap sampling).
+    # A hung example is skipped in the shard's later passes, so it costs this once per shard.
     AG_EXAMPLE_TIMEOUT_MS: 360000
     # Repeat each side N times per shard. The report job aggregates the runs and gates on
     # cross-run CV — a single run per side cannot separate a real change from shared-runner CPU
@@ -292,8 +289,7 @@ jobs:
     benchmark:
         runs-on: ubuntu-24.04
         # Hosted runners are ~2x slower than the previous bare-metal runner and we now run each
-        # side AG_BENCHMARK_RUNS times. A balanced shard takes ~30 min of benchmarking plus setup,
-        # and a hung example adds one AG_EXAMPLE_TIMEOUT_MS, so 60 leaves roughly 1.5x headroom.
+        # side AG_BENCHMARK_RUNS times. Leaves headroom for a balanced shard plus one hung example.
         timeout-minutes: 60
         needs: [resolve, build]
         strategy:
@@ -366,12 +362,15 @@ jobs:
                     local run=$3
                     local remaining
                     remaining=$(node ./tools/benchmark/shard-failures.js remaining --examples "${SHARD_EXAMPLES}" ${shard_reports[@]+"${shard_reports[@]}"})
-                    # An empty --examples would mean "every example", so never invoke the runner without any.
+                    local output="reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.r${run}.json"
+                    # An empty --examples would mean "every example", so never invoke the runner without
+                    # any. Still leave a report, so a missing file means only a lost shard.
                     if [[ -z "${remaining}" ]]; then
                       echo "::warning::${role} run ${run}: every example in this shard timed out earlier; skipping"
+                      echo '{"examples":{},"summary":{"total":0,"success":0,"error":0,"timeout":0,"totalDurationMs":0}}' > "${output}"
+                      shard_reports+=("${output}")
                       return 0
                     fi
-                    local output="reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.r${run}.json"
                     ./tools/benchmark/serve-and-run.sh \
                         --dist "${RUNNER_TEMP}/site-${role}" \
                         --port "${port}" \
@@ -461,15 +460,11 @@ jobs:
                   path: reports/browser-benchmarks/shards
                   merge-multiple: true
 
-            # Merge each run's shards into one head/base report per run, then hand every run to
-            # the comparison so it can median across runs and gate on cross-run CV. A wholly missing
-            # shard would silently shrink a run, so per-run shard counts are enforced; a flaky run is
-            # tolerated as long as >=2 complete runs survive (the minimum for a cross-run variance
-            # estimate). Failures are contained per example, not per run: AG_BENCHMARK_SOFT_FAIL lets a
-            # shard finish with errored/timed-out examples (the report is written before the runner
-            # exits non-zero), and every example that errored or timed out in any pass of any shard is
-            # left out of all runs and listed by the comparison, so one hung example costs its own
-            # comparison rather than the whole report.
+            # Merge each run's shards into one head/base report per run, then hand every run to the
+            # comparison so it can median across runs and gate on cross-run CV. A missing shard file
+            # means a lost shard, so per-run shard counts are enforced and >=2 complete runs are
+            # required. Failures are contained per example, not per run: an example that errored or
+            # timed out in any pass is left out of all runs and listed by the comparison.
             - name: Merge shard results
               env:
                   SHARDS: ${{ needs.resolve.outputs.shards }}

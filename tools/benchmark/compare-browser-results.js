@@ -379,6 +379,13 @@ for (const err of compare.errors) {
 // Examples the CI merge left out (failed or hung in a pass) are not comparable, but must not pass silently
 const excluded = argv.excluded ? formatExcluded(loadReport(argv.excluded)) : [];
 
+// A comparison that holds nothing because every example was excluded must not pass as a clean run
+if (matched.length === 0 && excluded.length > 0) {
+    console.error('No example could be compared; every example failed or timed out:');
+    excluded.forEach((line) => console.error(`  ! ${line}`));
+    process.exitCode = 1;
+}
+
 // Rank by time change
 const rankedByTime = matched.toSorted((a, b) => (a.pctTimeChange ?? -Infinity) - (b.pctTimeChange ?? -Infinity));
 

@@ -2,20 +2,11 @@
 /* eslint-disable no-console */
 
 /**
- * Containment of failed benchmark examples across the passes of a CI shard.
- *
- * A shard runs the same examples in several passes (head and base, repeated, then a memory pass), each
- * writing its own report. Zero dependencies, so CI can invoke it before `yarn install`.
+ * Containment of failed benchmark examples across the passes of a CI shard. Zero dependencies, so CI
+ * can invoke it before `yarn install`.
  *
  *   node shard-failures.js remaining --examples a,b,c [report.json ...]
- *       Print the examples (comma-separated) that have not timed out in any of the given reports, so the
- *       next pass skips an example that hung in an earlier one. Reports that don't exist are ignored.
- *       An `error` does not count: only a hang is worth skipping, as it costs the whole timeout each pass.
- *
  *   node shard-failures.js excluded --shards-dir <dir> --output <excluded.json>
- *       Collect every example that errored or timed out in any timing pass of any shard, with the passes
- *       it failed in and the passes that skipped it. The report job drops these examples from the
- *       comparison and lists them, instead of discarding every run that contains one.
  */
 
 const fs = require('node:fs');
@@ -23,7 +14,7 @@ const path = require('node:path');
 
 const TIMING_PASS = /^(head|base)-(\d+)\.(r\d+)\.json$/;
 
-/** Examples that timed out in any of the given report files. Missing files are ignored. */
+/** Examples that timed out in any of the given report files. Missing files are ignored. An `error` does not count: only a hang costs the whole timeout each pass. */
 function timedOutExamples(reportPaths) {
     const timedOut = new Set();
     for (const file of reportPaths) {
@@ -40,7 +31,7 @@ function timedOutExamples(reportPaths) {
     return timedOut;
 }
 
-/** `examples` without those that timed out in `reportPaths`, in their original order. */
+/** `examples` without those that timed out in `reportPaths`, in their original order, so a later pass skips a hang. */
 function remainingExamples(examples, reportPaths) {
     const timedOut = timedOutExamples(reportPaths);
     return examples.filter((name) => !timedOut.has(name));

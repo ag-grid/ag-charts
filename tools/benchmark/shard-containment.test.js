@@ -245,11 +245,16 @@ test('timing passes: an example that merely errors still runs in every pass', ()
 });
 
 test('timing passes: a shard whose every example hung never invokes the runner with an empty list', () => {
-    withShardJob(({ run, calls }) => {
+    withShardJob(({ dir, run, calls }) => {
         const proc = run(timingStep, { SHARD_EXAMPLES: 'hung', HANG: 'hung' });
         assert.equal(proc.status, 0, proc.stderr);
         // Only the first pass runs; an empty --examples would mean "every example".
         assert.deepEqual(callSummary(calls()), ['head-0.r1.json: hung']);
+        // The skipped passes still leave a (empty) report, so a missing file only ever means a lost shard.
+        const shards = path.join(dir, 'reports/browser-benchmarks/shards');
+        for (const file of ['base-0.r1.json', 'head-0.r2.json', 'base-0.r2.json']) {
+            assert.deepEqual(JSON.parse(fs.readFileSync(path.join(shards, file), 'utf8')).examples, {}, file);
+        }
         assert.match(proc.stdout, /::warning::base run 1: every example in this shard timed out earlier; skipping/);
     });
 });
@@ -459,6 +464,54 @@ test('compare step: healthy examples are compared and the hung example is listed
             'hung: head r1 timeout; skipped: base r1, base r2, base r3, head r2, head r3',
         ]);
         assert.deepEqual(json.rankedByTime.map((r) => r.test).sort(), ['healthy / t', 'other / t']);
+    });
+});
+
+test('report job: a shard whose only example hung leaves the other shard compared and the hang listed', () => {
+    const wholeShardHung = (side, shard, run) =>
+        shard === 0 ? (side === 'head' && run === 1 ? { hung: 'timeout' } : {}) : { other: 'success' };
+    withReportJob({ statuses: wholeShardHung }, ({ merge, compare, read, dir }) => {
+        const proc = merge();
+        assert.equal(proc.status, 0, proc.stderr + proc.stdout);
+        assert.match(proc.stdout, /Merged 3 complete run\(s\)\./);
+        assert.deepEqual(Object.keys(read('head.r1.json').examples), ['other']);
+
+        const compared = compare();
+        assert.equal(compared.status, 0, compared.stderr + compared.stdout);
+        const json = JSON.parse(fs.readFileSync(path.join(dir, 'reports/browser-benchmark.json'), 'utf8'));
+        assert.deepEqual(
+            json.rankedByTime.map((r) => r.test),
+            ['other / t']
+        );
+        assert.deepEqual(json.excluded, [
+            'hung: head r1 timeout; skipped: base r1, base r2, base r3, head r2, head r3',
+        ]);
+    });
+});
+
+test('report job: when every example was excluded nothing is compared and the job fails, listing them', () => {
+    const everythingHung = (side, shard, run) => (side === 'head' && run === 1 ? { [`hung${shard}`]: 'timeout' } : {});
+    withReportJob({ statuses: everythingHung }, ({ merge, compare }) => {
+        assert.equal(merge().status, 0);
+        const proc = compare();
+        assert.notEqual(proc.status, 0);
+        assert.match(proc.stderr, /No example could be compared/);
+        assert.match(proc.stderr, /! hung0: head r1 timeout/);
+        assert.match(proc.stderr, /! hung1: head r1 timeout/);
+    });
+});
+
+test('compare: an empty comparison with nothing excluded still succeeds, as before', () => {
+    withFiles({ run: report({}), none: [] }, (p) => {
+        const out = node(path.join(__dirname, 'compare-browser-results.js'), [
+            '--base',
+            p.run,
+            '--compare',
+            p.run,
+            '--excluded',
+            p.none,
+        ]);
+        assert.equal(out.status, 0, out.stderr);
     });
 });
 

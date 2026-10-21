@@ -27,6 +27,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+const { median } = require('./stats');
+
 const COSTS_PATH = path.resolve(__dirname, 'benchmark-costs.json');
 
 const EXAMPLES_DIR = path.resolve(__dirname, '../../packages/ag-charts-website/src/content/docs/benchmarks/_examples');
@@ -88,19 +90,9 @@ function loadCosts(costsPath = COSTS_PATH) {
     return costs ?? {};
 }
 
-function median(values) {
-    if (values.length === 0) {
-        return 1;
-    }
-    const sorted = [...values].sort((a, b) => a - b);
-    const mid = sorted.length >> 1;
-    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
 /**
  * Partition examples into `shardCount` shards of near-equal total cost (longest-processing-time first:
- * the costliest remaining example goes to the least-loaded shard). Round-robin over names ignored how
- * unevenly the examples cost, and reshuffled every later name whenever one was added.
+ * the costliest remaining example goes to the least-loaded shard).
  *
  * An example missing from `costs` (new, or the table is stale) costs the table's median, so a new
  * example is never free and sharding never fails for want of a cost. Ties break on name, then shard
@@ -117,7 +109,7 @@ function shardExamples(shardCount, requested = [], costs = loadCosts()) {
 /** shardExamples plus each shard's estimated load, for reporting. */
 function planShards(shardCount, requested = [], costs = loadCosts()) {
     const names = resolveExamples(requested);
-    const fallback = median(Object.values(costs));
+    const fallback = median(Object.values(costs)) ?? 1;
     const costOf = (name) => costs[name] ?? fallback;
 
     const shards = Array.from({ length: shardCount }, () => ({ examples: [], load: 0 }));
@@ -138,6 +130,7 @@ module.exports = {
     parseExamplesArg,
     resolveExamples,
     loadCosts,
+    COSTS_PATH,
     planShards,
     shardExamples,
     EXCLUDED_EXAMPLES,
