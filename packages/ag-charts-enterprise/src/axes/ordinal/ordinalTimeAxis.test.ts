@@ -6,8 +6,8 @@ import type { ChartOrProxy } from 'ag-charts-community-test';
 import {
     applyIntervalBetween,
     applyIntervalOn,
-    calculateAxisBBox,
     cartesianChartAssertions,
+    compareAxisSnapshots,
     compareImageSnapshot,
     deproxy,
     getAxisLabelTexts,
@@ -527,18 +527,7 @@ describe('Ordinal Time Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = async () => {
-                for (const axis of chart.axes) {
-                    if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
-                        continue;
-                    }
-
-                    await waitForChartStability(chart);
-                    const axisBbox = calculateAxisBBox(axis);
-
-                    await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
-                }
-            };
+            const axisCompare = () => compareAxisSnapshots(chart, ctx, { types: example.compare });
 
             chart = deproxy(await createEnterpriseChart(example.options));
             await axisCompare();
@@ -580,11 +569,7 @@ describe('Ordinal Time Axis Examples', () => {
                 })
             );
 
-            const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
-
-            const axisBbox = calculateAxisBBox(axis);
-
-            await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
+            await compareAxisSnapshots(chart, ctx, { types: ['ordinal-time'] });
         });
     });
 

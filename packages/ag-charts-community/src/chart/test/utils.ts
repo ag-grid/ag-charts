@@ -1,6 +1,7 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
+import type { Image as SkiaImage } from 'skia-canvas';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
 import {
@@ -8,6 +9,7 @@ import {
     type CanvasPoint,
     Group,
     type OffsetPoint,
+    Transformable,
     alignCentre,
     fromPairs,
     getDocument,
@@ -2374,13 +2376,37 @@ export interface LegendTestItemNode {
 }
 
 export interface LegendTestInternals {
-    itemSelection: { nodes(): LegendTestItemNode[] };
+    itemSelection: { nodes(): (LegendTestItemNode & Node)[] };
     onHover(event: FocusEvent | MouseEvent, node: unknown, fromKeyboardFocus?: boolean): void;
     onLeave(fromKeyboardFocus?: boolean): void;
 }
 
 export function getLegendModule(chart: Chart): LegendTestInternals {
     return chart.modulesManager.getModule('legend') as LegendTestInternals;
+}
+
+/**
+ * Clicks the legend item at `index` (legend order) the way a pointer does: moves onto the centre of its bounding box
+ * and clicks there, through the proxy button the legend puts over the item. The pointer stays on the item, so a test
+ * that goes on to compare the chart moves it off again (`hoverAction`) to clear the item's highlight.
+ */
+export async function clickLegendItem(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const items = getLegendModule(deproxy(chartOrProxy)).itemSelection.nodes();
+    expect(items.length).toBeGreaterThan(index);
+
+    const { x, y, width, height } = Transformable.toCanvas(items[index]);
+    const [centreX, centreY] = [x + width / 2, y + height / 2];
+    await hoverAction(centreX, centreY)(chartOrProxy);
+    await clickAction(centreX, centreY)(chartOrProxy);
+}
+
+/**
+ * Makes the chart's scene resolve each image URL in `images` to the preloaded image, so a block-image segment
+ * or an image fill renders synchronously. The loader has to be stubbed before the first render that needs the
+ * images, which is why charts using it are created bare (`AgCharts.create`) rather than through `createChart`.
+ */
+export function stubChartImageLoader(chartOrProxy: ChartOrProxy<any>, images: Record<string, SkiaImage>): void {
+    deproxy(chartOrProxy).ctx.scene.imageLoader.loadImage = (uri: string) => images[uri] as unknown as HTMLImageElement;
 }
 
 export function getCursor(chart: Chart | AgChartProxy): string {

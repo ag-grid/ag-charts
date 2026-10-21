@@ -1,3 +1,5 @@
+import { expect } from 'vitest';
+
 import { type BBox, mapValues } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
@@ -6,8 +8,17 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
+import type { setupMockCanvas } from '../../util/test/mockCanvas';
 import * as examples from './examples';
-import { type CartesianOrPolarTestCase, cartesianChartAssertions, reverseAxes } from './utils';
+import {
+    type CartesianOrPolarTestCase,
+    type ChartOrProxy,
+    cartesianChartAssertions,
+    compareImageSnapshot,
+    deproxy,
+    reverseAxes,
+    waitForChartStability,
+} from './utils';
 
 /** Grid line styling that makes the band alternation of an axis easy to see in a snapshot. */
 export const EXAMPLE_GRID_LINE = {
@@ -154,4 +165,42 @@ export function buildLogAxisTestCase(
         assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'log' }, seriesTypes: [seriesType] }),
         ...extra,
     };
+}
+
+export interface AxisSnapshotOptions {
+    /** Only the axes of these types are snapshotted; every axis when omitted. */
+    types?: readonly string[];
+    /**
+     * Also record each axis' bounding box as a text snapshot, and skip an axis whose box is smaller than a pixel
+     * (an axis the chart did not lay out).
+     */
+    snapshotBBox?: boolean;
+}
+
+/**
+ * Image-snapshots each axis of `chart` cropped to its bounding box, in axis order, with one baseline per axis.
+ * The baseline names are numbered by call order, so the calls made here are what a suite's baselines are keyed to.
+ */
+export async function compareAxisSnapshots(
+    chartOrProxy: ChartOrProxy<any>,
+    ctx: ReturnType<typeof setupMockCanvas>,
+    { types, snapshotBBox = false }: AxisSnapshotOptions = {}
+): Promise<void> {
+    for (const axis of deproxy(chartOrProxy).axes) {
+        if (types != null && !types.includes(axis.type)) {
+            continue;
+        }
+
+        await waitForChartStability(chartOrProxy);
+        const bbox = calculateAxisBBox(axis);
+
+        if (snapshotBBox) {
+            expect(bbox).toMatchSnapshot();
+            if (bbox.width < 1 || bbox.height < 1) {
+                continue;
+            }
+        }
+
+        await compareImageSnapshot(chartOrProxy, { ...ctx, bbox });
+    }
 }
