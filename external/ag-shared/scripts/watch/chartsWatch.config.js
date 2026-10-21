@@ -42,9 +42,7 @@ function getProjectBuildTargets(project) {
                 [project, ['build'], 'watch'],
             ];
         case 'ag-charts-core':
-            // Fan-out: rebuild community and enterprise before the changed package itself. Core has
-            // no build:umd and is resolved through dist/package, which community's build:package
-            // rebuilds as a dependency, so only its types remain for the trailing build.
+            // Core has no build:umd; community's build:package rebuilds its dist/package as a dependency.
             return [
                 ['ag-charts-community', ['build:umd', 'build:package'], 'watch'],
                 ['ag-charts-enterprise', ['build:umd', 'build:package'], 'watch'],

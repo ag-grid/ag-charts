@@ -85,4 +85,4 @@ Every output the dev server serves must be built by a reloadable target, or the 
 2. Add a visible change to a community file (for example a `console.log` in `packages/ag-charts-community/src/chart/legend/legend.ts`) and save once.
 3. The watch output shows `Reloading dev server...` once, after the `build:umd` and `build:package` batch and before the `build:types` batch. Both tabs reload once and log the new message, with no manual refresh.
 4. `build:types` still completes afterwards. Repeat with an enterprise file and an `ag-charts-core` file.
-5. Save a file under `packages/ag-charts-locale/src` and open a vanilla locale example (`/charts/javascript/localisation/installing-locale/`): after one reload it shows the change, because locale's `dist/umd` is rebuilt before the reload.
+5. Save a file under `packages/ag-charts-locale/src` and open a vanilla locale example (`/charts/javascript/localisation/`, the `installing-locale` example): after one reload it shows the change, because locale's `dist/umd` is rebuilt before the reload.
