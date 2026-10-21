@@ -26,7 +26,9 @@ describe('cross line test accessors', () => {
             y: {
                 type: 'number',
                 position: 'left',
-                crossLines: [{ type: 'line', value: 5, label: { text: 'A cross line label long enough to fit', ...label } }],
+                crossLines: [
+                    { type: 'line', value: 5, label: { text: 'A cross line label long enough to fit', ...label } },
+                ],
             },
         },
     });

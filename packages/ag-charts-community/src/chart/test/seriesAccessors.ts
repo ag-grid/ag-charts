@@ -3,8 +3,8 @@ import { expect } from 'vitest';
 import type { BBox, Node } from 'ag-charts-core';
 
 import type { LegendMarkerLabel } from '../legend/legendMarkerLabel';
-import type { SeriesNodeDatum } from '../series/seriesTypes';
 import type { SeriesNodeDataContext, UnknownSeries } from '../series/series';
+import type { SeriesNodeDatum } from '../series/seriesTypes';
 import { type ChartOrProxy, deproxy } from './utils';
 
 /** The series at `index`, asserted to exist: a series the chart did not create fails here, not on a later read. */
@@ -41,8 +41,10 @@ export function getSeriesNodeData<TDatum = SeriesNodeDatum>(chartOrProxy: ChartO
 }
 
 /** A series' node-data context; `visible` is kept by the cartesian series, which flag a hidden series on it. */
-export interface SeriesContextNodeData<TDatum = SeriesNodeDatum, TLabel = TDatum>
-    extends SeriesNodeDataContext<TDatum, TLabel> {
+export interface SeriesContextNodeData<TDatum = SeriesNodeDatum, TLabel = TDatum> extends SeriesNodeDataContext<
+    TDatum,
+    TLabel
+> {
     visible?: boolean;
 }
 
@@ -66,11 +68,7 @@ export function getSeriesContextNodeData<TDatum = SeriesNodeDatum, TLabel = TDat
 
 /** The scene selections of a series that tests read the drawn nodes through. */
 export type SeriesSelectionName =
-    | 'datumSelection'
-    | 'labelSelection'
-    | 'highlightSelection'
-    | 'highlightLabelSelection'
-    | 'itemSelection';
+    'datumSelection' | 'labelSelection' | 'highlightSelection' | 'highlightLabelSelection' | 'itemSelection';
 
 /**
  * The nodes a series drew into one of its selections, in selection order. Which selections a series has depends on its
@@ -82,7 +80,9 @@ export function getSeriesSelectionNodes<TNode extends Node = Node>(
     name: SeriesSelectionName,
     index = 0
 ): TNode[] {
-    const host = getSeriesAt(chartOrProxy, index) as unknown as Partial<Record<SeriesSelectionName, { nodes(): TNode[] }>>;
+    const host = getSeriesAt(chartOrProxy, index) as unknown as Partial<
+        Record<SeriesSelectionName, { nodes(): TNode[] }>
+    >;
     const selection = host[name];
     expect(selection, `series ${index} ${name}`).toBeDefined();
     return selection!.nodes();
@@ -108,7 +108,9 @@ interface SeriesAreaManagerHost {
     };
 }
 
-function getSeriesAreaManager(chartOrProxy: ChartOrProxy<any>): NonNullable<SeriesAreaManagerHost['seriesAreaManager']> {
+function getSeriesAreaManager(
+    chartOrProxy: ChartOrProxy<any>
+): NonNullable<SeriesAreaManagerHost['seriesAreaManager']> {
     const { seriesAreaManager } = deproxy(chartOrProxy) as unknown as SeriesAreaManagerHost;
     expect(seriesAreaManager).toBeDefined();
     return seriesAreaManager!;

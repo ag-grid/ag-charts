@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgBarSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgPolarChartOptions,
+} from 'ag-charts-types';
 
 import {
     getLegendItemNodes,
@@ -149,6 +154,20 @@ describe('series test accessors', () => {
             expect(getSeriesContextNodeData(chart, 1).every((context) => context.visible === false)).toBe(true);
         });
 
+        it('returns every context of a series that keeps a list, in order', async () => {
+            chart = await createChart(barOptions);
+            const [first] = getSeriesContextNodeData(chart, 0);
+            const [second] = getSeriesContextNodeData(chart, 1);
+            // No chart series keeps a list today, so the list form is stood in for on a real series.
+            Object.defineProperty(getSeriesAt(chart, 0), 'contextNodeData', { value: [second, first] });
+
+            const contexts = getSeriesContextNodeData(chart, 0);
+
+            expect(contexts).toHaveLength(2);
+            expect(contexts[0]).toBe(second);
+            expect(contexts[1]).toBe(first);
+        });
+
         it('returns no context for a series that keeps none', async () => {
             chart = await createChart(pieOptions);
 
@@ -235,7 +254,8 @@ describe('series test accessors', () => {
     });
 
     describe('setAgChartsDebug', () => {
-        const read = () => (Reflect.has(globalThis, 'agChartsDebug') ? Reflect.get(globalThis, 'agChartsDebug') : 'unset');
+        const read = () =>
+            Reflect.has(globalThis, 'agChartsDebug') ? Reflect.get(globalThis, 'agChartsDebug') : 'unset';
 
         it('sets the flag and removes it again', () => {
             expect(read()).toBe('unset');
