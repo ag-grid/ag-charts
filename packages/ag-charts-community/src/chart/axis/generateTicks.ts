@@ -22,6 +22,7 @@ import {
     rotatePoint,
     thinTickLabels,
     tickLabelSpacing,
+    toDegrees,
 } from 'ag-charts-core';
 import type { PaddingOptions, VerticalAlign } from 'ag-charts-types';
 
@@ -33,11 +34,14 @@ import {
     type AnyTimeInterval,
     type GenerateTicksOptions,
     type TickData,
+    axisLabelFit,
     calculateLabelRotation,
+    fitTicksAtRotation,
     formatTicks,
     getTextAlign,
     getTextBaseline,
     getTimeIntervalTicks,
+    isLabelFitEnabled,
     ticksEqual,
     ticksSpacing,
     timeIntervalMaxLabelSize,
@@ -78,7 +82,20 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     );
 
     const initialRotation = configuredRotation + defaultRotation;
-    const checkLabelOverlap = (tickData: TickData, rotation = 0) => {
+    // Fitted labels are fitted again for an automatic rotation, so collisions are checked as they will be drawn.
+    const fitEnabled = isLabelFitEnabled(label);
+    const turnedTickData = new WeakMap<TickData, TickData>();
+    const atRotation = (tickData: TickData, rotation: number) => {
+        if (rotation === 0 || !fitEnabled) return tickData;
+        let turned = turnedTickData.get(tickData);
+        if (turned == null) {
+            turned = { ...tickData, ticks: fitTicksAtRotation(options, tickData.ticks, rotation) };
+            turnedTickData.set(tickData, turned);
+        }
+        return turned;
+    };
+    const checkLabelOverlap = (candidate: TickData, rotation = 0) => {
+        const tickData = atRotation(candidate, rotation);
         const labelSpacing = tickLabelSpacing(label.minSpacing, configuredRotation !== 0 || rotation !== 0);
         const labelRotation = initialRotation + rotation;
         const labelPadding = expandLabelPadding(label);
@@ -95,7 +112,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         );
 
         return (
-            axisLabelsOverlap(createTimeLabelData(options, tickData, labelRotation), labelSpacing) ||
+            axisLabelsOverlap(createTimeLabelData(options, tickData, labelRotation, rotation), labelSpacing) ||
             axisLabelsOverlap(
                 createLabelData(
                     tickData.ticks,
@@ -144,6 +161,8 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         avoidCollisions,
         tryAutoRotate ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335) : undefined
     );
+
+    tickData = atRotation(tickData, autoRotation);
 
     const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
     const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
@@ -539,14 +558,33 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
 function createTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>,
     tickData: TickData,
-    labelRotation: number
+    labelRotation: number,
+    autoRotation: number
 ) {
     const { niceDomain, ticks, timeInterval } = tickData;
     if (timeInterval == null) return [];
 
     const spacing = ticksSpacing(ticks);
     const { label, labelOffset, primaryLabel, domain } = options;
-    const { width, height } = timeIntervalMaxLabelSize(label, primaryLabel, niceDomain ?? domain, timeInterval);
+    // Secondary labels are fitted on a continuous scale, which has no band to limit them, and at the
+    // rotation they are drawn at, as the ticks they stand for are.
+    const fitOptions = isLabelFitEnabled(label)
+        ? axisLabelFit(
+              label,
+              options.isVertical,
+              options.labelRoom ?? options.sizeLimit ?? Infinity,
+              Infinity,
+              (label.rotation ?? 0) + toDegrees(autoRotation),
+              label.wrapping ?? 'never'
+          )
+        : undefined;
+    const { width, height } = timeIntervalMaxLabelSize(
+        label,
+        primaryLabel,
+        niceDomain ?? domain,
+        timeInterval,
+        fitOptions
+    );
 
     const labelData: BoxBounds[] = [];
     for (const translation of [0, spacing]) {

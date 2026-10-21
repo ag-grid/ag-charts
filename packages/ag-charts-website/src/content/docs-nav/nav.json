@@ -570,6 +570,13 @@
                 },
                 {
                     "type": "item",
+                    "title": "HLC",
+                    "path": "hlc-series",
+                    "icon": "chartsOHLC",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
                     "title": "OHLC",
                     "path": "ohlc-series",
                     "icon": "chartsOHLC",
