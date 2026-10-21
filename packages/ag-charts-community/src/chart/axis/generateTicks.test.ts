@@ -760,6 +760,40 @@ describe('AG-18833 rotated label fitting', () => {
             expect(textMetrics.width).toBeLessThanOrEqual(40);
         }
     });
+
+    it('thins an automatically rotated time axis as it would one configured to that rotation', () => {
+        const domain = [new Date(2025, 0, 1), new Date(2025, 2, 1)];
+        const ticksFor = (rotation: { rotation: number } | { autoRotate: true; autoRotateAngle: number }) => {
+            const scale = new TimeScale();
+            scale.domain = domain;
+            scale.range = [0, 400];
+            return generateTicks({
+                label: { ...font, format: '%A %d %B %Y', maxWidth: 300, ...rotation } as any,
+                parallel: true,
+                axisRotation: Math.PI / -2,
+                scale,
+                domain,
+                range: [0, 400],
+                visibleRange: [0, 1],
+                niceMode: [],
+                reverse: false,
+                primaryTickCount: undefined,
+                defaultTickMinSpacing: 0,
+                labelOffset: 0,
+                sideFlag: 1,
+                interval: undefined,
+                isVertical: false,
+                sizeLimit: 25,
+                labelRoom: 25,
+                tickFormatter: () => (value: Date) => `Wednesday ${value.getDate()} September`,
+            } as any);
+        };
+
+        const automatic = ticksFor({ autoRotate: true, autoRotateAngle: 355 });
+        expect(automatic.rotation).not.toBe(0);
+        const configured = ticksFor({ rotation: 355 });
+        expect(automatic.tickData.ticks.map((t) => t.tick)).toEqual(configured.tickData.ticks.map((t) => t.tick));
+    });
 });
 
 describe('tick label lineHeight', () => {

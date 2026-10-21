@@ -29,6 +29,19 @@ vi.mock('../rendering/canvasUtil', () => ({
     }),
 }));
 
+// Counts the measurers a fit asks for, roughly one per wrap, so a search's step count can be bounded.
+const measurerRequests = vi.hoisted(() => ({ count: 0 }));
+vi.mock('../rendering/textMeasurer', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../rendering/textMeasurer')>();
+    return {
+        ...actual,
+        cachedTextMeasurer: (...args: Parameters<typeof actual.cachedTextMeasurer>) => {
+            measurerRequests.count++;
+            return actual.cachedTextMeasurer(...args);
+        },
+    };
+});
+
 const ELLIPSIS = '…';
 const font = { fontSize: 20, fontFamily: 'sans-serif' } as const;
 
@@ -350,5 +363,30 @@ describe('fitLabelTextAutoSize turned', () => {
             rotated: { rotation: 30, width: 400, height: Infinity },
         } as const;
         expect(fitLabelTextAutoSize('abcdef', fit, small).text).toBe('a…');
+    });
+
+    it('fits rich text by the heights its own segments give it', () => {
+        // The 20px base font is 30px tall, too tall for the room, but the only segment is 8px: 8 x 12 turned by
+        // 30 degrees spans 12.9 x 14.4.
+        const fit = {
+            maxHeight: 20,
+            wrapping: 'never',
+            overflowStrategy: 'ellipsis',
+            rotated: { rotation: 30, width: 100, height: 20 },
+        } as const;
+        const fitted = fitLabelTextAutoSize([{ text: 'a', fontSize: 8 }] as NormalisedContentSegment[], fit, font);
+        expect((fitted.text as MeasuredSegment[]).map((s) => (s.type === 'image' ? '' : s.text))).toEqual(['a']);
+    });
+
+    it('stops once the text breaks into no more lines, however much height the room has', () => {
+        // Nearly flat, the unbounded room has height for thousands of lines, but an unbreakable word takes one.
+        const fit = {
+            wrapping: 'on-space',
+            overflowStrategy: 'ellipsis',
+            rotated: { rotation: 0.1, width: 100, height: Infinity },
+        } as const;
+        measurerRequests.count = 0;
+        expect(String(fitLabelTextAutoSize('x'.repeat(100), fit, small).text)).toMatch(/^x+…$/);
+        expect(measurerRequests.count).toBeLessThan(100);
     });
 });

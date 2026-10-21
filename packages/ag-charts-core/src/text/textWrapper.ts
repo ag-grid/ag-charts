@@ -216,8 +216,9 @@ const SQUARE_TURN_EPSILON = 1e-10;
 const TURNED_EXTENT_EPSILON = 1e-6;
 
 /**
- * Fits text drawn turned inside `bounds`, trying each line count at the width its height leaves: the first
- * that holds the whole text wins, and otherwise the one keeping most text under the overflow strategy.
+ * Fits text drawn turned inside `bounds`. Each step wraps at the width the room leaves beside one more of
+ * the text's own measured lines, so the steps are bounded by the lines the text can break into: the first
+ * step that holds the whole text wins, and otherwise the one keeping most text under the overflow strategy.
  */
 function fitTurnedText(
     text: NormalisedTextOrSegments,
@@ -239,14 +240,10 @@ function fitTurnedText(
     if (sin < SQUARE_TURN_EPSILON) return fitTextToBox(text, fit, boxed(bounds.width, bounds.height));
     if (cos < SQUARE_TURN_EPSILON) return fitTextToBox(text, fit, boxed(bounds.height, bounds.width));
 
+    if (!Number.isFinite(bounds.width) && !Number.isFinite(bounds.height)) return fitTextToBox(text, fit, options);
+
     const widthAt = (height: number) =>
         Math.min(options.maxWidth, (bounds.width - height * sin) / cos, (bounds.height - height * cos) / sin);
-    const lineHeight = options.lineHeight ?? cachedTextMeasurer(options.font).lineHeight();
-    // 'preserve' never drops text, so only the line count stays to be chosen: one line, as wide as it may be.
-    if (preservesText(options)) return fitTextToBox(text, fit, { ...options, maxWidth: widthAt(lineHeight) });
-
-    const heightLimit = Math.min(options.maxHeight ?? Infinity, bounds.width / sin, bounds.height / cos);
-    if (!Number.isFinite(heightLimit)) return fitTextToBox(text, fit, options);
     const fitsTurned = (fitted: NormalisedTextOrSegments) => {
         const { width, height } = measureLabelText(fitted, options.font);
         return (
@@ -254,31 +251,52 @@ function fitTurnedText(
             width * sin + height * cos <= bounds.height + TURNED_EXTENT_EPSILON
         );
     };
-
-    const maxLines = Math.floor((heightLimit + TURNED_EXTENT_EPSILON) / lineHeight);
-    // Unwrapped text keeps its own lines, so its own line count, or as many as fit, is the only one to try.
-    const unwrapped = options.textWrap === 'never' && !isArray(text);
-    const firstLines = unwrapped ? Math.min(toTextString(text).split('\n').length, maxLines) : 1;
-    const lastLines = unwrapped ? firstLines : maxLines;
+    const maxHeight = options.maxHeight ?? Infinity;
+    const truncates = !preservesText(options) && options.overflow !== 'hide';
 
     let best: NormalisedTextOrSegments | undefined;
     let bestKept = 0;
-    for (let lines = firstLines; lines <= lastLines; lines++) {
-        const height = lines * lineHeight;
+    let oneLineWidth: number | undefined;
+    // The height of the lines the next step keeps, measured off the text as wrapped at the previous step.
+    let height = 0;
+    for (let lines = 0; ; lines++) {
         const maxWidth = widthAt(height);
         if (maxWidth <= 0) break;
-        const box: WrapOptions = { ...options, maxWidth, maxHeight: height };
-        const whole = fitTextToBox(text, fit, { ...box, overflow: 'hide' });
+        if (lines === 1) oneLineWidth = maxWidth;
+        const whole = fitTextToBox(text, fit, { ...options, maxWidth, overflow: 'hide' });
         if (!isErased(whole) && fitsTurned(whole)) return whole;
-        if (options.overflow === 'hide') continue;
-        const partial = fitTextToBox(text, fit, box);
-        const kept = keptCharacters(partial);
-        if (kept > bestKept && fitsTurned(partial)) {
-            best = partial;
-            bestKept = kept;
+        if (truncates && lines > 0) {
+            // No wider than the room beside `height` and no taller than it, so the turned extent holds.
+            const partial = fitTextToBox(text, fit, { ...options, maxWidth, maxHeight: height });
+            const kept = keptCharacters(partial);
+            if (kept > bestKept && fitsTurned(partial)) {
+                best = partial;
+                bestKept = kept;
+            }
         }
+        const wrapped = wrapTextOrSegments(text, { ...options, maxWidth, maxHeight: undefined, overflow: 'ellipsis' });
+        const bottoms = lineBottoms(wrapped, options.font);
+        // The text breaks into no more lines at this width, so a further step cannot keep more of it.
+        if (lines >= bottoms.length || bottoms[lines] > maxHeight + TURNED_EXTENT_EPSILON) break;
+        height = bottoms[lines];
     }
+    // 'preserve' never drops text: failing a whole fit, it keeps one line as wide as the room allows.
+    if (preservesText(options)) return fitTextToBox(text, fit, { ...options, maxWidth: oneLineWidth ?? widthAt(0) });
     return best ?? (isArray(text) ? [] : '');
+}
+
+/** Where each line of wrapped text ends, measured from its top, by the heights its own content gives it. */
+function lineBottoms(wrapped: string | MeasuredSegment[], font: FontOptions): number[] {
+    if (!isArray(wrapped)) {
+        const lineCount = wrapped.split('\n').length;
+        const lineHeight = measureLabelText(wrapped, font).height / lineCount;
+        return Array.from({ length: lineCount }, (_, index) => (index + 1) * lineHeight);
+    }
+    const { height, lineMetrics } = measureTextSegments(wrapped, font);
+    // A block row's lines share its height rather than adding to it, so the block is only taken whole.
+    if (lineMetrics.some((line) => line.blockRowSpan != null)) return [height];
+    let bottom = 0;
+    return lineMetrics.map((line) => (bottom += line.height));
 }
 
 /** A width narrower than the ellipsis still gets one, so a fit that needs it is drawn wider than its bound. */

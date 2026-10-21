@@ -22,6 +22,7 @@ import {
     rotatePoint,
     thinTickLabels,
     tickLabelSpacing,
+    toDegrees,
 } from 'ag-charts-core';
 import type { PaddingOptions, VerticalAlign } from 'ag-charts-types';
 
@@ -111,7 +112,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         );
 
         return (
-            axisLabelsOverlap(createTimeLabelData(options, tickData, labelRotation), labelSpacing) ||
+            axisLabelsOverlap(createTimeLabelData(options, tickData, labelRotation, rotation), labelSpacing) ||
             axisLabelsOverlap(
                 createLabelData(
                     tickData.ticks,
@@ -557,21 +558,23 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
 function createTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>,
     tickData: TickData,
-    labelRotation: number
+    labelRotation: number,
+    autoRotation: number
 ) {
     const { niceDomain, ticks, timeInterval } = tickData;
     if (timeInterval == null) return [];
 
     const spacing = ticksSpacing(ticks);
     const { label, labelOffset, primaryLabel, domain } = options;
-    // Secondary labels are fitted on a continuous scale, which has no band to limit them.
+    // Secondary labels are fitted on a continuous scale, which has no band to limit them, and at the
+    // rotation they are drawn at, as the ticks they stand for are.
     const fitOptions = isLabelFitEnabled(label)
         ? axisLabelFit(
               label,
               options.isVertical,
               options.labelRoom ?? options.sizeLimit ?? Infinity,
               Infinity,
-              label.rotation ?? 0,
+              (label.rotation ?? 0) + toDegrees(autoRotation),
               label.wrapping ?? 'never'
           )
         : undefined;
