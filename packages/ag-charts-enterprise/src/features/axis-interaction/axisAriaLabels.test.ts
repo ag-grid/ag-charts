@@ -45,9 +45,13 @@ describe('resolveAxisAriaLabels', () => {
         ).toEqual(['Total value (y)', 'Total\n  value (y2)']);
     });
 
-    it('reports explicit labels that differ only in whitespace as duplicates', () => {
-        const { duplicateExplicitLabels } = resolve(src('a', { ariaLabel: 'Same' }), src('b', { ariaLabel: ' Same ' }));
-        expect(duplicateExplicitLabels).toEqual(['Same', ' Same ']);
+    it('reports explicit labels that differ only in whitespace or case as one duplicate', () => {
+        const { duplicateExplicitLabels } = resolve(
+            src('a', { ariaLabel: 'Same' }),
+            src('b', { ariaLabel: ' Same ' }),
+            src('c', { ariaLabel: 'same' })
+        );
+        expect(duplicateExplicitLabels).toEqual([['Same', ' Same ', 'same']]);
     });
 
     it('suffixes derived labels that collide, case-insensitively', () => {
@@ -100,6 +104,6 @@ describe('resolveAxisAriaLabels', () => {
             src('c', { ariaLabel: 'Other' })
         );
         expect(labels).toEqual(['Same', 'Same', 'Other']);
-        expect(duplicateExplicitLabels).toEqual(['Same']);
+        expect(duplicateExplicitLabels).toEqual([['Same']]);
     });
 });

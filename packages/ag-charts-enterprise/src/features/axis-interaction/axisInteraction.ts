@@ -189,9 +189,10 @@ export class AxisInteraction extends AbstractModuleInstance {
 
     private resolveAriaLabels(axesCtx: _ModuleSupport.AxisContext[]) {
         const { labels, duplicateExplicitLabels } = resolveAxisAriaLabels(axesCtx);
-        for (const label of duplicateExplicitLabels) {
+        for (const group of duplicateExplicitLabels) {
+            const names = group.map((label) => `"${label}"`).join(', ');
             this.ctx.logger.warnOnce(
-                `axes with the same [ariaLabel] "${label}" share an accessible name; give each axis a unique [ariaLabel].`
+                `axes with the same [ariaLabel] ${names} share an accessible name; give each axis a unique [ariaLabel].`
             );
         }
         return labels;
