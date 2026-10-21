@@ -1,6 +1,12 @@
 // @ag-skip-fws
 /* @ag-options-extract */
-import { AgCartesianChartOptions, AgChartInstance, AgCharts, VERSION } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgCharts,
+    AgHeatmapSeriesOptions,
+    VERSION,
+} from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 
@@ -11,7 +17,7 @@ const REFERENCE_ROWS = 208;
 
 type Datum = { id: string; time: string; band: string; level: number };
 
-type Styling = 'colour scale' | 'itemStyler';
+type Styling = 'colour scale' | 'itemStyler' | 'itemStyler (no override)' | 'itemStyler (fill)';
 
 interface HeatmapState {
     columns: number;
@@ -24,6 +30,23 @@ const baseOptions: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     animation: { enabled: false },
 };
+
+/** inScope */
+function createItemStyler(styling: Styling): AgHeatmapSeriesOptions['itemStyler'] {
+    switch (styling) {
+        case 'colour scale':
+            return undefined;
+        case 'itemStyler':
+            return ({ datum }) => ({ fillOpacity: datum.level > 90 ? 0.6 : 1 });
+        case 'itemStyler (no override)':
+            return () => undefined;
+        case 'itemStyler (fill)':
+            return ({ datum }) => {
+                const shade = Math.round(datum.level * 2.55);
+                return { fill: `rgb(${shade}, ${shade}, ${255 - shade})` };
+            };
+    }
+}
 
 /** inScope */
 function createOptions(state: HeatmapState, data: Datum[]): AgCartesianChartOptions {
@@ -39,10 +62,7 @@ function createOptions(state: HeatmapState, data: Datum[]): AgCartesianChartOpti
                 xKey: 'time',
                 yKey: 'band',
                 colorKey: 'level',
-                itemStyler:
-                    state.styling === 'itemStyler'
-                        ? ({ datum }) => ({ fillOpacity: datum.level > 90 ? 0.6 : 1 })
-                        : undefined,
+                itemStyler: createItemStyler(state.styling),
             },
         ],
     };
@@ -165,10 +185,12 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'full-update',
                 label: 'Full Update',
                 variants: sizes.flatMap(({ columns, rows }) =>
-                    (['colour scale', 'itemStyler'] as Styling[]).map((styling) => ({
-                        params: { Cells: cellLabel(columns, rows), Styling: styling, Method: 'updateDelta()' },
-                        run: () => performFullUpdate({ columns, rows, styling, withIds: false }),
-                    }))
+                    (['colour scale', 'itemStyler', 'itemStyler (no override)', 'itemStyler (fill)'] as Styling[]).map(
+                        (styling) => ({
+                            params: { Cells: cellLabel(columns, rows), Styling: styling, Method: 'updateDelta()' },
+                            run: () => performFullUpdate({ columns, rows, styling, withIds: false }),
+                        })
+                    )
                 ),
             },
             {
