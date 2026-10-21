@@ -77,7 +77,7 @@ test.describe('axe-kitchen-sink', () => {
 
 test.describe('axe scan example selection', () => {
     test('the default set includes the financial, kitchen-sink and multi-chart examples', () => {
-        test.skip(!!process.env.AG_A11Y_ALL_EXAMPLES, 'AG_A11Y_ALL_EXAMPLES replaces the default set');
+        test.skip((process.env.AG_A11Y_ALL_EXAMPLES ?? '') !== '', 'AG_A11Y_ALL_EXAMPLES replaces the default set');
 
         const selected = selectA11yExamples().map(({ pageName, example }) => `${pageName}/${example}`);
         expect(selected).toEqual(
