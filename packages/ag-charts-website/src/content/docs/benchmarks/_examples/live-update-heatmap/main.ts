@@ -39,10 +39,8 @@ function createItemStyler(styling: Styling): AgHeatmapSeriesOptions['itemStyler'
         case 'itemStyler':
             return ({ datum }) => ({ fillOpacity: datum.level > 90 ? 0.6 : 1 });
         case 'itemStyler (no override)':
-            // AG-18912: a styler that returns nothing for every cell.
             return () => undefined;
         case 'itemStyler (fill)':
-            // AG-18912: a styler that returns one of ~256 fills per cell.
             return ({ datum }) => {
                 const shade = Math.round(datum.level * 2.55);
                 return { fill: `rgb(${shade}, ${shade}, ${255 - shade})` };
