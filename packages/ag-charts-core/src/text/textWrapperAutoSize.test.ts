@@ -19,7 +19,8 @@ vi.mock('../rendering/canvasUtil', () => ({
         measureText(text: string) {
             const fontSize = Number.parseFloat(this.font);
             return {
-                width: [...text].length * fontSize,
+                // The zero-width space the wrapper guards segment edges with draws nothing, as on a real canvas.
+                width: [...text.replaceAll('​', '')].length * fontSize,
                 fontBoundingBoxAscent: fontSize * 1.2,
                 fontBoundingBoxDescent: fontSize * 0.3,
                 emHeightAscent: fontSize * 1.2,
@@ -376,6 +377,23 @@ describe('fitLabelTextAutoSize turned', () => {
         } as const;
         const fitted = fitLabelTextAutoSize([{ text: 'a', fontSize: 8 }] as NormalisedContentSegment[], fit, font);
         expect((fitted.text as MeasuredSegment[]).map((s) => (s.type === 'image' ? '' : s.text))).toEqual(['a']);
+    });
+
+    it('finds a whole rich-text fit that only a reflow of its segments between lines makes', () => {
+        // Wrapped at 81px the segments settle into a 50 x 39 block spanning 62.0 x 63.4 at 50 degrees, inside
+        // the room, although the 24px-tall first line of the widest wrap points to a narrower width.
+        const segments = [
+            { text: 'a ', fontSize: 10 },
+            { text: 'fghi ', fontSize: 6 },
+            { text: 'd e', fontSize: 16 },
+        ] as NormalisedContentSegment[];
+        const fit = {
+            wrapping: 'on-space',
+            overflowStrategy: 'hide',
+            rotated: { rotation: 50, width: 65, height: 85 },
+        } as const;
+        const fitted = fitLabelTextAutoSize(segments, fit, font).text as MeasuredSegment[];
+        expect(fitted.map((s) => (s.type === 'image' ? '' : s.text)).join('')).toMatch(/^a\s*fghi\s*d\s*e$/);
     });
 
     it('stops once the text breaks into no more lines, however much height the room has', () => {
