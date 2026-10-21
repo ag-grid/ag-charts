@@ -31,14 +31,25 @@ function getProjectBuildTargets(project) {
                 [project, ['build'], 'watch'],
             ];
         case 'ag-charts-locale':
+            // The dev server serves locale's dist/umd (vanilla examples) directly, so its own
+            // build:umd and build:package are reloadable and run before any build:types.
+            return [
+                [project, ['build:umd', 'build:package'], 'watch'],
+                ['ag-charts-community', ['build:umd', 'build:package'], 'watch'],
+                ['ag-charts-enterprise', ['build:umd', 'build:package'], 'watch'],
+                ['ag-charts-community', ['build:types'], 'watch'],
+                ['ag-charts-enterprise', ['build:types'], 'watch'],
+                [project, ['build'], 'watch'],
+            ];
         case 'ag-charts-core':
-            // Fan-out: rebuild community and enterprise before the changed package itself.
+            // Fan-out: rebuild community and enterprise before the changed package itself. Core has
+            // no build:umd and is resolved through dist/package, which community's build:package
+            // rebuilds as a dependency, so only its types remain for the trailing build.
             return [
                 ['ag-charts-community', ['build:umd', 'build:package'], 'watch'],
                 ['ag-charts-enterprise', ['build:umd', 'build:package'], 'watch'],
                 ['ag-charts-community', ['build:types'], 'watch'],
                 ['ag-charts-enterprise', ['build:types'], 'watch'],
-                // Not served directly: its dist/package is built above as a dependency.
                 [project, ['build'], 'watch'],
             ];
         case 'ag-charts-community':
