@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import { deproxy, errorFrom, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import type { HierarchyNode } from '../series/hierarchy/hierarchySeries';
 import { getCrossLineLabelNodes } from './polarCrossLines';
@@ -112,9 +112,7 @@ describe('enterprise test accessors', () => {
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             });
 
-            const bar = chart;
-
-            expect(() => getHierarchyRootNode(bar)).toThrow();
+            expect(errorFrom(() => getHierarchyRootNode(chart!))?.name).toBe('AssertionError');
         });
     });
 });

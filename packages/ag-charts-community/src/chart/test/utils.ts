@@ -2369,10 +2369,24 @@ export function computeLegendBBox(chart: Chart): BBox {
 export interface LegendTestItemNode {
     datum?: { id: string; itemId?: string | number };
     opacity?: number;
-    label: { opacity?: number };
+    label: { opacity?: number; text?: string };
     symbolsGroup: { opacity?: number };
     marker?: { fill?: string; fillOpacity?: number; stroke?: string; strokeOpacity?: number; strokeWidth?: number };
     line?: { stroke?: string; strokeOpacity?: number; lineDash?: number[] };
+}
+
+/**
+ * The error `fn` throws. An accessor that gives up on a missing series, axis or selection must fail on its own
+ * `expect(...).toBeDefined()`, an `AssertionError`; a `TypeError` from using the `undefined` it was handed means that
+ * check has gone.
+ */
+export function errorFrom(fn: () => unknown): Error | undefined {
+    try {
+        fn();
+    } catch (error) {
+        return error as Error;
+    }
+    return undefined;
 }
 
 export interface LegendTestInternals {

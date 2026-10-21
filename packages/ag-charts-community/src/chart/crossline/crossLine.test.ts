@@ -583,7 +583,7 @@ describe('CrossLine', () => {
     });
 
     describe('cross-line level listeners', () => {
-        test('AC1: clicking a cross line fires `click` with the cross-line params', async () => {
+        it('AC1: clicking a cross line fires `click` with the cross-line params', async () => {
             const click = vi.fn();
             chart = deproxy(
                 await createChart(
@@ -617,7 +617,7 @@ describe('CrossLine', () => {
             );
         });
 
-        test('AC2: double-clicking a cross line fires `doubleClick`', async () => {
+        it('AC2: double-clicking a cross line fires `doubleClick`', async () => {
             const click = vi.fn();
             const doubleClick = vi.fn();
             chart = deproxy(
@@ -646,7 +646,7 @@ describe('CrossLine', () => {
             expect(click).toHaveBeenCalledTimes(2);
         });
 
-        test('AC3: an unset `id` falls back to an internally generated identifier', async () => {
+        it('AC3: an unset `id` falls back to an internally generated identifier', async () => {
             const click = vi.fn();
             chart = deproxy(
                 await createChart(
@@ -671,7 +671,7 @@ describe('CrossLine', () => {
             );
         });
 
-        test('AC5: overlapping cross lines each fire their own listener', async () => {
+        it('AC5: overlapping cross lines each fire their own listener', async () => {
             const clickY = vi.fn();
             const clickX = vi.fn();
             chart = deproxy(
@@ -710,7 +710,7 @@ describe('CrossLine', () => {
             );
         });
 
-        test('AC6: with no listener registered the click falls through to the chart', async () => {
+        it('AC6: with no listener registered the click falls through to the chart', async () => {
             const chartClick = vi.fn();
             chart = deproxy(
                 await createChart(
@@ -734,7 +734,7 @@ describe('CrossLine', () => {
             expect(chartClick).toHaveBeenCalledTimes(1);
         });
 
-        test('AC4: clicking a cross line label fires `click`', async () => {
+        it('AC4: clicking a cross line label fires `click`', async () => {
             const click = vi.fn();
             const build = (labelText?: string) =>
                 fullRangeOptions({
@@ -777,7 +777,7 @@ describe('CrossLine', () => {
             expect(click).not.toHaveBeenCalled();
         });
 
-        test('AC4: clicking a cross line label outside the series-area fires `click`', async () => {
+        it('AC4: clicking a cross line label outside the series-area fires `click`', async () => {
             const click = vi.fn();
             const build = (labelText?: string) =>
                 fullRangeOptions({
@@ -811,7 +811,7 @@ describe('CrossLine', () => {
             );
         });
 
-        test('a thick line widens its hit region to half the stroke width', async () => {
+        it('a thick line widens its hit region to half the stroke width', async () => {
             const click = vi.fn();
             const build = (strokeWidth: number) =>
                 fullRangeOptions({
@@ -844,7 +844,7 @@ describe('CrossLine', () => {
             expect(click).not.toHaveBeenCalled();
         });
 
-        test('clicking outside every cross line fires nothing', async () => {
+        it('clicking outside every cross line fires nothing', async () => {
             const click = vi.fn();
             chart = deproxy(
                 await createChart(
@@ -919,7 +919,7 @@ describe('CrossLine', () => {
                     })
                 );
             });
-            test('click where all 3 cross-lines overlap', async () => {
+            it('click where all 3 cross-lines overlap', async () => {
                 await clickAction(505, 130)(chart);
                 expect(chartCrossLineClick).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -958,7 +958,7 @@ describe('CrossLine', () => {
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
             });
-            test('TC7: a double-click brands the root and every entry with the double-click type', async () => {
+            it('TC7: a double-click brands the root and every entry with the double-click type', async () => {
                 await doubleClickAction(505, 130)(chart);
                 expect(chartCrossLineDoubleClick).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -973,7 +973,7 @@ describe('CrossLine', () => {
                     })
                 );
             });
-            test('a series node under the pointer wins over the cross lines it overlaps', async () => {
+            it('a series node under the pointer wins over the cross lines it overlaps', async () => {
                 // The May bar sits under the blue line and inside the grey range band.
                 await clickAction(505, 470)(chart);
                 const expected = expect.objectContaining({
@@ -994,7 +994,7 @@ describe('CrossLine', () => {
                 expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
                 expect(chartClick).toHaveBeenCalledTimes(0);
             });
-            test('a cross line wins over a series node under the pointer that nothing listens to', async () => {
+            it('a cross line wins over a series node under the pointer that nothing listens to', async () => {
                 chart.destroy();
                 chart = deproxy(
                     await createChart({
@@ -1023,7 +1023,7 @@ describe('CrossLine', () => {
                     })
                 );
             });
-            test.each([
+            it.each([
                 { gesture: 'double-click', nodeListener: 'seriesNodeClick', crossLineListener: 'crossLineDoubleClick' },
                 { gesture: 'click', nodeListener: 'seriesNodeDoubleClick', crossLineListener: 'crossLineClick' },
             ] as const)(
@@ -1053,7 +1053,7 @@ describe('CrossLine', () => {
                     );
                 }
             );
-            test('a cross line wins over a series node only within `nodeClickRange`', async () => {
+            it('a cross line wins over a series node only within `nodeClickRange`', async () => {
                 chart.destroy();
                 chart = deproxy(
                     await createChart({
@@ -1100,14 +1100,14 @@ describe('CrossLine', () => {
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
             });
-            test('clicking Jan bar fires series-node click listeners', async () => {
+            it('clicking Jan bar fires series-node click listeners', async () => {
                 await clickAction(140, 255)(chart);
                 expect(chartClick).toHaveBeenCalledTimes(0);
                 expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(1);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(1);
             });
-            test('clicking empty series-area point fire chart click listener', async () => {
+            it('clicking empty series-area point fire chart click listener', async () => {
                 await clickAction(140, 60)(chart);
                 expect(chartClick).toHaveBeenCalledTimes(1);
                 expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
@@ -1165,25 +1165,25 @@ describe('CrossLine', () => {
                     })
                 );
             });
-            test('click Jan bar', async () => {
+            it('click Jan bar', async () => {
                 await clickAction(140, 255)(chart);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(1);
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(1);
                 expect(chartClick).toHaveBeenCalledTimes(0);
             });
-            test('click chart on lime cross-line', async () => {
+            it('click chart on lime cross-line', async () => {
                 await clickAction(209, 127)(chart);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
                 expect(chartClick).toHaveBeenCalledTimes(1);
             });
-            test('click May bar on blue cross-line', async () => {
+            it('click May bar on blue cross-line', async () => {
                 await clickAction(505, 470)(chart);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(1);
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(1);
                 expect(chartClick).toHaveBeenCalledTimes(0);
             });
-            test('AC4i: a series-node win reports the cross lines it overlaps', async () => {
+            it('AC4i: a series-node win reports the cross lines it overlaps', async () => {
                 await clickAction(505, 470)(chart);
                 const expected = expect.objectContaining({
                     // The series node still wins the event, so it carries the root params.
@@ -1214,7 +1214,7 @@ describe('CrossLine', () => {
                     expect(params).not.toHaveProperty('clickedOn');
                 }
             });
-            test('AC4ii: a series-node click clear of any cross line reports only itself', async () => {
+            it('AC4ii: a series-node click clear of any cross line reports only itself', async () => {
                 await clickAction(140, 255)(chart);
                 const expected = expect.objectContaining({
                     type: 'seriesNodeClick',
@@ -1228,7 +1228,7 @@ describe('CrossLine', () => {
     });
 
     describe('TC1: secondary axes', () => {
-        test('a cross line on a secondary axis reports that axis key', async () => {
+        it('a cross line on a secondary axis reports that axis key', async () => {
             const click = vi.fn();
             chart = deproxy(
                 await createChart({
@@ -1263,7 +1263,7 @@ describe('CrossLine', () => {
     });
 
     describe('AC7: axis-level and chart-level listeners', () => {
-        test('the same event reaches the cross line, the axis and the chart', async () => {
+        it('the same event reaches the cross line, the axis and the chart', async () => {
             const crossLineClick = vi.fn();
             const axisClick = vi.fn();
             const chartClick = vi.fn();
@@ -1299,7 +1299,7 @@ describe('CrossLine', () => {
             expect(chartClick).toHaveBeenCalledWith(expected);
         });
 
-        test('axis-level `crossLineDoubleClick` fires on double click', async () => {
+        it('axis-level `crossLineDoubleClick` fires on double click', async () => {
             const axisDoubleClick = vi.fn();
             chart = deproxy(
                 await createChart(
@@ -1325,7 +1325,7 @@ describe('CrossLine', () => {
     });
 
     describe('callback context', () => {
-        test('the axis context wins over the chart context', async () => {
+        it('the axis context wins over the chart context', async () => {
             const click = vi.fn();
             chart = deproxy(
                 await createChart(
@@ -1350,7 +1350,7 @@ describe('CrossLine', () => {
             expect(click).toHaveBeenCalledWith(expect.objectContaining({ context: 'axis-context' }));
         });
 
-        test('the chart context is used when the axis has none', async () => {
+        it('the chart context is used when the axis has none', async () => {
             const click = vi.fn();
             chart = deproxy(
                 await createChart(
@@ -1374,7 +1374,7 @@ describe('CrossLine', () => {
             expect(click).toHaveBeenCalledWith(expect.objectContaining({ context: 'chart-context' }));
         });
 
-        test('the chart listener gets the axis context with no other listener registered', async () => {
+        it('the chart listener gets the axis context with no other listener registered', async () => {
             const chartClick = vi.fn();
             chart = deproxy(
                 await createChart(
@@ -1402,7 +1402,7 @@ describe('CrossLine', () => {
     });
 
     describe('option updates', () => {
-        test('a replaced listener is invoked instead of the previous one', async () => {
+        it('a replaced listener is invoked instead of the previous one', async () => {
             const first = vi.fn();
             const second = vi.fn();
             const build = (click: () => void) =>
@@ -1456,12 +1456,12 @@ describe('CrossLine', () => {
             return crossLine;
         }
 
-        test('renders ranges clamped at both ends of the domain', async () => {
+        it('renders ranges clamped at both ends of the domain', async () => {
             await createBandChart([new Date(2025, 10, 1), MONTHS[0]], [new Date(2026, 5, 5), new Date(2026, 5, 20)]);
             await compare();
         });
 
-        test('keeps the first band of a range that starts before the domain', async () => {
+        it('keeps the first band of a range that starts before the domain', async () => {
             const crossLine = await createBandChart([new Date(2025, 10, 1), MONTHS[0]]);
 
             expect(crossLine.rangeGroup.visible).toBe(true);
@@ -1471,7 +1471,7 @@ describe('CrossLine', () => {
             expect(box.width).toBeGreaterThanOrEqual(crossLine.scale!.bandwidth!);
         });
 
-        test('keeps a range that lies inside the last band', async () => {
+        it('keeps a range that lies inside the last band', async () => {
             const crossLine = await createBandChart([new Date(2026, 5, 5), new Date(2026, 5, 20)]);
 
             expect(crossLine.rangeGroup.visible).toBe(true);
@@ -1481,7 +1481,7 @@ describe('CrossLine', () => {
             expect(box.width).toBeGreaterThanOrEqual(crossLine.scale!.bandwidth!);
         });
 
-        test('hides a range that ends before the domain', async () => {
+        it('hides a range that ends before the domain', async () => {
             const crossLine = await createBandChart([new Date(2025, 9, 1), new Date(2025, 10, 1)]);
 
             expect(crossLine.rangeGroup.visible).toBe(false);
@@ -1637,7 +1637,7 @@ describe('CrossLine', () => {
             // `placement: 'left'` on the left-hand axis pads horizontally, so a very wide label is what
             // outgrows the space available.
             const veryLongLabel = 'A'.repeat(400);
-            const { x, y } = examples.LINE_CROSSLINES.axes as Record<'x' | 'y', AgCartesianAxisOptions>;
+            const { x, y } = examples.LINE_CROSSLINES_AXES;
 
             chart = deproxy(
                 await createChart({
@@ -1663,7 +1663,7 @@ describe('CrossLine', () => {
 
         it('clip-text truncates a label that would run past the container edge', async () => {
             const veryLongLabel = 'A cross line label far too long to fit the chart it is drawn on';
-            const { x, y } = examples.LINE_CROSSLINES.axes as Record<'x' | 'y', AgCartesianAxisOptions>;
+            const { x, y } = examples.LINE_CROSSLINES_AXES;
             const build = (overflow: CrossLineLabelOverflow): AgCartesianChartOptions => ({
                 ...examples.LINE_CROSSLINES,
                 axes: {
@@ -1698,7 +1698,7 @@ describe('CrossLine', () => {
         it('clip-text shortens monotonically as the room runs out, ending at an ellipsis', async () => {
             // A rotated label extends along the axis's short side, which is the only direction whose room
             // a label padding can exhaust; upright text is bounded by the far wider horizontal extent.
-            const { x, y } = examples.LINE_CROSSLINES.axes as Record<'x' | 'y', AgCartesianAxisOptions>;
+            const { x, y } = examples.LINE_CROSSLINES_AXES;
             const build = (padding: number): AgCartesianChartOptions => ({
                 ...examples.LINE_CROSSLINES,
                 axes: {

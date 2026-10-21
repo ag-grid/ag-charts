@@ -34,7 +34,7 @@ describe('series label lineHeight', () => {
         formatter: ({ value }: { value: string }) => `${value}\nsecond`,
     };
 
-    it.each([
+    it.each<{ name: string; options: AgChartOptions }>([
         {
             name: 'map-line',
             options: {
@@ -55,9 +55,9 @@ describe('series label lineHeight', () => {
             },
         },
     ])('measures $name label boxes by their lineHeight', async ({ options }) => {
-        chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+        chart = deproxy(await createEnterpriseChart(options));
         // The map-marker chart draws a background series first; the labelled series is always the last one.
-        const [{ labelData }] = getSeriesContextNodeData<unknown, { label: { height: number } }>(
+        const { labelData } = getSeriesContextNodeData<unknown, { label: { height: number } }>(
             chart,
             chart.series.length - 1
         );

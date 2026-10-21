@@ -10,7 +10,6 @@ import type {
 import {
     getLegendItemNodes,
     getSeriesAreaFocus,
-    getSeriesAreaRect,
     getSeriesAt,
     getSeriesContextNodeData,
     getSeriesNodeData,
@@ -18,21 +17,7 @@ import {
     getSeriesSelectionNodes,
     setAgChartsDebug,
 } from './seriesAccessors';
-import { createChart, deproxy, pressKey, setupMockCanvas, setupMockConsole, tabIntoChart } from './utils';
-
-/**
- * The error `fn` throws. An accessor that gives up on a missing series or selection must fail on its own
- * `expect(...).toBeDefined()`, an `AssertionError`; a `TypeError` from using the `undefined` it was handed means that
- * check has gone.
- */
-function errorFrom(fn: () => unknown): Error | undefined {
-    try {
-        fn();
-    } catch (error) {
-        return error as Error;
-    }
-    return undefined;
-}
+import { createChart, deproxy, errorFrom, pressKey, setupMockCanvas, setupMockConsole, tabIntoChart } from './utils';
 
 describe('series test accessors', () => {
     setupMockConsole();
@@ -134,14 +119,21 @@ describe('series test accessors', () => {
     });
 
     describe('getSeriesContextNodeData', () => {
-        it('returns the node-data context of a cartesian series as a list', async () => {
+        it('returns the node-data context of a cartesian series', async () => {
             chart = await createChart(barOptions);
 
-            const contexts = getSeriesContextNodeData<{ yValue: number }>(chart);
-            expect(contexts).toHaveLength(1);
-            expect(contexts[0].nodeData.map(({ yValue }) => yValue)).toEqual([10, 20, 15]);
-            expect(contexts[0].labelData).toHaveLength(3);
-            expect(contexts[0].visible).toBe(true);
+            const context = getSeriesContextNodeData<{ yValue: number }>(chart);
+            expect(context.nodeData.map(({ yValue }) => yValue)).toEqual([10, 20, 15]);
+            expect(context.labelData).toHaveLength(3);
+            expect(context.visible).toBe(true);
+        });
+
+        it('returns the context of the series at the index', async () => {
+            chart = await createChart(barOptions);
+
+            const second = getSeriesContextNodeData<{ yValue: number }>(chart, 1);
+            expect(second.nodeData.map(({ yValue }) => yValue)).toEqual([1, 2, 3]);
+            expect(second).not.toBe(getSeriesContextNodeData(chart, 0));
         });
 
         it('reports a hidden series as not visible', async () => {
@@ -150,28 +142,14 @@ describe('series test accessors', () => {
                 series: [barSeries[0], { ...barSeries[1], visible: false }],
             });
 
-            expect(getSeriesContextNodeData(chart, 0)[0].visible).toBe(true);
-            expect(getSeriesContextNodeData(chart, 1).every((context) => context.visible === false)).toBe(true);
+            expect(getSeriesContextNodeData(chart, 0).visible).toBe(true);
+            expect(getSeriesContextNodeData(chart, 1).visible).toBe(false);
         });
 
-        it('returns every context of a series that keeps a list, in order', async () => {
-            chart = await createChart(barOptions);
-            const [first] = getSeriesContextNodeData(chart, 0);
-            const [second] = getSeriesContextNodeData(chart, 1);
-            // No chart series keeps a list today, so the list form is stood in for on a real series.
-            Object.defineProperty(getSeriesAt(chart, 0), 'contextNodeData', { value: [second, first] });
-
-            const contexts = getSeriesContextNodeData(chart, 0);
-
-            expect(contexts).toHaveLength(2);
-            expect(contexts[0]).toBe(second);
-            expect(contexts[1]).toBe(first);
-        });
-
-        it('returns no context for a series that keeps none', async () => {
+        it('fails for a series that keeps no context', async () => {
             chart = await createChart(pieOptions);
 
-            expect(getSeriesContextNodeData(chart)).toEqual([]);
+            expect(errorFrom(() => getSeriesContextNodeData(chart))?.name).toBe('AssertionError');
         });
     });
 
@@ -228,16 +206,6 @@ describe('series test accessors', () => {
     });
 
     describe('series-area manager accessors', () => {
-        it('returns the series area as laid out', async () => {
-            chart = await createChart(barOptions);
-
-            const { x, y, width, height } = getSeriesAreaRect(chart);
-            expect(width).toBeGreaterThan(0);
-            expect(height).toBeGreaterThan(0);
-            expect(x).toBeGreaterThanOrEqual(0);
-            expect(y).toBeGreaterThanOrEqual(0);
-        });
-
         it('returns the series and datum the keyboard focus is on', async () => {
             chart = await createChart(barOptions);
             expect(getSeriesAreaFocus(chart)).toEqual({ seriesIndex: 0, datumIndex: 0 });

@@ -1,11 +1,10 @@
 import { expect } from 'vitest';
 
-import type { BBox, Node } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 
-import type { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import type { SeriesNodeDataContext, UnknownSeries } from '../series/series';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
-import { type ChartOrProxy, deproxy } from './utils';
+import { type ChartOrProxy, type LegendTestInternals, type LegendTestItemNode, deproxy } from './utils';
 
 /** The series at `index`, asserted to exist: a series the chart did not create fails here, not on a later read. */
 export function getSeriesAt(chartOrProxy: ChartOrProxy<any>, index = 0): UnknownSeries {
@@ -48,22 +47,22 @@ export interface SeriesContextNodeData<TDatum = SeriesNodeDatum, TLabel = TDatum
     visible?: boolean;
 }
 
-// A series keeps one context, or one per group of datums; the cartesian series expose it through a getter.
+// The cartesian series expose their context through a getter; the data-model `Series` base does not declare it.
 interface ContextNodeDataHost<TDatum, TLabel> {
-    contextNodeData?: SeriesContextNodeData<TDatum, TLabel> | SeriesContextNodeData<TDatum, TLabel>[];
+    contextNodeData?: SeriesContextNodeData<TDatum, TLabel>;
 }
 
 /**
- * The node-data contexts of the series (`nodeData`, `labelData`, `visible`, …), always as a list: a series with one
- * context yields one entry, a series that has not produced any yields none.
+ * The node-data context of the series (`nodeData`, `labelData`, `visible`, …), asserted to exist: a series that has
+ * not produced one, or never keeps one, fails here rather than on the read that unpacks it.
  */
 export function getSeriesContextNodeData<TDatum = SeriesNodeDatum, TLabel = TDatum>(
     chartOrProxy: ChartOrProxy<any>,
     index = 0
-): SeriesContextNodeData<TDatum, TLabel>[] {
+): SeriesContextNodeData<TDatum, TLabel> {
     const { contextNodeData } = getSeriesAt(chartOrProxy, index) as unknown as ContextNodeDataHost<TDatum, TLabel>;
-    if (contextNodeData == null) return [];
-    return Array.isArray(contextNodeData) ? contextNodeData : [contextNodeData];
+    expect(contextNodeData, `series ${index} node data context`).toBeDefined();
+    return contextNodeData!;
 }
 
 /** The scene selections of a series that tests read the drawn nodes through. */
@@ -88,24 +87,17 @@ export function getSeriesSelectionNodes<TNode extends Node = Node>(
     return selection!.nodes();
 }
 
-// The legend modules are typed by the interface the chart needs of them, not by the selection they draw into.
-interface LegendItemSelectionHost {
-    itemSelection?: { nodes(): LegendMarkerLabel[] };
-}
-
 /** The item nodes of every legend the chart has, in legend order and, within a legend, in item order. */
-export function getLegendItemNodes(chartOrProxy: ChartOrProxy<any>): LegendMarkerLabel[] {
-    return Array.from(deproxy(chartOrProxy).modulesManager.legends()).flatMap(
-        ({ legend }) => (legend as unknown as LegendItemSelectionHost).itemSelection?.nodes() ?? []
+export function getLegendItemNodes(chartOrProxy: ChartOrProxy<any>): (LegendTestItemNode & Node)[] {
+    return Array.from(deproxy(chartOrProxy).modulesManager.legends()).flatMap(({ legend }) =>
+        (legend as unknown as LegendTestInternals).itemSelection.nodes()
     );
 }
 
-// The series-area manager keeps its focus and rect private; `Chart.seriesAreaManager` is protected.
+// The series-area manager keeps its focus private; `Chart.seriesAreaManager` is protected. The rect it lays out is
+// `Chart.seriesRect`, which `getSeriesRect` (axisAccessors) reads.
 interface SeriesAreaManagerHost {
-    seriesAreaManager?: {
-        seriesRect?: BBox;
-        focus: { seriesIndex: number; datumIndex: number };
-    };
+    seriesAreaManager?: { focus: { seriesIndex: number; datumIndex: number } };
 }
 
 function getSeriesAreaManager(
@@ -120,13 +112,6 @@ function getSeriesAreaManager(
 export function getSeriesAreaFocus(chartOrProxy: ChartOrProxy<any>): { seriesIndex: number; datumIndex: number } {
     const { seriesIndex, datumIndex } = getSeriesAreaManager(chartOrProxy).focus;
     return { seriesIndex, datumIndex };
-}
-
-/** The series area in canvas coordinates, as the series-area manager laid it out, asserted to have been. */
-export function getSeriesAreaRect(chartOrProxy: ChartOrProxy<any>): BBox {
-    const { seriesRect } = getSeriesAreaManager(chartOrProxy);
-    expect(seriesRect).toBeDefined();
-    return seriesRect!;
 }
 
 /**
