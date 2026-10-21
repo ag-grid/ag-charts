@@ -1087,5 +1087,45 @@ describe('AxisInteraction', () => {
             expect(regionLabels()).toEqual(['Same', 'Same', 'x']);
             expectWarningsCalls().toEqual([[expect.stringContaining('[ariaLabel]')]]);
         });
+
+        it('explicit ariaLabels differing only by case are warned about once', async () => {
+            chart = await createEnterpriseChart(
+                lineOptions({
+                    x: { type: 'number', ariaLabel: 'Totals' },
+                    y: { type: 'number', ariaLabel: 'totals' },
+                })
+            );
+            expect(regionLabels()).toEqual(['totals', 'Totals']);
+            expectWarningsCalls().toEqual([[expect.stringContaining('[ariaLabel]')]]);
+        });
+
+        it('a titled axis added by update() is labelled with its own key', async () => {
+            const oneY: AgCartesianChartOptions['axes'] = {
+                x: { type: 'number' },
+                y: { type: 'number', position: 'left', title: { text: 'Value' } },
+            };
+            chart = await createEnterpriseChart(lineOptions(oneY));
+            expect(regionLabels()).toEqual(['Value', 'x']);
+
+            await update(
+                chart,
+                lineOptions(
+                    { ...oneY, y2: { type: 'number', position: 'right', title: { text: 'Value' } } },
+                    twoYSeries
+                )
+            );
+            expect(regionLabels()).toEqual(['Value (y)', 'Value (y2)', 'x']);
+        });
+
+        it('an untitled axis added by update() is labelled with its own key', async () => {
+            const oneY: AgCartesianChartOptions['axes'] = {
+                x: { type: 'number' },
+                y: { type: 'number', position: 'left', title: { text: 'Value' } },
+            };
+            chart = await createEnterpriseChart(lineOptions(oneY));
+
+            await update(chart, lineOptions({ ...oneY, y2: { type: 'number', position: 'right' } }, twoYSeries));
+            expect(regionLabels()).toEqual(['Value', 'x', 'y2']);
+        });
     });
 });

@@ -19,6 +19,7 @@ import {
     attachDescription,
     boolean,
     callback,
+    callbackDefs,
     callbackOf,
     color,
     constant,
@@ -38,6 +39,7 @@ import {
     positiveNumber,
     ratio,
     required,
+    resetRememberedResults,
     string,
     typeUnion,
     union,
@@ -871,6 +873,158 @@ describe('Validation utils', () => {
         test('accepts zero for both scalar and object padding', () => {
             expect(isValid({ padding: 0 }, { padding })).toBe(true);
             expect(isValid({ padding: { top: 0, right: 0, bottom: 0, left: 0 } }, { padding })).toBe(true);
+        });
+    });
+
+    describe('callbackDefs result memory', () => {
+        type Style = { strokeWidth?: number; fill?: string };
+
+        const warnings = () => (console.warn as Mock).mock.calls.map((call) => String(call[0]));
+
+        /** Wraps `styler`, counting how often each property validator runs. */
+        function wrap(styler: (...args: any[]) => unknown, rememberResults: boolean) {
+            let validations = 0;
+            const defs: OptionsDefs<Style> = {
+                strokeWidth: (value, context) => {
+                    validations++;
+                    return number(value, context);
+                },
+                fill: string,
+            };
+            const { cleared } = callbackDefs<Style>(defs, undefined, { rememberResults })(styler, {
+                options: {},
+                path: 'series[0].itemStyler',
+                params: { logger: validationLogger },
+            }) as ValidatorResult;
+            return {
+                call: cleared as (...args: any[]) => Style | undefined,
+                validations: () => validations,
+            };
+        }
+
+        test('runs the callback on every call, remembered or not', () => {
+            const styler = vi.fn(() => ({ strokeWidth: 2 }));
+            const { call } = wrap(styler, true);
+
+            call();
+            call();
+            call();
+
+            expect(styler).toHaveBeenCalledTimes(3);
+        });
+
+        test('validates each distinct plain result once and returns the same cleared object for equal results', () => {
+            let next = { strokeWidth: 2, fill: 'red' };
+            const { call, validations } = wrap(() => ({ ...next }), true);
+
+            const first = call();
+            const afterFirst = validations();
+            expect(afterFirst).toBeGreaterThan(0);
+            expect(first).toEqual({ strokeWidth: 2, fill: 'red' });
+
+            for (let i = 0; i < 5; i++) expect(call()).toBe(first);
+            expect(validations()).toBe(afterFirst);
+
+            next = { strokeWidth: 3, fill: 'red' };
+            const second = call();
+            expect(second).toEqual({ strokeWidth: 3, fill: 'red' });
+            expect(second).not.toBe(first);
+            expect(validations()).toBe(afterFirst * 2);
+
+            // The first result is still remembered after the second was added.
+            next = { strokeWidth: 2, fill: 'red' };
+            expect(call()).toBe(first);
+            expect(validations()).toBe(afterFirst * 2);
+        });
+
+        test('validates equal plain results every time without the option', () => {
+            const { call, validations } = wrap(() => ({ strokeWidth: 2 }), false);
+
+            call();
+            const afterFirst = validations();
+            call();
+            call();
+
+            expect(validations()).toBe(afterFirst * 3);
+        });
+
+        test('does not remember a result with a nested object, and still clears it', () => {
+            const { call, validations } = wrap(() => ({ strokeWidth: 1, notAnOption: { a: 1 } }), true);
+
+            expect(call()).toEqual({ strokeWidth: 1 });
+            const afterFirst = validations();
+            call();
+
+            expect(validations()).toBe(afterFirst * 2);
+        });
+
+        test('remembers the cleared form of a result with an invalid property, and keeps the valid properties', () => {
+            const { call, validations } = wrap(() => ({ strokeWidth: 'thick', fill: 'red' }), true);
+
+            const first = call();
+            const afterFirst = validations();
+            expect(first).toEqual({ fill: 'red' });
+            expect(call()).toBe(first);
+
+            expect(validations()).toBe(afterFirst);
+            expect(warnings().filter((message) => message.includes('invalid property'))).toHaveLength(1);
+        });
+
+        test('returns nothing for a result of undefined or null, and does not remember it', () => {
+            const results: unknown[] = [undefined, null, { strokeWidth: 2 }, undefined];
+            const { call } = wrap(() => results.shift(), true);
+
+            expect(call()).toBeUndefined();
+            expect(call()).toBeUndefined();
+            expect(call()).toEqual({ strokeWidth: 2 });
+            expect(call()).toBeUndefined();
+        });
+
+        test('logs a callback that throws and returns nothing, without remembering anything', () => {
+            let shouldThrow = true;
+            const { call } = wrap(() => {
+                if (shouldThrow) throw new Error('boom');
+                return { strokeWidth: 2 };
+            }, true);
+
+            expect(call()).toBeUndefined();
+            expect(warnings().some((message) => message.includes('Uncaught exception in user callback'))).toBe(true);
+
+            shouldThrow = false;
+            expect(call()).toEqual({ strokeWidth: 2 });
+        });
+
+        test('validates a remembered result again after the results are reset', () => {
+            const { call, validations } = wrap(() => ({ strokeWidth: 2 }), true);
+
+            const first = call();
+            const afterFirst = validations();
+            resetRememberedResults(call);
+            const second = call();
+
+            expect(second).toEqual(first);
+            expect(second).not.toBe(first);
+            expect(validations()).toBe(afterFirst * 2);
+        });
+
+        test('ignores a reset of a callback that remembers nothing', () => {
+            const { call, validations } = wrap(() => ({ strokeWidth: 2 }), false);
+
+            call();
+            const afterFirst = validations();
+            resetRememberedResults(call);
+            resetRememberedResults(undefined);
+            call();
+
+            expect(validations()).toBe(afterFirst * 2);
+        });
+
+        test('keeps each wrapped callback’s memory separate', () => {
+            const a = wrap(() => ({ strokeWidth: 1 }), true);
+            const b = wrap(() => ({ strokeWidth: 1 }), true);
+
+            expect(a.call()).not.toBe(b.call());
+            expect(b.validations()).toBeGreaterThan(0);
         });
     });
 

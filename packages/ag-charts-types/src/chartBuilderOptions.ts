@@ -97,6 +97,7 @@ export type AgBaseFinancialPresetOptions<TDatum = DatumDefault> = Pick<
     | 'listeners'
     | 'formatter'
     | 'enableRtl'
+    | 'enableShadowDom'
 >;
 
 export type AgBaseSparklinePresetThemeOptions<TDatum = DatumDefault> = AgSparklineBaseThemeableOptions<TDatum> &
@@ -165,6 +166,7 @@ export type AgBaseQuadrantChartOptions<TDatum = DatumDefault, TContext = Context
     | 'data'
     | 'dataIdKey'
     | 'enableRtl'
+    | 'enableShadowDom'
     | 'footnote'
     | 'formatter'
     | 'initialState'

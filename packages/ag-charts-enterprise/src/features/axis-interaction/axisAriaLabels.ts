@@ -8,8 +8,8 @@ export interface AxisAriaLabelSource {
 
 export interface AxisAriaLabels {
     labels: Map<string, string>;
-    /** Explicit `ariaLabel` values shared by more than one axis; these are used as given. */
-    duplicateExplicitLabels: string[];
+    /** Explicit `ariaLabel` values shared by more than one axis, one group per accessible name; used as given. */
+    duplicateExplicitLabels: string[][];
 }
 
 // Accessible names are compared with whitespace trimmed and collapsed; axe's `landmark-unique` rule also ignores case.
@@ -53,17 +53,19 @@ export function resolveAxisAriaLabels(sources: AxisAriaLabelSource[]): AxisAriaL
         taken.add(normalise(label));
     }
 
-    const explicitCounts = countBy(entries.filter((e) => e.explicit).map((e) => e.base));
-    const duplicateExplicitLabels = new Set<string>();
+    const explicitGroups = new Map<string, string[]>();
     for (const entry of entries) {
-        if (entry.explicit && explicitCounts.get(normalise(entry.base))! > 1) {
-            duplicateExplicitLabels.add(entry.base);
-        }
+        if (!entry.explicit) continue;
+        const key = normalise(entry.base);
+        explicitGroups.set(key, [...(explicitGroups.get(key) ?? []), entry.base]);
     }
+    const duplicateExplicitLabels = [...explicitGroups.values()]
+        .filter((group) => group.length > 1)
+        .map((group) => [...new Set(group)]);
 
     return {
         labels: new Map(entries.map((e) => [e.axisId, e.label])),
-        duplicateExplicitLabels: [...duplicateExplicitLabels],
+        duplicateExplicitLabels,
     };
 }
 

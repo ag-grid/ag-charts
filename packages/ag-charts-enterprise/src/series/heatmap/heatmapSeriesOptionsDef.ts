@@ -37,10 +37,14 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
     itemPadding: positiveNumber,
     cornerRadius: positiveNumber,
     shadow: shadowOptionsDefs,
-    itemStyler: callbackDefs<AgHeatmapSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-    }),
+    itemStyler: callbackDefs<AgHeatmapSeriesStyle>(
+        {
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+        },
+        undefined,
+        { rememberResults: true }
+    ),
     showInMiniChart: boolean,
     label: {
         ...autoSizedLabelOptionsDefs,

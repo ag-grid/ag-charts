@@ -1,0 +1,17 @@
+/* Exempting `#toolbar` gives this page-wide rule ID weight, which outranks the chart's class rules. */
+button:not(#toolbar button) {
+    padding: 8px 16px;
+    border: 2px dashed crimson;
+    border-radius: 0;
+    background: mistyrose;
+}
+
+/* The shared example frame selects the container through `:has(> .ag-charts-wrapper)`, which cannot see into a shadow root. */
+.chart-frame {
+    padding: 1rem;
+    height: 100%;
+    border-radius: 8px;
+    background-color: var(--chart-bg);
+    border: 1px solid var(--chart-border);
+    overflow: hidden;
+}

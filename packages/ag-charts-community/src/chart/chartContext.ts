@@ -56,6 +56,7 @@ export interface ChartContextVars {
     styleContainer?: HTMLElement;
     styleNonce?: string;
     skipCss?: boolean;
+    enableShadowDom?: boolean;
     domMode?: 'normal' | 'minimal';
     withDragInterpretation: boolean;
     logger: Logger;
@@ -87,7 +88,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         vars.styleContainer,
         vars.skipCss,
         vars.domMode,
-        vars.cssVariables
+        vars.cssVariables,
+        vars.enableShadowDom
     );
     const canvasElement = domManager.addChild(
         'canvas',

@@ -13,6 +13,7 @@ import {
     isNumericValue,
     isObject,
     isString,
+    objectsEqual,
 } from 'ag-charts-core';
 import type { AgCartesianSeriesOptions, DatumDefault, SeriesPredictAxis } from 'ag-charts-types';
 
@@ -20,6 +21,13 @@ import type { ChartAxis } from '../../chartAxis';
 
 function isAxisReversed(axis: ChartAxis) {
     return axis.isReversed() !== axis.range[1] < axis.range[0];
+}
+
+const NO_SEGMENTS: readonly object[] = Object.freeze([]);
+
+/** Whether two segment lists draw alike; an unset list and an empty one both draw nothing. */
+export function sameSegments(a: readonly object[] | undefined, b: readonly object[] | undefined): boolean {
+    return objectsEqual(a ?? NO_SEGMENTS, b ?? NO_SEGMENTS);
 }
 
 export function calculateSegments(
