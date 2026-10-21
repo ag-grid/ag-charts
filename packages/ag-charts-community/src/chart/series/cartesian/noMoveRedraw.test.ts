@@ -198,6 +198,21 @@ describe('BarSeries redraw matches a fresh render', () => {
         expect(actual).toMatchImage(expected);
     });
 
+    it.each([
+        ['cornerRadius', { cornerRadius: 12 }, {}],
+        // A one pixel stroke is where snapping to the pixel grid shows.
+        ['crisp', { strokeWidth: 1, crisp: false }, { strokeWidth: 1, crisp: true }],
+    ])('applies a change to %s to the same pixels as a fresh render', async (_name, change, start) => {
+        const withSeries = (extra: object) => options({ series: [{ ...BASE_SERIES, ...extra }] });
+
+        const { expected, started, actual } = await applyDelta(withSeries(change), withSeries(start), {
+            series: [{ ...BASE_SERIES, ...change }],
+        });
+
+        expect(actual).not.toMatchImage(started, { writeDiff: false });
+        expect(actual).toMatchImage(expected);
+    });
+
     it('hides and shows the series again at the same pixels', async () => {
         chart = AgCharts.create(options());
         await waitForChartStability(chart);

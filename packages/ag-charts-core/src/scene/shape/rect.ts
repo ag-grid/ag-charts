@@ -263,10 +263,6 @@ const PAINT_ONLY_PROPERTIES: ReadonlySet<string> = new Set([
     '__miterLimit',
 ]);
 
-function sameClipValues(clip: readonly [number, number, number, number], bbox: BBox) {
-    return clip[0] === bbox.x && clip[1] === bbox.y && clip[2] === bbox.width && clip[3] === bbox.height;
-}
-
 export class Rect<D = unknown> extends Path<D> implements DistantObject {
     static override readonly className: string = 'Rect';
 
@@ -377,6 +373,14 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     private plainRectY = 0;
     private plainRectWidth = 0;
     private plainRectHeight = 0;
+
+    // The clip's values as last applied: a series may edit the clip object it handed over in place, so comparing
+    // objects can't tell that it moved. Scalars, as an array would allocate on every animation frame.
+    private hasAppliedClip = false;
+    private appliedClipX = 0;
+    private appliedClipY = 0;
+    private appliedClipWidth = 0;
+    private appliedClipHeight = 0;
 
     /**
      * When the rectangle's width or height is less than a pixel
@@ -603,16 +607,21 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         return true;
     }
 
-    // The clip's values as last applied: a series may edit the clip object it handed over in place, so comparing
-    // objects can't tell that it moved.
-    private appliedClip?: readonly [number, number, number, number];
-
     private clipUnchanged(clipBBox: BBox | undefined) {
-        const { appliedClip, __clipBBox: held } = this;
-        if (appliedClip == null || clipBBox == null || held == null) {
-            return appliedClip == null && clipBBox == null && held == null;
+        const held = this.__clipBBox;
+        if (!this.hasAppliedClip || clipBBox == null || held == null) {
+            return !this.hasAppliedClip && clipBBox == null && held == null;
         }
-        return sameClipValues(appliedClip, clipBBox) && sameClipValues(appliedClip, held);
+        return this.isAppliedClip(clipBBox) && this.isAppliedClip(held);
+    }
+
+    private isAppliedClip({ x, y, width, height }: BBox) {
+        return (
+            x === this.appliedClipX &&
+            y === this.appliedClipY &&
+            width === this.appliedClipWidth &&
+            height === this.appliedClipHeight
+        );
     }
 
     /**
@@ -652,7 +661,13 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         this.__height = height;
         this.__opacity = opacity;
         this.__clipBBox = clipBBox;
-        this.appliedClip = clipBBox && [clipBBox.x, clipBBox.y, clipBBox.width, clipBBox.height];
+        this.hasAppliedClip = clipBBox != null;
+        if (clipBBox != null) {
+            this.appliedClipX = clipBBox.x;
+            this.appliedClipY = clipBBox.y;
+            this.appliedClipWidth = clipBBox.width;
+            this.appliedClipHeight = clipBBox.height;
+        }
         this.dirtyPath = true;
 
         // Single dirty notification for the batch
