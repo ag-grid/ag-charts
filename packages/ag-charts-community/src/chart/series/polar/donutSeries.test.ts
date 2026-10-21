@@ -425,7 +425,6 @@ describe('DonutSeries', () => {
                     series: [{ type: 'donut', angleKey: 'value', sectorLabelKey: 'city', innerRadiusRatio: 0.5 }],
                 })
             );
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([]);
         });

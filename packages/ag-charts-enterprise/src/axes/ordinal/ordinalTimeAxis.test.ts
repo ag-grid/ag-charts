@@ -655,7 +655,6 @@ describe('Ordinal Time Axis Examples', () => {
             })
         );
 
-        await waitForChartStability(chart);
         expect(chart).toBeDefined();
     });
 
@@ -688,25 +687,22 @@ describe('Ordinal Time Axis Examples', () => {
     });
 
     it('accepts label.maxWidth and truncates a long formatted label', async () => {
-        chart = await createEnterpriseChart(
-            prepareEnterpriseTestOptions({
-                data: DATA.slice(0, 3),
-                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
-                axes: {
-                    x: {
-                        type: 'ordinal-time',
-                        position: 'bottom',
-                        label: {
-                            maxWidth: 60,
-                            wrapping: 'never',
-                            formatter: () => 'A formatted ordinal time label that is far too long',
-                        },
+        chart = await createEnterpriseChart({
+            data: DATA.slice(0, 3),
+            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+            axes: {
+                x: {
+                    type: 'ordinal-time',
+                    position: 'bottom',
+                    label: {
+                        maxWidth: 60,
+                        wrapping: 'never',
+                        formatter: () => 'A formatted ordinal time label that is far too long',
                     },
-                    y: { type: 'number', position: 'left' },
                 },
-            })
-        );
-        await waitForChartStability(chart);
+                y: { type: 'number', position: 'left' },
+            },
+        });
 
         const nodes = getAxisLabelNodes(chart, 'bottom');
         expect(nodes.length).toBeGreaterThan(0);
@@ -718,26 +714,23 @@ describe('Ordinal Time Axis Examples', () => {
     });
 
     it('shrinks a formatted label towards label.minimumFontSize to fit maxWidth', async () => {
-        chart = await createEnterpriseChart(
-            prepareEnterpriseTestOptions({
-                data: DATA.slice(0, 3),
-                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
-                axes: {
-                    x: {
-                        type: 'ordinal-time',
-                        position: 'bottom',
-                        label: {
-                            maxWidth: 60,
-                            minimumFontSize: 6,
-                            wrapping: 'never',
-                            formatter: () => 'Formatted label',
-                        },
+        chart = await createEnterpriseChart({
+            data: DATA.slice(0, 3),
+            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+            axes: {
+                x: {
+                    type: 'ordinal-time',
+                    position: 'bottom',
+                    label: {
+                        maxWidth: 60,
+                        minimumFontSize: 6,
+                        wrapping: 'never',
+                        formatter: () => 'Formatted label',
                     },
-                    y: { type: 'number', position: 'left' },
                 },
-            })
-        );
-        await waitForChartStability(chart);
+                y: { type: 'number', position: 'left' },
+            },
+        });
 
         const nodes = getAxisLabelNodes(chart, 'bottom');
         expect(nodes.length).toBeGreaterThan(0);
