@@ -87,10 +87,13 @@ export function getSeriesSelectionNodes<TNode extends Node = Node>(
     return selection!.nodes();
 }
 
-/** The item nodes of every legend the chart has, in legend order and, within a legend, in item order. */
+/**
+ * The item nodes of every legend the chart has, in legend order and, within a legend, in item order. A legend without
+ * items (the gradient legend of a heatmap) contributes none.
+ */
 export function getLegendItemNodes(chartOrProxy: ChartOrProxy<any>): (LegendTestItemNode & Node)[] {
-    return Array.from(deproxy(chartOrProxy).modulesManager.legends()).flatMap(({ legend }) =>
-        (legend as unknown as LegendTestInternals).itemSelection.nodes()
+    return Array.from(deproxy(chartOrProxy).modulesManager.legends()).flatMap(
+        ({ legend }) => (legend as unknown as Partial<LegendTestInternals>).itemSelection?.nodes() ?? []
     );
 }
 

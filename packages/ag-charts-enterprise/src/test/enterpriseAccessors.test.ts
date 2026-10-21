@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
-import { deproxy, errorFrom, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import { deproxy, errorFrom, getLegendItemNodes, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import type { HierarchyNode } from '../series/hierarchy/hierarchySeries';
 import { getCrossLineLabelNodes } from './polarCrossLines';
@@ -76,6 +76,23 @@ describe('enterprise test accessors', () => {
             expect(nodes).toHaveLength(2);
             expect(itemNodes(deproxy(chart))).toEqual(nodes);
             expect(nodes.every((node) => node.wickPath != null)).toBe(true);
+        });
+    });
+
+    describe('getLegendItemNodes', () => {
+        it('returns no item for a chart whose only legend is a gradient legend', async () => {
+            chart = await createEnterpriseChart({
+                data: [
+                    { x: 'A', y: 'P', c: 1 },
+                    { x: 'B', y: 'P', c: 5 },
+                ],
+                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'c' }],
+            });
+
+            // The gradient legend is registered with the modules manager but has no item selection to read.
+            const legends = Array.from(deproxy(chart).modulesManager.legends());
+            expect(legends.map(({ legendType }) => legendType)).toContain('gradient');
+            expect(getLegendItemNodes(chart)).toEqual([]);
         });
     });
 

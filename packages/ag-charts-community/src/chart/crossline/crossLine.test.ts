@@ -8,6 +8,7 @@ import {
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
     Transformable,
+    type TransformableText,
     cachedTextMeasurer,
     getDocument,
     mapValues,
@@ -84,11 +85,9 @@ const labelPositions: AgCrossLineLabelPosition[] = [
 ];
 
 const flipCrossLinesRange = (crossLineOptions: AgCartesianCrossLineOptions): AgCartesianCrossLineOptions => {
-    const range = (crossLineOptions as { range?: [any, any] }).range;
-    return {
-        ...crossLineOptions,
-        range: [range?.[1], range?.[0]],
-    } as AgCartesianCrossLineOptions;
+    if (crossLineOptions.type !== 'range') return crossLineOptions;
+    const [from, to] = crossLineOptions.range ?? [];
+    return { ...crossLineOptions, range: [to, from] };
 };
 
 const applyCrossLinesLabelPosition = (
@@ -454,14 +453,15 @@ function crossLineLabelCentre(chart: Chart, axisId: string): { x: number; y: num
 
 /** The text the cross line actually rendered, which `'clip-text'` may have truncated. */
 function crossLineLabelText(chart: Chart, axisId: string): string {
-    return crossLineLabelNode(chart, axisId)?.text ?? '';
+    return String(crossLineLabelNode(chart, axisId).text ?? '');
 }
 
 /** The label node of the first cross line on the axis. */
-function crossLineLabelNode(chart: Chart, axisId: string): any {
+function crossLineLabelNode(chart: Chart, axisId: string): TransformableText {
     const [crossLine] = crossLineInstancesOf(chart, axisId);
+    // The label group holds the cross line's label and nothing else (`CartesianCrossLine.crossLineLabel`).
     const [node] = crossLine.labelGroup.children();
-    return node;
+    return node as TransformableText;
 }
 
 describe('CrossLine', () => {
@@ -771,7 +771,6 @@ describe('CrossLine', () => {
             // point sits outside the cross line's hit region.
             click.mockClear();
             await chart.publicApi!.update(build());
-            await waitForChartStability(chart);
             await clickAction(x, y)(chart);
 
             expect(click).not.toHaveBeenCalled();
@@ -838,7 +837,6 @@ describe('CrossLine', () => {
 
             click.mockClear();
             await chart.publicApi!.update(build(1));
-            await waitForChartStability(chart);
             await clickAction(CENTRE_X, y)(chart);
 
             expect(click).not.toHaveBeenCalled();
@@ -1420,7 +1418,6 @@ describe('CrossLine', () => {
 
             chart = deproxy(await createChart(build(first)));
             await chart.publicApi!.update(build(second));
-            await waitForChartStability(chart);
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
 
@@ -1515,6 +1512,7 @@ describe('CrossLine', () => {
 
         function unitCrossLine() {
             const chartCtx = { domManager: { isRtl: false }, logger: { warnOnce() {}, deprecationOnce() {} } };
+            // A stub of the two context members the unit under test reads, not a full chart context.
             return new CartesianCrossLine(chartCtx as unknown as DynamicContext<ChartRegistry>);
         }
 
@@ -1593,7 +1591,6 @@ describe('CrossLine', () => {
             const padded = getSeriesRect(chart).clone();
 
             await chart.publicApi!.update(build('realign-text'));
-            await waitForChartStability(chart);
             const realigned = getSeriesRect(chart);
 
             expect(realigned.height).toBeGreaterThan(padded.height);
@@ -1619,7 +1616,6 @@ describe('CrossLine', () => {
             });
             const reservedFor = async (top: number) => {
                 await chart.publicApi!.update(build(false, top));
-                await waitForChartStability(chart);
                 const withoutLabel = getSeriesRect(chart).y;
                 await chart.publicApi!.update(build(true, top));
                 return getSeriesRect(chart).y - withoutLabel;
@@ -1690,7 +1686,6 @@ describe('CrossLine', () => {
 
             // Guards against the assertion above passing because the label never fits under any mode.
             await chart.publicApi!.update(build('realign-text'));
-            await waitForChartStability(chart);
 
             expect(crossLineLabelText(chart, 'y')).toEqual(veryLongLabel);
         });
@@ -1726,7 +1721,6 @@ describe('CrossLine', () => {
             const rendered = [crossLineLabelText(chart, 'x')];
             for (const padding of [20, 40, 60, 200]) {
                 await chart.publicApi!.update(build(padding));
-                await waitForChartStability(chart);
                 rendered.push(crossLineLabelText(chart, 'x'));
             }
 
@@ -1900,7 +1894,6 @@ describe('CrossLine', () => {
             expect(labelsShown()).toEqual([true, true]);
 
             await chart.publicApi!.update(collisionChart());
-            await waitForChartStability(chart);
 
             expect(labelsShown()).toEqual([true, false]);
             expect(chart.seriesRect!.y).toBeLessThan(shownTop);
@@ -1969,7 +1962,6 @@ describe('CrossLine', () => {
         it('settles on the same result when laid out again', async () => {
             chart = deproxy(await createChart(collisionChart()));
             await chart.publicApi!.update(collisionChart({ stroke: 'red' }));
-            await waitForChartStability(chart);
             const settled = { top: chart.seriesRect!.y, shown: labelsShown() };
 
             await chart.publicApi!.update(collisionChart({ stroke: 'green' }));
@@ -2127,6 +2119,7 @@ describe('CrossLine', () => {
                 fontSize: 20,
                 placement: ['inside-left', 'inside-right'],
             });
+            // `options.axes.y` is declared as a union of every axis type; this chart's y axis is the number axis.
             const y = options.axes!.y as AgNumberAxisOptions;
             chart = deproxy(
                 await createChart({
@@ -2411,7 +2404,6 @@ describe('CrossLine', () => {
             chart = deproxy(await createChart(build(false)));
             const off = clearOfCrossLine();
             await chart.publicApi!.update(build(true));
-            await waitForChartStability(chart);
             const on = clearOfCrossLine();
 
             // The reserved box is read back off the drawn node, so a relayout must reserve the same space.
@@ -2446,7 +2438,6 @@ describe('CrossLine', () => {
             chart = deproxy(await createChart(build(false)));
             const off = geometry();
             await chart.publicApi!.update(build(true));
-            await waitForChartStability(chart);
             const on = geometry();
 
             // Guards the assertion below, and is what makes it discriminating: the series labels sit
@@ -2808,6 +2799,7 @@ describe('CrossLine theme colour references', () => {
         chart = deproxy(
             await createChart(
                 chartOptions([
+                    // `mix` and `ratio` are deliberately not valid reference members, so the typed options reject it.
                     {
                         type: 'range',
                         range: [1, 3],
@@ -3015,10 +3007,10 @@ describe('CrossLine label fitting', () => {
         const node = crossLineLabelNode(chart, axisId);
         const { width, height } = node.getBBox();
         return {
-            text: node.text as string,
-            fontSize: node.fontSize as number,
-            width: width as number,
-            height: height as number,
+            text: String(node.text),
+            fontSize: node.fontSize,
+            width,
+            height,
             footprint: Transformable.toCanvas(crossLine.labelGroup),
             crossLine,
         };

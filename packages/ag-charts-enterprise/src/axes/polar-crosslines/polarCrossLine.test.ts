@@ -369,24 +369,21 @@ describe('PolarCrossLine listeners', () => {
         expect(chartClick).toHaveBeenCalledTimes(1);
     });
 
-    it.each(['polygon', 'circle'] as AgPolarAxisShape[])(
-        'the hole of a %s radius range is not a click target',
-        async (shape) => {
-            const listener = vi.fn();
-            chart = deproxy(
-                await createEnterpriseChart(
-                    polarOptions(shape, [], [{ type: 'range', range: [4, 8], listeners: { click: listener } }])
-                )
-            );
-            const instance = polarCrossLineAt(chart, 'radius');
-            const { scale, axisInnerRadius, axisOuterRadius } = instance;
-            const holeRadius = axisOuterRadius + axisInnerRadius - scale!.convert(1);
+    it.each(['polygon', 'circle'] as const)('the hole of a %s radius range is not a click target', async (shape) => {
+        const listener = vi.fn();
+        chart = deproxy(
+            await createEnterpriseChart(
+                polarOptions(shape, [], [{ type: 'range', range: [4, 8], listeners: { click: listener } }])
+            )
+        );
+        const instance = polarCrossLineAt(chart, 'radius');
+        const { scale, axisInnerRadius, axisOuterRadius } = instance;
+        const holeRadius = axisOuterRadius + axisInnerRadius - scale!.convert(1);
 
-            await click(chart, polarCanvasPoint(instance, holeRadius, instance.gridAngles![0]));
+        await click(chart, polarCanvasPoint(instance, holeRadius, instance.gridAngles![0]));
 
-            expect(listener).not.toHaveBeenCalled();
-        }
-    );
+        expect(listener).not.toHaveBeenCalled();
+    });
 
     it('the outer edge of a circle radius range is a click target within tolerance', async () => {
         const listener = vi.fn();
@@ -583,6 +580,7 @@ describe('PolarCrossLine listeners', () => {
 
     it('polar axes reject axis click listeners', async () => {
         const options = polarOptions('polygon', [{ type: 'line', value: 'Q2' }], []);
+        // Axis click listeners are cartesian-only: deliberately not valid polar axis options.
         options.axes!.angle = { ...options.axes!.angle, listeners: { click: vi.fn() } as AgAxisCrossLineListeners };
         chart = deproxy(await createEnterpriseChart(options));
 
