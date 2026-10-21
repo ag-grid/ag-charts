@@ -16,6 +16,7 @@ import type {
     AgCartesianAxisLabelOptions,
     AgCartesianCrossLineLabelOptions,
     AgCartesianCrossLineLabelPlacement,
+    AgCartesianTimeAxisLabelOptions,
     AgCategoryAxisOptions,
     AgCommonCrossLineOptions,
     AgContinuousAxisOptions,
@@ -33,6 +34,7 @@ import type {
     AgTimeAxisFormattableLabelUnitFormat,
     AgTimeAxisOptions,
     AgTimeAxisParentLevel,
+    AgTimeAxisParentLevelLabelOptions,
     AgUnitTimeAxisOptions,
     AxisValue,
 } from 'ag-charts-types';
@@ -79,6 +81,7 @@ import {
     deprecated,
     greaterThan,
     lessThan,
+    lessThanOrEqual,
     number,
     numericValue,
     object,
@@ -255,7 +258,9 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     ...labelBoxOptionsDef,
 };
 
-export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabelOptions> = {
+type AxisLabelFitKeys = 'maxWidth' | 'maxHeight' | 'minimumFontSize';
+
+const cartesianAxisLabelBaseDefs: OptionsDefs<Omit<AgBaseCartesianAxisLabelOptions, AxisLabelFitKeys>> = {
     autoRotate: boolean,
     autoRotateAngle: number,
     wrapping: textWrap,
@@ -263,14 +268,30 @@ export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabel
     ...commonAxisLabelOptionsDefs,
 };
 
+const axisLabelFitDefs: OptionsDefs<Pick<AgBaseCartesianAxisLabelOptions, AxisLabelFitKeys>> = {
+    maxWidth: positiveNumber,
+    maxHeight: positiveNumber,
+    minimumFontSize: and(positiveNumberNonZero, lessThanOrEqual('fontSize')),
+};
+
+export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabelOptions> = {
+    ...cartesianAxisLabelBaseDefs,
+    ...axisLabelFitDefs,
+};
+
 export const cartesianNumericAxisLabel: OptionsDefs<AgCartesianAxisLabelOptions> = {
     format: numberFormatValidator,
     ...cartesianAxisLabelOptionsDefs,
 };
 
-export const cartesianTimeAxisLabel: OptionsDefs<AgCartesianAxisLabelOptions> = {
+export const cartesianTimeAxisLabel: OptionsDefs<AgCartesianTimeAxisLabelOptions> = {
     format: or(string, object),
     ...cartesianAxisLabelOptionsDefs,
+};
+
+const cartesianTimeAxisParentLevelLabel: OptionsDefs<AgTimeAxisParentLevelLabelOptions> = {
+    format: or(string, object),
+    ...cartesianAxisLabelBaseDefs,
 };
 
 const cartesianAxisTick = {
@@ -282,7 +303,7 @@ const cartesianAxisTick = {
 
 export const cartesianTimeAxisParentLevel: OptionsDefs<AgTimeAxisParentLevel> = {
     enabled: boolean,
-    label: cartesianTimeAxisLabel,
+    label: cartesianTimeAxisParentLevelLabel,
     tick: cartesianAxisTick,
 };
 
@@ -522,7 +543,7 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
 export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     type: constant('grouped-category'),
-    label: cartesianAxisLabelOptionsDefs,
+    label: { ...cartesianAxisLabelBaseDefs, ...axisLabelFitDefs },
     crosshair: cartesianAxisCrosshairOptions(),
     bandHighlight: cartesianAxisBandHighlightOptions,
     paddingInner: ratio,
@@ -536,6 +557,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
                 truncate: boolean,
                 rotation: number,
                 spacing: number,
+                ...axisLabelFitDefs,
                 ...fontOptionsDef,
                 ...labelBoxOptionsDef,
             },

@@ -16,12 +16,15 @@ import {
     createIdsGenerator,
     extent,
     extractDomain,
+    fitLabelTextAutoSize,
     getMaxInnerRectSize,
+    hasRealChars,
     inRange,
     isArray,
     isObject,
     isTruncated,
     labelExceedsBand,
+    lineHeightAtSize,
     normalizeAngle360FromDegrees,
     sortBasedOnArray,
     toArray,
@@ -32,10 +35,12 @@ import {
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
+import type { ScrollbarLayout } from '../layout/layoutManager';
 import type { AxisPickDatum, LabelNodeDatum } from './axis';
 import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
+import { axisLabelFit, isLabelFitEnabled } from './generateTicksUtils';
 import { type GroupedCategoryKey, type TreeLayout, treeLayout } from './tree';
 
 export const MIN_CATEGORY_SPACING = 5;
@@ -112,11 +117,30 @@ export class GroupedCategoryAxis extends CategoryAxis<
                           truncate: depthLabel?.truncate ?? label?.truncate,
                           rotation: depthLabel?.rotation ?? (i === 0 ? label?.rotation : defaultNonLeafRotation), // Default top-level label rotation only applies to label leaves
                           avoidCollisions: depthLabel?.avoidCollisions ?? label?.avoidCollisions ?? true,
+                          maxWidth: depthLabel?.maxWidth ?? label?.maxWidth,
+                          maxHeight: depthLabel?.maxHeight ?? label?.maxHeight,
+                          minimumFontSize: depthLabel?.minimumFontSize ?? label?.minimumFontSize,
                       }
                     : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }
             );
         }
         return optionsMap;
+    }
+
+    /** Room across the axis for every depth's labels and the spacing between them, clear of any scrollbar. */
+    private getGroupedLabelRoom(
+        scrollbar: ScrollbarLayout | undefined,
+        scrollbarThickness: number,
+        tickSpacing: number
+    ) {
+        // `sizeLimit` already excludes `label.spacing`; `usedRoomAtDepth()` takes off every depth's own spacing.
+        const room =
+            (this.chartLayout?.sizeLimit ?? Infinity) +
+            this.options.label.spacing -
+            scrollbarThickness -
+            tickSpacing -
+            this.getOuterScrollbarSize(scrollbar);
+        return Math.max(0, Math.floor(room));
     }
 
     private updateCategoryLabels() {
@@ -187,12 +211,28 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
         const tickFormatter = this.tickFormatter(this.scale.domain, this.scale.domain, false);
 
+        // Fitted depths share the room across the axis, so they are laid out leaf-first to know what is left.
+        const fitEnabled = optionsMap.some((options) => isLabelFitEnabled(options));
+        const labelRoom = fitEnabled ? this.getGroupedLabelRoom(scrollbar, scrollbarThickness, tickSpacing) : 0;
+        const labelOrder = fitEnabled
+            ? Array.from(treeLabels.keys()).sort((a, b) => treeLabels[b].depth - treeLabels[a].depth)
+            : treeLabels.keys();
+        // Every depth adds its spacing to the axis, so all of it is set aside before fitting any label.
+        let totalSpacing = 0;
+        for (const options of optionsMap) totalSpacing += options.spacing;
+        const usedRoomAtDepth = (depth: number) => {
+            let used = totalSpacing;
+            for (let d = 0; d < depth; d++) used += depthLabelMaxSize[d] ?? 0;
+            return used;
+        };
+
         // First pass: measure labels and cache computed text/styles
         type LabelCacheEntry = { text: any; styles: any; truncatedText: string | undefined };
         const labelDataCache = new Map<number, LabelCacheEntry>();
         const depthLabelMaxSize: Record<number, number> = {};
         const pickIdentities: (Omit<AxisPickDatum, 'cross'> & { depth: number })[] = [];
-        for (const [index, datum] of treeLabels.entries()) {
+        for (const index of labelOrder) {
+            const datum = treeLabels[index];
             const depth = maxDepth - datum.depth;
             depthLabelMaxSize[depth] ??= 0;
 
@@ -217,12 +257,36 @@ export class GroupedCategoryAxis extends CategoryAxis<
             if (maxWidth < MIN_CATEGORY_SPACING) continue;
 
             let text = inputText;
-            const labelStyles = this.getLabelStyles(
+            let labelStyles = this.getLabelStyles(
                 { value, formattedValue: text, depth, index: tickIndex },
                 depthOptions[depth]?.label
             );
 
-            if (label?.avoidCollisions ?? true) {
+            const depthOptionsAt = optionsMap[depth];
+            if (isLabelFitEnabled(depthOptionsAt)) {
+                const along = depthOptionsAt.avoidCollisions ? maxWidth : Infinity;
+                const fitted = fitLabelTextAutoSize(
+                    text,
+                    axisLabelFit(
+                        { ...labelStyles, ...depthOptionsAt },
+                        !horizontal,
+                        labelRoom - usedRoomAtDepth(depth),
+                        along,
+                        depthOptionsAt.rotation ?? 0,
+                        depthOptionsAt.wrapping
+                    ),
+                    labelStyles
+                );
+                if (!hasRealChars(fitted.text)) continue;
+                text = fitted.text;
+                if (fitted.fontSize != null) {
+                    labelStyles = {
+                        ...labelStyles,
+                        fontSize: fitted.fontSize,
+                        lineHeight: lineHeightAtSize(labelStyles, fitted.fontSize),
+                    };
+                }
+            } else if (label?.avoidCollisions ?? true) {
                 const rotation = optionsMap[depth].rotation;
                 let maxHeight = this.options.thickness;
                 if (rotation != null) {
