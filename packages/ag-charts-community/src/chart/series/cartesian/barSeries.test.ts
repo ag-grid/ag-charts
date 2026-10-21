@@ -1589,6 +1589,35 @@ describe('BarSeries', () => {
             }
         });
 
+        it('draws the first bar of descending keys on a number axis', async () => {
+            const count = 1456;
+            chart = await createChart({
+                data: Array.from({ length: count }, (_, i) => ({ x: count - i, y: 269.55 - i * 0.18 })),
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                axes: { x: { type: 'number' }, y: { type: 'number' } },
+            });
+
+            expect(getNodes().some((d) => d.datumIndex === 0)).toBe(true);
+        });
+
+        it('keeps date order for newest-first dates on a unit-time axis', async () => {
+            const count = 1456;
+            chart = await createChart({
+                data: Array.from({ length: count }, (_, i) => ({
+                    date: new Date(Date.UTC(2020, 0, 1 + count - i)),
+                    y: 269.55 - i * 0.18,
+                })),
+                series: [{ type: 'bar', xKey: 'date', yKey: 'y' }],
+                axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+            });
+
+            const nodes = getNodes().toSorted((a, b) => a.x - b.x);
+            expect(nodes.some((d) => d.datumIndex === 0)).toBe(true);
+            for (let i = 1; i < nodes.length; i++) {
+                expect(nodes[i].datumIndex).toBeLessThan(nodes[i - 1].datumIndex);
+            }
+        });
+
         it('converges on the same bars when updated in place across the aggregation threshold', async () => {
             const rows = unsortedCategoryRows(1456);
             chart = await createChart(horizontalOptions(rows));
