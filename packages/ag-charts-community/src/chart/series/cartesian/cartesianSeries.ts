@@ -1122,7 +1122,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         indices?: Uint32Array | number[],
         sortOrderParams?: { sortOrder: 1 | -1 }
     ): [number, number] {
-        const sortOrder = sortOrderParams?.sortOrder ?? this.visibleRangeSortOrder(axisKey, indices != null) ?? 1;
+        const sortOrder = sortOrderParams?.sortOrder ?? this.sortOrder(axisKey) ?? 1;
 
         const xValues = this.keysOrValues(axisKey);
         // @todo(AG-7083) - figure out how to determine this
@@ -1140,10 +1140,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return start < end ? [start, end] : [end, start];
     }
 
-    protected visibleRangeSortOrder(axisKey: string, _bucketed: boolean): 1 | -1 | undefined {
-        return this.sortOrder(axisKey);
-    }
-
     protected domainForVisibleRange(
         _direction: ChartAxisDirection,
         axisKeys: string[],
@@ -1156,7 +1152,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const [r0, r1] = visibleRange;
         const crossAxisValues = this.keysOrValues(crossAxisKey);
 
-        const sortOrder = this.visibleRangeSortOrder(crossAxisKey, false);
+        const sortOrder = this.sortOrder(crossAxisKey);
         if (sortOrder != null) {
             const crossAxisRange = this.visibleRangeIndices(crossAxisKey, visibleRange, indices, { sortOrder });
             return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
@@ -1198,7 +1194,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
 
         const crossAxisValues = this.keysOrValues(crossAxisKey);
-        const sortOrder = this.visibleRangeSortOrder(crossAxisKey, false);
+        const sortOrder = this.sortOrder(crossAxisKey);
         if (sortOrder != null) {
             const crossRange = clippedRangeIndices(
                 sortOrder,
@@ -1248,7 +1244,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         if (yVisibleRange != null) return;
 
-        const sortOrder = this.visibleRangeSortOrder(crossAxisKey, false);
+        const sortOrder = this.sortOrder(crossAxisKey);
         if (sortOrder == null) return;
 
         const xValues = this.keysOrValues(crossAxisKey);
@@ -1334,7 +1330,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const axisVisibleRange = shouldFlipXY ? xVisibleRange : (yVisibleRange ?? [0, 1]);
 
         if (yVisibleRange == null) {
-            const sortOrder = this.visibleRangeSortOrder(crossAxisKey, false);
+            const sortOrder = this.sortOrder(crossAxisKey);
             if (sortOrder != null) {
                 // Fast path if we only need to look at the x axis
                 const crossScale = crossAxis.scale;

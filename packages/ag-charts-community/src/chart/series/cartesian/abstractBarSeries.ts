@@ -1,6 +1,5 @@
 import {
     BandScale,
-    CategoryScale,
     ChartAxisDirection,
     ContinuousScale,
     IrregularBandScale,
@@ -68,15 +67,6 @@ export type AbstractBarSeriesAnimationData<TTypes extends AbstractBarSeriesTypes
 export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> extends CartesianSeries<TTypes> {
     protected smallestDataInterval?: AgNumericValue = undefined;
     protected largestDataInterval?: AgNumericValue = undefined;
-    private categoryDomainOrder?: { domain: unknown[]; sortOrder: 1 | -1 | undefined };
-
-    constructor(...args: ConstructorParameters<typeof CartesianSeries<TTypes>>) {
-        super(...args);
-        // Incremental reprocessing mutates the key columns in place, so the domain alone cannot detect the change.
-        this.events.on('data-processed', () => {
-            this.categoryDomainOrder = undefined;
-        });
-    }
 
     protected padBandExtent(keys: any[], alignStart?: boolean) {
         const ratio = typeof alignStart === 'boolean' ? 1 : 0.5;
@@ -125,29 +115,6 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     protected getCategoryAxis(): ChartAxis | undefined {
         const direction = this.getCategoryDirection();
         return this.axes[direction];
-    }
-
-    protected override visibleRangeSortOrder(axisKey: string, bucketed: boolean): 1 | -1 | undefined {
-        const categoryAxis = this.getCategoryAxis();
-        // Category positions follow the shared domain order, which another series' rows may have set.
-        if (axisKey === 'xValue' && categoryAxis != null && CategoryScale.is(categoryAxis.scale)) {
-            const order = bucketed ? 1 : this.categoryDomainSortOrder(categoryAxis.scale);
-            if (order == null) return undefined;
-            return categoryAxis.isReversed() ? (-order as 1 | -1) : order;
-        }
-        // Aggregation buckets are ordered by axis position, whatever the order of the data.
-        return bucketed ? 1 : super.visibleRangeSortOrder(axisKey, bucketed);
-    }
-
-    // OPTIMIZATION: visible-range searches run per zoom frame, so rescan the rows only when the data or domain changes.
-    private categoryDomainSortOrder(scale: CategoryScale<unknown>): 1 | -1 | undefined {
-        const { domain } = scale;
-        let cache = this.categoryDomainOrder;
-        if (cache?.domain !== domain) {
-            cache = { domain, sortOrder: domainIndexSortOrder(scale, this.keysOrValues('xValue')) };
-            this.categoryDomainOrder = cache;
-        }
-        return cache.sortOrder;
     }
 
     /**
@@ -406,21 +373,4 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         return findQuadtreeMatch(this, point);
     }
-}
-
-function domainIndexSortOrder(scale: CategoryScale<unknown>, keys: unknown[]): 1 | -1 | undefined {
-    let order: 1 | -1 | 0 = 0;
-    let prev: number | undefined;
-    for (const key of keys) {
-        if (key == null) continue;
-        const index = scale.findIndex(key);
-        if (index == null) return undefined;
-        if (prev != null && index !== prev) {
-            const diff = index > prev ? 1 : -1;
-            if (order !== 0 && order !== diff) return undefined;
-            order = diff;
-        }
-        prev = index;
-    }
-    return order === 0 ? 1 : order;
 }
