@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { type Mock, afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     BBox,
@@ -667,7 +667,7 @@ describe('CrossLine', () => {
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
 
             expect(click).toHaveBeenCalledWith(
-                expect.objectContaining({ crossLineId: expect.stringMatching(/^CrossLine-/) as string })
+                expect.objectContaining({ crossLineId: expect.stringMatching(/^CrossLine-/) })
             );
         });
 
@@ -2555,7 +2555,7 @@ describe('CrossLine', () => {
         const Y_MAX = 5;
         const RULER = 'ruler';
 
-        let crossLineClick: ViFn;
+        let crossLineClick: Mock<(event: AgCrossLineClickEvent) => void>;
 
         const createExtremesChart = async (direction: 'x' | 'y', crossLines: AgCartesianCrossLineOptions[]) => {
             const ruler: AgCartesianCrossLineOptions =
@@ -2612,7 +2612,7 @@ describe('CrossLine', () => {
             await clickAction(x, y)(chart);
 
             expect(crossLineClick).toHaveBeenCalled();
-            const [event] = crossLineClick.mock.lastCall as [AgCrossLineClickEvent];
+            const [event] = crossLineClick.mock.lastCall!;
             return event.allMatchedParams
                 .filter((params): params is AgCrossLineClickParams => params.type === 'crossLineClick')
                 .map(({ crossLineId }) => crossLineId)

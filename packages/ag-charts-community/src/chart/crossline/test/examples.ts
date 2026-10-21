@@ -91,6 +91,7 @@ const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, 
             ...baseChartOptions,
             axes: mapValues(baseChartOptions['axes'] ?? {}, (axis) => {
                 const range = axis.position === 'bottom' ? rangeConfig[name].vertical : rangeConfig[name].horizontal;
+                // `baseCrossLineOptions.type` widens to `string`, so the spread needs the cast to match the `type: 'range'` option.
                 return { ...axis, crossLines: [{ ...baseCrossLineOptions, range }] as AgCartesianCrossLineOptions[] };
             }),
         };
