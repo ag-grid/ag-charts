@@ -27,6 +27,13 @@ import {
     fireAllPendingCrossLineCallbacks,
 } from './crossLine';
 
+export type CrossLineFocusState = {
+    readonly entry?: {
+        readonly plugin: CrossLinesPlugin;
+        readonly crossLine: CrossLine;
+    };
+};
+
 /** One solve group of an axis's cross line labels: kept labels resolve before series labels, droppable ones after. */
 class CrossLineLabelSource implements PlacedLabelSource {
     private readonly datums = new Map<CrossLine, PointLabelDatum>();
@@ -115,6 +122,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private visible = true;
     private lastOptions: NormalisedAxisCrossLineOptions[] | undefined;
     private readonly removePointerListeners: (() => void)[];
+    private focusState: CrossLineFocusState = { entry: undefined };
     readonly labelSources: readonly CrossLineLabelSource[];
 
     constructor(ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) {
@@ -142,6 +150,19 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     private pickCrosslines(point: CanvasPoint): CrossLine[] {
+        // AG-18961 Context Menus opened with the keyboard are typically centered on the focused HTML element's
+        // bounds. However, the center of the HTML element's bound could hit-miss the cross line itself. This can happen
+        // on radius polar cross lines for examples, which can be donut-shaped and hollow at the center. Therefore, if a
+        // cross line is focused, then report that focused cross line as the only hit regardless of where `point` is.
+        const focusEntry = this.focusState.entry;
+        if (focusEntry) {
+            if (focusEntry.plugin === this) {
+                return [focusEntry.crossLine];
+            } else {
+                return []; // some other axis is in focus: ignore cross lines on this axis
+            }
+        }
+
         const result: CrossLine[] = [];
         for (const crossLine of this.instances) {
             if (crossLine.containsPoint?.(point)) {
@@ -185,6 +206,10 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             this.axisCtx.listeners?.crossLineClick != null ||
             this.ctx.chartService.listeners.crossLineClick != null
         );
+    }
+
+    setKeyboardFocusState(state: CrossLineFocusState) {
+        this.focusState = state;
     }
 
     /** Fires the `click` listeners of `crossLine` alone, as no pointer position picks overlapping elements. */

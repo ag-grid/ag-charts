@@ -1,10 +1,10 @@
-import type { BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget } from 'ag-charts-core';
+import type { BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget, Writeable } from 'ag-charts-core';
 import { CleanupRegistry, Path, Transformable, createSvgElement } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartAxis } from '../chartAxis';
 import type { CrossLine } from './crossLine';
-import type { CrossLinesPlugin } from './crossLinesPlugin';
+import type { CrossLineFocusState, CrossLinesPlugin } from './crossLinesPlugin';
 import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 
 const DOM_MANAGER_ID = 'cross-lines';
@@ -51,6 +51,7 @@ export class CrossLinesDOMProxy {
     private readonly focusPaths: (SVGSVGElement | undefined)[] = [];
     private entries: ProxyEntry[] = [];
     private dirty = true;
+    private focusState: Writeable<CrossLineFocusState> = { entry: undefined };
 
     constructor(
         private readonly ctx: DynamicContext<ChartRegistry>,
@@ -105,7 +106,7 @@ export class CrossLinesDOMProxy {
         }
         this.focusPaths.length = Math.min(this.focusPaths.length, entries.length);
         while (buttons.length < entries.length) {
-            buttons.push(this.createButton(buttons.length));
+            buttons.push(this.createButton(this.entries[buttons.length]));
         }
         for (let i = 0; i < entries.length; i++) {
             const { crossLine, bounds, focusPath } = entries[i];
@@ -143,7 +144,7 @@ export class CrossLinesDOMProxy {
         }
     }
 
-    private createButton(index: number): ButtonWidget {
+    private createButton(entry: ProxyEntry): ButtonWidget {
         const button = this.ctx.proxyInteractionService.createProxyElement({
             type: 'button',
             textContent: '',
@@ -151,8 +152,16 @@ export class CrossLinesDOMProxy {
         });
         // Fires for Enter and Space only: the buttons have `pointer-events: none`.
         button.addListener('click', (event) => {
-            const entry = this.entries[index];
-            entry?.plugin.keyboardClick(entry.crossLine, event.sourceEvent);
+            entry.plugin.keyboardClick(entry.crossLine, event.sourceEvent);
+        });
+
+        // Track currently focus cross line (state shared across all axes).
+        entry.plugin.setKeyboardFocusState(this.focusState);
+        button.addListener('focus', () => {
+            this.focusState.entry = entry;
+        });
+        button.addListener('blur', () => {
+            this.focusState.entry = entry;
         });
         return button;
     }
