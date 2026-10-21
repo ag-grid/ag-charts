@@ -51,6 +51,15 @@ describe('createEnterpriseChart', () => {
         expect(series[0].visible).toBe(true);
     });
 
+    it('resolves only once the chart has been laid out', async () => {
+        chart = await createEnterpriseChart(waterfallOptions());
+
+        const internal = deproxy(chart);
+
+        expect(internal.seriesRect?.width).toBeGreaterThan(0);
+        expect(internal.seriesRect?.height).toBeGreaterThan(0);
+    });
+
     it('applies the enterprise test options: animation disabled by default', async () => {
         chart = await createEnterpriseChart(waterfallOptions());
 

@@ -27,8 +27,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Group, Rect, Transformable } from 'ag-charts-core';
-import type { Node } from 'ag-charts-core';
+import { type Rect, Transformable } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
 import {
@@ -1282,17 +1281,8 @@ describe('HeatmapSeries', () => {
     describe('cornerRadius', () => {
         // Rect.serializeProps() omits the corner-radius fields, so neither the image snapshot nor the
         // scene-graph JSON can witness this option — the node has to be read directly.
-        const cellRects = (target: Chart) => {
-            const rects: Rect[] = [];
-            const visit = (node: Node) => {
-                if (node instanceof Rect) rects.push(node);
-                if (node instanceof Group) {
-                    for (const child of node.children()) visit(child);
-                }
-            };
-            visit(classCast(target.series[0], HeatmapSeries).contentGroup);
-            return rects;
-        };
+        const cellRects = (target: Chart) =>
+            collectShapes(classCast(target.series[0], HeatmapSeries).contentGroup) as Rect[];
 
         const buildOptions = (cornerRadius?: number): AgChartOptions => ({
             data: EXAMPLE_OPTIONS.data,
@@ -1667,10 +1657,6 @@ describe('HeatmapSeries', () => {
             return result;
         }
 
-        async function createStable(options: AgChartOptions) {
-            chart = deproxy(await createEnterpriseChart(options));
-        }
-
         async function hoverAway() {
             await hoverAction(1, 1)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
@@ -1684,7 +1670,7 @@ describe('HeatmapSeries', () => {
         }
 
         it('restyles every cell when the colour scale domain changes', async () => {
-            await createStable(rawOptions());
+            chart = deproxy(await createEnterpriseChart(rawOptions()));
             const before = cellFills(chart);
             expect(new Set(before).size).toBe(DATA.length);
 
@@ -1697,7 +1683,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('restyles every cell when the colour scale fills change', async () => {
-            await createStable(rawOptions());
+            chart = deproxy(await createEnterpriseChart(rawOptions()));
             const before = cellFills(chart);
 
             const colorScale = { fills: [{ color: 'green' }, { color: 'yellow' }] };
@@ -1713,7 +1699,7 @@ describe('HeatmapSeries', () => {
             { name: 'an explicit unhighlightedItem', highlight: { unhighlightedItem: { opacity: 0.4 } }, dimmed: 0.4 },
             { name: 'the theme highlight', highlight: undefined, dimmed: 0.6 },
         ])('dims the cells on hover with $name and restores them afterwards', async ({ highlight, dimmed }) => {
-            await createStable(rawOptions({ ...NO_TOOLTIP, highlight }));
+            chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, highlight })));
             const fills = cellFills(chart);
             expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
 
@@ -1728,7 +1714,7 @@ describe('HeatmapSeries', () => {
 
         it('keeps the colour scale fills and full opacity on update and hover when highlighting is disabled', async () => {
             const options = rawOptions(HIGHLIGHT_OFF);
-            await createStable(options);
+            chart = deproxy(await createEnterpriseChart(options));
 
             chart.publicApi.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
@@ -1740,7 +1726,11 @@ describe('HeatmapSeries', () => {
         });
 
         it('keeps the new colour scale fills when the domain changes during a hover and restores them after', async () => {
-            await createStable(rawOptions({ ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } }));
+            chart = deproxy(
+                await createEnterpriseChart(
+                    rawOptions({ ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } })
+                )
+            );
             await hoverDatumByIndex(chart, 0, 0);
 
             chart.publicApi.updateDelta({ data: SHIFTED_DATA });
@@ -1756,7 +1746,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('applies the selection styles over the colour scale fill', async () => {
-            await createStable(rawOptions({ selection: SELECTION }));
+            chart = deproxy(await createEnterpriseChart(rawOptions({ selection: SELECTION })));
             const fills = cellFills(chart);
 
             await select(1);
@@ -1766,7 +1756,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('restores the colour scale styling when the selection is cleared', async () => {
-            await createStable(rawOptions({ selection: SELECTION }));
+            chart = deproxy(await createEnterpriseChart(rawOptions({ selection: SELECTION })));
             const fills = cellFills(chart);
 
             await select(1);
@@ -1779,7 +1769,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('styles each cell once per update when only the colour scale colours the cells', async () => {
-            await createStable(rawOptions());
+            chart = deproxy(await createEnterpriseChart(rawOptions()));
             const getItemStyle = vi.spyOn(HeatmapSeries.prototype as any, 'getItemStyle');
 
             try {
@@ -1796,7 +1786,7 @@ describe('HeatmapSeries', () => {
             const itemStyler = ({ datum }: { datum: { year: string; person: string } }) =>
                 datum.person === 'A' ? { stroke: 'black', strokeWidth: 3 } : {};
 
-            await createStable(rawOptions({ itemStyler }));
+            chart = deproxy(await createEnterpriseChart(rawOptions({ itemStyler })));
             const strokes = cellStrokes(chart);
             expect(strokes.filter(({ width }) => width === 3)).toHaveLength(2);
 
@@ -1810,7 +1800,7 @@ describe('HeatmapSeries', () => {
         it('applies an itemStyler that depends on the highlight state and drops it when the pointer leaves', async () => {
             const itemStyler = ({ highlightState }: { highlightState: string }) =>
                 highlightState === 'unhighlighted-item' ? { strokeWidth: 5 } : {};
-            await createStable(rawOptions({ ...NO_TOOLTIP, itemStyler }));
+            chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, itemStyler })));
             const before = cellStrokes(chart);
 
             await hoverDatumByIndex(chart, 0, 0);
@@ -1824,7 +1814,7 @@ describe('HeatmapSeries', () => {
             let strokeWidth = 1;
             const itemStyler = () => ({ strokeWidth });
             const options = rawOptions({ itemStyler });
-            await createStable(options);
+            chart = deproxy(await createEnterpriseChart(options));
             prepareEnterpriseTestOptions(options);
             expect(cellStrokes(chart).map(({ width }) => width)).toEqual([1, 1, 1, 1]);
 
@@ -1840,7 +1830,7 @@ describe('HeatmapSeries', () => {
             const colorScale = { fills: [{ color: 'blue' }, { color: 'red' }], missingDataFill };
             const withGap = DATA.map((d, i) => (i === 1 ? { ...d, spending: undefined } : d));
 
-            await createStable(rawOptions({ colorScale }, withGap));
+            chart = deproxy(await createEnterpriseChart(rawOptions({ colorScale }, withGap)));
             expect(cellFills(chart).filter((f) => f === missingDataFill)).toHaveLength(1);
 
             chart.publicApi.updateDelta({ data: DATA });
@@ -1862,7 +1852,7 @@ describe('HeatmapSeries', () => {
                     stroke: 'black',
                     strokeWidth: datum.spending / 10,
                 });
-                await createStable(rawOptions({ itemStyler }, MANY_DATA));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ itemStyler }, MANY_DATA)));
 
                 expect(strokeWidths(chart)).toEqual(MANY_DATA.map((d) => d.spending / 10));
             });
@@ -1871,7 +1861,7 @@ describe('HeatmapSeries', () => {
                 const data = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
                 const itemStyler = ({ datum }: StylerParams) =>
                     datum.spending % 2 === 0 ? { strokeWidth: 2, stroke: 'black' } : { strokeWidth: 7, stroke: 'red' };
-                await createStable(rawOptions({ itemStyler }, data));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ itemStyler }, data)));
 
                 expect(cellStrokes(chart)).toEqual(
                     data.map((d) =>
@@ -1886,7 +1876,7 @@ describe('HeatmapSeries', () => {
                     shared.strokeWidth = datum.spending / 10;
                     return shared;
                 };
-                await createStable(rawOptions({ itemStyler }));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ itemStyler })));
 
                 expect(strokeWidths(chart)).toEqual(DATA.map((d) => d.spending / 10));
             });
@@ -1897,7 +1887,7 @@ describe('HeatmapSeries', () => {
 
                 const itemStyler = ({ datum }: StylerParams) =>
                     datum.person === 'A' ? { fill: undefined, strokeWidth: 6 } : undefined;
-                await createStable(rawOptions({ itemStyler }));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ itemStyler })));
 
                 expect(cellFills(chart)).toEqual(unstyled);
                 expect(strokeWidths(chart)).toEqual(DATA.map((d, i) => (d.person === 'A' ? 6 : unstyledWidths[i])));
@@ -1907,7 +1897,7 @@ describe('HeatmapSeries', () => {
                 const unstyled = await freshCellFills(rawOptions());
 
                 const itemStyler = ({ datum }: StylerParams) => (datum.spending >= 30 ? { fill: 'lime' } : {});
-                await createStable(rawOptions({ itemStyler }));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ itemStyler })));
 
                 expect(cellFills(chart)).toEqual(DATA.map((d, i) => (d.spending >= 30 ? 'lime' : unstyled[i])));
             });
@@ -1930,7 +1920,7 @@ describe('HeatmapSeries', () => {
                     enabled: true,
                     selectedItem: { fill: selectedGradient },
                 };
-                await createStable(rawOptions({ selection, itemStyler }));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ selection, itemStyler })));
                 const fills = cellRects(chart).map((rect) => rect.fill);
 
                 await select(0);
@@ -1948,7 +1938,7 @@ describe('HeatmapSeries', () => {
                     strokeWidth: 1,
                     fillOpacity: datum.spending / 100,
                 });
-                await createStable(rawOptions({ itemStyler }));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ itemStyler })));
 
                 expect(cellOpacities(chart)).toEqual(DATA.map((d) => d.spending / 100));
             });
@@ -1963,7 +1953,7 @@ describe('HeatmapSeries', () => {
                 }));
                 const highlightWidths = () =>
                     collectShapes(classCast(chart.series[0], HeatmapSeries).highlightGroup).map((r) => r.strokeWidth);
-                await createStable(rawOptions({ ...NO_TOOLTIP, itemStyler }));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, itemStyler })));
                 expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
                 expect(strokeWidths(chart)).toEqual([2, 2, 2, 2]);
 
@@ -1985,7 +1975,7 @@ describe('HeatmapSeries', () => {
                 const data = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
                 const itemStyler = ({ datum }: StylerParams) => ({ strokeWidth: 1 + (datum.spending % 3) });
                 const options = rawOptions({ itemStyler }, data);
-                await createStable(options);
+                chart = deproxy(await createEnterpriseChart(options));
                 prepareEnterpriseTestOptions(options);
 
                 const { optionsGraphService } = chart.series[0].ctx;
@@ -2013,7 +2003,7 @@ describe('HeatmapSeries', () => {
                     datum.person === 'A' ? { strokeWidth: 'thick', stroke: 'black' } : { strokeWidth: 5 };
                 const unstyled = await freshCellFills(rawOptions(), strokeWidths);
 
-                await createStable(rawOptions({ itemStyler }));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ itemStyler })));
                 expect(strokeWidths(chart)).toEqual(DATA.map((d, i) => (d.person === 'A' ? unstyled[i] : 5)));
                 expectWarningsCalls().toMatchInlineSnapshot(`
                   [
@@ -2026,7 +2016,7 @@ describe('HeatmapSeries', () => {
 
             it('warns about an unknown result property', async () => {
                 const itemStyler = () => ({ strokeWidth: 3, notAnOption: 1 });
-                await createStable(rawOptions({ itemStyler }));
+                chart = deproxy(await createEnterpriseChart(rawOptions({ itemStyler })));
 
                 expect(strokeWidths(chart)).toEqual([3, 3, 3, 3]);
                 expectWarningsCalls().toMatchInlineSnapshot(`
@@ -2040,7 +2030,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('keeps the colour scale fill in the tooltip symbol', async () => {
-            await createStable(rawOptions());
+            chart = deproxy(await createEnterpriseChart(rawOptions()));
 
             const series = classCast(chart.series[0], HeatmapSeries);
             const content = series.getTooltipContent(2);
@@ -2067,7 +2057,7 @@ describe('HeatmapSeries', () => {
         };
 
         it('repaints the cells in their new colours without rebuilding their paths', async () => {
-            await createStable(rawOptions());
+            chart = deproxy(await createEnterpriseChart(rawOptions()));
             const before = cellFills(chart);
             const updatePaths = cellRects(chart).map((rect) => vi.spyOn(rect as Rect, 'updatePath'));
             const updated = () => updatePaths.filter((spy) => spy.mock.calls.length > 0).length;
@@ -2094,7 +2084,7 @@ describe('HeatmapSeries', () => {
                 shadowed: { shadow: SHADOW },
             };
             for (const [name, overrides] of Object.entries(variants)) {
-                await createStable(rawOptions(overrides));
+                chart = deproxy(await createEnterpriseChart(rawOptions(overrides)));
                 fills[name] = await countFills(repaint);
                 chart.destroy();
             }
@@ -2107,7 +2097,7 @@ describe('HeatmapSeries', () => {
 
         /** The rects the chart fills apart from its cells and the highlighted cell, by a hover over rounded cells. */
         async function nonCellRects(highlight: object) {
-            await createStable(rawOptions({ ...NO_TOOLTIP, cornerRadius: 4, highlight }));
+            chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, cornerRadius: 4, highlight })));
             const { rects } = await countFills(() => hoverDatumByIndex(chart, 0, 1));
             chart.destroy();
             return rects;
@@ -2119,7 +2109,7 @@ describe('HeatmapSeries', () => {
                 unhighlightedItem: { opacity: 0.4 },
             };
             const others = await nonCellRects(highlight);
-            await createStable(rawOptions({ ...NO_TOOLTIP, highlight }));
+            chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, highlight })));
             const series = classCast(chart.series[0], HeatmapSeries);
 
             const { rects } = await countFills(() => hoverDatumByIndex(chart, 0, 1));
@@ -2133,7 +2123,7 @@ describe('HeatmapSeries', () => {
         it('paints cells that a highlight strokes through their path and back to a direct fill once it ends', async () => {
             const highlight = { unhighlightedItem: { stroke: 'black', strokeWidth: 3 } };
             const others = await nonCellRects(highlight);
-            await createStable(rawOptions({ ...NO_TOOLTIP, highlight }));
+            chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, highlight })));
             const fills = cellFills(chart);
 
             // Only the plain highlight node is filled directly.
@@ -2148,7 +2138,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('picks, highlights and shows the tooltip of the cell under the pointer after a repaint', async () => {
-            await createStable(rawOptions());
+            chart = deproxy(await createEnterpriseChart(rawOptions()));
             chart.publicApi.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
@@ -2159,7 +2149,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('keeps keyboard navigation and labels working after a repaint', async () => {
-            await createStable(rawOptions({ label: { enabled: true } }));
+            chart = deproxy(await createEnterpriseChart(rawOptions({ label: { enabled: true } })));
             chart.publicApi.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
@@ -2231,10 +2221,6 @@ describe('HeatmapSeries', () => {
                 height: rect.height,
             }));
 
-        async function create(data: Cell[], series: Record<string, unknown> = {}) {
-            chart = deproxy(await createEnterpriseChart(rawOptions(data, series) as AgChartOptions));
-        }
-
         async function transact(transaction: { update?: Cell[]; add?: Cell[]; remove?: { id: string }[] }) {
             await chart.publicApi.applyTransaction(transaction);
             await waitForChartStability(chart);
@@ -2277,7 +2263,7 @@ describe('HeatmapSeries', () => {
         }
 
         it('rebuilds and restyles only the updated cell', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             const before = cells(chart);
             const nodes = rects(chart);
             const spy = spyOnCellRebuilds();
@@ -2298,7 +2284,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('rebuilds every updated cell, and only those', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             const spy = spyOnCellRebuilds();
             const updates = [UPDATED('0:1', 4), UPDATED('2:1', 8), UPDATED('3:1', 6)];
 
@@ -2315,7 +2301,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('restyles every cell when the update moves the colour domain', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             const before = cells(chart);
             const spy = spyOnCellRebuilds();
 
@@ -2333,14 +2319,14 @@ describe('HeatmapSeries', () => {
         });
 
         it('restyles every cell when the update removes the only extreme value', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             await transact({ update: [UPDATED('3:2', 1)] });
 
             expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('3:2', 1))));
         });
 
         it('repositions a cell that the update moves to another category', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             const moved = UPDATED('1:1', 7, { x: 'X3', y: 'Y0' });
             await transact({ update: [moved] });
 
@@ -2348,7 +2334,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('rebuilds the layout when the update introduces a category', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             const moved = UPDATED('1:1', 7, { x: 'X9' });
             const spy = spyOnCellRebuilds();
 
@@ -2364,7 +2350,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('follows added and removed cells', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             const added: Cell = { id: '4:0', x: 'X4', y: 'Y0', v: 5 };
             await transact({ add: [added], remove: [{ id: '0:0' }] });
 
@@ -2373,7 +2359,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('keeps up with a sequence of transactions', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             const first = UPDATED('0:1', 9);
             const second = UPDATED('3:0', 2);
             await transact({ update: [first] });
@@ -2384,7 +2370,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('rebuilds every cell when an options change follows a transaction', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             await transact({ update: [UPDATED('1:1', 7)] });
             const data = withUpdates(UPDATED('1:1', 7));
             const series = { cornerRadius: 6, colorScale: { fills: [{ color: 'green' }, { color: 'orange' }] } };
@@ -2396,7 +2382,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('rebuilds every cell when the chart resizes after a transaction', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             await transact({ update: [UPDATED('1:1', 7)] });
 
             chart.publicApi.updateDelta({ width: 300, height: 200 });
@@ -2418,7 +2404,7 @@ describe('HeatmapSeries', () => {
                 stylerCalls.push(datum.id);
                 return (datum.v ?? 0) > 6 ? { stroke: 'black', strokeWidth: 3 } : {};
             };
-            await create(GRID, { itemStyler });
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, { itemStyler })));
             const strokeWidths = () => cells(chart).map((cell) => cell.strokeWidth);
             const before = strokeWidths();
 
@@ -2438,7 +2424,7 @@ describe('HeatmapSeries', () => {
 
         it('restyles an itemStyler from the new data indices when a transaction removes a cell', async () => {
             const itemStyler = ({ datum }: { datum: Cell }) => ((datum.v ?? 0) > 6 ? { fill: 'green' } : {});
-            await create(GRID, { itemStyler });
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, { itemStyler })));
 
             await transact({ remove: [{ id: '0:0' }] });
 
@@ -2447,7 +2433,7 @@ describe('HeatmapSeries', () => {
 
         it('restyles an itemStyler that reads the fill when a transaction moves the colour domain', async () => {
             const itemStyler = ({ fill }: { fill: string }) => ({ stroke: fill });
-            await create(GRID, { itemStyler });
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, { itemStyler })));
 
             // 50 lies outside the 0..11 extent, so every cell's fill, and the stroke taken from it, changes.
             await transact({ update: [UPDATED('3:2', 50)] });
@@ -2457,7 +2443,7 @@ describe('HeatmapSeries', () => {
 
         it('keeps the highlight styling of a hovered cell while another cell updates', async () => {
             const series = { ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } };
-            await create(GRID, series);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, series)));
             await hoverDatumByIndex(chart, 0, 0);
             expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.4));
 
@@ -2471,7 +2457,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('rebuilds only the updated cells while a hover is held across transactions', async () => {
-            await create(GRID, NO_TOOLTIP);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, NO_TOOLTIP)));
             await hoverDatumByIndex(chart, 0, 0);
             expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.6));
 
@@ -2492,7 +2478,7 @@ describe('HeatmapSeries', () => {
 
         it('undims every cell when the highlight ends in the same update as a transaction', async () => {
             const series = { ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } };
-            await create(GRID, series);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, series)));
             // The highlight is set through the manager, so the pointer cannot bring it back after the update.
             const { highlightManager } = (chart as Chart).ctx;
             highlightManager.updateHighlight('test', heatmap(chart).getNodeData()![0]);
@@ -2509,7 +2495,7 @@ describe('HeatmapSeries', () => {
 
         it('restyles and updates only the updated cells when an itemStyler is set', async () => {
             const itemStyler = ({ datum }: { datum: Cell }) => ((datum.v ?? 0) > 6 ? { strokeWidth: 3 } : {});
-            await create(GRID, { itemStyler });
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID, { itemStyler })));
             const spy = spyOnCellRebuilds();
             const nodeUpdates = rects(chart).map((rect) => vi.spyOn(rect, 'setStyleProperties'));
 
@@ -2528,7 +2514,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('picks and shows the tooltip of an updated cell', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             await transactIncrementally([UPDATED('2:1', 9.5)]);
             const datumIndex = GRID.findIndex((cell) => cell.id === '2:1');
 
@@ -2540,7 +2526,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('stops picking a cell that the update left without a colour value', async () => {
-            await create(GRID);
+            chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             const datumIndex = GRID.findIndex((cell) => cell.id === '1:2');
             await hoverDatumByIndex(chart, 0, datumIndex);
             expect(isTooltipVisible(chart)).toBe(true);
@@ -2566,7 +2552,7 @@ describe('HeatmapSeries', () => {
                 ['a quarter of the cells', 3],
                 ['half of the cells', 6],
             ])('matches a fresh render when the update changes %s', async (_name, count) => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const updates = inner.slice(0, count).map(moveWithinExtent);
                 await transactIncrementally(updates);
 
@@ -2574,7 +2560,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('matches a fresh render when the update changes every cell', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const updates = ids.map(moveWithinExtent);
                 await transact({ update: updates });
 
@@ -2582,7 +2568,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('rebuilds only the updated cells whatever fraction changes', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const counts: number[] = [];
 
                 for (const count of [1, 3, 6]) {
@@ -2605,7 +2591,7 @@ describe('HeatmapSeries', () => {
         describe('falls back to a full rebuild', () => {
             it('restyles and repaints every cell when a selection lands in the same frame as the update', async () => {
                 const selection = { enabled: true, unselectedItem: { opacity: 0.3 }, selectedItem: { fill: 'lime' } };
-                await create(GRID, { ...NO_TOOLTIP, selection });
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID, { ...NO_TOOLTIP, selection })));
                 const series = heatmap(chart);
 
                 chart.publicApi.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(0) }]);
@@ -2617,7 +2603,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('rebuilds every cell when a second update lands in the same frame as the transaction', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
 
                 const transaction = chart.publicApi.applyTransaction({ update: [UPDATED('1:1', 8)] });
                 chart.publicApi.updateDelta({ series: [{ ...rawOptions(GRID).series[0], cornerRadius: 6 }] });
@@ -2629,7 +2615,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('rebuilds every cell when an options change follows a transaction without new data', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 await transact({ update: [UPDATED('1:1', 8)] });
 
                 chart.publicApi.updateDelta({ series: [{ ...rawOptions(GRID).series[0], cornerRadius: 6 }] });
@@ -2639,7 +2625,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('rebuilds every cell when two transactions land in the same frame', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
 
                 const first = chart.publicApi.applyTransaction({ update: [UPDATED('1:1', 8)] });
                 const second = chart.publicApi.applyTransaction({ update: [UPDATED('2:1', 3)] });
@@ -2652,7 +2638,7 @@ describe('HeatmapSeries', () => {
 
         describe('colour domain', () => {
             it('restyles every cell when the update sets a new minimum', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const before = cells(chart);
                 const spy = spyOnCellRebuilds();
 
@@ -2670,7 +2656,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('restyles every cell when the update shrinks the domain from the top', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const before = cells(chart);
 
                 // 3:2 holds the only maximum (11); lowering it pulls the top of the domain down to 10.
@@ -2683,7 +2669,7 @@ describe('HeatmapSeries', () => {
 
             it('matches a fresh render when a fixed domain already covers the new value', async () => {
                 const series = { colorScale: { domain: [0, 100], fills: [{ color: 'blue' }, { color: 'red' }] } };
-                await create(GRID, series);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID, series)));
 
                 await transact({ update: [UPDATED('1:1', 60)] });
 
@@ -2691,7 +2677,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('colours every cell from the new domain after a run of transactions', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 await transact({ update: [UPDATED('0:0', 80)] });
                 await transact({ update: [UPDATED('1:0', 5)] });
                 await transact({ update: [UPDATED('0:0', 3)] });
@@ -2703,7 +2689,7 @@ describe('HeatmapSeries', () => {
         describe('added and removed cells', () => {
             it('adds a cell to an existing row and column', async () => {
                 const data = GRID.filter((cell) => cell.id !== '2:1');
-                await create(data);
+                chart = deproxy(await createEnterpriseChart(rawOptions(data)));
 
                 await transact({ add: [GRID.find((cell) => cell.id === '2:1')!] });
 
@@ -2712,7 +2698,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('removes a cell and leaves the rest where they were', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
 
                 await transact({ remove: [{ id: '1:1' }] });
 
@@ -2721,7 +2707,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('adds a cell in a new column and lays the grid out again', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const added: Cell = { id: '4:1', x: 'X4', y: 'Y1', v: 6 };
 
                 await transact({ add: [added] });
@@ -2730,7 +2716,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('colours every cell from the new domain when an added cell extends it', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const added: Cell = { id: '0:3', x: 'X0', y: 'Y0', v: 500 };
 
                 await transact({ add: [added] });
@@ -2739,7 +2725,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('colours every cell from the new domain when the removed cell held the maximum', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const before = cells(chart);
 
                 await transact({ remove: [{ id: '3:2' }] });
@@ -2749,7 +2735,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('updates, adds and removes in one transaction', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const updated = UPDATED('0:2', 4);
                 const added: Cell = { id: '4:2', x: 'X4', y: 'Y2', v: 2 };
 
@@ -2788,7 +2774,7 @@ describe('HeatmapSeries', () => {
             }
 
             it('paints the fills of a fresh chart after cells are updated', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const original = paintedColours(chart);
                 const updates = [UPDATED('1:1', 8), UPDATED('2:1', 3)];
                 await transactIncrementally(updates);
@@ -2798,7 +2784,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('paints the fills of a fresh chart after the colour domain moves', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const original = paintedColours(chart);
                 await transact({ update: [UPDATED('1:2', 90)] });
 
@@ -2807,7 +2793,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('paints the fills of a fresh chart after cells are added and removed', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const added: Cell = { id: '4:0', x: 'X4', y: 'Y0', v: 5 };
                 await transact({ add: [added], remove: [{ id: '0:0' }] });
 
@@ -2821,7 +2807,7 @@ describe('HeatmapSeries', () => {
             const series = { label: { enabled: true } };
 
             it('shows the new value on the updated cell and keeps the rest', async () => {
-                await create(GRID, series);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID, series)));
                 const before = labelTexts(chart);
                 expect(before).toHaveLength(GRID.length);
 
@@ -2847,7 +2833,7 @@ describe('HeatmapSeries', () => {
                     ?.find((n) => n.datumIndex === datumIndex);
 
             it('picks a cell that the update did not touch with its original value', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 await transactIncrementally([UPDATED('2:1', 9.5)]);
                 const datumIndex = GRID.findIndex((cell) => cell.id === '0:0');
 
@@ -2859,7 +2845,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('shows the new value when the hovered cell itself is updated', async () => {
-                await create(GRID);
+                chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 const datumIndex = GRID.findIndex((cell) => cell.id === '1:1');
                 await hoverDatumByIndex(chart, 0, datumIndex);
                 expect(isTooltipVisible(chart)).toBe(true);
@@ -2873,7 +2859,7 @@ describe('HeatmapSeries', () => {
             it('picks the moved cell at its new position and not its old one', async () => {
                 // 3:1 is left out so the moved cell has an empty slot, and 2:2 is late enough in the data to keep the categories in order.
                 const data = GRID.filter((cell) => cell.id !== '3:1');
-                await create(data);
+                chart = deproxy(await createEnterpriseChart(rawOptions(data)));
                 const datumIndex = data.findIndex((cell) => cell.id === '2:2');
                 const { x: oldX, y: oldY } = nodeFor(datumIndex)!.point;
                 const moved = UPDATED('2:2', 7, { x: 'X3', y: 'Y1' });

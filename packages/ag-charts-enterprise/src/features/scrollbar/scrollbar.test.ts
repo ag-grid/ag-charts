@@ -128,7 +128,6 @@ async function renderSnapshot(
     chartRef: ChartRef
 ): Promise<SnapshotResult> {
     chartRef.current = await createEnterpriseChart(options);
-    await waitForChartStability(chartRef.current);
     const snapshot = ctx.snapshot();
     const imageData = extractImageData(ctx);
     chartRef.current.destroy();
@@ -672,7 +671,6 @@ describe('Scrollbar thumb hover derives from the per-chart thumb style', () => {
             scrollbar: { enabled: true, visible: 'always', thickness: 30, ...scrollbar },
             initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
         });
-        await waitForChartStability(chartRef.current);
         hoverHorizontalThumb();
         await waitForChartStability(chartRef.current);
         await compareImageSnapshot(chartRef.current, ctx, {
