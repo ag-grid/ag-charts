@@ -16,7 +16,7 @@ export const SELECTORS = {
     seriesAreaBounds: '.ag-charts-series-area-bounds',
     legendItems: 'button[role="switch"][class="ag-charts-proxy-elem"]',
     axisButton: '.ag-charts-annotations__axis-button',
-    axisProxy: '.ag-charts-proxy-elem[role="region"]',
+    axisProxy: '.ag-charts-proxy-axis',
     tooltip: '.ag-charts-tooltip',
     crosshairLabel: '.ag-charts-crosshair-label',
     focusIndicator: '.ag-charts-focus-indicator',

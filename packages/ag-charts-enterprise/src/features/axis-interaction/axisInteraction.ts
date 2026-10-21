@@ -13,8 +13,6 @@ import type {
 } from 'ag-charts-core';
 import { AbstractModuleInstance, BBox, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
 
-import { resolveAxisAriaLabels } from './axisAriaLabels';
-
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
 type ProxyAxis = {
@@ -22,7 +20,6 @@ type ProxyAxis = {
     direction: ChartAxisDirection;
     div: AxisWidget;
     bounds?: BBox;
-    ariaLabel?: string;
 };
 
 function hasAxisListener(
@@ -164,15 +161,8 @@ export class AxisInteraction extends AbstractModuleInstance {
             this.axes.push(proxyAxis);
         }
 
-        const ariaLabels = this.resolveAriaLabels(axesCtx);
-
         for (const axis of this.axes) {
             const axisCtx = axesCtx.find((ac) => ac.axisId === axis.axisId)!;
-            const ariaLabel = ariaLabels.get(axis.axisId);
-            if (ariaLabel != null && ariaLabel !== axis.ariaLabel) {
-                axis.div.setAriaLabel(ariaLabel);
-                axis.ariaLabel = ariaLabel;
-            }
             const bbox = axisCtx.getCanvasBounds();
             axis.div.setHidden(boxEmpty(bbox));
             if (bbox == undefined) {
@@ -185,17 +175,6 @@ export class AxisInteraction extends AbstractModuleInstance {
             const needsCursor: boolean = !hasDraggableAxes(this.ctx) && hasAxisClickListener(chartService, axisCtx);
             axis.div.setCursor(needsCursor ? 'pointer' : undefined);
         }
-    }
-
-    private resolveAriaLabels(axesCtx: _ModuleSupport.AxisContext[]) {
-        const { labels, duplicateExplicitLabels } = resolveAxisAriaLabels(axesCtx);
-        for (const group of duplicateExplicitLabels) {
-            const names = group.map((label) => `"${label}"`).join(', ');
-            this.ctx.logger.warnOnce(
-                `axes with the same [ariaLabel] ${names} share an accessible name; give each axis a unique [ariaLabel].`
-            );
-        }
-        return labels;
     }
 
     private onSeriesAreaHover(event: _ModuleSupport.SeriesAreaHoverEvent) {

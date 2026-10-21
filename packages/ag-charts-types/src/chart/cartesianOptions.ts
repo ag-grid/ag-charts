@@ -523,13 +523,13 @@ export type AgCartesianAxisType<TContext = ContextDefault> = NonNullable<AgCarte
 export interface AgCartesianAxisThemeOptions<T> {
     /** An object with axis theme overrides for the `top` positioned axes. Same configs apply here as one level above. For example, to rotate labels by 45 degrees in 'top' positioned axes one can use `top: { label: { rotation: 45 } } }`. */
     // eslint-disable-next-line sonarjs/use-type-alias
-    top?: Omit<T, 'position' | 'type' | 'crossLines' | 'ariaLabel'>;
+    top?: Omit<T, 'position' | 'type' | 'crossLines'>;
     /** An object with axis theme overrides for the `right` positioned axes. Same configs apply here as one level above. */
-    right?: Omit<T, 'position' | 'type' | 'crossLines' | 'ariaLabel'>;
+    right?: Omit<T, 'position' | 'type' | 'crossLines'>;
     /** An object with axis theme overrides for the `bottom` positioned axes. Same configs apply here as one level above. */
-    bottom?: Omit<T, 'position' | 'type' | 'crossLines' | 'ariaLabel'>;
+    bottom?: Omit<T, 'position' | 'type' | 'crossLines'>;
     /** An object with axis theme overrides for the `left` positioned axes. Same configs apply here as one level above. */
-    left?: Omit<T, 'position' | 'type' | 'crossLines' | 'ariaLabel'>;
+    left?: Omit<T, 'position' | 'type' | 'crossLines'>;
 }
 
 export interface AgBaseCartesianThemeOptions<
@@ -579,7 +579,7 @@ export type AgContinuousCartesianAxesTheme<TContext = ContextDefault> = Pick<
     'number' | 'log' | 'time'
 >;
 
-type ThemeOmittedAxisOptions = 'type' | 'crossLines' | 'ariaLabel';
+type ThemeOmittedAxisOptions = 'type' | 'crossLines';
 
 export interface AgNumberAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
     extends
