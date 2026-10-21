@@ -250,3 +250,105 @@ describe('fontWithSize', () => {
         expect(fontWithSize(font, 12)).toEqual({ fontSize: 12, fontFamily: 'sans-serif' });
     });
 });
+
+describe('fitLabelTextAutoSize turned', () => {
+    // Every grapheme is as wide as the font size and every line 1.5 times as tall.
+    const small = { fontSize: 10, fontFamily: 'sans-serif' } as const;
+    const extentOf = (fitted: AutoSizedLabelText, rotation: number, fontSize: number) => {
+        const lines = String(fitted.text).split('\n');
+        const width = Math.max(...lines.map((line) => [...line].length)) * fontSize;
+        const height = lines.length * fontSize * 1.5;
+        const angle = (rotation * Math.PI) / 180;
+        const sin = Math.abs(Math.sin(angle));
+        const cos = Math.abs(Math.cos(angle));
+        return { width: width * cos + height * sin, height: width * sin + height * cos };
+    };
+
+    it('keeps a label whole when its turned extent fits, whatever its shape', () => {
+        // 30 x 15 turned by 30 degrees spans 33.5px across, inside the 40px room.
+        const fit = {
+            wrapping: 'never',
+            overflowStrategy: 'ellipsis',
+            rotated: { rotation: 30, width: 40, height: Infinity },
+        } as const;
+        expect(fitLabelTextAutoSize('abc', fit, small)).toEqual({ text: 'abc', fontSize: undefined });
+    });
+
+    it('treats a quarter turn as a box with its sides swapped', () => {
+        // Turned upright, the 15px-tall line spans 15px across the 20px room.
+        const fit = {
+            wrapping: 'never',
+            overflowStrategy: 'ellipsis',
+            rotated: { rotation: 90, width: 20, height: Infinity },
+        } as const;
+        expect(fitLabelTextAutoSize('abc', fit, small).text).toBe('abc');
+    });
+
+    it('wraps onto the line count whose turned extent fits', () => {
+        // One line spans 88px across at 45 degrees; two lines of 'ab cd' span 56.6px, inside the 60px room.
+        const fit = {
+            wrapping: 'on-space',
+            overflowStrategy: 'ellipsis',
+            rotated: { rotation: 45, width: 60, height: Infinity },
+        } as const;
+        expect(fitLabelTextAutoSize('ab cd ef gh', fit, small).text).toBe('ab cd\nef gh');
+    });
+
+    it('checks the turned extent at every font size it tries', () => {
+        // At 80 degrees ten graphemes span 3.21 times the font size across, so 12px is the largest size inside 40px.
+        const fit = {
+            wrapping: 'never',
+            overflowStrategy: 'ellipsis',
+            minimumFontSize: 8,
+            rotated: { rotation: 80, width: 40, height: Infinity },
+        } as const;
+        expect(fitLabelTextAutoSize('abcdefghij', fit, font)).toEqual({ text: 'abcdefghij', fontSize: 12 });
+    });
+
+    it('truncates to the most text that fits once the minimum size does not hold it whole', () => {
+        const fit = {
+            wrapping: 'never',
+            overflowStrategy: 'ellipsis',
+            rotated: { rotation: 30, width: 40, height: Infinity },
+        } as const;
+        const fitted = fitLabelTextAutoSize('abcdefgh', fit, small);
+        expect(String(fitted.text)).toMatch(/^abc?…$/);
+        expect(extentOf(fitted, 30, 10).width).toBeLessThanOrEqual(40);
+    });
+
+    it('hides the label when no line count fits and the overflow strategy hides', () => {
+        const fit = {
+            wrapping: 'never',
+            overflowStrategy: 'hide',
+            rotated: { rotation: 30, width: 40, height: Infinity },
+        } as const;
+        expect(fitLabelTextAutoSize('abcdefgh', fit, small).text).toBe('');
+    });
+
+    it('keeps the turned extent inside both sides of the room at every angle', () => {
+        for (let rotation = 10; rotation < 180; rotation += 20) {
+            for (const wrapping of ['never', 'on-space'] as const) {
+                const fit = {
+                    wrapping,
+                    overflowStrategy: 'ellipsis',
+                    rotated: { rotation, width: 60, height: 45 },
+                } as const;
+                const fitted = fitLabelTextAutoSize('ab cd ef gh ij', fit, small);
+                const extent = extentOf(fitted, rotation, 10);
+                if (String(fitted.text) === '') continue;
+                expect(extent.width).toBeLessThanOrEqual(60 + 1e-6);
+                expect(extent.height).toBeLessThanOrEqual(45 + 1e-6);
+            }
+        }
+    });
+
+    it('still honours maxWidth in the text direction', () => {
+        const fit = {
+            maxWidth: 20,
+            wrapping: 'never',
+            overflowStrategy: 'ellipsis',
+            rotated: { rotation: 30, width: 400, height: Infinity },
+        } as const;
+        expect(fitLabelTextAutoSize('abcdef', fit, small).text).toBe('a…');
+    });
+});

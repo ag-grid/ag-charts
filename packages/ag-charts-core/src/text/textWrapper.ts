@@ -2,6 +2,7 @@ import type { ImageSegment, OverflowStrategy, TextWrap } from 'ag-charts-types';
 
 import { findMaxValue } from '../data/binarySearch';
 import { isArray, isFiniteNumber } from '../data/typeGuards';
+import { toRadians } from '../geometry/angle';
 import { type FitRegion, regionWidthAt } from '../geometry/fitRegion';
 import type {
     NormalisedContentSegment,
@@ -14,6 +15,7 @@ import {
     cachedTextMeasurer,
     imageSegmentBox,
     isBlockBoundary,
+    measureLabelText,
     measureTextSegments,
 } from '../rendering/textMeasurer';
 import type {
@@ -73,6 +75,19 @@ export interface LabelFit {
     readonly clipLineBreaks?: boolean;
     /** Hide a label whose ellipsis is wider than `maxWidth`, rather than drawing that ellipsis alone. */
     readonly hideOverflowingEllipsis?: boolean;
+    /** The label is drawn turned, and its turned extent must stay inside a box; see {@link TurnedBounds}. */
+    readonly rotated?: TurnedBounds;
+}
+
+/**
+ * The box a label drawn turned by `rotation` degrees must stay inside, measured after turning it. A turned
+ * label trades width for height, so no single rectangle in its own frame holds every shape that fits: each
+ * candidate is held to the width its own height leaves. `maxWidth`/`maxHeight` still bound it unturned.
+ */
+export interface TurnedBounds {
+    readonly rotation: number;
+    readonly width: number;
+    readonly height: number;
 }
 
 /** Where a region-bounded block of text sits against its anchor; see {@link LabelFit.regionAlign}. */
@@ -166,8 +181,8 @@ export function fitLabelText(
     font: FontOptions
 ): NormalisedTextOrSegments {
     if (fit == null) return text;
-    const { maxWidth, maxHeight, wrapping, overflowStrategy, region } = fit;
-    if (maxWidth == null && maxHeight == null && region == null) return text;
+    const { maxWidth, maxHeight, wrapping, overflowStrategy, region, rotated } = fit;
+    if (maxWidth == null && maxHeight == null && region == null && rotated == null) return text;
     const overflow = overflowStrategy ?? 'preserve';
     const options: WrapOptions = {
         font,
@@ -186,9 +201,84 @@ export function fitLabelText(
     if (region != null) {
         return wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed).text;
     }
+    return rotated == null ? fitTextToBox(text, fit, options) : fitTurnedText(text, fit, options, rotated);
+}
+
+function fitTextToBox(text: NormalisedTextOrSegments, fit: LabelFit, options: WrapOptions) {
     const fitted = wrapTextOrSegments(text, options);
     if (!fit.hideOverflowingEllipsis || !ellipsisOverflows(fitted, options)) return fitted;
     return isArray(fitted) ? [] : '';
+}
+
+// Below this a turn is taken as square to the box, where floating point leaves residues such as cos(π/2).
+const SQUARE_TURN_EPSILON = 1e-10;
+// Rounding in the turned extent must not reject a candidate that fits exactly.
+const TURNED_EXTENT_EPSILON = 1e-6;
+
+/**
+ * Fits text drawn turned inside `bounds`, trying each line count at the width its height leaves: the first
+ * that holds the whole text wins, and otherwise the one keeping most text under the overflow strategy.
+ */
+function fitTurnedText(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit,
+    options: WrapOptions,
+    bounds: TurnedBounds
+): NormalisedTextOrSegments {
+    const angle = toRadians(bounds.rotation);
+    const sin = Math.abs(Math.sin(angle));
+    const cos = Math.abs(Math.cos(angle));
+    const boxed = (width: number, height: number): WrapOptions => {
+        const maxHeight = Math.min(options.maxHeight ?? Infinity, height);
+        return {
+            ...options,
+            maxWidth: Math.min(options.maxWidth, width),
+            maxHeight: preservesText(options) || !Number.isFinite(maxHeight) ? undefined : maxHeight,
+        };
+    };
+    if (sin < SQUARE_TURN_EPSILON) return fitTextToBox(text, fit, boxed(bounds.width, bounds.height));
+    if (cos < SQUARE_TURN_EPSILON) return fitTextToBox(text, fit, boxed(bounds.height, bounds.width));
+
+    const widthAt = (height: number) =>
+        Math.min(options.maxWidth, (bounds.width - height * sin) / cos, (bounds.height - height * cos) / sin);
+    const lineHeight = options.lineHeight ?? cachedTextMeasurer(options.font).lineHeight();
+    // 'preserve' never drops text, so only the line count stays to be chosen: one line, as wide as it may be.
+    if (preservesText(options)) return fitTextToBox(text, fit, { ...options, maxWidth: widthAt(lineHeight) });
+
+    const heightLimit = Math.min(options.maxHeight ?? Infinity, bounds.width / sin, bounds.height / cos);
+    if (!Number.isFinite(heightLimit)) return fitTextToBox(text, fit, options);
+    const fitsTurned = (fitted: NormalisedTextOrSegments) => {
+        const { width, height } = measureLabelText(fitted, options.font);
+        return (
+            width * cos + height * sin <= bounds.width + TURNED_EXTENT_EPSILON &&
+            width * sin + height * cos <= bounds.height + TURNED_EXTENT_EPSILON
+        );
+    };
+
+    const maxLines = Math.floor((heightLimit + TURNED_EXTENT_EPSILON) / lineHeight);
+    // Unwrapped text keeps its own lines, so its own line count, or as many as fit, is the only one to try.
+    const unwrapped = options.textWrap === 'never' && !isArray(text);
+    const firstLines = unwrapped ? Math.min(toTextString(text).split('\n').length, maxLines) : 1;
+    const lastLines = unwrapped ? firstLines : maxLines;
+
+    let best: NormalisedTextOrSegments | undefined;
+    let bestKept = 0;
+    for (let lines = firstLines; lines <= lastLines; lines++) {
+        const height = lines * lineHeight;
+        const maxWidth = widthAt(height);
+        if (maxWidth <= 0) break;
+        const box: WrapOptions = { ...options, maxWidth, maxHeight: height };
+        const whole = fitTextToBox(text, fit, { ...box, overflow: 'hide' });
+        if (!isErased(whole) && fitsTurned(whole)) return whole;
+        if (options.overflow === 'hide') continue;
+        const partial = fitTextToBox(text, fit, box);
+        const kept = keptCharacters(partial);
+        if (kept > bestKept && fitsTurned(partial)) {
+            best = partial;
+            bestKept = kept;
+        }
+    }
+    return best ?? (isArray(text) ? [] : '');
 }
 
 /** A width narrower than the ellipsis still gets one, so a fit that needs it is drawn wider than its bound. */
@@ -639,8 +729,8 @@ function hasOwnMinimumFontSize(segment: NormalisedContentSegment): boolean {
  * search steps in whole sizes, so the widest-shrinking range drives it and gives it the most steps to fit on.
  */
 function autoSizeDriver(text: NormalisedTextOrSegments, fit: LabelFit, font: FontOptions): FontSizeRange | undefined {
-    const { minimumFontSize, maxWidth, maxHeight, region } = fit;
-    if (maxWidth == null && maxHeight == null && region == null) return undefined;
+    const { minimumFontSize, maxWidth, maxHeight, region, rotated } = fit;
+    if (maxWidth == null && maxHeight == null && region == null && rotated == null) return undefined;
     if (minimumFontSize == null && !(isArray(text) && text.some(hasOwnMinimumFontSize))) return undefined;
 
     let driver = fontSizeRange(font.fontSize, minimumFontSize);

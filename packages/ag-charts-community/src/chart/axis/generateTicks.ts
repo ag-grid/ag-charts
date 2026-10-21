@@ -35,12 +35,12 @@ import {
     type TickData,
     axisLabelFit,
     calculateLabelRotation,
+    fitTicksAtRotation,
     formatTicks,
     getTextAlign,
     getTextBaseline,
     getTimeIntervalTicks,
     isLabelFitEnabled,
-    refitAutoRotatedLabels,
     ticksEqual,
     ticksSpacing,
     timeIntervalMaxLabelSize,
@@ -81,7 +81,20 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     );
 
     const initialRotation = configuredRotation + defaultRotation;
-    const checkLabelOverlap = (tickData: TickData, rotation = 0) => {
+    // Fitted labels are fitted again for an automatic rotation, so collisions are checked as they will be drawn.
+    const fitEnabled = isLabelFitEnabled(label);
+    const turnedTickData = new WeakMap<TickData, TickData>();
+    const atRotation = (tickData: TickData, rotation: number) => {
+        if (rotation === 0 || !fitEnabled) return tickData;
+        let turned = turnedTickData.get(tickData);
+        if (turned == null) {
+            turned = { ...tickData, ticks: fitTicksAtRotation(options, tickData.ticks, rotation) };
+            turnedTickData.set(tickData, turned);
+        }
+        return turned;
+    };
+    const checkLabelOverlap = (candidate: TickData, rotation = 0) => {
+        const tickData = atRotation(candidate, rotation);
         const labelSpacing = tickLabelSpacing(label.minSpacing, configuredRotation !== 0 || rotation !== 0);
         const labelRotation = initialRotation + rotation;
         const labelPadding = expandLabelPadding(label);
@@ -148,15 +161,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         tryAutoRotate ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335) : undefined
     );
 
-    if (autoRotation !== 0 && isLabelFitEnabled(label)) {
-        const refit = (keepWidth: boolean) => ({
-            ...tickData,
-            ticks: refitAutoRotatedLabels(options, tickData.ticks, autoRotation, keepWidth),
-        });
-        // At shallow angles a label widened onto one line can reach its neighbour, so keep the checked width.
-        const widened = refit(false);
-        tickData = checkLabelOverlap(widened, autoRotation) ? refit(true) : widened;
-    }
+    tickData = atRotation(tickData, autoRotation);
 
     const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
     const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
@@ -561,7 +566,14 @@ function createTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<T
     const { label, labelOffset, primaryLabel, domain } = options;
     // Secondary labels are fitted on a continuous scale, which has no band to limit them.
     const fitOptions = isLabelFitEnabled(label)
-        ? axisLabelFit(label, options.isVertical, options.labelRoom ?? options.sizeLimit ?? Infinity, Infinity)
+        ? axisLabelFit(
+              label,
+              options.isVertical,
+              options.labelRoom ?? options.sizeLimit ?? Infinity,
+              Infinity,
+              label.rotation ?? 0,
+              label.wrapping ?? 'never'
+          )
         : undefined;
     const { width, height } = timeIntervalMaxLabelSize(
         label,

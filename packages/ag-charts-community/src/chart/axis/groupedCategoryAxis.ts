@@ -16,6 +16,7 @@ import {
     createIdsGenerator,
     extent,
     extractDomain,
+    fitLabelTextAutoSize,
     getMaxInnerRectSize,
     hasRealChars,
     inRange,
@@ -28,7 +29,6 @@ import {
     sortBasedOnArray,
     toArray,
     toPlainText,
-    toRadians,
     wrapTextOrSegments,
 } from 'ag-charts-core';
 
@@ -40,7 +40,7 @@ import type { AxisPickDatum, LabelNodeDatum } from './axis';
 import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
-import { fitAxisLabel, isLabelFitEnabled, labelTextRoom, rotatedLabelFit } from './generateTicksUtils';
+import { axisLabelFit, isLabelFitEnabled } from './generateTicksUtils';
 import { type GroupedCategoryKey, type TreeLayout, treeLayout } from './tree';
 
 export const MIN_CATEGORY_SPACING = 5;
@@ -264,24 +264,18 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
             const depthOptionsAt = optionsMap[depth];
             if (isLabelFitEnabled(depthOptionsAt)) {
-                const rotation = depthOptionsAt.rotation ?? 0;
-                const textRoom = labelTextRoom(
-                    labelStyles,
-                    !horizontal,
-                    labelRoom - usedRoomAtDepth(depth),
-                    toRadians(rotation)
-                );
                 const along = depthOptionsAt.avoidCollisions ? maxWidth : Infinity;
-                const fitted = fitAxisLabel(
+                const fitted = fitLabelTextAutoSize(
                     text,
-                    rotatedLabelFit(
-                        depthOptionsAt,
-                        rotation,
-                        horizontal ? along : textRoom,
-                        horizontal ? textRoom : along,
+                    axisLabelFit(
+                        { ...labelStyles, ...depthOptionsAt },
+                        !horizontal,
+                        labelRoom - usedRoomAtDepth(depth),
+                        along,
+                        depthOptionsAt.rotation ?? 0,
                         depthOptionsAt.wrapping
                     ),
-                    { ...labelStyles, minimumFontSize: depthOptionsAt.minimumFontSize }
+                    labelStyles
                 );
                 if (!hasRealChars(fitted.text)) continue;
                 text = fitted.text;
