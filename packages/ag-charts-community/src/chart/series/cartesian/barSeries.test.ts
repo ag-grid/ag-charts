@@ -1647,7 +1647,7 @@ describe('BarSeries', () => {
                 expect(visibleRangeOfAB()).toEqual([0, 20]);
             });
 
-            it('rechecks the order when the data changes', async () => {
+            it('autoscales to the visible categories after the data order changes', async () => {
                 chart = await createChart(twoSeriesOptions(ascending));
                 expect(visibleRangeOfAB()).toEqual([0, 20]);
 
