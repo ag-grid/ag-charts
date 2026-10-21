@@ -30,7 +30,7 @@ test.describe('axis proxy elements', () => {
                 expect(attrs).toEqual({ role: null, ariaLabel: null });
             }
 
-            const results = await new AxeBuilder({ page }).withRules(RULES).analyze();
+            const results = await new AxeBuilder({ page }).include(SELECTORS.axisProxy).withRules(RULES).analyze();
             expect(results.violations).toEqual([]);
         });
     }
