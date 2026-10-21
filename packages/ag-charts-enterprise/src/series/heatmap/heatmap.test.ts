@@ -29,8 +29,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { CallbackResultMemo, Group, Rect, Transformable } from 'ag-charts-core';
-import type { Node } from 'ag-charts-core';
+import { CallbackResultMemo, Rect, Transformable } from 'ag-charts-core';
 import { classCast, testLogger } from 'ag-charts-test';
 
 import {
@@ -2204,6 +2203,9 @@ describe('HeatmapSeries', () => {
             });
 
             describe('the restyle after a full update', () => {
+                // The watcher hooks each cell's `Rect`, so the cells stay on `Rect`s; the batch keeps no per-cell node.
+                const ON_RECTS = { cornerRadius: 1 };
+
                 /** Counts the style writes to the cells' datums from now on, which only a restyle of the cells makes. */
                 function watchCellStyleWrites() {
                     let writes = 0;
@@ -2218,7 +2220,7 @@ describe('HeatmapSeries', () => {
                             },
                         });
                     };
-                    for (const rect of cellRects(chart)) {
+                    for (const rect of cellShapes(chart) as Rect<unknown>[]) {
                         let datum = rect.datum as { style: unknown };
                         watch(datum);
                         // A full update binds new datums to the same cells.
@@ -2238,7 +2240,7 @@ describe('HeatmapSeries', () => {
                     ['returns nothing', () => undefined],
                     ['returns a fill', () => ({ fill: 'lime' })],
                 ])('is skipped for a styler that %s when nothing is highlighted or selected', async (_name, result) => {
-                    const options = rawOptions({ ...NO_TOOLTIP, itemStyler: result }, ROWS);
+                    const options = rawOptions({ ...NO_TOOLTIP, ...ON_RECTS, itemStyler: result }, ROWS);
                     chart = deproxy(await createEnterpriseChart(options));
                     prepareEnterpriseTestOptions(options);
                     const writes = watchCellStyleWrites();
@@ -2250,7 +2252,7 @@ describe('HeatmapSeries', () => {
                 });
 
                 it('still happens on a full update while a cell is highlighted', async () => {
-                    const options = rawOptions({ ...NO_TOOLTIP, itemStyler: () => undefined }, ROWS);
+                    const options = rawOptions({ ...NO_TOOLTIP, ...ON_RECTS, itemStyler: () => undefined }, ROWS);
                     chart = deproxy(await createEnterpriseChart(options));
                     prepareEnterpriseTestOptions(options);
                     await hoverDatumByIndex(chart, 0, 1);
@@ -2264,7 +2266,7 @@ describe('HeatmapSeries', () => {
 
                 it('still happens on a full update while a cell is selected', async () => {
                     const options = rawOptions(
-                        { ...NO_TOOLTIP, selection: SELECTION, itemStyler: () => undefined },
+                        { ...NO_TOOLTIP, ...ON_RECTS, selection: SELECTION, itemStyler: () => undefined },
                         ROWS
                     );
                     chart = deproxy(await createEnterpriseChart(options));
