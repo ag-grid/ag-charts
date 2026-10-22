@@ -10,6 +10,7 @@ describe('label overflow defaults', () => {
     type SeriesLabel = { wrapping?: unknown; truncate?: unknown; collision?: { alwaysShow?: unknown } };
 
     const resolveLabel = (label: object, type: 'bar' | 'line' = 'bar'): SeriesLabel => {
+        // The label is built from probe keys, some of them undocumented, so it cannot satisfy the series label type.
         const series = { type, xKey: 'x', yKey: 'y', label } as unknown as AgBarSeriesOptions | AgLineSeriesOptions;
         const options = { series: [series] } as AgCartesianChartOptions;
         const { processedOptions } = new ChartOptions(options, {} as AgCartesianChartOptions, {}, {}, {});

@@ -4,6 +4,9 @@ import { ChartAxisDirection } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgCartesianSeriesOptions } from 'ag-charts-types';
 
 import { expectPixelIdenticalAcrossUpdate } from '../../test/bigintExamples';
+import { getPathSeriesContextNodeData } from '../../test/communitySeriesAccessors';
+import { getSeriesAt } from '../../test/seriesAccessors';
+import type { Chart, ChartOrProxy } from '../../test/utils';
 import {
     createChart,
     deproxy,
@@ -12,6 +15,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../../test/utils';
+import type { LinePathSpan } from './lineUtil';
 
 /**
  * Area and line series reuse node, point and span objects between `createNodeData()` passes, which is what a
@@ -78,8 +82,8 @@ const copy = (value: unknown, replacer?: (key: string, value: unknown) => unknow
 const withoutSeries = (key: string, value: unknown) => (key === 'series' ? undefined : value);
 
 /** Everything the renderer and hit-testing read from a series' latest node data, detached from live objects. */
-function snapshotNodeData(series: any) {
-    const { nodeData, strokeData, fillData } = series.contextNodeData;
+function snapshotNodeData(chart: ChartOrProxy<any>, seriesIndex: number) {
+    const { nodeData, strokeData, fillData } = getPathSeriesContextNodeData(chart, seriesIndex);
     return {
         nodes: copy(nodeData, withoutSeries),
         stroke: copy(strokeData.spans),
@@ -87,13 +91,15 @@ function snapshotNodeData(series: any) {
     };
 }
 
-const snapshotChart = (chart: any) => chart.series.map(snapshotNodeData);
+const snapshotChart = (chart: ChartOrProxy<any>) =>
+    deproxy(chart).series.map((_, seriesIndex) => snapshotNodeData(chart, seriesIndex));
 
 /** Checks the nodes and spans of a series against the datums they carry, using the series' own scales. */
-function expectNodeDataOnDatums(series: any, where: string) {
-    const { scale: xScale } = series.axes[ChartAxisDirection.X];
-    const { scale: yScale } = series.axes[ChartAxisDirection.Y];
-    const { nodeData, strokeData, fillData } = series.contextNodeData;
+function expectNodeDataOnDatums(chart: ChartOrProxy<any>, seriesIndex: number, where: string) {
+    const { axes } = getSeriesAt(chart, seriesIndex);
+    const { scale: xScale } = axes[ChartAxisDirection.X]!;
+    const { scale: yScale } = axes[ChartAxisDirection.Y]!;
+    const { nodeData, strokeData, fillData } = getPathSeriesContextNodeData(chart, seriesIndex);
 
     expect(nodeData.length, where).toBeGreaterThan(0);
     for (const node of nodeData) {
@@ -103,13 +109,15 @@ function expectNodeDataOnDatums(series: any, where: string) {
         expect(node.midPoint, where).toEqual({ x: node.point.x, y: node.point.y });
     }
 
-    for (const spans of [strokeData.spans, fillData?.spans ?? []] as any[][]) {
+    for (const spans of [strokeData.spans, fillData?.spans ?? []]) {
         for (const { span, xValue0, yValue0, xValue1, yValue1 } of spans) {
+            // These cases draw straight segments, which is what makes a span's end points the datums' positions.
+            if (span.type === 'cubic') expect.fail(`${where}: unexpected cubic span`);
             expect(span.x0, where).toBeCloseTo(xScale.convert(xValue0), 6);
             expect(span.y0, where).toBeCloseTo(yScale.convert(yValue0), 6);
             expect(span.x1, where).toBeCloseTo(xScale.convert(xValue1), 6);
             expect(span.y1, where).toBeCloseTo(yScale.convert(yValue1), 6);
-            for (const mid of span.midPoints ?? []) {
+            for (const mid of 'midPoints' in span ? span.midPoints : []) {
                 expect(mid.x, where).toBeGreaterThanOrEqual(span.x0);
                 expect(mid.x, where).toBeLessThanOrEqual(span.x1);
             }
@@ -119,9 +127,10 @@ function expectNodeDataOnDatums(series: any, where: string) {
 }
 
 /** A span that ends on the datum the next one starts from must meet it exactly. */
-function expectAdjacentSpansMeet(spans: any[], where: string) {
+function expectAdjacentSpansMeet(spans: LinePathSpan[], where: string) {
     for (let i = 1; i < spans.length; i++) {
         const [prev, next] = [spans[i - 1], spans[i]];
+        if (prev.span.type === 'cubic' || next.span.type === 'cubic') expect.fail(`${where}: unexpected cubic span`);
         if (prev.xValue1 !== next.xValue0) continue;
         expect(prev.span.x1, `${where}, span ${i}`).toBe(next.span.x0);
         if (prev.yValue1 === next.yValue0) {
@@ -142,7 +151,7 @@ describe('area and line series zoom updates', () => {
     async function zoomThrough(
         type: SeriesType,
         variant: Variant,
-        check: (chart: any, range: [number, number]) => Promise<void> | void
+        check: (chart: Chart, range: [number, number]) => Promise<void> | void
     ) {
         const chart = deproxy(await createChart(buildOptions(type, variant)));
         try {
@@ -178,8 +187,8 @@ describe('area and line series zoom updates', () => {
 
         it.each(cases)('%s positions every node and span on the datum it carries', async (_, type, variant) => {
             await zoomThrough(type, variant, (chart, range) => {
-                for (const series of chart.series as any[]) {
-                    expectNodeDataOnDatums(series, `zoom ${range}`);
+                for (let seriesIndex = 0; seriesIndex < chart.series.length; seriesIndex++) {
+                    expectNodeDataOnDatums(chart, seriesIndex, `zoom ${range}`);
                 }
             });
         });
@@ -187,9 +196,8 @@ describe('area and line series zoom updates', () => {
         it.each(cases)('%s leaves the node data of an earlier update untouched', async (_, type, variant) => {
             const chart = deproxy(await createChart(buildOptions(type, variant, ZOOM_SEQUENCE[0])));
             try {
-                const [series] = chart.series as any[];
-                const before = series.contextNodeData;
-                const earlier = snapshotNodeData(series);
+                const before = getPathSeriesContextNodeData(chart);
+                const earlier = snapshotNodeData(chart, 0);
                 const earlierSpans = [before.strokeData.spans, before.fillData?.spans];
 
                 await chart.publicApi!.update(prepareTestOptions(buildOptions(type, variant, ZOOM_SEQUENCE[1])));
@@ -208,18 +216,17 @@ describe('area and line series zoom updates', () => {
             async (_, type, variant) => {
                 const chart = deproxy(await createChart(buildOptions(type, variant, ZOOM_SEQUENCE[0])));
                 try {
-                    const [series] = chart.series as any[];
                     // Keyboard focus enlarges the focused node's `point` in place (`applyFocusSize`).
-                    for (const node of series.contextNodeData.nodeData.slice(0, 20)) {
-                        node.point.focusSize = MARKER_SIZE * 3;
+                    for (const node of getPathSeriesContextNodeData(chart).nodeData.slice(0, 20)) {
+                        Object.assign(node.point, { focusSize: MARKER_SIZE * 3 });
                     }
 
                     await chart.publicApi!.update(prepareTestOptions(buildOptions(type, variant, ZOOM_SEQUENCE[1])));
                     await waitForChartStability(chart);
 
-                    const { nodeData } = series.contextNodeData;
+                    const { nodeData } = getPathSeriesContextNodeData(chart);
                     expect(nodeData.length).toBeGreaterThan(20);
-                    expect(nodeData.filter((node: any) => node.point.focusSize !== undefined)).toEqual([]);
+                    expect(nodeData.filter((node) => node.point.focusSize !== undefined)).toEqual([]);
                 } finally {
                     chart.destroy();
                 }

@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Transformable, mapValues } from 'ag-charts-core';
+import type { Rect } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgHistogramSeriesLabelPlacement,
-    AgNumericValue,
+    AgHistogramSeriesOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -15,7 +16,18 @@ import {
     expectPixelIdenticalAcrossMagnitude,
     magnitudePair,
 } from '../../test/bigintExamples';
+import {
+    getHistogramBins,
+    getSeriesLabelObstacles,
+    getVisibleLabelTextNodes,
+} from '../../test/communitySeriesAccessors';
 import { type ChartTestCase, COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES } from '../../test/examples-gallery';
+import {
+    getSeriesAt,
+    getSeriesContextNodeData,
+    getSeriesNodeData,
+    getSeriesSelectionNodes,
+} from '../../test/seriesAccessors';
 import type { ChartOrProxy, SceneGeometrySample, SceneNodeExpectation } from '../../test/utils';
 import {
     cartesianChartAssertions,
@@ -41,12 +53,18 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from '../../test/utils';
-import type { SeriesNodeDataContext } from '../series';
 import {
     HISTOGRAM_DATE_BASED_BUCKETS,
     HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
     HISTOGRAM_SERIES_LABELS,
 } from '../test/examples';
+import type { HistogramNodeDatum } from './histogramSeries';
+
+// The scatter datum the overlapping-series test picks by its source row and hovers at its canvas position.
+interface ScatterTestDatum {
+    datum: Record<string, unknown>;
+    point: { x: number; y: number };
+}
 
 const EXAMPLES: Record<string, ChartTestCase> = {
     SIMPLE_HISTOGRAM: GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE,
@@ -77,7 +95,7 @@ describe('HistogramSeries', () => {
         await compareImageSnapshot(chart, ctx);
     };
 
-    const nodeDataOf = (c: any) => (deproxy(c).series[0] as any).getNodeData() as any[];
+    const nodeDataOf = (c: ChartOrProxy<any>) => getSeriesNodeData<HistogramNodeDatum>(c);
 
     const exampleOptions = (
         example: { options: AgChartOptions },
@@ -174,16 +192,16 @@ describe('HistogramSeries', () => {
 
             chart = deproxy(await createChart(options));
 
-            const series = chart.series.find((v: any) => v.type === 'scatter');
-            if (series == null) fail('No series found');
+            const seriesIndex = chart.series.findIndex((v) => v.type === 'scatter');
+            if (seriesIndex < 0) fail('No series found');
 
-            const context: SeriesNodeDataContext<any, any> = (series as any)['contextNodeData'];
-            const item = context.nodeData.find((n) => n.datum['weight'] === 65.6 && n.datum['age'] === 21);
+            const { nodeData } = getSeriesContextNodeData<ScatterTestDatum>(chart, seriesIndex);
+            const item = nodeData.find((n) => n.datum['weight'] === 65.6 && n.datum['age'] === 21);
 
             const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
-                series.contentGroup,
-                item.point.x,
-                item.point.y
+                chart.series[seriesIndex].contentGroup,
+                item!.point.x,
+                item!.point.y
             );
 
             await hoverAction(x, y)(chart);
@@ -194,7 +212,7 @@ describe('HistogramSeries', () => {
     });
 
     describe('getItemId', () => {
-        const itemIdsOf = (c: any) => nodeDataOf(c).map((n) => n.itemId);
+        const itemIdsOf = (c: ChartOrProxy<any>) => nodeDataOf(c).map((n) => n.itemId);
 
         const binnedOptions = (
             series: Partial<NonNullable<AgCartesianChartOptions['series']>[number]> = {},
@@ -424,13 +442,16 @@ describe('HistogramSeries', () => {
             expect(nonZeroBin.label).toBeDefined();
         });
 
-        const firstBinCanvasPoint = (c: any) => {
-            const series = deproxy(c).series[0] as any;
-            const node = series.getNodeData()[0];
-            return Transformable.toCanvasPoint(series.contentGroup, node.x + node.width / 2, node.y + node.height / 2);
+        const firstBinCanvasPoint = (c: ChartOrProxy<any>) => {
+            const node = nodeDataOf(c)[0];
+            return Transformable.toCanvasPoint(
+                getSeriesAt(c).contentGroup,
+                node.x + node.width / 2,
+                node.y + node.height / 2
+            );
         };
 
-        const clickFirstBin = async (c: any) => {
+        const clickFirstBin = async (c: ChartOrProxy<any>) => {
             const { canvasX: x, canvasY: y } = firstBinCanvasPoint(c);
             await clickAction(x, y)(c);
             await waitForChartStability(c);
@@ -504,13 +525,12 @@ describe('HistogramSeries', () => {
             const renderer = vi.fn((_params: any) => ({}));
             chart = await createChart(binOptions({ tooltip: { renderer } }));
 
-            const series = deproxy(chart).series[0] as any;
-            const emptyBins = (series.getNodeData() as any[]).filter((n) => n.frequency === 0);
+            const emptyBins = nodeDataOf(chart).filter((n) => n.frequency === 0);
             expect(emptyBins.map((n) => n.binIndex)).toEqual([1, 2]);
 
             for (const node of emptyBins) {
                 renderer.mockClear();
-                series.getTooltipContent(node.datumIndex);
+                getSeriesAt(chart).getTooltipContent(node.datumIndex, undefined);
                 expect(renderer).toHaveBeenCalledTimes(1);
                 expect(renderer.mock.calls[0][0]).toMatchObject({
                     binIndex: node.binIndex,
@@ -544,9 +564,9 @@ describe('HistogramSeries', () => {
             ],
         });
 
-        const firstBinLabel = (c: any) => {
+        const firstBinLabel = (c: ChartOrProxy<any>) => {
             const node = nodeDataOf(c)[0];
-            return { node, label: node.label };
+            return { node, label: node.label! };
         };
 
         it('keeps inside-center at the bar centre (unchanged default)', async () => {
@@ -644,8 +664,7 @@ describe('HistogramSeries', () => {
             chart = await createChart(labelOptions({ placement: 'outside-end', orientation: 'vertical', spacing: 0 }));
             const { label } = firstBinLabel(chart);
             expect(label.rotation).toBeCloseTo(-Math.PI / 2);
-            const series = deproxy(chart).series[0] as any;
-            const textNode = series.labelSelection.nodes().find((n: any) => n.visible);
+            const [textNode] = getVisibleLabelTextNodes(chart);
             expect(textNode).toBeDefined();
             expect(textNode.rotation).toBeCloseTo(-Math.PI / 2);
         });
@@ -662,7 +681,8 @@ describe('HistogramSeries', () => {
 
         // Frequency data is all-positive, so the bar base sits on the plot floor. Extend the y-axis
         // below zero so outside-start labels (rendered below the base) have room instead of being clipped.
-        const axes = HISTOGRAM_SERIES_LABELS.axes as any;
+        // The example keys its axes by position, which `axes` also accepts as a list: narrow it to read `y` back.
+        const axes = HISTOGRAM_SERIES_LABELS.axes as { x: object; y: object };
         const withPlacement = (label: Record<string, unknown>) => ({
             options: {
                 ...HISTOGRAM_SERIES_LABELS,
@@ -715,7 +735,7 @@ describe('HistogramSeries', () => {
             series: [{ type: 'histogram', xKey: 'x', yKey: 'y', aggregation: 'sum', bins, ...(series as object) }],
         });
 
-        const styleOf = (c: any) => nodeDataOf(c).map((n) => n.style);
+        const styleOf = (c: ChartOrProxy<any>) => nodeDataOf(c).map((n) => n.style!);
 
         it('passes the bin metadata to itemStyler and applies the returned style for every bin', async () => {
             const params: any[] = [];
@@ -1108,16 +1128,14 @@ describe('HistogramSeries', () => {
 
             // Toggle series invisible (simulates legend click)
             animate(1200, 0.5);
-            (options.series![0] as any).visible = false;
+            (options.series![0] as AgHistogramSeriesOptions).visible = false;
             await chart.update(prepareTestOptions(options));
             await waitForChartStability(chart);
 
-            const chartInstance = deproxy(chart);
-            const invisibleSeries = chartInstance.series[0] as any;
-            const nodeData = invisibleSeries.contextNodeData?.nodeData;
+            const { nodeData } = getSeriesContextNodeData<HistogramNodeDatum>(chart);
 
-            expect(nodeData!.length).toBeGreaterThan(0);
-            expect(nodeData!.some((d: any) => d.frequency > 0)).toBe(true);
+            expect(nodeData.length).toBeGreaterThan(0);
+            expect(nodeData.some((d) => d.frequency > 0)).toBe(true);
         });
 
         // Axis domain collapse makes intermediate frames visually blank, so geometry is asserted directly
@@ -1129,10 +1147,8 @@ describe('HistogramSeries', () => {
             chart = await createChart(options);
 
             // Record initial bar heights from the fully-rendered chart.
-            const chartInstance = deproxy(chart);
-            const series = chartInstance.series[0] as any;
             const getBarHeights = (): number[] =>
-                Array.from(series.datumSelection.nodes() as Iterable<any>, (rect: any) => rect.height as number);
+                getSeriesSelectionNodes<Rect>(chart, 'datumSelection').map((rect) => rect.height);
 
             const initialHeights = getBarHeights();
             expect(initialHeights.length).toBeGreaterThan(0);
@@ -1141,7 +1157,7 @@ describe('HistogramSeries', () => {
             // Animate at 10% of total (40% through the remove phase which spans 0-25%).
             // Toggle invisible via options update matching the barSeries legend toggle pattern.
             animate(1200, 0.1);
-            (options.series![0] as any).visible = false;
+            (options.series![0] as AgHistogramSeriesOptions).visible = false;
             await chart.update(prepareTestOptions(options));
             await waitForChartStability(chart);
 
@@ -1215,7 +1231,7 @@ describe('HistogramSeries', () => {
 
             chart = await createChart(options);
 
-            const bin = nodeDataOf(chart).find((n: any) => n.aggregatedValue != null);
+            const bin = nodeDataOf(chart).find((n) => n.aggregatedValue != null);
             expect(bin).toBeDefined();
             // A narrowing convert() would round this sum; the bigint path keeps it exact.
             expect(bin!.aggregatedValue).toBe(3n * big);
@@ -1233,10 +1249,7 @@ describe('HistogramSeries', () => {
 
             chart = await createChart(options);
 
-            const series = deproxy(chart).series[0] as unknown as {
-                calculatedBins: { domain: [bigint, bigint]; frequency: number }[];
-            };
-            const bins = series.calculatedBins;
+            const bins = getHistogramBins(chart);
 
             expect(bins.length).toBeGreaterThan(0);
             for (const bin of bins) {
@@ -1259,10 +1272,7 @@ describe('HistogramSeries', () => {
 
             chart = await createChart(options);
 
-            const series = deproxy(chart).series[0] as unknown as {
-                calculatedBins: { domain: [AgNumericValue, AgNumericValue]; frequency: number }[];
-            };
-            const bins = series.calculatedBins;
+            const bins = getHistogramBins(chart);
 
             expect(bins.length).toBeGreaterThan(0);
             for (const bin of bins) {
@@ -1312,14 +1322,8 @@ describe('HistogramSeries', () => {
             };
             chart = await createChart(options);
 
-            const series = deproxy(chart).series[0] as any;
-            const nodeData = series.contextNodeData?.nodeData as Array<{
-                x: number;
-                y: number;
-                width: number;
-                height: number;
-            }>;
-            const obstacles = series.getLabelObstacles();
+            const { nodeData } = getSeriesContextNodeData<HistogramNodeDatum>(chart);
+            const obstacles = getSeriesLabelObstacles(chart);
 
             expect(nodeData.length).toBeGreaterThan(0);
             expect(obstacles).toEqual(

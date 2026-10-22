@@ -27,9 +27,11 @@ import {
     magnitudePair,
     scaleToBigIntFinite,
 } from '../../test/bigintExamples';
+import { getAxisGridLineVisibility, getXCoordinateRange } from '../../test/communitySeriesAccessors';
 import * as examples from '../../test/examples';
 import { type MockBubbleStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
+import { getSeriesNodeData } from '../../test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -54,10 +56,7 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 
-const nodeSizes = (c: AgChartInstance) =>
-    (deproxy(c).series[0] as unknown as { getNodeData(): Array<{ point: { size: number } }> })
-        .getNodeData()
-        .map((d) => d.point.size);
+const nodeSizes = (c: AgChartInstance) => getSeriesNodeData<{ point: { size: number } }>(c).map((d) => d.point.size);
 
 describe('BubbleSeries', () => {
     setupMockConsole();
@@ -1682,10 +1681,7 @@ describe('BubbleSeries', () => {
 
         it('T11 uses the area-mode size for axis padding', async () => {
             await createBubble({ sizeMode: 'area', minSize: 10, maxSize: 30, sizeDomain: [0, 100] });
-            const series = deproxy(chart).series[0] as unknown as {
-                xCoordinateRange(x: number, pixelSize: number, index: number): [number, number];
-            };
-            const [lo, hi] = series.xCoordinateRange(2, 1, 1);
+            const [lo, hi] = getXCoordinateRange(chart, 2, 1, 1);
             expect(hi - lo).toBeCloseTo(nodeSizes(chart)[1], 6);
             expect(hi - lo).toBeGreaterThan(20);
         });
@@ -1780,8 +1776,7 @@ describe('BubbleSeries', () => {
 
     describe('AG-18413 a key naming no column', () => {
         type NodeDatum = { point: { size: number }; label: { text: string } };
-        const nodeData = (c: AgChartInstance) =>
-            (deproxy(c).series[0] as unknown as { getNodeData(): NodeDatum[] }).getNodeData();
+        const nodeData = (c: AgChartInstance) => getSeriesNodeData<NodeDatum>(c);
 
         const defaultData = [
             { x: 1, y: 1, s: 10, l: 'a' },
@@ -1794,10 +1789,7 @@ describe('BubbleSeries', () => {
             { x: 3, y: 3, '': 30 },
         ];
 
-        const gridLinesVisible = (c: AgChartInstance) =>
-            (deproxy(c).axes as unknown as { gridLineGroup: { visible: boolean } }[]).map(
-                (a) => a.gridLineGroup.visible
-            );
+        const gridLinesVisible = (c: AgChartInstance) => getAxisGridLineVisibility(c);
 
         const createBubble = async (seriesOverrides: object, data: object[] = defaultData) => {
             const options = {
@@ -1949,12 +1941,9 @@ describe('BubbleSeries undefined size value emits no warning on visible-range co
         };
         const chart = await createChart(options);
 
-        const series = deproxy(chart).series[0] as unknown as {
-            xCoordinateRange(xValue: number, pixelSize: number, index: number): [number, number];
-        };
         // The visible-range scan sizes each datum via xCoordinateRange; the missing-size rows
         // start at validCount.
-        series.xCoordinateRange(validCount, 0, validCount);
+        getXCoordinateRange(chart, validCount, 0, validCount);
 
         expectWarningsCalls().toMatchInlineSnapshot(`[]`);
 

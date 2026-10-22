@@ -20,9 +20,11 @@ import {
     expectPixelIdenticalAcrossMagnitude,
     magnitudePair,
 } from '../../test/bigintExamples';
+import { getAxisGridLineVisibility, withUndocumentedOptions } from '../../test/communitySeriesAccessors';
 import * as examples from '../../test/examples';
 import { type MockScatterStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
+import { getSeriesNodeData } from '../../test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -165,7 +167,7 @@ describe('ScatterSeries', () => {
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
                 },
-                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+                series: [withUndocumentedOptions({ type: 'scatter', xKey: 'x', yKey: 'y' }, { allowNullKeys: true })],
             };
 
             chart = await createChart(options);
@@ -186,7 +188,7 @@ describe('ScatterSeries', () => {
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
                 },
-                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+                series: [withUndocumentedOptions({ type: 'scatter', xKey: 'x', yKey: 'y' }, { allowNullKeys: true })],
             };
 
             chart = await createChart(options);
@@ -1227,8 +1229,7 @@ describe('ScatterSeries', () => {
         });
     });
     describe('AG-18413 a key naming no column', () => {
-        const nodeData = (c: AgChartInstance) =>
-            (deproxy(c).series[0] as unknown as { getNodeData(): unknown[] }).getNodeData();
+        const nodeData = <TDatum = unknown>(c: AgChartInstance) => getSeriesNodeData<TDatum>(c);
 
         const defaultData = [
             { x: 1, y: 10, l: 'a' },
@@ -1261,11 +1262,7 @@ describe('ScatterSeries', () => {
             expect(nodeData(chart)).toEqual([]);
             expect(deproxy(chart).series[0].hasData).toBe(false);
             // The no-data overlay stands alone over the axes: no markers, and no gridlines behind it.
-            expect(
-                (deproxy(chart).axes as unknown as { gridLineGroup: { visible: boolean } }[]).map(
-                    (a) => a.gridLineGroup.visible
-                )
-            ).toEqual([false, false]);
+            expect(getAxisGridLineVisibility(chart)).toEqual([false, false]);
             expectWarningsCalls().toEqual([
                 [`AG Charts - the key ${key} was not found in any data element for ScatterSeries-1.`],
             ]);
@@ -1277,7 +1274,7 @@ describe('ScatterSeries', () => {
                 { x: 2, y: 20, '': 'b' },
             ]);
 
-            expect((nodeData(chart) as { label: { text: string } }[]).map((d) => d.label.text)).toEqual(['a', 'b']);
+            expect(nodeData<{ label: { text: string } }>(chart).map((d) => d.label.text)).toEqual(['a', 'b']);
             expectWarningsCalls().toEqual([]);
         });
 

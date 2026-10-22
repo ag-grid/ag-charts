@@ -7,9 +7,10 @@ import type { AgChartInstance, AgChartOptions, AgPieSeriesOptions, AgPolarChartO
 import { AgCharts } from '../../../api/agCharts';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
-import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
+import { toggleSeriesLegendItem, withUndocumentedOptions } from '../../test/communitySeriesAccessors';
 import * as examples from '../../test/examples';
 import { type MockPieCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
+import { getLegendItemNodes } from '../../test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -51,12 +52,9 @@ function* iterPieSectors(myChart: Chart) {
 }
 
 function* iterLegendMarkerLabels(myChart: Chart) {
-    for (const { legend } of deproxy(myChart).modulesManager.legends()) {
-        const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
-        for (const label of markerLabels) {
-            const { x, y } = Transformable.toCanvas(label).computeCenter();
-            yield { x, y, text: String(label.label.text) };
-        }
+    for (const label of getLegendItemNodes(myChart)) {
+        const { x, y } = Transformable.toCanvas(label).computeCenter();
+        yield { x, y, text: String(label.label.text) };
     }
 }
 
@@ -185,7 +183,7 @@ describe('PieSeries', () => {
         };
 
         const toggleSector = (proxy: AgChartInstance, index: number, enabled: boolean) => {
-            (deproxy(proxy).series[0] as any).toggleSeriesItem(enabled, 'category', index, undefined);
+            toggleSeriesLegendItem(proxy, enabled, index);
             deproxy(proxy).update(ChartUpdateType.FULL);
         };
 
@@ -760,13 +758,15 @@ describe('PieSeries', () => {
                     { asset: 'Bonds', amount: 40000 },
                 ],
                 series: [
-                    {
-                        type: 'pie',
-                        angleKey: 'amount',
-                        calloutLabelKey: 'asset',
-                        calloutLabel: { formatter: calloutLabelFormatter },
-                        allowNullKeys: true,
-                    } as any,
+                    withUndocumentedOptions<AgPieSeriesOptions>(
+                        {
+                            type: 'pie',
+                            angleKey: 'amount',
+                            calloutLabelKey: 'asset',
+                            calloutLabel: { formatter: calloutLabelFormatter },
+                        },
+                        { allowNullKeys: true }
+                    ),
                 ],
             };
 
@@ -784,15 +784,17 @@ describe('PieSeries', () => {
                     { asset: 'Bonds', amount: 40000 },
                 ],
                 series: [
-                    {
-                        type: 'pie',
-                        angleKey: 'amount',
-                        calloutLabelKey: 'asset',
-                        calloutLabel: {
-                            formatter: (params: any) => (params.value === null ? 'Unknown' : String(params.value)),
+                    withUndocumentedOptions<AgPieSeriesOptions>(
+                        {
+                            type: 'pie',
+                            angleKey: 'amount',
+                            calloutLabelKey: 'asset',
+                            calloutLabel: {
+                                formatter: (params: any) => (params.value === null ? 'Unknown' : String(params.value)),
+                            },
                         },
-                        allowNullKeys: true,
-                    } as any,
+                        { allowNullKeys: true }
+                    ),
                 ],
             };
 

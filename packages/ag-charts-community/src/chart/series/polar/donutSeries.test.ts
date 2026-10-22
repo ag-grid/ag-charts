@@ -2,7 +2,7 @@ import { loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { Transformable, boxOverlapsSector } from 'ag-charts-core';
-import type { BBox, Line, Sector, Text } from 'ag-charts-core';
+import type { BBox, Line, Sector, Shape, Text } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 import type {
     AgChartOptions,
@@ -15,9 +15,10 @@ import type {
 import { AgCharts } from '../../../api/agCharts';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
-import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
+import { getVisibleLabelTextNodes, withUndocumentedOptions } from '../../test/communitySeriesAccessors';
 import * as examples from '../../test/examples';
 import { type MockDonutCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
+import { getLegendItemNodes, getSeriesSelectionNodes } from '../../test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -36,16 +37,14 @@ import {
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
+import type { UnknownSeries } from '../series';
 import { DonutNodeTag, DonutSeries } from './donutSeries';
 import * as polarExamples from './test/examples';
 
 function* iterLegendMarkerLabels(myChart: Chart) {
-    for (const { legend } of deproxy(myChart).modulesManager.legends()) {
-        const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
-        for (const label of markerLabels) {
-            const { x, y } = Transformable.toCanvas(label).computeCenter();
-            yield { x, y, text: String(label.label.text) };
-        }
+    for (const label of getLegendItemNodes(myChart)) {
+        const { x, y } = Transformable.toCanvas(label).computeCenter();
+        yield { x, y, text: String(label.label.text) };
     }
 }
 
@@ -514,13 +513,15 @@ describe('DonutSeries', () => {
                     { asset: 'Bonds', amount: 40000 },
                 ],
                 series: [
-                    {
-                        type: 'donut',
-                        angleKey: 'amount',
-                        calloutLabelKey: 'asset',
-                        calloutLabel: { formatter: calloutLabelFormatter },
-                        allowNullKeys: true,
-                    } as any,
+                    withUndocumentedOptions<AgDonutSeriesOptions>(
+                        {
+                            type: 'donut',
+                            angleKey: 'amount',
+                            calloutLabelKey: 'asset',
+                            calloutLabel: { formatter: calloutLabelFormatter },
+                        },
+                        { allowNullKeys: true }
+                    ),
                 ],
             };
 
@@ -538,15 +539,17 @@ describe('DonutSeries', () => {
                     { asset: 'Bonds', amount: 40000 },
                 ],
                 series: [
-                    {
-                        type: 'donut',
-                        angleKey: 'amount',
-                        calloutLabelKey: 'asset',
-                        calloutLabel: {
-                            formatter: (params: any) => (params.value === null ? 'Unknown' : String(params.value)),
+                    withUndocumentedOptions<AgDonutSeriesOptions>(
+                        {
+                            type: 'donut',
+                            angleKey: 'amount',
+                            calloutLabelKey: 'asset',
+                            calloutLabel: {
+                                formatter: (params: any) => (params.value === null ? 'Unknown' : String(params.value)),
+                            },
                         },
-                        allowNullKeys: true,
-                    } as any,
+                        { allowNullKeys: true }
+                    ),
                 ],
             };
 
@@ -957,16 +960,24 @@ describe('DonutSeries', () => {
             { browser: 'Other', share: 0.1 },
         ];
 
-        const sectorLabelOpacities = (series: any): number[] => {
+        const sectorLabelOpacities = (seriesIndex: number): number[] => {
             const result: number[] = [];
-            series.labelSelection.each((node: Text, datum: any) => {
-                result[datum.datumIndex] = node.fillOpacity;
-            });
+            for (const node of getSeriesSelectionNodes<Text<{ datumIndex: number }>>(
+                chart,
+                'labelSelection',
+                seriesIndex
+            )) {
+                result[node.datum!.datumIndex] = node.fillOpacity;
+            }
             return result;
         };
-        const calloutOpacities = (series: any, tag: DonutNodeTag, property: 'fillOpacity' | 'strokeOpacity') => {
+        const calloutOpacities = (
+            series: UnknownSeries,
+            tag: DonutNodeTag,
+            property: 'fillOpacity' | 'strokeOpacity'
+        ) => {
             const result: number[] = [];
-            for (const node of series.calloutLabelSelection.selectByTag(tag)) {
+            for (const node of classCast(series, DonutSeries)['calloutLabelSelection'].selectByTag<Shape>(tag)) {
                 expect(node.visible).toBe(true);
                 result[node.unsafeClosestDatum().datumIndex] = node[property];
             }
@@ -1001,7 +1012,7 @@ describe('DonutSeries', () => {
         });
 
         test('lights the linked series labels with the legend owner on legend hover', async () => {
-            const [owner, linked] = (chart as any).series as any[];
+            const [owner, linked] = [0, 1];
             const [{ x, y }] = [...iterLegendMarkerLabels(chart)];
 
             await hoverAction(x, y)(chart);
@@ -1015,8 +1026,12 @@ describe('DonutSeries', () => {
 
             // The linked series must resolve every label exactly as the legend owner does.
             expect(sectorLabelOpacities(linked)).toEqual(ownerSector);
-            expect(calloutOpacities(linked, DonutNodeTag.CalloutLabel, 'fillOpacity')).toEqual(ownerSector);
-            expect(calloutOpacities(linked, DonutNodeTag.CalloutLine, 'strokeOpacity')).toEqual(ownerSector);
+            expect(calloutOpacities(chart.series[linked], DonutNodeTag.CalloutLabel, 'fillOpacity')).toEqual(
+                ownerSector
+            );
+            expect(calloutOpacities(chart.series[linked], DonutNodeTag.CalloutLine, 'strokeOpacity')).toEqual(
+                ownerSector
+            );
 
             await compare('donut-series-test-ts-legend-linked-label-highlight');
         });
@@ -1436,9 +1451,7 @@ describe('DonutSeries', () => {
                     series: [{ type: 'donut', angleKey: 'size', sectorLabelKey: 'name', sectorLabel }],
                 })
             );
-            const nodes: Text[] = [];
-            (chart as any).series[0].labelSelection.each((node: Text) => nodes.push(node));
-            return nodes.filter((node) => node.visible);
+            return getVisibleLabelTextNodes(chart);
         };
 
         test('shrinks labels toward minimumFontSize until their lineHeight fits the wedge', async () => {
@@ -1523,8 +1536,8 @@ describe('DonutSeries', () => {
         });
 
         const innerLabelGeometry = (myChart: Chart) => {
-            const [series] = (myChart as any).series as any[];
-            return (series.innerLabelsSelection.nodes() as Text[]).map((node) => {
+            const series = classCast(deproxy(myChart).series[0], DonutSeries);
+            return series.innerLabelsSelection.nodes().map((node) => {
                 const bbox = node.getBBox();
                 return { y: node.y, top: bbox.y, visible: node.visible, width: bbox.width, height: bbox.height };
             });
@@ -1588,6 +1601,7 @@ describe('DonutSeries', () => {
 
             await chart.publicApi!.update(
                 prepareTestOptions(
+                    // Malformed on purpose: an image segment the option types reject, which the warning below reports.
                     segmentsOptions([{ text: [{ type: 'image', width: 10, height: 10 } as any] }])
                 ) as AgChartOptions
             );
@@ -1751,9 +1765,14 @@ describe('DonutSeries', () => {
             { asset: 'Real Estate', amount: 15 },
         ];
 
-        // `itemSelection` is protected on PolarSeries; the cutouts are asserted against the real
-        // sector nodes, so the test compares production values with production values.
-        const sectorNodes = (series: DonutSeries) => (series as any).itemSelection.nodes() as Sector[];
+        // The cutouts are asserted against the real sector nodes, so the test compares production values with
+        // production values.
+        const sectorNodes = (series: DonutSeries) =>
+            getSeriesSelectionNodes<Sector>(
+                chart,
+                'itemSelection',
+                chart.series.findIndex((candidate) => candidate === series)
+            );
         const circleSize = (series: DonutSeries) => series.innerCircleSelection.nodes()[0].size;
 
         const createDonut = async (series: Partial<AgDonutSeriesOptions>) => {

@@ -17,7 +17,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import { buildLogAxisTestCase } from '../../test/axisTestCases';
 import {
     BIG,
@@ -31,6 +30,7 @@ import {
     magnitudePair,
     scaleToBigIntFinite,
 } from '../../test/bigintExamples';
+import { withUndocumentedOptions } from '../../test/communitySeriesAccessors';
 import { CUSTOM_SVG_PATHS, INVALID_CUSTOM_SVG_PATHS } from '../../test/customSvgPaths';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
@@ -42,6 +42,7 @@ import {
 import * as examples from '../../test/examples';
 import { type MockAreaStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
+import { getLegendItemNodes } from '../../test/seriesAccessors';
 import type {
     CartesianOrPolarTestCase,
     ChartTestCase,
@@ -2305,11 +2306,8 @@ describe('AreaSeries', () => {
         }
 
         function* iterLegendMarkerLabels(myChart: AgChartInstance) {
-            for (const { legend } of deproxy(myChart).modulesManager.legends()) {
-                const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
-                for (const label of markerLabels) {
-                    yield Transformable.toCanvas(label).computeCenter();
-                }
+            for (const label of getLegendItemNodes(myChart)) {
+                yield Transformable.toCanvas(label).computeCenter();
             }
         }
 
@@ -3819,7 +3817,7 @@ describe('AreaSeries', () => {
             ];
             chart = await createChart({
                 data,
-                series: [{ type: 'area', xKey: 'x', yKey: 'y', selectedKey: 'selected' } as any],
+                series: [withUndocumentedOptions({ type: 'area', xKey: 'x', yKey: 'y' }, { selectedKey: 'selected' })],
             });
 
             await compare();

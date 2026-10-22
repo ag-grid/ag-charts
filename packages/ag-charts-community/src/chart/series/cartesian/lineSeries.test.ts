@@ -13,6 +13,7 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import type { Marker } from '../../marker/marker';
 import { buildLogAxisTestCase } from '../../test/axisTestCases';
 import {
     BIG,
@@ -26,6 +27,7 @@ import {
     magnitudePair,
     scaleToBigIntFinite,
 } from '../../test/bigintExamples';
+import { getSeriesPaths, withUndocumentedOptions } from '../../test/communitySeriesAccessors';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
@@ -36,6 +38,7 @@ import {
 import * as examples from '../../test/examples';
 import { type MockLineStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
+import { getSeriesContextNodeData, getSeriesOptions, getSeriesSelectionNodes } from '../../test/seriesAccessors';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     type PhasedPropertyExpectation,
@@ -1459,7 +1462,7 @@ describe('LineSeries', () => {
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
 
-            const strokeOf = () => (deproxy(chart).series[0] as any).options.stroke;
+            const strokeOf = () => getSeriesOptions<AgLineSeriesOptions>(chart).stroke;
             const strokeBefore = strokeOf();
             await chart.update({ ...options, theme: 'ag-sheets' });
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
@@ -1895,19 +1898,21 @@ describe('LineSeries', () => {
                     { x: 'B', y: 15 },
                 ],
                 series: [
-                    {
-                        type: 'line',
-                        xKey: 'x',
-                        yKey: 'y',
-                        allowNullKeys: true,
-                        marker: {
-                            size: 20,
-                            itemStyler: (params: AgLineSeriesMarkerItemStylerParams<unknown, unknown>) => {
-                                if (params.first) return { fill: 'red' };
-                                if (params.last) return { fill: 'blue' };
+                    withUndocumentedOptions(
+                        {
+                            type: 'line',
+                            xKey: 'x',
+                            yKey: 'y',
+                            marker: {
+                                size: 20,
+                                itemStyler: (params: AgLineSeriesMarkerItemStylerParams<unknown, unknown>) => {
+                                    if (params.first) return { fill: 'red' };
+                                    if (params.last) return { fill: 'blue' };
+                                },
                             },
                         },
-                    } as any,
+                        { allowNullKeys: true }
+                    ),
                 ],
                 axes: {
                     x: { type: 'category', position: 'bottom' },
@@ -2934,11 +2939,7 @@ describe('LineSeries', () => {
     });
 
     describe('aggregation data size transitions', () => {
-        const getNodeDataCount = () => {
-            const chartInstance = deproxy(chart);
-            const series = chartInstance.series[0] as any;
-            return series.contextNodeData?.nodeData?.length ?? 0;
-        };
+        const getNodeDataCount = () => getSeriesContextNodeData(chart).nodeData.length;
 
         it('should render consistent node count after data size transitions (small -> large -> small)', async () => {
             const smallData = Array.from({ length: 100 }, (_, i) => ({ x: i, y: Math.random() * 100 }));
@@ -3034,9 +3035,8 @@ describe('LineSeries', () => {
 
                 // Activate highlighting on series 1 directly via highlightManager
                 const chartInstance = deproxy(chart);
-                const series1 = chartInstance.series[1] as any;
-                const nodeData = series1.contextNodeData?.nodeData;
-                expect(nodeData?.length).toBeGreaterThan(0);
+                const { nodeData } = getSeriesContextNodeData(chart, 1);
+                expect(nodeData.length).toBeGreaterThan(0);
                 chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, nodeData[0]);
                 await waitForChartStability(chart);
 
@@ -3051,8 +3051,7 @@ describe('LineSeries', () => {
 
                 // The default theme sets unhighlightedSeries.opacity = 0.2.
                 // With the fix, animation targets 0.2; with the bug, it targeted 1.
-                const series0 = chartInstance.series[0] as any;
-                const path = series0.paths?.[0];
+                const [path] = getSeriesPaths(chart, 0);
                 if (ratio === 1) {
                     expect(path.opacity).toBeCloseTo(0.2, 1);
                 } else if (ratio === 0.5) {
@@ -3166,9 +3165,8 @@ describe('LineSeries', () => {
 
                 // Activate highlighting so steady-state drawing mode would be 'cutout'
                 const chartInstance = deproxy(chart);
-                const series1 = chartInstance.series[1] as any;
-                const nodeData = series1.contextNodeData?.nodeData;
-                expect(nodeData?.length).toBeGreaterThan(0);
+                const { nodeData } = getSeriesContextNodeData(chart, 1);
+                expect(nodeData.length).toBeGreaterThan(0);
                 chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, nodeData[0]);
                 await waitForChartStability(chart);
 
@@ -3186,9 +3184,7 @@ describe('LineSeries', () => {
 
                 // During animation markers must composite as 'overlay'; 'cutout' erases the line stroke underneath and
                 // leaves gaps.
-                const series0 = chartInstance.series[0] as any;
-                const datumSelection = series0.datumSelection;
-                for (const { node } of datumSelection) {
+                for (const node of getSeriesSelectionNodes<Marker>(chart, 'datumSelection', 0)) {
                     expect(node.drawingMode).toBe('overlay');
                 }
             });
@@ -3214,12 +3210,8 @@ describe('LineSeries', () => {
 
             chart = await createChart(options);
 
-            const chartInstance = deproxy(chart);
-            const series1 = chartInstance.series[1] as any;
-
             // Confirm contextNodeData exists and is not marked invisible
-            expect(series1.contextNodeData).toBeDefined();
-            expect(series1.contextNodeData?.visible).not.toBe(false);
+            expect(getSeriesContextNodeData(chart, 1).visible).not.toBe(false);
 
             // Hide second series (simulates legend click / setLegendState)
             (options.series![1] as AgLineSeriesOptions).visible = false;
@@ -3227,7 +3219,7 @@ describe('LineSeries', () => {
             await waitForChartStability(chart);
 
             // Core assertion: _contextNodeData.visible must be synced to false
-            expect(series1.contextNodeData?.visible).toBe(false);
+            expect(getSeriesContextNodeData(chart, 1).visible).toBe(false);
         });
     });
 
@@ -3240,7 +3232,7 @@ describe('LineSeries', () => {
             ];
             chart = await createChart({
                 data,
-                series: [{ type: 'line', xKey: 'x', yKey: 'y', selectedKey: 'selected' } as any],
+                series: [withUndocumentedOptions({ type: 'line', xKey: 'x', yKey: 'y' }, { selectedKey: 'selected' })],
             });
 
             await compare();
@@ -3342,7 +3334,7 @@ describe('LineSeries', () => {
                     x: { type: 'time', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
                 },
-            } as unknown as AgCartesianChartOptions;
+            };
             chart = await createChart(options);
             await compare();
         });
