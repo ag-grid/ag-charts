@@ -37,6 +37,7 @@ const {
     added = [],
     removed = [],
     errors = [],
+    excluded = [],
     skippedBelowMinVersion = [],
 } = JSON.parse(fs.readFileSync(argv.input, 'utf8'));
 
@@ -85,6 +86,8 @@ const notes = [];
 if (added.length > 0) notes.push(`${added.length} added`);
 if (removed.length > 0) notes.push(`${removed.length} removed`);
 if (errors.length > 0) notes.push(`${errors.length} errors`);
+if (excluded.length > 0)
+    notes.push(`${excluded.length} excluded (failed or timed out: ${excluded.map((e) => e.split(':')[0]).join(', ')})`);
 if (skippedBelowMinVersion.length > 0) notes.push(`${skippedBelowMinVersion.length} skipped (base below min version)`);
 if (notes.length > 0) {
     blocks.push({ type: 'divider' });
