@@ -603,6 +603,20 @@ describe('DataService', () => {
             consoleWarnSpy.mockRestore();
         });
 
+        // `isLoading()` also reads `inFlightCount > 0`, so an over-decrement (count of -1) still reports "not
+        // loading" once settled. Start one more request: it must read as loading until it resolves.
+        async function expectNextRequestToLoad(dataSourceCallback: MockInstance) {
+            const next = deferred<any>();
+            dataSourceCallback.mockImplementationOnce(() => next.promise);
+            dataService.load({ windowStart: new Date('2026-01-01'), windowEnd: new Date('2026-02-01') });
+            await sleep();
+            expect(dataService.isLoading()).toBe(true);
+
+            next.resolve([{ datum: 'next' }]);
+            await sleep();
+            expect(dataService.isLoading()).toBe(false);
+        }
+
         it('should report loading immediately after `load()`, before the throttled fetch fires', async () => {
             dataService.updateCallback(vi.fn((_params) => Promise.resolve([{ datum: 'value' }])));
             dataService.load(definedWindow);
@@ -643,6 +657,7 @@ describe('DataService', () => {
             requests[1].resolve([{ datum: 2 }]);
             await sleep();
             expect(dataService.isLoading()).toBe(false);
+            await expectNextRequestToLoad(dataSourceCallback);
         });
 
         it('should clear the loading state after an invalid response (no stuck spinner)', async () => {
@@ -653,6 +668,7 @@ describe('DataService', () => {
             await sleep();
 
             expect(dataService.isLoading()).toBe(false);
+            await expectNextRequestToLoad(dataSourceCallback);
         });
 
         it('should clear the loading state after the callback rejects (no stuck spinner)', async () => {
@@ -663,6 +679,7 @@ describe('DataService', () => {
             await sleep();
 
             expect(dataService.isLoading()).toBe(false);
+            await expectNextRequestToLoad(dataSourceCallback);
         });
 
         it('should hold the loading state open until a secondary (mini-chart) request settles', async () => {
@@ -686,6 +703,7 @@ describe('DataService', () => {
             secondary.resolve([{ datum: 'mini' }]);
             await sleep();
             expect(dataService.isLoading()).toBe(false);
+            await expectNextRequestToLoad(dataSourceCallback);
         });
     });
 });

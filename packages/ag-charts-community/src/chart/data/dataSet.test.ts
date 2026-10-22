@@ -2116,7 +2116,7 @@ describe('DataSet', () => {
 
         it('warns when dataIdKey field is not found on any data item', () => {
             const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], testLogger, 'nonExistent');
-            // Deliberately a datum the DataSet does not hold: it has no `id`, so the `dataIdKey` lookup finds nothing.
+            // Deliberately not an `Item`: it has the `nonExistent` key, with a value no held datum matches.
             dataSet.addTransaction({ remove: [{ nonExistent: 'x' } as unknown as Item] });
             dataSet.commitPendingTransactions(undefined);
             expectWarningMessages([

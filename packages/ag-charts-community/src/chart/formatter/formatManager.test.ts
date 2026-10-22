@@ -14,11 +14,7 @@ import {
     waitForChartStability,
 } from '../test/utils';
 
-/**
- * Returns the series options unchanged, typed as accepting `allowNullKeys`. That is an internal series option (the
- * option processing sets it from `displayNullData`), so the public series option types, and their excess-property
- * check on an object literal, do not know it.
- */
+// `allowNullKeys` is internal (set from `displayNullData`), so the public series types reject it.
 function withInternalOptions<const T extends object>(series: T): T & { allowNullKeys?: boolean } {
     return series;
 }
