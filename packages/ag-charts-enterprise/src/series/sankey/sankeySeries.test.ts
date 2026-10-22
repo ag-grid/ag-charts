@@ -492,7 +492,9 @@ describe('SankeySeries', () => {
             await hoverAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
 
-            expect(deproxy(chart).ctx.highlightManager.getActiveHighlight()).toBe(node);
+            // Compared by identity: `toBe` would print the whole circular node graph if this failed.
+            const highlighted = deproxy(chart).ctx.highlightManager.getActiveHighlight();
+            expect(highlighted === node, `highlighted ${(highlighted as { id?: string } | undefined)?.id}`).toBe(true);
         });
 
         const complexCornerRadiusOptions = {
