@@ -16,6 +16,7 @@ import type {
     Scale,
     SelectionInterface,
     WheelWidgetEvent,
+    WidgetEvent,
     ZoomMinMax,
     ZoomMinMaxDirection,
     ZoomState,
@@ -99,15 +100,14 @@ export interface SeriesAreaClickClaim {
     fire(allMatchedParams: AgMatchedParams<unknown>[]): void;
 }
 
-export interface SeriesAreaCanvasClickEvent extends Readonly<CanvasPoint> {
-    readonly type: 'click' | 'dblclick';
-    readonly sourceEvent: Event;
+export interface SeriesAreaCanvasClickEvent {
+    readonly widgetEvent: WidgetEvent & { type: 'click' | 'dblclick' } & Readonly<CanvasPoint>;
     // Left-click listeners are not consolidated into a single option like right-click (contextmenu) listeners,
     // so modules defer them as claims that the series area fires once every module has hit-tested.
     readonly claims: SeriesAreaClickClaim[];
 }
 
-export interface SeriesAreaContextMenuEvent extends Readonly<CanvasPoint> {
+export interface SeriesAreaContextMenuEvent {
     readonly widgetEvent: MouseWidgetEvent<'contextmenu'>;
     /**
      * The regions at the pointer, keyed by `showOn`. Modules annotate the ones they own so the series-area

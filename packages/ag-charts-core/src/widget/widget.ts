@@ -192,6 +192,10 @@ export abstract class Widget<
         return getAttribute(this.elem, 'aria-disabled', false);
     }
 
+    isOnTarget(event: Pick<WidgetEvent, 'sourceEvent'>) {
+        return event.sourceEvent.target === this.elem;
+    }
+
     containsTarget(event: Pick<WidgetEvent, 'sourceEvent'>) {
         return isNode(event.sourceEvent.target) && this.elem.contains(event.sourceEvent.target);
     }

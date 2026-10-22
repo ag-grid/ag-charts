@@ -296,12 +296,10 @@ export class ChartCaption implements CaptionLike {
     }
 
     private handleContextMenu(moduleCtx: DynamicContext<ChartRegistry>, event: MouseWidgetEvent<'contextmenu'>) {
-        const { canvasX, canvasY } = this.eventToCanvas(event);
-        moduleCtx.contextMenuRegistry?.dispatchContext(
-            'caption',
-            { widgetEvent: event, canvasX, canvasY },
-            { captionType: this.key, text: this.text ?? '' }
-        );
+        moduleCtx.contextMenuRegistry?.dispatchContext('caption', event, {
+            captionType: this.key,
+            text: this.text ?? '',
+        });
     }
 
     /**

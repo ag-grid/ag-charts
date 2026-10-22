@@ -233,12 +233,13 @@ export class AxisInteraction extends AbstractModuleInstance {
         // Only continue if we know we have axes that overlap the series area.
         if (!this.hasOverlappingAxes()) return;
 
-        const axis = this.pickAxisAtPoint(event);
+        const point: CanvasPoint = event.widgetEvent;
+        const axis = this.pickAxisAtPoint(point);
         if (!axis) return;
 
         // Annotate the overlapping axis so the series-area dispatch offers it as an additional region,
         // rather than dispatching a competing axis-only menu. This lets a node and an axis co-exist.
-        event.regions.axis = this.pickAxisValue(axis.axisId, event);
+        event.regions.axis = this.pickAxisValue(axis.axisId, point);
     }
 
     private onSeriesAreaDoubleClick(event: DblClickWidgetEvent) {
@@ -392,7 +393,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         const pick = this.pickAxisValue(axisId, { canvasX, canvasY });
         if (!pick) return;
 
-        this.ctx.contextMenuRegistry?.dispatchContext('axis', { widgetEvent, canvasX, canvasY }, pick);
+        this.ctx.contextMenuRegistry?.dispatchContext('axis', widgetEvent, pick);
     }
 
     private pickAxisAtPoint(point: Readonly<CanvasPoint>): AxisHit | undefined {

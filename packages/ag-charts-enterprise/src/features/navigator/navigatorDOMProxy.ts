@@ -164,13 +164,8 @@ export class NavigatorDOMProxy {
         this.sliderHandlers.onDrag(key, this.toCanvasOffsets(event));
     }
 
-    private onContextMenu(slider: SliderWidget, widgetEvent: MouseWidgetEvent<'contextmenu'>) {
-        const { offsetX, offsetY } = widgetEvent;
-        const { x: toolbarX, y: toolbarY } = this.toolbar.getBounds();
-        const { x: sliderX, y: sliderY } = slider.getBounds();
-        const canvasX = offsetX + toolbarX + sliderX;
-        const canvasY = offsetY + toolbarY + sliderY;
-        this.ctx.contextMenuRegistry?.dispatchContext('always', { widgetEvent, canvasX, canvasY }, undefined);
+    private onContextMenu(_slider: SliderWidget, widgetEvent: MouseWidgetEvent<'contextmenu'>) {
+        this.ctx.contextMenuRegistry?.dispatchContext('always', widgetEvent, undefined);
     }
 
     private onPanSliderChange() {
