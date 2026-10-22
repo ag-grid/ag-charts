@@ -104,11 +104,8 @@ describe('createFullReload', () => {
 
     it('sends one full-reload after invalidating package dist modules', () => {
         const distModule = { id: 'client-dist' };
-        const { server, send, invalidateModule } = createServer({
+        const { server, send, warn, invalidateModule } = createServer({
             client: { [dist('main.esm.mjs')]: [distModule], [src('page.ts')]: [{ id: 'client-src' }] },
-        });
-        invalidateModule.mockImplementation(() => {
-            expect(send).not.toHaveBeenCalled();
         });
 
         createFullReload(server).reload('build-queue.empty');
@@ -119,10 +116,13 @@ describe('createFullReload', () => {
         expect(invalidateModule).toHaveBeenCalledWith(distModule);
         expect(send).toHaveBeenCalledTimes(1);
         expect(send).toHaveBeenCalledWith({ type: 'full-reload', path: 'build-queue.empty' });
+        // Asserted from outside the code under test: a failure inside a mock would be swallowed by the fail-open catch.
+        expect(invalidateModule.mock.invocationCallOrder[0]).toBeLessThan(send.mock.invocationCallOrder[0]);
+        expect(warn).not.toHaveBeenCalled();
     });
 
     it('sends one full-reload for signals within 10ms of each other', () => {
-        const { server, send, invalidateModule } = createServer({
+        const { server, send, warn, invalidateModule } = createServer({
             client: { [dist('main.esm.mjs')]: [{ id: 'client-dist' }] },
         });
         const fullReload = createFullReload(server);
@@ -135,10 +135,13 @@ describe('createFullReload', () => {
         expect(send).toHaveBeenCalledTimes(1);
         expect(send).toHaveBeenCalledWith({ type: 'full-reload', path: 'second' });
         expect(invalidateModule).toHaveBeenCalledTimes(1);
+        expect(warn).not.toHaveBeenCalled();
     });
 
     it('sends a reload for each signal that is more than 10ms apart', () => {
-        const { server, send } = createServer({ client: { [dist('main.esm.mjs')]: [{ id: 'client-dist' }] } });
+        const { server, send, warn } = createServer({
+            client: { [dist('main.esm.mjs')]: [{ id: 'client-dist' }] },
+        });
         const fullReload = createFullReload(server);
 
         fullReload.reload('first');
@@ -147,6 +150,7 @@ describe('createFullReload', () => {
         vi.advanceTimersByTime(10);
 
         expect(send.mock.calls.map(([message]) => message.path)).toEqual(['first', 'second']);
+        expect(warn).not.toHaveBeenCalled();
     });
 
     it('still sends the reload when invalidation throws', () => {
