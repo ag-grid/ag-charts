@@ -72,7 +72,7 @@ const regionOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOpti
 };
 
 const axisOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['xAxis']>> = {
-    ...without(numberAxisOptionsDefs, ['crossAt', 'crossLines', 'keys', 'reverse', 'position', 'type']),
+    ...without(numberAxisOptionsDefs, ['crossAt', 'keys', 'reverse', 'position', 'type']),
 };
 
 export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {

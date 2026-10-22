@@ -6,14 +6,16 @@ import {
     commonAxisThemeTemplate,
     mergeDefaults,
     polarAxisThemeOptionsDefs,
-    radiusCrossLineLabelOptionsDefs,
     titleAxisThemeTemplate,
 } from 'ag-charts-core';
 
 import { RadiusNumberAxis } from './radiusNumberAxis';
 import { radiusNumberAxisOptionsDefs } from './radiusNumberAxisOptionsDefs';
 
-export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOptions, RadiusNumberAxis> = {
+export const RadiusNumberAxisModule: AxisModuleDefinition<
+    Omit<AgRadiusNumberAxisOptions, 'crossLines'>,
+    RadiusNumberAxis
+> = {
     type: 'axis',
     name: 'radius-number',
     chartType: 'polar',
@@ -23,10 +25,7 @@ export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOpti
 
     options: radiusNumberAxisOptionsDefs,
 
-    themeOptions: /* #__PURE__ */ polarAxisThemeOptionsDefs(
-        radiusNumberAxisOptionsDefs,
-        radiusCrossLineLabelOptionsDefs
-    ),
+    themeOptions: /* #__PURE__ */ polarAxisThemeOptionsDefs(radiusNumberAxisOptionsDefs),
     themeTemplate: mergeDefaults(
         {
             positionAngle: 0,

@@ -1,7 +1,7 @@
 // Module placeholders generated from the exported module definitions by
 // packages/ag-charts-enterprise/src/moduleTables.test.ts. Do not edit by hand:
 // Run `UPDATE_MODULE_TABLES=1 yarn nx test ag-charts-enterprise -- moduleTables` to regenerate.
-import { array, callback, object } from 'ag-charts-core';
+import { array, callback, defined, object } from 'ag-charts-core';
 
 import type { ModulePlaceholder } from './modulePlaceholder';
 
@@ -656,6 +656,21 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         contributes: [
             {
                 path: 'axes[].crossLines',
+                options: defined,
+                themeOptions: object,
+                axisTypes: ['category', 'grouped-category'],
+            },
+            {
+                path: 'axes[].crossLines',
+                options: defined,
+                themeOptions: object,
+                axisTypes: ['number', 'log'],
+            },
+            {
+                path: 'axes[].crossLines',
+                options: defined,
+                themeOptions: object,
+                axisTypes: ['time', 'unit-time', 'ordinal-time'],
             },
         ],
     },
@@ -670,7 +685,27 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         contributes: [
             {
                 path: 'axes[].crossLines',
-                axisTypes: ['angle-category', 'angle-number', 'radius-category', 'radius-number'],
+                options: defined,
+                themeOptions: object,
+                axisTypes: ['angle-category'],
+            },
+            {
+                path: 'axes[].crossLines',
+                options: defined,
+                themeOptions: object,
+                axisTypes: ['angle-number'],
+            },
+            {
+                path: 'axes[].crossLines',
+                options: defined,
+                themeOptions: object,
+                axisTypes: ['radius-category'],
+            },
+            {
+                path: 'axes[].crossLines',
+                options: defined,
+                themeOptions: object,
+                axisTypes: ['radius-number'],
             },
         ],
     },

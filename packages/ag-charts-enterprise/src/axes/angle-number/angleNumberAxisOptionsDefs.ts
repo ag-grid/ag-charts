@@ -1,13 +1,10 @@
 import type { AgAngleNumberAxisOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
-    arrayOfDefs,
     commonAxisLabelOptionsDefs,
     commonAxisOptionsDefs,
-    commonCrossLineLabelOptionsDefs,
     constant,
     continuousAxisOptions,
-    crossLineOptionsDefs,
     number,
     numberFormatValidator,
     numericValue,
@@ -17,15 +14,11 @@ import {
 
 import { polarAxisListenersOptionsDefs } from '../polar-crosslines/polarAxisListenersOptionsDefs';
 
-export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> = {
+export const angleNumberAxisOptionsDefs: OptionsDefs<Omit<AgAngleNumberAxisOptions, 'crossLines'>> = {
     ...commonAxisOptionsDefs,
     ...continuousAxisOptions(numericValue),
     type: constant('angle-number'),
     listeners: polarAxisListenersOptionsDefs,
-    crossLines: arrayOfDefs(
-        crossLineOptionsDefs(numericValue, commonCrossLineLabelOptionsDefs),
-        'a cross-line options array'
-    ),
     startAngle: number,
     endAngle: number,
     label: {

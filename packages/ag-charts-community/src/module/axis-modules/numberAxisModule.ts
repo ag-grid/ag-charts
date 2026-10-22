@@ -17,7 +17,10 @@ import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
 
-export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions, NumberAxis> = /* #__PURE__ */ communityModule({
+export const NumberAxisModule: AxisModuleDefinition<
+    Omit<AgNumberAxisOptions, 'crossLines'>,
+    NumberAxis
+> = /* #__PURE__ */ communityModule({
     type: 'axis',
     name: 'number',
     chartType: 'cartesian',

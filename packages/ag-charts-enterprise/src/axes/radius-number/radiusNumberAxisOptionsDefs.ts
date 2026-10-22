@@ -1,24 +1,21 @@
 import type { AgRadiusNumberAxisOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
-    arrayOfDefs,
     commonAxisCaptionOptionsDefs,
     commonAxisLabelOptionsDefs,
     commonAxisOptionsDefs,
     constant,
     continuousAxisOptions,
-    crossLineOptionsDefs,
     number,
     numberFormatValidator,
     numericValue,
-    radiusCrossLineLabelOptionsDefs,
     ratio,
     union,
 } from 'ag-charts-core';
 
 import { polarAxisListenersOptionsDefs } from '../polar-crosslines/polarAxisListenersOptionsDefs';
 
-export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions> = {
+export const radiusNumberAxisOptionsDefs: OptionsDefs<Omit<AgRadiusNumberAxisOptions, 'crossLines'>> = {
     ...commonAxisOptionsDefs,
     ...continuousAxisOptions(numericValue),
     type: constant('radius-number'),
@@ -27,10 +24,6 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     positionAngle: number,
     innerRadiusRatio: ratio,
     title: commonAxisCaptionOptionsDefs,
-    crossLines: arrayOfDefs(
-        crossLineOptionsDefs(numericValue, radiusCrossLineLabelOptionsDefs),
-        'a cross-line options array'
-    ),
     label: {
         ...commonAxisLabelOptionsDefs,
         format: numberFormatValidator,

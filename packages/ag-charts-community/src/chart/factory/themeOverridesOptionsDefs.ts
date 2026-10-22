@@ -1,13 +1,11 @@
 import {
-    type ContributionHost,
     type ModuleScope,
     ModuleType,
-    type OptionsContribution,
     type OptionsDefs,
     type ResolvedContribution,
     boolean,
     commonThemeOverridesOptionsDefs,
-    composeContributedDefs,
+    composeHostContributedDefs,
     contributionMatchesAxisType,
     contributionMatchesChartType,
     contributionMatchesSeriesType,
@@ -36,13 +34,14 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
         const axes: OptionsDefs<any> = {};
         for (const axis of axisModules) {
             if (chartType != null && axis.chartType !== chartType) continue;
-            axes[axis.name] = composeHostDefs(
+            axes[axis.name] = composeHostContributedDefs(
                 axis.themeOptions,
                 contributions,
                 'axis',
                 (contribution) =>
                     contributionMatchesChartType(contribution, axis.chartType) &&
-                    contributionMatchesAxisType(contribution, axis.name)
+                    contributionMatchesAxisType(contribution, axis.name),
+                true
             );
         }
         for (const placeholder of ExpectedModules.values()) {
@@ -55,29 +54,32 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
     }
 
     const entries: Record<string, unknown> = {
-        common: composeHostDefs(
+        common: composeHostContributedDefs<any>(
             { ...commonThemeOverridesOptionsDefs, axes: axesDefs(undefined) },
             contributions,
             'chart',
-            () => true
+            () => true,
+            true
         ),
     };
 
     for (const series of moduleRegistry.listModulesByType(ModuleType.Series)) {
         const { chartType } = series;
-        const chartDefs = composeHostDefs(
+        const chartDefs = composeHostContributedDefs(
             moduleRegistry.getChartModule(chartType).themeOptions,
             contributions,
             'chart',
-            (contribution) => contributionMatchesChartType(contribution, chartType)
+            (contribution) => contributionMatchesChartType(contribution, chartType),
+            true
         );
-        const seriesDefs = composeHostDefs(
+        const seriesDefs = composeHostContributedDefs(
             series.themeOptions,
             contributions,
             'series',
             (contribution) =>
                 contributionMatchesChartType(contribution, chartType) &&
-                contributionMatchesSeriesType(contribution, series.name)
+                contributionMatchesSeriesType(contribution, series.name),
+            true
         );
         if (isPresetOverridesType(series.name)) {
             entries[series.name] = { ...chartDefs, ...seriesDefs };
@@ -97,28 +99,4 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
     }
 
     return entries as OptionsDefs<AgThemeOverrides>;
-}
-
-/**
- * Installs each contribution that descends into `host` and `applies`, relative to one host instance:
- * its `themeOptions ?? options`, or the def `defs` already declares there.
- */
-function composeHostDefs(
-    defs: OptionsDefs<any>,
-    contributions: readonly ResolvedContribution[],
-    host: ContributionHost,
-    applies: (contribution: OptionsContribution) => boolean
-): OptionsDefs<any> {
-    const installed: ResolvedContribution[] = [];
-    for (const resolved of contributions) {
-        const { contribution, relative } = resolved;
-        if (resolved.host !== host || !applies(contribution)) continue;
-        installed.push({
-            ...resolved,
-            host: 'chart',
-            path: relative,
-            contribution: { ...contribution, options: contribution.themeOptions ?? contribution.options },
-        });
-    }
-    return composeContributedDefs(defs, installed);
 }

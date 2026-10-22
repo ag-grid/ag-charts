@@ -6,14 +6,16 @@ import {
     commonAxisThemeTemplate,
     mergeDefaults,
     polarAxisThemeOptionsDefs,
-    radiusCrossLineLabelOptionsDefs,
     titleAxisThemeTemplate,
 } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from './radiusCategoryAxis';
 import { radiusCategoryAxisOptionsDefs } from './radiusCategoryAxisOptionsDefs';
 
-export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxisOptions, RadiusCategoryAxis> = {
+export const RadiusCategoryAxisModule: AxisModuleDefinition<
+    Omit<AgRadiusCategoryAxisOptions, 'crossLines'>,
+    RadiusCategoryAxis
+> = {
     type: 'axis',
     name: 'radius-category',
     chartType: 'polar',
@@ -23,10 +25,7 @@ export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxis
 
     options: radiusCategoryAxisOptionsDefs,
 
-    themeOptions: /* #__PURE__ */ polarAxisThemeOptionsDefs(
-        radiusCategoryAxisOptionsDefs,
-        radiusCrossLineLabelOptionsDefs
-    ),
+    themeOptions: /* #__PURE__ */ polarAxisThemeOptionsDefs(radiusCategoryAxisOptionsDefs),
     themeTemplate: mergeDefaults(
         {
             positionAngle: 0,

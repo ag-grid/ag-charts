@@ -17,7 +17,10 @@ import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
 
-export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions, TimeAxis> = /* #__PURE__ */ communityModule({
+export const TimeAxisModule: AxisModuleDefinition<
+    Omit<AgTimeAxisOptions, 'crossLines'>,
+    TimeAxis
+> = /* #__PURE__ */ communityModule({
     type: 'axis',
     name: 'time',
     chartType: 'cartesian',

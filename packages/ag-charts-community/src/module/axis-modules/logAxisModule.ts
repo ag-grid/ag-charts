@@ -16,7 +16,10 @@ import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
 
-export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions, LogAxis> = /* #__PURE__ */ communityModule({
+export const LogAxisModule: AxisModuleDefinition<
+    Omit<AgLogAxisOptions, 'crossLines'>,
+    LogAxis
+> = /* #__PURE__ */ communityModule({
     type: 'axis',
     name: 'log',
     chartType: 'cartesian',

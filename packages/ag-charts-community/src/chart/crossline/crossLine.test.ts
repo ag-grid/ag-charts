@@ -2,6 +2,7 @@ import { type Mock, afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     BBox,
+    CROSS_LINE_TYPES,
     ChartUpdateType,
     type CrossLineLabelOverflow,
     type DynamicContext,
@@ -53,7 +54,6 @@ import {
 } from '../test/utils';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import type { CrossLineType } from './crossLine';
-import { CROSS_LINE_TYPES } from './crossLinesModule';
 import { getCrossLineFittedLabel, getCrossLinesPlugin } from './test/crossLineAccessors';
 import * as examples from './test/examples';
 

@@ -1,8 +1,9 @@
 import { CrossLinesModule } from 'ag-charts-community';
-import { type AxisPluginModuleDefinition, ChartAxisDirection } from 'ag-charts-core';
+import { type AxisPluginModuleDefinition, ChartAxisDirection, defined, numericValue } from 'ag-charts-core';
 import type { AgBaseCrossLineOptions } from 'ag-charts-types';
 
 import { PolarCrossLine } from './polarCrossLine';
+import { angleCrossLines, radiusCrossLines } from './polarCrossLineOptionsDefs';
 
 /**
  * Polar counterpart to the community `CrossLinesModule`. A distinct registry entry — both modules
@@ -17,6 +18,12 @@ export const PolarCrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOp
     chartTypes: ['polar'],
     axisTypes: ['angle-category', 'angle-number', 'radius-category', 'radius-number'],
     enterprise: true,
+    contributes: [
+        /* #__PURE__ */ angleCrossLines('angle-category', defined),
+        /* #__PURE__ */ angleCrossLines('angle-number', numericValue),
+        /* #__PURE__ */ radiusCrossLines('radius-category', defined),
+        /* #__PURE__ */ radiusCrossLines('radius-number', numericValue),
+    ],
     register: (ctx) => {
         ctx.factory('crossLine', (c) => {
             const { axisType }: { axisType: string } = c.parent;
