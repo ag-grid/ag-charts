@@ -43,6 +43,7 @@ import {
     getSeriesAt,
     getSeriesContextNodeData,
     getSeriesDataNodeGroup,
+    getSeriesRect,
     getSeriesSelectionNodes,
     hoverAction,
     isoEpochPair,
@@ -2469,7 +2470,7 @@ describe('RangeBarSeries horizontal aggregation', () => {
             axes: { x: { type: 'number' }, y: { type: 'category' } },
         });
 
-        const { height: seriesHeight } = deproxy(chart).seriesRect!;
+        const { height: seriesHeight } = getSeriesRect(chart);
         const bars = itemNodes(chart)
             .filter((node) => node.visible)
             .map((node) => node.getBBox())
