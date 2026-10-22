@@ -3,6 +3,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedOrdinalTimeAxisOptions,
+    type WithoutCrossLineOptions,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
@@ -16,7 +17,7 @@ import { OrdinalTimeAxis } from './ordinalTimeAxis';
 import { ordinalTimeAxisOptionsDefs } from './ordinalTimeAxisOptionsDefs';
 
 export const OrdinalTimeAxisModule: AxisModuleDefinition<
-    Omit<AgOrdinalTimeAxisOptions, 'crossLines'>,
+    WithoutCrossLineOptions<AgOrdinalTimeAxisOptions>,
     OrdinalTimeAxis
 > = {
     type: 'axis',

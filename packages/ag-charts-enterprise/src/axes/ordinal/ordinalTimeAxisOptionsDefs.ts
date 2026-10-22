@@ -1,6 +1,7 @@
 import type { AgOrdinalTimeAxisOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    type WithoutCrossLineOptions,
     boolean,
     cartesianAxisBandHighlightOptions,
     cartesianAxisCrosshairOptions,
@@ -13,7 +14,7 @@ import {
     union,
 } from 'ag-charts-core';
 
-export const ordinalTimeAxisOptionsDefs: OptionsDefs<Omit<AgOrdinalTimeAxisOptions, 'crossLines'>> = {
+export const ordinalTimeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgOrdinalTimeAxisOptions>> = {
     ...cartesianAxisOptionsDefs,
     type: constant('ordinal-time'),
     paddingInner: ratio,

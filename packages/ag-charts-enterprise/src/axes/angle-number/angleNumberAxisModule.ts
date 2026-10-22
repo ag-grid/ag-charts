@@ -3,6 +3,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedAngleNumberAxisOptions,
+    type WithoutCrossLineOptions,
     commonAxisThemeTemplate,
     mergeDefaults,
     polarAxisThemeOptionsDefs,
@@ -12,7 +13,7 @@ import { AngleNumberAxis } from './angleNumberAxis';
 import { angleNumberAxisOptionsDefs } from './angleNumberAxisOptionsDefs';
 
 export const AngleNumberAxisModule: AxisModuleDefinition<
-    Omit<AgAngleNumberAxisOptions, 'crossLines'>,
+    WithoutCrossLineOptions<AgAngleNumberAxisOptions>,
     AngleNumberAxis
 > = {
     type: 'axis',

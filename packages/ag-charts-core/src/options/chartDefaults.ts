@@ -503,7 +503,7 @@ export const gradientLegendOptionsDefs: OptionsDefs<AgGradientLegendOptions> = {
 };
 
 /** Chart-level keys owned by plugin modules; their defs arrive through the modules' contributions. */
-export type ModuleOwnedChartOptions =
+type ModuleOwnedChartOptions =
     | 'animation'
     | 'annotations'
     | 'chartToolbar'
@@ -520,7 +520,18 @@ export type ModuleOwnedChartOptions =
     | 'sync'
     | 'zoom';
 
-export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, ModuleOwnedChartOptions>> = {
+/** Chart listeners owned by plugin modules; their defs arrive through the modules' contributions. */
+type ModuleOwnedChartListeners = 'crossLineClick' | 'crossLineDoubleClick';
+
+/** Chart options less the keys and listeners plugin modules own. */
+export type WithoutModuleOwnedOptions<T extends { listeners?: object }> = Omit<
+    T,
+    ModuleOwnedChartOptions | 'listeners'
+> & {
+    listeners?: Omit<NonNullable<T['listeners']>, ModuleOwnedChartListeners>;
+};
+
+export const commonChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBaseThemeableChartOptions>> = {
     width: positiveNumber,
     height: positiveNumber,
     minWidth: positiveNumber,
@@ -549,8 +560,6 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         collapsedChange: callback,
         click: callback,
         doubleClick: callback,
-        crossLineClick: callback,
-        crossLineDoubleClick: callback,
         annotations: callback,
         zoom: callback,
     },

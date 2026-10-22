@@ -1,6 +1,7 @@
 import type {
     AgAxisBaseIntervalOptions,
     AgAxisCaptionOptions,
+    AgAxisCrossLineListeners,
     AgAxisDiscreteTimeIntervalOptions,
     AgAxisGridStyle,
     AgBandHighlightOptions,
@@ -37,6 +38,7 @@ import type {
 } from 'ag-charts-types';
 
 import { without } from '../data/object';
+import type { OptionsContribution } from '../modules/optionsContribution';
 import { numberFormatValidator, textOrSegments, timeInterval, timeIntervalUnit } from './chartDefaults';
 import {
     borderOptionsDef,
@@ -149,6 +151,21 @@ export function crossLineOptionsDefs(
 export function crossLinesArrayOptionsDefs(value: Validator, labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>) {
     return arrayOfDefs(crossLineOptionsDefs(value, labelDefs), 'a cross-line options array');
 }
+
+export const crossLineListenerContributions: OptionsContribution[] = [
+    { path: 'axes[].listeners.crossLineClick', options: callback },
+    { path: 'axes[].listeners.crossLineDoubleClick', options: callback },
+    { path: 'listeners.crossLineClick', options: callback },
+    { path: 'listeners.crossLineDoubleClick', options: callback },
+];
+
+type CrossLineFreeListeners<T> = Omit<NonNullable<T>, keyof AgAxisCrossLineListeners>;
+
+/** Axis options less the locations the cross-lines modules contribute. */
+export type WithoutCrossLineOptions<T extends { listeners?: object }> = Omit<T, 'crossLines' | 'listeners'> &
+    (keyof CrossLineFreeListeners<T['listeners']> extends never
+        ? unknown
+        : { listeners?: CrossLineFreeListeners<T['listeners']> });
 
 export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     enabled: boolean,
@@ -281,7 +298,7 @@ export const cartesianAxisCaptionOptionsDefs: OptionsDefs<AgCartesianAxisCaption
 };
 
 export const cartesianAxisOptionsDefs: OptionsDefs<
-    Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'primaryLabel' | 'crosshair' | 'crossLines'>
+    WithoutCrossLineOptions<Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'primaryLabel' | 'crosshair'>>
 > = {
     ...commonAxisOptionsDefs,
     title: cartesianAxisCaptionOptionsDefs,
@@ -298,8 +315,6 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     listeners: {
         click: callback,
         doubleClick: callback,
-        crossLineClick: callback,
-        crossLineDoubleClick: callback,
     },
 };
 
@@ -402,7 +417,7 @@ export const discreteTimeAxisIntervalOptionsDefs: OptionsDefs<AgAxisDiscreteTime
     placement: union('on', 'between'),
 };
 
-export const categoryAxisOptionsDefs: OptionsDefs<Omit<AgCategoryAxisOptions, 'crossLines'>> = {
+export const categoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgCategoryAxisOptions>> = {
     ...cartesianAxisOptionsDefs,
     type: constant('category'),
     label: cartesianAxisLabelOptionsDefs,
@@ -448,7 +463,7 @@ export const categoryAxisOptionsDefs: OptionsDefs<Omit<AgCategoryAxisOptions, 'c
     }),
 };
 
-export const groupedCategoryAxisOptionsDefs: OptionsDefs<Omit<AgGroupedCategoryAxisOptions, 'crossLines'>> = {
+export const groupedCategoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgGroupedCategoryAxisOptions>> = {
     ...cartesianAxisOptionsDefs,
     type: constant('grouped-category'),
     label: { ...cartesianAxisLabelBaseDefs, ...axisLabelFitDefs },
@@ -479,7 +494,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<Omit<AgGroupedCategoryA
     ),
 };
 
-export const numberAxisOptionsDefs: OptionsDefs<Omit<AgNumberAxisOptions, 'crossLines'>> = {
+export const numberAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgNumberAxisOptions>> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(numericValue),
     type: constant('number'),
@@ -487,7 +502,7 @@ export const numberAxisOptionsDefs: OptionsDefs<Omit<AgNumberAxisOptions, 'cross
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
-export const logAxisOptionsDefs: OptionsDefs<Omit<AgLogAxisOptions, 'crossLines'>> = {
+export const logAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgLogAxisOptions>> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(numericValue),
     type: constant('log'),
@@ -499,7 +514,7 @@ export const logAxisOptionsDefs: OptionsDefs<Omit<AgLogAxisOptions, 'crossLines'
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
-export const timeAxisOptionsDefs: OptionsDefs<Omit<AgTimeAxisOptions, 'crossLines'>> = {
+export const timeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgTimeAxisOptions>> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(or(number, date), true),
     type: constant('time'),
@@ -508,7 +523,7 @@ export const timeAxisOptionsDefs: OptionsDefs<Omit<AgTimeAxisOptions, 'crossLine
     crosshair: cartesianAxisCrosshairOptions(true, true),
 };
 
-export const unitTimeAxisOptionsDefs: OptionsDefs<Omit<AgUnitTimeAxisOptions, 'crossLines'>> = {
+export const unitTimeAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgUnitTimeAxisOptions>> = {
     ...cartesianAxisOptionsDefs,
     type: constant('unit-time'),
     unit: or(timeInterval, timeIntervalUnit),

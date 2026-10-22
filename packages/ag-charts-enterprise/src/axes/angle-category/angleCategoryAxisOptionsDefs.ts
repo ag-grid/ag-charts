@@ -1,6 +1,7 @@
 import type { AgAngleCategoryAxisOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    type WithoutCrossLineOptions,
     commonAxisLabelOptionsDefs,
     commonAxisOptionsDefs,
     constant,
@@ -10,12 +11,9 @@ import {
     union,
 } from 'ag-charts-core';
 
-import { polarAxisListenersOptionsDefs } from '../polar-crosslines/polarAxisListenersOptionsDefs';
-
-export const angleCategoryAxisOptionsDefs: OptionsDefs<Omit<AgAngleCategoryAxisOptions, 'crossLines'>> = {
+export const angleCategoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgAngleCategoryAxisOptions>> = {
     ...commonAxisOptionsDefs,
     type: constant('angle-category'),
-    listeners: polarAxisListenersOptionsDefs,
     shape: union('polygon', 'circle'),
     startAngle: number,
     endAngle: number,

@@ -3,6 +3,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedRadiusCategoryAxisOptions,
+    type WithoutCrossLineOptions,
     commonAxisThemeTemplate,
     mergeDefaults,
     polarAxisThemeOptionsDefs,
@@ -13,7 +14,7 @@ import { RadiusCategoryAxis } from './radiusCategoryAxis';
 import { radiusCategoryAxisOptionsDefs } from './radiusCategoryAxisOptionsDefs';
 
 export const RadiusCategoryAxisModule: AxisModuleDefinition<
-    Omit<AgRadiusCategoryAxisOptions, 'crossLines'>,
+    WithoutCrossLineOptions<AgRadiusCategoryAxisOptions>,
     RadiusCategoryAxis
 > = {
     type: 'axis',

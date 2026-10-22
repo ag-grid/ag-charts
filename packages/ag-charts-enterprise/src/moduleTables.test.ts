@@ -434,18 +434,20 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
             case ModuleType.Plugin:
             case ModuleType.AxisPlugin:
             case ModuleType.SeriesPlugin:
+                const chartTypes = definition.chartTypes ?? [];
+                const everywhere = chartTypes.length === 0;
+                const onCartesian = everywhere || chartTypes.includes('cartesian');
                 for (const contribution of contributionsOf(definition)) {
                     const { host, relative } = contributionHost(parseOptionsPath(contribution.path));
                     const keys = relative.segments.map((segment) => segment.key);
                     const [head, ...rest] = keys;
                     if (host === 'axis') {
                         if (keys.length === 1) {
-                            const chartTypes = definition.chartTypes ?? [];
-                            const everywhere = chartTypes.length === 0;
                             if (everywhere || chartTypes.includes('polar'))
                                 tables.polarAxisPluginToModule.set(head, id);
-                            if (everywhere || chartTypes.includes('cartesian')) tables.axisPluginToModule.set(head, id);
-                        } else if (keys.length === 2 && head === 'listeners') {
+                            if (onCartesian) tables.axisPluginToModule.set(head, id);
+                        } else if (keys.length === 2 && head === 'listeners' && onCartesian) {
+                            // The ESLint rule has no polar variant for listeners, so a cartesian owner names them.
                             tables.axisListenerToModule.set(rest[0], id);
                         }
                     } else if (host === 'series') {
@@ -453,7 +455,7 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
                     } else if (keys.length === 1) {
                         tables.pluginOptionToModule.set(head, id);
                     } else if (keys.length === 2 && head === 'listeners') {
-                        tables.chartListenerToModule.set(rest[0], id);
+                        if (onCartesian) tables.chartListenerToModule.set(rest[0], id);
                     } else {
                         tables.chartOptionPathToModule.set(keys.join('.'), id);
                     }

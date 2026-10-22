@@ -3,6 +3,7 @@ import {
     type DynamicContext,
     type OptionsContribution,
     type Validator,
+    crossLineListenerContributions,
     crossLineThemeOptionsDefs,
     crossLinesArrayOptionsDefs,
     crossLinesThemeTemplate,
@@ -46,6 +47,7 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
             ['time', 'unit-time', 'ordinal-time'],
             /* #__PURE__ */ or(numericValue, date)
         ),
+        ...crossLineListenerContributions,
     ],
 
     register: (ctx: DynamicContext<CrossLinesRegistry>) => {

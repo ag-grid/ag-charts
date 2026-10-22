@@ -24,10 +24,21 @@ import { uncoveredContributions } from './processModuleOptions';
  * is not registered only gets a shape check, so its key stays known until `sanitizeThemeModules` drops it.
  */
 export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsDefs<AgThemeOverrides> {
-    const contributions: ResolvedContribution[] = [
-        ...moduleRegistry.optionsContributions(),
-        ...uncoveredContributions(ExpectedModules.values(), moduleRegistry, undefined),
-    ];
+    const registered = [...moduleRegistry.optionsContributions()];
+    const contributionsByChartType = new Map<string | undefined, ResolvedContribution[]>();
+    // A path can be owned for one chart type and still missing for another, so placeholders resolve per chart type.
+    function contributionsFor(chartType: string | undefined) {
+        let contributions = contributionsByChartType.get(chartType);
+        if (contributions == null) {
+            contributions = [
+                ...registered,
+                ...uncoveredContributions(ExpectedModules.values(), moduleRegistry, chartType),
+            ];
+            contributionsByChartType.set(chartType, contributions);
+        }
+        return contributions;
+    }
+    const contributions = contributionsFor(undefined);
     const axisModules = [...moduleRegistry.listModulesByType(ModuleType.Axis)];
 
     function axesDefs(chartType: string | undefined) {
@@ -67,7 +78,7 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
         const { chartType } = series;
         const chartDefs = composeHostContributedDefs(
             moduleRegistry.getChartModule(chartType).themeOptions,
-            contributions,
+            contributionsFor(chartType),
             'chart',
             (contribution) => contributionMatchesChartType(contribution, chartType),
             true

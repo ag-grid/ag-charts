@@ -672,6 +672,22 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
                 themeOptions: object,
                 axisTypes: ['time', 'unit-time', 'ordinal-time'],
             },
+            {
+                path: 'axes[].listeners.crossLineClick',
+                options: callback,
+            },
+            {
+                path: 'axes[].listeners.crossLineDoubleClick',
+                options: callback,
+            },
+            {
+                path: 'listeners.crossLineClick',
+                options: callback,
+            },
+            {
+                path: 'listeners.crossLineDoubleClick',
+                options: callback,
+            },
         ],
     },
     {
@@ -706,6 +722,22 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
                 options: defined,
                 themeOptions: object,
                 axisTypes: ['radius-number'],
+            },
+            {
+                path: 'axes[].listeners.crossLineClick',
+                options: callback,
+            },
+            {
+                path: 'axes[].listeners.crossLineDoubleClick',
+                options: callback,
+            },
+            {
+                path: 'listeners.crossLineClick',
+                options: callback,
+            },
+            {
+                path: 'listeners.crossLineDoubleClick',
+                options: callback,
             },
         ],
     },

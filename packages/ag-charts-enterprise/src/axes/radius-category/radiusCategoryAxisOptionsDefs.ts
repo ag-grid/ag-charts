@@ -1,6 +1,7 @@
 import type { AgRadiusCategoryAxisOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    type WithoutCrossLineOptions,
     commonAxisCaptionOptionsDefs,
     commonAxisLabelOptionsDefs,
     commonAxisOptionsDefs,
@@ -11,12 +12,9 @@ import {
     union,
 } from 'ag-charts-core';
 
-import { polarAxisListenersOptionsDefs } from '../polar-crosslines/polarAxisListenersOptionsDefs';
-
-export const radiusCategoryAxisOptionsDefs: OptionsDefs<Omit<AgRadiusCategoryAxisOptions, 'crossLines'>> = {
+export const radiusCategoryAxisOptionsDefs: OptionsDefs<WithoutCrossLineOptions<AgRadiusCategoryAxisOptions>> = {
     ...commonAxisOptionsDefs,
     type: constant('radius-category'),
-    listeners: polarAxisListenersOptionsDefs,
     positionAngle: number,
     innerRadiusRatio: ratio,
     paddingInner: ratio,

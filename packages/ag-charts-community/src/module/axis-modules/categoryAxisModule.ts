@@ -3,6 +3,7 @@ import {
     CategoryScale,
     type DynamicContext,
     type NormalisedCategoryAxisOptions,
+    type WithoutCrossLineOptions,
     cartesianAxisThemeOptionsDefs,
     categoryAxisOptionsDefs,
     commonAxisThemeTemplate,
@@ -18,7 +19,7 @@ import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
 
 export const CategoryAxisModule: AxisModuleDefinition<
-    Omit<AgCategoryAxisOptions, 'crossLines'>,
+    WithoutCrossLineOptions<AgCategoryAxisOptions>,
     CategoryAxis
 > = /* #__PURE__ */ communityModule({
     type: 'axis',

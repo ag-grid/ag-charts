@@ -2,6 +2,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedTimeAxisOptions,
+    type WithoutCrossLineOptions,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
@@ -18,7 +19,7 @@ import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
 
 export const TimeAxisModule: AxisModuleDefinition<
-    Omit<AgTimeAxisOptions, 'crossLines'>,
+    WithoutCrossLineOptions<AgTimeAxisOptions>,
     TimeAxis
 > = /* #__PURE__ */ communityModule({
     type: 'axis',

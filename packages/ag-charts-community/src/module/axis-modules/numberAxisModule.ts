@@ -3,6 +3,7 @@ import {
     type DynamicContext,
     LinearScale,
     type NormalisedNumberAxisOptions,
+    type WithoutCrossLineOptions,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
@@ -18,7 +19,7 @@ import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
 
 export const NumberAxisModule: AxisModuleDefinition<
-    Omit<AgNumberAxisOptions, 'crossLines'>,
+    WithoutCrossLineOptions<AgNumberAxisOptions>,
     NumberAxis
 > = /* #__PURE__ */ communityModule({
     type: 'axis',

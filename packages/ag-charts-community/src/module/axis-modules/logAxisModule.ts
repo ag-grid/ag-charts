@@ -2,6 +2,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedNumberAxisOptions,
+    type WithoutCrossLineOptions,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     logAxisOptionsDefs,
@@ -17,7 +18,7 @@ import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
 
 export const LogAxisModule: AxisModuleDefinition<
-    Omit<AgLogAxisOptions, 'crossLines'>,
+    WithoutCrossLineOptions<AgLogAxisOptions>,
     LogAxis
 > = /* #__PURE__ */ communityModule({
     type: 'axis',
