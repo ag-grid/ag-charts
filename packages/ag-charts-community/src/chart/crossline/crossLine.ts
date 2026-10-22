@@ -25,6 +25,7 @@ import type {
     AgTimeIntervalUnit,
 } from 'ag-charts-types';
 
+import type { SeriesAreaClickClaim } from '../../core/eventsHub';
 import type { PolarAxisLayout } from '../../module/axisContext';
 import { isValidScaleValue } from '../scaleValue';
 
@@ -47,11 +48,32 @@ interface PendingCallback {
 export type PendingCrossLineCallbackParam =
     Forbid<AgCrossLineClickEvent, 'allMatchedParams'> | Forbid<AgCrossLineDoubleClickEvent, 'allMatchedParams'>;
 
-export interface PendingCrossLineCallbacks {
-    allMatchedParams: AgCrossLineClickParams[];
+/** The cross-line listeners a click reaches, shared by the cross lines of every axis. */
+export class PendingCrossLineCallbacks implements SeriesAreaClickClaim {
+    readonly matchedParams: AgCrossLineClickParams[] = [];
     chart?: PendingCallback;
-    axes: Map<string, PendingCallback>;
-    crossLines: Map<string, PendingCallback>;
+    readonly axes = new Map<string, PendingCallback>();
+    readonly crossLines = new Map<string, PendingCallback>();
+
+    constructor(private readonly hasChartListener: boolean) {}
+
+    isHandled(): boolean {
+        return (
+            this.matchedParams.length > 0 && (this.axes.size > 0 || this.crossLines.size > 0 || this.hasChartListener)
+        );
+    }
+
+    fire(allMatchedParams: AgMatchedParams<unknown>[]): void {
+        for (const crossLine of this.crossLines.values()) {
+            firePendingCrossLineCallback(allMatchedParams, crossLine);
+        }
+        for (const axis of this.axes.values()) {
+            firePendingCrossLineCallback(allMatchedParams, axis);
+        }
+        if (this.chart) {
+            firePendingCrossLineCallback(allMatchedParams, this.chart);
+        }
+    }
 }
 
 export function getCrossLineValue(crossLine: ICrossLine) {
@@ -81,23 +103,6 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
 function firePendingCrossLineCallback(allMatchedParams: AgMatchedParams<unknown>[], callback: PendingCallback): void {
     const { callers, fn, params } = callback;
     callWithContext(callers, fn, { ...params, allMatchedParams });
-}
-
-export function fireAllPendingCrossLineCallbacks(
-    pending: PendingCrossLineCallbacks,
-    otherHitParams: AgMatchedParams<unknown>[]
-): void {
-    const allMatchedParams: AgMatchedParams<unknown>[] =
-        otherHitParams.length > 0 ? [...pending.allMatchedParams, ...otherHitParams] : pending.allMatchedParams;
-    for (const crossLine of pending.crossLines.values()) {
-        firePendingCrossLineCallback(allMatchedParams, crossLine);
-    }
-    for (const axis of pending.axes.values()) {
-        firePendingCrossLineCallback(allMatchedParams, axis);
-    }
-    if (pending.chart) {
-        firePendingCrossLineCallback(allMatchedParams, pending.chart);
-    }
 }
 
 export interface CrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> {

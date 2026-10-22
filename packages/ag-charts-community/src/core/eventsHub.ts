@@ -27,6 +27,7 @@ import type {
     AgAutoScaledAxes,
     AgCartesianAxisPosition,
     AgContextMenuItemShowOn,
+    AgMatchedParams,
     AgNumericValue,
     AgScrollbarPlacement,
     AgStateGroupingValueType,
@@ -36,7 +37,7 @@ import type {
     AgZoomEventSource,
 } from 'ag-charts-types';
 
-import type { CrossLineValuePick, PendingCrossLineCallbacks } from '../chart/crossline/crossLine';
+import type { CrossLineValuePick } from '../chart/crossline/crossLine';
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextMenuRegionContexts, ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { ChartLegendType } from '../chart/legend/legendDatum';
@@ -91,13 +92,21 @@ export interface SeriesAreaClickEvent {
     readonly target: Node<unknown> | undefined;
 }
 
+/** A module's share of a series-area click: the elements it matched and the listeners it defers. */
+export interface SeriesAreaClickClaim {
+    /** Reported in `allMatchedParams` to every claim and to the series node listeners. */
+    readonly matchedParams: readonly AgMatchedParams<unknown>[];
+    /** Whether the claim takes the click from the series node and chart-level listeners. */
+    isHandled(): boolean;
+    fire(allMatchedParams: AgMatchedParams<unknown>[]): void;
+}
+
 export interface SeriesAreaCanvasClickEvent extends Readonly<CanvasPoint> {
     readonly type: 'click' | 'dblclick';
     readonly sourceEvent: Event;
-    // Left-click listeners are not neatly consolidated into a single option like right-click (contextmenu)
-    // listeners. Therefore left-click listeners can added deferred `callWithContext` entries into
-    // `pendingCrossLineCallbacks` if-and-when needed:
-    readonly pendingCrossLineCallbacks: PendingCrossLineCallbacks;
+    // Left-click listeners are not consolidated into a single option like right-click (contextmenu) listeners,
+    // so modules defer them as claims that the series area fires once every module has hit-tested.
+    readonly claims: SeriesAreaClickClaim[];
 }
 
 export interface SeriesAreaContextMenuEvent extends Readonly<CanvasPoint> {

@@ -22,9 +22,8 @@ import {
     type CrossLine,
     type CrossLineValuePick,
     type PendingCrossLineCallbackParam,
-    type PendingCrossLineCallbacks,
+    PendingCrossLineCallbacks,
     type PolarCrossLine,
-    fireAllPendingCrossLineCallbacks,
 } from './crossLine';
 
 /** One solve group of an axis's cross line labels: kept labels resolve before series labels, droppable ones after. */
@@ -73,6 +72,9 @@ class CrossLineLabelSource implements PlacedLabelSource {
         }
     }
 }
+
+// Every axis's cross lines add to one claim per click, so each chart and axis listener fires once.
+const claimsByClick = new WeakMap<SeriesAreaCanvasClickEvent, PendingCrossLineCallbacks>();
 
 /**
  * Axis plugin that owns a per-axis runtime list of {@link CrossLine} instances along with the
@@ -175,8 +177,20 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private onSeriesAreaCanvasClick(event: SeriesAreaCanvasClickEvent): void {
         const picks = this.pickCrosslines(event);
         if (picks.length > 0) {
-            this.collectClickCallbacks(picks, event.type, event.sourceEvent, event.pendingCrossLineCallbacks);
+            this.collectClickCallbacks(picks, event.type, event.sourceEvent, this.claimFor(event));
         }
+    }
+
+    private claimFor(event: SeriesAreaCanvasClickEvent): PendingCrossLineCallbacks {
+        let claim = claimsByClick.get(event);
+        if (claim == null) {
+            const { listeners } = this.ctx.chartService;
+            const chartListener = event.type === 'click' ? listeners.crossLineClick : listeners.crossLineDoubleClick;
+            claim = new PendingCrossLineCallbacks(chartListener != null);
+            claimsByClick.set(event, claim);
+            event.claims.push(claim);
+        }
+        return claim;
     }
 
     /** Whether activating `crossLine` from the keyboard would reach a `click` listener at any level. */
@@ -190,9 +204,9 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
 
     /** Fires the `click` listeners of `crossLine` alone, as no pointer position picks overlapping elements. */
     keyboardClick(crossLine: CrossLine, sourceEvent: Event): void {
-        const callbacks: PendingCrossLineCallbacks = { allMatchedParams: [], axes: new Map(), crossLines: new Map() };
+        const callbacks = new PendingCrossLineCallbacks(false);
         this.collectClickCallbacks([crossLine], 'click', sourceEvent, callbacks);
-        fireAllPendingCrossLineCallbacks(callbacks, []);
+        callbacks.fire(callbacks.matchedParams);
     }
 
     private collectClickCallbacks(
@@ -204,7 +218,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         const isClick = type === 'click';
 
         const allParamsOnThisAxis = this.toParamsArray(picks, [], isClick ? 'crossLineClick' : 'crossLineDoubleClick');
-        callbacks.allMatchedParams.push(...allParamsOnThisAxis);
+        callbacks.matchedParams.push(...allParamsOnThisAxis);
 
         // `Forbid` stops rootLevelParams silently overriding a key spread from allMatchedParams; `type` is
         // exempt, as each entry carries the root's event type.

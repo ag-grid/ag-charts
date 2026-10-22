@@ -52,7 +52,6 @@ import type {
 } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartType } from '../chartType';
-import { type PendingCrossLineCallbacks, fireAllPendingCrossLineCallbacks } from '../crossline/crossLine';
 import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -685,20 +684,22 @@ export class SeriesAreaManager extends BaseManager {
             ? this.toCanvasCoordinates(event)
             : { canvasX: event.currentX, canvasY: event.currentY };
 
-        const pendingCrossLineCallbacks = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
-        const clickedCrossLine =
-            this.checkCrossLineClick(event, pendingCrossLineCallbacks) &&
-            !(isSeriesWidget && this.isHandledNodeHit(event));
-        if (clickedCrossLine) {
-            // The cross line wins the event, but still reports the series nodes within `nodeClickRange`.
+        const claims = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
+        const claimedParams = claims.flatMap((claim) => claim.matchedParams);
+        const claimed = claims.some((claim) => claim.isHandled()) && !(isSeriesWidget && this.isHandledNodeHit(event));
+        if (claimed) {
+            // The claim wins the event, but still reports the series nodes within `nodeClickRange`.
             const nodeParams = isSeriesWidget ? this.pickSeriesNodeHitParams(event) : [];
-            fireAllPendingCrossLineCallbacks(pendingCrossLineCallbacks, nodeParams);
+            const allMatchedParams = nodeParams.length > 0 ? [...claimedParams, ...nodeParams] : claimedParams;
+            for (const claim of claims) {
+                claim.fire(allMatchedParams);
+            }
             return; // dodge chart-level / series-level user callbacks.
         }
 
         if (isSeriesWidget) {
-            // Cross-line-only here, and populated whether or not any cross-line listener exists.
-            const clicked = this.checkSeriesNodeClick(event, pendingCrossLineCallbacks.allMatchedParams);
+            // Populated whether or not any claiming listener exists.
+            const clicked = this.checkSeriesNodeClick(event, claimedParams);
             if (clicked) {
                 if (clicked.defaultPrevented) return;
                 this.emitSeriesAreaClickEvent(event, true, clicked.node, clicked.target);
@@ -732,14 +733,10 @@ export class SeriesAreaManager extends BaseManager {
             canvasX,
             canvasY,
             sourceEvent,
-            pendingCrossLineCallbacks: {
-                allMatchedParams: [],
-                axes: new Map(),
-                crossLines: new Map(),
-            },
+            claims: [],
         };
         this.chart.ctx.eventsHub.emit('series-area:canvas-click', payload);
-        return payload.pendingCrossLineCallbacks;
+        return payload.claims;
     }
 
     private emitSeriesAreaClickEvent(
@@ -958,15 +955,6 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private checkCrossLineClick(event: ClickLikeEvent, pendingCallbacks: PendingCrossLineCallbacks): boolean {
-        const { allMatchedParams, axes, crossLines } = pendingCallbacks;
-        const chartListener =
-            event.type === 'click'
-                ? this.chart.ctx.chartService.listeners.crossLineClick
-                : this.chart.ctx.chartService.listeners.crossLineDoubleClick;
-        return allMatchedParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
-    }
-
     /** Whether the picked node reacts to a click or double-click, which is when it shows the pointer cursor. */
     private isClickable(pick: PickedNodes | undefined): boolean {
         return this.handlesNodeEvent(pick, 'click') || this.handlesNodeEvent(pick, 'dblclick');
@@ -1006,7 +994,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private checkSeriesNodeClick(
         event: ClickLikeEvent & CurrentPoint & { preventZoomDblClick?: boolean },
-        crossLineParams: AgMatchedParams<unknown>[]
+        claimedParams: AgMatchedParams<unknown>[]
     ): SeriesNodeClickCheck | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
@@ -1029,7 +1017,7 @@ export class SeriesAreaManager extends BaseManager {
             datums: matches,
             winner: matches.indexOf(updated.active),
             coordinates,
-            otherHitParams: crossLineParams,
+            otherHitParams: claimedParams,
         };
 
         if (event.type === 'click') {
