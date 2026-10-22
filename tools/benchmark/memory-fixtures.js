@@ -44,6 +44,30 @@ function report(examples, { memory = false } = {}) {
     };
 }
 
+/** A shard report with the given `{ name: status }` examples; a non-success example carries an error. */
+function shardReport(statuses, { memory = false } = {}) {
+    return {
+        ...report({}, { memory }),
+        examples: Object.fromEntries(
+            Object.entries(statuses).map(([name, status]) => [
+                name,
+                status === 'success'
+                    ? exampleEntry([result('t')])
+                    : { status, error: `${status} in ${name}\nstack line`, durationMs: 1 },
+            ])
+        ),
+        summary: { total: Object.keys(statuses).length },
+    };
+}
+
+/** The excluded-examples list the shard-failures step writes: `hung` timed out on head, so base skipped it. */
+const EXCLUDED_ENTRY = {
+    example: 'hung',
+    shard: '0',
+    failed: [{ side: 'head', pass: 'r1', status: 'timeout' }],
+    skipped: [{ side: 'base', pass: 'r1' }],
+};
+
 /** Writes each report to `<tmp>/<name>.json`, runs `fn(paths)` (with `paths.dir`) and cleans up. */
 function withFiles(files, fn) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'memory-pass-'));
@@ -72,8 +96,12 @@ function compareArgs({ base, compare, baseMemory, compareMemory, format }) {
     ];
 }
 
+/** Runs a script under node. Colour is forced off: `nx test` sets FORCE_COLOR, which would wrap table cells in escapes. */
 function node(script, args) {
-    return spawnSync(process.execPath, [script, ...args], { encoding: 'utf8' });
+    return spawnSync(process.execPath, [script, ...args], {
+        encoding: 'utf8',
+        env: { ...process.env, FORCE_COLOR: '0' },
+    });
 }
 
 /** Runs the comparison and returns `{ status, stdout, stderr, json }`; `json` is parsed for `format: 'json'`. */
@@ -98,6 +126,7 @@ function lastCells(line, n) {
 
 module.exports = {
     COMPARE,
+    EXCLUDED_ENTRY,
     MB,
     MERGE,
     compareArgs,
@@ -107,5 +136,6 @@ module.exports = {
     report,
     result,
     runCompare,
+    shardReport,
     withFiles,
 };

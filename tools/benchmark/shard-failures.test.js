@@ -4,22 +4,9 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { collectExcluded, formatExcluded, remainingExamples, timedOutExamples } = require('./shard-failures');
-const { exampleEntry, node, report, result, withFiles } = require('./memory-fixtures');
+const { node, shardReport, withFiles } = require('./memory-fixtures');
 
 const SHARD_FAILURES = path.join(__dirname, 'shard-failures.js');
-
-/** A shard report with the given `{ name: status }` examples. */
-const shardReport = (statuses) => ({
-    ...report({}),
-    examples: Object.fromEntries(
-        Object.entries(statuses).map(([name, status]) => [
-            name,
-            status === 'success'
-                ? exampleEntry([result('t')])
-                : { status, error: `${status} in ${name}\nstack line`, durationMs: 1 },
-        ])
-    ),
-});
 
 // --- remaining: which examples later passes still run ---
 
@@ -195,6 +182,18 @@ test('CLI excluded writes an empty list when nothing failed, so downstream steps
         const out = node(SHARD_FAILURES, ['excluded', '--shards-dir', dir, '--output', output]);
         assert.equal(out.status, 0, out.stderr);
         assert.equal(out.stdout, '');
+        assert.deepEqual(JSON.parse(fs.readFileSync(output, 'utf8')), []);
+    });
+});
+
+test('collectExcluded treats a missing shards directory as no shards, and the CLI writes an empty list', () => {
+    withShards({}, (dir) => {
+        const missing = path.join(dir, 'never-created');
+        assert.deepEqual(collectExcluded(missing), []);
+
+        const output = path.join(dir, 'excluded.json');
+        const out = node(SHARD_FAILURES, ['excluded', '--shards-dir', missing, '--output', output]);
+        assert.equal(out.status, 0, out.stderr);
         assert.deepEqual(JSON.parse(fs.readFileSync(output, 'utf8')), []);
     });
 });
