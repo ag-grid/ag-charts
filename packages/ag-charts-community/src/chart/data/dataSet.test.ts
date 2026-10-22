@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { testLogger } from 'ag-charts-test';
 
@@ -86,12 +86,12 @@ describe('DataSet', () => {
     setupMockConsole();
 
     describe('getChangeDescription', () => {
-        test('should return undefined when there are no pending transactions', () => {
+        it('should return undefined when there are no pending transactions', () => {
             const dataSet = new DataSet([1, 2, 3], testLogger);
             expect(dataSet.getChangeDescription()).toBeUndefined();
         });
 
-        test('should handle append-only operations', () => {
+        it('should handle append-only operations', () => {
             const dataSet = new DataSet([1, 2, 3], testLogger);
             dataSet.addTransaction({ append: [4, 5] });
 
@@ -123,7 +123,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([]);
         });
 
-        test('should handle prepend-only operations', () => {
+        it('should handle prepend-only operations', () => {
             const dataSet = new DataSet([1, 2, 3], testLogger);
             dataSet.addTransaction({ prepend: [0] });
 
@@ -155,7 +155,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([]);
         });
 
-        test('should handle remove-only operations', () => {
+        it('should handle remove-only operations', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
@@ -191,7 +191,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([1]);
         });
 
-        test('should handle complex transaction sequence: prepend + remove', () => {
+        it('should handle complex transaction sequence: prepend + remove', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
@@ -212,7 +212,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([1]);
         });
 
-        test('should handle complex transaction sequence: remove + append', () => {
+        it('should handle complex transaction sequence: remove + append', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
@@ -233,7 +233,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([1]);
         });
 
-        test('should handle removing multiple items', () => {
+        it('should handle removing multiple items', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
@@ -254,7 +254,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([1, 3]);
         });
 
-        test('should handle prepend + append + remove', () => {
+        it('should handle prepend + append + remove', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const dataSet = new DataSet([item0, item1], testLogger);
@@ -273,7 +273,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([0]);
         });
 
-        test('should cache the result', () => {
+        it('should cache the result', () => {
             const dataSet = new DataSet([1, 2, 3], testLogger);
             dataSet.addTransaction({ append: [4] });
 
@@ -283,7 +283,7 @@ describe('DataSet', () => {
             expect(desc1).toBe(desc2);
         });
 
-        test('should invalidate cache after commitPendingTransactions', () => {
+        it('should invalidate cache after commitPendingTransactions', () => {
             const dataSet = new DataSet([1, 2, 3], testLogger);
             dataSet.addTransaction({ append: [4] });
 
@@ -301,7 +301,7 @@ describe('DataSet', () => {
             expect(descBefore).not.toBe(descAfter2);
         });
 
-        test('should invalidate cache automatically when adding transactions', () => {
+        it('should invalidate cache automatically when adding transactions', () => {
             const dataSet = new DataSet([1, 2, 3], testLogger);
             dataSet.addTransaction({ append: [4] });
 
@@ -318,7 +318,7 @@ describe('DataSet', () => {
             expect(desc2?.indexMap.finalLength).toBe(5);
         });
 
-        test('should handle empty array', () => {
+        it('should handle empty array', () => {
             const dataSet = new DataSet<number>([], testLogger);
             dataSet.addTransaction({ append: [1, 2] });
 
@@ -328,7 +328,7 @@ describe('DataSet', () => {
             expect(desc.indexMap.finalLength).toBe(2);
         });
 
-        test('should handle removing all items', () => {
+        it('should handle removing all items', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const dataSet = new DataSet([item0, item1], testLogger);
@@ -342,7 +342,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([0, 1]);
         });
 
-        test('forEachPreservedSegment should iterate only preserved segments', () => {
+        it('forEachPreservedSegment should iterate only preserved segments', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
@@ -363,7 +363,7 @@ describe('DataSet', () => {
             expect(preserved[1]).toEqual([3, 1]); // item3 moved to index 1
         });
 
-        test('should handle update-only operations', () => {
+        it('should handle update-only operations', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
@@ -388,7 +388,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([]);
         });
 
-        test('should handle updating multiple items', () => {
+        it('should handle updating multiple items', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
@@ -410,7 +410,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([]);
         });
 
-        test('should handle updating non-existent items as no-op', () => {
+        it('should handle updating non-existent items as no-op', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
@@ -430,7 +430,7 @@ describe('DataSet', () => {
             expect(desc.getUpdatedIndices()).toEqual([]);
         });
 
-        test('should handle combined update + append', () => {
+        it('should handle combined update + append', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const dataSet = new DataSet([item0, item1], testLogger);
@@ -452,7 +452,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([]);
         });
 
-        test('should handle combined update + prepend', () => {
+        it('should handle combined update + prepend', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const dataSet = new DataSet([item0, item1], testLogger);
@@ -474,7 +474,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([]);
         });
 
-        test('should handle combined remove + update with remove taking precedence', () => {
+        it('should handle combined remove + update with remove taking precedence', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
@@ -495,7 +495,7 @@ describe('DataSet', () => {
             expect(desc.getRemovedIndices()).toEqual([1]);
         });
 
-        test('should handle update of prepended item', () => {
+        it('should handle update of prepended item', () => {
             const item0 = { x: 0 };
             const dataSet = new DataSet([item0], testLogger);
 
@@ -511,7 +511,7 @@ describe('DataSet', () => {
             expect(desc.indexMap.totalPrependCount).toBe(1);
         });
 
-        test('should handle update of appended item', () => {
+        it('should handle update of appended item', () => {
             const item0 = { x: 0 };
             const dataSet = new DataSet([item0], testLogger);
 
@@ -527,7 +527,7 @@ describe('DataSet', () => {
             expect(desc.indexMap.totalAppendCount).toBe(1);
         });
 
-        test('should handle complex multi-transaction with updates', () => {
+        it('should handle complex multi-transaction with updates', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
@@ -553,7 +553,7 @@ describe('DataSet', () => {
 
     describe('commitPendingTransactions', () => {
         describe('multiple disjoint removals', () => {
-            test('should correctly remove multiple non-consecutive items', () => {
+            it('should correctly remove multiple non-consecutive items', () => {
                 expectCommitResult({
                     initial: ['a', 'b', 'c', 'd', 'e'],
                     transactions: { remove: ['b', 'd'] },
@@ -561,7 +561,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should scale to large non-consecutive removals', () => {
+            it('should scale to large non-consecutive removals', () => {
                 const initial = Array.from({ length: 100 }, (_, i) => i);
                 const toRemove = initial.filter((x) => x % 3 === 0);
 
@@ -574,7 +574,7 @@ describe('DataSet', () => {
         });
 
         describe('multiple prepend transactions', () => {
-            test.each([
+            it.each([
                 {
                     name: 'maintains LIFO order for sequential prepends',
                     initial: [42],
@@ -593,7 +593,7 @@ describe('DataSet', () => {
         });
 
         describe('combined operations in single transaction', () => {
-            test('prepend + remove in same transaction', () => {
+            it('prepend + remove in same transaction', () => {
                 expectCommitResult({
                     initial: [1, 2, 3, 4, 5],
                     transactions: {
@@ -604,7 +604,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('append + remove in same transaction', () => {
+            it('append + remove in same transaction', () => {
                 expectCommitResult({
                     initial: [1, 2, 3, 4, 5],
                     transactions: {
@@ -615,7 +615,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('prepend + append + remove in same transaction', () => {
+            it('prepend + append + remove in same transaction', () => {
                 expectCommitResult({
                     initial: ['b', 'c', 'd'],
                     transactions: {
@@ -627,7 +627,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('remove then prepend in separate transactions', () => {
+            it('remove then prepend in separate transactions', () => {
                 expectCommitResult({
                     initial: [1, 2, 3, 4, 5],
                     transactions: [{ remove: [2, 4] }, { prepend: [0] }],
@@ -635,7 +635,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('prepend then remove in separate transactions', () => {
+            it('prepend then remove in separate transactions', () => {
                 expectCommitResult({
                     initial: [1, 2, 3],
                     transactions: [{ prepend: [0] }, { remove: [2] }],
@@ -643,7 +643,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('multiple appends then multiple removes', () => {
+            it('multiple appends then multiple removes', () => {
                 expectCommitResult({
                     initial: [1, 2, 3],
                     transactions: [{ append: [4] }, { append: [5, 6] }, { remove: [2, 4, 5] }],
@@ -651,7 +651,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('complex multi-transaction sequence', () => {
+            it('complex multi-transaction sequence', () => {
                 expectCommitResult({
                     initial: ['a', 'b', 'c'],
                     transactions: [
@@ -666,7 +666,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('remove all elements then append', () => {
+        it('remove all elements then append', () => {
             expectCommitResult({
                 initial: [1, 2, 3],
                 transactions: [{ remove: [1, 2, 3] }, { append: [4, 5] }],
@@ -674,7 +674,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('empty initial array with operations', () => {
+        it('empty initial array with operations', () => {
             expectCommitResult<number>({
                 initial: [],
                 transactions: [{ prepend: [1] }, { append: [2] }, { prepend: [0] }],
@@ -682,7 +682,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('remove non-existent items should be ignored', () => {
+        it('remove non-existent items should be ignored', () => {
             expectCommitResult({
                 initial: [1, 2, 3],
                 transactions: { remove: [4, 5] },
@@ -694,7 +694,7 @@ describe('DataSet', () => {
             ]);
         });
 
-        test('multiple operations on same data', () => {
+        it('multiple operations on same data', () => {
             runCommitScenario({
                 initial: ['a', 'b', 'c'],
                 steps: [
@@ -711,7 +711,7 @@ describe('DataSet', () => {
         });
 
         describe('update operations', () => {
-            test('should update single item', () => {
+            it('should update single item', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const item2 = { x: 2 };
@@ -728,7 +728,7 @@ describe('DataSet', () => {
                 expect(dataSet.data[1].x).toBe(10);
             });
 
-            test('should update multiple items', () => {
+            it('should update multiple items', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const item2 = { x: 2 };
@@ -746,7 +746,7 @@ describe('DataSet', () => {
                 expect(dataSet.data[2].x).toBe(200);
             });
 
-            test('should handle update of non-existent item as no-op', () => {
+            it('should handle update of non-existent item as no-op', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const nonExistent = { x: 99 };
@@ -764,7 +764,7 @@ describe('DataSet', () => {
                 ]);
             });
 
-            test('should handle combined add and update', () => {
+            it('should handle combined add and update', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const newItem = { x: 2 };
@@ -779,7 +779,7 @@ describe('DataSet', () => {
                 expect(dataSet.data[0].x).toBe(100);
             });
 
-            test('should handle combined prepend and update', () => {
+            it('should handle combined prepend and update', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const newItem = { x: -1 };
@@ -794,7 +794,7 @@ describe('DataSet', () => {
                 expect(dataSet.data[2].x).toBe(100);
             });
 
-            test('should handle combined remove and update with remove taking precedence', () => {
+            it('should handle combined remove and update with remove taking precedence', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const item2 = { x: 2 };
@@ -813,7 +813,7 @@ describe('DataSet', () => {
                 ]);
             });
 
-            test('should handle update of newly prepended item', () => {
+            it('should handle update of newly prepended item', () => {
                 const item0 = { x: 0 };
                 const newItem = { x: -1 };
 
@@ -828,7 +828,7 @@ describe('DataSet', () => {
                 expect(dataSet.data[0].x).toBe(-100);
             });
 
-            test('should handle update of newly appended item', () => {
+            it('should handle update of newly appended item', () => {
                 const item0 = { x: 0 };
                 const newItem = { x: 1 };
 
@@ -843,7 +843,7 @@ describe('DataSet', () => {
                 expect(dataSet.data[1].x).toBe(100);
             });
 
-            test('should handle all operations combined', () => {
+            it('should handle all operations combined', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const item2 = { x: 2 };
@@ -867,7 +867,7 @@ describe('DataSet', () => {
                 expect(dataSet.data[2].x).toBe(200);
             });
 
-            test('should handle sequential updates', () => {
+            it('should handle sequential updates', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const item2 = { x: 2 };
@@ -887,7 +887,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle update with arbitrary insertion', () => {
+            it('should handle update with arbitrary insertion', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const item2 = { x: 2 };
@@ -903,7 +903,7 @@ describe('DataSet', () => {
                 expect(dataSet.data[1].x).toBe(100);
             });
 
-            test('should track correct updatedIndices when insertion is before updated original', () => {
+            it('should track correct updatedIndices when insertion is before updated original', () => {
                 const item0 = { x: 0 };
                 const item1 = { x: 1 };
                 const item2 = { x: 2 };
@@ -953,10 +953,10 @@ describe('DataSet', () => {
                         if (prop === 'splice') {
                             return function (this: T[], ...args: any[]) {
                                 tracker.splices++;
-                                return Array.prototype.splice.apply(this, args as any);
+                                return Array.prototype.splice.apply(this, args as Parameters<T[]['splice']>);
                             };
                         }
-                        return (target as any)[prop];
+                        return Reflect.get(target, prop);
                     },
                 });
             }
@@ -1004,7 +1004,7 @@ describe('DataSet', () => {
 
         describe('append/prepend-only operations', () => {
             const MAX_SIMPLE_SPLICES = 2;
-            test.each([
+            it.each([
                 {
                     name: 'append',
                     size: 10000,
@@ -1041,7 +1041,7 @@ describe('DataSet', () => {
 
         describe('removal optimizations', () => {
             const MAX_REMOVAL_SPLICES = 3;
-            test.each([
+            it.each([
                 {
                     name: 'remove recently appended items',
                     size: 10000,
@@ -1078,7 +1078,7 @@ describe('DataSet', () => {
         });
 
         describe('scale verification', () => {
-            test('operations scale with changes, not data size', () => {
+            it('operations scale with changes, not data size', () => {
                 const sizes = [1000, 10000, 100000];
                 const MAX_ALLOWED_READS = 50;
                 const MAX_ALLOWED_SPLICES = 3;
@@ -1112,7 +1112,7 @@ describe('DataSet', () => {
                 expect(spliceCount).toBeLessThanOrEqual(MAX_ALLOWED_SPLICES);
             });
 
-            test('mixed operations remain efficient at scale', () => {
+            it('mixed operations remain efficient at scale', () => {
                 const size = 50000;
                 const MAX_SPLICES_FOR_MIXED = 5;
 
@@ -1136,7 +1136,7 @@ describe('DataSet', () => {
         });
 
         describe('early stopping verification', () => {
-            test('stops scanning after finding all items in buildIndexMap', () => {
+            it('stops scanning after finding all items in buildIndexMap', () => {
                 const size = 10000;
                 const targets = [10, 20, 30];
                 const EARLY_STOP_MIN_READS = 25;
@@ -1159,7 +1159,7 @@ describe('DataSet', () => {
         });
 
         describe('object identity limitation', () => {
-            test('object removal requires full scan (documented limitation)', () => {
+            it('object removal requires full scan (documented limitation)', () => {
                 const size = 10000;
                 const initial = Array.from({ length: size }, (_, i) => ({ id: i }));
 
@@ -1177,7 +1177,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('same object reference avoids scan', () => {
+            it('same object reference avoids scan', () => {
                 const size = 10000;
                 const obj = { id: -1 };
                 const initial = Array.from({ length: size }, (_, i) => ({ id: i }));
@@ -1197,7 +1197,7 @@ describe('DataSet', () => {
         });
 
         describe('warnings for missing items', () => {
-            test('warns when remove contains items not in the dataset', () => {
+            it('warns when remove contains items not in the dataset', () => {
                 const existing = { id: 1 };
                 const missing = { id: 2 };
                 const dataSet = new DataSet([existing], testLogger);
@@ -1210,7 +1210,7 @@ describe('DataSet', () => {
                 ]);
             });
 
-            test('warns when update contains items not in the dataset', () => {
+            it('warns when update contains items not in the dataset', () => {
                 const existing = { id: 1 };
                 const missing = { id: 2 };
                 const dataSet = new DataSet([existing], testLogger);
@@ -1227,7 +1227,7 @@ describe('DataSet', () => {
 
     describe('arbitrary insertions (addIndex support)', () => {
         describe('single insertion', () => {
-            test('should insert at middle of array', () => {
+            it('should insert at middle of array', () => {
                 expectCommitResult({
                     initial: ['A', 'B', 'C', 'D', 'E'],
                     transactions: { add: ['X'], addIndex: 2 },
@@ -1235,7 +1235,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should insert at beginning (index 0)', () => {
+            it('should insert at beginning (index 0)', () => {
                 expectCommitResult({
                     initial: ['A', 'B', 'C'],
                     transactions: { add: ['X'], addIndex: 0 },
@@ -1243,7 +1243,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should append when index equals length', () => {
+            it('should append when index equals length', () => {
                 expectCommitResult({
                     initial: ['A', 'B', 'C'],
                     transactions: { add: ['X'], addIndex: 3 },
@@ -1251,7 +1251,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should append when index exceeds length', () => {
+            it('should append when index exceeds length', () => {
                 expectCommitResult({
                     initial: ['A', 'B', 'C'],
                     transactions: { add: ['X'], addIndex: 10 },
@@ -1259,7 +1259,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should insert multiple items at once', () => {
+            it('should insert multiple items at once', () => {
                 expectCommitResult({
                     initial: ['A', 'B', 'C'],
                     transactions: { add: ['X', 'Y', 'Z'], addIndex: 1 },
@@ -1269,7 +1269,7 @@ describe('DataSet', () => {
         });
 
         describe('multiple insertions across transactions', () => {
-            test('should handle sequential insertions with index stability', () => {
+            it('should handle sequential insertions with index stability', () => {
                 runCommitScenario({
                     initial: ['A', 'B', 'C', 'D', 'E'],
                     steps: [
@@ -1287,7 +1287,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle multiple insertions in same transaction', () => {
+            it('should handle multiple insertions in same transaction', () => {
                 runCommitScenario({
                     initial: ['A', 'B', 'C', 'D', 'E'],
                     steps: [
@@ -1302,7 +1302,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle insertion before earlier insertion', () => {
+            it('should handle insertion before earlier insertion', () => {
                 runCommitScenario({
                     initial: ['A', 'B', 'C', 'D'],
                     steps: [
@@ -1321,7 +1321,7 @@ describe('DataSet', () => {
         });
 
         describe('insertions with removals', () => {
-            test('should insert and remove in same transaction', () => {
+            it('should insert and remove in same transaction', () => {
                 const initial = ['A', 'B', 'C', 'D', 'E'];
                 expectCommitResult({
                     initial,
@@ -1334,7 +1334,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle inserting and removing same item in single transaction', () => {
+            it('should handle inserting and removing same item in single transaction', () => {
                 const initial = ['A', 'B', 'C'];
                 const newItem = 'X';
                 expectCommitResult({
@@ -1348,7 +1348,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle multiple inserts then remove all in single transaction', () => {
+            it('should handle multiple inserts then remove all in single transaction', () => {
                 const initial = ['A', 'B'];
                 const items = ['X', 'Y', 'Z'];
                 expectCommitResult({
@@ -1362,7 +1362,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle partial removal of inserted items', () => {
+            it('should handle partial removal of inserted items', () => {
                 const initial = ['A', 'B'];
                 const items = ['X', 'Y', 'Z'];
                 expectCommitResult({
@@ -1376,7 +1376,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle removal before insertion index', () => {
+            it('should handle removal before insertion index', () => {
                 const initial = ['A', 'B', 'C', 'D', 'E'];
                 runCommitScenario({
                     initial,
@@ -1394,7 +1394,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle removal after insertion', () => {
+            it('should handle removal after insertion', () => {
                 const initial = ['A', 'B', 'C', 'D', 'E'];
                 runCommitScenario({
                     initial,
@@ -1413,7 +1413,7 @@ describe('DataSet', () => {
         });
 
         describe('insertions with prepends and appends', () => {
-            test('should handle insertion after prepend', () => {
+            it('should handle insertion after prepend', () => {
                 runCommitScenario({
                     initial: ['A', 'B', 'C'],
                     steps: [
@@ -1430,7 +1430,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle insertion before append', () => {
+            it('should handle insertion before append', () => {
                 runCommitScenario({
                     initial: ['A', 'B', 'C'],
                     steps: [
@@ -1445,7 +1445,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle complex mixed operations', () => {
+            it('should handle complex mixed operations', () => {
                 const initial = ['A', 'B', 'C', 'D'];
                 runCommitScenario({
                     initial,
@@ -1465,7 +1465,7 @@ describe('DataSet', () => {
         });
 
         describe('edge cases', () => {
-            test('should handle insertion into empty array', () => {
+            it('should handle insertion into empty array', () => {
                 expectCommitResult({
                     initial: [],
                     transactions: { add: ['X'], addIndex: 0 },
@@ -1473,7 +1473,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle insertion at index 1 of single-element array', () => {
+            it('should handle insertion at index 1 of single-element array', () => {
                 expectCommitResult({
                     initial: ['A'],
                     transactions: { add: ['X'], addIndex: 1 },
@@ -1481,7 +1481,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle removing inserted item', () => {
+            it('should handle removing inserted item', () => {
                 const initial = ['A', 'B', 'C'];
                 const newItem = 'X';
                 runCommitScenario({
@@ -1499,7 +1499,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle multiple insertions at same index', () => {
+            it('should handle multiple insertions at same index', () => {
                 runCommitScenario({
                     initial: ['A', 'B', 'C'],
                     steps: [
@@ -1514,7 +1514,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle two insertions at exact same index in single commit', () => {
+            it('should handle two insertions at exact same index in single commit', () => {
                 expectCommitResult({
                     initial: ['A', 'B', 'C'],
                     transactions: [
@@ -1525,7 +1525,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle three insertions at exact same index', () => {
+            it('should handle three insertions at exact same index', () => {
                 expectCommitResult({
                     initial: ['A', 'B'],
                     transactions: [
@@ -1537,7 +1537,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('should handle multiple multi-item insertions at same index', () => {
+            it('should handle multiple multi-item insertions at same index', () => {
                 expectCommitResult({
                     initial: ['A', 'B'],
                     transactions: [
@@ -1550,7 +1550,7 @@ describe('DataSet', () => {
         });
 
         describe('virtual index adjustment when removing earlier insertions', () => {
-            test('removing earlier insertion adjusts later insertion virtualIndex', () => {
+            it('removing earlier insertion adjusts later insertion virtualIndex', () => {
                 const x = { id: 'x' };
                 const y = { id: 'y' };
                 expectCommitResult({
@@ -1563,7 +1563,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('removing multiple items from earlier insertion', () => {
+            it('removing multiple items from earlier insertion', () => {
                 const items1 = ['X', 'Y', 'Z'];
                 const item2 = 'A';
                 expectCommitResult({
@@ -1577,7 +1577,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('removing entire earlier insertion', () => {
+            it('removing entire earlier insertion', () => {
                 const x = { id: 'x' };
                 const y = { id: 'y' };
                 expectCommitResult({
@@ -1590,7 +1590,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('removing from middle insertion adjusts only later ones', () => {
+            it('removing from middle insertion adjusts only later ones', () => {
                 const x = 'X';
                 const y = 'Y';
                 const z = 'Z';
@@ -1606,7 +1606,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('removing from multiple insertions in sequence', () => {
+            it('removing from multiple insertions in sequence', () => {
                 const x = 'X';
                 const y = 'Y';
                 const z = 'Z';
@@ -1622,7 +1622,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('removing earlier insertion with original data removal', () => {
+            it('removing earlier insertion with original data removal', () => {
                 const initial = ['A', 'B', 'C', 'D', 'E'];
                 const x = 'X';
                 const y = 'Y';
@@ -1637,7 +1637,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('complex scenario with prepends, insertions, and removals', () => {
+            it('complex scenario with prepends, insertions, and removals', () => {
                 const initial = ['B', 'C', 'D'];
                 const x = 'X';
                 const y = 'Y';
@@ -1653,7 +1653,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('removing later insertion should not affect earlier insertion', () => {
+            it('removing later insertion should not affect earlier insertion', () => {
                 const x1 = { id: 'x1' };
                 const x2 = { id: 'x2' };
                 expectCommitResult({
@@ -1668,7 +1668,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('removing earlier insertion should affect later insertion', () => {
+            it('removing earlier insertion should affect later insertion', () => {
                 const x1 = { id: 'x1' };
                 const x2 = { id: 'x2' };
                 expectCommitResult({
@@ -1683,7 +1683,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('insertion at boundary of removed span should be adjusted', () => {
+            it('insertion at boundary of removed span should be adjusted', () => {
                 const x1 = { id: 'x1' };
                 const x2 = { id: 'x2' };
                 expectCommitResult({
@@ -1698,7 +1698,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('removing multiple items from earlier insertion affects later insertion', () => {
+            it('removing multiple items from earlier insertion affects later insertion', () => {
                 const items1 = ['X', 'Y', 'Z'];
                 const x2 = { id: 'x2' };
                 expectCommitResult({
@@ -1713,7 +1713,7 @@ describe('DataSet', () => {
                 });
             });
 
-            test('removing middle insertion adjusts only later ones not earlier', () => {
+            it('removing middle insertion adjusts only later ones not earlier', () => {
                 const x = 'X';
                 const y = 'Y';
                 const z = 'Z';
@@ -1742,7 +1742,7 @@ describe('DataSet', () => {
         const b: Item = { id: 'b', value: 2 };
         const c: Item = { id: 'c', value: 3 };
 
-        test('remove by ID: items matched by ID field, partial objects accepted', () => {
+        it('remove by ID: items matched by ID field, partial objects accepted', () => {
             expectCommitResult<Item>({
                 initial: [{ ...a }, { ...b }, { ...c }],
                 dataIdKey: 'id',
@@ -1751,7 +1751,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('update by ID (replacement): old datum replaced by new object with same ID', () => {
+        it('update by ID (replacement): old datum replaced by new object with same ID', () => {
             const newB: Item = { id: 'b', value: 99 };
             expectCommitResult<Item>({
                 initial: [{ ...a }, { ...b }, { ...c }],
@@ -1762,7 +1762,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('fallback: no dataIdKey preserves referential equality matching', () => {
+        it('fallback: no dataIdKey preserves referential equality matching', () => {
             const dataSet = new DataSet<Item>([a, b, c], testLogger);
             // Without dataIdKey, a different object with matching id should NOT match
             dataSet.addTransaction({ remove: [{ id: 'b', value: 2 }] });
@@ -1774,7 +1774,7 @@ describe('DataSet', () => {
             ]);
         });
 
-        test('remove from pending prepends by ID', () => {
+        it('remove from pending prepends by ID', () => {
             const d: Item = { id: 'd', value: 4 };
             expectCommitResult<Item>({
                 initial: [{ ...a }],
@@ -1784,7 +1784,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('remove from pending appends by ID', () => {
+        it('remove from pending appends by ID', () => {
             const d: Item = { id: 'd', value: 4 };
             expectCommitResult<Item>({
                 initial: [{ ...a }],
@@ -1794,7 +1794,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('update (replace) in pending prepends by ID', () => {
+        it('update (replace) in pending prepends by ID', () => {
             const newB: Item = { id: 'b', value: 77 };
             expectCommitResult<Item>({
                 initial: [{ ...a }],
@@ -1805,7 +1805,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('update (replace) in pending appends by ID', () => {
+        it('update (replace) in pending appends by ID', () => {
             const newB: Item = { id: 'b', value: 77 };
             expectCommitResult<Item>({
                 initial: [{ ...a }],
@@ -1816,7 +1816,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('duplicate ID validation: warning logged on first commit cycle', () => {
+        it('duplicate ID validation: warning logged on first commit cycle', () => {
             const dataSet = new DataSet<Item>(
                 [
                     { id: 'a', value: 1 },
@@ -1830,7 +1830,7 @@ describe('DataSet', () => {
             expectWarningMessages([`AG Charts - dataIdKey 'id' has duplicate value 'a'; first occurrence used.`]);
         });
 
-        test('duplicate ID validation: warning logged, first occurrence used', () => {
+        it('duplicate ID validation: warning logged, first occurrence used', () => {
             const dataSet = new DataSet<Item>(
                 [
                     { id: 'a', value: 1 },
@@ -1850,7 +1850,7 @@ describe('DataSet', () => {
             expectWarningMessages([`AG Charts - dataIdKey 'id' has duplicate value 'a'; first occurrence used.`]);
         });
 
-        test('combined operations: remove + update + append in single transaction with IDs', () => {
+        it('combined operations: remove + update + append in single transaction with IDs', () => {
             const newA: Item = { id: 'a', value: 10 };
             const d: Item = { id: 'd', value: 4 };
             expectCommitResult<Item>({
@@ -1866,7 +1866,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('change description: getUpdatedIndices() reports correct final indices', () => {
+        it('change description: getUpdatedIndices() reports correct final indices', () => {
             const newC: Item = { id: 'c', value: 99 };
             expectCommitResult<Item>({
                 initial: [{ ...a }, { ...b }, { ...c }],
@@ -1877,7 +1877,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('change description: getRemovedIndices() correct for ID-based removals', () => {
+        it('change description: getRemovedIndices() correct for ID-based removals', () => {
             expectCommitResult<Item>({
                 initial: [{ ...a }, { ...b }, { ...c }],
                 dataIdKey: 'id',
@@ -1887,7 +1887,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('multi-step transactions: sequential commits with ID-based matching', () => {
+        it('multi-step transactions: sequential commits with ID-based matching', () => {
             const newA: Item = { id: 'a', value: 10 };
             const d: Item = { id: 'd', value: 4 };
             runCommitScenario<Item>({
@@ -1907,7 +1907,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('missing ID field: dataIdKey set but datum lacks the field, falls through with warning', () => {
+        it('missing ID field: dataIdKey set but datum lacks the field, falls through with warning', () => {
             const dataSet = new DataSet<any>([{ id: 'a', value: 1 }], testLogger, 'id');
             dataSet.addTransaction({ remove: [{ value: 1 }] });
             dataSet.commitPendingTransactions(undefined);
@@ -1916,7 +1916,7 @@ describe('DataSet', () => {
             expectWarningMessages([`AG Charts - applyTransaction() remove item is missing 'id' field; ignoring.`]);
         });
 
-        test('ID type mismatch: string "123" vs number 123 produces no match (strict equality)', () => {
+        it('ID type mismatch: string "123" vs number 123 produces no match (strict equality)', () => {
             const dataSet = new DataSet<any>(
                 [
                     { id: 123, value: 1 },
@@ -1937,7 +1937,7 @@ describe('DataSet', () => {
             ]);
         });
 
-        test('update with non-existent ID: warning logged, item ignored', () => {
+        it('update with non-existent ID: warning logged, item ignored', () => {
             const dataSet = new DataSet<Item>([{ ...a }, { ...b }], testLogger, 'id');
             dataSet.addTransaction({ update: [{ id: 'nonexistent', value: 99 }] });
             dataSet.commitPendingTransactions(undefined);
@@ -1947,7 +1947,7 @@ describe('DataSet', () => {
             ]);
         });
 
-        test('change description: combined remove + update reports correct final indices', () => {
+        it('change description: combined remove + update reports correct final indices', () => {
             const newC: Item = { id: 'c', value: 99 };
             expectCommitResult<Item>({
                 initial: [{ ...a }, { ...b }, { ...c }],
@@ -1963,7 +1963,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('consecutive update-only commits: idToIndexCache survives across commits', () => {
+        it('consecutive update-only commits: idToIndexCache survives across commits', () => {
             const newB: Item = { id: 'b', value: 20 };
             const newA: Item = { id: 'a', value: 10 };
             runCommitScenario<Item>({
@@ -1985,7 +1985,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('append then update appended item: cache includes appended entries', () => {
+        it('append then update appended item: cache includes appended entries', () => {
             const d: Item = { id: 'd', value: 4 };
             const newD: Item = { id: 'd', value: 40 };
             runCommitScenario<Item>({
@@ -2005,7 +2005,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('contiguous removal from start then update: cache adjusts indices', () => {
+        it('contiguous removal from start then update: cache adjusts indices', () => {
             const newC: Item = { id: 'c', value: 30 };
             runCommitScenario<Item>({
                 initial: [{ ...a }, { ...b }, { ...c }],
@@ -2025,7 +2025,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('three consecutive update-only commits: cache survives through all', () => {
+        it('three consecutive update-only commits: cache survives through all', () => {
             const newA1: Item = { id: 'a', value: 10 };
             const newB1: Item = { id: 'b', value: 20 };
             const newC1: Item = { id: 'c', value: 30 };
@@ -2049,7 +2049,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('append + update in separate commits: both reflected correctly', () => {
+        it('append + update in separate commits: both reflected correctly', () => {
             const d: Item = { id: 'd', value: 4 };
             const e: Item = { id: 'e', value: 5 };
             const newA: Item = { id: 'a', value: 10 };
@@ -2070,7 +2070,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('NaN ID is ignored: item with NaN id is not indexed and update-by-ID has no effect', () => {
+        it('NaN ID is ignored: item with NaN id is not indexed and update-by-ID has no effect', () => {
             const dataSet = new DataSet<any>(
                 [
                     { id: 'a', value: 1 },
@@ -2091,7 +2091,7 @@ describe('DataSet', () => {
             expectWarningMessages([`AG Charts - applyTransaction() update item is missing 'id' field; ignoring.`]);
         });
 
-        test('add/addIndex API: mid-range insertion then ID-based remove of added item', () => {
+        it('add/addIndex API: mid-range insertion then ID-based remove of added item', () => {
             const d: Item = { id: 'd', value: 4 };
             const e: Item = { id: 'e', value: 5 };
             expectCommitResult<Item>({
@@ -2102,7 +2102,7 @@ describe('DataSet', () => {
             });
         });
 
-        test('add/addIndex API: append via add (no addIndex) then ID-based update', () => {
+        it('add/addIndex API: append via add (no addIndex) then ID-based update', () => {
             const d: Item = { id: 'd', value: 4 };
             const newD: Item = { id: 'd', value: 40 };
             expectCommitResult<Item>({
@@ -2114,9 +2114,10 @@ describe('DataSet', () => {
             });
         });
 
-        test('warns when dataIdKey field is not found on any data item', () => {
+        it('warns when dataIdKey field is not found on any data item', () => {
             const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], testLogger, 'nonExistent');
-            dataSet.addTransaction({ remove: [{ nonExistent: 'x' } as any] });
+            // Deliberately a datum the DataSet does not hold: it has no `id`, so the `dataIdKey` lookup finds nothing.
+            dataSet.addTransaction({ remove: [{ nonExistent: 'x' } as unknown as Item] });
             dataSet.commitPendingTransactions(undefined);
             expectWarningMessages([
                 "AG Charts - dataIdKey 'nonExistent' was not found on any data item.",
@@ -2124,7 +2125,7 @@ describe('DataSet', () => {
             ]);
         });
 
-        test('does not warn when dataIdKey field exists on data items', () => {
+        it('does not warn when dataIdKey field exists on data items', () => {
             const newA: Item = { id: 'a', value: 10 };
             const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], testLogger, 'id');
             dataSet.addTransaction({ update: [newA] });
@@ -2133,14 +2134,14 @@ describe('DataSet', () => {
             expectWarningMessages([]);
         });
 
-        test('does not warn when data is empty', () => {
+        it('does not warn when data is empty', () => {
             const dataSet = new DataSet<Item>([], testLogger, 'id');
             dataSet.addTransaction({ append: [{ id: 'a', value: 10 }] });
             dataSet.commitPendingTransactions(undefined);
             expectWarningMessages([]);
         });
 
-        test('does not warn when dataIdKey is not set', () => {
+        it('does not warn when dataIdKey is not set', () => {
             const items = [{ ...a }, { ...b }, { ...c }];
             const dataSet = new DataSet<Item>(items, testLogger);
             dataSet.addTransaction({ update: [items[0]] });
@@ -2148,7 +2149,7 @@ describe('DataSet', () => {
             expectWarningMessages([]);
         });
 
-        test('prepend duplicate ID: cache maps to prepended (first) occurrence after warm cache', () => {
+        it('prepend duplicate ID: cache maps to prepended (first) occurrence after warm cache', () => {
             const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], testLogger, 'id');
 
             // Warm the ID cache with an update
@@ -2177,7 +2178,7 @@ describe('DataSet', () => {
             id: string;
         }
 
-        test('a warm ID array follows a prepend', () => {
+        it('a warm ID array follows a prepend', () => {
             const dataSet = new DataSet<Item>([{ id: 'a' }, { id: 'b' }], testLogger, 'id');
             expect(dataSet.getIdArray()).toEqual(['a', 'b']);
 
@@ -2187,7 +2188,7 @@ describe('DataSet', () => {
             expect(dataSet.getIdArray()).toEqual(['z', 'a', 'b']);
         });
 
-        test('a warm ID array follows a head removal', () => {
+        it('a warm ID array follows a head removal', () => {
             const dataSet = new DataSet<Item>([{ id: 'a' }, { id: 'b' }, { id: 'c' }], testLogger, 'id');
             expect(dataSet.getIdArray()).toEqual(['a', 'b', 'c']);
 

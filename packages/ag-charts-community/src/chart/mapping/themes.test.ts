@@ -16,6 +16,7 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { VERSION } from '../../version';
 import { sanitizeThemeModules } from '../factory/processModuleOptions';
+import { setAgChartsDebug } from '../test/seriesAccessors';
 import {
     deproxy,
     expectWarningsCalls,
@@ -145,7 +146,7 @@ describe('themes.ts', () => {
 `);
         });
 
-        test('missing strokes', async () => {
+        it('missing strokes', async () => {
             const chart = AgCharts.create({
                 ...opts,
                 theme: {
@@ -160,7 +161,7 @@ describe('themes.ts', () => {
             expect(getActualPalette(chart)?.strokes).toEqual(getPalette('ag-default-dark')?.strokes);
         });
 
-        test('missing fills', async () => {
+        it('missing fills', async () => {
             const chart = AgCharts.create({
                 ...opts,
                 theme: {
@@ -355,12 +356,14 @@ describe('themes.ts', () => {
     describe('theme cache debug logging with "theme" selector', () => {
         setupMockConsole({ includeAllLevels: true });
 
+        let restoreAgChartsDebug: () => void;
+
         beforeEach(() => {
-            (globalThis as any).agChartsDebug = 'theme';
+            restoreAgChartsDebug = setAgChartsDebug('theme');
         });
 
         afterEach(() => {
-            delete (globalThis as any).agChartsDebug;
+            restoreAgChartsDebug();
         });
 
         function themeCacheLogs() {

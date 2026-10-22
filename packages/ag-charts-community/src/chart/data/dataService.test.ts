@@ -77,10 +77,6 @@ describe('DataService', () => {
     });
 
     describe('pending data', () => {
-        afterEach(() => {
-            (dataService as any).pendingData = undefined;
-        });
-
         it('should emit `data:load` with restored data and NOT callback with an undefined window', async () => {
             const dataCallback = [{ datum: 'value' }];
             const dataRestored = [{ restored: 'other-value' }];
@@ -599,8 +595,6 @@ describe('DataService', () => {
     });
 
     describe('loading state', () => {
-        const inFlightCount = () => (dataService as any).inFlightCount as number;
-
         let consoleWarnSpy: MockInstance;
         beforeEach(() => {
             consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -649,7 +643,6 @@ describe('DataService', () => {
             requests[1].resolve([{ datum: 2 }]);
             await sleep();
             expect(dataService.isLoading()).toBe(false);
-            expect(inFlightCount()).toBe(0);
         });
 
         it('should clear the loading state after an invalid response (no stuck spinner)', async () => {
@@ -660,7 +653,6 @@ describe('DataService', () => {
             await sleep();
 
             expect(dataService.isLoading()).toBe(false);
-            expect(inFlightCount()).toBe(0);
         });
 
         it('should clear the loading state after the callback rejects (no stuck spinner)', async () => {
@@ -671,7 +663,6 @@ describe('DataService', () => {
             await sleep();
 
             expect(dataService.isLoading()).toBe(false);
-            expect(inFlightCount()).toBe(0);
         });
 
         it('should hold the loading state open until a secondary (mini-chart) request settles', async () => {
@@ -695,7 +686,6 @@ describe('DataService', () => {
             secondary.resolve([{ datum: 'mini' }]);
             await sleep();
             expect(dataService.isLoading()).toBe(false);
-            expect(inFlightCount()).toBe(0);
         });
     });
 });

@@ -18,6 +18,14 @@ import {
     verifyReprocessMatchesBaseline,
 } from '../test/testUtils';
 
+/**
+ * Casts a deliberately malformed datum, or a null/undefined/mistyped value inside one, to the type the test's DataSet
+ * is declared with. The data model must tolerate these at runtime although the types forbid them.
+ */
+function malformed<T>(input: unknown): T {
+    return input as T;
+}
+
 // Component-specific helper for banding configuration
 function bandingConfig(minDataSizeForBanding: number, targetBandCount: number) {
     return {
@@ -442,7 +450,7 @@ describe('DataModel', () => {
                 // Start with data that includes invalid item to ensure invalidData is initialized
                 const initialData = [
                     { x: 1, y: 10 },
-                    { x: 2, y: 'bad' as any },
+                    { x: 2, y: malformed('bad') },
                 ];
                 const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
@@ -454,7 +462,7 @@ describe('DataModel', () => {
 
                 // Append with another invalid value
                 dataSet.addTransaction({
-                    append: [{ x: 3, y: 'invalid' as any }],
+                    append: [{ x: 3, y: malformed('invalid') }],
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
@@ -704,7 +712,7 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Append data with invalid key (null)
-                dataSet.addTransaction({ append: [{ x: null as any, y: 20 }] });
+                dataSet.addTransaction({ append: [{ x: malformed(null), y: 20 }] });
 
                 // Should throw error about invalid keys
                 expect(() => dataModel.reprocessData(processedData!, undefined, undefined)).toThrow(
@@ -1139,8 +1147,8 @@ describe('DataModel', () => {
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             // Data should still be correct even with full reprocessing
-            const groups = (reprocessed as any).groups;
-            const columns = reprocessed.columns;
+            if (reprocessed.type !== 'grouped') throw new Error('expected grouped data');
+            const { groups, columns } = reprocessed;
 
             expect(groups.length).toBe(3);
 
@@ -1328,7 +1336,7 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Append null datum
-                dataSet.addTransaction({ append: [null as any] });
+                dataSet.addTransaction({ append: [malformed(null)] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
@@ -1354,7 +1362,7 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Append undefined datum
-                dataSet.addTransaction({ append: [undefined as any] });
+                dataSet.addTransaction({ append: [malformed(undefined)] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
@@ -1382,7 +1390,7 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Prepend null datum
-                dataSet.addTransaction({ prepend: [null as any] });
+                dataSet.addTransaction({ prepend: [malformed(null)] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
@@ -1411,7 +1419,7 @@ describe('DataModel', () => {
 
                 // Append mix of null and valid
                 dataSet.addTransaction({
-                    append: [null as any, { x: 2, y: 20 }, null as any],
+                    append: [malformed(null), { x: 2, y: 20 }, malformed(null)],
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
@@ -1446,7 +1454,7 @@ describe('DataModel', () => {
                 // Remove middle item, append null
                 dataSet.addTransaction({
                     remove: [initialData[1]],
-                    append: [null as any],
+                    append: [malformed(null)],
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
@@ -1477,7 +1485,7 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Append datum with valid key but null value
-                dataSet.addTransaction({ append: [{ x: 2, y: null as any }] });
+                dataSet.addTransaction({ append: [{ x: 2, y: malformed(null) }] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
@@ -1515,7 +1523,7 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Append datum with y1 valid but y2 null
-                dataSet.addTransaction({ append: [{ x: 2, y1: 20, y2: null as any }] });
+                dataSet.addTransaction({ append: [{ x: 2, y1: 20, y2: malformed(null) }] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
@@ -1552,7 +1560,7 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Append datum with missing y value
-                dataSet.addTransaction({ append: [{ x: 2 } as any] });
+                dataSet.addTransaction({ append: [malformed({ x: 2 })] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
@@ -1591,7 +1599,7 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Mutate the value to null
-                initialData[1].y = null as any;
+                initialData[1].y = malformed(null);
                 dataSet.addTransaction({ update: [initialData[1]] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
@@ -1614,7 +1622,7 @@ describe('DataModel', () => {
                 );
 
                 // Start with data that includes null
-                const nullDatum = null as any;
+                const nullDatum = malformed(null);
                 const initialData = [{ x: 1, y: 10 }, nullDatum, { x: 3, y: 30 }];
                 const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
@@ -1643,7 +1651,7 @@ describe('DataModel', () => {
                     testLogger
                 );
 
-                const nullDatum = null as any;
+                const nullDatum = malformed(null);
                 const validDatum = { x: 1, y: 10 };
                 const initialData = [validDatum, nullDatum];
                 const dataSet = new DataSet(initialData, testLogger);
@@ -1687,7 +1695,7 @@ describe('DataModel', () => {
 
                 // Prepend null, append valid
                 dataSet.addTransaction({
-                    prepend: [null as any],
+                    prepend: [malformed(null)],
                     append: [{ x: 4, y: 40 }],
                 });
 
@@ -1721,7 +1729,7 @@ describe('DataModel', () => {
                 // Remove first valid, append null
                 dataSet.addTransaction({
                     remove: [initialData[0]],
-                    append: [null as any],
+                    append: [malformed(null)],
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
@@ -1756,7 +1764,7 @@ describe('DataModel', () => {
                 // Rolling window: remove from start, append nulls at end
                 dataSet.addTransaction({
                     remove: [initialData[0], initialData[1]],
-                    append: [null as any, { x: 100, y: 1000 }],
+                    append: [malformed(null), { x: 100, y: 1000 }],
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
@@ -1789,9 +1797,9 @@ describe('DataModel', () => {
                 // Append mix of valid and null keys
                 dataSet.addTransaction({
                     append: [
-                        { x: null as any, y: 20 },
+                        { x: malformed(null), y: 20 },
                         { x: 3, y: 30 },
-                        { x: null as any, y: 40 },
+                        { x: malformed(null), y: 40 },
                         { x: 5, y: 50 },
                     ],
                 });
@@ -1827,9 +1835,9 @@ describe('DataModel', () => {
                 // Append mix of valid and null values
                 dataSet.addTransaction({
                     append: [
-                        { x: 2, y: null as any },
+                        { x: 2, y: malformed(null) },
                         { x: 3, y: 30 },
-                        { x: 4, y: null as any },
+                        { x: 4, y: malformed(null) },
                         { x: 5, y: 50 },
                     ],
                 });
@@ -1871,7 +1879,7 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
 
                 // Append datum with valid key but null value
-                dataSet.addTransaction({ append: [{ x: 3, y: null as any }] });
+                dataSet.addTransaction({ append: [{ x: 3, y: malformed(null) }] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined) as GroupedData<any>;
 
@@ -1900,7 +1908,7 @@ describe('DataModel', () => {
                 // Initial data with null key
                 const initialData = [
                     { x: 1, y: 10 },
-                    { x: null as any, y: 20 },
+                    { x: malformed(null), y: 20 },
                 ];
                 const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
@@ -1926,7 +1934,7 @@ describe('DataModel', () => {
 
                 const initialData = [
                     { x: 'A', y: 10 },
-                    { x: null as any, y: 20 },
+                    { x: malformed(null), y: 20 },
                     { x: 'B', y: 30 },
                 ];
                 const dataSet = new DataSet(initialData, testLogger);
@@ -1952,7 +1960,7 @@ describe('DataModel', () => {
 
                 const initialData = [
                     { x: 'A', y: 10 },
-                    { x: null as any, y: 20 },
+                    { x: malformed(null), y: 20 },
                     { x: 'null', y: 30 }, // string "null" is different from actual null
                     { x: 'B', y: 40 },
                 ];
@@ -1979,7 +1987,7 @@ describe('DataModel', () => {
                 // Initial data with null key
                 const initialData = [
                     { x: 'A', y: 10 },
-                    { x: null as any, y: 20 },
+                    { x: malformed(null), y: 20 },
                 ];
                 const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
@@ -1993,7 +2001,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({
                     append: [
                         { x: 'B', y: 30 },
-                        { x: null as any, y: 40 },
+                        { x: malformed(null), y: 40 },
                     ],
                 });
 
@@ -2014,7 +2022,7 @@ describe('DataModel', () => {
 
                 const initialData = [
                     { x: 'A', y: 10 },
-                    { x: null as any, y: 20 },
+                    { x: malformed(null), y: 20 },
                     { x: 'B', y: 30 },
                 ];
                 const dataSet = new DataSet(initialData, testLogger);
@@ -2043,7 +2051,7 @@ describe('DataModel', () => {
 
                 // Append data with null key
                 dataSet.addTransaction({
-                    append: [{ x: null as any, y: 20 }],
+                    append: [{ x: malformed(null), y: 20 }],
                 });
 
                 // Reprocess - should NOT emit warnings
@@ -2063,8 +2071,8 @@ describe('DataModel', () => {
 
                 const initialData = [
                     { x: 'A', y: 10 },
-                    { x: null as any, y: 20 },
-                    { x: null as any, y: 25 }, // Multiple nulls
+                    { x: malformed(null), y: 20 },
+                    { x: malformed(null), y: 25 }, // Multiple nulls
                     { x: 'B', y: 30 },
                 ];
                 const dataSet = new DataSet(initialData, testLogger);
@@ -2093,7 +2101,7 @@ describe('DataModel', () => {
 
                 const initialData = [
                     { x: 'A', y: 10 },
-                    { x: null as any, y: 20 },
+                    { x: malformed(null), y: 20 },
                     { x: 'B', y: 30 },
                 ];
                 const dataSet = new DataSet(initialData, testLogger);
@@ -2122,7 +2130,7 @@ describe('DataModel', () => {
 
                 const initialData = [
                     { x: 'A', y: 10 },
-                    { x: undefined as any, y: 20 },
+                    { x: malformed(undefined), y: 20 },
                     { x: 'B', y: 30 },
                 ];
                 const dataSet = new DataSet(initialData, testLogger);
@@ -2150,8 +2158,8 @@ describe('DataModel', () => {
 
                 const initialData = [
                     { x: 'A', y: 10 },
-                    { x: null as any, y: 20 },
-                    { x: undefined as any, y: 30 },
+                    { x: malformed(null), y: 20 },
+                    { x: malformed(undefined), y: 30 },
                     { x: 'B', y: 40 },
                 ];
                 const dataSet = new DataSet(initialData, testLogger);
@@ -2192,7 +2200,7 @@ describe('DataModel', () => {
 
                 // Append null datums
                 dataSet.addTransaction({
-                    append: [null as any, { x: 100, y: 1000 }, null as any],
+                    append: [malformed(null), { x: 100, y: 1000 }, malformed(null)],
                 });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);

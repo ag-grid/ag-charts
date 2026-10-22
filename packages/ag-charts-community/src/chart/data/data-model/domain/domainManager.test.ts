@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { testLogger } from 'ag-charts-test';
 
 import { DataModel } from '../../dataModel';
+import type { ProcessedData } from '../../dataModelTypes';
 import { DataSet } from '../../dataSet';
 import {
     basicDataSet,
@@ -622,7 +623,7 @@ describe('DomainManager', () => {
                 const dataSet = new DataSet(currentData, testLogger);
                 const sources = basicDataSet(currentData).set('test', dataSet);
 
-                let processedData = dataModel.processData(sources)!;
+                let processedData: ProcessedData<any> = dataModel.processData(sources)!;
 
                 // Perform 5 scrolling operations
                 for (let iteration = 0; iteration < 5; iteration++) {
@@ -641,7 +642,7 @@ describe('DomainManager', () => {
                         append: toAppend,
                     });
 
-                    processedData = dataModel.reprocessData(processedData, undefined, undefined) as any;
+                    processedData = dataModel.reprocessData(processedData, undefined, undefined);
                     verifyReprocessMatchesBaseline(dataModel, processedData, sources);
 
                     const expectedMinX = 10 * (iteration + 1);
