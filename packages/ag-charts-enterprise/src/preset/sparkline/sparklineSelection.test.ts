@@ -27,7 +27,11 @@ describe('sparkline preset selection', () => {
 
     // `selection` is not part of the sparkline option types, but the enterprise selection feature applies to its series.
     const create = async (options: AgSparklineOptions) => {
-        const prepared = prepareTestOptions({ ...options, selection: { enabled: true } } as any) as AgSparklineOptions;
+        const withSelection: AgSparklineOptions & { selection: { enabled: boolean } } = {
+            ...options,
+            selection: { enabled: true },
+        };
+        const prepared = prepareTestOptions(withSelection);
         chart = AgCharts.__createSparkline(prepared);
         await waitForChartStability(chart);
     };

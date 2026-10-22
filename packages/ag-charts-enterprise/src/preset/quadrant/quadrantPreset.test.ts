@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
+    type Chart,
     type ChartTestCase,
     PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -11,14 +12,18 @@ import {
     deproxy,
     expectNonBlank,
     expectWarningsCalls,
+    findAxis,
+    getSeriesAt,
+    getSeriesNodeData,
     setupMockCanvas,
     setupMockConsole,
     setupMockPointerEvent,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Logger, Transformable } from 'ag-charts-core';
+import { Logger, type Point, Transformable } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
+    AgChartInstance,
     AgChartOptions,
     AgQuadrantChartOptions,
     AgQuadrantRegion,
@@ -29,6 +34,7 @@ import type {
 } from 'ag-charts-types';
 
 import { DEFAULT_CONTEXT_MENU_CLASS } from '../../features/context-menu/contextMenuStyles';
+import { getAxesGridLinesVisible } from '../../test/featureAccessors';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { createQuadrant } from './quadrantPreset';
 
@@ -706,7 +712,7 @@ describe('AG-18413 quadrant with a key naming no column', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: Chart | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -717,30 +723,29 @@ describe('AG-18413 quadrant with a key naming no column', () => {
     const createQuadrantChart = async (overrides: Partial<AgQuadrantChartOptions>) => {
         const options: AgQuadrantChartOptions = { ...NUMERIC, ...overrides };
         prepareEnterpriseTestOptions(options as AgChartOptions);
-        chart = deproxy(AgCharts.createQuadrantChart(options) as any) as any;
-        await waitForChartStability(chart);
-        return chart.series[0];
+        const created = deproxy(AgCharts.createQuadrantChart(options));
+        chart = created;
+        await waitForChartStability(created);
+        return created;
     };
 
     // An empty key names a column like any other string, so it takes the unmatched-key warning —
     // and, with nothing renderable behind it, the no-data overlay stands alone over the axes.
     it('draws no markers and warns for an empty sizeKey', async () => {
-        const series = await createQuadrantChart({ sizeKey: '' });
+        const created = await createQuadrantChart({ sizeKey: '' });
+        const series = getSeriesAt(created);
 
-        expect(series.getNodeData()).toEqual([]);
+        expect(getSeriesNodeData(created)).toEqual([]);
         expect(series.hasData).toBe(false);
         // The no-data overlay stands alone over the axes: no markers, and no gridlines behind it.
-        expect(chart.axes.map((a: { gridLineGroup: { visible: boolean } }) => a.gridLineGroup.visible)).toEqual([
-            false,
-            false,
-        ]);
+        expect(getAxesGridLinesVisible(created)).toEqual([false, false]);
         expectWarningsCalls().toEqual([[`AG Charts - the key '' was not found in any data element for ${series.id}.`]]);
     });
 
     it('keeps the series populated for a sizeKey that does name a column', async () => {
-        const series = await createQuadrantChart({ sizeKey: 'size' });
+        const created = await createQuadrantChart({ sizeKey: 'size' });
 
-        expect(series.getNodeData()).toHaveLength(NUMERIC.data!.length);
+        expect(getSeriesNodeData(created)).toHaveLength(NUMERIC.data!.length);
         expectWarningsCalls().toEqual([]);
     });
 });
@@ -814,13 +819,11 @@ describe('Quadrant Preset context menu region', () => {
         yAxis: { min: -400, max: 400 },
     };
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart?.destroy();
+        (chart as unknown) = undefined;
     });
 
     const prepareChart = async (
@@ -835,10 +838,11 @@ describe('Quadrant Preset context menu region', () => {
 
     /** Canvas point of the marker whose datum carries `label`. */
     const markerPoint = (label: string) => {
-        const series = deproxy(chart).series[0] as any;
-        const node = series.getNodeData().find((n: any) => n.datum.label === label);
+        const node = getSeriesNodeData<{ datum: { label: string }; point: Point }>(chart).find(
+            (n) => n.datum.label === label
+        );
         expect(node).toBeDefined();
-        return Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
+        return Transformable.toCanvasPoint(getSeriesAt(chart).contentGroup, node!.point.x, node!.point.y);
     };
 
     /**
@@ -891,11 +895,8 @@ describe('Quadrant Preset context menu region', () => {
         await prepareChart({ enabled: true, getItems });
 
         const { x, y } = deproxy(chart).seriesRect!;
-        const axes = deproxy(chart).axes as any[];
-        const xAxis = axes.find((a) => a.direction === 'x');
-        const yAxis = axes.find((a) => a.direction === 'y');
-        expect(xAxis).toBeDefined();
-        expect(yAxis).toBeDefined();
+        const xAxis = findAxis(chart, 'bottom');
+        const yAxis = findAxis(chart, 'left');
 
         // Positive x and negative y: a zero-based split would call this 'bottom-right', the pivot puts it top-left.
         await rightClick({ canvasX: x + xAxis.scale.convert(10), canvasY: y + yAxis.scale.convert(-10) });
@@ -928,7 +929,7 @@ describe('Quadrant Preset context menu region', () => {
         await prepareChart({ enabled: true, getItems }, { axisPlacement: { label: 'crossing' } });
 
         const { x, y, width } = deproxy(chart).seriesRect!;
-        const yAxis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'y');
+        const yAxis = findAxis(chart, 'left');
         await rightClick({ canvasX: x + width * 0.3, canvasY: y + yAxis.scale.convert(PIVOT.y) });
 
         const params = getItems.mock.calls[0][0];

@@ -76,7 +76,8 @@ describe('HierarchyDataSet', () => {
         test('warns when dataIdKey field is not found on any data item', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'nonExistent', 'children', testLogger);
-            ds.addTransaction({ remove: [{ nonExistent: 'x' } as any] });
+            const removed: TreeItem & { nonExistent: string } = { id: 'x', name: 'x', nonExistent: 'x' };
+            ds.addTransaction({ remove: [removed] });
             ds.commitPendingTransactions(undefined);
             expectWarningMessages(["AG Charts - dataIdKey 'nonExistent' was not found on any data item."]);
         });

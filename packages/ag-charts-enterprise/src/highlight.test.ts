@@ -12,6 +12,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     deproxy,
+    getSeriesNodeData,
     setupMockCanvas,
     setupMockConsole,
 } from 'ag-charts-community-test';
@@ -20,6 +21,8 @@ import { ukData } from './series/map-test/ukData';
 import { ukRoadData } from './series/map-test/ukRoadData';
 import ukRoadTopology from './series/map-test/ukRoadTopology.json';
 import ukTopology from './series/map-test/ukTopology.json';
+import { getSeriesNodeDataContexts } from './test/featureAccessors';
+import { getHierarchyRootNode } from './test/seriesAccessors';
 import { createEnterpriseChart } from './test/utils';
 
 describe('Enterprise highlight defaults', () => {
@@ -56,32 +59,29 @@ describe('Enterprise highlight defaults', () => {
     ): HighlightNodeDatum | undefined => {
         const seriesIndex = testCase.seriesIndex ?? 0;
         const datumIndex = testCase.datumIndex ?? 0;
-        const series = chartInstance.series[seriesIndex] as {
-            contextNodeData?: unknown;
-            _contextNodeData?: unknown;
-        };
-        const context =
-            series?.contextNodeData ?? (series as any)?.['contextNodeData'] ?? (series as any)._contextNodeData;
+        const contexts = getSeriesNodeDataContexts<HighlightNodeDatum>(chartInstance, seriesIndex);
 
-        if (!context) return (series as any).getNodeData?.()?.[datumIndex] ?? (series as any).getNodeData?.()?.[0];
-
-        const pickFromEntry = (entry: { nodeData?: HighlightNodeDatum[] } | undefined) =>
-            entry?.nodeData?.[datumIndex] ?? entry?.nodeData?.[0];
-
-        if (Array.isArray(context)) {
-            for (const entry of context as Array<{ nodeData?: HighlightNodeDatum[] }>) {
-                const candidate = pickFromEntry(entry);
-                if (candidate) return candidate;
-            }
-            const fallback = (series as any).getNodeData?.() as HighlightNodeDatum[] | undefined;
-            return fallback?.[datumIndex] ?? fallback?.[0];
+        // A series that keeps a node-data context is highlighted through the first datum any of its contexts offers.
+        for (const { nodeData } of contexts) {
+            const candidate = nodeData?.[datumIndex] ?? nodeData?.[0];
+            if (candidate) return candidate;
         }
 
-        const candidate = pickFromEntry(context as { nodeData?: HighlightNodeDatum[] });
-        if (candidate) return candidate;
+        const fallback = getSeriesNodeData<HighlightNodeDatum>(chartInstance, seriesIndex);
+        return fallback[datumIndex] ?? fallback[0];
+    };
 
-        const fallback = (series as any).getNodeData?.() as HighlightNodeDatum[] | undefined;
-        return fallback?.[datumIndex] ?? fallback?.[0];
+    // The first node datum of the series' contexts that `isPreferred` accepts, else the first datum any context holds.
+    const firstNodeDatum = (
+        chartInstance: Chart,
+        isPreferred: (datum: HighlightNodeDatum & { type?: unknown; datum?: unknown }) => boolean
+    ): HighlightNodeDatum | undefined => {
+        for (const { nodeData } of getSeriesNodeDataContexts<HighlightNodeDatum>(chartInstance)) {
+            const match = nodeData?.find(isPreferred);
+            if (match) return match;
+            if (nodeData && nodeData.length > 0) return nodeData[0];
+        }
+        return undefined;
     };
 
     const runHighlightSnapshot = async (testCase: HighlightTestCase) => {
@@ -300,7 +300,7 @@ describe('Enterprise highlight defaults', () => {
             } as AgCartesianChartOptions,
             seriesIndex: 0,
             datumIndex: 1,
-            getDatum: (chartInstance) => (chartInstance.series[0] as any).getNodeData?.()?.[1],
+            getDatum: (chartInstance) => getSeriesNodeData<HighlightNodeDatum>(chartInstance, 0)[1],
         },
         {
             name: 'ohlc',
@@ -355,7 +355,7 @@ describe('Enterprise highlight defaults', () => {
             } as AgCartesianChartOptions,
             seriesIndex: 0,
             datumIndex: 1,
-            getDatum: (chartInstance) => (chartInstance.series[0] as any).getNodeData?.()?.[3],
+            getDatum: (chartInstance) => getSeriesNodeData<HighlightNodeDatum>(chartInstance, 0)[3],
         },
         {
             name: 'nightingale',
@@ -379,7 +379,7 @@ describe('Enterprise highlight defaults', () => {
             } as AgPolarChartOptions,
             seriesIndex: 0,
             datumIndex: 1,
-            getDatum: (chartInstance) => (chartInstance.series[0] as any).getNodeData?.()?.[1],
+            getDatum: (chartInstance) => getSeriesNodeData<HighlightNodeDatum>(chartInstance, 0)[1],
         },
         {
             name: 'radar-area',
@@ -410,7 +410,7 @@ describe('Enterprise highlight defaults', () => {
             } as AgPolarChartOptions,
             seriesIndex: 0,
             datumIndex: 2,
-            getDatum: (chartInstance) => (chartInstance.series[0] as any).getNodeData?.()?.[2],
+            getDatum: (chartInstance) => getSeriesNodeData<HighlightNodeDatum>(chartInstance, 0)[2],
         },
         {
             name: 'radar-line',
@@ -437,7 +437,7 @@ describe('Enterprise highlight defaults', () => {
             } as AgPolarChartOptions,
             seriesIndex: 0,
             datumIndex: 1,
-            getDatum: (chartInstance) => (chartInstance.series[0] as any).getNodeData?.()?.[1],
+            getDatum: (chartInstance) => getSeriesNodeData<HighlightNodeDatum>(chartInstance, 0)[1],
         },
         {
             name: 'radial-bar',
@@ -461,7 +461,7 @@ describe('Enterprise highlight defaults', () => {
             } as AgPolarChartOptions,
             seriesIndex: 0,
             datumIndex: 3,
-            getDatum: (chartInstance) => (chartInstance.series[0] as any).getNodeData?.()?.[3],
+            getDatum: (chartInstance) => getSeriesNodeData<HighlightNodeDatum>(chartInstance, 0)[3],
         },
         {
             name: 'radial-column',
@@ -559,7 +559,7 @@ describe('Enterprise highlight defaults', () => {
             },
             seriesIndex: 1,
             datumIndex: 0,
-            getDatum: (chartInstance) => (chartInstance.series[1] as any).getNodeData?.()?.[0],
+            getDatum: (chartInstance) => getSeriesNodeData<HighlightNodeDatum>(chartInstance, 1)[0],
         },
         {
             name: 'map-line',
@@ -578,7 +578,7 @@ describe('Enterprise highlight defaults', () => {
             },
             seriesIndex: 0,
             datumIndex: 2,
-            getDatum: (chartInstance) => (chartInstance.series[0] as any).getNodeData?.()?.[2],
+            getDatum: (chartInstance) => getSeriesNodeData<HighlightNodeDatum>(chartInstance, 0)[2],
         },
         {
             name: 'map-marker',
@@ -600,7 +600,7 @@ describe('Enterprise highlight defaults', () => {
             },
             seriesIndex: 1,
             datumIndex: 1,
-            getDatum: (chartInstance) => (chartInstance.series[1] as any).getNodeData?.()?.[1],
+            getDatum: (chartInstance) => getSeriesNodeData<HighlightNodeDatum>(chartInstance, 1)[1],
         },
     ];
 
@@ -686,46 +686,12 @@ describe('Enterprise highlight defaults', () => {
         {
             name: 'sankey',
             options: sankeyOptions,
-            getDatum: (chartInstance) => {
-                const series = chartInstance.series[0] as {
-                    contextNodeData?: unknown;
-                    _contextNodeData?: unknown;
-                };
-                const context =
-                    series?.contextNodeData ?? (series as any)?.['contextNodeData'] ?? (series as any)._contextNodeData;
-                const contexts = Array.isArray(context) ? context : [context];
-
-                for (const entry of contexts) {
-                    const nodes = (entry as { nodeData?: HighlightNodeDatum[] } | undefined)?.nodeData;
-                    const match = nodes?.find((datum) => (datum as any)?.type != null);
-                    if (match) return match;
-                    if (nodes && nodes.length > 0) return nodes[0];
-                }
-
-                return undefined;
-            },
+            getDatum: (chartInstance) => firstNodeDatum(chartInstance, (datum) => datum.type != null),
         },
         {
             name: 'chord',
             options: chordOptions,
-            getDatum: (chartInstance) => {
-                const series = chartInstance.series[0] as {
-                    contextNodeData?: unknown;
-                    _contextNodeData?: unknown;
-                };
-                const context =
-                    series?.contextNodeData ?? (series as any)?.['contextNodeData'] ?? (series as any)._contextNodeData;
-                const contexts = Array.isArray(context) ? context : [context];
-
-                for (const entry of contexts) {
-                    const nodes = (entry as { nodeData?: HighlightNodeDatum[] } | undefined)?.nodeData;
-                    const match = nodes?.find((datum) => (datum as any)?.datum != null);
-                    if (match) return match;
-                    if (nodes && nodes.length > 0) return nodes[0];
-                }
-
-                return undefined;
-            },
+            getDatum: (chartInstance) => firstNodeDatum(chartInstance, (datum) => datum.datum != null),
         },
         {
             name: 'funnel',
@@ -817,16 +783,15 @@ describe('Enterprise highlight defaults', () => {
         ];
 
         const getNodeAtPath = (chartInstance: Chart, path: number[]): HighlightNodeDatum | undefined => {
-            const series = chartInstance.series[0] as any;
-            let node = series.rootNode;
+            let node = getHierarchyRootNode(chartInstance);
             if (!node) return undefined;
 
             for (const index of path) {
-                node = node?.children?.[index];
+                node = node.children[index];
                 if (!node) return undefined;
             }
 
-            return node as HighlightNodeDatum;
+            return node;
         };
 
         describe('treemap', () => {

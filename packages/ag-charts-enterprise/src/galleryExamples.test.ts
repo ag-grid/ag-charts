@@ -88,14 +88,13 @@ describe('Gallery Examples', () => {
 
                 beforeEach(async () => {
                     options = { ...example.options };
-                    prepareEnterpriseTestOptions(options as any);
 
                     // Bespoke: the examples can be gauges, which the shared factories cannot create, and `options` is
-                    // prepared once here because the tests reuse it for `update`.
+                    // prepared once here (in place) because the tests reuse it for `update`.
                     chart =
                         example.type === 'gauge'
-                            ? AgCharts.createGauge(options as any)
-                            : AgCharts.create(options as any);
+                            ? AgCharts.createGauge(prepareEnterpriseTestOptions(options as AgGaugeOptions))
+                            : AgCharts.create(prepareEnterpriseTestOptions(options as AgChartOptions));
                     await waitForChartStability(chart);
                 });
 

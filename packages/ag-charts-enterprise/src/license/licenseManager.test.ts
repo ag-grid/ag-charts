@@ -115,7 +115,8 @@ describe('LicenseManager', () => {
         });
 
         it.each([12345, {}, true])('reports the non-string key %s as an invalid licence key', (key) => {
-            LicenseManager.setLicenseKey(key as any);
+            // A page can pass whatever it read from its config, which the `string` parameter does not admit.
+            LicenseManager.setLicenseKey(key as unknown as string);
             const manager = new LicenseManager(documentIn(windowAt('app.example.com')));
             manager.validateLicense();
 
@@ -154,7 +155,9 @@ describe('LicenseManager', () => {
             manager.validateLicense();
             expect(manager.isDisplayWatermark()).toBe(true);
 
-            vi.spyOn(manager, 'getLicenseDetails').mockReturnValue({ valid: true } as any);
+            vi.spyOn(manager, 'getLicenseDetails').mockReturnValue({ valid: true } as ReturnType<
+                LicenseManager['getLicenseDetails']
+            >);
             LicenseManager.setLicenseKey('a-valid-key');
             manager.validateLicense();
             expect(manager.getWatermarkMessage()).toBe('');

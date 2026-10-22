@@ -22,6 +22,7 @@ import {
     getAnnotationOptionsToolbarButtons,
     getAnnotationToolbarsEnabled,
     getAnnotationYAxisDomain,
+    getAxesGridLinesVisible,
     getAxisGrantedLabelWidth,
     getAxisLabelThickness,
     getCrosshairLine,
@@ -34,7 +35,10 @@ import {
     getRangesDropdownMinWidth,
     getScrollbarState,
     getSelectionDragRect,
+    getSeriesNodeDataContexts,
     getSeriesPlacedLabels,
+    getSeriesPolarGeometry,
+    getSeriesStoredNodeData,
     hasAnnotationAxisButton,
     setRangesDropdownMinWidth,
     setScrollbarHovered,
@@ -367,6 +371,79 @@ describe('enterprise feature test accessors', () => {
 
             expect(getMiniChartSeriesNodeData(c)).toHaveLength(DATA.length);
             expect(getMiniChartSeriesOptions<AgLineSeriesOptions>(c).strokeWidth).toBe(3);
+        });
+    });
+
+    describe('stored node data', () => {
+        it('lists the node-data context a cartesian series keeps, and its datums', async () => {
+            const c = await create();
+
+            const contexts = getSeriesNodeDataContexts(c);
+            expect(contexts).toHaveLength(1);
+            expect(contexts[0].nodeData).toHaveLength(DATA.length);
+            expect(getSeriesStoredNodeData(c)).toBe(contexts[0].nodeData);
+        });
+
+        it('lists no context for a series that keeps none, and reads its own node data instead', async () => {
+            const c = await createEnterpriseChart({
+                width: 600,
+                height: 400,
+                data: DATA,
+                series: [{ type: 'pie', angleKey: 'y' }],
+            });
+            chart = c;
+
+            expect(getSeriesNodeDataContexts(c)).toEqual([]);
+            expect(getSeriesStoredNodeData(c)).toHaveLength(DATA.length);
+        });
+
+        it('reads no datums for a series that keeps none at all', async () => {
+            const c = await createEnterpriseChart({
+                width: 600,
+                height: 400,
+                data: [{ name: 'root', children: [{ name: 'a', size: 1 }] }],
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size' }],
+            });
+            chart = c;
+
+            expect(getSeriesNodeDataContexts(c)).toEqual([]);
+            expect(getSeriesStoredNodeData(c)).toEqual([]);
+        });
+    });
+
+    describe('getSeriesPolarGeometry', () => {
+        it('reads where a polar series centred itself and its largest radius', async () => {
+            const c = await createEnterpriseChart({
+                width: 600,
+                height: 400,
+                data: DATA,
+                series: [{ type: 'radar-line', angleKey: 'x', radiusKey: 'y' }],
+            });
+            chart = c;
+
+            const { centerX, centerY, radius } = getSeriesPolarGeometry(c);
+            expect(radius).toBeGreaterThan(0);
+            expect(centerX).toBeGreaterThan(0);
+            expect(centerY).toBeGreaterThan(0);
+        });
+
+        it('fails for a series that is not polar', async () => {
+            const c = await create();
+
+            expect(() => getSeriesPolarGeometry(c)).toThrow('to be a polar series');
+        });
+    });
+
+    describe('getAxesGridLinesVisible', () => {
+        it('reads whether each axis shows its gridlines', async () => {
+            const c = await create({
+                axes: {
+                    x: { type: 'number', position: 'bottom', gridLine: { enabled: false } },
+                    y: { type: 'number', position: 'left', gridLine: { enabled: true } },
+                },
+            });
+
+            expect(getAxesGridLinesVisible(c)).toEqual([false, true]);
         });
     });
 });

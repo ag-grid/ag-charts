@@ -1,9 +1,17 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import type { AgChartOptions } from 'ag-charts-community';
+import {
+    type Chart,
+    deproxy,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 
 import { ukData } from './series/map-test/ukData';
 import ukTopology from './series/map-test/ukTopology.json';
+import { getSeriesPolarGeometry, getSeriesStoredNodeData } from './test/featureAccessors';
 import { createEnterpriseChart } from './test/utils';
 
 const FLOWS = [
@@ -15,19 +23,22 @@ const FLOWS = [
 
 const SECTORS = ['a', 'b', 'c', 'd'].map((label, i) => ({ label, value: i + 2 }));
 
-const numericNodeData = (chart: any) =>
-    chart.series.map((s: any) =>
-        (s.contextNodeData?.nodeData ?? s.nodeData ?? []).map((d: Record<string, unknown>) =>
+const numericNodeData = (chart: Chart) =>
+    chart.series.map((_, index) =>
+        getSeriesStoredNodeData<Record<string, unknown>>(chart, index).map((d) =>
             Object.fromEntries(Object.entries(d).filter(([, value]) => typeof value === 'number'))
         )
     );
 
 // The polar series' radius is derived from the series rect, so it is read alongside the node data.
-const polarGeometry = (chart: any) => ({
-    radius: chart.series.map((s: any) => s.radius),
-    centre: chart.series.map((s: any) => [s.centerX, s.centerY]),
-    nodeData: numericNodeData(chart),
-});
+const polarGeometry = (chart: Chart) => {
+    const geometry = chart.series.map((_, index) => getSeriesPolarGeometry(chart, index));
+    return {
+        radius: geometry.map(({ radius }) => radius),
+        centre: geometry.map(({ centerX, centerY }) => [centerX, centerY]),
+        nodeData: numericNodeData(chart),
+    };
+};
 
 const MULTI_LINE_TITLE = { title: { text: 'A\nmulti-line\ntitle' } };
 const PADDING = { padding: { top: 120, left: 100 } };
@@ -36,8 +47,8 @@ describe('updateDelta() layout keys', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
-    let fresh: any;
+    let chart: Chart | undefined;
+    let fresh: Chart | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -47,16 +58,19 @@ describe('updateDelta() layout keys', () => {
 
     // Applies `delta` to a chart built from `options`, then compares `read` of it with a chart built with `delta` already
     // in its options.
-    async function expectDeltaToMatchFreshChart(options: object, delta: object, read: (chart: any) => unknown) {
-        const proxy = await createEnterpriseChart(options as any);
-        chart = deproxy(proxy);
+    async function expectDeltaToMatchFreshChart(options: object, delta: object, read: (chart: Chart) => unknown) {
+        // The cases build their series with a `type` taken from a table, which widens it past the option types.
+        const proxy = await createEnterpriseChart(options as AgChartOptions);
+        const created = deproxy(proxy);
+        chart = created;
 
         await proxy.updateDelta(delta);
-        await waitForChartStability(chart);
+        await waitForChartStability(created);
 
-        fresh = deproxy(await createEnterpriseChart({ ...options, ...delta } as any));
-        expect(read(chart)).toEqual(read(fresh));
-        return read(chart);
+        const rebuilt = deproxy(await createEnterpriseChart({ ...options, ...delta } as AgChartOptions));
+        fresh = rebuilt;
+        expect(read(created)).toEqual(read(rebuilt));
+        return read(created);
     }
 
     describe('on charts without axes', () => {
@@ -94,7 +108,10 @@ describe('updateDelta() layout keys', () => {
                 const geometry = await expectDeltaToMatchFreshChart(
                     { data: ukData, topology: ukTopology, series: [{ type: 'map-shape', idKey: 'name' }] },
                     delta,
-                    (c) => JSON.stringify(c.series[0].contextNodeData.nodeData.map((d: any) => d.projectedGeometry))
+                    (c) =>
+                        JSON.stringify(
+                            getSeriesStoredNodeData<{ projectedGeometry: unknown }>(c).map((d) => d.projectedGeometry)
+                        )
                 );
                 expect((geometry as string).length).toBeGreaterThan(100);
             }
@@ -111,7 +128,13 @@ describe('updateDelta() layout keys', () => {
             const geometry = await expectDeltaToMatchFreshChart(
                 { data, series: [{ type, ...series }] },
                 MULTI_LINE_TITLE,
-                (c) => c.series[0].contextNodeData.nodeData.map((d: any) => [d.x, d.y, d.width, d.height])
+                (c) =>
+                    getSeriesStoredNodeData<{ x: number; y: number; width: number; height: number }>(c).map((d) => [
+                        d.x,
+                        d.y,
+                        d.width,
+                        d.height,
+                    ])
             );
             expect((geometry as unknown[]).length).toBeGreaterThan(0);
         });
@@ -131,8 +154,8 @@ describe('updateDelta() layout keys', () => {
                 )) as ReturnType<typeof polarGeometry>;
                 expect(radius[0]).toBeGreaterThan(0);
                 expect(nodeData[0].length).toBeGreaterThan(0);
-                chart.destroy();
-                fresh.destroy();
+                chart?.destroy();
+                fresh?.destroy();
             }
         });
     });

@@ -1,9 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
 import {
     createSceneGeometrySampler,
     deproxy,
+    setAgChartsDebug,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -46,7 +47,9 @@ function stripVolatile(value: unknown): unknown {
 }
 
 function seriesProcessedOptions(instance: AgChartInstance) {
-    return stripVolatile((deproxy(instance) as any).chartOptions.processedOptions.series[0]);
+    const [series] = deproxy(instance).chartOptions.processedOptions.series ?? [];
+    expect(series, 'processed series options').toBeDefined();
+    return stripVolatile(series);
 }
 
 describe('gauge preset fast path', () => {
@@ -54,9 +57,10 @@ describe('gauge preset fast path', () => {
     setupMockCanvas();
 
     let chart: AgChartInstance;
+    let restoreDebug: () => void;
 
     beforeEach(() => {
-        (globalThis as any).agChartsDebug = ['perf'];
+        restoreDebug = setAgChartsDebug(['perf']);
     });
 
     afterEach(() => {
@@ -64,7 +68,7 @@ describe('gauge preset fast path', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        delete (globalThis as any).agChartsDebug;
+        restoreDebug();
     });
 
     for (const [name, baseOptions] of [
@@ -77,7 +81,7 @@ describe('gauge preset fast path', () => {
                 chart = AgCharts.createGauge(options);
                 await chart.waitForUpdate();
 
-                (console.log as any).mockClear();
+                vi.mocked(console.log).mockClear();
                 await chart.update(prepareEnterpriseTestOptions({ ...baseOptions, value: 42 }));
 
                 expect(console.log).toHaveBeenCalledWith('ChartOptions.isFastPathDelta() - fast path possible.');
@@ -89,7 +93,7 @@ describe('gauge preset fast path', () => {
                 chart = AgCharts.createGauge(options);
                 await chart.waitForUpdate();
 
-                (console.log as any).mockClear();
+                vi.mocked(console.log).mockClear();
                 await chart.update(
                     prepareEnterpriseTestOptions({ ...baseOptions, value: 42, targets: [{ value: 60 }, { value: 80 }] })
                 );
@@ -103,7 +107,7 @@ describe('gauge preset fast path', () => {
                 chart = AgCharts.createGauge(options);
                 await chart.waitForUpdate();
 
-                (console.log as any).mockClear();
+                vi.mocked(console.log).mockClear();
                 await chart.update(
                     prepareEnterpriseTestOptions({ ...baseOptions, value: 42, scale: { min: 0, max: 200 } })
                 );

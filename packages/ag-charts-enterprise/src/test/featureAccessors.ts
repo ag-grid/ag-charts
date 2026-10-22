@@ -333,3 +333,67 @@ export function getMiniChartSeriesOptions<TOptions extends object = Record<strin
     assertPresent(series, `mini chart series ${index}`);
     return series.options as unknown as TOptions;
 }
+
+// The cartesian and network series keep their node-data context behind `contextNodeData`; most hold one, but the
+// accessor accepts a series that keeps a list. Polar series store their datums on a protected `nodeData` instead.
+interface StoredNodeDataHost<TDatum> {
+    contextNodeData?: { nodeData?: TDatum[] } | { nodeData?: TDatum[] }[];
+    nodeData?: TDatum[];
+}
+
+/**
+ * The node-data contexts the series keeps (`contextNodeData`), as a list: empty for a series that keeps none (the
+ * hierarchy and polar series), one entry for a series that keeps a single context.
+ */
+export function getSeriesNodeDataContexts<TDatum = unknown>(
+    chartOrProxy: ChartOrProxy<any>,
+    seriesIndex = 0
+): { nodeData?: TDatum[] }[] {
+    const { contextNodeData } = getSeriesAt(chartOrProxy, seriesIndex) as unknown as StoredNodeDataHost<TDatum>;
+    if (contextNodeData == null) return [];
+    return Array.isArray(contextNodeData) ? contextNodeData : [contextNodeData];
+}
+
+/**
+ * The datums the series stored for its nodes: those of its node-data context when it keeps one, else its own
+ * `nodeData` field (the polar series), else empty.
+ */
+export function getSeriesStoredNodeData<TDatum = unknown>(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): TDatum[] {
+    const [context] = getSeriesNodeDataContexts<TDatum>(chartOrProxy, seriesIndex);
+    const series = getSeriesAt(chartOrProxy, seriesIndex) as unknown as StoredNodeDataHost<TDatum>;
+    return context?.nodeData ?? series.nodeData ?? [];
+}
+
+// `PolarSeries` lays itself out in the middle of the series area, at the largest radius the area allows.
+interface PolarGeometryHost {
+    centerX?: number;
+    centerY?: number;
+    radius?: number;
+}
+
+/** Where a polar series centred itself and the largest radius it may use. Fails for a series that is not polar. */
+export function getSeriesPolarGeometry(
+    chartOrProxy: ChartOrProxy<any>,
+    seriesIndex = 0
+): { centerX: number; centerY: number; radius: number } {
+    const { centerX, centerY, radius } = getSeriesAt(chartOrProxy, seriesIndex) as unknown as PolarGeometryHost;
+    if (centerX == null || centerY == null || radius == null) {
+        throw new Error(`Expected series ${seriesIndex} to be a polar series`);
+    }
+    return { centerX, centerY, radius };
+}
+
+// `ChartAxis`, the type the chart lists its axes as, does not declare `gridLineGroup`; every `Axis` draws its
+// gridlines into one.
+interface GridLineGroupHost {
+    gridLineGroup?: { visible: boolean };
+}
+
+/** Whether each axis shows its gridlines, in axis order: the visibility of the group they are drawn into. */
+export function getAxesGridLinesVisible(chartOrProxy: ChartOrProxy<any>): boolean[] {
+    return deproxy(chartOrProxy).axes.map((axis) => {
+        const { gridLineGroup } = axis as unknown as GridLineGroupHost;
+        assertPresent(gridLineGroup, `axis ${axis.id} gridline group`);
+        return gridLineGroup.visible;
+    });
+}

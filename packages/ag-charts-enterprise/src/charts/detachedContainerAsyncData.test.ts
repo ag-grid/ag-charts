@@ -74,7 +74,7 @@ describe('Chart on a detached container with async data and a series-type switch
         await new Promise((resolve) => setTimeout(resolve, 50));
         await proxy.waitForUpdate();
 
-        const chart = deproxy(proxy) as any;
+        const chart = deproxy(proxy);
         return [chart.ctx.scene.width, chart.ctx.scene.height];
     };
 
@@ -102,10 +102,10 @@ describe('Chart on a detached container with async data and a series-type switch
         });
         await proxy.waitForUpdate();
 
-        const chart = deproxy(proxy) as any;
+        const chart = deproxy(proxy);
         // This test destroys the underlying chart directly (as the type-switch path does), so take
         // it out of the proxy-managed afterEach teardown to avoid a double-destroy.
-        proxy = undefined as any;
+        (proxy as unknown) = undefined;
         const { scene } = chart.ctx;
         const sizeBeforeDestroy = [scene.width, scene.height];
 
@@ -160,7 +160,7 @@ describe('Chart on a detached container with async data and a series-type switch
         it('has exactly one chart wrapper once the container is attached before the old chart is torn down', async () => {
             const { container, attach } = setupMeasurableContainer();
             await createCartesian(container);
-            const original = deproxy(proxy) as any;
+            const original = deproxy(proxy);
             const overlaysDestroy = vi.spyOn(original.overlays, 'destroy');
 
             const inFlight = proxy.updateDelta({ data: [...DATA, { country: 'Brazil', gold: 40 }] });
