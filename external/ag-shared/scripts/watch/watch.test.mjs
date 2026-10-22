@@ -18,7 +18,7 @@ const { PREEMPT_EXIT_TIMEOUT_MS } = require('./constants');
 const chartsConfig = require('./chartsWatch.config');
 
 // Stands in for nx. `nx watch` echoes a project name per line appended to `events`; any other
-// invocation logs to `runs.log`, forks a grandchild (an executor), and works for FAKE_TYPES_MS
+// invocation logs to `runs.log` (with a timestamp), forks a grandchild (an executor), and works for FAKE_TYPES_MS
 // when it builds types or FAKE_FAST_MS otherwise. Like nx, SIGTERM makes it exit 143 and leaves
 // the grandchild running, so only a signal to the whole process group stops that.
 const FAKE_NX = `#!${process.execPath}
@@ -26,7 +26,7 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const dir = process.env.FAKE_NX_DIR;
 const args = process.argv.slice(2);
-const log = (entry) => fs.appendFileSync(dir + '/runs.log', JSON.stringify({ ...entry, pid: process.pid }) + '\\n');
+const log = (entry) => fs.appendFileSync(dir + '/runs.log', JSON.stringify({ ...entry, pid: process.pid, t: Date.now() }) + '\\n');
 
 if (args.includes('--all')) {
     log({ event: 'watch' });
@@ -127,6 +127,18 @@ function startWatch(library, { typesMs = 1500, fastMs = 100, env = {} } = {}) {
                   .filter(Boolean)
             : [];
 
+    // The reload signal is the mtime of the queue-empty file, so every distinct mtime is one reload.
+    const reloadFile = path.join(dir, 'node_modules/.cache/ag-build-queue.empty');
+    const reloadTimes = [];
+    const reloadTimer = setInterval(() => {
+        try {
+            const { mtimeMs } = fs.statSync(reloadFile);
+            if (reloadTimes.at(-1) !== mtimeMs) reloadTimes.push(mtimeMs);
+        } catch {
+            // Not written yet.
+        }
+    }, 5);
+
     const sandbox = {
         output: () => output,
         runs: () => readLines('runs.log').map((line) => JSON.parse(line)),
@@ -137,11 +149,13 @@ function startWatch(library, { typesMs = 1500, fastMs = 100, env = {} } = {}) {
                 return undefined;
             }
         },
-        reloaded: () => fs.existsSync(path.join(dir, 'node_modules/.cache/ag-build-queue.empty')),
+        /** When each reload signal fired, as ms since the epoch (comparable with `runs()[].t`). */
+        reloads: () => [...reloadTimes],
         save(project) {
             fs.appendFileSync(path.join(dir, 'events'), `${project}\n`);
         },
         async stop() {
+            clearInterval(reloadTimer);
             child.kill('SIGTERM');
             // Whatever the watch left behind must not outlive the test.
             for (const run of sandbox.runs()) {
@@ -161,6 +175,16 @@ function startWatch(library, { typesMs = 1500, fastMs = 100, env = {} } = {}) {
 }
 
 const typesRuns = (sandbox) => sandbox.runs().filter((run) => run.event === 'start' && run.types);
+
+/** Saves `project`, then returns the first `build:types` run once it has started. */
+async function saveAndAwaitTypes(sandbox, project) {
+    sandbox.save(project);
+    const [first] = await until('build:types to start', () => {
+        const runs = typesRuns(sandbox);
+        return runs.length > 0 && runs;
+    });
+    return first;
+}
 
 describe('charts config', () => {
     it('keeps build:types in the background lane, apart from the reload targets', () => {
@@ -208,14 +232,10 @@ describe('watch background lane', () => {
     it('pre-empts a running build:types for a save, then re-runs it without recording a failure', async () => {
         const watch = await startWatch('charts', { typesMs: 3000 });
 
-        watch.save('ag-charts-community');
-        const [first] = await until('build:types to start', () => {
-            const runs = typesRuns(watch);
-            return runs.length > 0 && runs;
-        });
+        const first = await saveAndAwaitTypes(watch, 'ag-charts-community');
 
         watch.save('ag-charts-community');
-        await until('the second save to reload', () => watch.runs().some((run) => run.event === 'sigterm'));
+        await until('the second save to reload', () => watch.reloads().length === 2);
         await watch.idle();
 
         const events = watch.runs();
@@ -228,6 +248,9 @@ describe('watch background lane', () => {
         // The save's reloadable batch starts straight after the kill, ahead of any types run.
         const afterKill = events.slice(events.indexOf(sigterm) + 1).filter((run) => run.event === 'start');
         expect(afterKill[0].types).toBe(false);
+        const reloadableEnd = events.find(
+            (run) => run.event === 'end' && run.pid === afterKill[0].pid
+        );
 
         // Re-queued once, and that run completed with the original tuples.
         const runs = typesRuns(watch);
@@ -243,18 +266,22 @@ describe('watch background lane', () => {
             successCount: 1,
             failureCount: 0,
         });
-        expect(watch.reloaded()).toBe(true);
+
+        // The second save reloads once its own batch has ended, without waiting for the re-queued
+        // build:types, and the types run itself never reloads.
+        const reloads = watch.reloads();
+        expect(reloads).toHaveLength(2);
+        expect(reloads[1]).toBeGreaterThanOrEqual(sigterm.t);
+        expect(reloads[1]).toBeGreaterThanOrEqual(reloadableEnd.t);
+        const requeuedEnd = events.find((run) => run.event === 'end' && run.pid === runs[1].pid);
+        expect(reloads[1]).toBeLessThan(requeuedEnd.t);
         expect(watch.output()).not.toContain('Build failed');
     });
 
     it('leaves no executor running after a pre-emption', async () => {
         const watch = await startWatch('charts', { typesMs: 3000 });
 
-        watch.save('ag-charts-community');
-        const [first] = await until('build:types to start', () => {
-            const runs = typesRuns(watch);
-            return runs.length > 0 && runs;
-        });
+        const first = await saveAndAwaitTypes(watch, 'ag-charts-community');
         expect(isAlive(first.executor)).toBe(true);
 
         watch.save('ag-charts-community');
@@ -280,11 +307,7 @@ describe('watch background lane', () => {
         const typesMs = PREEMPT_EXIT_TIMEOUT_MS + 1500;
         const watch = await startWatch('charts', { typesMs, env: { FAKE_IGNORE_TERM: '1' } });
 
-        watch.save('ag-charts-community');
-        const [first] = await until('build:types to start', () => {
-            const runs = typesRuns(watch);
-            return runs.length > 0 && runs;
-        });
+        const first = await saveAndAwaitTypes(watch, 'ag-charts-community');
         watch.save('ag-charts-community');
         await until('the exit warning', () => watch.output().includes('after pre-empt; waiting for it'));
         await watch.idle();
@@ -305,11 +328,7 @@ describe('watch without backgroundTargets (grid)', () => {
     it('does not pre-empt build:types, and a second save waits behind it', async () => {
         const watch = await startWatch('grid', { typesMs: 1500 });
 
-        watch.save('ag-grid-community');
-        const [first] = await until('build:types to start', () => {
-            const runs = typesRuns(watch);
-            return runs.length > 0 && runs;
-        });
+        const first = await saveAndAwaitTypes(watch, 'ag-grid-community');
         const startsBefore = watch.runs().filter((run) => run.event === 'start').length;
 
         watch.save('ag-grid-community');
@@ -326,6 +345,11 @@ describe('watch without backgroundTargets (grid)', () => {
             .filter((run) => run.event === 'start' && run.pid !== first.pid).length;
         expect(startedMeanwhile).toBe(startsBefore - 1);
         expect(events.filter((run) => run.event === 'start').length).toBeGreaterThan(startsBefore);
+
+        // The second save only reloads after the running build:types has ended, as before.
+        const reloads = watch.reloads();
+        expect(reloads).toHaveLength(2);
+        expect(reloads[1]).toBeGreaterThanOrEqual(events[firstEnd].t);
 
         const status = watch.status();
         expect(status.recentBuilds.some((build) => build.status === 'cancelled')).toBe(false);
