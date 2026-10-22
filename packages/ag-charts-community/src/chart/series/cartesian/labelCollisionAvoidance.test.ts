@@ -1,14 +1,20 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Transformable } from 'ag-charts-core';
+import { type RotatableText, Transformable } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { getAxisLabelNodes } from '../../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../../test/bigintExamples';
+import {
+    getPlacedLabelData,
+    getSeriesLabelObstacles,
+    getVisibleLabelTextNodes,
+} from '../../test/communitySeriesAccessors';
+import { getSeriesContextNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
-    type PlacedLabelGeometry,
     compareImageSnapshot,
     createChart,
     deproxy,
@@ -73,14 +79,12 @@ type LabelBox = { x: number; y: number; width: number; height: number };
 
 // The visible labels' bounding boxes for a series, used by the cross-series obstacle tests to assert one
 // series' labels clear another's.
-const seriesVisibleLabelBoxes = (series: {
-    labelSelection: { nodes(): { visible: boolean; computeBBox(): LabelBox | undefined }[] };
-}) =>
-    series.labelSelection
-        .nodes()
-        .filter((node) => node.visible)
-        .map((node) => node.computeBBox())
-        .filter((box): box is LabelBox => box != null);
+const seriesVisibleLabelBoxes = (chart: AgChartInstance, seriesIndex: number) =>
+    getVisibleLabelTextNodes(chart, seriesIndex).map((node): LabelBox => node.getBBox());
+
+// `collideWith` is undocumented (see `LabelCollisionConfig`), so options that set it are built as plain objects
+// and only become chart options here.
+const asChartOptions = (options: object) => options as AgCartesianChartOptions;
 
 describe('label collision avoidance', () => {
     setupMockConsole();
@@ -97,22 +101,10 @@ describe('label collision avoidance', () => {
         await compareImageSnapshot(chart, ctx, defaults);
     };
 
-    const placedLabelPlacements = () => {
-        const series = deproxy(chart as any).series[0] as unknown as {
-            placedLabelData: { placement?: string }[];
-        };
-        return series.placedLabelData;
-    };
+    const placedLabelPlacements = () => getPlacedLabelData(chart);
 
-    const renderedLabelTexts = () => {
-        const series = deproxy(chart as any).series[0] as unknown as {
-            labelSelection: { nodes(): { visible: boolean; text?: string | object[] }[] };
-        };
-        return series.labelSelection
-            .nodes()
-            .filter((node) => node.visible)
-            .map((node) => (typeof node.text === 'string' ? node.text : ''));
-    };
+    const renderedLabelTexts = () =>
+        getVisibleLabelTextNodes(chart).map((node) => (typeof node.text === 'string' ? node.text : ''));
 
     const expectAllEllipsised = (fullText: string) => {
         const texts = renderedLabelTexts();
@@ -174,10 +166,7 @@ describe('label collision avoidance', () => {
             ],
         };
         chart = await createChart(options);
-        const series = deproxy(chart as any).series[0] as unknown as {
-            placedLabelData: { text?: unknown; placement?: string }[];
-        };
-        return series.placedLabelData;
+        return getPlacedLabelData(chart);
     };
 
     describe('line series', () => {
@@ -239,17 +228,7 @@ describe('label collision avoidance', () => {
     describe('placement without collision avoidance (opt-out default)', () => {
         const sparseData = Array.from({ length: 5 }, (_, i) => ({ x: i, y: 50 }));
 
-        const placedLabels = () => {
-            const series = deproxy(chart as any).series[0] as unknown as {
-                placedLabelData: {
-                    x: number;
-                    y: number;
-                    placement?: string;
-                    datum: { point: { x: number; y: number } };
-                }[];
-            };
-            return series.placedLabelData;
-        };
+        const placedLabels = () => getPlacedLabelData(chart);
 
         const render = async (type: 'line' | 'area', placement?: string | string[]) => {
             const options: any = {
@@ -311,19 +290,7 @@ describe('label collision avoidance', () => {
     describe('inside placement (centre in marker, fit to marker)', () => {
         const sparseData = Array.from({ length: 5 }, (_, i) => ({ x: i, y: 50 }));
 
-        const placedLabels = () => {
-            const series = deproxy(chart as any).series[0] as unknown as {
-                placedLabelData: {
-                    x: number;
-                    y: number;
-                    width: number;
-                    height: number;
-                    placement?: string;
-                    datum: { point: { x: number; y: number } };
-                }[];
-            };
-            return series.placedLabelData;
-        };
+        const placedLabels = () => getPlacedLabelData(chart);
 
         const render = async (
             type: 'line' | 'area',
@@ -463,14 +430,10 @@ describe('label collision avoidance', () => {
         ];
 
         const drawnBoxesOnMarkers = () => {
-            const series = deproxy(chart as any).series[0] as unknown as {
-                placedLabelData: { datum: { point: { x: number; y: number } } }[];
-                labelSelection: { nodes(): { computeBBox(): LabelBox | undefined }[] };
-            };
-            const nodes = series.labelSelection.nodes();
-            return series.placedLabelData
-                .map((placed, index) => ({ box: nodes[index]?.computeBBox(), marker: placed.datum.point }))
-                .filter((entry): entry is { box: LabelBox; marker: { x: number; y: number } } => entry.box != null);
+            const nodes = getSeriesSelectionNodes<RotatableText>(chart, 'labelSelection');
+            return getPlacedLabelData(chart).flatMap((placed, index) =>
+                nodes[index] == null ? [] : [{ box: nodes[index].getBBox(), marker: placed.datum.point }]
+            );
         };
 
         const render = async (type: 'line' | 'area' | 'scatter', labelStyle: object) => {
@@ -815,10 +778,7 @@ describe('label collision avoidance', () => {
         };
 
         const visibleBarLabelCount = (seriesIndex = 0) => {
-            const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-                labelSelection: { nodes(): { visible: boolean }[] };
-            };
-            return series.labelSelection.nodes().filter((node) => node.visible).length;
+            return getVisibleLabelTextNodes(chart, seriesIndex).length;
         };
 
         describe('seriesArea', () => {
@@ -1304,13 +1264,7 @@ describe('label collision avoidance', () => {
                 ],
             };
             chart = await createChart(options);
-            const series = deproxy(chart as any).series[0] as unknown as {
-                labelSelection: { nodes(): { visible: boolean; computeBBox(): Box | undefined }[] };
-            };
-            return series.labelSelection
-                .nodes()
-                .filter((node) => node.visible)
-                .map((node) => node.computeBBox()!);
+            return getVisibleLabelTextNodes(chart).map((node) => node.getBBox());
         };
 
         it('drops a colliding label whose padded box overlaps a neighbour though the bare text would not', async () => {
@@ -1354,11 +1308,9 @@ describe('label collision avoidance', () => {
                 ],
             };
             chart = await createChart(options);
-            const series = deproxy(chart as any).series[0] as unknown as {
-                contextNodeData?: { nodeData?: { y: number }[]; labelData?: { label?: { y: number } }[] };
-            };
-            const barTop = series.contextNodeData!.nodeData![0].y;
-            const labelY = series.contextNodeData!.labelData![0].label!.y;
+            const { nodeData, labelData } = getSeriesContextNodeData<{ y: number }, { label?: { y: number } }>(chart);
+            const barTop = nodeData[0].y;
+            const labelY = labelData[0].label!.y;
             // outside-end sits above the bar with baseline 'bottom'; the box extends down toward the bar by
             // padding + half the stroke, so that edge must clear the bar by exactly `spacing`.
             expect(barTop - (labelY + PADDING + STROKE / 2)).toBeCloseTo(SPACING);
@@ -1465,11 +1417,8 @@ describe('label collision avoidance', () => {
         it('drops a hideable scatter label overlapping a bar inside label', async () => {
             const opts = options();
             chart = await createChart(opts);
-            const [bar, scatter] = deproxy(chart as any).series as unknown as Parameters<
-                typeof seriesVisibleLabelBoxes
-            >[0][];
-            const barBoxes = seriesVisibleLabelBoxes(bar);
-            const scatterBoxes = seriesVisibleLabelBoxes(scatter);
+            const barBoxes = seriesVisibleLabelBoxes(chart, 0);
+            const scatterBoxes = seriesVisibleLabelBoxes(chart, 1);
             // Anti-vacuous guards: both series must render labels for the invariant to mean anything.
             expect(barBoxes.length).toBeGreaterThan(0);
             expect(scatterBoxes.length).toBeGreaterThan(0);
@@ -1533,11 +1482,8 @@ describe('label collision avoidance', () => {
         it('drops a hideable scatter label overlapping a histogram inside label', async () => {
             const opts = options();
             chart = await createChart(opts);
-            const [histogram, scatter] = deproxy(chart as any).series as unknown as Parameters<
-                typeof seriesVisibleLabelBoxes
-            >[0][];
-            const histogramBoxes = seriesVisibleLabelBoxes(histogram);
-            const scatterBoxes = seriesVisibleLabelBoxes(scatter);
+            const histogramBoxes = seriesVisibleLabelBoxes(chart, 0);
+            const scatterBoxes = seriesVisibleLabelBoxes(chart, 1);
             // Anti-vacuous guards: both series must render labels for the invariant to mean anything.
             expect(histogramBoxes.length).toBeGreaterThan(0);
             expect(scatterBoxes.length).toBeGreaterThan(0);
@@ -1569,10 +1515,7 @@ describe('label collision avoidance', () => {
             ],
         });
         const visibleLabelCount = () => {
-            const series = deproxy(chart as any).series[0] as unknown as {
-                labelSelection: { nodes(): { visible: boolean }[] };
-            };
-            return series.labelSelection.nodes().filter((node) => node.visible).length;
+            return getVisibleLabelTextNodes(chart).length;
         };
         const render = async (collision: object, placement?: string | string[]) => {
             const opts = options(collision, placement);
@@ -1621,12 +1564,9 @@ describe('label collision avoidance', () => {
                 ],
             };
             chart = await createChart(opts);
-            const series = deproxy(chart as any).series[0] as unknown as {
-                labelSelection: { nodes(): { visible: boolean; datum: { label?: { placement?: string } } }[] };
-            };
-            const labels = series.labelSelection.nodes().filter((node) => node.visible);
+            const labels = getVisibleLabelTextNodes<{ label?: { placement?: string } }>(chart);
             expect(labels).toHaveLength(1);
-            expect(labels[0].datum.label?.placement).toBe('outside-end');
+            expect(labels[0].datum?.label?.placement).toBe('outside-end');
         });
 
         // Three bins: one keeping `outside-end` above the bar, one overflowing the top and cascading to
@@ -1694,8 +1634,8 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                barOptions('inside-end') as any,
-                barOptions(['inside-end', 'outside-end']) as any
+                asChartOptions(barOptions('inside-end')),
+                asChartOptions(barOptions(['inside-end', 'outside-end']))
             );
         });
 
@@ -1711,8 +1651,8 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                histOptions('inside-center') as any,
-                histOptions(['inside-center', 'outside-end']) as any
+                asChartOptions(histOptions('inside-center')),
+                asChartOptions(histOptions(['inside-center', 'outside-end']))
             );
         });
     });
@@ -1722,7 +1662,7 @@ describe('label collision avoidance', () => {
     describe('bar label orientation', () => {
         const barData = Array.from({ length: 6 }, (_, i) => ({ cat: `Category ${i}`, value: 30 + 10 * Math.sin(i) }));
         const orientations = ['horizontal', 'vertical', 'vertical-reversed'];
-        const barOrientationOptions = (orientation: string, direction: 'vertical' | 'horizontal') => ({
+        const barOrientationOptions = (orientation: string | string[], direction: 'vertical' | 'horizontal') => ({
             data: barData,
             legend: { enabled: false },
             axes:
@@ -1750,8 +1690,8 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                unset as any,
-                barOrientationOptions('horizontal', 'vertical') as any
+                asChartOptions(unset),
+                asChartOptions(barOrientationOptions('horizontal', 'vertical'))
             );
         });
 
@@ -1778,8 +1718,8 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                thinColumns(['horizontal', 'vertical']) as any,
-                thinColumns('vertical') as any
+                asChartOptions(thinColumns(['horizontal', 'vertical'])),
+                asChartOptions(thinColumns('vertical'))
             );
         });
 
@@ -1789,8 +1729,8 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                barOrientationOptions(['vertical'] as any, 'vertical') as any,
-                barOrientationOptions('vertical', 'vertical') as any
+                asChartOptions(barOrientationOptions(['vertical'], 'vertical')),
+                asChartOptions(barOrientationOptions('vertical', 'vertical'))
             );
         });
 
@@ -1819,20 +1759,19 @@ describe('label collision avoidance', () => {
                         },
                     ],
                 };
-                prepareTestOptions(options as any);
-                (options as any).width = width;
-                return options as any;
+                const chartOptions = asChartOptions(options);
+                prepareTestOptions(chartOptions);
+                chartOptions.width = width;
+                return chartOptions;
             };
 
             // Rotation of the first rendered label, or `undefined` once the bars are too narrow to show
             // any label at all.
             const firstLabelRotation = () => {
-                const series = deproxy(chart as any).series[0] as unknown as {
-                    contextNodeData?: {
-                        labelData?: { label?: { text?: unknown; rotation?: number; hidden?: boolean } }[];
-                    };
-                };
-                const labelData = series.contextNodeData?.labelData ?? [];
+                const { labelData } = getSeriesContextNodeData<
+                    unknown,
+                    { label?: { text?: unknown; rotation?: number; hidden?: boolean } }
+                >(chart);
                 const labelled = labelData.find(
                     (d) => d.label != null && d.label.text !== '' && d.label.hidden !== true
                 );
@@ -1882,23 +1821,14 @@ describe('label collision avoidance', () => {
                         },
                     ],
                 };
-                prepareTestOptions(options as any);
-                (options as any).width = width;
-                return options as any;
+                const chartOptions = asChartOptions(options);
+                prepareTestOptions(chartOptions);
+                chartOptions.width = width;
+                return chartOptions;
             };
 
             const firstRotatedLabelPivot = () => {
-                const series = deproxy(chart as any).series[0] as unknown as {
-                    labelSelection: {
-                        nodes(): {
-                            visible: boolean;
-                            rotation: number;
-                            rotationCenterX: number;
-                            rotationCenterY: number;
-                        }[];
-                    };
-                };
-                return series.labelSelection.nodes().find((node) => node.visible && node.rotation !== 0);
+                return getVisibleLabelTextNodes(chart).find((node) => node.rotation !== 0);
             };
 
             chart = AgCharts.create(optionsAt(900));
@@ -1948,35 +1878,23 @@ describe('label collision avoidance', () => {
 
             it(`slides a resolved '${placement}' label flush within the bar rect`, async () => {
                 const options = thinTallColumns(placement);
-                chart = await createChart(options as any);
+                chart = await createChart(asChartOptions(options));
 
-                const series = deproxy(chart as any).series[0] as unknown as {
-                    contextNodeData?: { nodeData?: { x: number; y: number; width: number; height: number }[] };
-                    labelSelection: {
-                        nodes(): {
-                            visible: boolean;
-                            rotation: number;
-                            computeBBox(): { x: number; y: number; width: number; height: number } | undefined;
-                        }[];
-                    };
-                };
-                const bars = series.contextNodeData?.nodeData ?? [];
-                const rotatedLabels = series.labelSelection
-                    .nodes()
-                    .filter((node) => node.visible && node.rotation !== 0);
+                const { nodeData: bars } = getSeriesContextNodeData<LabelBox>(chart);
+                const rotatedLabels = getVisibleLabelTextNodes(chart).filter((node) => node.rotation !== 0);
 
                 // Anti-vacuous guard: the scenario must actually resolve to a rotated label per bar.
                 expect(rotatedLabels.length).toBe(bars.length);
 
                 for (const node of rotatedLabels) {
-                    const bbox = node.computeBBox();
+                    const bbox = node.getBBox();
                     expect(bbox).toBeDefined();
                     const bar = bars.find(
-                        (b) => bbox!.x + bbox!.width / 2 >= b.x && bbox!.x + bbox!.width / 2 <= b.x + b.width
+                        (b) => bbox.x + bbox.width / 2 >= b.x && bbox.x + bbox.width / 2 <= b.x + b.width
                     );
                     expect(bar).toBeDefined();
-                    expect(bbox!.y).toBeGreaterThanOrEqual(bar!.y - 0.5);
-                    expect(bbox!.y + bbox!.height).toBeLessThanOrEqual(bar!.y + bar!.height + 0.5);
+                    expect(bbox.y).toBeGreaterThanOrEqual(bar!.y - 0.5);
+                    expect(bbox.y + bbox.height).toBeLessThanOrEqual(bar!.y + bar!.height + 0.5);
                 }
             });
         }
@@ -2002,12 +1920,10 @@ describe('label collision avoidance', () => {
         };
 
         const barRotations = () => {
-            const series = deproxy(chart as any).series[0] as unknown as {
-                labelSelection: { nodes(): { visible: boolean }[] };
-                contextNodeData?: { labelData?: { label?: { rotation?: number } }[] };
-            };
-            const visible = series.labelSelection.nodes().filter((node) => node.visible).length;
-            const rotations = (series.contextNodeData?.labelData ?? []).map((d) => d.label?.rotation ?? 0);
+            const visible = getVisibleLabelTextNodes(chart).length;
+            const rotations = getSeriesContextNodeData<unknown, { label?: { rotation?: number } }>(chart).labelData.map(
+                (d) => d.label?.rotation ?? 0
+            );
             return { visible, rotations };
         };
 
@@ -2066,10 +1982,7 @@ describe('label collision avoidance', () => {
             };
             chart = await createChart(options);
 
-            const bar = deproxy(chart as any).series[0] as unknown as {
-                getLabelObstacles(): { kind: string; category?: string }[] | undefined;
-            };
-            const obstacles = bar.getLabelObstacles() ?? [];
+            const obstacles = getSeriesLabelObstacles(chart);
             // Anti-vacuous guard: the bar still contributes its rects as `seriesItem` obstacles.
             expect(obstacles.length).toBe(barData.length);
             expect(obstacles.every((o) => o.category === 'seriesItem')).toBe(true);
@@ -2080,18 +1993,8 @@ describe('label collision avoidance', () => {
     // only; a candidate spanning the bar's full cross-axis width must not be rejected as a collision.
     describe('inside-label spacing applies only along the bar-length axis', () => {
         const labelNodes = () => {
-            const series = deproxy(chart as any).series[0] as unknown as {
-                contextNodeData?: { nodeData?: { x: number; y: number; width: number; height: number }[] };
-                labelSelection: {
-                    nodes(): {
-                        visible: boolean;
-                        rotation: number;
-                        computeBBox(): { x: number; y: number; width: number; height: number } | undefined;
-                    }[];
-                };
-            };
-            const bars = series.contextNodeData?.nodeData ?? [];
-            const labels = series.labelSelection.nodes().filter((node) => node.visible);
+            const { nodeData: bars } = getSeriesContextNodeData<LabelBox>(chart);
+            const labels = getVisibleLabelTextNodes(chart);
             return { bars, labels };
         };
 
@@ -2119,31 +2022,32 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            prepareTestOptions(options as any);
+            const chartOptions = asChartOptions(options);
+            prepareTestOptions(chartOptions);
             // Bespoke: the size under test is applied after preparation, which the shared factory would overwrite.
             // This applies to every bare create in this suite.
             // Thin columns (each narrower than twice the spacing) so an all-sides inset region would reject the
             // horizontal label, while it still fits the bar's full width.
-            (options as any).width = 500;
-            (options as any).height = 400;
-            chart = AgCharts.create(options as any);
+            chartOptions.width = 500;
+            chartOptions.height = 400;
+            chart = AgCharts.create(chartOptions);
             await waitForChartStability(chart);
 
             const { bars, labels } = labelNodes();
             expect(labels.length).toBe(bars.length);
             for (const node of labels) {
-                const bbox = node.computeBBox();
+                const bbox = node.getBBox();
                 expect(bbox).toBeDefined();
                 const bar = bars.find(
-                    (b) => bbox!.x + bbox!.width / 2 >= b.x && bbox!.x + bbox!.width / 2 <= b.x + b.width
+                    (b) => bbox.x + bbox.width / 2 >= b.x && bbox.x + bbox.width / 2 <= b.x + b.width
                 );
                 expect(bar).toBeDefined();
                 // The label stayed horizontal: it fits the bar's full width with no cross-axis spacing.
                 expect(node.rotation).toBe(0);
-                expect(bbox!.width).toBeLessThanOrEqual(bar!.width + 0.5);
+                expect(bbox.width).toBeLessThanOrEqual(bar!.width + 0.5);
                 // Anti-vacuous: the label is wider than an all-sides inset region, which would have rejected the
                 // horizontal candidate and rotated it to vertical.
-                expect(bbox!.width).toBeGreaterThan(bar!.width - 2 * spacing);
+                expect(bbox.width).toBeGreaterThan(bar!.width - 2 * spacing);
             }
         });
 
@@ -2172,28 +2076,29 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            prepareTestOptions(options as any);
+            const chartOptions = asChartOptions(options);
+            prepareTestOptions(chartOptions);
             // Thin bars (each shorter than twice the spacing) so an all-sides inset region would reject the
             // vertical label, while it still fits the bar's full height.
-            (options as any).width = 400;
-            (options as any).height = 500;
-            chart = AgCharts.create(options as any);
+            chartOptions.width = 400;
+            chartOptions.height = 500;
+            chart = AgCharts.create(chartOptions);
             await waitForChartStability(chart);
 
             const { bars, labels } = labelNodes();
             expect(labels.length).toBe(bars.length);
             for (const node of labels) {
-                const bbox = node.computeBBox();
+                const bbox = node.getBBox();
                 expect(bbox).toBeDefined();
                 const bar = bars.find(
-                    (b) => bbox!.y + bbox!.height / 2 >= b.y && bbox!.y + bbox!.height / 2 <= b.y + b.height
+                    (b) => bbox.y + bbox.height / 2 >= b.y && bbox.y + bbox.height / 2 <= b.y + b.height
                 );
                 expect(bar).toBeDefined();
                 // The label stayed vertical: it fits the bar's full height with no cross-axis spacing.
                 expect(node.rotation).not.toBe(0);
-                expect(bbox!.height).toBeLessThanOrEqual(bar!.height + 0.5);
+                expect(bbox.height).toBeLessThanOrEqual(bar!.height + 0.5);
                 // Anti-vacuous: the label is taller than an all-sides inset region.
-                expect(bbox!.height).toBeGreaterThan(bar!.height - 2 * spacing);
+                expect(bbox.height).toBeGreaterThan(bar!.height - 2 * spacing);
             }
         });
     });
@@ -2288,15 +2193,12 @@ describe('label collision avoidance', () => {
             chart?.destroy();
             const options = stackedOptions(threshold);
             chart = await createChart(options);
-            const series = deproxy(chart as any).series[1] as unknown as {
-                labelSelection: { nodes(): { visible: boolean; computeBBox(): LabelBox | undefined }[] };
-            };
-            const [node] = series.labelSelection.nodes();
+            const [node] = getSeriesSelectionNodes<RotatableText>(chart, 'labelSelection', 1);
             expect(node).toBeDefined();
             expect(node.visible).toBe(true);
-            const box = node.computeBBox();
+            const box = node.getBBox();
             expect(box).toBeDefined();
-            return box!;
+            return box;
         };
 
         it('a negative threshold relaxes the value axis, not just the cross axis', async () => {
@@ -2370,7 +2272,7 @@ describe('label collision avoidance', () => {
                 ],
             };
             chart = await createChart(options);
-            return topLabelAnchorGap(deproxy(chart as any).series[0] as unknown as PlacedLabelGeometry);
+            return topLabelAnchorGap({ placedLabelData: getPlacedLabelData(chart) });
         };
 
         it('measures spacing from the marker edge, so the anchor gap is marker radius + spacing', async () => {
@@ -2408,13 +2310,7 @@ describe('label collision avoidance', () => {
         });
 
         const visibleLabelYs = () => {
-            const series = deproxy(chart as any).series[0] as unknown as {
-                labelSelection: { nodes(): { visible: boolean; computeBBox(): { y: number } | undefined }[] };
-            };
-            return series.labelSelection
-                .nodes()
-                .filter((node) => node.visible)
-                .map((node) => node.computeBBox()!.y);
+            return getVisibleLabelTextNodes(chart).map((node) => node.getBBox().y);
         };
 
         it('re-places labels when label.placement changes on an existing chart', async () => {
@@ -2484,10 +2380,8 @@ describe('label collision avoidance', () => {
         /** The placement each drawn label landed at, keyed by its text, across every series. */
         const placementsByText = () => {
             const placements: Record<string, string | undefined> = {};
-            for (const series of deproxy(chart as any).series as unknown as {
-                placedLabelData: { text?: unknown; placement?: string }[];
-            }[]) {
-                for (const placed of series.placedLabelData) {
+            for (const seriesIndex of deproxy(chart).series.keys()) {
+                for (const placed of getPlacedLabelData(chart, seriesIndex)) {
                     placements[String(placed.text)] = placed.placement;
                 }
             }
@@ -2567,15 +2461,17 @@ describe('label collision avoidance', () => {
         const expectSeriesLabelsClearAxisLabels = async (options: object) => {
             chart = await createChart(options);
 
-            const { axes, series } = deproxy(chart as any) as any;
-            const axisBoxes = axes.flatMap((axis: any) => visibleCanvasBoxes(axis.tickLabelGroupSelection.nodes()));
-            const labelBoxes = series.flatMap((s: any) => visibleCanvasBoxes(s.labelSelection.nodes()));
+            const { axes, series } = deproxy(chart);
+            const axisBoxes = axes.flatMap((axis) =>
+                visibleCanvasBoxes(getAxisLabelNodes(chart, axis.id, { visibleOnly: false }))
+            );
+            const labelBoxes = series.flatMap((_, seriesIndex) =>
+                visibleCanvasBoxes(getSeriesSelectionNodes<CanvasNode>(chart, 'labelSelection', seriesIndex))
+            );
             expect(axisBoxes.length).toBeGreaterThan(0);
             expect(labelBoxes.length).toBeGreaterThan(0);
 
-            const overlaps = labelBoxes.filter((label: LabelBox) =>
-                axisBoxes.some((axis: LabelBox) => boxesOverlap(label, axis))
-            );
+            const overlaps = labelBoxes.filter((label) => axisBoxes.some((axis) => boxesOverlap(label, axis)));
             expect(overlaps).toEqual([]);
             await compareImageSnapshot(chart, ctx);
         };

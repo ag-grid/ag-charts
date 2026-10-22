@@ -4,12 +4,13 @@ import type { AgCartesianChartOptions, AgChartInstance, AgDropShadowOptions } fr
 
 import type { Marker } from '../../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
+import { getSeriesPaths } from '../../test/communitySeriesAccessors';
+import { getSeriesAt, getSeriesSelectionNodes } from '../../test/seriesAccessors';
 import { MARKER_SHADOW, customMarkerShape } from '../../test/shadowFixtures';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     createChart,
-    deproxy,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -73,10 +74,8 @@ describe('marker shadow', () => {
         return chart;
     };
 
-    const visibleMarkers = (seriesIndex = 0): Marker[] => {
-        const series = deproxy(chart).series[seriesIndex] as any;
-        return Array.from<Marker>(series.datumSelection.nodes()).filter((node) => node.visible);
-    };
+    const visibleMarkers = (seriesIndex = 0): Marker[] =>
+        getSeriesSelectionNodes<Marker>(chart, 'datumSelection', seriesIndex).filter((node) => node.visible);
 
     const shapeOption = (shape: unknown) => ({ shape });
 
@@ -223,7 +222,7 @@ describe('marker shadow', () => {
                     ],
                 } as AgCartesianChartOptions);
 
-                (deproxy(chart).series[0] as any).getTooltipContent(0, undefined);
+                getSeriesAt(chart).getTooltipContent(0, undefined);
 
                 expect(received).toHaveLength(1);
                 expect(received[0]).toMatchObject({ seriesId: expect.any(String), fill: expect.anything() });
@@ -242,7 +241,7 @@ describe('marker shadow', () => {
         };
 
         /** The area series' fill path is the first of its two paths; the second is the stroke. */
-        const areaFillPath = () => (deproxy(chart).series[0] as any).paths[0];
+        const areaFillPath = () => getSeriesPaths(chart)[0];
 
         it('keeps the series fill shadow and the marker shadow independent', async () => {
             await create({
