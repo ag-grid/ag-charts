@@ -75,6 +75,24 @@ test.describe('axe-kitchen-sink', () => {
         await expect(pagination.getByRole('button', { name: 'Next Legend Page' })).toBeEnabled();
     });
 
+    test('renders the annotations toolbar', async ({ page }) => {
+        // The toolbar is shared with the zoom module, which relabels it, so it is found by class rather than by name.
+        const toolbar = page.locator('.ag-charts-shared-toolbar[role="toolbar"]');
+        await expect(toolbar).toBeVisible();
+        for (const title of ['Text Annotations', 'Trend Lines', 'Arrows', 'Clear All']) {
+            await expect(toolbar.locator(`button[title="${title}"]`)).toBeVisible();
+        }
+    });
+
+    test('attaches an annotation axis button to each axis direction', async ({ page }) => {
+        // display:none until the pointer enters the series area, so a load-only axe scan does not evaluate them.
+        const axisButtons = page.locator('button.ag-charts-annotations__axis-button');
+        await expect(axisButtons).toHaveCount(2);
+        for (const button of await axisButtons.all()) {
+            await expect(button).toHaveAttribute('aria-label', 'Add Horizontal Line');
+        }
+    });
+
     test('registers the context menu', async ({ page }) => {
         await expect(page.locator('.ag-charts-context-menu')).toHaveCount(1);
     });
