@@ -4,6 +4,7 @@ import type { AgCartesianChartOptions, AgChartInstance, AgLineSeriesOptions } fr
 import {
     deproxy,
     getAxisLayoutState,
+    getSeriesAt,
     hoverAction,
     mouseDownAction,
     mouseMoveAction,
@@ -384,6 +385,16 @@ describe('enterprise feature test accessors', () => {
             expect(getSeriesStoredNodeData(c)).toBe(contexts[0].nodeData);
         });
 
+        it('lists every context of a series that keeps a list of them, and reads the first one', async () => {
+            const c = await create();
+            const first = { nodeData: [{ id: 'first' }] };
+            const second = { nodeData: [{ id: 'second' }] };
+            Object.defineProperty(getSeriesAt(c), 'contextNodeData', { value: [first, second], configurable: true });
+
+            expect(getSeriesNodeDataContexts(c)).toEqual([first, second]);
+            expect(getSeriesStoredNodeData(c)).toBe(first.nodeData);
+        });
+
         it('lists no context for a series that keeps none, and reads its own node data instead', async () => {
             const c = await createEnterpriseChart({
                 width: 600,
@@ -422,9 +433,12 @@ describe('enterprise feature test accessors', () => {
             chart = c;
 
             const { centerX, centerY, radius } = getSeriesPolarGeometry(c);
+            // The centre is in the series area's own coordinates, so it is the middle of the area.
+            const { width, height } = deproxy(c).seriesRect!;
+            expect(centerX).toBeCloseTo(width / 2);
+            expect(centerY).toBeCloseTo(height / 2);
             expect(radius).toBeGreaterThan(0);
-            expect(centerX).toBeGreaterThan(0);
-            expect(centerY).toBeGreaterThan(0);
+            expect(radius).toBeLessThanOrEqual(Math.min(width, height) / 2);
         });
 
         it('fails for a series that is not polar', async () => {
