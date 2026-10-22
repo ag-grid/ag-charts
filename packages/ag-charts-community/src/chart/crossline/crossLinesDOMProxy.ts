@@ -82,7 +82,7 @@ export class CrossLinesDOMProxy implements CrossLineFocusStateGetter {
     }
 
     getFocusState(): CrossLineFocusState | undefined {
-        return this.entries.at(this.focusedIndex ?? Infinity);
+        return this.focusedIndex == null ? undefined : this.entries[this.focusedIndex];
     }
 
     private update() {
@@ -94,8 +94,8 @@ export class CrossLinesDOMProxy implements CrossLineFocusStateGetter {
             const plugin = getCrossLinesPlugin(axis);
             if (!plugin?.isVisible()) continue;
 
-            // Track currently focus cross line (state shared across all axes).
-            plugin?.setFocusStateGetter(this);
+            // Every visible axis reads the focused cross line from this proxy.
+            plugin.setFocusStateGetter(this);
 
             for (const crossLine of plugin.getInstances()) {
                 if (!plugin.isKeyboardClickable(crossLine)) continue;
