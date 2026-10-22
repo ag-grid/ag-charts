@@ -11,6 +11,7 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
+    type ChartOrProxy,
     type ChartTestCase,
     type SceneGeometrySample,
     clickAction,
@@ -21,6 +22,7 @@ import {
     dragAction,
     expectSceneSamplesMatch,
     expectWarningsCalls,
+    getSeriesContextNodeData,
     hoverAction,
     looserSnapshotDefaults,
     setupMockCanvas,
@@ -29,13 +31,26 @@ import {
     standaloneChartAssertions,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { BBox, Group, Rect, Selection, Text, Transformable } from 'ag-charts-core';
+import { BBox, Group, Rect, Text, Transformable } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
+import {
+    getNetworkContentBBox,
+    getNetworkSeriesRect,
+    getNetworkViewport,
+    getOrganizationCardContentHeight,
+    getOrganizationCardTexts,
+    getOrganizationCards,
+    getOrganizationGraph,
+    getOrganizationLinks,
+    getOrganizationNodeDatumIndex,
+    getOrganizationSeriesInstance,
+} from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { OrganizationNodeTag } from './organizationNode';
 import { OrganizationSeries } from './organizationSeries';
+import type { OrganizationDatum } from './organizationTypes';
 
 const SIMPLE_ORG_CHART: AgChartOptions & { series: { type: 'organization' }[] } = {
     data: [
@@ -623,7 +638,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                     },
                 },
             ],
-        } as any,
+        },
         assertions,
     },
     SEGMENT_TITLE_RIGHT_ALIGNED_VIA_ITEM_STYLER: {
@@ -665,7 +680,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                     },
                 },
             ],
-        } as any,
+        },
         assertions,
     },
     TEXT_TIER_BACKING_BOX_LARGE_PADDING: {
@@ -716,7 +731,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                     },
                 },
             ],
-        } as any,
+        },
         assertions,
     },
     TEXT_TIER_BACKING_BOX_ASYMMETRIC_PADDING: {
@@ -752,7 +767,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                     },
                 },
             ],
-        } as any,
+        },
         assertions,
     },
     NODE_ITEM_STYLER_USES_IS_COLLAPSED: {
@@ -776,7 +791,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                     },
                 },
             ],
-        } as any,
+        },
         assertions,
     },
     TEXT_TIER_ITEM_STYLER_USES_IS_COLLAPSED: {
@@ -800,7 +815,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                     },
                 },
             ],
-        } as any,
+        },
         assertions,
     },
     NODE_TEXT_FORMATTER_USES_IS_COLLAPSED: {
@@ -833,7 +848,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                     },
                 },
             ],
-        } as any,
+        },
         assertions,
     },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
@@ -860,7 +875,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                     },
                 },
             ],
-        } as any,
+        },
         assertions,
     },
     DIRECTION_HORIZONTAL: {
@@ -884,7 +899,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                     },
                 },
             ],
-        } as any,
+        },
         assertions,
     },
     EXPANDER_NO_CHILDREN: {
@@ -901,7 +916,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                     },
                 },
             ],
-        } as any,
+        },
         assertions,
     },
     DIRECTION_HORIZONTAL_IMAGE_TOP: {
@@ -1037,14 +1052,9 @@ describe('OrganizationSeries', () => {
     }
 
     function findCardNode(itemId: string): Node {
-        const nodes = new Caster(deproxy(chart).series[0])
-            .cast(OrganizationSeries)
-            .accessProperty('datumSelection')
-            .cast(Selection)
-            .value.nodes();
-        const card = nodes.find((node: Node<any>) => node.datum?.itemId === itemId);
+        const card = getOrganizationCards(chart).find(({ datum }) => datum.itemId === itemId);
         expect(card).toBeDefined();
-        return card!;
+        return card!.node;
     }
 
     /** The first scene node tagged `tag` within the card for `itemId` (the expander's own pill `Rect`). */
@@ -1178,13 +1188,15 @@ describe('OrganizationSeries', () => {
     });
 
     describe('numeric ids', () => {
-        const renderedItemIds = (c: any): number[] => {
+        const renderedItemIds = (c: ChartOrProxy<any>): number[] => {
             const ids: number[] = [];
-            (deproxy(c).series[0] as any).datumSelection.each((_node: any, datum: any) => {
+            for (const { datum } of getOrganizationCards(c)) {
                 if (!datum.collapsedByAncestor) {
-                    ids.push(datum.itemId);
+                    // The fixture's ids are all numeric: a string here is a regression in how the ids were kept.
+                    expect(datum.itemId).toBeTypeOf('number');
+                    ids.push(Number(datum.itemId));
                 }
-            });
+            }
             return ids.sort((a, b) => a - b);
         };
 
@@ -1219,14 +1231,14 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = deproxy(chart).series[0] as any;
+            const series = getOrganizationSeriesInstance(chart);
             const { collapsedManager } = series.ctx;
 
-            series.collapseItem(2);
+            series.collapseItem(2, 'api-call');
             expect(collapsedManager.isCollapsed(2)).toBe(true);
 
             // Expand must target node 2 by id, not misread the numeric id as a datumSelection index.
-            series.expandItem(2);
+            series.expandItem(2, 'api-call');
             expect(collapsedManager.isCollapsed(2)).toBe(false);
         });
 
@@ -1235,10 +1247,9 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = deproxy(chart).series[0] as any;
-            const node = series.findNodeDatum(2);
+            const node = getOrganizationSeriesInstance(chart).findNodeDatum(2);
             expect(node?.itemId).toBe(2);
-            expect(node?.datum?.name).toBe('Bob Smith');
+            expect(node?.datum).toMatchObject({ name: 'Bob Smith' });
         });
     });
 
@@ -1329,7 +1340,7 @@ describe('OrganizationSeries', () => {
                 await chart.setState({ version: '13.3.0', collapsed: ['henry8'] });
                 await waitForChartStability(chart);
 
-                const series = deproxy(chart).series[0] as any;
+                const cards = getOrganizationCards(chart);
                 const expectedReign: Record<string, string | undefined> = {
                     henry7: 'King 1485 - 1509',
                     henry8: 'King 1509 - 1547',
@@ -1337,23 +1348,20 @@ describe('OrganizationSeries', () => {
                     frances: undefined,
                     jane: undefined,
                 };
-                const collapsedNodeIds = series.datumSelection
-                    .nodes()
-                    .filter((node: any) => node.datum.collapsedByAncestor)
-                    .map((node: any) => node.datum.itemId);
+                const collapsedNodeIds = cards
+                    .filter(({ datum }) => datum.collapsedByAncestor)
+                    .map(({ datum }) => datum.itemId);
                 expect(collapsedNodeIds).toEqual(['mary1', 'elizabeth1']);
-                series.datumSelection.each((node: any, datum: any) => {
-                    if (datum.collapsedByAncestor) return;
-                    const renderedTexts: string[] = (node.labelNodes ?? [])
-                        .filter((n: any) => n != null)
-                        .map((n: any) => n.text);
+                for (const { node, datum } of cards) {
+                    if (datum.collapsedByAncestor) continue;
+                    const renderedTexts = getOrganizationCardTexts(node).labels.filter((text) => text != null);
                     const expected = expectedReign[datum.itemId];
                     if (expected === undefined) {
                         expect(renderedTexts).toEqual([]);
                     } else {
                         expect(renderedTexts).toEqual([expected]);
                     }
-                });
+                }
             });
 
             it('AG-17250 should keep node bbox stable across repeated programmatic toggles', async () => {
@@ -1362,17 +1370,11 @@ describe('OrganizationSeries', () => {
 
                 chart = await createEnterpriseChart(options);
 
-                const series = deproxy(chart).series[0] as any;
-                const captureBBoxes = () => {
-                    const bboxes: { itemId: string; width: number; height: number }[] = [];
-                    series.datumSelection.each((node: any, datum: any) => {
-                        const card = node.getShapeBBox();
-                        if (card) {
-                            bboxes.push({ itemId: datum.itemId, width: card.width, height: card.height });
-                        }
+                const captureBBoxes = () =>
+                    getOrganizationCards(chart).map(({ node, datum }) => {
+                        const { width, height } = node.getShapeBBox();
+                        return { itemId: datum.itemId, width, height };
                     });
-                    return bboxes;
-                };
 
                 const initial = captureBBoxes();
                 expect(initial.length).toBeGreaterThan(0);
@@ -1448,11 +1450,11 @@ describe('OrganizationSeries', () => {
             });
         });
 
-        const linkVisibility = (c: any): Record<string, boolean> => {
+        const linkVisibility = (c: ChartOrProxy<any>): Record<string, boolean> => {
             const out: Record<string, boolean> = {};
-            (deproxy(c).series[0] as any).linkSelection.each((node: any, datum: any) => {
+            for (const { node, datum } of getOrganizationLinks(c)) {
                 out[`${String(datum.from.value)}->${String(datum.to.value)}`] = node.visible;
-            });
+            }
             return out;
         };
 
@@ -1461,15 +1463,15 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series: any = deproxy(chart).series[0];
-            const nodeData = series.contextNodeData.nodeData;
-            const cfoVertex = series.graph.findVertexById('cfo');
+            const { nodeData } = getSeriesContextNodeData<OrganizationDatum>(chart);
+            const graph = getOrganizationGraph(chart);
+            const cfoVertex = graph.findVertexById('cfo')!;
 
             // Selection order and graph datumIndex only diverge when render order differs from data
             // order, so a reordered fixture must fail loudly rather than pass silently.
-            expect(nodeData.map((d: any) => d.itemId)).toEqual(['ceo', 'cto', 'dev', 'qa', 'cfo', 'acc']);
-            expect(series.getNodeDatumIndex(cfoVertex)).toBe(4);
-            expect(series.graph.findNeighbourValue(cfoVertex, 'datumIndex')).toBe(2);
+            expect(nodeData.map((d) => d.itemId)).toEqual(['ceo', 'cto', 'dev', 'qa', 'cfo', 'acc']);
+            expect(getOrganizationNodeDatumIndex(chart, cfoVertex)).toBe(4);
+            expect(graph.findNeighbourValue(cfoVertex, 'datumIndex')).toBe(2);
             expect(nodeData[2].itemId).toBe('dev');
 
             expect(linkVisibility(chart)).toEqual({
@@ -1504,8 +1506,7 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series: any = deproxy(chart).series[0];
-            expect(series.contextNodeData.nodeData.map((d: any) => d.itemId)).toEqual([
+            expect(getSeriesContextNodeData<OrganizationDatum>(chart).nodeData.map((d) => d.itemId)).toEqual([
                 'ceo',
                 'cto',
                 'dev',
@@ -2102,18 +2103,18 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = deproxy(chart).series[0] as any;
+            const series = getOrganizationSeriesInstance(chart);
 
             // A parent node has an expander, so its full bbox overhangs its card (shape) bbox.
-            let target: { datumIndex: number; cardBox: any; fullBox: any } | undefined;
-            series.datumSelection.each((node: any, datum: any) => {
-                if (target || datum.collapsedByAncestor) return;
+            let target: { datumIndex: number; cardBox: BBox; fullBox: BBox } | undefined;
+            for (const { node, datum } of getOrganizationCards(chart)) {
+                if (target || datum.collapsedByAncestor) continue;
                 const cardBox = Transformable.toCanvas(node, node.getShapeBBox());
                 const fullBox = Transformable.toCanvas(node, node.getFullBBox());
                 if (fullBox.height > cardBox.height + 1) {
                     target = { datumIndex: datum.datumIndex, cardBox, fullBox };
                 }
-            });
+            }
 
             expect(target).toBeDefined();
             const { datumIndex, cardBox, fullBox } = target!;
@@ -2122,20 +2123,15 @@ describe('OrganizationSeries', () => {
             const overhang = fullBox.y + fullBox.height - cardBottom;
             expect(overhang).toBeGreaterThan(1);
 
-            const pickedIndices = (box: any) =>
-                new Set<number>([...series.pickNodesInBBox(box)].map((d: any) => d.datumIndex));
+            const pickedIndices = (box: BBox) =>
+                new Set<number>([...series.pickNodesInBBox(box)].map((d) => d.datumIndex));
 
             // A rect covering only the expander overhang strip below the card must not pick the node.
-            const expanderOnly = { x: fullBox.x, y: cardBottom + 0.5, width: fullBox.width, height: overhang - 0.5 };
+            const expanderOnly = new BBox(fullBox.x, cardBottom + 0.5, fullBox.width, overhang - 0.5);
             expect(pickedIndices(expanderOnly).has(datumIndex)).toBe(false);
 
             // Control: a rect over the card interior does pick the node.
-            const cardInterior = {
-                x: cardBox.x + cardBox.width / 2,
-                y: cardBox.y + cardBox.height / 2,
-                width: 1,
-                height: 1,
-            };
+            const cardInterior = new BBox(cardBox.x + cardBox.width / 2, cardBox.y + cardBox.height / 2, 1, 1);
             expect(pickedIndices(cardInterior).has(datumIndex)).toBe(true);
         });
     });
@@ -2553,25 +2549,23 @@ describe('OrganizationSeries', () => {
 
         type NodeTexts = { id: string; title?: string; subtitle?: string; labels: (string | undefined)[] };
 
-        const render = async (node: OrgNodeOptions, extra: Partial<AgChartOptions> = {}, data: any[] = FIT_DATA) => {
-            const options: AgChartOptions = {
+        const render = async (
+            node: OrgNodeOptions,
+            extra: Partial<AgStandaloneChartOptions> = {},
+            data: any[] = FIT_DATA
+        ) => {
+            const options: AgStandaloneChartOptions = {
                 data,
-                series: [{ type: 'organization', idKey: 'id', parentIdKey: 'parentId', node } as any],
+                series: [{ type: 'organization', idKey: 'id', parentIdKey: 'parentId', node }],
                 ...extra,
             };
             chart?.destroy();
             chart = await createEnterpriseChart(options);
-            const series = deproxy(chart).series[0] as any;
             const texts: NodeTexts[] = [];
-            series.datumSelection.each((nodeScene: any, datum: any) => {
-                texts.push({
-                    id: datum.itemId,
-                    title: nodeScene.titleNode?.text,
-                    subtitle: nodeScene.subtitleNode?.text,
-                    labels: (nodeScene.labelNodes ?? []).map((n: any) => n?.text),
-                });
-            });
-            return { texts, series };
+            for (const card of getOrganizationCards(chart)) {
+                texts.push({ id: String(card.datum.itemId), ...getOrganizationCardTexts(card.node) });
+            }
+            return { texts, series: getOrganizationSeriesInstance(chart) };
         };
 
         const titleOf = (texts: NodeTexts[], id = 'ceo') => texts.find((t) => t.id === id)?.title;
@@ -2595,7 +2589,8 @@ describe('OrganizationSeries', () => {
         it('should default to truncate: true and collision { threshold: 0, alwaysShow: false } on every tier', async () => {
             const { series } = await render(BASE_NODE);
             const { title, subtitle, labels } = series.options.node;
-            for (const tier of [title, subtitle, labels[0]]) {
+            expect(labels).toHaveLength(1);
+            for (const tier of [title, subtitle, labels![0]]) {
                 expect(tier.truncate).toBe(true);
                 expect(tier.collision).toEqual({ threshold: 0, alwaysShow: false });
             }
@@ -2631,7 +2626,7 @@ describe('OrganizationSeries', () => {
                 await waitForChartStability(chart);
 
                 expect(series.options.node.title.truncate).toBe(truncate);
-                expect(series.options.node.labels.map((l: any) => l.truncate)).toEqual([truncate, truncate]);
+                expect(series.options.node.labels?.map((l) => l.truncate)).toEqual([truncate, truncate]);
                 expect(titleOf(texts)).toEqual(truncate ? expect.stringContaining('…') : '');
                 expectWarningsCalls().toEqual([
                     [
@@ -2719,26 +2714,32 @@ describe('OrganizationSeries', () => {
         });
 
         it('should apply truncate and collision from theme overrides', async () => {
-            const { texts, series } = await render({ ...BASE_NODE, title: { key: 'name', wrapping: 'never' } }, {
-                theme: {
-                    overrides: {
-                        organization: {
-                            series: { node: { title: { truncate: false, collision: { threshold: 5 } } } },
+            const { texts, series } = await render(
+                { ...BASE_NODE, title: { key: 'name', wrapping: 'never' } },
+                {
+                    theme: {
+                        overrides: {
+                            organization: {
+                                series: { node: { title: { truncate: false, collision: { threshold: 5 } } } },
+                            },
                         },
                     },
-                },
-            } as any);
+                }
+            );
             expect(series.options.node.title.truncate).toBe(false);
             expect(series.options.node.title.collision).toEqual({ threshold: 5, alwaysShow: false });
             expect(titleOf(texts)).toBe('');
         });
 
         it('should map a theme overflowStrategy onto truncate without warning', async () => {
-            const { texts } = await render({ ...BASE_NODE, title: { key: 'name', wrapping: 'never' } }, {
-                theme: {
-                    overrides: { organization: { series: { node: { title: { overflowStrategy: 'hide' } } } } },
-                },
-            } as any);
+            const { texts } = await render(
+                { ...BASE_NODE, title: { key: 'name', wrapping: 'never' } },
+                {
+                    theme: {
+                        overrides: { organization: { series: { node: { title: { overflowStrategy: 'hide' } } } } },
+                    },
+                }
+            );
             expect(titleOf(texts)).toBe('');
         });
 
@@ -2792,11 +2793,12 @@ describe('OrganizationSeries', () => {
             ...d,
             avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
         }));
-        const ceoContentHeight = (series: any) => {
+        // Reads the chart `render` created last.
+        const ceoContentHeight = () => {
             let height = Number.NaN;
-            series.datumSelection.each((nodeScene: any, datum: any) => {
-                if (datum.itemId === 'ceo') height = nodeScene.intrinsicCardSize.height;
-            });
+            for (const { node, datum } of getOrganizationCards(chart)) {
+                if (datum.itemId === 'ceo') height = getOrganizationCardContentHeight(node);
+            }
             return height;
         };
 
@@ -2805,18 +2807,21 @@ describe('OrganizationSeries', () => {
             async (reverse) => {
                 // 70 fits every tier beside the default edge padding but not beside the expander's wider one.
                 for (const maxHeight of [55, 70, 85]) {
-                    const { series } = await render({ ...BASE_NODE, maxWidth: undefined, maxHeight }, {
-                        series: [
-                            {
-                                type: 'organization',
-                                idKey: 'id',
-                                parentIdKey: 'parentId',
-                                reverse,
-                                node: { ...BASE_NODE, maxWidth: undefined, maxHeight },
-                            },
-                        ],
-                    } as any);
-                    expect(ceoContentHeight(series)).toBeLessThanOrEqual(maxHeight + 0.5);
+                    await render(
+                        { ...BASE_NODE, maxWidth: undefined, maxHeight },
+                        {
+                            series: [
+                                {
+                                    type: 'organization',
+                                    idKey: 'id',
+                                    parentIdKey: 'parentId',
+                                    reverse,
+                                    node: { ...BASE_NODE, maxWidth: undefined, maxHeight },
+                                },
+                            ],
+                        }
+                    );
+                    expect(ceoContentHeight()).toBeLessThanOrEqual(maxHeight + 0.5);
                 }
             }
         );
@@ -2824,7 +2829,7 @@ describe('OrganizationSeries', () => {
         it('should fit the text inside a configured maxHeight above a bottom image', async () => {
             // 95 fits every tier when the label's 20px gap above the image is ignored, but not with it.
             for (const maxHeight of [95, 110]) {
-                const { series } = await render(
+                await render(
                     {
                         ...BASE_NODE,
                         maxWidth: undefined,
@@ -2835,7 +2840,7 @@ describe('OrganizationSeries', () => {
                     {},
                     AVATAR_DATA
                 );
-                expect(ceoContentHeight(series)).toBeLessThanOrEqual(maxHeight + 0.5);
+                expect(ceoContentHeight()).toBeLessThanOrEqual(maxHeight + 0.5);
             }
         });
 
@@ -2845,8 +2850,8 @@ describe('OrganizationSeries', () => {
                 maxWidth: undefined,
                 image: { key: 'avatar', position: 'bottom', height: 20, spacing: 0 },
             };
-            const { series: unbounded } = await render(node, {}, AVATAR_DATA);
-            const maxHeight = ceoContentHeight(unbounded) + 1;
+            await render(node, {}, AVATAR_DATA);
+            const maxHeight = ceoContentHeight() + 1;
 
             const { texts } = await render(
                 { ...node, maxHeight, image: { key: 'avatar', position: 'bottom', height: 20, spacing: 200 } },
@@ -2857,11 +2862,11 @@ describe('OrganizationSeries', () => {
         });
 
         it('should only reserve vertical tier padding when a backing box is drawn', async () => {
-            const { series: unbounded } = await render({ ...BASE_NODE, maxWidth: undefined });
+            await render({ ...BASE_NODE, maxWidth: undefined });
             const node: OrgNodeOptions = {
                 ...BASE_NODE,
                 maxWidth: undefined,
-                maxHeight: ceoContentHeight(unbounded) + 1,
+                maxHeight: ceoContentHeight() + 1,
                 labels: [{ key: 'location', padding: { top: 100, bottom: 100 } }],
             };
 
@@ -3060,10 +3065,10 @@ describe('OrganizationSeries', () => {
         async function setupChart() {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             chart = await createEnterpriseChart(options);
-            return deproxy(chart).series[0] as any;
+            return getOrganizationSeriesInstance(chart);
         }
 
-        function press(series: any, key: typeof ARROW_DOWN, datumIndex: number, otherIndex = 0) {
+        function press(series: OrganizationSeries, key: typeof ARROW_DOWN, datumIndex: number, otherIndex = 0) {
             return series.pickFocus({
                 datumIndex: datumIndex + key.datumIndexDelta,
                 datumIndexDelta: key.datumIndexDelta,
@@ -3075,7 +3080,7 @@ describe('OrganizationSeries', () => {
         it('ArrowDown moves from the root to its first child', async () => {
             const series = await setupChart();
             const pick = press(series, ARROW_DOWN, 0, 0);
-            expect(pick?.datum.itemId).toBe('cto');
+            expect(pick?.datum).toHaveProperty('itemId', 'cto');
             expect(pick?.otherIndex).toBe(2);
         });
 
@@ -3089,7 +3094,7 @@ describe('OrganizationSeries', () => {
             const series = await setupChart();
             // cfo (datumIndex 4, depth 2) → ceo (datumIndex 0, depth 1).
             const pick = press(series, ARROW_UP, 4, 2);
-            expect(pick?.datum.itemId).toBe('ceo');
+            expect(pick?.datum).toHaveProperty('itemId', 'ceo');
             expect(pick?.otherIndex).toBe(1);
         });
 
@@ -3102,29 +3107,29 @@ describe('OrganizationSeries', () => {
             const series = await setupChart();
             // cto (datumIndex 1) → cfo (datumIndex 4).
             const pick = press(series, ARROW_RIGHT, 1, 2);
-            expect(pick?.datum.itemId).toBe('cfo');
+            expect(pick?.datum).toHaveProperty('itemId', 'cfo');
         });
 
         it('ArrowLeft moves to the previous sibling', async () => {
             const series = await setupChart();
             // qa (datumIndex 3) → dev (datumIndex 2).
             const pick = press(series, ARROW_LEFT, 3, 3);
-            expect(pick?.datum.itemId).toBe('dev');
+            expect(pick?.datum).toHaveProperty('itemId', 'dev');
         });
 
         it('ArrowRight at the last sibling clamps (no wrap)', async () => {
             const series = await setupChart();
             // qa is the last sibling under cto; ArrowRight should stay on qa.
             const pick = press(series, ARROW_RIGHT, 3, 3);
-            expect(pick?.datum.itemId).toBe('qa');
+            expect(pick?.datum).toHaveProperty('itemId', 'qa');
         });
 
         it('ArrowDown into a collapsed node auto-expands to first child', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
             chart = await createEnterpriseChart(options);
-            const series = deproxy(chart).series[0] as any;
+            const series = getOrganizationSeriesInstance(chart);
             const pick = press(series, ARROW_DOWN, 1, 2);
-            expect(pick?.datum.itemId).toBe('dev');
+            expect(pick?.datum).toHaveProperty('itemId', 'dev');
         });
 
         // Follows the same DOM chain a screen reader would: the visible swap-chain announcer
@@ -3149,7 +3154,7 @@ describe('OrganizationSeries', () => {
         }
 
         async function setupChartWithClickToExpand(clickToExpand: boolean) {
-            const baseSeries = (SIMPLE_ORG_CHART.series as any)[0];
+            const baseSeries = SIMPLE_ORG_CHART.series[0];
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 series: [{ ...baseSeries, node: { ...baseSeries.node, clickToExpand } }],
@@ -3426,13 +3431,13 @@ describe('OrganizationSeries', () => {
             // Land at the 1:1 floor (both axes saturate at fitX/fitY).
             setZoom(chart, 0.45, 0.55, 0.45, 0.55);
             await waitForChartStability(chart);
-            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            const flooredState = deproxy(chart).ctx.chartState.getValue('zoom');
             expect(flooredState).toBeDefined();
 
             // Further zoom-in with an off-centre mid must not translate the window.
             setZoom(chart, 0.3, 0.4, 0.3, 0.4);
             await waitForChartStability(chart);
-            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            const afterState = deproxy(chart).ctx.chartState.getValue('zoom');
             expect(afterState).toEqual(flooredState);
         });
 
@@ -3443,13 +3448,14 @@ describe('OrganizationSeries', () => {
 
             setZoom(chart, 0.45, 0.55, 0.45, 0.55);
             await waitForChartStability(chart);
-            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            const flooredState = deproxy(chart).ctx.chartState.getValue('zoom');
 
             // Shrink x only, leave y at the floored range. Off-isotropic input would otherwise
             // land at floor (t = 1) with the new x mid, leaking through `clampMid`.
-            setZoom(chart, 0.3, 0.35, flooredState.y.min, flooredState.y.max);
+            expect(flooredState?.y).toBeDefined();
+            setZoom(chart, 0.3, 0.35, flooredState!.y!.min, flooredState!.y!.max);
             await waitForChartStability(chart);
-            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            const afterState = deproxy(chart).ctx.chartState.getValue('zoom');
             expect(afterState).toEqual(flooredState);
         });
     });
@@ -3526,10 +3532,9 @@ describe('OrganizationSeries', () => {
     // wherever the view had been panned to; an interaction holds the interacted node in place instead.
     describe('re-fit and centre on update', () => {
         // The content's edges projected into the series area, with the zoom window that produced them.
-        function getView(c: any) {
-            const series = deproxy(c).series[0] as any;
-            const { viewportGroup } = series;
-            const contentBBox = series.layout.getContentBBox();
+        function getView(c: ChartOrProxy<any>) {
+            const viewportGroup = getNetworkViewport(c);
+            const contentBBox = getNetworkContentBBox(c);
             const round = (n: number) => Math.round(n * 100) / 100;
 
             return {
@@ -3734,10 +3739,10 @@ describe('OrganizationSeries', () => {
     describe('pan headroom', () => {
         // Projects the content bounds through the viewport transform, so the assertions below are in
         // the same space a user sees: pixels within the series area.
-        function getContentEdges(c: any) {
-            const series = deproxy(c).series[0] as any;
-            const { seriesRect, viewportGroup } = series;
-            const contentBBox = series.layout.getContentBBox();
+        function getContentEdges(c: ChartOrProxy<any>) {
+            const seriesRect = getNetworkSeriesRect(c);
+            const viewportGroup = getNetworkViewport(c);
+            const contentBBox = getNetworkContentBBox(c);
 
             return {
                 centreX: seriesRect.width / 2,

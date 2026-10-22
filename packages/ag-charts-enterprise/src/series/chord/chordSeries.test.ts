@@ -5,11 +5,13 @@ import type {
     AgChartOptions,
     AgChordSeriesLinkItemStylerParams,
     AgChordSeriesNodeItemStylerParams,
+    AgChordSeriesOptions,
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
 import {
     type Chart,
+    type ChartOrProxy,
     GALLERY_EXAMPLES,
     MIN_TOOLTIP_HIDE_DELAY,
     type SceneGeometrySample,
@@ -26,9 +28,13 @@ import {
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 
+import { getFlowLinkData, getFlowNodeData } from '../../test/enterpriseSeriesAccessors';
 import { describeFlowProportionShadow, flowProportionShadowOptions } from '../../test/flowProportionShadowTests';
 import { SMALL_SHADOW, createEnterpriseChart } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
+
+// The gallery types this example as a polar chart, whose series union leaves out the standalone chord series.
+const SIMPLE_CHORD_SERIES = GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options.series![0] as unknown as AgChordSeriesOptions;
 
 describe('ChordSeries', () => {
     setupMockConsole();
@@ -66,7 +72,7 @@ describe('ChordSeries', () => {
                 ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
                 series: [
                     {
-                        ...(GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options.series![0] as any),
+                        ...SIMPLE_CHORD_SERIES,
                         type: 'chord',
                         link: {
                             tension: 0.5,
@@ -86,7 +92,7 @@ describe('ChordSeries', () => {
                 ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
                 series: [
                     {
-                        ...(GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options.series![0] as any),
+                        ...SIMPLE_CHORD_SERIES,
                         type: 'chord',
                         node: {
                             width: 24,
@@ -150,9 +156,7 @@ describe('ChordSeries', () => {
 
             chart = deproxy(await createEnterpriseChart(options));
 
-            const node = chart.series[0].contextNodeData.nodeData.find(
-                (n: any) => n.type === FlowProportionDatumType.Node
-            );
+            const node = getFlowNodeData(chart)[0];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node);
@@ -177,9 +181,7 @@ describe('ChordSeries', () => {
 
             chart = deproxy(await createEnterpriseChart(options));
 
-            const node = chart.series[0].contextNodeData.nodeData.find(
-                (n: any) => n.type === FlowProportionDatumType.Node
-            );
+            const node = getFlowNodeData(chart)[0];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node);
@@ -191,9 +193,7 @@ describe('ChordSeries', () => {
 
             chart = deproxy(await createEnterpriseChart(options));
 
-            const node = chart.series[0].contextNodeData.nodeData.find(
-                (n: any) => n.type === FlowProportionDatumType.Link
-            );
+            const node = getFlowLinkData(chart)[0];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node);
@@ -206,11 +206,10 @@ describe('ChordSeries', () => {
             { from: 'A', to: 'B', size: 5 },
             { from: 'B', to: 'C', size: 5 },
         ];
-        const getNodeItemIds = (c: any) =>
-            c.series[0].contextNodeData.nodeData
-                .filter((n: any) => n.type === FlowProportionDatumType.Node)
-                .map((n: any) => n.itemId)
-                .sort();
+        const getNodeItemIds = (c: ChartOrProxy<any>) =>
+            getFlowNodeData(c)
+                .map((n) => n.itemId)
+                .sort((a, b) => String(a).localeCompare(String(b)));
 
         it('defaults a node itemId to its name', async () => {
             const options: AgChartOptions = {
@@ -641,9 +640,7 @@ describe('ChordSeries', () => {
 
         chart = deproxy(await createEnterpriseChart(options));
 
-        const linkNode = chart.series[0].contextNodeData.nodeData.find(
-            (n: any) => n.type === FlowProportionDatumType.Link
-        );
+        const linkNode = getFlowLinkData(chart)[0];
         chart.ctx.highlightManager.updateHighlight(chart.id, linkNode);
         // A leaked (circular) scene datum never settles, so cap the wait: this must fail by assertion, not hang.
         await Promise.race([waitForChartStability(chart), new Promise((resolve) => setTimeout(resolve, 500))]);

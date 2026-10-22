@@ -5,6 +5,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgPolarChartOptions,
+    AgTreemapSeriesOptions,
     InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
@@ -26,6 +27,8 @@ import {
     expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesOptions,
+    getSeriesSelectionNodes,
     hierarchyChartAssertions,
     hoverAction,
     isTooltipVisible,
@@ -135,19 +138,16 @@ describe('TreemapSeries', () => {
         });
 
         const nodeAtPath = (series: TreemapSeries, path: number[]): any =>
-            path.reduce<any>((node, idx) => node?.children[idx], (series as any).rootNode);
+            path.reduce<any>((node, idx) => node?.children[idx], series.rootNode);
 
         // Highlight selection holds only the active highlight node, so its fill reveals whether highlighting applied.
-        const highlightFill = (series: any): string | undefined => {
-            const rect = Array.from(series.highlightSelection.nodes())[0] as any;
-            return rect?.fill;
-        };
+        const highlightFill = (): unknown => getSeriesSelectionNodes<Rect>(chart, 'highlightSelection')[0]?.fill;
 
-        const highlightNodeAndReadFill = async (series: TreemapSeries, path: number[]): Promise<string | undefined> => {
+        const highlightNodeAndReadFill = async (series: TreemapSeries, path: number[]): Promise<unknown> => {
             const node = nodeAtPath(series, path);
             (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, node);
             await waitForChartStability(chart);
-            return highlightFill(series);
+            return highlightFill();
         };
 
         it('highlights a tile on hover by default (control)', async () => {
@@ -181,12 +181,10 @@ describe('TreemapSeries', () => {
             expect(await highlightNodeAndReadFill(series, [0])).not.toEqual('cyan');
         });
 
-        const tileEnabled = (series: TreemapSeries) =>
-            (series as unknown as { options: { tile: { highlight: { enabled: boolean } } } }).options.tile.highlight
-                .enabled;
-        const groupEnabled = (series: TreemapSeries) =>
-            (series as unknown as { options: { group: { highlight: { enabled: boolean } } } }).options.group.highlight
-                .enabled;
+        const tileEnabled = (c: Chart) =>
+            getSeriesOptions<{ tile: { highlight: { enabled: boolean } } }>(c).tile.highlight.enabled;
+        const groupEnabled = (c: Chart) =>
+            getSeriesOptions<{ group: { highlight: { enabled: boolean } } }>(c).group.highlight.enabled;
 
         it('cascades chart-level highlight.enabled = false to tile and group', async () => {
             const options: AgChartOptions = {
@@ -196,9 +194,8 @@ describe('TreemapSeries', () => {
                 animation: { enabled: false },
             };
             chart = deproxy(await createEnterpriseChart(options));
-            const series = chart.series[0] as TreemapSeries;
-            expect(tileEnabled(series)).toBe(false);
-            expect(groupEnabled(series)).toBe(false);
+            expect(tileEnabled(chart)).toBe(false);
+            expect(groupEnabled(chart)).toBe(false);
         });
 
         it('lets a series re-enable tile/group highlighting over a disabled chart-level default', async () => {
@@ -218,9 +215,8 @@ describe('TreemapSeries', () => {
                 animation: { enabled: false },
             };
             chart = deproxy(await createEnterpriseChart(options));
-            const series = chart.series[0] as TreemapSeries;
-            expect(tileEnabled(series)).toBe(true);
-            expect(groupEnabled(series)).toBe(true);
+            expect(tileEnabled(chart)).toBe(true);
+            expect(groupEnabled(chart)).toBe(true);
         });
 
         it('still shows tooltips when highlighting is disabled', async () => {
@@ -245,7 +241,7 @@ describe('TreemapSeries', () => {
             const series = chart.series[0] as TreemapSeries;
             const tileNode = nodeAtPath(series, [0, 0]);
             const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
-                (series as any).contentGroup,
+                series.contentGroup,
                 tileNode.bbox.x + tileNode.bbox.width / 2,
                 tileNode.bbox.y + tileNode.bbox.height / 2
             );
@@ -351,7 +347,7 @@ describe('TreemapSeries', () => {
 
         it(`for TREEMAP_SERIES_LABELS it should render to canvas with group labels disabled`, async () => {
             const options = deepClone(TREEMAP_SERIES_LABELS);
-            (options as any).series[0].group.label = { enabled: false };
+            (options.series![0] as AgTreemapSeriesOptions).group!.label = { enabled: false };
             chart = await createEnterpriseChart(options);
             await compare();
         });
@@ -1421,10 +1417,9 @@ describe('TreemapSeries', () => {
         };
 
         /** Resolved rect styles keyed by the datum's `name` — covers groups and leaves alike. */
-        const stylesByName = (series: TreemapSeries): Record<string, { fill?: string; stroke?: string }> => {
-            const styles: Record<string, { fill?: string; stroke?: string }> = {};
-            const rects: any[] = Array.from((series as any).datumSelection.nodes());
-            for (const rect of rects) {
+        const stylesByName = (): Record<string, { fill?: unknown; stroke?: unknown }> => {
+            const styles: Record<string, { fill?: unknown; stroke?: unknown }> = {};
+            for (const rect of getSeriesSelectionNodes<Rect<any>>(chart, 'datumSelection')) {
                 const name = rect.datum?.datum?.name;
                 if (name != null) {
                     styles[name] = { fill: rect.fill, stroke: rect.stroke };
@@ -1433,11 +1428,11 @@ describe('TreemapSeries', () => {
             return styles;
         };
 
-        const fillOf = (series: TreemapSeries, name: string) => stylesByName(series)[name]?.fill;
+        const fillOf = (name: string) => stylesByName()[name]?.fill;
 
         it('defaults the group palette to the theme hierarchy colours', async () => {
-            const series = await renderSeries(DEEP_DATA);
-            const styles = stylesByName(series);
+            await renderSeries(DEEP_DATA);
+            const styles = stylesByName();
 
             const depthFills = ['A', 'A1', 'A1a'].map((name) => styles[name].fill);
             expect(depthFills.every((fill) => fill != null)).toBe(true);
@@ -1445,8 +1440,8 @@ describe('TreemapSeries', () => {
         });
 
         it('cycles the group palette by hierarchy depth', async () => {
-            const series = await renderSeries(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
-            const styles = stylesByName(series);
+            await renderSeries(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
+            const styles = stylesByName();
 
             for (const root of ['A', 'B']) {
                 expect(styles[root].fill).toBe('#ff0000'); // depth 0
@@ -1457,8 +1452,8 @@ describe('TreemapSeries', () => {
 
         it('uses only as many colours as the hierarchy is deep', async () => {
             const fills = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
-            const series = await renderSeries(SHALLOW_DATA, { group: { fills } });
-            const styles = stylesByName(series);
+            await renderSeries(SHALLOW_DATA, { group: { fills } });
+            const styles = stylesByName();
 
             expect(styles.C.fill).toBe('#ff0000');
             expect(styles.C1.fill).toBe('#00ff00');
@@ -1471,23 +1466,23 @@ describe('TreemapSeries', () => {
         });
 
         it('leaves tile fills unaffected', async () => {
-            const withoutOption = await renderSeries(DEEP_DATA);
+            await renderSeries(DEEP_DATA);
             const leafNames = ['A1a-x', 'A1a-y', 'B1a-x', 'B1a-y'];
-            const before = leafNames.map((name) => fillOf(withoutOption, name));
+            const before = leafNames.map((name) => fillOf(name));
             chart.destroy();
 
-            const withOption = await renderSeries(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
-            const after = leafNames.map((name) => fillOf(withOption, name));
+            await renderSeries(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
+            const after = leafNames.map((name) => fillOf(name));
 
             expect(before.every((fill) => fill != null)).toBe(true);
             expect(after).toEqual(before);
         });
 
         it('gives an explicit group.fill priority over group.fills', async () => {
-            const series = await renderSeries(DEEP_DATA, {
+            await renderSeries(DEEP_DATA, {
                 group: { fill: '#0000ff', fills: ['#ff0000', '#00ff00'] },
             });
-            const styles = stylesByName(series);
+            const styles = stylesByName();
 
             for (const name of ['A', 'A1', 'A1a', 'B', 'B1', 'B1a']) {
                 expect(styles[name].fill).toBe('#0000ff');
@@ -1496,12 +1491,12 @@ describe('TreemapSeries', () => {
 
         it('does not rotate group strokes', async () => {
             const groupNames = ['A', 'A1', 'A1a', 'B', 'B1', 'B1a'];
-            const withoutOption = await renderSeries(DEEP_DATA);
-            const before = groupNames.map((name) => stylesByName(withoutOption)[name].stroke);
+            await renderSeries(DEEP_DATA);
+            const before = groupNames.map((name) => stylesByName()[name].stroke);
             chart.destroy();
 
-            const withOption = await renderSeries(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
-            const after = groupNames.map((name) => stylesByName(withOption)[name].stroke);
+            await renderSeries(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
+            const after = groupNames.map((name) => stylesByName()[name].stroke);
 
             // Depths must resolve distinct strokes, or a rotated index would collapse depth 2 onto depth 0.
             expect(before.every((stroke) => stroke != null)).toBe(true);
@@ -1514,14 +1509,14 @@ describe('TreemapSeries', () => {
                 treemapOptions(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } })
             );
             chart = deproxy(proxy);
-            expect(fillOf(chart.series[0], 'A')).toBe('#ff0000');
+            expect(fillOf('A')).toBe('#ff0000');
 
             await proxy.update(
                 prepareEnterpriseTestOptions(treemapOptions(DEEP_DATA, { group: { fills: ['#123456', '#654321'] } }))
             );
             await waitForChartStability(chart);
 
-            const styles = stylesByName(chart.series[0]);
+            const styles = stylesByName();
             expect(styles.A.fill).toBe('#123456');
             expect(styles.A1.fill).toBe('#654321');
             expect(styles['A1a'].fill).toBe('#123456');
@@ -1529,13 +1524,13 @@ describe('TreemapSeries', () => {
 
         it('accepts non-string colour values', async () => {
             // A validator rejecting the gradient object would emit a warning, which setupMockConsole() fails on.
-            const series = await renderSeries(DEEP_DATA, {
+            await renderSeries(DEEP_DATA, {
                 group: {
                     fills: [{ type: 'gradient', colorStops: [{ color: 'green' }, { color: 'white' }] }, '#00ff00'],
                 },
             });
 
-            expect(fillOf(series, 'A1')).toBe('#00ff00');
+            expect(fillOf('A1')).toBe('#00ff00');
         });
 
         it('should render treemap series with group fills', async () => {
@@ -1551,12 +1546,12 @@ describe('TreemapSeries', () => {
                 name: root,
                 children: [{ name: `${root}-x`, size: 3 }],
             }));
-            const series = await renderSeries(data, {
+            await renderSeries(data, {
                 fills: ['#ff0000', '#00ff00', '#0000ff', '#ffff00'],
                 strokes,
                 tile: { strokeWidth: 2 },
             });
-            const styles = stylesByName(series);
+            const styles = stylesByName();
 
             // strokes is shorter than fills, so a wrong-array index wrap would resolve `undefined` here.
             for (const [rootIndex, root] of ['E', 'F', 'G', 'H'].entries()) {
@@ -2052,7 +2047,7 @@ describe('TreemapSeries', () => {
         // A laid-out group with no laid-out child renders only its own padding — every rendered group must contain a rendered child.
         const contentlessGroups = (series: TreemapSeries): string[] => {
             const result: string[] = [];
-            (series as any).rootNode?.walk((node: any) => {
+            series.rootNode?.walk((node: any) => {
                 const isRenderedGroup = node.datum != null && node.children.length > 0 && node.bbox != null;
                 if (isRenderedGroup && !node.children.some((child: any) => child.bbox != null)) {
                     result.push(node.datum.name);
@@ -2060,11 +2055,11 @@ describe('TreemapSeries', () => {
             });
             return result;
         };
-        const renderedTileCount = (series: TreemapSeries): number =>
-            Array.from((series as any).datumSelection.nodes()).filter((rect: any) => rect.visible).length;
+        const renderedTileCount = (): number =>
+            getSeriesSelectionNodes(chart, 'datumSelection').filter((rect) => rect.visible).length;
         const leafBbox = (series: TreemapSeries, name: string): BBox | undefined => {
             let bbox: BBox | undefined;
-            (series as any).rootNode?.walk((node: any) => {
+            series.rootNode?.walk((node: any) => {
                 if (node.children.length === 0 && node.datum?.name === name) {
                     bbox = node.bbox;
                 }
@@ -2078,7 +2073,7 @@ describe('TreemapSeries', () => {
             await waitForChartStability(chart);
             const series = chart.series[0] as TreemapSeries;
 
-            expect(renderedTileCount(series)).toBeGreaterThan(0);
+            expect(renderedTileCount()).toBeGreaterThan(0);
             expect(contentlessGroups(series)).toEqual([]);
         });
 
@@ -2091,7 +2086,7 @@ describe('TreemapSeries', () => {
             await waitForChartStability(chart);
             const series = chart.series[0] as TreemapSeries;
 
-            expect(renderedTileCount(series)).toBeGreaterThan(0);
+            expect(renderedTileCount()).toBeGreaterThan(0);
             expect(contentlessGroups(series)).toEqual([]);
         });
 
@@ -2137,7 +2132,7 @@ describe('TreemapSeries', () => {
         const tilesOutsideSeriesRect = (series: TreemapSeries, rect: { width: number; height: number }): number => {
             const tol = 1;
             let count = 0;
-            (series as any).rootNode?.walk((node: any) => {
+            series.rootNode?.walk((node: any) => {
                 const bbox = node.bbox;
                 if (
                     bbox != null &&
@@ -2314,11 +2309,12 @@ describe('TreemapSeries', () => {
         const findTileNode = (series: TreemapSeries, title: string): any => {
             const dfs = (node: any): any =>
                 node?.datum?.title === title ? node : (node?.children ?? []).map(dfs).find(Boolean);
-            return dfs((series as any).rootNode);
+            return dfs(series.rootNode);
         };
-        const highlightTile = (series: TreemapSeries): any => Array.from((series as any).highlightSelection.nodes())[0];
-        const baseTileFor = (series: TreemapSeries, node: any): any =>
-            Array.from((series as any).datumSelection.nodes()).find((r: any) => r.datum === node);
+        // The highlighted and drawn tiles of the chart under test.
+        const highlightTile = (): any => getSeriesSelectionNodes(chart, 'highlightSelection')[0];
+        const baseTileFor = (node: any): any =>
+            getSeriesSelectionNodes(chart, 'datumSelection').find((r: any) => r.datum === node);
 
         it('highlight through reshuffle: re-highlighting resolves the pointed node, not a stale tile', async () => {
             const proxy = await createEnterpriseChart(withHighlight(ORG_DATA));
@@ -2328,7 +2324,7 @@ describe('TreemapSeries', () => {
 
             highlightManager.updateHighlight(chart.id, findTileNode(series, 'A2'));
             await waitForChartStability(chart);
-            expect(highlightTile(series)?.datum?.datum?.title).toBe('A2');
+            expect(highlightTile()?.datum?.datum?.title).toBe('A2');
 
             await proxy.update(prepareEnterpriseTestOptions(withHighlight(reversed(ORG_DATA))));
             await waitForChartStability(chart);
@@ -2336,10 +2332,10 @@ describe('TreemapSeries', () => {
             const b1 = findTileNode(series, 'B1');
             highlightManager.updateHighlight(chart.id, b1);
             await waitForChartStability(chart);
-            const highlighted = highlightTile(series);
+            const highlighted = highlightTile();
             expect(highlighted?.datum).toBe(b1);
             expect(highlighted?.fill).toBe('lime');
-            const base = baseTileFor(series, b1);
+            const base = baseTileFor(b1);
             expect(highlighted?.x).toBeCloseTo(base.x, 5);
             expect(highlighted?.y).toBeCloseTo(base.y, 5);
             expect(highlighted?.width).toBeCloseTo(base.width, 5);
@@ -2347,7 +2343,7 @@ describe('TreemapSeries', () => {
 
             highlightManager.updateHighlight(chart.id);
             await waitForChartStability(chart);
-            expect(Array.from((series as any).highlightSelection.nodes())).toHaveLength(0);
+            expect(getSeriesSelectionNodes(chart, 'highlightSelection')).toHaveLength(0);
         });
 
         it('sanity: reshuffle endpoints match static renders', async () => {
