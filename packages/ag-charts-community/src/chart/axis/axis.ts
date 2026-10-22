@@ -1022,6 +1022,12 @@ export abstract class Axis<
         return this.overlayHighGroup;
     }
 
+    collectPluginPadding(padding: Partial<Record<'top' | 'right' | 'bottom' | 'left', number>>) {
+        for (const module of this.moduleMap.modules()) {
+            (module as Partial<AxisPluginModuleInstance>).collectChartPadding?.(padding);
+        }
+    }
+
     /**
      * Generic dispatch that fans an axis-lifecycle phase out to every {@link AxisPluginModuleInstance}
      * registered in the module map. Plugins read whatever live state they need from {@link AxisContext}.

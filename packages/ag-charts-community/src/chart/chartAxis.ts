@@ -122,6 +122,7 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     ): string;
     getBBox(): BBox;
     getLayoutState(): AxisLayout;
+    collectPluginPadding(padding: Partial<Record<'top' | 'right' | 'bottom' | 'left', number>>): void;
     getModuleMap(): ModuleMap;
     getUpdateTypeOnResize(): ChartUpdateType;
     inRange(x: number, tolerance?: number): boolean;

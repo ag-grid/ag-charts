@@ -303,6 +303,12 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         }
     }
 
+    collectChartPadding(padding: Partial<Record<'top' | 'right' | 'bottom' | 'left', number>>): void {
+        for (const crossLine of this.instances) {
+            crossLine.calculatePadding?.(padding);
+        }
+    }
+
     onScaleChange(): void {
         const [r0, r1] = this.axisCtx.range;
         for (const crossLine of this.instances) {
