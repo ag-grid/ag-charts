@@ -1,15 +1,30 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { LinearScale, OrdinalTimeScale, ScaleAlignment, UnitTimeScale } from 'ag-charts-core';
+import {
+    CategoryScale,
+    EllipsisChar,
+    LinearScale,
+    OrdinalTimeScale,
+    ScaleAlignment,
+    TimeScale,
+    UnitTimeScale,
+    getMinOuterRectSize,
+    isArray,
+    measureTextSegments,
+    toPlainText,
+} from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import {
+    numericBandsOf,
+    spyOnNumericBandsBuild,
+    tickGenerationParams,
+    tickLabel as tickLabelOptions,
+} from '../test/axisAccessors';
 import { setupMockCanvas } from '../test/utils';
 import { NiceMode } from './axisUtil';
 import { estimateScaleTickCount, generateTicks } from './generateTicks';
-import { timeIntervalMaxLabelSize, withTemporaryDomain } from './generateTicksUtils';
-
-// `numericBands` is a protected derived cache; bracket access keeps it typed without a cast.
-const numericBandsOf = (scale: OrdinalTimeScale) => scale['numericBands'];
+import { fitTicksAtRotation, formatTicks, timeIntervalMaxLabelSize, withTemporaryDomain } from './generateTicksUtils';
 
 // A minTickCount close to tickCount makes buildTickData's overlap loop iterate linearly instead of
 // converging by binary search, which hangs on deeply zoomed ordinal-time domains.
@@ -20,15 +35,15 @@ describe('estimateScaleTickCount', () => {
         scale.domain = domain;
         scale.range = [0, rangeExtent];
 
-        return estimateScaleTickCount({
-            scale,
-            domain,
-            range: [0, rangeExtent] as [number, number],
-            visibleRange: [0.5 - zoomExtent / 2, 0.5 + zoomExtent / 2] as [number, number],
-            label: { enabled: true, fontSize: 14, avoidCollisions: true } as any,
-            defaultTickMinSpacing: 50,
-            interval: undefined,
-        } as any);
+        return estimateScaleTickCount(
+            tickGenerationParams({
+                scale,
+                domain,
+                range: [0, rangeExtent],
+                visibleRange: [0.5 - zoomExtent / 2, 0.5 + zoomExtent / 2],
+                label: tickLabelOptions({ fontSize: 14 }),
+            })
+        );
     }
 
     it('should allow full binary search range for large domains with deep zoom', () => {
@@ -125,23 +140,15 @@ describe('generateTicks on an ordinal-time scale', () => {
     }
 
     function run(scale: OrdinalTimeScale, tickDomain: Date[], niceMode: NiceMode[]) {
-        return generateTicks({
-            label: { enabled: true, fontSize: 12, avoidCollisions: true, autoRotate: false } as any,
-            parallel: true,
-            axisRotation: Math.PI / -2,
-            scale,
-            domain: tickDomain,
-            range: [0, 800],
-            visibleRange: [0, 1],
-            niceMode,
-            reverse: false,
-            primaryTickCount: undefined,
-            defaultTickMinSpacing: 50,
-            labelOffset: 0,
-            sideFlag: -1,
-            interval: undefined,
-            tickFormatter: () => (value: any) => (value instanceof Date ? value.toISOString() : String(value)),
-        } as any);
+        return generateTicks(
+            tickGenerationParams({
+                scale,
+                domain: tickDomain,
+                range: [0, 800],
+                niceMode,
+                tickFormatter: () => (value: unknown) => (value instanceof Date ? value.toISOString() : String(value)),
+            })
+        );
     }
 
     function create(domain: Date[]) {
@@ -204,7 +211,7 @@ describe('generateTicks on an ordinal-time scale', () => {
             ['nice domain', [NiceMode.TickAndDomain]],
             ['ticks only', [NiceMode.TicksOnly]],
         ])('builds none for a tick pass and a few lookups (%s)', (_name, niceMode) => {
-            const builds = vi.spyOn(OrdinalTimeScale.prototype as any, 'numericBands', 'get');
+            const builds = spyOnNumericBandsBuild();
             const scale = create(domain);
 
             run(scale, tickDomain, niceMode);
@@ -261,34 +268,517 @@ describe('labelBandOffsets', () => {
         scale.range = [0, 600];
 
         const requested: number[] = [];
-        const result = generateTicks({
-            label: { enabled: true, fontSize: 12, avoidCollisions: true, autoRotate: false } as any,
-            // A horizontal axis, where `defaultRotation` is a quarter turn and a `verticalAlign`
-            // flush applies.
-            parallel: true,
-            axisRotation: Math.PI / -2,
-            scale,
-            domain: [0, 100],
-            range: [0, 600],
-            visibleRange: [0, 1],
-            niceMode: [],
-            reverse: false,
-            primaryTickCount: undefined,
-            defaultTickMinSpacing: 50,
-            labelOffset: 0,
-            sideFlag: -1,
-            interval: undefined,
-            labelBandOffsets: (_ticks: unknown, rotation: number) => {
-                requested.push(rotation);
-                return undefined;
-            },
-            tickFormatter: () => (value: any) => String(value),
-        } as any);
+        const result = generateTicks(
+            tickGenerationParams<LinearScale, AgNumericValue>({
+                scale,
+                domain: [0, 100],
+                range: [0, 600],
+                // A quarter-turn `defaultRotation`, so the two rotation frames differ.
+                parallel: true,
+                axisRotation: Math.PI / -2,
+                labelBandOffsets: (_ticks, rotation) => {
+                    requested.push(rotation);
+                    return undefined;
+                },
+            })
+        );
 
         expect(requested.length).toBeGreaterThan(0);
         for (const rotation of requested) {
             expect(rotation).toBe(result.rotation);
         }
+    });
+});
+
+// A label fitted to maxWidth / maxHeight must stay within the room across the axis once rotated, or it can
+// overlap an outer scrollbar.
+describe('AG-18833 rotated label fitting', () => {
+    const formatOptions = (domain: string[]) => ({
+        niceDomain: domain,
+        rawTicks: domain,
+        rawFirstTickIndex: 0,
+        generatePrimaryTicks: false,
+        primaryTicksIndices: undefined,
+        alignment: undefined,
+        fractionDigits: 0,
+        timeInterval: undefined,
+    });
+
+    it('keeps wrapped labels with a configured rotation within the label room', () => {
+        const domain = ['one two three four five six seven eight nine ten', 'eleven twelve thirteen fourteen'];
+        const scale = new CategoryScale();
+        scale.domain = domain;
+        scale.range = [0, 200];
+        const rotation = 30;
+        const labelRoom = 40;
+
+        const ticks = formatTicks(
+            {
+                scale,
+                label: {
+                    enabled: true,
+                    fontSize: 12,
+                    fontFamily: 'Verdana',
+                    avoidCollisions: true,
+                    rotation,
+                    wrapping: 'always',
+                    maxWidth: 200,
+                },
+                isVertical: true,
+                sizeLimit: labelRoom,
+                labelRoom,
+                tickFormatter: () => (value: unknown) => String(value),
+            } as any,
+            formatOptions(domain)
+        );
+
+        expect(scale.bandwidth).toBeGreaterThan(labelRoom);
+        expect(ticks).toHaveLength(2);
+        for (const { tickLabel, textMetrics } of ticks) {
+            expect(tickLabel).not.toBe('');
+            const outer = getMinOuterRectSize(rotation, textMetrics.width, textMetrics.height);
+            expect(outer.width).toBeLessThanOrEqual(labelRoom + 0.5);
+        }
+    });
+
+    it('keeps rich-text segments when re-fitting an auto-rotated truncated label', () => {
+        const domain = ['a'];
+        const scale = new CategoryScale();
+        scale.domain = domain;
+        scale.range = [0, 1000];
+        const segments = [
+            { text: 'International ', color: 'red', fontWeight: 'bold' },
+            { text: 'Freight Services And Logistics', color: 'blue' },
+        ];
+        const options = {
+            scale,
+            label: { enabled: true, fontSize: 12, fontFamily: 'Verdana', avoidCollisions: true, maxWidth: 150 },
+            isVertical: false,
+            labelRoom: 60,
+            tickFormatter: () => () => segments,
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain));
+        expect(ticks[0].textUntruncated).toBeDefined();
+
+        const truncatedWidth = ticks[0].textMetrics.width;
+        const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, (335 * Math.PI) / 180);
+
+        expect(isArray(tickLabel)).toBe(true);
+        expect(textMetrics.width).toBeLessThan(truncatedWidth);
+        expect((tickLabel as any[])[0]).toMatchObject({ color: 'red', fontWeight: 'bold' });
+    });
+
+    const categoryScale = (domain: string[], width: number) => {
+        const scale = new CategoryScale();
+        scale.domain = domain;
+        scale.range = [0, width];
+        return scale;
+    };
+
+    const font = { enabled: true, fontSize: 12, fontFamily: 'Verdana', avoidCollisions: true };
+    const autoRotation = (335 * Math.PI) / 180;
+    const rotatedExtent = ({ width, height }: { width: number; height: number }) =>
+        width * Math.abs(Math.sin(autoRotation)) + height * Math.abs(Math.cos(autoRotation));
+
+    it('fits an auto-rotated label from its formatted text within the label room', () => {
+        const domain = ['International Freight Services', 'Long Distance Transport Links'];
+        const labelRoom = 45;
+        const options = {
+            scale: categoryScale(domain, 240),
+            label: { ...font, wrapping: 'always', maxWidth: 300 },
+            isVertical: false,
+            labelRoom,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain));
+        expect(ticks.every((t) => toPlainText(t.tickLabel).includes('\n'))).toBe(true);
+
+        for (const { tickLabel, textMetrics } of fitTicksAtRotation(options, ticks, autoRotation)) {
+            expect(toPlainText(tickLabel)).not.toBe('');
+            expect(rotatedExtent(textMetrics)).toBeLessThanOrEqual(labelRoom + 0.5);
+        }
+    });
+
+    it('clips explicit line breaks to maxHeight when re-fitting an auto-rotated label', () => {
+        const domain = ['a'];
+        const options = {
+            scale: categoryScale(domain, 1000),
+            label: { ...font, maxHeight: 20 },
+            isVertical: false,
+            labelRoom: 200,
+            tickFormatter: () => () => 'First line\nSecond line\nThird line',
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain));
+        const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, autoRotation);
+
+        expect(textMetrics.height).toBeLessThanOrEqual(20);
+        expect(toPlainText(tickLabel)).toContain('First');
+        expect(rotatedExtent(textMetrics)).toBeLessThanOrEqual(200.5);
+    });
+
+    const numberScale = (ticks: number[]) => {
+        const scale = new LinearScale();
+        scale.domain = [ticks[0], ticks.at(-1)!];
+        scale.range = [0, 1000];
+        return scale;
+    };
+
+    it.each([undefined, 30])(
+        'hides a number label taller than maxHeight with wrapping never (rotation %s)',
+        (rotation) => {
+            const domain = [0, 50, 100];
+            const options = {
+                scale: numberScale(domain),
+                label: { ...font, rotation, maxHeight: 5 },
+                isVertical: false,
+                labelRoom: 200,
+                tickFormatter: () => (value: unknown) => String(value),
+            } as any;
+
+            const ticks = formatTicks(options, formatOptions(domain as any));
+
+            expect(ticks).toHaveLength(3);
+            for (const { tickLabel } of ticks) {
+                expect(tickLabel).toBe('');
+            }
+        }
+    );
+
+    it.each([undefined, 30])(
+        'clips explicit line breaks to maxHeight with wrapping never (rotation %s)',
+        (rotation) => {
+            const domain = [0, 100];
+            const options = {
+                scale: numberScale(domain),
+                label: { ...font, rotation, maxHeight: 20 },
+                isVertical: false,
+                labelRoom: 200,
+                tickFormatter: () => () => 'First line\nSecond line\nThird line',
+            } as any;
+
+            const ticks = formatTicks(options, formatOptions(domain as any));
+
+            for (const { tickLabel, textMetrics } of ticks) {
+                expect(textMetrics.height).toBeLessThanOrEqual(20);
+                expect(toPlainText(tickLabel)).toContain('First');
+                expect(toPlainText(tickLabel)).not.toContain('Second');
+            }
+        }
+    );
+
+    it.each([undefined, 30])(
+        'hides a number label when maxWidth is narrower than the ellipsis (rotation %s)',
+        (rotation) => {
+            const domain = [0, 50, 100];
+            const options = {
+                scale: numberScale(domain),
+                label: { ...font, rotation, maxWidth: 5 },
+                isVertical: false,
+                labelRoom: 200,
+                tickFormatter: () => (value: unknown) => String(value),
+            } as any;
+
+            const ticks = formatTicks(options, formatOptions(domain as any));
+
+            expect(ticks).toHaveLength(3);
+            for (const { tickLabel } of ticks) {
+                expect(tickLabel).toBe('');
+            }
+        }
+    );
+
+    it.each([90, 270])('keeps the labels of a vertical number axis rotated %d° in a tight label room', (rotation) => {
+        const domain = [0, 50, 100];
+        const labelRoom = 20;
+        const options = {
+            scale: numberScale(domain),
+            label: { ...font, rotation, maxWidth: 200 },
+            isVertical: true,
+            labelRoom,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain as any));
+
+        expect(ticks).toHaveLength(3);
+        for (const { tickLabel, textMetrics } of ticks) {
+            expect(tickLabel).not.toBe('');
+            expect(textMetrics.height).toBeLessThanOrEqual(labelRoom);
+        }
+    });
+
+    it('hides the labels of a vertical axis with no label room left', () => {
+        const domain = [0, 50, 100];
+        const options = {
+            scale: numberScale(domain),
+            label: { ...font, maxHeight: 100 },
+            isVertical: true,
+            labelRoom: 0,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain as any));
+
+        expect(ticks).toHaveLength(3);
+        for (const { tickLabel } of ticks) {
+            expect(tickLabel).toBe('');
+        }
+    });
+
+    it('hides a rich-text label when maxWidth is narrower than the ellipsis', () => {
+        const domain = ['a'];
+        const options = {
+            scale: categoryScale(domain, 1000),
+            label: { ...font, maxWidth: 5 },
+            isVertical: false,
+            labelRoom: 200,
+            tickFormatter: () => () => [
+                { text: 'Styled ', color: 'red' },
+                { text: 'label', color: 'blue' },
+            ],
+        } as any;
+
+        const [{ tickLabel }] = formatTicks(options, formatOptions(domain));
+
+        expect(toPlainText(tickLabel)).toBe('');
+    });
+
+    it('keeps a rich-text label within maxWidth when a full first segment leaves too little room for the ellipsis', () => {
+        const domain = ['a'];
+        const first = { text: 'Styled', color: 'red' };
+        const firstWidth = measureTextSegments([first], font).width;
+        const ellipsisWidth = measureTextSegments([{ text: EllipsisChar }], font).width;
+        const maxWidth = firstWidth + ellipsisWidth / 2;
+        const options = {
+            scale: categoryScale(domain, 1000),
+            label: { ...font, maxWidth },
+            isVertical: false,
+            labelRoom: 200,
+            tickFormatter: () => () => [first, { text: 'label', color: 'blue' }],
+        } as any;
+
+        const [{ textMetrics }] = formatTicks(options, formatOptions(domain));
+
+        expect(textMetrics.width).toBeLessThanOrEqual(maxWidth);
+    });
+
+    it('hides an auto-rotated label when the width left by its re-fit is narrower than the ellipsis', () => {
+        const domain = ['International Freight Services'];
+        const options = {
+            scale: categoryScale(domain, 1000),
+            label: { ...font, maxWidth: 300 },
+            isVertical: false,
+            labelRoom: 200,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any;
+        const ticks = formatTicks(options, formatOptions(domain));
+        const { height } = ticks[0].textMetrics;
+        const sin = Math.abs(Math.sin(autoRotation));
+        const cos = Math.abs(Math.cos(autoRotation));
+
+        // Room for the label's height plus 2px of rotated width, less than an ellipsis needs.
+        const [{ tickLabel }] = fitTicksAtRotation(
+            { ...options, labelRoom: height * cos + 2 * sin },
+            ticks,
+            autoRotation
+        );
+
+        expect(tickLabel).toBe('');
+    });
+
+    it('does not erase a rich-text label wider than its band when it fits maxWidth with truncate false', () => {
+        const domain = ['a', 'b', 'c', 'd'];
+        const segments = [
+            { text: 'Styled ', color: 'red' },
+            { text: 'category label', color: 'blue' },
+        ];
+        const options = {
+            scale: categoryScale(domain, 120),
+            label: { ...font, maxWidth: 300, truncate: false },
+            isVertical: false,
+            labelRoom: 100,
+            tickFormatter: () => () => segments,
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain));
+
+        expect(ticks).toHaveLength(4);
+        for (const { tickLabel, textMetrics } of ticks) {
+            expect(toPlainText(tickLabel)).toBe('Styled category label');
+            expect(textMetrics.width).toBeGreaterThan(30);
+        }
+    });
+
+    // Text pads its box before rotating it, so padding on the label's own sides turns into the axis thickness.
+    const paddedExtent = (
+        { width, height }: { width: number; height: number },
+        { left, right, top, bottom }: { left: number; right: number; top: number; bottom: number },
+        rotation: number,
+        isVertical: boolean
+    ) => {
+        const sin = Math.abs(Math.sin(rotation));
+        const cos = Math.abs(Math.cos(rotation));
+        const w = width + left + right;
+        const h = height + top + bottom;
+        return isVertical ? w * cos + h * sin : w * sin + h * cos;
+    };
+
+    it.each([
+        [false, 90, { left: 10, right: 10, top: 2, bottom: 2 }],
+        [true, 30, { left: 20, right: 20, top: 20, bottom: 20 }],
+    ])(
+        'keeps the padded box of a label with a configured rotation within the label room (vertical %s, %d°)',
+        (isVertical, rotation, padding) => {
+            const domain = ['International Freight Services And Logistics'];
+            const labelRoom = 120;
+            const options = {
+                scale: categoryScale(domain, 300),
+                label: { ...font, fill: 'white', padding, rotation, maxWidth: 300 },
+                isVertical,
+                labelRoom,
+                tickFormatter: () => (value: unknown) => String(value),
+            } as any;
+
+            const [{ tickLabel, textMetrics }] = formatTicks(options, formatOptions(domain));
+
+            expect(toPlainText(tickLabel)).not.toBe('');
+            const extent = paddedExtent(textMetrics, padding, (rotation * Math.PI) / 180, isVertical);
+            expect(extent).toBeLessThanOrEqual(labelRoom + 0.5);
+        }
+    );
+
+    it('keeps the padded box of a re-fitted auto-rotated label within the label room', () => {
+        const domain = ['International Freight Services And Logistics'];
+        const labelRoom = 60;
+        const options = {
+            scale: categoryScale(domain, 1000),
+            label: { ...font, fill: 'white', padding: 8, maxWidth: 300 },
+            isVertical: false,
+            labelRoom,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain));
+        const [{ tickLabel, textMetrics }] = fitTicksAtRotation(options, ticks, autoRotation);
+
+        expect(toPlainText(tickLabel)).not.toBe('');
+        const padding = { left: 8, right: 8, top: 8, bottom: 8 };
+        expect(paddedExtent(textMetrics, padding, autoRotation, false)).toBeLessThanOrEqual(labelRoom + 0.5);
+    });
+
+    it('keeps wrapped labels considered for a shallow auto-rotation clear of their neighbours', () => {
+        const domain = Array.from({ length: 6 }, (_, i) => `Alpha beta gamma delta epsilon zeta ${i}`);
+        const scale = categoryScale(domain, 480);
+        const autoRotateAngle = 355;
+
+        const result = generateTicks({
+            label: { ...font, autoRotate: true, autoRotateAngle, wrapping: 'always', maxWidth: 300 } as any,
+            parallel: true,
+            axisRotation: Math.PI / -2,
+            scale,
+            domain,
+            range: [0, 480],
+            visibleRange: [0, 1],
+            niceMode: [],
+            reverse: false,
+            primaryTickCount: undefined,
+            defaultTickMinSpacing: 0,
+            labelOffset: 0,
+            sideFlag: 1,
+            interval: undefined,
+            isVertical: false,
+            sizeLimit: 42,
+            labelRoom: 42,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any);
+
+        // Collisions are checked on the labels as drawn at each rotation, so none reaches its neighbour.
+        const { rotation, tickData } = result;
+        const { ticks } = tickData;
+        expect(ticks.length).toBeGreaterThan(1);
+        const alongAxis = ({ width, height }: { width: number; height: number }) =>
+            width * Math.abs(Math.cos(rotation)) + height * Math.abs(Math.sin(rotation));
+        for (let i = 1; i < ticks.length; i++) {
+            const gap = ticks[i].translation - ticks[i - 1].translation;
+            expect((alongAxis(ticks[i - 1].textMetrics) + alongAxis(ticks[i].textMetrics)) / 2).toBeLessThanOrEqual(
+                gap
+            );
+        }
+        for (const { tickLabel } of ticks) {
+            expect(toPlainText(tickLabel)).toMatch(/^Alpha beta\ngamma delta\nepsilon zeta \d$/);
+        }
+    });
+
+    it('does not thin a time axis on the width of labels that maxWidth narrows', () => {
+        const domain = [new Date(2025, 0, 1), new Date(2025, 2, 1)];
+        const ticksFor = (maxWidth?: number) => {
+            const scale = new TimeScale();
+            scale.domain = domain;
+            scale.range = [0, 400];
+            return generateTicks({
+                label: { ...font, format: '%A %d %B %Y', maxWidth } as any,
+                parallel: true,
+                axisRotation: Math.PI / -2,
+                scale,
+                domain,
+                range: [0, 400],
+                visibleRange: [0, 1],
+                niceMode: [],
+                reverse: false,
+                primaryTickCount: undefined,
+                defaultTickMinSpacing: 0,
+                labelOffset: 0,
+                sideFlag: 1,
+                interval: undefined,
+                isVertical: false,
+                sizeLimit: 100,
+                labelRoom: 100,
+                tickFormatter: () => (value: Date) => `Wednesday ${value.getDate()} September`,
+            } as any).tickData.ticks;
+        };
+
+        const fitted = ticksFor(40);
+        expect(fitted.length).toBeGreaterThan(ticksFor().length);
+        for (const { textMetrics } of fitted) {
+            expect(textMetrics.width).toBeLessThanOrEqual(40);
+        }
+    });
+
+    it('thins an automatically rotated time axis as it would one configured to that rotation', () => {
+        const domain = [new Date(2025, 0, 1), new Date(2025, 2, 1)];
+        const ticksFor = (rotation: { rotation: number } | { autoRotate: true; autoRotateAngle: number }) => {
+            const scale = new TimeScale();
+            scale.domain = domain;
+            scale.range = [0, 400];
+            return generateTicks({
+                label: { ...font, format: '%A %d %B %Y', maxWidth: 300, ...rotation } as any,
+                parallel: true,
+                axisRotation: Math.PI / -2,
+                scale,
+                domain,
+                range: [0, 400],
+                visibleRange: [0, 1],
+                niceMode: [],
+                reverse: false,
+                primaryTickCount: undefined,
+                defaultTickMinSpacing: 0,
+                labelOffset: 0,
+                sideFlag: 1,
+                interval: undefined,
+                isVertical: false,
+                sizeLimit: 25,
+                labelRoom: 25,
+                tickFormatter: () => (value: Date) => `Wednesday ${value.getDate()} September`,
+            } as any);
+        };
+
+        const automatic = ticksFor({ autoRotate: true, autoRotateAngle: 355 });
+        expect(automatic.rotation).not.toBe(0);
+        const configured = ticksFor({ rotation: 355 });
+        expect(automatic.tickData.ticks.map((t) => t.tick)).toEqual(configured.tickData.ticks.map((t) => t.tick));
     });
 });
 
@@ -300,23 +790,15 @@ describe('tick label lineHeight', () => {
         scale.domain = [0, 100];
         scale.range = [0, 600];
 
-        const { tickData } = generateTicks({
-            label: { enabled: true, fontSize: 12, lineHeight, avoidCollisions: true, autoRotate: false } as any,
-            parallel: true,
-            axisRotation: Math.PI / -2,
-            scale,
-            domain: [0, 100],
-            range: [0, 600],
-            visibleRange: [0, 1],
-            niceMode: [],
-            reverse: false,
-            primaryTickCount: undefined,
-            defaultTickMinSpacing: 50,
-            labelOffset: 0,
-            sideFlag: -1,
-            interval: undefined,
-            tickFormatter: () => (value: any) => `${value}\nunits`,
-        } as any);
+        const { tickData } = generateTicks(
+            tickGenerationParams<LinearScale, AgNumericValue>({
+                scale,
+                label: tickLabelOptions({ lineHeight }),
+                domain: [0, 100],
+                range: [0, 600],
+                tickFormatter: () => (value: unknown) => `${String(value)}\nunits`,
+            })
+        );
         return tickData.ticks.map((tick) => tick.textMetrics.height);
     }
 
@@ -328,14 +810,14 @@ describe('tick label lineHeight', () => {
     });
 
     it('measures time labels by their lineHeight when estimating their size', () => {
-        const label = { enabled: true, fontSize: 12, lineHeight: 40, format: '%d %b' } as any;
+        const label = tickLabelOptions({ lineHeight: 40, format: '%d %b' });
         const domain = [new Date(2024, 0, 1), new Date(2024, 0, 10)];
         expect(timeIntervalMaxLabelSize(label, undefined, domain, 'day').height).toBe(40);
     });
 
     it('measures parent level time labels by their own lineHeight', () => {
-        const label = { enabled: true, fontSize: 12, lineHeight: 15, format: '%d' } as any;
-        const primaryLabel = { enabled: true, fontSize: 12, lineHeight: 60, format: '%b' } as any;
+        const label = tickLabelOptions({ lineHeight: 15, format: '%d' });
+        const primaryLabel = tickLabelOptions({ lineHeight: 60, format: '%b' });
         const domain = [new Date(2024, 0, 1), new Date(2024, 2, 10)];
         expect(timeIntervalMaxLabelSize(label, primaryLabel, domain, 'day').height).toBe(60);
     });

@@ -48,7 +48,7 @@ export interface AgBasePolarChartOptions<TDatum = DatumDefault, TContext = Conte
     axes?: AgPolarAxesOptions<TContext>;
 }
 
-type ThemeOmittedAxisOptions = 'type' | 'crossLines' | 'ariaLabel';
+type ThemeOmittedAxisOptions = 'type' | 'crossLines';
 
 export interface AgAngleCategoryAxisThemeOptions<TContext = ContextDefault>
     extends Omit<AgAngleCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>, AgAngleAxesCrossLineThemeOptions {}

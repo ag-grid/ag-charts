@@ -12,6 +12,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -127,7 +128,6 @@ async function renderSnapshot(
     chartRef: ChartRef
 ): Promise<SnapshotResult> {
     chartRef.current = await createEnterpriseChart(options);
-    await waitForChartStability(chartRef.current);
     const snapshot = ctx.snapshot();
     const imageData = extractImageData(ctx);
     chartRef.current.destroy();
@@ -671,7 +671,6 @@ describe('Scrollbar thumb hover derives from the per-chart thumb style', () => {
             scrollbar: { enabled: true, visible: 'always', thickness: 30, ...scrollbar },
             initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
         });
-        await waitForChartStability(chartRef.current);
         hoverHorizontalThumb();
         await waitForChartStability(chartRef.current);
         await compareImageSnapshot(chartRef.current, ctx, {
@@ -872,6 +871,67 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         }
     );
 
+    function getFittedLongLabelExtent(chart: any, position: AgCartesianAxisPosition) {
+        const axis = getScrollbarAxis(chart, position);
+        const node = axis.tickLabelGroupSelection
+            .nodes()
+            .find((n: any) => n.datum.textUntruncated === LONG_LABEL || n.text?.startsWith('test50'));
+        expect(node).toBeDefined();
+        const { x, y, width, height } = Transformable.toCanvas(node);
+        const { seriesRect } = chart;
+        switch (position) {
+            case 'left':
+                return { near: seriesRect.x - x - width, far: seriesRect.x - x };
+            case 'right':
+                return { near: x - seriesRect.x - seriesRect.width, far: x + width - seriesRect.x - seriesRect.width };
+            case 'top':
+                return { near: seriesRect.y - y - height, far: seriesRect.y - y };
+            case 'bottom':
+                return {
+                    near: y - seriesRect.y - seriesRect.height,
+                    far: y + height - seriesRect.y - seriesRect.height,
+                };
+        }
+    }
+
+    it.each<{ position: AgCartesianAxisPosition; limit: Record<string, number> }>([
+        { position: 'left', limit: { maxWidth: 120 } },
+        { position: 'right', limit: { maxWidth: 120 } },
+        { position: 'top', limit: { maxWidth: 120 } },
+        { position: 'bottom', limit: { maxWidth: 120 } },
+        { position: 'left', limit: { maxHeight: 20 } },
+        { position: 'right', limit: { maxHeight: 20 } },
+        { position: 'top', limit: { maxHeight: 20 } },
+        { position: 'bottom', limit: { maxHeight: 20 } },
+        { position: 'left', limit: { minimumFontSize: 6 } },
+        { position: 'right', limit: { minimumFontSize: 6 } },
+        { position: 'top', limit: { minimumFontSize: 6 } },
+        { position: 'bottom', limit: { minimumFontSize: 6 } },
+    ])('keeps a fitted label clear of a $position scrollbar with $limit', async ({ position, limit }) => {
+        const vertical = isVerticalPosition(position);
+        const label = { ...(vertical ? {} : { rotation: 90 }), ...limit };
+        const chart = await createLongLabelChart({ position, axis: { label } });
+
+        await scrollLongLabelIntoView(chart, position);
+
+        const track = getTrackExtent(chart, position);
+        const fitted = getFittedLongLabelExtent(chart, position);
+        expect(fitted.far).toBeLessThanOrEqual(track.near + 0.5);
+        expectTrackBetweenSeriesAndPaddingEdge(chart, position);
+        if (position === 'left' && limit.maxWidth != null) {
+            await compareImageSnapshot(chart, ctx, {
+                ...IMAGE_SNAPSHOT_DEFAULTS,
+                customSnapshotIdentifier: 'ag-18833-scrollbar-long-label-fitted',
+            });
+        }
+        if (position === 'left' && limit.minimumFontSize != null) {
+            await compareImageSnapshot(chart, ctx, {
+                ...IMAGE_SNAPSHOT_DEFAULTS,
+                customSnapshotIdentifier: 'ag-18833-scrollbar-long-label-shrunk',
+            });
+        }
+    });
+
     it('keeps a grouped-category scrollbar within an explicit axis thickness thinner than its labels', async () => {
         const axisThickness = 30;
         const chart = await createSizedChart({
@@ -890,6 +950,32 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         expect(near).toBeGreaterThanOrEqual(0);
         expect(far).toBeCloseTo(axisThickness, 0);
     });
+
+    it.each<{ limit: Record<string, number> }>([{ limit: { maxWidth: 120 } }, { limit: { minimumFontSize: 6 } }])(
+        'keeps a fitted grouped-category label clear of the scrollbar with $limit',
+        async ({ limit }) => {
+            const chart = await createSizedChart({
+                data: LONG_LABEL_DATA.map(({ x, y }, index) => ({ x: [`group${Math.floor(index / 10)}`, x], y })),
+                series: [{ type: 'bar', direction: 'horizontal', xKey: 'x', yKey: 'y', width: 20 }],
+                axes: { y: { type: 'grouped-category', position: 'left', label: limit } },
+                scrollbar: { enabled: true },
+                legend: { enabled: false },
+            });
+
+            await scrollLongLabelIntoView(chart, 'left');
+
+            const track = getTrackExtent(chart, 'left');
+            const fitted = getFittedLongLabelExtent(chart, 'left');
+            expect(fitted.far).toBeLessThanOrEqual(track.near + 0.5);
+            expectTrackBetweenSeriesAndPaddingEdge(chart, 'left');
+            if (limit.maxWidth != null) {
+                await compareImageSnapshot(chart, ctx, {
+                    ...IMAGE_SNAPSHOT_DEFAULTS,
+                    customSnapshotIdentifier: 'ag-18833-scrollbar-grouped-long-label-fitted',
+                });
+            }
+        }
+    );
 
     it('keeps the scrollbar inside the chart when two category axes are stacked on its side', async () => {
         const chart = await createLongLabelChart({ position: 'left', stacked: true });

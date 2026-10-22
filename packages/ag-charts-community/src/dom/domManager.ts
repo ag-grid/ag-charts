@@ -28,6 +28,7 @@ import type { EventsHub } from '../core/eventsHub';
 import STYLES from '../styles.css';
 import { DOMElementProxy, type DeferredMode } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';
+import { isInHostWithLeakingStyles } from './hostStyleIsolation';
 
 const DOM_ELEMENT_CLASSES = [
     'styles',
@@ -106,6 +107,13 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
     return div;
 }
 
+function createIsolationHost() {
+    // `display: contents` keeps the host out of layout, so the chart sizes against the container as before.
+    const host = createElement('div', { display: 'contents' });
+    host.attachShadow({ mode: 'open' });
+    return host;
+}
+
 // Singleton global-listener registry for minimal-mode charts — one DOM listener set per
 // Window, fanned out to all subscribers. Torn down when the last subscriber unregisters.
 
@@ -164,12 +172,14 @@ export class DOMManager extends BaseManager {
     private readonly element: HTMLElement;
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
+    // Shadow host this manager owns inside the container, isolating the chart from the host page's styles.
+    private isolationHost?: HTMLElement = undefined;
     private shadowDocumentRoot?: HTMLElement = undefined;
     // OPTIMIZATION: mirrors the registered CSS-variable watchers so `updateCSSVariableWatchers`
-    // skips an O(children) DOM scan. Normal-path watchers are children of `this.element` and move
-    // with it; shadow-path watchers live on the shadow root, so that set is cleared when it changes.
+    // skips an O(children) DOM scan. Shadow-path watchers suit only the root they were made for, so
+    // each maps to its removal, run when that root changes.
     private readonly cssVariableWatchers = new Set<string>();
-    private readonly shadowCssVariableWatchers = new Set<string>();
+    private readonly shadowCssVariableWatchers = new Map<string, () => void>();
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
     private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
@@ -214,7 +224,8 @@ export class DOMManager extends BaseManager {
         private readonly styleContainer?: HTMLElement,
         private readonly skipCss?: boolean,
         readonly mode: 'normal' | 'minimal' = 'normal',
-        readonly cssVariables?: Record<string, string>
+        readonly cssVariables?: Record<string, string>,
+        private enableShadowDom?: boolean
     ) {
         super();
 
@@ -318,6 +329,7 @@ export class DOMManager extends BaseManager {
             this.sizeMonitor.unobserve(this.container);
         }
         this.element.remove();
+        this.isolationHost?.remove();
     }
 
     override destroy() {
@@ -331,6 +343,7 @@ export class DOMManager extends BaseManager {
             this.sizeMonitor.unobserve(this.container);
         }
         this.pendingContainer = undefined;
+        this.removeShadowCSSVariableWatchers();
 
         for (const el of Object.values(this.rootElements)) {
             for (const c of el.children.values()) {
@@ -344,6 +357,7 @@ export class DOMManager extends BaseManager {
         }
 
         this.element.remove();
+        this.isolationHost?.remove();
     }
 
     private scheduleFlush() {
@@ -425,7 +439,18 @@ export class DOMManager extends BaseManager {
 
         this.disconnectAttachObservers();
 
-        this.shadowDocumentRoot = this.getShadowDocumentRoot(this.container);
+        if (this.container == null) {
+            this.shadowDocumentRoot = undefined;
+        } else if (this.element.parentNode == null) {
+            // detachFromContainer() took the chart out for its replacement, so it must stay out.
+            this.shadowDocumentRoot = this.getShadowDocumentRoot(this.container);
+        } else {
+            // Detection needs the attached page, so a container connected late is mounted again.
+            const mountParent = this.updateMountPoint(this.container);
+            if (this.element.parentNode !== mountParent) {
+                mountParent.appendChild(this.element);
+            }
+        }
         this.initiallyConnected = true;
         // Remove styles from our DOM tree before re-adding to correct location
         for (const id of this.rootElements['styles'].children.keys()) {
@@ -501,34 +526,12 @@ export class DOMManager extends BaseManager {
             this.sizeMonitor.unobserve(this.container);
         }
 
-        // Shadow-DOM containers hold their own styles; drop them before relocating, both to avoid
-        // conflicts and to avoid a style recalculation. Styles in the head are shared, so stay.
-        if (this.shadowDocumentRoot != null) {
-            for (const id of this.rootElements['styles'].children.keys()) {
-                this.removeChild('styles', id);
-            }
-        }
-
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.agDocument.setContainer(pendingContainer);
-        // Shadow-path watchers live on the shadow root; clearing the mirror for a move within the
-        // same root would re-register duplicates.
-        const previousShadowRoot = this.shadowDocumentRoot?.getRootNode();
-        this.shadowDocumentRoot = this.getShadowDocumentRoot(pendingContainer);
-        if (this.shadowDocumentRoot?.getRootNode() !== previousShadowRoot) {
-            this.shadowCssVariableWatchers.clear();
-        }
         this.initiallyConnected = pendingContainer.isConnected;
         this.observeAttachTransition(pendingContainer);
-
-        // Re-assert the page styles: a no-op unless the move left the shadow root, or the container
-        // arrived lazily and needs them in place first.
-        for (const [id, styles] of this.styles) {
-            this.addStyles(id, styles);
-        }
-
-        pendingContainer.appendChild(this.element);
+        this.mountIn(pendingContainer);
         this.sizeMonitor.observe(
             pendingContainer,
             (size) => {
@@ -543,6 +546,38 @@ export class DOMManager extends BaseManager {
         this.invalidateAllCaches();
         this.updateRtl();
         this.eventsHub.emit('dom:container-change', null);
+    }
+
+    setEnableShadowDom(enableShadowDom: boolean | undefined) {
+        if (enableShadowDom === this.enableShadowDom) return;
+        this.enableShadowDom = enableShadowDom;
+
+        // A container attached later is mounted on attachment; a chart detached for its replacement stays out.
+        const { container } = this;
+        if (container == null || this.initiallyConnected === false || this.element.parentNode == null) return;
+
+        this.mountIn(container);
+        this.invalidateAllCaches();
+    }
+
+    private mountIn(container: HTMLElement) {
+        // Shadow-DOM containers hold their own styles; drop them before relocating, both to avoid
+        // conflicts and to avoid a style recalculation. Styles in the head are shared, so stay.
+        if (this.shadowDocumentRoot != null) {
+            for (const id of this.rootElements['styles'].children.keys()) {
+                this.removeChild('styles', id);
+            }
+        }
+
+        const mountParent = this.updateMountPoint(container);
+
+        // Re-assert the page styles: a no-op unless the move left the shadow root, or the container
+        // arrived lazily and needs them in place first.
+        for (const [id, styles] of this.styles) {
+            this.addStyles(id, styles);
+        }
+
+        mountParent.appendChild(this.element);
     }
 
     setDarkTheme(isDark: boolean) {
@@ -712,7 +747,7 @@ export class DOMManager extends BaseManager {
         }
 
         let element: HTMLElement | null = this.element;
-        const fullScreenElement = (this.element.getRootNode() as any as DocumentOrShadowRoot | undefined)
+        const fullScreenElement = (this.getOutermostElement().getRootNode() as any as DocumentOrShadowRoot | undefined)
             ?.fullscreenElement;
 
         // Try and find a parent which will clip rendering of children - if found we should restrict
@@ -733,7 +768,7 @@ export class DOMManager extends BaseManager {
                 return element;
             }
 
-            element = element.parentElement;
+            element = element === this.element ? this.getOutermostElement().parentElement : element.parentElement;
         }
 
         this._cachedScrollableContainer = null;
@@ -767,8 +802,9 @@ export class DOMManager extends BaseManager {
 
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
         // viewport.
-        if (this.shadowDocumentRoot != null) {
-            this._cachedRawOverlayRect = BBox.fromObject(this.shadowDocumentRoot.getBoundingClientRect());
+        const overlayBounds = this.getShadowOverlayBounds();
+        if (overlayBounds != null) {
+            this._cachedRawOverlayRect = BBox.fromObject(overlayBounds.getBoundingClientRect());
             return this._cachedRawOverlayRect;
         }
 
@@ -776,6 +812,61 @@ export class DOMManager extends BaseManager {
         const { innerWidth, innerHeight } = this.agDocument;
         this._cachedRawOverlayRect = new BBox(0, 0, innerWidth, innerHeight);
         return this._cachedRawOverlayRect;
+    }
+
+    /** Returns the node the chart element belongs under, moving the CSS-variable watchers to a new root. */
+    private updateMountPoint(container: HTMLElement): ParentNode {
+        // A move within the same root keeps its shadow-path watchers.
+        const previousShadowRoot = this.getShadowRoot();
+        const watchedProperties = new Set([...this.cssVariableWatchers, ...this.shadowCssVariableWatchers.keys()]);
+        const mountParent = this.resolveMountPoint(container);
+        if (this.getShadowRoot() !== previousShadowRoot) {
+            this.removeShadowCSSVariableWatchers();
+            if (watchedProperties.size > 0) {
+                this.watchCSSVariables(watchedProperties);
+            }
+        }
+        return mountParent;
+    }
+
+    /** Our own shadow root when isolating, otherwise the container. */
+    private resolveMountPoint(container: HTMLElement): ParentNode {
+        if (this.shouldIsolate(container)) {
+            this.isolationHost ??= createIsolationHost();
+            if (this.isolationHost.parentNode !== container) {
+                container.appendChild(this.isolationHost);
+            }
+            this.shadowDocumentRoot = this.element;
+            return this.isolationHost.shadowRoot!;
+        }
+
+        this.isolationHost?.remove();
+        this.isolationHost = undefined;
+        this.shadowDocumentRoot = this.getShadowDocumentRoot(container);
+        return container;
+    }
+
+    private shouldIsolate(container: HTMLElement) {
+        // Styles placed by the caller or skipped for SSR could not reach a shadow root of ours.
+        const canIsolate = this.mode === 'normal' && this.styleContainer == null && this.skipCss !== true;
+        return canIsolate && (this.enableShadowDom ?? isInHostWithLeakingStyles(container));
+    }
+
+    /** Our outermost element in the page's DOM tree: the isolation host when isolating, otherwise the chart element. */
+    private getOutermostElement(): HTMLElement {
+        return this.isolationHost ?? this.element;
+    }
+
+    /**
+     * A shadow root the page put us in belongs to a component with its own box, which bounds overlays.
+     * Ours wraps a `display: contents` host, so its only box is the chart itself.
+     */
+    private getShadowOverlayBounds(): HTMLElement | undefined {
+        return this.isolationHost == null ? this.shadowDocumentRoot : undefined;
+    }
+
+    private getShadowRoot(): Node | undefined {
+        return this.isolationHost?.shadowRoot ?? this.shadowDocumentRoot?.getRootNode();
     }
 
     private getShadowDocumentRoot(current = this.container) {
@@ -1092,13 +1183,16 @@ export class DOMManager extends BaseManager {
     updateCSSVariableWatchers(cssVariables?: Record<string, string>) {
         if (!cssVariables) return;
 
+        this.watchCSSVariables(strictObjectKeys(cssVariables).map((key) => key.slice(4, -1)));
+    }
+
+    private watchCSSVariables(properties: Iterable<string>) {
         if (this.shadowDocumentRoot) {
-            this.updateCSSVariableWatchersShadowDOM(cssVariables);
+            this.updateCSSVariableWatchersShadowDOM(properties);
             return;
         }
 
-        for (const key of strictObjectKeys(cssVariables)) {
-            const property = key.slice(4, -1);
+        for (const property of properties) {
             if (this.cssVariableWatchers.has(property)) continue;
             this.cssVariableWatchers.add(property);
 
@@ -1123,36 +1217,39 @@ export class DOMManager extends BaseManager {
         }
     }
 
-    private updateCSSVariableWatchersShadowDOM(cssVariables: Record<string, string>) {
-        const shadowRoot = this.shadowDocumentRoot?.getRootNode() as HTMLElement | undefined;
+    private updateCSSVariableWatchersShadowDOM(properties: Iterable<string>) {
+        const shadowRoot = this.getShadowRoot() as HTMLElement | undefined;
         if (!shadowRoot || !('addEventListener' in shadowRoot)) return;
 
-        // Attach a single event listener to the shadow root to catch the bubbled events for every property, rather
-        // than a different event for each property.
-        if (this.shadowCssVariableWatchers.size === 0) {
-            const handleTransitionEnd = () => {
-                this.eventsHub.emit('chart:request-refresh', null);
-            };
-            shadowRoot.addEventListener('transitionend', handleTransitionEnd);
-            this.cleanup.register(() => {
-                shadowRoot.removeEventListener('transitionend', handleTransitionEnd);
-            });
-        }
-
-        for (const key of strictObjectKeys(cssVariables)) {
-            const property = key.slice(4, -1);
+        // Minimal mode has no laid-out sensor container, so its watchers sit on the shadow root.
+        const sensorParent = this.mode === 'normal' ? this.rootElements['style-sensors'].element : shadowRoot;
+        for (const property of properties) {
             if (this.shadowCssVariableWatchers.has(property)) continue;
-            this.shadowCssVariableWatchers.add(property);
 
             // Unlike normal DOM, here we transition directly on the color property since we need to combine the style
             // and sensor into a single element.
             const styleElement = createElement('div');
-            styleElement.style.color = key;
+            styleElement.style.color = `var(${property})`;
             styleElement.style.setProperty('transition', 'color 1ms', 'important');
             styleElement.dataset.variableName = property;
+            sensorParent.prepend(styleElement);
 
-            shadowRoot.prepend(styleElement);
+            const handleTransitionEnd = () => {
+                this.eventsHub.emit('chart:request-refresh', null);
+            };
+            styleElement.addEventListener('transitionend', handleTransitionEnd);
+            this.shadowCssVariableWatchers.set(property, () => {
+                styleElement.removeEventListener('transitionend', handleTransitionEnd);
+                styleElement.remove();
+            });
         }
+    }
+
+    private removeShadowCSSVariableWatchers() {
+        for (const removeWatcher of this.shadowCssVariableWatchers.values()) {
+            removeWatcher();
+        }
+        this.shadowCssVariableWatchers.clear();
     }
 
     private updateContainerClassName() {

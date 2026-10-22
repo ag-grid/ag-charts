@@ -29,6 +29,7 @@ import {
     drawnLineHeight,
     findMinMax,
     isPlainObject,
+    lineHeightAtSize,
     resolveEdgeLabelOverflow,
     resolveTextAlign,
 } from 'ag-charts-core';
@@ -80,6 +81,7 @@ import {
     resetAxisLineSelectionFn,
 } from './axisUtil';
 import { generateTicks } from './generateTicks';
+import { isLabelFitEnabled } from './generateTicksUtils';
 
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
@@ -418,6 +420,14 @@ export abstract class CartesianAxis<
             axisRotation: this.horizontal ? Math.PI / -2 : 0,
             isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
+            labelRoom: isLabelFitEnabled(label) ? this.getLabelRoom(scrollbar, scrollbarThickness) : undefined,
+            labelStyle:
+                isLabelFitEnabled(label) && label.itemStyler != null
+                    ? (value, formattedValue) => ({
+                          ...label,
+                          ...this.getLabelStyles({ value, formattedValue }, undefined, label),
+                      })
+                    : undefined,
             inRange: (translation: number) => this.inRange(translation, 0.001),
             labelBaseline: this.resolveLabelBaseline(label.verticalAlign),
             labelBandOffsets: (ticks, rotation, textAlign, textBaseline) =>
@@ -797,6 +807,22 @@ export abstract class CartesianAxis<
         }
     }
 
+    /** Room an outer scrollbar takes from the axis cap; an inner one is counted by `getScrollbarThickness()`. */
+    protected getOuterScrollbarSize(scrollbar: ScrollbarLayout | undefined): number {
+        return scrollbar?.enabled && scrollbar.placement !== 'inner' ? scrollbar.spacing + scrollbar.thickness : 0;
+    }
+
+    private getLabelRoom(scrollbar: ScrollbarLayout | undefined, scrollbarThickness: number) {
+        const room =
+            (this.chartLayout?.sizeLimit ?? Infinity) -
+            this.getTickSize() -
+            this.getTickSpacing() -
+            this.seriesAreaPadding -
+            scrollbarThickness -
+            this.getOuterScrollbarSize(scrollbar);
+        return Math.max(0, Math.floor(room));
+    }
+
     protected getScrollbarThickness(scrollbar?: ScrollbarLayout): number {
         if (!scrollbar?.enabled) return 0;
         return scrollbar.placement === 'inner' ? scrollbar.spacing + scrollbar.thickness : 0;
@@ -1084,7 +1110,7 @@ export abstract class CartesianAxis<
         scrollbarThickness: number
     ): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
-        const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
+        const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated, fitSource } = datum;
         const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.options.label;
         const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.options.tick;
         const { rotation } = tickGenerationResult;
@@ -1118,8 +1144,12 @@ export abstract class CartesianAxis<
         const x = horizontal ? translation + bandEdgeOffset : labelOffset;
         const y = horizontal ? -labelOffset : translation + bandEdgeOffsetY;
 
+        // A fitted label was styled from its formatter output, so the styler sees that here too.
+        const style = this.getLabelStyles({ value: datum.tick, formattedValue: fitSource ?? text }, undefined, label);
         return {
-            ...this.getLabelStyles({ value: datum.tick, formattedValue: text }, undefined, label),
+            ...(datum.fontSize == null
+                ? style
+                : { ...style, fontSize: datum.fontSize, lineHeight: lineHeightAtSize(style, datum.fontSize) }),
             tickId,
             rotation,
             text,

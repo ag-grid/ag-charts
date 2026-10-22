@@ -1,0 +1,113 @@
+---
+title: 'HLC Series'
+enterprise: true
+---
+
+An HLC Series shows high, low and close data as a line through the close values, with shaded bands reaching up to the high values and down to the low values.
+
+## Simple HLC
+
+{% chartExampleRunner title="Simple HLC" name="simple-hlc" type="generated" /%}
+
+To create an HLC Series, use the `hlc` series type.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'hlc',
+            xKey: 'date',
+            highKey: 'high',
+            lowKey: 'low',
+            closeKey: 'close',
+        },
+    ],
+}
+```
+
+In this configuration:
+
+- `xKey` sets the x value.
+- `highKey` sets the high values.
+- `lowKey` sets the low values.
+- `closeKey` sets the close values.
+
+The series is drawn as a band from the close to the high, a band from the low to the close, and a line through the close values. These are all part of the same series, so there is a single legend item, and a single tooltip for each data item.
+
+## Customisation
+
+{% chartExampleRunner title="HLC Customisations" name="hlc-customisations" type="generated" /%}
+
+Series items are customised via the `item` configuration object.
+
+The properties `item.high`, `item.low` and `item.close` control the display of the high band, the low band and the close line respectively.
+
+- `item.high` styles the band from the close to the high, and the high edge.
+- `item.low` styles the band from the low to the close, and the low edge.
+- `item.close` styles the close line.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'hlc',
+            // ...
+            item: {
+                high: {
+                    fillOpacity: 0.2,
+                    lineDash: [4, 4],
+                },
+                low: {
+                    fillOpacity: 0.2,
+                    lineDash: [4, 4],
+                },
+                close: {
+                    strokeWidth: 3,
+                    marker: {
+                        enabled: true,
+                        shape: 'diamond',
+                        size: 8,
+                    },
+                },
+            },
+        },
+    ],
+}
+```
+
+## Markers
+
+Markers are not shown by default. Set `marker.enabled` to show markers on the high, low and close values, or enable them for a single value with `item.high.marker`, `item.low.marker` or `item.close.marker`, as in the example above.
+
+Use `marker.itemStyler` to style individual markers. It is called once for each marker, with an `itemType` of `'high'`, `'low'` or `'close'`.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'hlc',
+            // ...
+            marker: {
+                enabled: true,
+                itemStyler: ({ itemType }) => {
+                    return { size: itemType === 'close' ? 8 : 4 };
+                },
+            },
+        },
+    ],
+}
+```
+
+## HLC Chart Examples
+
+{% galleryExamples series="hlc" /%}
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgHlcSeriesOptions" label="HLC Series" %}
+{% apiReference id="AgHlcSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

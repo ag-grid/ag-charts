@@ -64,6 +64,7 @@ import type {
     OptionsOf,
     StackContextOf,
 } from './cartesianSeriesTypes';
+import { sameSegments } from './util';
 
 type CartesianSeriesOpts<TTypes extends CartesianSeriesTypes> = {
     pathsPerSeries: string[];
@@ -376,10 +377,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.contentGroup.batchedUpdate(function updateSelections() {
             const dataChanged = series.updateSelections();
             const segments = series.contextNodeData?.segments;
-            if (series.opts.segmentedDataNodes) {
-                series.dataNodeGroup.segments = segments ?? series.dataNodeGroup.segments;
-            } else {
-                series.dataNodeGroup.segments = undefined;
+            const { dataNodeGroup } = series;
+            const nextSegments = series.opts.segmentedDataNodes ? (segments ?? dataNodeGroup.segments) : undefined;
+            // A new array marks the group dirty, which re-rasterises its layer, so only assign segments that differ.
+            if (!sameSegments(nextSegments, dataNodeGroup.segments)) {
+                dataNodeGroup.segments = nextSegments;
             }
             series.updateNodes(itemHighlighted, resize || dataChanged);
         });
@@ -1122,13 +1124,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         indices?: Uint32Array | number[],
         sortOrderParams?: { sortOrder: 1 | -1 }
     ): [number, number] {
-        let sortOrder: 1 | -1;
-        if (sortOrderParams == null) {
-            const { processedData, dataModel } = this;
-            sortOrder = dataModel!.getColumnSortOrder(this, axisKey, processedData!) ?? 1;
-        } else {
-            sortOrder = sortOrderParams.sortOrder;
-        }
+        const sortOrder = sortOrderParams?.sortOrder ?? this.sortOrder(axisKey) ?? 1;
 
         const xValues = this.keysOrValues(axisKey);
         // @todo(AG-7083) - figure out how to determine this
@@ -1736,13 +1732,13 @@ function clippedRangeIndices(
     const range1 = range[1].valueOf();
 
     let xMinIndex = findMinIndex(0, length - 1, (i) => {
-        const index = sortOrder === 1 ? i : length - i;
+        const index = sortOrder === 1 ? i : length - 1 - i;
         const x = xValue(index)?.valueOf();
         return !Number.isFinite(x) || x >= range0;
     });
 
     let xMaxIndex = findMaxIndex(0, length - 1, (i) => {
-        const index = sortOrder === 1 ? i : length - i;
+        const index = sortOrder === 1 ? i : length - 1 - i;
         const x = xValue(index)?.valueOf();
         return !Number.isFinite(x) || x! <= range1;
     });
@@ -1750,7 +1746,7 @@ function clippedRangeIndices(
     if (xMinIndex == null || xMaxIndex == null) return [0, 0];
 
     if (sortOrder === -1) {
-        [xMinIndex, xMaxIndex] = [length - xMaxIndex, length - xMinIndex];
+        [xMinIndex, xMaxIndex] = [length - 1 - xMaxIndex, length - 1 - xMinIndex];
     }
 
     xMinIndex = Math.max(xMinIndex, 0);

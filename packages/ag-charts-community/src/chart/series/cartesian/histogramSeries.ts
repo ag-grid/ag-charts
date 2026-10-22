@@ -35,6 +35,7 @@ import {
     barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
+    clamp,
     createBigIntBins,
     createBigIntTickBins,
     createTicks,
@@ -1370,6 +1371,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     protected isLabelEnabled() {
         return this.options.label.enabled;
+    }
+
+    // Each node's datumIndex is its bin index rather than a data-row index, so clamp to the number of bins: the
+    // default clamp to dataCount() would stop keyboard navigation early when there are more bins than rows.
+    protected override clampDatumIndex(datumIndex: number): number {
+        return clamp(0, datumIndex, this.calculatedBins.length - 1);
     }
 
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {

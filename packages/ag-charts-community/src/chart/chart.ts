@@ -482,6 +482,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             styleContainer,
             styleNonce: options.processedOptions.styleNonce,
             skipCss,
+            enableShadowDom: options.processedOptions.enableShadowDom,
             agDocument,
             domMode: options.optionMetadata.domMode,
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
@@ -617,24 +618,26 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 ctx.domManager.setDataBoolean('animating', false);
                 ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
-            ctx.eventsHub.on('zoom:change-complete', () => {
-                const initialPhase = this.chartAnimationPhase === 'initial';
-                for (const s of this.series) {
-                    (s as any).animationState?.transition('updateData');
-                }
-                if (initialPhase) {
-                    for (const axis of this.axes) {
-                        axis.resetAnimation(this.chartAnimationPhase);
-                    }
-                }
-                this.update(ChartUpdateType.PERFORM_LAYOUT, {
-                    forceNodeDataRefresh: true,
-                    skipAnimations: !initialPhase,
-                });
-            })
+            ctx.eventsHub.on('zoom:change-complete', () => this.onZoomChangeComplete())
         );
 
         this.parentResize(ctx.domManager.containerSize);
+    }
+
+    protected onZoomChangeComplete() {
+        const initialPhase = this.chartAnimationPhase === 'initial';
+        for (const s of this.series) {
+            (s as any).animationState?.transition('updateData');
+        }
+        if (initialPhase) {
+            for (const axis of this.axes) {
+                axis.resetAnimation(this.chartAnimationPhase);
+            }
+        }
+        this.update(ChartUpdateType.PERFORM_LAYOUT, {
+            forceNodeDataRefresh: true,
+            skipAnimations: !initialPhase,
+        });
     }
 
     get listeners(): ChartListeners {
@@ -1781,6 +1784,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.ctx.domManager.setEnableRtl(deltaOptions.enableRtl);
         }
 
+        if ('enableShadowDom' in deltaOptions) {
+            this.ctx.domManager.setEnableShadowDom(deltaOptions.enableShadowDom);
+        }
+
         if ('container' in deltaOptions) this.setContainer(deltaOptions.container ?? undefined);
         this.applySizeOptions(deltaOptions);
         if ('loading' in deltaOptions) this.loading = deltaOptions.loading;
@@ -1798,7 +1805,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         // Re-applying the axis options drops the cached tick layouts, which only a data-only delta leaves valid.
         const deltaKeys = Object.keys(deltaOptions);
         const axesChanged = modulesChanged || deltaKeys.some((key) => key !== 'data');
-        this.applyAxes(this, newOpts, seriesStatus, axesChanged);
+        this.applyAxes(this, newOpts, newChartOptions, seriesStatus, axesChanged);
         if (this.axes.length === 0 || !deltaKeys.every((key) => LAYOUT_ONLY_DELTA_KEYS.has(key))) {
             forceNodeDataRefresh = true;
         }
@@ -1997,7 +2004,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.filterMiniChartSeries(oldSeries)
         );
         const derivedOptions = deriveMiniChartOptions(completeOptions);
-        this.applyAxes(miniChart, derivedOptions, miniChartSeriesStatus);
+        this.applyAxes(miniChart, derivedOptions, this.chartOptions, miniChartSeriesStatus);
 
         const axes = miniChart.axes as ChartAxis[];
 
@@ -2127,6 +2134,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private applyAxes(
         chart: SeriesAxesHost,
         options: AgChartOptions,
+        chartOptions: ChartOptions,
         seriesStatus: SeriesChangeType,
         axesChanged = true
     ) {
@@ -2154,7 +2162,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
 
         // Implicit primary axes have no unmapped key, so fall back to the canonical id to keep `userKey` usable.
-        const { unmappedAxisKeys, optionMetadata } = this.chartOptions;
+        const { unmappedAxisKeys, optionMetadata } = chartOptions;
         // Optimization: try (if possible) to disable the expensive tick-calculation.
         // This is ignored if the Axis thinks tick-calculation is still required.
         const pickComputationEnabled = optionMetadata.presetType !== 'sparkline';

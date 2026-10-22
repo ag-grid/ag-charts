@@ -30,12 +30,15 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSwapChainText,
     hoverAction,
     prepareTestOptions,
+    pressKey,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
     spyOnAnimationManager,
+    tabIntoChart,
     waitForChartStability,
 } from '../../test/utils';
 import type { SeriesNodeDataContext } from '../series';
@@ -1326,6 +1329,67 @@ describe('HistogramSeries', () => {
                     category: 'seriesItem',
                 }))
             );
+        });
+    });
+
+    describe('AG-18992 keyboard navigation reaches every bin', () => {
+        async function arrowRightThroughBins(options: AgCartesianChartOptions, presses: number) {
+            chart = await createChart({ animation: { enabled: false }, ...options });
+            await tabIntoChart(chart);
+            const announced = [getSwapChainText()];
+            for (let i = 0; i < presses; i++) {
+                await pressKey(chart, 'ArrowRight');
+                announced.push(getSwapChainText());
+            }
+            return announced;
+        }
+
+        it('reaches the last bin when there are more bins than data rows', async () => {
+            const announced = await arrowRightThroughBins(
+                {
+                    data: [
+                        { y: 3, a: 3 },
+                        { y: 4, a: 4 },
+                        { y: 2, a: 2 },
+                        { y: 5, a: 5 },
+                    ],
+                    series: [{ type: 'histogram', xKey: 'y', yKey: 'a', yName: 'A' }],
+                },
+                7
+            );
+            expect(announced).toEqual([
+                'y; 1.5 - 2; Frequency; 0; A (sum); 0',
+                'y; 2 - 2.5; Frequency; 1; A (sum); 2',
+                'y; 2.5 - 3; Frequency; 0; A (sum); 0',
+                'y; 3 - 3.5; Frequency; 1; A (sum); 3',
+                'y; 3.5 - 4; Frequency; 0; A (sum); 0',
+                'y; 4 - 4.5; Frequency; 1; A (sum); 4',
+                'y; 4.5 - 5; Frequency; 0; A (sum); 0',
+                'y; 5 - 5.5; Frequency; 1; A (sum); 5',
+            ]);
+        });
+
+        it('reaches the last bin with an explicit binCount and stays there', async () => {
+            const announced = await arrowRightThroughBins(
+                {
+                    data: [{ x: 1 }, { x: 20 }, { x: 40 }, { x: 60 }],
+                    series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
+                },
+                10
+            );
+            expect(announced).toEqual([
+                'x; 1 - 6.9; Frequency; 1',
+                'x; 6.9 - 12.8; Frequency; 0',
+                'x; 12.8 - 18.7; Frequency; 0',
+                'x; 18.7 - 24.6; Frequency; 1',
+                'x; 24.6 - 30.5; Frequency; 0',
+                'x; 30.5 - 36.4; Frequency; 0',
+                'x; 36.4 - 42.3; Frequency; 1',
+                'x; 42.3 - 48.2; Frequency; 0',
+                'x; 48.2 - 54.1; Frequency; 0',
+                'x; 54.1 - 60; Frequency; 1',
+                'x; 54.1 - 60; Frequency; 1',
+            ]);
         });
     });
 });

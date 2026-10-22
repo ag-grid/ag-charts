@@ -8,7 +8,7 @@ import type {
     IAnimation,
 } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
-import { MAX_ANIMATABLE_NODES } from '../data/processors';
+import { MAX_ANIMATABLE_NODES } from '../data/maxAnimatableNodes';
 import { AnimationBatch } from './animationBatch';
 import { InteractionManager, InteractionState } from './interactionManager';
 

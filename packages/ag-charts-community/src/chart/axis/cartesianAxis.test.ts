@@ -1093,6 +1093,523 @@ describe('CartesianAxis', () => {
         });
     });
 
+    const renderChart = async (options: AgCartesianChartOptions, width?: number) => {
+        if (chart != null) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+        prepareTestOptions(options);
+        if (width != null) options.width = width;
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        return chart;
+    };
+
+    describe('AG-18833 label maxWidth / maxHeight', () => {
+        const LONG_NO_SPACES = `test${'x'.repeat(50)}`;
+        const LONG_WITH_SPACES = 'one two three four five six seven eight nine ten';
+
+        const leftCategoryOptions = (label: Record<string, unknown>, labels: string[]): AgCartesianChartOptions => ({
+            data: labels.map((category, i) => ({ category, value: i + 1 })),
+            axes: {
+                x: { type: 'category', position: 'left', label },
+                y: { type: 'number', position: 'bottom' },
+            },
+            series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+        });
+
+        const bottomCategoryOptions = (label: Record<string, unknown>, labels: string[]): AgCartesianChartOptions => ({
+            data: labels.map((category, i) => ({ category, value: i + 1 })),
+            axes: {
+                x: { type: 'category', position: 'bottom', label },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+        });
+
+        const getAxis = (position: string) => {
+            const axis = (deproxy(chart as any) as any).axes.find((a: any) => a.position === position);
+            expect(axis).toBeDefined();
+            return axis;
+        };
+
+        const getAxisThickness = (position: string): number => {
+            const box = getAxis(position).getBBox();
+            return position === 'left' || position === 'right' ? box.width : box.height;
+        };
+
+        const findLongNode = (position: string, prefix: string) => {
+            const node = getAxisLabelNodes(chart, position).find((n) =>
+                getLabelText(n).replaceAll('\n', '').startsWith(prefix)
+            );
+            expect(node).toBeDefined();
+            return node!;
+        };
+
+        describe('validation', () => {
+            const axisOptions: Record<string, () => AgCartesianChartOptions> = {
+                number: () => ({
+                    data: NUMERIC_DATA,
+                    axes: {
+                        x: { type: 'number', position: 'bottom', label: { maxWidth: 50 } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                }),
+                log: () => ({
+                    data: LOG_DATA,
+                    axes: {
+                        x: { type: 'number', position: 'bottom' },
+                        y: { type: 'log', position: 'left', label: { maxWidth: 50 } },
+                    },
+                    series: [{ type: 'line', xKey: 'x2', yKey: 'y2' }],
+                }),
+                time: () => ({
+                    data: TIME_DATA,
+                    axes: {
+                        x: { type: 'time', position: 'bottom', label: { maxWidth: 50 } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                }),
+                'unit-time': () => ({
+                    data: TIME_DATA,
+                    axes: {
+                        x: { type: 'unit-time', position: 'bottom', label: { maxWidth: 50 } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                }),
+                category: () => ({
+                    data: CATEGORY_DATA,
+                    axes: {
+                        x: { type: 'category', position: 'bottom', label: { maxWidth: 50 } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                }),
+            };
+
+            it.each(Object.keys(axisOptions))('accepts label.maxWidth on a %s axis without warning', async (type) => {
+                await renderChart(axisOptions[type]());
+                expect(
+                    getAxisLabelNodes(chart, 'bottom').length + getAxisLabelNodes(chart, 'left').length
+                ).toBeGreaterThan(0);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it.each(Object.keys(axisOptions))(
+                'accepts label.minimumFontSize on a %s axis without warning',
+                async (type) => {
+                    const options = axisOptions[type]();
+                    for (const axis of Object.values(options.axes as Record<string, any>)) {
+                        if (axis.label != null) axis.label = { minimumFontSize: 8 };
+                    }
+                    await renderChart(options);
+                    expect(
+                        getAxisLabelNodes(chart, 'bottom').length + getAxisLabelNodes(chart, 'left').length
+                    ).toBeGreaterThan(0);
+                    expectWarningsCalls().toEqual([]);
+                }
+            );
+
+            it('warns for maxWidth on a time axis parentLevel label', async () => {
+                const options = axisOptions.time();
+                (options.axes as any).x.parentLevel = { enabled: true, label: { maxWidth: 50 } };
+                await renderChart(options);
+                expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.maxWidth')]]);
+            });
+
+            it('accepts the fitting options on a grouped-category axis label and depthOptions label', async () => {
+                await renderChart({
+                    data: GROUPED_CATEGORY_DATA,
+                    axes: {
+                        x: {
+                            type: 'grouped-category',
+                            position: 'bottom',
+                            label: { maxWidth: 50, maxHeight: 40, minimumFontSize: 8 },
+                            depthOptions: [{}, { label: { maxWidth: 80, maxHeight: 30, minimumFontSize: 6 } }],
+                        },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'bar', xKey: 'location', yKey: 'gold' }],
+                } as AgCartesianChartOptions);
+                expect(getAxisLabelNodes(chart, 'bottom').length).toBeGreaterThan(0);
+                expectWarningsCalls().toEqual([]);
+            });
+        });
+
+        describe('left category axis', () => {
+            const labels = ['A', LONG_NO_SPACES, LONG_WITH_SPACES];
+
+            it('truncates a long unbreakable label to maxWidth with an ellipsis', async () => {
+                await renderChart(leftCategoryOptions({ maxWidth: 80 }, labels));
+
+                const nodes = getAxisLabelNodes(chart, 'left');
+                expect(nodes).toHaveLength(3);
+                for (const node of nodes) {
+                    expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
+                }
+                expect(getLabelText(findLongNode('left', 'test')).endsWith('…')).toBe(true);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('wraps a long label within maxWidth when wrapping is always', async () => {
+                await renderChart(leftCategoryOptions({ maxWidth: 80, wrapping: 'always' }, labels));
+
+                const node = findLongNode('left', 'one');
+                const lines = getLabelText(node).split('\n');
+                expect(lines.length).toBeGreaterThan(1);
+                expect(getLabelText(node).endsWith('…')).toBe(false);
+                for (const n of getAxisLabelNodes(chart, 'left')) {
+                    expect(Transformable.toCanvas(n).width).toBeLessThanOrEqual(80.5);
+                }
+            });
+
+            it('truncates wrapped text to maxHeight with an ellipsis', async () => {
+                await renderChart(leftCategoryOptions({ maxWidth: 60, maxHeight: 20, wrapping: 'always' }, labels));
+
+                const node = findLongNode('left', 'one');
+                expect(Transformable.toCanvas(node).height).toBeLessThanOrEqual(20.5);
+                expect(getLabelText(node).endsWith('…')).toBe(true);
+            });
+
+            it('hides an overflowing label when truncate is false', async () => {
+                await renderChart(leftCategoryOptions({ maxWidth: 30, truncate: false }, labels));
+
+                for (const node of getAxisLabelNodes(chart, 'left')) {
+                    expect(getLabelText(node)).not.toContain('test');
+                    expect(getLabelText(node)).not.toContain('one');
+                }
+                expect(getAxisLabelNodes(chart, 'left').some((n) => getLabelText(n) === 'A')).toBe(true);
+            });
+
+            it('still truncates when avoidCollisions is false', async () => {
+                await renderChart(leftCategoryOptions({ maxWidth: 80, avoidCollisions: false }, labels));
+
+                const node = findLongNode('left', 'test');
+                expect(getLabelText(node).endsWith('…')).toBe(true);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
+            });
+
+            it('does not grow the axis to maxWidth when labels are short', async () => {
+                const shortLabels = ['A', 'BB', 'CCC'];
+                await renderChart(leftCategoryOptions({}, shortLabels));
+                const unfitted = getAxisThickness('left');
+
+                await renderChart(leftCategoryOptions({ maxWidth: 500 }, shortLabels));
+                expect(getAxisThickness('left')).toBeCloseTo(unfitted, 5);
+                expect(getAxisThickness('left')).toBeLessThan(100);
+            });
+        });
+
+        describe('auto-rotated bottom category axis', () => {
+            const labels = [
+                'International Freight Services',
+                'Long Distance Transport Links',
+                'Domestic Distribution Centres',
+                'Customs Clearance Operations',
+                'Warehousing And Storage',
+            ];
+
+            it('truncates rotated labels and shrinks the axis', async () => {
+                await renderChart(bottomCategoryOptions({ wrapping: 'never' }, labels), 300);
+                const unfittedThickness = getAxisThickness('bottom');
+                expect(getAxisLabelNodes(chart, 'bottom').every((n) => n.datum.rotation !== 0)).toBe(true);
+
+                await renderChart(bottomCategoryOptions({ maxWidth: 100, wrapping: 'never' }, labels), 300);
+                const nodes = getAxisLabelNodes(chart, 'bottom');
+                expect(nodes.length).toBeGreaterThan(0);
+                for (const node of nodes) {
+                    expect(node.datum.rotation).not.toBe(0);
+                    expect(getLabelText(node).endsWith('…')).toBe(true);
+                }
+                expect(getAxisThickness('bottom')).toBeLessThan(unfittedThickness);
+            });
+
+            it('re-fits labels wrapped to two lines onto one line using the full room once rotated', async () => {
+                const mixed = ['Logistics Operations', 'Freight Forwarding', 'Supercalifragilisticexpialidocious'];
+                const options = bottomCategoryOptions({ maxWidth: 200, wrapping: 'on-space' }, mixed);
+                options.height = 160;
+                await renderChart(options, 260);
+
+                const nodes = getAxisLabelNodes(chart, 'bottom');
+                expect(nodes.length).toBeGreaterThan(0);
+                for (const node of nodes) {
+                    expect(node.datum.rotation).not.toBe(0);
+                    expect(getLabelText(node)).not.toContain('\n');
+                    expect(getLabelText(node).replace('…', '').length).toBeGreaterThan(15);
+                }
+            });
+        });
+
+        describe('grouped-category axis', () => {
+            const groupedOptions = (
+                position: 'left' | 'bottom',
+                label: Record<string, unknown>,
+                depthOptions?: Record<string, unknown>[],
+                leaves = [LONG_WITH_SPACES, 'B', LONG_NO_SPACES]
+            ): AgCartesianChartOptions => ({
+                data: [
+                    { location: ['Northern Hemisphere Region', leaves[0]], value: 3 },
+                    { location: ['Northern Hemisphere Region', leaves[1]], value: 5 },
+                    { location: ['Southern Hemisphere Region', leaves[2]], value: 4 },
+                ],
+                axes: {
+                    x: { type: 'grouped-category', position, label, depthOptions } as any,
+                    y: { type: 'number', position: position === 'left' ? 'bottom' : 'left' },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        direction: position === 'left' ? 'horizontal' : 'vertical',
+                        xKey: 'location',
+                        yKey: 'value',
+                    },
+                ],
+            });
+
+            // Unfitted long leaves on a bottom axis fill the axis cap and leave no room for the group depth.
+            const SHORT_LEAVES = ['A', 'B', 'C'];
+            const leafNode = (position: string, prefix: string) => findLongNode(position, prefix);
+
+            it('truncates leaf labels to maxWidth on a vertical axis', async () => {
+                await renderChart(groupedOptions('left', { maxWidth: 80, wrapping: 'never' }));
+
+                const node = leafNode('left', 'test');
+                expect(getLabelText(node).endsWith('…')).toBe(true);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
+                expect(getAxisLabelNodes(chart, 'left').some((n) => getLabelText(n) === 'B')).toBe(true);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('applies depthOptions limits to their own depth only', async () => {
+                await renderChart(
+                    groupedOptions('bottom', {}, [{}, { label: { maxWidth: 60, wrapping: 'never' } }], SHORT_LEAVES)
+                );
+
+                const group = leafNode('bottom', 'Northern');
+                expect(getLabelText(group).endsWith('…')).toBe(true);
+                expect(Transformable.toCanvas(group).width).toBeLessThanOrEqual(60.5);
+                expect(getAxisLabelNodes(chart, 'bottom').some((n) => getLabelText(n) === 'B')).toBe(true);
+            });
+
+            it('shrinks a group label towards its depth minimumFontSize', async () => {
+                await renderChart(
+                    groupedOptions(
+                        'bottom',
+                        {},
+                        [{}, { label: { maxWidth: 140, minimumFontSize: 6, wrapping: 'never' } }],
+                        SHORT_LEAVES
+                    )
+                );
+
+                const group = leafNode('bottom', 'Northern');
+                expect(getLabelText(group)).toBe('Northern Hemisphere Region');
+                expect(group.datum.fontSize).toBeLessThan(12);
+                expect(Transformable.toCanvas(group).width).toBeLessThanOrEqual(140.5);
+            });
+
+            it('hides a label that does not fit when truncate is false', async () => {
+                await renderChart(groupedOptions('left', { maxWidth: 30, wrapping: 'never', truncate: false }));
+
+                const texts = getAxisLabelNodes(chart, 'left').map(getLabelText);
+                expect(texts).toContain('B');
+                expect(texts.some((text) => text.startsWith('test'))).toBe(false);
+            });
+
+            it('fits every depth within the room the axis has', async () => {
+                const options = groupedOptions('left', { minimumFontSize: 4, wrapping: 'never' });
+                await renderChart(options, 400);
+                const { sizeLimit } = (deproxy(chart) as any).axes.find((a: any) => a.position === 'left').chartLayout;
+
+                expect(getAxisThickness('left')).toBeLessThanOrEqual(sizeLimit + 1);
+                expect(getAxisLabelNodes(chart, 'left').some((n) => n.datum.fontSize < 12)).toBe(true);
+            });
+
+            it('counts the label spacing once when fitting to the room the axis has', async () => {
+                const label = { minimumFontSize: 4, wrapping: 'never', spacing: 40, rotation: 0 };
+                await renderChart(groupedOptions('left', label, [{}, { label: { spacing: 5 } }]), 400);
+                const { sizeLimit } = (deproxy(chart) as any).axes.find((a: any) => a.position === 'left').chartLayout;
+
+                expect(getAxisThickness('left')).toBeLessThanOrEqual(sizeLimit + label.spacing + 1);
+                expect(getAxisThickness('left')).toBeGreaterThan(sizeLimit + label.spacing - 10);
+            });
+
+            it('keeps a rotated leaf label whole when its rotated extent fits the room', async () => {
+                const leaves = ['Cargo', 'Depot', 'Yard'];
+                const options = groupedOptions('left', { maxWidth: 100, rotation: 30 }, undefined, leaves);
+                (options.axes as any).x.thickness = 70;
+                await renderChart(options);
+
+                const texts = getAxisLabelNodes(chart, 'left').map(getLabelText);
+                expect(leaves.every((leaf) => texts.includes(leaf))).toBe(true);
+                expect(getAxisThickness('left')).toBeLessThanOrEqual(70);
+            });
+
+            it('lets labels overflow their band when avoidCollisions is false', async () => {
+                const leaves = ['Freight Hub', 'Cargo Depot', 'Supply Yard'];
+                const label = {
+                    maxWidth: 120,
+                    wrapping: 'never',
+                    avoidCollisions: false,
+                    truncate: false,
+                    rotation: 0,
+                };
+                await renderChart(groupedOptions('bottom', label, undefined, leaves), 200);
+
+                expect(getAxisLabelNodes(chart, 'bottom').map(getLabelText)).toEqual(leaves);
+            });
+        });
+
+        describe('rotated labels', () => {
+            it('keeps a rotated label whole when its rotated extent fits the room', async () => {
+                const labels = ['A', 'Cargo', 'Depot'];
+                const options = leftCategoryOptions({ maxWidth: 100, rotation: 30 }, labels);
+                (options.axes as any).x.thickness = 60;
+                await renderChart(options);
+
+                const nodes = getAxisLabelNodes(chart, 'left');
+                expect(nodes.map(getLabelText)).toEqual(labels);
+                for (const node of nodes) {
+                    expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(
+                        getAxis('left').chartLayout.sizeLimit
+                    );
+                }
+            });
+        });
+
+        describe('minimumFontSize', () => {
+            const MEDIUM = 'Regional Operations Centre';
+            const getFontSize = (node: AxisLabelNode) => node.datum.fontSize;
+
+            it('shrinks a label that does not fit maxWidth instead of truncating it', async () => {
+                await renderChart(
+                    leftCategoryOptions({ maxWidth: 120, minimumFontSize: 8, wrapping: 'never' }, ['A', MEDIUM])
+                );
+
+                const node = findLongNode('left', 'Regional');
+                expect(getLabelText(node)).toBe(MEDIUM);
+                expect(getFontSize(node)).toBeLessThan(12);
+                expect(getFontSize(node)).toBeGreaterThanOrEqual(8);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(120.5);
+                expect(getFontSize(getAxisLabelNodes(chart, 'left').find((n) => getLabelText(n) === 'A')!)).toBe(12);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('truncates at minimumFontSize when the label still does not fit', async () => {
+                await renderChart(
+                    leftCategoryOptions({ maxWidth: 80, minimumFontSize: 10, wrapping: 'never' }, [LONG_NO_SPACES])
+                );
+
+                const node = findLongNode('left', 'test');
+                expect(getFontSize(node)).toBe(10);
+                expect(getLabelText(node).endsWith('…')).toBe(true);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
+            });
+
+            it('hides a label that does not fit at minimumFontSize when truncate is false', async () => {
+                await renderChart(
+                    leftCategoryOptions({ maxWidth: 80, minimumFontSize: 10, wrapping: 'never', truncate: false }, [
+                        'A',
+                        LONG_NO_SPACES,
+                    ])
+                );
+
+                expect(getAxisLabelNodes(chart, 'left').map(getLabelText)).toEqual(['A']);
+            });
+
+            it('wraps before shrinking when wrapping is enabled', async () => {
+                await renderChart(
+                    leftCategoryOptions({ maxWidth: 120, minimumFontSize: 8, wrapping: 'on-space' }, [MEDIUM])
+                );
+
+                const node = findLongNode('left', 'Regional');
+                expect(getFontSize(node)).toBe(12);
+                expect(getLabelText(node).split('\n').length).toBeGreaterThan(1);
+            });
+
+            it('shrinks to the room in the axis cap with only minimumFontSize set', async () => {
+                const label = `${'Operations '.repeat(5)}Centre`;
+                await renderChart(leftCategoryOptions({ minimumFontSize: 4, wrapping: 'never' }, ['A', label]), 600);
+
+                const node = findLongNode('left', 'Operations');
+                expect(getLabelText(node)).toBe(label);
+                expect(getFontSize(node)).toBeLessThan(12);
+                expect(getAxisThickness('left')).toBeLessThan(600 / 2);
+            });
+
+            it('keeps the label font size when labels fit', async () => {
+                await renderChart(leftCategoryOptions({ maxWidth: 200, minimumFontSize: 8 }, ['A', 'BB', 'CCC']));
+
+                for (const node of getAxisLabelNodes(chart, 'left')) {
+                    expect(getFontSize(node)).toBe(12);
+                }
+            });
+
+            it('shrinks labels into their category band before auto-rotating them', async () => {
+                const labels = ['Freight Hub', 'Cargo Depot', 'Supply Yard', 'Rail Siding', 'Dock Gate'];
+                await renderChart(bottomCategoryOptions({ minimumFontSize: 6, wrapping: 'never' }, labels), 400);
+
+                const nodes = getAxisLabelNodes(chart, 'bottom');
+                expect(nodes.map(getLabelText)).toEqual(labels);
+                for (const node of nodes) {
+                    expect(node.datum.rotation).toBe(0);
+                    expect(getFontSize(node)).toBeLessThan(12);
+                }
+            });
+
+            it('warns for minimumFontSize larger than fontSize', async () => {
+                await renderChart(leftCategoryOptions({ minimumFontSize: 20 }, ['A']));
+                expectWarningsCalls().toEqual([[expect.stringContaining('minimumFontSize')]]);
+            });
+
+            it('warns for minimumFontSize on a time axis parentLevel label', async () => {
+                await renderChart({
+                    data: TIME_DATA,
+                    axes: {
+                        x: {
+                            type: 'time',
+                            position: 'bottom',
+                            parentLevel: { enabled: true, label: { minimumFontSize: 8 } },
+                        } as any,
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                });
+                expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.minimumFontSize')]]);
+            });
+        });
+
+        describe('itemStyler', () => {
+            const MEDIUM = 'Regional Operations Centre';
+            const styled = (label: Record<string, unknown>) => ({
+                ...label,
+                wrapping: 'never',
+                itemStyler: ({ value }: { value: string }) => (value === MEDIUM ? { fontSize: 24 } : undefined),
+            });
+
+            it('fits a label to maxWidth at the font size its itemStyler sets', async () => {
+                await renderChart(leftCategoryOptions(styled({ maxWidth: 120 }), ['A', MEDIUM]));
+
+                const node = findLongNode('left', 'Regional');
+                expect(node.datum.fontSize).toBe(24);
+                expect(getLabelText(node).endsWith('…')).toBe(true);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(120.5);
+            });
+
+            it('shrinks from the font size its itemStyler sets towards minimumFontSize', async () => {
+                await renderChart(leftCategoryOptions(styled({ maxWidth: 200, minimumFontSize: 8 }), ['A', MEDIUM]));
+
+                const node = findLongNode('left', 'Regional');
+                expect(getLabelText(node)).toBe(MEDIUM);
+                expect(node.datum.fontSize).toBeLessThan(24);
+                expect(node.datum.fontSize).toBeGreaterThan(12);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(200.5);
+            });
+        });
+    });
+
     describe('label lineHeight', () => {
         const seriesAreaHeight = async (label: object, parentLabel: object) => {
             chart = await createChart({
@@ -2515,18 +3032,6 @@ describe('CartesianAxis', () => {
                 expect(edge).toBeCloseTo(bottomEdges[0], 0);
             }
         });
-
-        const renderChart = async (options: AgCartesianChartOptions, width?: number) => {
-            if (chart != null) {
-                chart.destroy();
-                (chart as unknown) = undefined;
-            }
-            prepareTestOptions(options);
-            if (width != null) options.width = width;
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-            return chart;
-        };
 
         const canvasBoxesByText = (position: string) =>
             new Map(getAxisLabelNodes(chart, position).map((n) => [getLabelText(n), Transformable.toCanvas(n)]));

@@ -39,6 +39,7 @@ import type {
     DatumDefault,
     Degree,
     FontFamilyFull,
+    FontSize,
     PixelSize,
     Ratio,
     TextWrap,
@@ -109,10 +110,15 @@ export interface AgTimeAxisParentLevel<TContext = ContextDefault> {
     /** Enables parent level labels and ticks. */
     enabled?: boolean;
     /** Configuration for the axis labels, shown next to the ticks. */
-    label?: AgCartesianTimeAxisLabelOptions<TContext>;
+    label?: AgTimeAxisParentLevelLabelOptions<TContext>;
     /** Configuration for the axis ticks. */
     tick?: AgAxisBaseTickOptions;
 }
+
+export interface AgTimeAxisParentLevelLabelOptions<TContext = ContextDefault> extends Omit<
+    AgCartesianTimeAxisLabelOptions<TContext>,
+    'maxWidth' | 'maxHeight' | 'minimumFontSize'
+> {}
 
 export interface AgCartesianAxisLabelOptions<TContext = ContextDefault>
     extends AgBaseCartesianAxisLabelOptions<TContext>, AgNumericAxisFormattableLabelOptions<TContext> {}
@@ -139,6 +145,26 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
      * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
      */
     truncate?: boolean;
+    /**
+     * Maximum size of each label along the text direction, in pixels.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxWidth?: PixelSize;
+    /**
+     * Maximum size of each label across the text direction, in pixels.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxHeight?: PixelSize;
+    /**
+     * If a label does not fit within `maxWidth`, `maxHeight` or the space the axis has available, setting this
+     * allows the label to pick a font size between its normal `fontSize` and `minimumFontSize` to fit.
+     * The label is only truncated or hidden when it still does not fit at `minimumFontSize`.
+     */
+    minimumFontSize?: FontSize;
 }
 
 export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> extends Omit<
@@ -159,6 +185,26 @@ export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> ex
      * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
      */
     truncate?: boolean;
+    /**
+     * Maximum size of each label along the text direction, in pixels.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxWidth?: PixelSize;
+    /**
+     * Maximum size of each label across the text direction, in pixels.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxHeight?: PixelSize;
+    /**
+     * If a label does not fit within `maxWidth`, `maxHeight` or the space the axis has available, setting this
+     * allows the label to pick a font size between its normal `fontSize` and `minimumFontSize` to fit.
+     * The label is only truncated or hidden when it still does not fit at `minimumFontSize`.
+     */
+    minimumFontSize?: FontSize;
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }
@@ -221,6 +267,26 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> e
      * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
      */
     truncate?: boolean;
+    /**
+     * Maximum size of each label along the text direction, in pixels.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxWidth?: PixelSize;
+    /**
+     * Maximum size of each label across the text direction, in pixels.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping, and shrinking towards `minimumFontSize` when set, is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxHeight?: PixelSize;
+    /**
+     * If a label does not fit within `maxWidth`, `maxHeight` or the space the axis has available, setting this
+     * allows the label to pick a font size between its normal `fontSize` and `minimumFontSize` to fit.
+     * The label is only truncated or hidden when it still does not fit at `minimumFontSize`.
+     */
+    minimumFontSize?: FontSize;
 }
 
 export type AgGroupedCategoryDepthTickOptions = Pick<AgAxisBaseTickOptions, 'enabled' | 'stroke' | 'width'>;
@@ -457,13 +523,13 @@ export type AgCartesianAxisType<TContext = ContextDefault> = NonNullable<AgCarte
 export interface AgCartesianAxisThemeOptions<T> {
     /** An object with axis theme overrides for the `top` positioned axes. Same configs apply here as one level above. For example, to rotate labels by 45 degrees in 'top' positioned axes one can use `top: { label: { rotation: 45 } } }`. */
     // eslint-disable-next-line sonarjs/use-type-alias
-    top?: Omit<T, 'position' | 'type' | 'crossLines' | 'ariaLabel'>;
+    top?: Omit<T, 'position' | 'type' | 'crossLines'>;
     /** An object with axis theme overrides for the `right` positioned axes. Same configs apply here as one level above. */
-    right?: Omit<T, 'position' | 'type' | 'crossLines' | 'ariaLabel'>;
+    right?: Omit<T, 'position' | 'type' | 'crossLines'>;
     /** An object with axis theme overrides for the `bottom` positioned axes. Same configs apply here as one level above. */
-    bottom?: Omit<T, 'position' | 'type' | 'crossLines' | 'ariaLabel'>;
+    bottom?: Omit<T, 'position' | 'type' | 'crossLines'>;
     /** An object with axis theme overrides for the `left` positioned axes. Same configs apply here as one level above. */
-    left?: Omit<T, 'position' | 'type' | 'crossLines' | 'ariaLabel'>;
+    left?: Omit<T, 'position' | 'type' | 'crossLines'>;
 }
 
 export interface AgBaseCartesianThemeOptions<
@@ -513,7 +579,7 @@ export type AgContinuousCartesianAxesTheme<TContext = ContextDefault> = Pick<
     'number' | 'log' | 'time'
 >;
 
-type ThemeOmittedAxisOptions = 'type' | 'crossLines' | 'ariaLabel';
+type ThemeOmittedAxisOptions = 'type' | 'crossLines';
 
 export interface AgNumberAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
     extends

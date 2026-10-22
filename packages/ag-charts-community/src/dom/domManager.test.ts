@@ -4,6 +4,7 @@ import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
 
 import type { EventsHub } from '../core/eventsHub';
 import { DOMManager } from './domManager';
+import { locateChartWrapper } from './test/testUtils';
 
 describe('DOMManager', () => {
     const doc = new AgDocument(getDocument());
@@ -43,9 +44,20 @@ describe('DOMManager', () => {
         return { component, shadow, outer, inner, container };
     };
 
-    // The shadow-path watchers are direct children of the shadow root.
     const shadowWatchers = (shadow: ShadowRoot, name = '--my-color') =>
-        Array.from(shadow.children).filter((child) => (child as HTMLElement).dataset.variableName === name);
+        Array.from(shadow.querySelectorAll(`div[data-variable-name="${name}"]`));
+
+    const countRefreshes = (dispatch: () => void) => {
+        const refresh = vi.fn();
+        const off = eventsHub.on('chart:request-refresh', refresh);
+        dispatch();
+        off();
+        return refresh.mock.calls.length;
+    };
+    const transitionEnd = (target: Element) => target.dispatchEvent(new Event('transitionend', { bubbles: true }));
+
+    // The shadow root DOMManager creates for itself, on a host it puts first in the container.
+    const isolatedRoot = (container: HTMLElement) => container.firstElementChild?.shadowRoot;
 
     describe('for normal container cases', () => {
         it('should initialize the expected DOM', () => {
@@ -97,6 +109,235 @@ describe('DOMManager', () => {
 
             expect(container).toMatchSnapshot();
             expect(doc.head).toMatchInlineSnapshot(`<head />`);
+        });
+    });
+
+    describe('inside the claude.ai visualiser', () => {
+        // The visualiser's base rule, whose `form.elicit` exemption identifies the page.
+        const visualiserCss = `button:not(#action-btns button):not(form.elicit button) { padding: 8px 16px; }`;
+
+        const buildContainer = ({ stylesheet = true, insideVisContainer = true } = {}) => {
+            if (stylesheet) {
+                const style = doc.createElement('style');
+                style.textContent = visualiserCss;
+                doc.head.append(style);
+            }
+            const container = doc.createElement('div');
+            const wrapper = doc.createElement('div');
+            if (insideVisContainer) wrapper.setAttribute('id', 'vis-container');
+            wrapper.append(container);
+            doc.body.append(wrapper);
+            return { container, wrapper };
+        };
+
+        it('mounts the chart in a shadow root of its own, with its styles inside it', () => {
+            const { container } = buildContainer();
+            new DOMManager(eventsHub, 'vis', doc, container).addStyles('test', '.test {}');
+
+            const root = isolatedRoot(container);
+            expect(container.childElementCount).toBe(1);
+            expect(locateChartWrapper(container)).toBe('shadow-root');
+            expect(root?.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
+            expect(root?.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
+        });
+
+        it.each([
+            ['outside #vis-container', { insideVisContainer: false }, undefined],
+            ['without the visualiser stylesheet', { stylesheet: false }, undefined],
+            ['with a styleContainer', {}, doc.head],
+        ] as const)('stays in the light DOM %s', (_, setup, styleContainer) => {
+            const { container } = buildContainer(setup);
+            const dm = new DOMManager(eventsHub, 'vis-light', doc, container, styleContainer);
+
+            expect(dm.getParent('canvas').getRootNode()).toBe(doc.document);
+        });
+
+        it('stays in the light DOM when enableShadowDom is false', () => {
+            const { container } = buildContainer();
+            const dm = new DOMManager(
+                eventsHub,
+                'vis-opt-out',
+                doc,
+                container,
+                undefined,
+                undefined,
+                'normal',
+                undefined,
+                false
+            );
+
+            expect(dm.getParent('canvas').getRootNode()).toBe(doc.document);
+        });
+
+        it('stays in the light DOM for a minimal-mode chart', () => {
+            const { container } = buildContainer();
+            const dm = new DOMManager(eventsHub, 'vis-minimal', doc, container, undefined, undefined, 'minimal');
+
+            expect(dm.getParent('canvas').getRootNode()).toBe(doc.document);
+        });
+
+        describe('when the container is attached after initialisation', () => {
+            beforeEach(() => vi.useFakeTimers());
+            afterEach(() => vi.useRealTimers());
+
+            it('isolates the chart once the container joins the visualiser', () => {
+                const { wrapper } = buildContainer();
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'vis-late', doc, container);
+                expect(locateChartWrapper(container)).toBe('light-dom');
+
+                wrapper.append(container);
+                dm.setDeferring(false);
+                vi.runAllTimers();
+
+                expect(locateChartWrapper(container)).toBe('shadow-root');
+                expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
+            });
+
+            it('watches CSS variables from its shadow root once the container joins the visualiser', () => {
+                const { wrapper } = buildContainer();
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'vis-late-css', doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+                wrapper.append(container);
+                dm.setDeferring(false);
+                vi.runAllTimers();
+
+                const root = isolatedRoot(container);
+                expect(root).not.toBeNull();
+                expect(shadowWatchers(root!)).toHaveLength(1);
+            });
+        });
+
+        it('bounds overlays by the window, as in the light DOM', () => {
+            const { container } = buildContainer();
+            const dm = new DOMManager(eventsHub, 'vis-overlay', doc, container);
+
+            const { width, height } = dm.getOverlayClientRect();
+            expect({ width, height }).toEqual({ width: doc.innerWidth, height: doc.innerHeight });
+        });
+
+        it('leaves the container empty when destroyed', () => {
+            const { container } = buildContainer();
+            const dm = new DOMManager(eventsHub, 'vis-destroy', doc, container);
+
+            dm.destroy();
+
+            expect(container.childElementCount).toBe(0);
+        });
+
+        it('watches CSS variables from the light DOM once moved out of the visualiser', () => {
+            const { container } = buildContainer();
+            const dm = new DOMManager(eventsHub, 'vis-move-out', doc, container);
+            dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+            const outside = doc.createElement('div');
+            doc.body.append(outside);
+            dm.setContainer(outside);
+            dm.updateContainer();
+
+            expect(outside.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
+        });
+    });
+
+    describe('with enableShadowDom', () => {
+        const cssVariables = { 'var(--my-color)': 'red' };
+
+        const buildManager = (enableShadowDom: boolean | undefined, styleContainer?: HTMLElement) => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(
+                eventsHub,
+                undefined,
+                doc,
+                container,
+                styleContainer,
+                undefined,
+                'normal',
+                undefined,
+                enableShadowDom
+            );
+            dm.addStyles('test', '.test {}');
+            dm.updateCSSVariableWatchers(cssVariables);
+            return { container, dm };
+        };
+
+        it('renders in a shadow root of its own on any page when true', () => {
+            const { container } = buildManager(true);
+
+            const root = isolatedRoot(container);
+            expect(locateChartWrapper(container)).toBe('shadow-root');
+            expect(root?.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
+        });
+
+        it('stays in the light DOM when true but the caller places the styles', () => {
+            const { dm } = buildManager(true, doc.head);
+
+            expect(dm.getParent('canvas').getRootNode()).toBe(doc.document);
+        });
+
+        it('moves into a shadow root of its own, with its styles and CSS-variable watchers, when turned on', () => {
+            const { container, dm } = buildManager(undefined);
+
+            dm.setEnableShadowDom(true);
+
+            const root = isolatedRoot(container);
+            expect(root).not.toBeNull();
+            expect(locateChartWrapper(container)).toBe('shadow-root');
+            expect(root!.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
+            expect(shadowWatchers(root!)).toHaveLength(1);
+        });
+
+        // The host is `display: contents`, so anything else at the top of its shadow root is laid out in the container.
+        it('puts nothing but the chart at the top of its own shadow root', () => {
+            const { container, dm } = buildManager(true);
+
+            expect(Array.from(isolatedRoot(container)?.children ?? [])).toEqual([
+                dm.getParent('canvas').closest('.ag-charts-wrapper'),
+            ]);
+        });
+
+        it('moves back to the light DOM, with its styles in the head, when turned off', () => {
+            const { container, dm } = buildManager(true);
+
+            dm.setEnableShadowDom(false);
+
+            expect(locateChartWrapper(container)).toBe('light-dom');
+            expect(container.childElementCount).toBe(1);
+            expect(doc.head.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
+            expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
+        });
+
+        it('watches CSS variables from the light DOM when turned off before a detached container attaches', () => {
+            vi.useFakeTimers();
+            try {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(
+                    eventsHub,
+                    undefined,
+                    doc,
+                    container,
+                    undefined,
+                    undefined,
+                    'normal',
+                    undefined,
+                    true
+                );
+                dm.updateCSSVariableWatchers(cssVariables);
+
+                dm.setEnableShadowDom(false);
+                doc.body.append(container);
+                dm.setDeferring(false);
+                vi.runAllTimers();
+
+                expect(locateChartWrapper(container)).toBe('light-dom');
+                expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
+            } finally {
+                vi.useRealTimers();
+            }
         });
     });
 
@@ -177,6 +418,48 @@ describe('DOMManager', () => {
             const styleEl = container.querySelector<HTMLStyleElement>('style[data-variable-name="--my-color"]');
             expect(styleEl).not.toBeNull();
             expect(styleEl!.hasAttribute('nonce')).toBe(false);
+        });
+
+        describe('in a shadow root', () => {
+            it('refreshes once per watched transition however often the watchers are updated', () => {
+                const { shadow, container } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+                for (let i = 0; i < 3; i++) {
+                    dm.updateCSSVariableWatchers({});
+                    dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+                }
+
+                expect(countRefreshes(() => transitionEnd(shadowWatchers(shadow)[0]))).toBe(1);
+            });
+
+            it("ignores transitions on the chart's own elements", () => {
+                const { container } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+                expect(countRefreshes(() => transitionEnd(dm.getParent('canvas')))).toBe(0);
+            });
+
+            it("keeps the watchers in the chart's sensor container, out of the shadow root's layout", () => {
+                const { shadow, container } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+                expect(shadowWatchers(shadow).map((watcher) => watcher.parentElement?.className)).toEqual([
+                    'ag-charts-style-sensors',
+                ]);
+            });
+
+            it("keeps a minimal-mode chart's watchers on the shadow root, removing them when destroyed", () => {
+                const { shadow, container } = buildShadowTree();
+                const dm = new DOMManager(eventsHub, undefined, doc, container, undefined, undefined, 'minimal');
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+                expect(shadowWatchers(shadow).map((watcher) => watcher.parentNode)).toEqual([shadow]);
+
+                dm.destroy();
+
+                expect(shadowWatchers(shadow)).toHaveLength(0);
+            });
         });
     });
 
@@ -336,26 +619,22 @@ describe('DOMManager', () => {
             });
         });
 
-        // A manager created detached registers light-DOM watchers and nothing re-registers them on attach (AG-18985).
-        it.fails(
-            'registers the shadow-path CSS-variable watcher when a detached container is attached into a shadow root',
-            () => {
-                const component = doc.createElement('div');
-                const container = doc.createElement('div');
-                const dm = new DOMManager(eventsHub, 'late-watchers', doc, container);
+        it('registers the shadow-path CSS-variable watcher when a detached container is attached into a shadow root', () => {
+            const component = doc.createElement('div');
+            const container = doc.createElement('div');
+            const dm = new DOMManager(eventsHub, 'late-watchers', doc, container);
 
-                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
-                expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
+            dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+            expect(container.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
 
-                doc.body.append(component);
-                const shadow = component.attachShadow({ mode: 'open' });
-                shadow.appendChild(container);
-                dm.setDeferring(false);
-                vi.runAllTimers();
+            doc.body.append(component);
+            const shadow = component.attachShadow({ mode: 'open' });
+            shadow.appendChild(container);
+            dm.setDeferring(false);
+            vi.runAllTimers();
 
-                expect(shadowWatchers(shadow)).toHaveLength(1);
-            }
-        );
+            expect(shadowWatchers(shadow)).toHaveLength(1);
+        });
 
         it('should keep styles inside the shadow root when attached to a shadow DOM', () => {
             const component = doc.createElement('div');
@@ -869,23 +1148,31 @@ describe('DOMManager', () => {
             expect(shadowWatchers(shadow)).toHaveLength(1);
         });
 
-        // Leaving a shadow root only clears the registration set: the watcher elements and the shadow root's
-        // transitionend listener stay, so returning registers them a second time (AG-18986).
-        it.fails(
-            'does not leave shadow-path CSS-variable watchers behind when moving out of and back into a shadow root',
-            () => {
-                const { shadow, container: shadowContainer } = buildShadowTree();
-                const dm = new DOMManager(eventsHub, undefined, doc, shadowContainer);
-                dm.updateCSSVariableWatchers(cssVariables);
-                expect(shadowWatchers(shadow)).toHaveLength(1);
+        it('does not leave shadow-path CSS-variable watchers behind when moving out of and back into a shadow root', () => {
+            const { shadow, container: shadowContainer } = buildShadowTree();
+            const dm = new DOMManager(eventsHub, undefined, doc, shadowContainer);
+            dm.updateCSSVariableWatchers(cssVariables);
+            expect(shadowWatchers(shadow)).toHaveLength(1);
 
-                moveTo(dm, newLightContainer());
-                moveTo(dm, shadowContainer);
-                dm.updateCSSVariableWatchers(cssVariables);
+            moveTo(dm, newLightContainer());
+            moveTo(dm, shadowContainer);
+            dm.updateCSSVariableWatchers(cssVariables);
 
-                expect(shadowWatchers(shadow)).toHaveLength(1);
-            }
-        );
+            expect(shadowWatchers(shadow)).toHaveLength(1);
+            expect(countRefreshes(() => transitionEnd(shadowWatchers(shadow)[0]))).toBe(1);
+        });
+
+        it('removes the shadow-path CSS-variable watchers when moving to the light DOM', () => {
+            const { container: shadowContainer } = buildShadowTree();
+            const lightContainer = newLightContainer();
+            const dm = new DOMManager(eventsHub, undefined, doc, shadowContainer);
+            dm.updateCSSVariableWatchers(cssVariables);
+
+            moveTo(dm, lightContainer);
+
+            expect(lightContainer.querySelectorAll('div[data-variable-name]')).toHaveLength(0);
+            expect(lightContainer.querySelector('style[data-variable-name="--my-color"]')).not.toBeNull();
+        });
     });
 
     describe('deferred proxy flushing', () => {

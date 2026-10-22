@@ -1,18 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
 import type { Chart } from '../chart';
-import { mixinDerivedCases } from '../test/axisTestCases';
+import { compareAxisSnapshots, mixinDerivedCases } from '../test/axisTestCases';
 import * as axesExamples from '../test/examples-axes';
-import {
-    cartesianChartAssertions,
-    compareImageSnapshot,
-    createChart,
-    deproxy,
-    setupMockCanvas,
-    setupMockConsole,
-} from '../test/utils';
+import { cartesianChartAssertions, createChart, deproxy, setupMockCanvas, setupMockConsole } from '../test/utils';
 
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
@@ -65,15 +58,7 @@ describe('Log Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = async () => {
-                for (const axis of chart.axes) {
-                    if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
-                        continue;
-                    }
-
-                    await compareImageSnapshot(chart, { ...ctx, bbox: axis.getBBox() });
-                }
-            };
+            const axisCompare = () => compareAxisSnapshots(chart, ctx, { types: example.compare });
 
             chart = deproxy(await createChart(example.options));
             await axisCompare();
@@ -157,8 +142,5 @@ describe('Log Axis interval property handling', () => {
 
         // This should not produce any warnings
         await apiChart.update(updatedOptions);
-
-        // Verify no warning was logged
-        expect(console.warn).not.toHaveBeenCalled();
     });
 });

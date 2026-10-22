@@ -16,6 +16,7 @@ const { hideBin } = require('yargs/helpers');
 
 const { aggregateAllocation, allocationChange, formatMb } = require('./allocation');
 const { formatPercentageChange } = require('./format-utils');
+const { formatExcluded } = require('./shard-failures');
 const { median, pctChange } = require('./stats');
 
 const argv = yargs(hideBin(process.argv))
@@ -46,6 +47,12 @@ const argv = yargs(hideBin(process.argv))
         array: true,
         default: [],
         describe: 'Path(s) to compare (head) memory-pass report(s).',
+    })
+    .option('excluded', {
+        type: 'string',
+        describe:
+            'JSON file from shard-failures.js listing examples left out of the merged reports because they ' +
+            'errored or timed out in a pass. They are listed in the output; the rest compare as usual.',
     })
     .option('min-pct', {
         type: 'number',
@@ -369,6 +376,16 @@ for (const err of compare.errors) {
     errors.push(`${err.example}: ${err.status} (compare)${err.error ? ' - ' + err.error.split('\n')[0] : ''}`);
 }
 
+// Examples the CI merge left out (failed or hung in a pass) are not comparable, but must not pass silently
+const excluded = argv.excluded ? formatExcluded(loadReport(argv.excluded)) : [];
+
+// A comparison that holds nothing because every example was excluded must not pass as a clean run
+if (matched.length === 0 && excluded.length > 0) {
+    console.error('No example could be compared; every example failed or timed out:');
+    excluded.forEach((line) => console.error(`  ! ${line}`));
+    process.exitCode = 1;
+}
+
 // Rank by time change
 const rankedByTime = matched.toSorted((a, b) => (a.pctTimeChange ?? -Infinity) - (b.pctTimeChange ?? -Infinity));
 
@@ -488,6 +505,10 @@ if (argv.format === 'table') {
         console.log(`\nErrors (${errors.length}):`);
         errors.forEach((err) => console.log(`  ! ${err}`));
     }
+    if (excluded.length > 0) {
+        console.log(`\nExcluded — failed or timed out (${excluded.length}), not compared:`);
+        excluded.forEach((line) => console.log(`  ! ${line}`));
+    }
     if (skippedBelowMinVersion.length > 0) {
         console.log(`\nSkipped — base below min version (${skippedBelowMinVersion.length}):`);
         skippedBelowMinVersion.forEach((s) =>
@@ -522,6 +543,7 @@ if (argv.format === 'table') {
                 added,
                 removed,
                 errors,
+                excluded,
                 skippedBelowMinVersion,
             },
             null,

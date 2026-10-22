@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { numericBandsOf } from 'ag-charts-community-test';
 import { OrdinalTimeScale } from 'ag-charts-core';
 
 import { ApproximateOrdinalTimeScale } from './approximateOrdinalTimeScale';
@@ -37,7 +38,7 @@ describe('ApproximateOrdinalTimeScale temporary domain round trip', () => {
     it('keeps the source scale band caches', () => {
         const { source, approximate } = create();
         const { bands } = source;
-        const numericBands = source['numericBands'];
+        const numericBands = numericBandsOf(source);
 
         const snapshot = approximate.snapshotDomain();
         approximate.domain = minutes(40, 7);
@@ -45,7 +46,7 @@ describe('ApproximateOrdinalTimeScale temporary domain round trip', () => {
         approximate.restoreDomain(snapshot);
 
         expect(source.bands).toBe(bands);
-        expect(source['numericBands']).toBe(numericBands);
+        expect(numericBandsOf(source)).toBe(numericBands);
     });
 
     it('answers as it did before the round trip', () => {

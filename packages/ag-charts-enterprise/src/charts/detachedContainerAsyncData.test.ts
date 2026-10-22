@@ -4,6 +4,7 @@ import { AgCharts } from 'ag-charts-community';
 import { delay, deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { setupEnterpriseModules } from '../setup';
+import { mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../test/utils';
 
 setupEnterpriseModules();
 
@@ -179,5 +180,46 @@ describe('Chart on a detached container with async data and a series-type switch
             expect(deproxy(proxy)).not.toBe(original);
             expect(wrappers(container)).toHaveLength(1);
         });
+    });
+});
+
+describe('Chart on a detached container later attached into a shadow root', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let proxy: ReturnType<typeof AgCharts.create> | undefined;
+    let host: HTMLElement | undefined;
+    let restoreCssVarColorSupport: (() => void) | undefined;
+
+    afterEach(() => {
+        proxy?.destroy();
+        proxy = undefined;
+        host?.remove();
+        host = undefined;
+        restoreCssVarColorSupport?.();
+        restoreCssVarColorSupport = undefined;
+    });
+
+    it('watches its CSS-variable colours from the shadow root', async () => {
+        const container = document.createElement('div');
+        restoreCssVarColorSupport = mockCssVarColorSupport(container, { '--my-color': 'rgb(0, 128, 0)' });
+        // Bespoke: the container must start detached, and the CSS variable shim is bound to it.
+        proxy = AgCharts.create(
+            prepareEnterpriseTestOptions(
+                { data: DATA, series: [{ type: 'bar', xKey: 'country', yKey: 'gold', fill: 'var(--my-color)' }] },
+                container
+            )
+        );
+        await proxy.waitForUpdate();
+
+        host = document.createElement('div');
+        document.body.append(host);
+        const shadow = host.attachShadow({ mode: 'open' });
+        shadow.append(container);
+        // A data-only update processes no CSS variables, so it cannot register the watchers itself.
+        await proxy.updateDelta({ data: DATA.slice(1) });
+        await proxy.waitForUpdate();
+
+        expect(shadow.querySelector('div[data-variable-name="--my-color"]')).not.toBeNull();
     });
 });

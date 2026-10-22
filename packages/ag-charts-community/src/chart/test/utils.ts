@@ -1,20 +1,24 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
+import type { Image as SkiaImage } from 'skia-canvas';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
 import {
     BBox,
     type CanvasPoint,
     Group,
+    Node,
     type OffsetPoint,
+    Rect,
+    type SegmentedGroup,
+    Transformable,
     alignCentre,
     fromPairs,
     getDocument,
     mapValues,
     snapDeviceCentre,
 } from 'ag-charts-core';
-import type { Node } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -385,6 +389,11 @@ export function getSeriesAggregationInternals(
     return deproxy(chartOrProxy).series[seriesIndex] as unknown as SeriesAggregationInternals;
 }
 
+/** The group a cartesian series draws its data nodes into, for tests that compare its `segments` by identity. */
+export function getSeriesDataNodeGroup(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): SegmentedGroup {
+    return (deproxy(chartOrProxy).series[seriesIndex] as unknown as { dataNodeGroup: SegmentedGroup }).dataNodeGroup;
+}
+
 /**
  * The x data values of the markers a bubble/scatter series actually rendered, sorted ascending, with
  * an assertion that aggregation is active — so a caller comparing windows cannot pass over a series
@@ -475,6 +484,7 @@ export function getVisibleLabelNodes<TDatum = any>(
 interface AxisLayoutInternals {
     position: string;
     pickTickData: unknown;
+    scale: { domain: unknown[] };
     tickLabelGroupSelection: {
         nodes(): Iterable<DrawnLabelNode & { fill?: string; rotation: number; textAlign?: string }>;
     };
@@ -519,6 +529,11 @@ export function getAxisTickLayouts(chartOrProxy: ChartOrProxy<any>): AxisTickLay
 /** What the axis at `position` drew from its tick layout, as `getAxisTickLayouts` describes it. */
 export function getAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string): AxisTickLayout {
     return toAxisTickLayout(findAxisInternals(chartOrProxy, position));
+}
+
+/** The domain the scale of the axis at `position` autoscaled to. */
+export function getAxisScaleDomain(chartOrProxy: ChartOrProxy<any>, position: string): unknown[] {
+    return findAxisInternals(chartOrProxy, position).scale.domain;
 }
 
 /** The label texts of the axis at `position`, in order along the axis. */
@@ -1979,6 +1994,43 @@ export async function expectRedrawWithSameDataIsStable(
     }
 }
 
+/** The work redrawing a chart takes that scales with the number of items it draws. */
+export interface RedrawWork {
+    /** Calls to `createNodeData` across all series. */
+    nodeDataBuilds: number;
+    /** Rect paths rebuilt for painting. */
+    rectPathBuilds: number;
+}
+
+/** Runs `update` on a stabilised `chart`, and reports the per-item work the redraw took. */
+export async function measureRedrawWork(chart: AgChartInstance, update: () => Promise<void>): Promise<RedrawWork> {
+    const nodeDataSpies = deproxy(chart).series.map((series) => vi.spyOn(series as any, 'createNodeData'));
+    const pathSpy = vi.spyOn(Rect.prototype, 'updatePath');
+    try {
+        await update();
+        await waitForChartStability(chart);
+        return {
+            nodeDataBuilds: nodeDataSpies.reduce((total, spy) => total + spy.mock.calls.length, 0),
+            rectPathBuilds: pathSpy.mock.calls.length,
+        };
+    } finally {
+        pathSpy.mockRestore();
+        for (const spy of nodeDataSpies) spy.mockRestore();
+    }
+}
+
+/** Runs `update` on a stabilised `chart`, and counts the rects it marks dirty: each one makes its layer rasterise again. */
+export async function countRectsMarkedDirty(chart: AgChartInstance, update: () => Promise<void>): Promise<number> {
+    const spy = vi.spyOn(Node.prototype, 'markDirty');
+    try {
+        await update();
+        await waitForChartStability(chart);
+        return spy.mock.contexts.filter((node) => node instanceof Rect).length;
+    } finally {
+        spy.mockRestore();
+    }
+}
+
 /**
  * A cross-node check evaluated on every captured frame — for relationships no per-node/per-property
  * expectation can express (e.g. "stacked layer N's far edge equals layer N+1's near edge on every
@@ -2367,20 +2419,58 @@ export function computeLegendBBox(chart: Chart): BBox {
 export interface LegendTestItemNode {
     datum?: { id: string; itemId?: string | number };
     opacity?: number;
-    label: { opacity?: number };
+    label: { opacity?: number; text?: string };
     symbolsGroup: { opacity?: number };
     marker?: { fill?: string; fillOpacity?: number; stroke?: string; strokeOpacity?: number; strokeWidth?: number };
     line?: { stroke?: string; strokeOpacity?: number; lineDash?: number[] };
 }
 
+/**
+ * The error `fn` throws. An accessor that gives up on a missing series, axis or selection must fail on its own
+ * `expect(...).toBeDefined()`, an `AssertionError`; a `TypeError` from using the `undefined` it was handed means that
+ * check has gone.
+ */
+export function errorFrom(fn: () => unknown): Error | undefined {
+    try {
+        fn();
+    } catch (error) {
+        return error as Error;
+    }
+    return undefined;
+}
+
 export interface LegendTestInternals {
-    itemSelection: { nodes(): LegendTestItemNode[] };
+    itemSelection: { nodes(): (LegendTestItemNode & Node)[] };
     onHover(event: FocusEvent | MouseEvent, node: unknown, fromKeyboardFocus?: boolean): void;
     onLeave(fromKeyboardFocus?: boolean): void;
 }
 
 export function getLegendModule(chart: Chart): LegendTestInternals {
     return chart.modulesManager.getModule('legend') as LegendTestInternals;
+}
+
+/**
+ * Clicks the legend item at `index` (legend order) the way a pointer does: moves onto the centre of its bounding box
+ * and clicks there, through the proxy button the legend puts over the item. The pointer stays on the item, so a test
+ * that goes on to compare the chart moves it off again (`hoverAction`) to clear the item's highlight.
+ */
+export async function clickLegendItem(chartOrProxy: ChartOrProxy<any>, index: number): Promise<void> {
+    const items = getLegendModule(deproxy(chartOrProxy)).itemSelection.nodes();
+    expect(items.length).toBeGreaterThan(index);
+
+    const { x, y, width, height } = Transformable.toCanvas(items[index]);
+    const [centreX, centreY] = [x + width / 2, y + height / 2];
+    await hoverAction(centreX, centreY)(chartOrProxy);
+    await clickAction(centreX, centreY)(chartOrProxy);
+}
+
+/**
+ * Makes the chart's scene resolve each image URL in `images` to the preloaded image, so a block-image segment
+ * or an image fill renders synchronously. The loader has to be stubbed before the first render that needs the
+ * images, which is why charts using it are created bare (`AgCharts.create`) rather than through `createChart`.
+ */
+export function stubChartImageLoader(chartOrProxy: ChartOrProxy<any>, images: Record<string, SkiaImage>): void {
+    deproxy(chartOrProxy).ctx.scene.imageLoader.loadImage = (uri: string) => images[uri] as unknown as HTMLImageElement;
 }
 
 export function getCursor(chart: Chart | AgChartProxy): string {
