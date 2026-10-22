@@ -33,6 +33,7 @@ describe('Chart on a detached container with async data and a series-type switch
         const container = document.createElement('div');
         Object.defineProperty(container, 'clientWidth', { get: () => size.width });
         Object.defineProperty(container, 'clientHeight', { get: () => size.height });
+        // The chart reads only the container padding from the computed style.
         vi.spyOn(globalThis, 'getComputedStyle').mockReturnValue({
             paddingLeft: '0px',
             paddingRight: '0px',

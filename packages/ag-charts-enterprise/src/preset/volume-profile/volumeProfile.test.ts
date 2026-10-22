@@ -43,6 +43,7 @@ describe('volume profile levels', () => {
 });
 
 describe('volume profile tooltips', () => {
+    // The tooltips read only the up and down fills from the theme.
     const getTheme = () =>
         ({ palette: { up: { fill: '#112233' }, down: { fill: '#445566' } } }) as unknown as ChartTheme;
     const [upSeries, downSeries] = createVolumeProfileSeries(getTheme, 'x');
@@ -77,8 +78,10 @@ describe('volume profile tooltips', () => {
 });
 
 describe('volume profile volume axis', () => {
+    // `data` is not a key of the preset options type, but the preset is handed it all the same.
     const options = { data: [], upKey: 'up', downKey: 'down' } as AgVolumeProfileChartPreset;
-    // The preset returns its axes keyed by id, which the cartesian axes option type does not model.
+    // The preset returns its axes keyed by id, which the cartesian axes option type does not model. The axes do not
+    // read the theme, so an empty one stands in.
     const { yVolumeProfile } = volumeProfileChart(options, undefined, () => ({}) as ChartTheme)
         .axes as unknown as VolumeAxes;
 

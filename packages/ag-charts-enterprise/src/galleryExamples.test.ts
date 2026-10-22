@@ -90,7 +90,8 @@ describe('Gallery Examples', () => {
                     options = { ...example.options };
 
                     // Bespoke: the examples can be gauges, which the shared factories cannot create, and `options` is
-                    // prepared once here (in place) because the tests reuse it for `update`.
+                    // prepared once here (in place) because the tests reuse it for `update`. The casts pick the option
+                    // variant from `example.type`, which the `options` union does not carry.
                     chart =
                         example.type === 'gauge'
                             ? AgCharts.createGauge(prepareEnterpriseTestOptions(options as AgGaugeOptions))

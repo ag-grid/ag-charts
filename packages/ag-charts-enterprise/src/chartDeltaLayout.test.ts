@@ -58,8 +58,13 @@ describe('updateDelta() layout keys', () => {
 
     // Applies `delta` to a chart built from `options`, then compares `read` of it with a chart built with `delta` already
     // in its options.
-    async function expectDeltaToMatchFreshChart(options: object, delta: object, read: (chart: Chart) => unknown) {
-        // The cases build their series with a `type` taken from a table, which widens it past the option types.
+    async function expectDeltaToMatchFreshChart<T>(
+        options: object,
+        delta: object,
+        read: (chart: Chart) => T
+    ): Promise<T> {
+        // The cases build their series with a `type` taken from a table, which widens it past the option types, so
+        // both chart creations below cast the options.
         const proxy = await createEnterpriseChart(options as AgChartOptions);
         const created = deproxy(proxy);
         chart = created;
@@ -84,7 +89,7 @@ describe('updateDelta() layout keys', () => {
                 delta,
                 numericNodeData
             );
-            expect((nodeData as unknown[][])[0].length).toBeGreaterThan(0);
+            expect(nodeData[0].length).toBeGreaterThan(0);
         });
 
         it.each([
@@ -93,12 +98,12 @@ describe('updateDelta() layout keys', () => {
             { type: 'donut', delta: PADDING },
             { type: 'donut', delta: MULTI_LINE_TITLE },
         ])('sizes a $type series as a fresh chart does after $delta', async ({ type, delta }) => {
-            const { nodeData } = (await expectDeltaToMatchFreshChart(
+            const { nodeData } = await expectDeltaToMatchFreshChart(
                 { data: SECTORS, series: [{ type, angleKey: 'value' }] },
                 delta,
                 polarGeometry
-            )) as ReturnType<typeof polarGeometry>;
-            expect((nodeData[0][0] as { outerRadius: number }).outerRadius).toBeGreaterThan(0);
+            );
+            expect(nodeData[0][0].outerRadius).toBeGreaterThan(0);
             expect(nodeData[0].length).toBeGreaterThan(0);
         });
 
@@ -113,7 +118,7 @@ describe('updateDelta() layout keys', () => {
                             getSeriesStoredNodeData<{ projectedGeometry: unknown }>(c).map((d) => d.projectedGeometry)
                         )
                 );
-                expect((geometry as string).length).toBeGreaterThan(100);
+                expect(geometry.length).toBeGreaterThan(100);
             }
         );
     });
@@ -136,7 +141,7 @@ describe('updateDelta() layout keys', () => {
                         d.height,
                     ])
             );
-            expect((geometry as unknown[]).length).toBeGreaterThan(0);
+            expect(geometry.length).toBeGreaterThan(0);
         });
 
         it.each([
@@ -147,11 +152,11 @@ describe('updateDelta() layout keys', () => {
             { type: 'radial-column', series: { angleKey: 'label', radiusKey: 'value' } },
         ])('sizes a $type series as a fresh chart does after a title or padding delta', async ({ type, series }) => {
             for (const delta of [MULTI_LINE_TITLE, PADDING]) {
-                const { radius, nodeData } = (await expectDeltaToMatchFreshChart(
+                const { radius, nodeData } = await expectDeltaToMatchFreshChart(
                     { data: SECTORS, series: [{ type, ...series }] },
                     delta,
                     polarGeometry
-                )) as ReturnType<typeof polarGeometry>;
+                );
                 expect(radius[0]).toBeGreaterThan(0);
                 expect(nodeData[0].length).toBeGreaterThan(0);
                 chart?.destroy();

@@ -362,6 +362,7 @@ describe('Quadrant Preset', () => {
 
     it('forwards overrideDevicePixelRatio to the cartesian chart options', () => {
         const cartesianOptions = createQuadrant(
+            // `overrideDevicePixelRatio` is an internal option, absent from the public option types.
             { ...BUBBLE_SIZED_NUMERIC, overrideDevicePixelRatio: 2 } as AgQuadrantChartOptions,
             undefined,
             undefined,
@@ -375,7 +376,7 @@ describe('Quadrant Preset', () => {
 
     it('forwards enableShadowDom to the cartesian chart options', () => {
         const cartesianOptions = createQuadrant(
-            { ...BUBBLE_SIZED_NUMERIC, enableShadowDom: true } as AgQuadrantChartOptions,
+            { ...BUBBLE_SIZED_NUMERIC, enableShadowDom: true },
             undefined,
             undefined,
             undefined,
@@ -387,7 +388,7 @@ describe('Quadrant Preset', () => {
     });
 
     it('accepts overrideDevicePixelRatio without a validation warning', async () => {
-        const options = { ...BUBBLE_SIZED_NUMERIC, overrideDevicePixelRatio: 2 } as AgQuadrantChartOptions;
+        const options = { ...BUBBLE_SIZED_NUMERIC, overrideDevicePixelRatio: 2 };
         prepareEnterpriseTestOptions(options);
 
         chart = AgCharts.createQuadrantChart(options);
@@ -484,6 +485,7 @@ describe('Quadrant Preset', () => {
         expect(bubbleSeries).toBeDefined();
         expect(bubbleSeries?.sizeName).toBe('Population');
 
+        // The forwarded renderer reads only the datum, the keys and the names, so the other params are left out.
         bubbleSeries?.tooltip?.renderer?.({
             datum: { x: -100, y: -100, size: 1 },
             xKey: 'x',
@@ -503,7 +505,7 @@ describe('Quadrant Preset', () => {
         const shadow = { enabled: true, color: '#000000', xOffset: 2, yOffset: 3, blur: 4 };
 
         const cartesianOptions = createQuadrant(
-            { ...base, shadow } as AgQuadrantChartOptions,
+            { ...base, shadow },
             undefined,
             undefined,
             undefined,
@@ -724,6 +726,7 @@ describe('AG-18413 quadrant with a key naming no column', () => {
     // Bespoke: creates through `AgCharts.createQuadrantChart`, which the shared factory does not cover.
     const createQuadrantChart = async (overrides: Partial<AgQuadrantChartOptions>) => {
         const options: AgQuadrantChartOptions = { ...NUMERIC, ...overrides };
+        // The helper's overloads take the cartesian or gauge options, not the quadrant preset's.
         prepareEnterpriseTestOptions(options as AgChartOptions);
         const created = deproxy(AgCharts.createQuadrantChart(options));
         chart = created;
@@ -833,6 +836,7 @@ describe('Quadrant Preset context menu region', () => {
         overrides?: Partial<AgQuadrantChartOptions>
     ) => {
         const options: AgQuadrantChartOptions = { ...CONTEXT_MENU_OPTIONS, ...overrides, contextMenu };
+        // The helper's overloads take the cartesian or gauge options, not the quadrant preset's.
         prepareEnterpriseTestOptions(options as AgChartOptions);
         chart = AgCharts.createQuadrantChart(options);
         await waitForChartStability(chart);

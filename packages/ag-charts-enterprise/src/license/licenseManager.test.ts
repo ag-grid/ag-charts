@@ -8,6 +8,7 @@ vi.unmock('./licenseManager');
 
 type FakeWindow = { location?: { hostname: string }; top?: FakeWindow | null };
 
+// The manager reads only `defaultView` of the document, so a full `Document` is not built.
 function documentIn(win: FakeWindow | null): Document {
     return { defaultView: win } as unknown as Document;
 }
@@ -155,6 +156,7 @@ describe('LicenseManager', () => {
             manager.validateLicense();
             expect(manager.isDisplayWatermark()).toBe(true);
 
+            // The watermark check reads only `valid` from the details.
             vi.spyOn(manager, 'getLicenseDetails').mockReturnValue({ valid: true } as ReturnType<
                 LicenseManager['getLicenseDetails']
             >);

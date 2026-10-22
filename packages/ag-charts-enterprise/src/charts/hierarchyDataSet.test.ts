@@ -13,6 +13,9 @@ interface TreeItem {
     children?: TreeItem[];
 }
 
+// A removal is matched by the id key alone, so the other fields are left out.
+const removal = (id: string) => ({ id }) as TreeItem;
+
 function createTestData(): TreeItem[] {
     return [
         {
@@ -142,7 +145,7 @@ describe('HierarchyDataSet', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
-            ds.addTransaction({ remove: [{ id: 'ops' } as TreeItem] });
+            ds.addTransaction({ remove: [removal('ops')] });
             ds.commitPendingTransactions(undefined);
 
             expect(ds.data.length).toBe(2);
@@ -153,7 +156,7 @@ describe('HierarchyDataSet', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
-            ds.addTransaction({ remove: [{ id: 'eng-infra' } as TreeItem] });
+            ds.addTransaction({ remove: [removal('eng-infra')] });
             ds.commitPendingTransactions(undefined);
 
             // Root array unchanged
@@ -168,7 +171,7 @@ describe('HierarchyDataSet', () => {
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
             ds.addTransaction({
-                remove: [{ id: 'eng-fe' } as TreeItem, { id: 'sales-na' } as TreeItem],
+                remove: [removal('eng-fe'), removal('sales-na')],
             });
             ds.commitPendingTransactions(undefined);
 
@@ -235,7 +238,7 @@ describe('HierarchyDataSet', () => {
 
             ds.addTransaction({
                 update: [{ id: 'eng-fe', name: 'Frontend', value: 100 }],
-                remove: [{ id: 'eng-infra' } as TreeItem],
+                remove: [removal('eng-infra')],
             });
             ds.commitPendingTransactions(undefined);
 
@@ -268,7 +271,7 @@ describe('HierarchyDataSet', () => {
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
             // First: remove a nested item
-            ds.addTransaction({ remove: [{ id: 'eng-infra' } as TreeItem] });
+            ds.addTransaction({ remove: [removal('eng-infra')] });
             ds.commitPendingTransactions(undefined);
             expect(ds.data[0].children!.length).toBe(2);
 
@@ -392,7 +395,7 @@ describe('HierarchyDataSet', () => {
             sel.select(2); // eng-be
             sel.select(8); // ops-hr
 
-            ds.addTransaction({ remove: [{ id: 'eng-fe' } as TreeItem] });
+            ds.addTransaction({ remove: [removal('eng-fe')] });
             ds.commitPendingTransactions(sel);
 
             // New DFS: eng(0), eng-be(1), eng-infra(2), sales(3), sales-na(4),
@@ -446,7 +449,7 @@ describe('HierarchyDataSet', () => {
             sel.select(6); // sales-eu (removed with parent)
             sel.select(8); // ops-hr (survives)
 
-            ds.addTransaction({ remove: [{ id: 'sales' } as TreeItem] });
+            ds.addTransaction({ remove: [removal('sales')] });
             ds.commitPendingTransactions(sel);
 
             // New DFS: eng(0), eng-fe(1), eng-be(2), eng-infra(3), ops(4), ops-hr(5).
