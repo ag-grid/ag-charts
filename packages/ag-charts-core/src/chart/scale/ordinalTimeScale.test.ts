@@ -13,6 +13,7 @@ import {
 } from '../../time/duration';
 import { ScaleAlignment } from '../../types/scales';
 import { OrdinalTimeScale } from './ordinalTimeScale';
+import { spyOnNumericBandsGetter } from './test/scaleAccessors';
 
 const minutes = (count: number, step = 1) => Array.from({ length: count }, (_, i) => new Date(2024, 0, 1, 0, i * step));
 // `numericBands` is a protected derived cache; bracket access keeps it typed without a cast.
@@ -1118,7 +1119,7 @@ describe('OrdinalTimeScale', () => {
         const BAND_COUNT = 6400;
         // Lookups on an unbuilt scale before the next one builds `numericBands`.
         const LOOKUP_LIMIT = BAND_COUNT / BANDS_PER_UNBUILT_LOOKUP;
-        const buildsOf = () => vi.spyOn(OrdinalTimeScale.prototype as any, 'numericBands', 'get');
+        const buildsOf = spyOnNumericBandsGetter;
 
         afterEach(() => {
             vi.restoreAllMocks();

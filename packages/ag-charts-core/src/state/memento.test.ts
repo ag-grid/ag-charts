@@ -19,6 +19,11 @@ describe('Memento Caretaker', () => {
         vi.restoreAllMocks();
     });
 
+    // Older versions stored under `old`, which `TestMemento` no longer declares.
+    interface LegacyMemento {
+        old?: object;
+    }
+
     class TestMemento {
         type = 'test';
         constructor(public readonly data?: any) {}
@@ -43,7 +48,7 @@ describe('Memento Caretaker', () => {
             if (version === mementoVersion) {
                 this.restored = blob.data;
             } else {
-                this.restored = (blob as any).old;
+                this.restored = (blob as TestMemento & LegacyMemento).old;
             }
         }
     }

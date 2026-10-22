@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { LayersManager } from './layersManager';
 import {
     DebugSelectors,
     cleanupDebugStats,
@@ -7,8 +8,11 @@ import {
     getDebugStatsStateForTesting,
     registerDebugStatsConsumer,
 } from './sceneDebug';
+import { fake, setAgChartsDebug } from './test/sceneAccessors';
 
 describe('sceneDebug stats lifecycle', () => {
+    let restoreDebug: (() => void) | undefined;
+
     beforeEach(() => {
         vi.useFakeTimers();
         cleanupDebugStats(true);
@@ -16,12 +20,13 @@ describe('sceneDebug stats lifecycle', () => {
 
     afterEach(() => {
         cleanupDebugStats(true);
-        delete (globalThis as any).agChartsDebug;
+        restoreDebug?.();
+        restoreDebug = undefined;
         vi.useRealTimers();
     });
 
     it('cleans up global stats accumulator when last consumer releases', () => {
-        (globalThis as any).agChartsDebug = [DebugSelectors.SCENE_STATS];
+        restoreDebug = setAgChartsDebug([DebugSelectors.SCENE_STATS]);
 
         const release = registerDebugStatsConsumer();
         expect(getDebugStatsStateForTesting().consumers).toBe(1);
@@ -29,7 +34,7 @@ describe('sceneDebug stats lifecycle', () => {
 
         const ctx = createMockContext();
         const start = performance.now();
-        debugStats({ size: 0 } as any, { start, render: 1 }, ctx, undefined, {});
+        debugStats(fake<LayersManager>({ size: 0 }), { start, render: 1 }, ctx, undefined, {});
 
         expect(getDebugStatsStateForTesting().active).toBe(true);
 

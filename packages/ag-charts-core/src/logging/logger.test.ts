@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { spyOnLoggerIssueEmit } from '../test/coreAccessors';
 import { type LogIssue, Logger, reset, warn, warnOnce } from './logger';
 
 describe('Logger', () => {
@@ -300,7 +301,7 @@ describe('Logger', () => {
             const logger = new Logger();
             const listener = vi.fn();
             const unsubscribe = logger.onIssue(listener);
-            const emit = vi.spyOn((logger as any).issues, 'emit');
+            const emit = spyOnLoggerIssueEmit(logger);
             unsubscribe();
 
             logger.warn('after');

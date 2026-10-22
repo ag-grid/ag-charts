@@ -239,8 +239,10 @@ describe('ReactiveState — nested path observation', () => {
         it('returns undefined for missing path', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
-            expect(state.getValue('options', 'legend.missing' as any)).toBeUndefined();
-            expect(state.getValue('options', 'nonexistent' as any)).toBeUndefined();
+            // @ts-expect-error `legend.missing` is not an options path; the lookup is for a path that is not there.
+            expect(state.getValue('options', 'legend.missing')).toBeUndefined();
+            // @ts-expect-error `nonexistent` is not an options path; the lookup is for a path that is not there.
+            expect(state.getValue('options', 'nonexistent')).toBeUndefined();
         });
     });
 
@@ -335,7 +337,8 @@ describe('ReactiveState — nested path observation', () => {
             observer.mockClear();
 
             // Replace legend with a non-object — child path implicitly changed
-            state.setValue('options', { legend: null as any, title: { text: 'hello' } });
+            // @ts-expect-error `legend: null` is not valid options; the test replaces a subtree with a non-object.
+            state.setValue('options', { legend: null, title: { text: 'hello' } });
             state.flushChanges();
 
             expect(observer).toHaveBeenCalledTimes(1);
@@ -411,7 +414,8 @@ describe('ReactiveState — nested path observation', () => {
             state.observe(observer);
             observer.mockClear();
 
-            state.setValue('options', null as any);
+            // @ts-expect-error `null` is not valid options; the test replaces the whole value with a non-object.
+            state.setValue('options', null);
             state.flushChanges();
 
             expect(observer).toHaveBeenCalledTimes(1);

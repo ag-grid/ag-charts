@@ -12,27 +12,28 @@ interface ImageStub {
 
 describe('ImageLoader', () => {
     let constructedImages: ImageStub[];
-    let originalImage: typeof Image;
 
     beforeEach(() => {
         constructedImages = [];
-        originalImage = globalThis.Image;
-        (globalThis as any).Image = class implements ImageStub {
-            onload?: () => void;
-            onerror?: () => void;
-            private _src = '';
-            get src() {
-                return this._src;
+        vi.stubGlobal(
+            'Image',
+            class implements ImageStub {
+                onload?: () => void;
+                onerror?: () => void;
+                private _src = '';
+                get src() {
+                    return this._src;
+                }
+                set src(value: string) {
+                    this._src = value;
+                    constructedImages.push(this);
+                }
             }
-            set src(value: string) {
-                this._src = value;
-                constructedImages.push(this);
-            }
-        };
+        );
     });
 
     afterEach(() => {
-        (globalThis as any).Image = originalImage;
+        vi.unstubAllGlobals();
     });
 
     async function flushMicrotasks() {

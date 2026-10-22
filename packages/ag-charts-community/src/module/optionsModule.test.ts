@@ -36,6 +36,7 @@ import { removeUnregisteredModuleOptions, sanitizeThemeModules } from '../chart/
 import { __clearChartThemeCacheForTests } from '../chart/mapping/themes';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
+import { setAgChartsDebug } from '../chart/test/seriesAccessors';
 import { captureUncaught } from '../chart/test/utils';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { createProvisionalRuntime } from '../chart/validation/chartValidations';
@@ -45,6 +46,14 @@ import { NumberAxisModule } from './axis-modules/numberAxisModule';
 import { resolveSeriesThemeDefaultsMemoised } from './optionsGraph';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
+import {
+    fakeComputedStyle,
+    functionAt,
+    invalidOption,
+    omitSeriesData,
+    optionAt,
+    valuesAt,
+} from './test/moduleAccessors';
 
 const moduleMessages = () =>
     (console.error as Mock).mock.calls
@@ -123,7 +132,8 @@ function setSeriesType(
     type: 'bar' | 'line' | 'area',
     series: Omit<AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions, 'type'>
 ): AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions {
-    return { ...series, type } as any;
+    // `Omit` on the union loses the discriminant, so the spread has to be asserted back onto it.
+    return { ...series, type } as AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions;
 }
 
 const baseSeriesIPhone = {
@@ -320,14 +330,14 @@ const COMBO_CHART_EXAMPLE: AgCartesianChartOptions = {
         { type: 'area', xKey: 'abc', yKey: 'test3' },
     ],
     theme: {
-        baseTheme: {
+        baseTheme: invalidOption({
             baseTheme: 'ag-default',
             overrides: {
                 bar: { series: { label: { enabled: true } } },
                 line: { series: { label: { enabled: true } } },
                 area: { series: { label: { enabled: true } } },
             },
-        } as any,
+        }),
         overrides: {},
     },
 };
@@ -346,7 +356,7 @@ const COMPLEX_THEME_SCENARIO: AgCartesianChartOptions = {
         ySecondary: { type: 'number', position: 'right', title: { text: 'G', enabled: true } },
     },
     theme: {
-        baseTheme: {
+        baseTheme: invalidOption({
             baseTheme: 'ag-default',
             overrides: {
                 common: {
@@ -357,7 +367,7 @@ const COMPLEX_THEME_SCENARIO: AgCartesianChartOptions = {
                 bar: { series: { label: { enabled: false, _enabledFromTheme: true } } },
                 line: { series: { label: { enabled: true, _enabledFromTheme: true } } },
             },
-        } as any,
+        }),
         overrides: {},
     },
 };
@@ -515,16 +525,20 @@ describe('ChartOptions', () => {
 
     describe('structural cache validation issues', () => {
         const invalidOptions = (): AgChartOptions =>
-            ({ series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }] }) as AgChartOptions;
+            ({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: invalidOption('notanumber') }],
+            }) as AgChartOptions;
+
+        let restoreDebug: () => void;
 
         beforeEach(() => {
             __clearStructuralCacheForTests();
             console.log = vi.fn();
-            (globalThis as any).agChartsDebug = ['opts'];
+            restoreDebug = setAgChartsDebug(['opts']);
         });
 
         afterEach(() => {
-            delete (globalThis as any).agChartsDebug;
+            restoreDebug();
         });
 
         it('replays captured issues on a cache hit instead of discarding them', () => {
@@ -545,9 +559,11 @@ describe('ChartOptions', () => {
 
     describe('type warnings', () => {
         it('warns when a series type is missing', () => {
-            prepareOptions({
-                series: [{ xKey: 'x', yKey: 'y' } as any],
-            });
+            prepareOptions(
+                invalidOption({
+                    series: [{ xKey: 'x', yKey: 'y' }],
+                })
+            );
 
             expect(console.warn).toHaveBeenCalledTimes(1);
             const [message] = (console.warn as Mock).mock.calls[0];
@@ -576,7 +592,7 @@ describe('ChartOptions', () => {
 
             expect(console.error).not.toHaveBeenCalled();
             expect(console.warn).not.toHaveBeenCalled();
-            expect((options as any).axes).toMatchObject({
+            expect(optionAt(options, 'axes')).toMatchObject({
                 x: { type: 'category', position: 'bottom' },
                 y: { type: 'number', position: 'left' },
             });
@@ -598,9 +614,11 @@ describe('ChartOptions', () => {
         });
 
         it('warns when a series type is unknown and suggests valid types', () => {
-            prepareOptions({
-                series: [{ type: 'lien' as any, xKey: 'x', yKey: 'y' }],
-            });
+            prepareOptions(
+                invalidOption({
+                    series: [{ type: 'lien', xKey: 'x', yKey: 'y' }],
+                })
+            );
 
             expect(console.warn).toHaveBeenCalledTimes(1);
             const [message] = (console.warn as Mock).mock.calls[0];
@@ -609,13 +627,15 @@ describe('ChartOptions', () => {
         });
 
         it('warns when an axis type is unknown and suggests valid types', () => {
-            prepareOptions({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'category', position: 'bottom' },
-                    y: { type: 'nmuber' as any, position: 'left' },
-                },
-            });
+            prepareOptions(
+                invalidOption({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'nmuber', position: 'left' },
+                    },
+                })
+            );
 
             expect(console.warn).toHaveBeenCalledTimes(1);
             const [message] = (console.warn as Mock).mock.calls[0];
@@ -630,13 +650,13 @@ describe('ChartOptions', () => {
             const ambientErrorOnce = vi.spyOn(ambientLogger, 'errorOnce');
 
             prepareOptions(
-                {
+                invalidOption({
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
                         x: { type: 'ordinal-time', position: 'bottom' },
                         y: { type: 'number', position: 'left' },
                     },
-                } as any,
+                }),
                 logger
             );
 
@@ -658,13 +678,13 @@ describe('ChartOptions', () => {
                 const ambientWarnOnce = vi.spyOn(ambientLogger, 'warnOnce');
 
                 prepareOptions(
-                    {
+                    invalidOption({
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                         axes: {
                             x: { type: 'ordinal-time', position: 'bottom' },
                             y: { type: 'number', position: 'left' },
                         },
-                    } as any,
+                    }),
                     logger
                 );
 
@@ -790,12 +810,12 @@ describe('ChartOptions', () => {
         });
 
         it('warns exactly once when `series` is set to `true`, and ignores the value', () => {
-            const processedOptions = prepareOptions({ data: [{ x: 'a', y: 1 }], series: true } as any);
+            const processedOptions = prepareOptions(invalidOption({ data: [{ x: 'a', y: 1 }], series: true }));
 
             expect(console.warn).toHaveBeenCalledTimes(1);
             const [message] = (console.warn as Mock).mock.calls[0];
             expect(message).toContain('Option `series` cannot be set to `true`; expecting an array, ignoring.');
-            expect(processedOptions.series).not.toBe(true);
+            expect(optionAt(processedOptions, 'series')).not.toBe(true);
         });
     });
 
@@ -837,7 +857,7 @@ describe('ChartOptions', () => {
             });
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect((options as any).highlight?.mode).toBeUndefined();
+            expect(optionAt(options, 'highlight.mode')).toBeUndefined();
         });
 
         it('accepts highlight.mode: shared', () => {
@@ -847,20 +867,20 @@ describe('ChartOptions', () => {
             });
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect((options as any).highlight?.mode).toBe('shared');
+            expect(optionAt(options, 'highlight.mode')).toBe('shared');
         });
 
         it('rejects an invalid highlight.mode and drops it', () => {
             const options = prepareOptions<AgCartesianChartOptions>({
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                highlight: { mode: 'invalid' as any },
+                highlight: { mode: invalidOption('invalid') },
             });
 
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('Option `highlight.mode` cannot be set to `"invalid"`'))).toBe(true);
             expect(messages.some((m) => m.includes("expecting a keyword such as 'single' or 'shared'"))).toBe(true);
             // The invalid value is dropped rather than substituted; consumers fall back to 'single'.
-            expect((options as any).highlight?.mode).toBeUndefined();
+            expect(optionAt(options, 'highlight.mode')).toBeUndefined();
         });
     });
 
@@ -2908,15 +2928,18 @@ describe('ChartOptions', () => {
             };
 
             for (const [seriesType, { stackable, groupable, stackedByDefault }] of Object.entries(seriesTypes)) {
-                ModuleRegistry.register({
-                    type: 'series',
-                    name: seriesType,
-                    chartType: 'cartesian',
-                    version: VERSION,
-                    stackable,
-                    groupable,
-                    stackedByDefault,
-                } as any);
+                // Only the flags the stacking logic reads: there is no `create`, as no chart is built from these.
+                ModuleRegistry.register(
+                    invalidOption({
+                        type: 'series',
+                        name: seriesType,
+                        chartType: 'cartesian',
+                        version: VERSION,
+                        stackable,
+                        groupable,
+                        stackedByDefault,
+                    })
+                );
             }
 
             it.each(Object.keys(seriesTypes))(
@@ -3304,13 +3327,7 @@ describe('ChartOptions', () => {
                     data: expect.any(Array.isArray(options.data) ? Array : Object),
                 });
             } else {
-                const optionsCopy = { ...preparedOptions };
-                optionsCopy.series = (optionsCopy.series as any[]).map((v) => {
-                    const copy = { ...v };
-                    delete copy.data;
-                    return copy;
-                });
-                expect(optionsCopy).toMatchSnapshot({
+                expect(omitSeriesData(preparedOptions)).toMatchSnapshot({
                     container: expect.any(HTMLElement),
                 });
             }
@@ -3387,13 +3404,13 @@ describe('ChartOptions', () => {
                 overrides: {
                     common: {
                         annotations: { enabled: true },
-                        navigator: { enabled: true } as any,
+                        navigator: invalidOption({ enabled: true }),
                         axes: {
                             // @ts-expect-error Testing unregistered axis plugins
                             'angle-number': { crosshair: { enabled: true } },
                         },
                     },
-                    'radial-bar': { series: { strokeWidth: 5, errorBar: { visible: true } } } as any,
+                    'radial-bar': invalidOption({ series: { strokeWidth: 5, errorBar: { visible: true } } }),
                 },
             };
 
@@ -3413,7 +3430,7 @@ describe('ChartOptions', () => {
                 expect(chartOptions.activeTheme.overrides?.common?.navigator?.enabled).toBe(true);
                 expect(chartOptions.activeTheme.overrides?.common?.annotations?.enabled).toBe(true);
                 expect(chartOptions.activeTheme.overrides?.common?.axes?.['angle-number']).toBeUndefined();
-                expect((chartOptions.activeTheme.overrides as any)?.['radial-bar']).toBeUndefined();
+                expect(optionAt(chartOptions.activeTheme.overrides, 'radial-bar')).toBeUndefined();
                 expect(warnSpy).not.toHaveBeenCalled();
             } finally {
                 warnSpy.mockRestore();
@@ -3456,12 +3473,12 @@ describe('ChartOptions', () => {
             const sanitizedTheme = sanitizeThemeModules(themeWithExtras);
 
             expect(sanitizedTheme.config['radial-bar']).toBeUndefined();
-            expect((sanitizedTheme.overrides as any)?.['radial-bar']).toBeUndefined();
-            expect((sanitizedTheme.overrides as any)?.common?.navigator?.enabled).toBe(true);
-            expect((sanitizedTheme.overrides as any)?.common?.axes?.number?.crosshair?.enabled).toBe(true);
-            expect((sanitizedTheme.overrides as any)?.common?.axes?.number?.bandHighlight).toBeUndefined();
-            expect((sanitizedTheme.overrides as any)?.line?.series?.errorBar).toBeUndefined();
-            expect((sanitizedTheme.presets as any)?.['linear-gauge']).toBeUndefined();
+            expect(optionAt(sanitizedTheme.overrides, 'radial-bar')).toBeUndefined();
+            expect(optionAt(sanitizedTheme.overrides, 'common.navigator.enabled')).toBe(true);
+            expect(optionAt(sanitizedTheme.overrides, 'common.axes.number.crosshair.enabled')).toBe(true);
+            expect(optionAt(sanitizedTheme.overrides, 'common.axes.number.bandHighlight')).toBeUndefined();
+            expect(optionAt(sanitizedTheme.overrides, 'line.series.errorBar')).toBeUndefined();
+            expect(optionAt(sanitizedTheme.presets, 'linear-gauge')).toBeUndefined();
         });
 
         it('should use default theme options when `enabled` is set to `false` on an options object', () => {
@@ -3889,9 +3906,9 @@ describe('ChartOptions', () => {
                     { type: 'line', xKey: 'x', yKey: 'gold', yKeyAxis: 'axisB' },
                 ];
                 const seriesAxes = (preparedOptions: AgCartesianChartOptions) =>
-                    preparedOptions.series?.map((s: any) => ({
-                        x: (preparedOptions.axes as any)[s.xKeyAxis],
-                        y: (preparedOptions.axes as any)[s.yKeyAxis],
+                    preparedOptions.series?.map((s) => ({
+                        x: optionAt(preparedOptions.axes, String(optionAt(s, 'xKeyAxis'))),
+                        y: optionAt(preparedOptions.axes, String(optionAt(s, 'yKeyAxis'))),
                     }));
                 const warnings = () => (console.warn as Mock).mock.calls.map(([m]) => String(m));
 
@@ -4213,10 +4230,10 @@ describe('ChartOptions', () => {
             it('should discard invalid axes', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: {
-                        x: { type: 'invalid' } as any,
-                        y: { type: 'invalid' } as any,
-                    },
+                    axes: invalidOption({
+                        x: { type: 'invalid' },
+                        y: { type: 'invalid' },
+                    }),
                 };
 
                 const preparedOptions = prepareOptions(options);
@@ -4236,10 +4253,10 @@ describe('ChartOptions', () => {
             it('should discard invalid axes and keep valid axes', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: {
-                        x: { type: 'invalid' } as any,
+                    axes: invalidOption({
+                        x: { type: 'invalid' },
                         y: { type: 'category', position: 'right' },
-                    },
+                    }),
                 };
 
                 const preparedOptions = prepareOptions(options);
@@ -4610,28 +4627,28 @@ describe('ChartOptions', () => {
 
     describe('displayNullData propagation', () => {
         it('should propagate displayNullData to series allowNullKeys', () => {
-            const options: AgCartesianChartOptions = {
+            const options: AgCartesianChartOptions = invalidOption({
                 data: [
                     { x: null, y: 1 },
                     { x: 'a', y: 2 },
                 ],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                 displayNullData: true,
-            } as any;
+            });
 
             const processed = prepareOptions(options);
-            expect((processed.series![0] as any).allowNullKeys).toBe(true);
+            expect(optionAt(processed, 'series[0].allowNullKeys')).toBe(true);
         });
 
         it('should not propagate displayNullData when series has explicit allowNullKeys', () => {
-            const options: AgCartesianChartOptions = {
+            const options: AgCartesianChartOptions = invalidOption({
                 data: [{ x: null, y: 1 }],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: false } as any],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: false }],
                 displayNullData: true,
-            } as any;
+            });
 
             const processed = prepareOptions(options);
-            expect((processed.series![0] as any).allowNullKeys).toBe(false);
+            expect(optionAt(processed, 'series[0].allowNullKeys')).toBe(false);
         });
 
         it('should not set allowNullKeys when displayNullData is not provided', () => {
@@ -4641,7 +4658,7 @@ describe('ChartOptions', () => {
             };
 
             const processed = prepareOptions(options);
-            expect((processed.series![0] as any).allowNullKeys).toBeUndefined();
+            expect(optionAt(processed, 'series[0].allowNullKeys')).toBeUndefined();
         });
     });
 
@@ -4705,11 +4722,11 @@ describe('ChartOptions', () => {
                 {},
                 {}
             );
-            const { title, subtitle, footnote } = chartOptions.processedOptions as any;
+            const { processedOptions } = chartOptions;
 
-            expect(title.fontFamily).toBe('Georgia, serif');
-            expect(subtitle.fontFamily).toBe('Roboto');
-            expect(footnote.fontFamily).toBe('Pacifico, cursive');
+            expect(optionAt(processedOptions, 'title.fontFamily')).toBe('Georgia, serif');
+            expect(optionAt(processedOptions, 'subtitle.fontFamily')).toBe('Roboto');
+            expect(optionAt(processedOptions, 'footnote.fontFamily')).toBe('Pacifico, cursive');
             expect(chartOptions.googleFonts).toEqual(new Set(['Roboto', 'Pacifico']));
             expect(chartOptions.fonts).toContain('bold 16px Georgia');
             expect(console.error).not.toHaveBeenCalled();
@@ -4784,9 +4801,9 @@ describe('ChartOptions', () => {
 
     describe('invalid `ontoColor` var fallback (AG-17816 AC4)', () => {
         const mockComputedStyle = (container: HTMLElement, values: Record<string, string>) => {
-            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
-                getPropertyValue: (key: string) => values[key] ?? '',
-            } as any);
+            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(
+                fakeComputedStyle(values)
+            );
         };
 
         it('drops the invalid ontoColor, leaving ref + mix (transparency)', () => {
@@ -4837,7 +4854,7 @@ describe('ChartOptions', () => {
             mockComputedStyle(container, {});
 
             const chartOptions = new ChartOptions(
-                {
+                invalidOption({
                     container,
                     theme: {
                         params: {
@@ -4848,14 +4865,14 @@ describe('ChartOptions', () => {
                     data: [{ x: 'a', y: 1 }],
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                     axes: { x: { type: 'category' }, y: { type: 'number' } },
-                } as any,
+                }),
                 {} as AgChartOptions,
                 {},
                 {},
                 {}
             );
 
-            expect((chartOptions.themeParameters as any).foregroundColor).toBe('rgba(255, 0, 0, 0.5)');
+            expect(chartOptions.themeParameters.foregroundColor).toBe('rgba(255, 0, 0, 0.5)');
             expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'))).toBe(
                 true
             );
@@ -4865,9 +4882,9 @@ describe('ChartOptions', () => {
     describe('CSS-variable validation warning routing', () => {
         it('routes the invalid-colour warning through the instance logger', () => {
             const container = document.createElement('div');
-            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
-                getPropertyValue: (key: string) => (key === '--bad' ? 'not-a-color' : ''),
-            } as any);
+            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(
+                fakeComputedStyle({ '--bad': 'not-a-color' })
+            );
             const logger = new Logger();
             const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
             const unrelatedWarnOnce = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
@@ -4893,9 +4910,9 @@ describe('ChartOptions', () => {
 
         it('still warns and drops a var() that resolves to an unsupported lch() format (AG-17839)', () => {
             const container = document.createElement('div');
-            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
-                getPropertyValue: (key: string) => (key === '--x' ? 'lch(50% 70 40)' : ''),
-            } as any);
+            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(
+                fakeComputedStyle({ '--x': 'lch(50% 70 40)' })
+            );
             const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
 
             const node: any = { fill: 'var(--x)' };
@@ -4920,12 +4937,12 @@ describe('ChartOptions', () => {
             expect(message).toContain('Option `series[0].fill`');
             expect(message).toContain('oklab(0.5 0.1 0.1)');
             expect(message).toContain('ignoring.');
-            expect((options.series?.[0] as any).fill).not.toBe('oklab(0.5 0.1 0.1)');
+            expect(optionAt(options, 'series[0].fill')).not.toBe('oklab(0.5 0.1 0.1)');
         });
 
         it('warns and clears a lab() theme param instead of reaching a blend op', () => {
             const chartOptions = new ChartOptions(
-                {
+                invalidOption({
                     data: [{ x: 'a', y: 1 }],
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                     axes: { x: { type: 'category' }, y: { type: 'number' } },
@@ -4934,7 +4951,7 @@ describe('ChartOptions', () => {
                             accentColor: 'lab(50% 40 59.5)',
                         },
                     },
-                } as any,
+                }),
                 {} as AgChartOptions,
                 {},
                 {},
@@ -4947,25 +4964,25 @@ describe('ChartOptions', () => {
             expect(message).toContain('Option `theme.params.accentColor`');
             expect(message).toContain('lab(50% 40 59.5)');
             expect(message).toContain('ignoring.');
-            expect((chartOptions.themeParameters as any).accentColor).not.toBe('lab(50% 40 59.5)');
-            expect((chartOptions.themeParameters as any).accentColor).toBeDefined();
+            expect(chartOptions.themeParameters.accentColor).not.toBe('lab(50% 40 59.5)');
+            expect(chartOptions.themeParameters.accentColor).toBeDefined();
         });
 
         it('warns and uses the theme default for an operator in a theme param', () => {
             const create = (accentColor?: unknown) =>
                 new ChartOptions(
-                    {
+                    invalidOption({
                         data: [{ x: 'a', y: 1 }],
                         series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                         axes: { x: { type: 'category' }, y: { type: 'number' } },
                         theme: { params: { accentColor } },
-                    } as any,
+                    }),
                     {} as AgChartOptions,
                     {},
                     {},
                     {}
                 );
-            const defaultAccentColor = (create().themeParameters as any).accentColor;
+            const defaultAccentColor = create().themeParameters.accentColor;
             (console.warn as Mock).mockClear();
 
             const chartOptions = create({ $ref: 'foregroundColor' });
@@ -4975,7 +4992,7 @@ describe('ChartOptions', () => {
                 .find((m) => m.includes('theme.params.accentColor'));
             expect(message).toContain('Option `theme.params.accentColor`');
             expect(message).toContain('ignoring.');
-            expect((chartOptions.themeParameters as any).accentColor).toEqual(defaultAccentColor);
+            expect(chartOptions.themeParameters.accentColor).toEqual(defaultAccentColor);
         });
 
         it('rejects an lch() color stop in colorScale.fills[].color', () => {
@@ -4983,7 +5000,7 @@ describe('ChartOptions', () => {
             try {
                 const options = prepareOptions<AgCartesianChartOptions>({
                     series: [
-                        {
+                        invalidOption({
                             type: 'scatter',
                             xKey: 'x',
                             yKey: 'y',
@@ -4994,7 +5011,7 @@ describe('ChartOptions', () => {
                                     { color: 'lch(50% 70 40)', stop: 1 },
                                 ],
                             },
-                        } as any,
+                        }),
                     ],
                 });
 
@@ -5004,7 +5021,7 @@ describe('ChartOptions', () => {
                 expect(message).toContain('colorScale');
                 expect(message).toContain('lch(50% 70 40)');
                 expect(message).toContain('ignoring.');
-                expect((options.series?.[0] as any).colorScale?.fills?.[1]?.color).not.toBe('lch(50% 70 40)');
+                expect(optionAt(options, 'series[0].colorScale.fills[1].color')).not.toBe('lch(50% 70 40)');
             } finally {
                 ModuleRegistry.clearRegistryModes();
             }
@@ -5012,33 +5029,33 @@ describe('ChartOptions', () => {
     });
 
     describe('theme overrides and conditional defaults', () => {
-        const barOptions = (overrides: object) => ({
-            data: [{ category: 'A', value: 5 }],
-            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-            theme: { overrides: { bar: { series: overrides } } },
-        });
+        // `overrides` is an opaque object here, so the result is asserted onto the chart options rather than checked.
+        const barOptions = (overrides: object) =>
+            ({
+                data: [{ category: 'A', value: 5 }],
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                theme: { overrides: { bar: { series: overrides } } },
+            }) as AgChartOptions;
 
         it('resolves a conditional default from a value supplied through theme overrides', () => {
-            const prepared: any = prepareOptions(barOptions({ stroke: 'rgb(190, 55, 55)' }) as any);
+            const prepared = prepareOptions(barOptions({ stroke: 'rgb(190, 55, 55)' }));
 
-            expect(prepared.series[0].strokeWidth).toBe(2);
+            expect(optionAt(prepared, 'series[0].strokeWidth')).toBe(2);
         });
 
         // Themes style; they do not activate. Only an explicit `enabled` switches a border on.
         it('does not enable a feature from styling supplied through theme overrides', () => {
-            const prepared: any = prepareOptions(
-                barOptions({ label: { border: { stroke: 'rgb(190, 55, 55)' } } }) as any
-            );
+            const prepared = prepareOptions(barOptions({ label: { border: { stroke: 'rgb(190, 55, 55)' } } }));
 
-            expect(prepared.series[0].label.border?.enabled ?? false).toBe(false);
+            expect(optionAt(prepared, 'series[0].label.border.enabled') ?? false).toBe(false);
         });
 
         it('honours an explicit enabled supplied through theme overrides', () => {
-            const prepared: any = prepareOptions(
-                barOptions({ label: { border: { enabled: true, stroke: 'rgb(190, 55, 55)' } } }) as any
+            const prepared = prepareOptions(
+                barOptions({ label: { border: { enabled: true, stroke: 'rgb(190, 55, 55)' } } })
             );
 
-            expect(prepared.series[0].label.border.enabled).toBe(true);
+            expect(optionAt(prepared, 'series[0].label.border.enabled')).toBe(true);
         });
     });
 
@@ -5054,7 +5071,7 @@ describe('ChartOptions', () => {
             expect(messages.every((m) => m.startsWith('AG Charts - Option `padding.'))).toBe(true);
             expect(messages.every((m) => m.includes('expecting a number greater than or equal to 0'))).toBe(true);
             // The invalid object padding is dropped in full, so the theme default (20 on every side) applies.
-            expect((options as any).padding).toEqual({ top: 20, right: 20, bottom: 20, left: 20 });
+            expect(optionAt(options, 'padding')).toEqual({ top: 20, right: 20, bottom: 20, left: 20 });
         });
 
         it('rejects negative padding on a series label box and keeps the theme default', () => {
@@ -5067,7 +5084,7 @@ describe('ChartOptions', () => {
             expect(messages[0]).toContain('Option `series[0].label.padding` cannot be set to `-20`');
             expect(messages[0]).toContain('expecting a number greater than or equal to 0');
             // The invalid scalar padding is dropped, so the bar label's theme default (8) applies.
-            expect((options.series?.[0] as any).label.padding).toBe(8);
+            expect(optionAt(options, 'series[0].label.padding')).toBe(8);
         });
 
         it('rejects negative legend item padding and keeps the theme default', () => {
@@ -5081,7 +5098,7 @@ describe('ChartOptions', () => {
             expect(messages[0]).toContain('Option `legend.item.padding` cannot be set to `-10`');
             expect(messages[0]).toContain('expecting a number greater than or equal to 0');
             // The invalid scalar padding is dropped, so the legend item's theme default applies.
-            expect((options as any).legend.item.padding).toEqual({ top: 4, right: 8, bottom: 4, left: 8 });
+            expect(optionAt(options, 'legend.item.padding')).toEqual({ top: 4, right: 8, bottom: 4, left: 8 });
         });
 
         it('does not warn and preserves a negative padding on a cross-line label (deliberate exemption)', () => {
@@ -5099,13 +5116,13 @@ describe('ChartOptions', () => {
 
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('padding'))).toBe(false);
-            expect((options.axes as any).y.crossLines[0].label.padding).toBe(-30);
+            expect(optionAt(options, 'axes.y.crossLines[0].label.padding')).toBe(-30);
         });
     });
 
     const invalidOptions = (extra?: object): AgChartOptions =>
         ({
-            series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: invalidOption('notanumber') }],
             ...extra,
         }) as AgChartOptions;
 
@@ -5211,7 +5228,7 @@ describe('ChartOptions', () => {
             const chartOptions = construct(invalidOptions({ theme: themeValidations({ consoleOn: ['error'] }) }));
 
             expect(chartOptions.issues.some((issue) => issue.message.includes('theme.overrides.common'))).toBe(false);
-            expect((chartOptions.processedOptions as any).validations.consoleOn).toEqual(['error']);
+            expect(optionAt(chartOptions.processedOptions, 'validations.consoleOn')).toEqual(['error']);
         });
 
         it('honours a theme `consoleOn: []` for first-render warnings, while still recording the issues', () => {
@@ -5264,7 +5281,7 @@ describe('ChartOptions', () => {
 
             const base = update(undefined, invalidOptions({ theme }));
             const secondSeries = { type: 'line', xKey: 'x', yKey: 'z' };
-            update(base, invalidOptions({ theme, series: [...(invalidOptions().series as any[]), secondSeries] }));
+            update(base, invalidOptions({ theme, series: [...valuesAt(invalidOptions(), 'series'), secondSeries] }));
 
             const strokeWidthCalls = issueRaised.mock.calls.filter(([issue]) => issue.message.includes('notanumber'));
             expect(strokeWidthCalls).toHaveLength(1);
@@ -5275,7 +5292,7 @@ describe('ChartOptions', () => {
                 ({ series: [{ type: 'line', xKey: 'x', yKey: 'y' }], theme }) as AgChartOptions;
             const invalidTheme = (validations?: object) => ({
                 ...themeValidations(validations),
-                params: { borderRadius: 'notround' as any },
+                params: { borderRadius: invalidOption('notround') },
             });
             const isThemeIssue = (message: unknown) => String(message).includes('notround');
             const themeWarnings = () => (console.warn as Mock).mock.calls.filter(([m]) => isThemeIssue(m));
@@ -5317,7 +5334,7 @@ describe('ChartOptions', () => {
         it('resolves a theme `showOverlayOn` into the processed options', () => {
             const chartOptions = construct(invalidOptions({ theme: themeValidations({ showOverlayOn: ['error'] }) }));
 
-            expect((chartOptions.processedOptions as any).validations.showOverlayOn).toEqual(['error']);
+            expect(optionAt(chartOptions.processedOptions, 'validations.showOverlayOn')).toEqual(['error']);
         });
     });
 
@@ -5364,7 +5381,7 @@ describe('ChartOptions', () => {
                 );
 
                 expect(await uncaughtMessages()).toEqual([]);
-                expect((chartOptions.processedOptions as any).validations.throwOn).toEqual([]);
+                expect(optionAt(chartOptions.processedOptions, 'validations.throwOn')).toEqual([]);
             });
 
             it("replaces the theme's array wholesale with the chart option's, rather than merging by index", async () => {
@@ -5376,7 +5393,7 @@ describe('ChartOptions', () => {
                 );
 
                 expect(await uncaughtMessages()).toEqual([]);
-                expect((chartOptions.processedOptions as any).validations.throwOn).toEqual(['error']);
+                expect(optionAt(chartOptions.processedOptions, 'validations.throwOn')).toEqual(['error']);
             });
 
             it("lets a theme's own `throwOn` take precedence over its `baseTheme`'s", async () => {
@@ -5406,7 +5423,7 @@ describe('ChartOptions', () => {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     theme: {
                         ...themeValidations({ throwOn: ['warning'] }),
-                        params: { borderRadius: 'notround' as any },
+                        params: { borderRadius: invalidOption('notround') },
                     },
                 } as AgChartOptions);
 
@@ -5507,8 +5524,8 @@ describe('ChartOptions', () => {
                         type: 'line',
                         xKey: 'x',
                         yKey: 'y',
-                        strokeWidth: 'notanumber' as any,
-                        lineDash: 'notanarray' as any,
+                        strokeWidth: invalidOption('notanumber'),
+                        lineDash: invalidOption('notanarray'),
                     },
                 ],
                 validations: { throwOn: ['warning'] },
@@ -5646,9 +5663,9 @@ describe('ChartOptions', () => {
         describe('unregistered modules (AC5)', () => {
             describe('a path owned by modules of different chart types', () => {
                 const crossLineOptions = () =>
-                    ({
+                    invalidOption({
                         axes: { angle: { crossLines: [{ type: 'line', value: 'a' }] } },
-                    }) as any;
+                    });
                 const scope = ModuleRegistry.resolveModuleScope([CrossLinesModule]);
 
                 it('reports the polar owner when only the cartesian owner is registered', () => {
@@ -5656,7 +5673,7 @@ describe('ChartOptions', () => {
                     const missing = removeUnregisteredModuleOptions('polar', options, scope);
 
                     expect(missing.map(({ module }) => module.moduleId)).toEqual(['PolarCrossLinesModule']);
-                    expect(options.axes.angle.crossLines).toBeUndefined();
+                    expect(optionAt(options, 'axes.angle.crossLines')).toBeUndefined();
                 });
 
                 it('treats the path as covered on the chart type the registered owner supports', () => {
@@ -5664,7 +5681,7 @@ describe('ChartOptions', () => {
                     const missing = removeUnregisteredModuleOptions('cartesian', options, scope);
 
                     expect(missing).toEqual([]);
-                    expect(options.axes.angle.crossLines).toHaveLength(1);
+                    expect(optionAt(options, 'axes.angle.crossLines')).toHaveLength(1);
                 });
             });
 
@@ -5695,18 +5712,18 @@ describe('ChartOptions', () => {
                     (_, module, contribution) => {
                         const path = parseOptionsPath(contribution.path);
                         const { host, relative } = contributionHost(path);
-                        const options = {
-                            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                            axes: {
-                                x: { type: 'category', position: 'bottom' },
-                                y: { type: 'number', position: 'left' },
-                            },
-                        } as any;
-                        const hosts = { chart: options, axis: options.axes.x, series: options.series[0] };
+                        const series = { type: 'line', xKey: 'x', yKey: 'y' };
+                        const axes = {
+                            x: { type: 'category', position: 'bottom' },
+                            y: { type: 'number', position: 'left' },
+                        };
+                        const options = { series: [series], axes };
+                        const hosts = { chart: options, axis: axes.x, series };
                         const target = hosts[host];
                         Object.assign(target, nestAtOptionsPath(relative, requestedValue(contribution)));
 
-                        const processed = prepareOptions(options as AgChartOptions, new Logger());
+                        // Enterprise options on a community chart: the types do not cover them.
+                        const processed = prepareOptions(invalidOption(options), new Logger());
 
                         expect(moduleMessages()).toEqual([expect.stringContaining(module.moduleId)]);
                         const remaining: unknown[] = [];
@@ -5719,14 +5736,14 @@ describe('ChartOptions', () => {
             });
 
             const unregisteredAxisOptions = (extra?: object): AgChartOptions =>
-                ({
+                invalidOption({
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
                         x: { type: 'ordinal-time', position: 'bottom' },
                         y: { type: 'number', position: 'left' },
                     },
                     ...extra,
-                }) as any;
+                });
 
             const moduleThrow = expect.stringMatching(
                 /^Error: AG Charts - validations\.throwOn: error - required modules are not registered/
@@ -5764,20 +5781,20 @@ describe('ChartOptions', () => {
 
             describe('axis click listeners', () => {
                 const axisListenerOptions = (extra?: object): AgChartOptions =>
-                    ({
+                    invalidOption({
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                         axes: {
                             x: { type: 'category', position: 'bottom', listeners: { click: () => {} } },
                             y: { type: 'number', position: 'left' },
                         },
                         ...extra,
-                    }) as any;
+                    });
 
                 it('reports AxisInteractionModule for an axis click listener and strips the listener', () => {
-                    const processed = prepareOptions(axisListenerOptions(), new Logger()) as any;
+                    const processed = prepareOptions(axisListenerOptions(), new Logger());
 
                     expect(moduleMessages()).toEqual([expect.stringContaining('AxisInteractionModule')]);
-                    expect(Object.values(processed.axes).some((axis: any) => axis.listeners?.click)).toBe(false);
+                    expect(valuesAt(processed, 'axes').some((axis) => optionAt(axis, 'listeners.click'))).toBe(false);
                 });
 
                 it('reports AxisInteractionModule for a chart-level axisDoubleClick listener', () => {
@@ -5785,10 +5802,10 @@ describe('ChartOptions', () => {
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                         listeners: { axisDoubleClick: () => {} },
                     } as AgChartOptions;
-                    const processed = prepareOptions(options, new Logger()) as any;
+                    const processed = prepareOptions(options, new Logger());
 
                     expect(moduleMessages()).toEqual([expect.stringContaining('AxisInteractionModule')]);
-                    expect(processed.listeners?.axisDoubleClick).toBeUndefined();
+                    expect(optionAt(processed, 'listeners.axisDoubleClick')).toBeUndefined();
                 });
 
                 it('strips the listener from a non-cartesian chart as unsupported rather than as a missing module', () => {
@@ -5796,10 +5813,10 @@ describe('ChartOptions', () => {
                         series: [{ type: 'pie', angleKey: 'y' }],
                         listeners: { axisClick: () => {} },
                     } as AgChartOptions;
-                    const processed = prepareOptions(options, new Logger()) as any;
+                    const processed = prepareOptions(options, new Logger());
 
                     expect(moduleMessages()).toEqual([]);
-                    expect(processed.listeners?.axisClick).toBeUndefined();
+                    expect(optionAt(processed, 'listeners.axisClick')).toBeUndefined();
                     expect((console.warn as Mock).mock.calls.map(([m]) => String(m))).toEqual([
                         expect.stringContaining(
                             'Option `listeners.axisClick` is not supported by `pie` series, ignoring.'
@@ -5824,10 +5841,12 @@ describe('ChartOptions', () => {
                     };
                     ModuleRegistry.registerModules([axisInteraction]);
                     try {
-                        const processed = prepareOptions(axisListenerOptions(), new Logger()) as any;
+                        const processed = prepareOptions(axisListenerOptions(), new Logger());
 
                         expect(moduleMessages()).toEqual([]);
-                        expect(Object.values(processed.axes).some((axis: any) => axis.listeners?.click)).toBe(true);
+                        expect(valuesAt(processed, 'axes').some((axis) => optionAt(axis, 'listeners.click'))).toBe(
+                            true
+                        );
                     } finally {
                         ModuleRegistry.reset();
                         ModuleRegistry.registerModules(registeredModules);
@@ -5894,7 +5913,7 @@ describe('ChartOptions', () => {
                 chartOptions = new ChartOptions(
                     {
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                        validations: { issueRaised: 'not-a-function' as any },
+                        validations: { issueRaised: invalidOption('not-a-function') },
                     } as AgChartOptions,
                     {} as AgChartOptions,
                     {},
@@ -5921,15 +5940,15 @@ describe('ChartOptions', () => {
             base: ChartOptions,
             delta: object,
             metadata: ConstructorParameters<typeof ChartOptions>[4] = {}
-        ) => new ChartOptions(base, {} as AgChartOptions, {}, {}, metadata, delta as any);
+        ) => new ChartOptions(base, {} as AgChartOptions, {}, {}, metadata, invalidOption(delta));
 
         // The container is a per-instance element, so it is left out when comparing options.
-        const strip = (options: any) => ({ ...options, container: undefined });
+        const strip = (options: object) => ({ ...options, container: undefined });
 
         // A tuple's value is read from its `datum`, which a number row doesn't have.
         const tooltipOf = (chartOptions: ChartOptions) => {
-            const { renderer } = (chartOptions.processedOptions.series?.[0] as any).tooltip;
-            const datum = (chartOptions.processedOptions.data as any[])[3];
+            const renderer = functionAt(chartOptions.processedOptions, 'series[0].tooltip.renderer');
+            const datum = optionAt(chartOptions.processedOptions, 'data[3]');
             return renderer({ datum, xKey: 'x', yKey: 'y' });
         };
 
