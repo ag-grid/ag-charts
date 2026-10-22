@@ -12,6 +12,7 @@ import {
 } from 'ag-charts-community';
 import {
     BIG,
+    type ChartOrProxy,
     HIGH_VOLUME_COUNT,
     HIGH_VOLUME_SIGNALS,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -23,13 +24,14 @@ import {
     clickAction,
     compareImageSnapshot,
     createSceneGeometrySampler,
-    deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectMonotonic,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesAt,
+    getSeriesNodeData,
     hoverAction,
     isoEpochPair,
     magnitudePair,
@@ -44,11 +46,15 @@ import {
 import { Transformable } from 'ag-charts-core';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import type { RangeAreaMarkerDatum } from './rangeAreaUtil';
+
+// The test data rows are keyed by `month`; the datum type keeps its row opaque.
+type ClickableMarkerDatum = RangeAreaMarkerDatum & { datum: { month: string | Date } };
 
 describe('RangeAreaSeries', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: ChartOrProxy<any>;
     const ctx = setupMockCanvas();
 
     function lowAndHigh<T>(p: T): { low: T; high: T } {
@@ -56,10 +62,9 @@ describe('RangeAreaSeries', () => {
     }
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        // A test that creates no chart leaves the variable unset, so it must not destroy the previous one again.
+        (chart as ChartOrProxy<any> | undefined)?.destroy();
+        (chart as unknown) = undefined;
     });
 
     const CATEGORY_DATA: { month: string | Date; high: number; low: number; average: number }[] = [
@@ -198,10 +203,13 @@ describe('RangeAreaSeries', () => {
         });
 
         const clickNode = async (month: string) => {
-            const series = deproxy(chart).series[0] as any;
-            const node = series.getNodeData().find((d: any) => d.datum.month === month);
+            const node = getSeriesNodeData<ClickableMarkerDatum>(chart).find((d) => d.datum.month === month);
             expect(node).toBeDefined();
-            const { canvasX, canvasY } = Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(
+                getSeriesAt(chart).contentGroup,
+                node!.point.x,
+                node!.point.y
+            );
             await clickAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
         };
@@ -516,7 +524,7 @@ describe('RangeAreaSeries', () => {
         });
 
         it('reveal by a left-to-right swipe with markers scaling in on the initial load', async () => {
-            chart = deproxy(await createEnterpriseChart({ ...RANGE_AREA_OPTIONS } as AgChartOptions));
+            chart = await createEnterpriseChart({ ...RANGE_AREA_OPTIONS });
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -587,7 +595,7 @@ describe('RangeAreaSeries', () => {
 
     describe('gradient fill', () => {
         it('should render range area series with a default gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...RANGE_AREA_OPTIONS,
                 series: [
                     {
@@ -602,13 +610,13 @@ describe('RangeAreaSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
 
             await compare();
         });
 
         it('should render range area series with a gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...RANGE_AREA_OPTIONS,
                 series: [
                     {
@@ -631,7 +639,7 @@ describe('RangeAreaSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
 
             await compare();
         });
@@ -654,10 +662,10 @@ describe('RangeAreaSeries', () => {
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
         describe('spacing sets the gap between the bar and the label', () => {
-            test('inside', async () => {
+            it('inside', async () => {
                 await testCase({ placement: 'inside', spacing: 30 }, 'AG-8290-range-area-label-spacing-inside');
             });
-            test('outside', async () => {
+            it('outside', async () => {
                 await testCase({ placement: 'outside', spacing: 30 }, 'AG-8290-range-area-label-spacing-outside');
             });
         });
@@ -995,16 +1003,16 @@ describe('RangeAreaSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
             describe('callbacks', () => {
-                test('context', () => {
+                it('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
                     styler.expect().toHaveBeenCalledTimes(2);
                 });
-                test('params', () => {
+                it('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
@@ -1066,7 +1074,7 @@ describe('RangeAreaSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -1098,7 +1106,7 @@ describe('RangeAreaSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -1423,7 +1431,7 @@ describe('RangeAreaSeries', () => {
             await compare();
         });
 
-        test('marker enabled', async () => {
+        it('marker enabled', async () => {
             type Ks = 'a' | 'A' | 'b' | 'B' | 'c' | 'C' | 'd' | 'D' | 'e' | 'E' | 'f' | 'F' | 'g' | 'G';
             type D = { x: string } & { [K in Ks]: number };
             const data: D[] = [
@@ -1588,15 +1596,9 @@ describe('RangeAreaSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1666,15 +1668,9 @@ describe('RangeAreaSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1682,15 +1678,9 @@ describe('RangeAreaSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS,
-                series: [
-                    {
-                        ...RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);

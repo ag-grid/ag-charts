@@ -1,17 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
-    type AgChartInstance,
     type AgChartOptions,
     AgCharts,
     type AgPolarChartOptions,
-    type AgRadialBarSeriesOptions,
     type AgRadialSeriesItemStylerParams,
     type AgRadialSeriesStyle,
     type AgRadialSeriesStylerParams,
 } from 'ag-charts-community';
 import {
     BIG,
+    type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
@@ -25,6 +24,8 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesAt,
+    getSeriesContextNodeData,
     hoverAction,
     newFreezableMock,
     setupMockCanvas,
@@ -33,6 +34,7 @@ import {
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { classCast } from 'ag-charts-test';
 
 import {
     createEnterpriseChart,
@@ -40,17 +42,19 @@ import {
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
 } from '../../test/utils';
+import { RadialBarSeries, type RadialBarSeriesNodeDataContext } from './radialBarSeries';
+
+type RadialBarSeriesNodeDatum = RadialBarSeriesNodeDataContext['nodeData'][number];
 
 describe('RadialBarSeries', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: ChartOrProxy<any>;
     const ctx = setupMockCanvas();
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        // A test that creates no chart leaves the variable unset, so it must not destroy the previous one again.
+        (chart as ChartOrProxy<any> | undefined)?.destroy();
+        (chart as unknown) = undefined;
     });
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
@@ -326,7 +330,7 @@ describe('RadialBarSeries', () => {
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
-                (proxy as AgChartInstance).update({ ...options, data: grow(RB_DATA) } as AgPolarChartOptions)
+                proxy.update({ ...options, data: grow(RB_DATA) })
             );
             // Anti-vacuity: confirm the sweep genuinely changed before asserting it held constant (no tween).
             expect(maxSpan(after) - maxSpan(before), 'bars swept wider').toBeGreaterThan(0.5);
@@ -335,11 +339,11 @@ describe('RadialBarSeries', () => {
 
         it('add data: new bars appear fully formed without animating in', async () => {
             const options = preparedOptions();
-            const proxy = AgCharts.create({ ...options, data: RB_DATA.slice(0, 3) } as AgPolarChartOptions);
+            const proxy = AgCharts.create({ ...options, data: RB_DATA.slice(0, 3) });
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
-                (proxy as AgChartInstance).update({ ...options, data: [...RB_DATA] } as AgPolarChartOptions)
+                proxy.update({ ...options, data: [...RB_DATA] })
             );
             expect(sectorCount(before), 'three quarters before').toBe(6);
             expect(sectorCount(after), 'four quarters after').toBe(8);
@@ -353,7 +357,7 @@ describe('RadialBarSeries', () => {
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
-                (proxy as AgChartInstance).update({ ...options, data: RB_DATA.slice(0, 3) } as AgPolarChartOptions)
+                proxy.update({ ...options, data: RB_DATA.slice(0, 3) })
             );
             expect(sectorCount(before), 'four quarters before').toBe(8);
             expect(sectorCount(after), 'three quarters after').toBe(6);
@@ -372,7 +376,7 @@ describe('RadialBarSeries', () => {
         });
 
         it('sanity: add-data endpoints match static renders', async () => {
-            const before = { ...preparedOptions(), data: RB_DATA.slice(0, 3) } as AgPolarChartOptions;
+            const before: AgPolarChartOptions = { ...preparedOptions(), data: RB_DATA.slice(0, 3) };
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
@@ -438,6 +442,12 @@ describe('RadialBarSeries', () => {
         });
 
         it('should render radial bar series with a series bound gradient fill', async () => {
+            // `bounds` is not in the public types; building the fill first avoids the excess-property check.
+            const fill = {
+                type: 'gradient' as const,
+                bounds: 'series',
+                colorStops: [{ color: '#080' }, { color: '#fff' }],
+            };
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [
@@ -445,19 +455,8 @@ describe('RadialBarSeries', () => {
                         type: 'radial-bar',
                         angleKey: 'Mountain air',
                         radiusKey: 'quarter',
-                        fill: {
-                            type: 'gradient',
-                            bounds: 'series',
-                            colorStops: [
-                                {
-                                    color: '#080',
-                                },
-                                {
-                                    color: '#fff',
-                                },
-                            ],
-                        },
-                    } as AgRadialBarSeriesOptions,
+                        fill,
+                    },
                 ],
             };
             chart = await createEnterpriseChart(options);
@@ -465,7 +464,7 @@ describe('RadialBarSeries', () => {
         });
     });
 
-    test('AG-8290 label boxing', async () => {
+    it('AG-8290 label boxing', async () => {
         const options: AgChartOptions = {
             data: [
                 { department: 'Sales', quality: 40, efficiency: 75 },
@@ -569,16 +568,16 @@ describe('RadialBarSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
             describe('callbacks', () => {
-                test('context', () => {
+                it('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
                     styler.expect().toHaveBeenCalledTimes(2);
                 });
-                test('params', () => {
+                it('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
@@ -621,7 +620,7 @@ describe('RadialBarSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -651,7 +650,7 @@ describe('RadialBarSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -691,12 +690,12 @@ describe('RadialBarSeries', () => {
                     await hoverAction(p.x, p.y)(chart);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 }
-                test('miss', async () => testHover(miss));
-                test('series[0].datum[0]', async () => testHover(series0datum0));
-                test('series[0].datum[2]', async () => testHover(series0datum2));
-                test('series[1].datum[0]', async () => testHover(series1datum0));
-                test('legendItem[0]', async () => testHover(legendItem0));
-                test('legendItem[1]', async () => testHover(legendItem1));
+                it('miss', async () => testHover(miss));
+                it('series[0].datum[0]', async () => testHover(series0datum0));
+                it('series[0].datum[2]', async () => testHover(series0datum2));
+                it('series[1].datum[0]', async () => testHover(series1datum0));
+                it('legendItem[0]', async () => testHover(legendItem0));
+                it('legendItem[1]', async () => testHover(legendItem1));
             });
             describe('sequenced', () => {
                 async function hover(p: { readonly x: number; readonly y: number }) {
@@ -708,7 +707,7 @@ describe('RadialBarSeries', () => {
                     styler.mock.mockClear();
                     return result;
                 }
-                test('1', async () => {
+                it('1', async () => {
                     await hover(miss);
                     expect(popCalls()).toMatchSnapshot();
 
@@ -803,11 +802,10 @@ describe('RadialBarSeries', () => {
                 // Bespoke: the chart is created in a custom container, which the factory does not accept.
                 prepareEnterpriseTestOptions(options, container);
 
-                chart = deproxy(AgCharts.create(options));
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                const series = chart.series[0];
-                const [sector] = series.getItemNodes();
+                const [sector] = classCast(getSeriesAt(chart), RadialBarSeries).getItemNodes();
 
                 expect(sector.fill).toBe('rgb(0, 128, 0)');
             } finally {
@@ -865,15 +863,9 @@ describe('RadialBarSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -933,15 +925,9 @@ describe('RadialBarSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -949,15 +935,9 @@ describe('RadialBarSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories', async () => {
-            const options: AgChartOptions = {
-                ...RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS,
-                series: [
-                    {
-                        ...RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1067,21 +1047,23 @@ describe('RadialBarSeries', () => {
         it.each([false, true])(
             'should draw the other categories and leave a gap for a row without the angleKey property (stacked: %s)',
             async (stacked) => {
-                const data = QUARTERS.map((quarter, index) => ({ quarter, iphone: 140 + index, ipad: 14 + index }));
-                delete (data[3] as Partial<(typeof data)[number]>).ipad;
-                chart = deproxy(
-                    await createEnterpriseChart({
-                        data,
-                        series: ['iphone', 'ipad'].map((angleKey) => ({
-                            type: 'radial-bar' as const,
-                            radiusKey: 'quarter',
-                            angleKey,
-                            stacked,
-                        })),
-                    })
-                );
+                const data: { quarter: string; iphone: number; ipad?: number }[] = QUARTERS.map((quarter, index) => ({
+                    quarter,
+                    iphone: 140 + index,
+                    ipad: 14 + index,
+                }));
+                delete data[3].ipad;
+                chart = await createEnterpriseChart({
+                    data,
+                    series: ['iphone', 'ipad'].map((angleKey) => ({
+                        type: 'radial-bar' as const,
+                        radiusKey: 'quarter',
+                        angleKey,
+                        stacked,
+                    })),
+                });
 
-                const nodeData = chart.series[1].contextNodeData.nodeData as any[];
+                const { nodeData } = getSeriesContextNodeData<RadialBarSeriesNodeDatum>(chart, 1);
                 expect(nodeData).toHaveLength(QUARTERS.length);
                 for (const [index, { clipSector }] of nodeData.entries()) {
                     const drawn = Number.isFinite(clipSector.startAngle) && Number.isFinite(clipSector.endAngle);

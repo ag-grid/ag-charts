@@ -1,10 +1,17 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { type AgChartOptions, AgCharts, type AgHeatmapSeriesItemStylerParams } from 'ag-charts-community';
+import {
+    type AgChartOptions,
+    AgCharts,
+    type AgHeatmapSeriesItemStylerParams,
+    type AgHeatmapSeriesOptions,
+    type TextAlign,
+    type VerticalAlign,
+} from 'ag-charts-community';
 import {
     BIG,
-    type Chart,
+    type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     NEG_BIG,
@@ -17,6 +24,10 @@ import {
     expectNoAnimation,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
+    getLegendItemNodes,
+    getLegendModule,
+    getSeriesAt,
+    getSeriesOptions,
     hoverAction,
     isTooltipVisible,
     pressKey,
@@ -30,20 +41,40 @@ import {
 import { CallbackResultMemo, type Rect, Transformable } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
+import { getHeatmapCellMethods, getLegendItemSuppressHighlight } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
     collectShapes,
     createEnterpriseChart,
+    itemNodes,
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
     shadowedShapes,
 } from '../../test/utils';
 import { HeatmapSeries } from './heatmapSeries';
 
+// The chart's series as a heatmap series, for the public members (groups, `getNodeData`) its own type declares.
+const heatmapSeriesAt = (chart: ChartOrProxy<any>, seriesIndex = 0) =>
+    classCast(getSeriesAt(chart, seriesIndex), HeatmapSeries);
+
+// `allowNullKeys` is not in the public types, so the series is built in a variable to clear the excess-property check.
+const ALLOW_NULL_KEYS_SERIES = {
+    type: 'heatmap' as const,
+    xKey: 'year',
+    yKey: 'person',
+    colorKey: 'spending',
+    allowNullKeys: true,
+};
+
 // Resolves nodeData fresh on every call so it stays valid across `proxy.update(...)` rebuilds.
-async function hoverDatumByIndex(chart: Chart, seriesIndex: number, datumIndex: number, hideDelay?: number) {
-    const series = classCast(chart.series[seriesIndex], HeatmapSeries);
+async function hoverDatumByIndex(
+    chart: ChartOrProxy<any>,
+    seriesIndex: number,
+    datumIndex: number,
+    hideDelay?: number
+) {
+    const series = heatmapSeriesAt(chart, seriesIndex);
     const nodeData = series.getNodeData();
     expect(nodeData).toBeDefined();
     const datum = nodeData!.find((n) => n.datumIndex === datumIndex);
@@ -56,12 +87,13 @@ async function hoverDatumByIndex(chart: Chart, seriesIndex: number, datumIndex: 
 describe('HeatmapSeries', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: ChartOrProxy<any>;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
+            // Cleared so that a test which fails before creating its chart does not destroy the previous one again.
             (chart as unknown) = undefined;
         }
     });
@@ -559,15 +591,14 @@ describe('HeatmapSeries', () => {
 
             // Drive Legend.onHover directly: its markerLabel nodes already carry the datum
             // association, and the MouseEvent is only used for tooltip positioning.
-            const legendModule = (chart as Chart).modulesManager.getModule<any>('legend');
-            const items: any[] = [];
-            legendModule.itemSelection.each((item: any) => items.push(item));
+            const legendModule = getLegendModule(deproxy(chart));
+            const items = getLegendItemNodes(chart);
             // 1 toggleable Series A + 3 bin items from Series B.
             expect(items).toHaveLength(4);
-            expect(items[0].datum.suppressHighlight).toBeUndefined();
-            expect(items[1].datum.suppressHighlight).toBe(true);
+            expect(getLegendItemSuppressHighlight(items[0])).toBeUndefined();
+            expect(getLegendItemSuppressHighlight(items[1])).toBe(true);
 
-            const { highlightManager } = (chart as Chart).ctx;
+            const { highlightManager } = deproxy(chart).ctx;
             const mockEvent = new MouseEvent('mousemove');
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
 
@@ -601,7 +632,7 @@ describe('HeatmapSeries', () => {
                 })
             );
 
-            const { highlightManager } = (chart as Chart).ctx;
+            const { highlightManager } = deproxy(chart).ctx;
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
 
             const legendBBox = computeLegendBBox(chart);
@@ -669,7 +700,7 @@ describe('HeatmapSeries', () => {
                 })
             );
 
-            const series = (chart as Chart).series[0];
+            const series = getSeriesAt(chart);
             const legendData = series.getLegendData('category') as { label: { text: string } }[];
             const labels = legendData.map((d) => d.label.text);
 
@@ -744,15 +775,7 @@ describe('HeatmapSeries', () => {
                     { year: '2021', person: 'Florian', spending: 30 },
                     { year: '2021', person: null, spending: 40 },
                 ],
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        allowNullKeys: true,
-                    } as any,
-                ],
+                series: [ALLOW_NULL_KEYS_SERIES],
             });
 
             expectWarningsCalls().toEqual([]);
@@ -766,15 +789,7 @@ describe('HeatmapSeries', () => {
                     { year: '2020', person: undefined, spending: 20 },
                     { year: '2021', person: 'Florian', spending: 30 },
                 ],
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        allowNullKeys: true,
-                    } as any,
-                ],
+                series: [ALLOW_NULL_KEYS_SERIES],
             });
 
             expectWarningsCalls().toEqual([]);
@@ -809,7 +824,7 @@ describe('HeatmapSeries', () => {
             );
             await compare();
 
-            const seriesImpl = chart.series[0] as HeatmapSeries;
+            const seriesImpl = heatmapSeriesAt(chart);
             assertTooltipSuppressedForMissing(
                 seriesImpl,
                 data,
@@ -1084,7 +1099,7 @@ describe('HeatmapSeries', () => {
                     x: { type: 'grouped-category', title: { text: 'Baud Rate (Even / Odd pairs)' } },
                     y: { type: 'category', title: { text: 'Line Rate' }, reverse: true },
                 },
-                gradientLegend: { position: 'right' } as any,
+                gradientLegend: { position: 'right' },
             });
             await compare();
         });
@@ -1127,15 +1142,7 @@ describe('HeatmapSeries', () => {
                     { year: '2021', person: null, spending: 50 },
                     { year: '2021', person: undefined, spending: 60 },
                 ],
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        allowNullKeys: true,
-                    } as any,
-                ],
+                series: [ALLOW_NULL_KEYS_SERIES],
             });
 
             expectWarningsCalls().toEqual([]);
@@ -1244,7 +1251,7 @@ describe('HeatmapSeries', () => {
             [...sample.keys()].filter((k) => /^series\[0\]\/rect\[/.test(k));
 
         it('update data: cells snap to their new layout without tweening', async () => {
-            chart = await createEnterpriseChart({
+            const proxy = await createEnterpriseChart({
                 data: [
                     { year: '2020', person: 'A', spending: 10 },
                     { year: '2020', person: 'B', spending: 20 },
@@ -1254,9 +1261,10 @@ describe('HeatmapSeries', () => {
                 series: [{ type: 'heatmap', xKey: 'year', yKey: 'person', colorKey: 'spending' }],
                 legend: { enabled: false },
             });
+            chart = proxy;
             const sampler = createSceneGeometrySampler(chart);
             const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
-                chart.updateDelta({
+                proxy.updateDelta({
                     data: [
                         { year: '2020', person: 'A', spending: 10 },
                         { year: '2020', person: 'B', spending: 20 },
@@ -1281,8 +1289,7 @@ describe('HeatmapSeries', () => {
     describe('cornerRadius', () => {
         // Rect.serializeProps() omits the corner-radius fields, so neither the image snapshot nor the
         // scene-graph JSON can witness this option — the node has to be read directly.
-        const cellRects = (target: Chart) =>
-            collectShapes(classCast(target.series[0], HeatmapSeries).contentGroup) as Rect[];
+        const cellRects = (target: ChartOrProxy<any>) => itemNodes<Rect>(target);
 
         const buildOptions = (cornerRadius?: number): AgChartOptions => ({
             data: EXAMPLE_OPTIONS.data,
@@ -1346,21 +1353,20 @@ describe('HeatmapSeries', () => {
         it('defaults to a disabled shadow', async () => {
             chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(getSeriesOptions<AgHeatmapSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
             chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            const shapes = collectShapes(chart.series[0].contentGroup);
-            expect(shapes).toHaveLength(9);
-            expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
+            expect(itemNodes(chart)).toHaveLength(9);
+            expect(shadowedShapes(getSeriesAt(chart).contentGroup)).toEqual([]);
         });
 
         it('applies an enabled shadow to every cell', async () => {
             chart = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
 
-            const shapes = collectShapes(chart.series[0].contentGroup);
+            const shapes = itemNodes(chart);
             expect(shapes).toHaveLength(9);
             for (const shape of shapes) {
                 expect(shape.fillShadow).toMatchObject(SHADOW);
@@ -1376,30 +1382,28 @@ describe('HeatmapSeries', () => {
     describe('label alignment', () => {
         const ITEM_PADDING = 12;
 
-        const buildOptions = (series: object): AgChartOptions =>
-            ({
-                data: EXAMPLE_OPTIONS.data,
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
-                        itemPadding: ITEM_PADDING,
-                        ...series,
-                    },
-                ],
-                legend: { enabled: false },
-            }) as AgChartOptions;
+        const buildOptions = (series: Partial<AgHeatmapSeriesOptions>): AgChartOptions => ({
+            data: EXAMPLE_OPTIONS.data,
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'year',
+                    yKey: 'person',
+                    colorKey: 'spending',
+                    colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
+                    itemPadding: ITEM_PADDING,
+                    ...series,
+                },
+            ],
+            legend: { enabled: false },
+        });
 
         // Anchor offset of the first label, relative to its cell centre, plus the padded cell span it
         // should be a fraction of and the canvas alignment carried on the same datum.
         const readAnchor = async (options: AgChartOptions) => {
             chart = deproxy(await createEnterpriseChart(options));
 
-            const series = classCast(chart.series[0], HeatmapSeries);
-            const context = series.contextNodeData;
+            const context = heatmapSeriesAt(chart).contextNodeData;
             expect(context).toBeDefined();
 
             const labelDatum = context!.labelData[0];
@@ -1417,6 +1421,7 @@ describe('HeatmapSeries', () => {
             };
 
             chart.destroy();
+            // Cleared so that afterEach does not destroy the chart a second time.
             (chart as unknown) = undefined;
             return anchor;
         };
@@ -1495,7 +1500,7 @@ describe('HeatmapSeries', () => {
             it('anchors every cell to the alignment its styler returned', async () => {
                 chart = deproxy(await createEnterpriseChart(styledOptions()));
 
-                const context = classCast(chart.series[0], HeatmapSeries).contextNodeData;
+                const context = heatmapSeriesAt(chart).contextNodeData;
                 expect(context).toBeDefined();
                 expect(context!.labelData).toHaveLength(9);
 
@@ -1535,7 +1540,7 @@ describe('HeatmapSeries', () => {
                 const anchor = await readAnchor({
                     ...buildOptions({ label: { enabled: true, textAlign } }),
                     enableRtl,
-                } as AgChartOptions);
+                });
 
                 expect(anchor.dx).toBeCloseTo(expectedFactor * anchor.xSpan);
             });
@@ -1591,7 +1596,7 @@ describe('HeatmapSeries', () => {
         });
 
         describe('rendered output', () => {
-            const cases: [string, string, string][] = [
+            const cases: [TextAlign, VerticalAlign, string][] = [
                 ['left', 'middle', 'left-middle'],
                 ['center', 'middle', 'center-middle'],
                 ['right', 'middle', 'right-middle'],
@@ -1621,6 +1626,7 @@ describe('HeatmapSeries', () => {
         const NO_TOOLTIP = { tooltip: { enabled: false } };
         const HIGHLIGHT_OFF = { ...NO_TOOLTIP, highlight: { enabled: false } };
 
+        // The series overrides are free-form (stylers typed per test), so a caller that needs `AgChartOptions` casts the result.
         const rawOptions = (overrides: Record<string, unknown> = {}, data: object[] = DATA) => ({
             width: 400,
             height: 300,
@@ -1638,19 +1644,18 @@ describe('HeatmapSeries', () => {
             legend: { enabled: false },
         });
 
-        const cellRects = (c: Chart) => collectShapes(classCast(c.series[0], HeatmapSeries).contentGroup);
-        const cellFills = (c: Chart) => cellRects(c).map((rect) => String(rect.fill));
-        const cellOpacities = (c: Chart) => cellRects(c).map((rect) => rect.fillOpacity);
-        const cellStrokes = (c: Chart) =>
+        const cellRects = (c: ChartOrProxy<any>) => itemNodes(c);
+        const cellFills = (c: ChartOrProxy<any>) => cellRects(c).map((rect) => String(rect.fill));
+        const cellOpacities = (c: ChartOrProxy<any>) => cellRects(c).map((rect) => rect.fillOpacity);
+        const cellStrokes = (c: ChartOrProxy<any>) =>
             cellRects(c).map((rect) => ({ stroke: rect.stroke, width: rect.strokeWidth }));
 
-        const strokeWidths = (c: Chart) => cellStrokes(c).map(({ width }) => width);
+        const strokeWidths = (c: ChartOrProxy<any>) => cellStrokes(c).map(({ width }) => width);
 
         /** Reads a freshly created chart's cells (their fills unless `read` says otherwise), then destroys it. */
-        async function freshCellFills<T = string[]>(
-            options: AgChartOptions,
-            read: (c: Chart) => T = cellFills as unknown as (c: Chart) => T
-        ): Promise<T> {
+        async function freshCellFills(options: AgChartOptions): Promise<string[]>;
+        async function freshCellFills<T>(options: AgChartOptions, read: (c: ChartOrProxy<any>) => T): Promise<T>;
+        async function freshCellFills(options: AgChartOptions, read: (c: ChartOrProxy<any>) => unknown = cellFills) {
             const reference = deproxy(await createEnterpriseChart(options));
             const result = read(reference);
             reference.destroy();
@@ -1663,9 +1668,9 @@ describe('HeatmapSeries', () => {
         }
 
         async function select(datumIndex: number) {
-            const series = classCast(chart.series[0], HeatmapSeries);
+            const series = heatmapSeriesAt(chart);
             const itemId = series.data!.getItemIdFromIndex(datumIndex);
-            chart.publicApi.setSelection([{ seriesId: series.id, itemId }]);
+            deproxy(chart).publicApi!.setSelection([{ seriesId: series.id, itemId }]);
             await waitForChartStability(chart);
         }
 
@@ -1674,7 +1679,7 @@ describe('HeatmapSeries', () => {
             const before = cellFills(chart);
             expect(new Set(before).size).toBe(DATA.length);
 
-            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
             const after = cellFills(chart);
@@ -1687,7 +1692,7 @@ describe('HeatmapSeries', () => {
             const before = cellFills(chart);
 
             const colorScale = { fills: [{ color: 'green' }, { color: 'yellow' }] };
-            chart.publicApi.updateDelta({ series: [{ ...rawOptions().series[0], colorScale }] });
+            void chart.publicApi!.updateDelta({ series: [{ ...rawOptions().series[0], colorScale }] });
             await waitForChartStability(chart);
 
             const after = cellFills(chart);
@@ -1716,7 +1721,7 @@ describe('HeatmapSeries', () => {
             const options = rawOptions(HIGHLIGHT_OFF);
             chart = deproxy(await createEnterpriseChart(options));
 
-            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
             expect(cellFills(chart)).toEqual(await freshCellFills(rawOptions(HIGHLIGHT_OFF, SHIFTED_DATA)));
 
@@ -1733,7 +1738,7 @@ describe('HeatmapSeries', () => {
             );
             await hoverDatumByIndex(chart, 0, 0);
 
-            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
             const fills = cellFills(chart);
@@ -1762,7 +1767,7 @@ describe('HeatmapSeries', () => {
             await select(1);
             expect(cellFills(chart)).not.toEqual(fills);
 
-            chart.publicApi.setSelection([]);
+            chart.publicApi!.setSelection([]);
             await waitForChartStability(chart);
             expect(cellFills(chart)).toEqual(fills);
             expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
@@ -1770,10 +1775,10 @@ describe('HeatmapSeries', () => {
 
         it('styles each cell once per update when only the colour scale colours the cells', async () => {
             chart = deproxy(await createEnterpriseChart(rawOptions()));
-            const getItemStyle = vi.spyOn(HeatmapSeries.prototype as any, 'getItemStyle');
+            const getItemStyle = vi.spyOn(getHeatmapCellMethods(), 'getItemStyle');
 
             try {
-                chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+                void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
                 await waitForChartStability(chart);
 
                 expect(getItemStyle).toHaveBeenCalledTimes(DATA.length);
@@ -1790,7 +1795,7 @@ describe('HeatmapSeries', () => {
             const strokes = cellStrokes(chart);
             expect(strokes.filter(({ width }) => width === 3)).toHaveLength(2);
 
-            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
             expect(cellFills(chart)).toEqual(await freshCellFills(rawOptions({ itemStyler }, SHIFTED_DATA)));
@@ -1819,7 +1824,7 @@ describe('HeatmapSeries', () => {
             expect(cellStrokes(chart).map(({ width }) => width)).toEqual([1, 1, 1, 1]);
 
             strokeWidth = 4;
-            chart.publicApi.update(options);
+            void chart.publicApi!.update(options);
             await waitForChartStability(chart);
 
             expect(cellStrokes(chart).map(({ width }) => width)).toEqual([4, 4, 4, 4]);
@@ -1833,7 +1838,7 @@ describe('HeatmapSeries', () => {
             chart = deproxy(await createEnterpriseChart(rawOptions({ colorScale }, withGap)));
             expect(cellFills(chart).filter((f) => f === missingDataFill)).toHaveLength(1);
 
-            chart.publicApi.updateDelta({ data: DATA });
+            void chart.publicApi!.updateDelta({ data: DATA });
             await waitForChartStability(chart);
             expect(cellFills(chart)).not.toContain(missingDataFill);
             expect(cellFills(chart)).toEqual(await freshCellFills(rawOptions({ colorScale })));
@@ -1952,7 +1957,7 @@ describe('HeatmapSeries', () => {
                     strokeWidth: STROKE_WIDTH_BY_STATE[highlightState as string] ?? 2,
                 }));
                 const highlightWidths = () =>
-                    collectShapes(classCast(chart.series[0], HeatmapSeries).highlightGroup).map((r) => r.strokeWidth);
+                    collectShapes(heatmapSeriesAt(chart).highlightGroup).map((r) => r.strokeWidth);
                 chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, itemStyler })));
                 expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
                 expect(strokeWidths(chart)).toEqual([2, 2, 2, 2]);
@@ -1978,11 +1983,11 @@ describe('HeatmapSeries', () => {
                 chart = deproxy(await createEnterpriseChart(options));
                 prepareEnterpriseTestOptions(options);
 
-                const { optionsGraphService } = chart.series[0].ctx;
+                const { optionsGraphService } = deproxy(chart).ctx;
                 const resolvePartial = vi.spyOn(optionsGraphService, 'resolvePartial');
 
                 try {
-                    chart.publicApi.update(options);
+                    void chart.publicApi!.update(options);
                     await waitForChartStability(chart);
 
                     expect(strokeWidths(chart)).toEqual(data.map((d) => 1 + (d.spending % 3)));
@@ -2028,7 +2033,7 @@ describe('HeatmapSeries', () => {
             const ROWS = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
 
             const highlightWidths = () =>
-                collectShapes(classCast(chart.series[0], HeatmapSeries).highlightGroup).map((r) => r.strokeWidth);
+                collectShapes(heatmapSeriesAt(chart).highlightGroup).map((r) => r.strokeWidth);
 
             describe.each([
                 ['undefined', () => undefined],
@@ -2043,12 +2048,14 @@ describe('HeatmapSeries', () => {
                     expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
 
                     itemStyler.mockClear();
-                    chart.publicApi.update(options);
+                    void chart.publicApi!.update(options);
                     await waitForChartStability(chart);
                     expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
 
                     itemStyler.mockClear();
-                    chart.publicApi.updateDelta({ data: ROWS.map((d) => ({ ...d, spending: d.spending + 100 })) });
+                    void chart.publicApi!.updateDelta({
+                        data: ROWS.map((d) => ({ ...d, spending: d.spending + 100 })),
+                    });
                     await waitForChartStability(chart);
                     expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
                 });
@@ -2065,7 +2072,7 @@ describe('HeatmapSeries', () => {
 
                 for (const next of [5, 8]) {
                     width = next;
-                    chart.publicApi.update(options);
+                    void chart.publicApi!.update(options);
                     await waitForChartStability(chart);
                     expect(strokeWidths(chart)).toEqual(
                         ROWS.map((d, i) => (d.spending % 2 === 0 ? unstyled[i] : next))
@@ -2084,7 +2091,7 @@ describe('HeatmapSeries', () => {
                 expect(before).not.toContain(6);
 
                 // The restyle straight after this update is skipped, so the hover below must still restyle.
-                chart.publicApi.update(options);
+                void chart.publicApi!.update(options);
                 await waitForChartStability(chart);
                 expect(strokeWidths(chart)).toEqual(before);
 
@@ -2106,7 +2113,7 @@ describe('HeatmapSeries', () => {
                 expect(highlightWidths()).toEqual([9]);
 
                 width = 4;
-                chart.publicApi.update(options);
+                void chart.publicApi!.update(options);
                 await waitForChartStability(chart);
 
                 expect(strokeWidths(chart)).toEqual([4, 4, 4, 4]);
@@ -2126,7 +2133,7 @@ describe('HeatmapSeries', () => {
                 expect(strokeWidths(chart)).toEqual([7, 7, 7, 7]);
                 await hoverAway();
 
-                chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+                void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
                 await waitForChartStability(chart);
 
                 expect(strokeWidths(chart)).toEqual(SHIFTED_DATA.map((d) => 1 + (d.spending >= 30 ? 1 : 0)));
@@ -2147,12 +2154,12 @@ describe('HeatmapSeries', () => {
                 expect(cellOpacities(chart).slice(1)).toEqual([0.3, 0.3, 0.3]);
 
                 // A full update while a cell is selected keeps the selection styling.
-                chart.publicApi.update(options);
+                void chart.publicApi!.update(options);
                 await waitForChartStability(chart);
                 expect(cellFills(chart)[0]).toBe('lime');
                 expect(cellOpacities(chart).slice(1)).toEqual([0.3, 0.3, 0.3]);
 
-                chart.publicApi.setSelection([]);
+                chart.publicApi!.setSelection([]);
                 await waitForChartStability(chart);
                 expect(cellFills(chart)).toEqual(unselected);
                 expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
@@ -2180,7 +2187,7 @@ describe('HeatmapSeries', () => {
                 expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
 
                 await select(0);
-                chart.publicApi.setSelection([]);
+                chart.publicApi!.setSelection([]);
                 await waitForChartStability(chart);
 
                 expect(itemStyler).toHaveBeenCalledTimes(ROWS.length);
@@ -2226,7 +2233,7 @@ describe('HeatmapSeries', () => {
                     prepareEnterpriseTestOptions(options);
                     const writes = watchCellStyleWrites();
 
-                    chart.publicApi.update(options);
+                    void chart.publicApi!.update(options);
                     await waitForChartStability(chart);
 
                     expect(writes()).toBe(0);
@@ -2239,7 +2246,7 @@ describe('HeatmapSeries', () => {
                     await hoverDatumByIndex(chart, 0, 1);
                     const writes = watchCellStyleWrites();
 
-                    chart.publicApi.update(options);
+                    void chart.publicApi!.update(options);
                     await waitForChartStability(chart);
 
                     expect(writes()).toBeGreaterThan(0);
@@ -2255,7 +2262,7 @@ describe('HeatmapSeries', () => {
                     await select(0);
                     const writes = watchCellStyleWrites();
 
-                    chart.publicApi.update(options);
+                    void chart.publicApi!.update(options);
                     await waitForChartStability(chart);
 
                     expect(writes()).toBeGreaterThan(0);
@@ -2289,14 +2296,16 @@ describe('HeatmapSeries', () => {
 
         describe('itemStyler results with and without a theme reference', () => {
             type StylerParams = AgHeatmapSeriesItemStylerParams<(typeof DATA)[number]>;
-            const resolvedStylerResults = (resolvePartial: { mock: { calls: any[][] } }) =>
-                resolvePartial.mock.calls.filter(([, value]) => value != null && 'fill' in value);
+            const resolvedStylerResults = (resolvePartial: { mock: { calls: unknown[][] } }) =>
+                resolvePartial.mock.calls.filter(
+                    ([, value]) => typeof value === 'object' && value != null && 'fill' in value
+                );
 
             async function updateWatchingResolvePartial(options: ReturnType<typeof rawOptions>) {
                 chart = deproxy(await createEnterpriseChart(options));
                 prepareEnterpriseTestOptions(options);
-                const resolvePartial = vi.spyOn(chart.series[0].ctx.optionsGraphService, 'resolvePartial');
-                chart.publicApi.update(options);
+                const resolvePartial = vi.spyOn(deproxy(chart).ctx.optionsGraphService, 'resolvePartial');
+                void chart.publicApi!.update(options);
                 await waitForChartStability(chart);
                 return resolvePartial;
             }
@@ -2334,7 +2343,7 @@ describe('HeatmapSeries', () => {
                 const clear = vi.spyOn(CallbackResultMemo.prototype, 'clear');
 
                 try {
-                    chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+                    void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
                     await waitForChartStability(chart);
 
                     expect(clear).toHaveBeenCalled();
@@ -2388,7 +2397,7 @@ describe('HeatmapSeries', () => {
         }
 
         const repaint = async () => {
-            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            void deproxy(chart).publicApi!.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
         };
 
@@ -2398,7 +2407,7 @@ describe('HeatmapSeries', () => {
             const updatePaths = cellRects(chart).map((rect) => vi.spyOn(rect as Rect, 'updatePath'));
             const updated = () => updatePaths.filter((spy) => spy.mock.calls.length > 0).length;
 
-            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
             expect(cellFills(chart)).not.toEqual(before);
@@ -2406,7 +2415,7 @@ describe('HeatmapSeries', () => {
             expect(updated()).toBe(0);
 
             // A change of layout still rebuilds them.
-            chart.publicApi.updateDelta({ data: [...SHIFTED_DATA, { year: '2022', person: 'A', spending: 50 }] });
+            void chart.publicApi!.updateDelta({ data: [...SHIFTED_DATA, { year: '2022', person: 'A', spending: 50 }] });
             await waitForChartStability(chart);
             expect(updated()).toBeGreaterThan(0);
         });
@@ -2446,7 +2455,7 @@ describe('HeatmapSeries', () => {
             };
             const others = await nonCellRects(highlight);
             chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, highlight })));
-            const series = classCast(chart.series[0], HeatmapSeries);
+            const series = heatmapSeriesAt(chart);
 
             const { rects } = await countFills(() => hoverDatumByIndex(chart, 0, 1));
 
@@ -2475,27 +2484,25 @@ describe('HeatmapSeries', () => {
 
         it('picks, highlights and shows the tooltip of the cell under the pointer after a repaint', async () => {
             chart = deproxy(await createEnterpriseChart(rawOptions()));
-            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
             await hoverDatumByIndex(chart, 0, 3);
 
             expect(isTooltipVisible(chart)).toBe(true);
-            expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(3);
+            expect(deproxy(chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(3);
         });
 
         it('keeps keyboard navigation and labels working after a repaint', async () => {
             chart = deproxy(await createEnterpriseChart(rawOptions({ label: { enabled: true } })));
-            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
             const labels = () =>
-                collectShapes(classCast(chart.series[0], HeatmapSeries).labelGroup).map(
-                    (shape) => (shape as { text?: string }).text
-                );
+                collectShapes(heatmapSeriesAt(chart).labelGroup).map((shape) => (shape as { text?: string }).text);
             expect(labels().sort((a, b) => String(a).localeCompare(String(b)))).toEqual(['10', '100', '40', '5']);
 
-            const highlightedIndex = () => (chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex;
+            const highlightedIndex = () => deproxy(chart).ctx.highlightManager.getActiveHighlight()?.datumIndex;
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowRight');
             expect(highlightedIndex()).toBe(1);
@@ -2521,6 +2528,7 @@ describe('HeatmapSeries', () => {
         });
         const NO_TOOLTIP = { tooltip: { enabled: false } };
 
+        // The series overrides are free-form, so a caller that needs `AgChartOptions` casts the result.
         const rawOptions = (data: Cell[], series: Record<string, unknown> = {}) => ({
             width: 400,
             height: 300,
@@ -2543,9 +2551,9 @@ describe('HeatmapSeries', () => {
         const buildOptions = (...args: Parameters<typeof rawOptions>) =>
             prepareEnterpriseTestOptions(rawOptions(...args));
 
-        const heatmap = (c: Chart) => classCast(c.series[0], HeatmapSeries);
-        const rects = (c: Chart) => collectShapes(heatmap(c).contentGroup) as Rect[];
-        const cells = (c: Chart) =>
+        const heatmap = (c: ChartOrProxy<any>) => heatmapSeriesAt(c);
+        const rects = (c: ChartOrProxy<any>) => itemNodes<Rect>(c);
+        const cells = (c: ChartOrProxy<any>) =>
             rects(c).map((rect) => ({
                 fill: String(rect.fill),
                 opacity: rect.fillOpacity,
@@ -2558,7 +2566,7 @@ describe('HeatmapSeries', () => {
             }));
 
         async function transact(transaction: { update?: Cell[]; add?: Cell[]; remove?: { id: string }[] }) {
-            await chart.publicApi.applyTransaction(transaction);
+            await deproxy(chart).publicApi!.applyTransaction(transaction);
             await waitForChartStability(chart);
         }
 
@@ -2573,7 +2581,7 @@ describe('HeatmapSeries', () => {
             GRID.map((cell) => updates.find((update) => update.id === cell.id) ?? cell);
 
         function spyOnCellRebuilds() {
-            const prototype = HeatmapSeries.prototype as any;
+            const prototype = getHeatmapCellMethods();
             const datums = vi.spyOn(prototype, 'updateNodeDatum');
             const styles = vi.spyOn(prototype, 'getItemStyle');
             return {
@@ -2711,7 +2719,7 @@ describe('HeatmapSeries', () => {
             const data = withUpdates(UPDATED('1:1', 7));
             const series = { cornerRadius: 6, colorScale: { fills: [{ color: 'green' }, { color: 'orange' }] } };
 
-            chart.publicApi.update(buildOptions(data, series));
+            void chart.publicApi!.update(buildOptions(data, series));
             await waitForChartStability(chart);
 
             expect(cells(chart)).toEqual(await freshCells(data, series));
@@ -2721,7 +2729,7 @@ describe('HeatmapSeries', () => {
             chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
             await transact({ update: [UPDATED('1:1', 7)] });
 
-            chart.publicApi.updateDelta({ width: 300, height: 200 });
+            void chart.publicApi!.updateDelta({ width: 300, height: 200 });
             await waitForChartStability(chart);
 
             // Bespoke: the size is set after preparation, which the factory would overwrite with the default canvas size.
@@ -2816,7 +2824,7 @@ describe('HeatmapSeries', () => {
             const series = { ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } };
             chart = deproxy(await createEnterpriseChart(rawOptions(GRID, series)));
             // The highlight is set through the manager, so the pointer cannot bring it back after the update.
-            const { highlightManager } = (chart as Chart).ctx;
+            const { highlightManager } = deproxy(chart).ctx;
             highlightManager.updateHighlight('test', heatmap(chart).getNodeData()![0]);
             await waitForChartStability(chart);
             expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.4));
@@ -2857,7 +2865,7 @@ describe('HeatmapSeries', () => {
             await hoverDatumByIndex(chart, 0, datumIndex);
 
             expect(isTooltipVisible(chart)).toBe(true);
-            expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
+            expect(deproxy(chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
             expect(JSON.stringify(heatmap(chart).getTooltipContent(datumIndex))).toContain('9.5');
         });
 
@@ -2930,7 +2938,7 @@ describe('HeatmapSeries', () => {
                 chart = deproxy(await createEnterpriseChart(rawOptions(GRID, { ...NO_TOOLTIP, selection })));
                 const series = heatmap(chart);
 
-                chart.publicApi.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(0) }]);
+                chart.publicApi!.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(0) }]);
                 await transactIncrementally([UPDATED('2:2', 5)]);
 
                 const painted = cells(chart);
@@ -2941,8 +2949,8 @@ describe('HeatmapSeries', () => {
             it('rebuilds every cell when a second update lands in the same frame as the transaction', async () => {
                 chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
 
-                const transaction = chart.publicApi.applyTransaction({ update: [UPDATED('1:1', 8)] });
-                chart.publicApi.updateDelta({ series: [{ ...rawOptions(GRID).series[0], cornerRadius: 6 }] });
+                const transaction = chart.publicApi!.applyTransaction({ update: [UPDATED('1:1', 8)] });
+                void chart.publicApi!.updateDelta({ series: [{ ...rawOptions(GRID).series[0], cornerRadius: 6 }] });
                 await transaction;
                 await waitForChartStability(chart);
 
@@ -2954,7 +2962,7 @@ describe('HeatmapSeries', () => {
                 chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
                 await transact({ update: [UPDATED('1:1', 8)] });
 
-                chart.publicApi.updateDelta({ series: [{ ...rawOptions(GRID).series[0], cornerRadius: 6 }] });
+                void chart.publicApi!.updateDelta({ series: [{ ...rawOptions(GRID).series[0], cornerRadius: 6 }] });
                 await waitForChartStability(chart);
 
                 expect(rects(chart).map((rect) => rect.topLeftCornerRadius)).toEqual(Array(GRID.length).fill(6));
@@ -2963,8 +2971,8 @@ describe('HeatmapSeries', () => {
             it('rebuilds every cell when two transactions land in the same frame', async () => {
                 chart = deproxy(await createEnterpriseChart(rawOptions(GRID)));
 
-                const first = chart.publicApi.applyTransaction({ update: [UPDATED('1:1', 8)] });
-                const second = chart.publicApi.applyTransaction({ update: [UPDATED('2:1', 3)] });
+                const first = chart.publicApi!.applyTransaction({ update: [UPDATED('1:1', 8)] });
+                const second = chart.publicApi!.applyTransaction({ update: [UPDATED('2:1', 3)] });
                 await Promise.all([first, second]);
                 await waitForChartStability(chart);
 
@@ -3089,7 +3097,7 @@ describe('HeatmapSeries', () => {
             const parseFill = (fill: string) =>
                 NAMED[fill] ?? Array.from(fill.matchAll(/\d+/g), (match) => Number(match[0])).slice(0, 3);
 
-            const paintedColours = (c: Chart) => {
+            const paintedColours = (c: ChartOrProxy<any>) => {
                 const { contentGroup } = heatmap(c);
                 const image = ctx.snapshot();
                 return rects(c).map((rect) => {
@@ -3138,7 +3146,7 @@ describe('HeatmapSeries', () => {
         });
 
         describe('labels', () => {
-            const labelTexts = (c: Chart) =>
+            const labelTexts = (c: ChartOrProxy<any>) =>
                 (heatmap(c).contextNodeData?.labelData ?? []).map((label) => JSON.stringify(label.text));
             const series = { label: { enabled: true } };
 
@@ -3176,7 +3184,7 @@ describe('HeatmapSeries', () => {
                 await hoverDatumByIndex(chart, 0, datumIndex);
 
                 expect(isTooltipVisible(chart)).toBe(true);
-                expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
+                expect(deproxy(chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
                 expect(nodeFor(datumIndex)?.colorValue).toBe(0);
             });
 
@@ -3213,13 +3221,13 @@ describe('HeatmapSeries', () => {
 
                 await hoverDatumByIndex(chart, 0, datumIndex);
                 expect(isTooltipVisible(chart)).toBe(true);
-                expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
+                expect(deproxy(chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
 
                 // The old slot is empty now, so hovering it must not pick the moved cell.
                 const { canvasX, canvasY } = Transformable.toCanvasPoint(heatmap(chart).contentGroup, oldX, oldY);
                 await hoverAction(canvasX, canvasY)(chart);
                 await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
-                expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).not.toBe(datumIndex);
+                expect(deproxy(chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).not.toBe(datumIndex);
                 expect(cells(chart)).toEqual(await freshCells(data.map((cell) => (cell.id === '2:2' ? moved : cell))));
             });
         });

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
     type AgBoxPlotSeriesItemStylerParams,
+    type AgBoxPlotSeriesOptions,
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
     type AgCartesianChartOptions,
@@ -11,6 +12,7 @@ import {
 } from 'ag-charts-community';
 import {
     BIG,
+    type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockBoxPlotStyler,
@@ -25,6 +27,8 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesContextNodeData,
+    getSeriesOptions,
     hoverAction,
     magnitudePair,
     newFreezableMock,
@@ -47,24 +51,24 @@ import {
     shadowedShapes,
 } from '../../test/utils';
 
-const BOX_PLOT_BAR_OPTIONS: AgChartOptions = {
+const BOX_PLOT_SERIES: AgBoxPlotSeriesOptions = {
+    type: 'box-plot',
+    xKey: 'year',
+    minKey: 'min',
+    q1Key: 'q1',
+    medianKey: 'median',
+    q3Key: 'q3',
+    maxKey: 'max',
+};
+
+const BOX_PLOT_BAR_OPTIONS: AgCartesianChartOptions = {
     data: [
         { year: '2020', min: 3.07, q1: 4.78, median: 5.3, q3: 6.3, max: 7.27 },
         { year: '2021', min: 4.87, q1: 5.8, median: 6.13, q3: 6.66, max: 7.09 },
         { year: '2022', min: 4.4, q1: 4.41, median: 4.64, q3: 4.96, max: 5.2 },
         { year: '2023', min: 7.31, q1: 7.32, median: 7.32, q3: 7.33, max: 7.33 },
     ],
-    series: [
-        {
-            type: 'box-plot',
-            xKey: 'year',
-            minKey: 'min',
-            q1Key: 'q1',
-            medianKey: 'median',
-            q3Key: 'q3',
-            maxKey: 'max',
-        },
-    ],
+    series: [BOX_PLOT_SERIES],
 };
 
 const CONTINUOUS_DATA = [
@@ -88,10 +92,10 @@ describe('BoxPlotSeries', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
 
-    const compareSnapshot = async (chart: any) => {
+    const compareSnapshot = async (chart: ChartOrProxy<any>) => {
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
 
-        chart.destroy();
+        deproxy(chart).destroy();
     };
 
     it(`should render a box-plot chart as expected`, async () => {
@@ -335,7 +339,7 @@ describe('BoxPlotSeries', () => {
             // Widen whiskers, keeping min < q1 < median < q3 < max, so the render reshapes.
             const widened: AgChartOptions = {
                 ...options,
-                data: BOX_PLOT_BAR_OPTIONS.data!.map((d: any) => ({ ...d, min: d.min - 0.5, max: d.max + 0.5 })),
+                data: BOX_PLOT_BAR_OPTIONS.data!.map((d) => ({ ...d, min: d.min - 0.5, max: d.max + 0.5 })),
             };
 
             // Bespoke: the prepared options are reused by the update inside `expectAnimatedEndpointsMatchStatic`.
@@ -348,26 +352,26 @@ describe('BoxPlotSeries', () => {
 
     describe('gradient fill', () => {
         it('should render box plot series with a default gradient fill', async () => {
-            const options = {
+            const options: AgCartesianChartOptions = {
                 ...BOX_PLOT_BAR_OPTIONS,
                 series: [
                     {
-                        ...BOX_PLOT_BAR_OPTIONS.series![0],
+                        ...BOX_PLOT_SERIES,
                         fill: {
                             type: 'gradient',
                         },
                     },
                 ],
             };
-            await compareSnapshot(await createEnterpriseChart(options as AgChartOptions));
+            await compareSnapshot(await createEnterpriseChart(options));
         });
 
         it('should render box plot series with a gradient fill', async () => {
-            const options = {
+            const options: AgCartesianChartOptions = {
                 ...BOX_PLOT_BAR_OPTIONS,
                 series: [
                     {
-                        ...BOX_PLOT_BAR_OPTIONS.series![0],
+                        ...BOX_PLOT_SERIES,
                         fill: {
                             type: 'gradient',
                             colorStops: [
@@ -382,7 +386,7 @@ describe('BoxPlotSeries', () => {
                     },
                 ],
             };
-            await compareSnapshot(await createEnterpriseChart(options as AgChartOptions));
+            await compareSnapshot(await createEnterpriseChart(options));
         });
     });
 
@@ -395,25 +399,19 @@ describe('BoxPlotSeries', () => {
             seriesOptions?: Record<string, unknown>,
             direction: 'horizontal' | 'vertical' = 'vertical'
         ): AgChartOptions => {
-            const options = switchSeriesType(
-                {
-                    ...BOX_PLOT_BAR_OPTIONS,
-                    series: [{ ...BOX_PLOT_BAR_OPTIONS.series![0], shadow, ...seriesOptions }],
-                } as AgCartesianChartOptions,
-                direction
-            ) as AgChartOptions;
-            return options;
+            const series = { ...BOX_PLOT_BAR_OPTIONS.series![0], shadow, ...seriesOptions };
+            return switchSeriesType({ ...BOX_PLOT_BAR_OPTIONS, series: [series] }, direction);
         };
 
         it('defaults to a disabled shadow', async () => {
-            const chart: any = deproxy(await createEnterpriseChart(buildOptions()));
+            const chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(getSeriesOptions<AgBoxPlotSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const chart: any = deproxy(await createEnterpriseChart(buildOptions()));
+            const chart = deproxy(await createEnterpriseChart(buildOptions()));
 
             expect(itemNodes(chart)).toHaveLength(4);
             expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
@@ -423,32 +421,30 @@ describe('BoxPlotSeries', () => {
         it.each(['vertical', 'horizontal'] as const)(
             'casts one silhouette shadow over each %s box, whiskers and caps',
             async (direction) => {
-                const chart: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW, undefined, direction)));
+                const chart = deproxy(await createEnterpriseChart(buildOptions(SHADOW, undefined, direction)));
 
                 const shapes = itemNodes<WhiskerItemNode>(chart);
                 expect(shapes).toHaveLength(4);
                 for (const shape of shapes) {
                     expect(shape.shadowMode).toBe('silhouette');
                     expect(shape.fillShadow).toMatchObject(SHADOW);
-                    expect(shape['horizontal']).toBe(direction === 'horizontal');
+                    expect(shape.horizontal).toBe(direction === 'horizontal');
                 }
                 chart.destroy();
             }
         );
 
         it('keeps shared whiskers on the box path and styled whiskers on their own path', async () => {
-            const shared: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
+            const shared = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
             for (const node of itemNodes<WhiskerItemNode>(shared)) {
-                expect(node['wickPath'].isEmpty()).toBe(true);
+                expect(node.wickPath.isEmpty()).toBe(true);
             }
             shared.destroy();
 
             // The styled whiskers are drawn apart from the box, so they reach the shadow through renderSilhouetteExtras.
-            const styled: any = deproxy(
-                await createEnterpriseChart(buildOptions(SHADOW, { whisker: STYLED_WHISKERS }))
-            );
+            const styled = deproxy(await createEnterpriseChart(buildOptions(SHADOW, { whisker: STYLED_WHISKERS })));
             for (const node of itemNodes<WhiskerItemNode>(styled)) {
-                expect(node['wickPath'].isEmpty()).toBe(false);
+                expect(node.wickPath.isEmpty()).toBe(false);
                 expect(node.shadowMode).toBe('silhouette');
                 expect(node.fillShadow).toMatchObject(SHADOW);
             }
@@ -456,7 +452,7 @@ describe('BoxPlotSeries', () => {
         });
 
         it('carries the shadow spread to the silhouette shadow of every box', async () => {
-            const chart: any = deproxy(
+            const chart = deproxy(
                 await createEnterpriseChart(buildOptions(SPREAD_SHADOW, { whisker: STYLED_WHISKERS }))
             );
 
@@ -657,16 +653,16 @@ describe('BoxPlotSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compareSnapshot(chart);
             });
             describe('callbacks', () => {
-                test('context', () => {
+                it('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
                     styler.expect().toHaveBeenCalledTimes(2);
                 });
-                test('params', () => {
+                it('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
@@ -721,7 +717,7 @@ describe('BoxPlotSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compareSnapshot(chart);
             });
         });
@@ -761,7 +757,7 @@ describe('BoxPlotSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compareSnapshot(chart);
             });
         });
@@ -808,12 +804,12 @@ describe('BoxPlotSeries', () => {
                     await hoverAction(p.x, p.y)(chart);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 }
-                test('miss', async () => testHover(miss));
-                test('series[0].datum[0]', async () => testHover(series0datum0));
-                test('series[0].datum[2]', async () => testHover(series0datum2));
-                test('series[1].datum[0]', async () => testHover(series1datum0));
-                test('legendItem[0]', async () => testHover(legendItem0));
-                test('legendItem[1]', async () => testHover(legendItem1));
+                it('miss', async () => testHover(miss));
+                it('series[0].datum[0]', async () => testHover(series0datum0));
+                it('series[0].datum[2]', async () => testHover(series0datum2));
+                it('series[1].datum[0]', async () => testHover(series1datum0));
+                it('legendItem[0]', async () => testHover(legendItem0));
+                it('legendItem[1]', async () => testHover(legendItem1));
             });
             describe('sequenced', () => {
                 async function hover(p: { readonly x: number; readonly y: number }) {
@@ -825,7 +821,7 @@ describe('BoxPlotSeries', () => {
                     styler.mock.mockClear();
                     return result;
                 }
-                test('1', async () => {
+                it('1', async () => {
                     await hover(miss);
                     expect(popCalls()).toMatchSnapshot();
 
@@ -1015,7 +1011,7 @@ describe('BoxPlotSeries', () => {
                     },
                 ],
             };
-            await compareSnapshot(await createEnterpriseChart(options as AgChartOptions));
+            await compareSnapshot(await createEnterpriseChart(options));
         });
     });
 
@@ -1061,15 +1057,9 @@ describe('BoxPlotSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1145,15 +1135,9 @@ describe('BoxPlotSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...BOX_PLOT_UNDEFINED_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...BOX_PLOT_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...BOX_PLOT_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...BOX_PLOT_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1161,15 +1145,9 @@ describe('BoxPlotSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...BOX_PLOT_NULL_AND_UNDEFINED_KEYS_OPTIONS,
-                series: [
-                    {
-                        ...BOX_PLOT_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...BOX_PLOT_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...BOX_PLOT_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             const chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1292,7 +1270,7 @@ describe('BoxPlotSeries', () => {
     describe('hide on legend toggle (CRT-1144)', () => {
         const animate = spyOnAnimationManager();
 
-        const comboOptions = (): AgChartOptions => ({
+        const comboOptions = (): AgCartesianChartOptions => ({
             data: [
                 { role: 'A', salary: 5.3, min: 3.07, q1: 4.78, median: 5.3, q3: 6.3, max: 7.27 },
                 { role: 'B', salary: 6.13, min: 4.87, q1: 5.8, median: 6.13, q3: 6.66, max: 7.09 },
@@ -1320,13 +1298,13 @@ describe('BoxPlotSeries', () => {
             animate(1200, 1);
 
             const options = comboOptions();
-            prepareEnterpriseTestOptions(options as any);
+            prepareEnterpriseTestOptions(options);
 
             const chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
             animate(1200, 1);
-            (options.series![0] as any).visible = false;
+            options.series![0].visible = false;
             await chart.update(options);
 
             await compareSnapshot(chart);
@@ -1336,19 +1314,19 @@ describe('BoxPlotSeries', () => {
             animate(1200, 1);
 
             const options = comboOptions();
-            prepareEnterpriseTestOptions(options as any);
+            prepareEnterpriseTestOptions(options);
 
             const chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
             animate(1200, 1);
-            (options.series![0] as any).visible = false;
+            options.series![0].visible = false;
             await chart.update(options);
             await waitForChartStability(chart);
 
-            const boxPlotSeries = deproxy(chart).series[0] as any;
+            const boxPlotSeries = deproxy(chart).series[0];
             expect(boxPlotSeries.visible).toBe(false);
-            expect(boxPlotSeries.contextNodeData?.nodeData ?? []).toHaveLength(0);
+            expect(getSeriesContextNodeData(chart).nodeData).toHaveLength(0);
 
             chart.destroy();
         });

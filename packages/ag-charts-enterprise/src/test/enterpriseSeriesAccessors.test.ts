@@ -1,29 +1,78 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgChartInstance, AgChartOptions, AgStandaloneChartOptions } from 'ag-charts-community';
 import {
+    type AgCartesianChartOptions,
+    type AgChartInstance,
+    type AgChartOptions,
+    AgCharts,
+    type AgGaugeOptions,
+    type AgLinearGaugeOptions,
+    type AgMapMarkerSeriesOptions,
+    type AgRadialGaugeOptions,
+    type AgStandaloneChartOptions,
+    type _ModuleSupport,
+} from 'ag-charts-community';
+import {
+    HIGH_VOLUME_COUNT,
     deproxy,
     errorFrom,
     expectWarningsCalls,
+    getLegendItemNodes,
+    getSeriesAt,
+    getSeriesContextNodeData,
+    getSeriesNodeData,
     getSeriesRect,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { BBox, Group, Sector, Shape } from 'ag-charts-core';
+import { BBox, Group, type Node, Sector, Shape, type Text } from 'ag-charts-core';
 
 import { FlowProportionDatumType } from '../series/flow-proportion/flowDatumIndex';
-import type { HierarchyNode } from '../series/hierarchy/hierarchySeries';
+import { FunnelConnector } from '../series/funnel/funnelConnector';
+import { HeatmapSeries } from '../series/heatmap/heatmapSeries';
+import { type HierarchyNode } from '../series/hierarchy/hierarchySeries';
+import { HlcSeries } from '../series/hlc/hlcSeries';
+import { type HlcMarkerDatum } from '../series/hlc/hlcUtil';
+import { LinearGaugeSeries } from '../series/linear-gauge/linearGaugeSeries';
+import { type MapMarkerNodeDatum, MapMarkerSeries } from '../series/map-marker/mapMarkerSeries';
+import { ukData } from '../series/map-test/ukData';
+import ukTopology from '../series/map-test/ukTopology.json';
+import { OhlcSeries } from '../series/ohlc/ohlcSeries';
 import { OrganizationNode } from '../series/organization/organizationNode';
 import { OrganizationSeries } from '../series/organization/organizationSeries';
+import { RadialGaugeSeries } from '../series/radial-gauge/radialGaugeSeries';
+import { WaterfallSeries } from '../series/waterfall/waterfallSeries';
 import {
     getEnterpriseSelectionNodes,
     getFlowHighlightNode,
     getFlowLinkData,
     getFlowNodeData,
+    getFlowSelectionNodes,
+    getFunnelConnectorGroup,
+    getFunnelConnectorNodes,
+    getGaugeSelectionNodes,
+    getHeatmapCellMethods,
+    getHierarchyNodeLabel,
+    getHlcAggregationFilter,
+    getHlcBandEdgeData,
+    getHlcHighlightData,
+    getHlcSeriesInstance,
+    getLegendHighlightCallerIds,
+    getLegendItemSuppressHighlight,
+    getLegendItemTranslationX,
+    getLinearGaugeRects,
+    getLinearGaugeSeriesInstance,
+    getMapMarkerNodes,
+    getMapMarkerSeriesInstance,
+    getMapMarkerSizeRange,
+    getMapMarkerStyleSize,
+    getMapShapeLabelAspectRatio,
+    getNavigatorMiniChartSeriesTypes,
     getNetworkContentBBox,
     getNetworkSeriesRect,
     getNetworkViewport,
+    getOhlcSeriesInstance,
     getOrganizationCardContentHeight,
     getOrganizationCardTexts,
     getOrganizationCards,
@@ -31,12 +80,19 @@ import {
     getOrganizationLinks,
     getOrganizationNodeDatumIndex,
     getOrganizationSeriesInstance,
+    getPlacedLabelData,
+    getPyramidStageLabelNodes,
+    getRadarAreaGroups,
+    getRadialGaugeSeriesInstance,
+    getSeriesAreaFocusDatum,
     getSeriesGroup,
     getSeriesLabelTexts,
+    getStageHighlightNode,
     getTreemapNodeLayout,
+    getWaterfallSeriesInstance,
 } from './enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from './seriesAccessors';
-import { collectShapes, createEnterpriseChart } from './utils';
+import { collectShapes, createEnterpriseChart, prepareEnterpriseTestOptions } from './utils';
 
 describe('enterprise series test accessors', () => {
     setupMockConsole();
@@ -648,6 +704,778 @@ describe('enterprise series test accessors', () => {
             await waitForChartStability(chart);
 
             expect(getFlowHighlightNode(chart)?.datum).toMatchObject({ itemId: node.itemId });
+        });
+    });
+});
+
+describe('funnel, pyramid and heatmap test accessors', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const STAGES = [
+        { group: 'Qualify', value: 7910 },
+        { group: 'Develop', value: 8170 },
+        { group: 'Propose', value: 7260 },
+        { group: 'Close', value: 4460 },
+    ];
+
+    const stageOptions: Record<'funnel' | 'cone-funnel' | 'pyramid', AgChartOptions> = {
+        funnel: { data: STAGES, series: [{ type: 'funnel', stageKey: 'group', valueKey: 'value' }] },
+        'cone-funnel': { data: STAGES, series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value' }] },
+        pyramid: { data: STAGES, series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }] },
+    };
+
+    const heatmapOptions = (colorScale: object = {}): AgChartOptions => ({
+        data: [
+            { year: '2020', person: 'A', spending: 10 },
+            { year: '2020', person: 'B', spending: 20 },
+            { year: '2021', person: 'A', spending: 30 },
+            { year: '2021', person: 'B', spending: 40 },
+        ],
+        series: [{ type: 'heatmap', xKey: 'year', yKey: 'person', colorKey: 'spending', colorScale }],
+    });
+
+    describe('getStageHighlightNode', () => {
+        it.each(['funnel', 'cone-funnel', 'pyramid'] as const)(
+            'returns the highlight-layer copy of the highlighted %s stage',
+            async (type) => {
+                chart = await createEnterpriseChart(stageOptions[type]);
+                const { ctx, id } = deproxy(chart);
+                const datum = getSeriesContextNodeData(chart).nodeData[1];
+
+                ctx.highlightManager.updateHighlight(id, datum);
+                await waitForChartStability(chart);
+
+                const highlighted = getStageHighlightNode(chart);
+                expect(highlighted).toBeInstanceOf(Shape);
+                expect(Array.from(getSeriesAt(chart).highlightNodeGroup.children())).toContain(highlighted);
+            }
+        );
+
+        it('picks the copy of the stage that is highlighted, not another', async () => {
+            chart = await createEnterpriseChart(stageOptions.funnel);
+            const { ctx, id } = deproxy(chart);
+            const { nodeData } = getSeriesContextNodeData(chart);
+
+            ctx.highlightManager.updateHighlight(id, nodeData[2]);
+            await waitForChartStability(chart);
+
+            expect(getStageHighlightNode(chart)?.datum).toMatchObject({ datumIndex: nodeData[2].datumIndex });
+        });
+
+        it('returns undefined while the series has drawn no copy of the highlight', async () => {
+            chart = await createEnterpriseChart(stageOptions.funnel);
+            const { ctx, id } = deproxy(chart);
+
+            // The highlight layer is redrawn on the next frame.
+            ctx.highlightManager.updateHighlight(id, getSeriesContextNodeData(chart).nodeData[0]);
+
+            expect(getStageHighlightNode(chart)).toBeUndefined();
+        });
+
+        it('fails while nothing is highlighted', async () => {
+            chart = await createEnterpriseChart(stageOptions.funnel);
+
+            expect(errorFrom(() => getStageHighlightNode(chart!))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getFunnelConnectorNodes', () => {
+        it.each(['funnel', 'cone-funnel'] as const)(
+            'returns the connectors between the stages of a %s',
+            async (type) => {
+                chart = await createEnterpriseChart(stageOptions[type]);
+
+                const connectors = getFunnelConnectorNodes(chart);
+
+                expect(connectors).toHaveLength(STAGES.length - 1);
+                expect(connectors.every((connector) => connector instanceof FunnelConnector)).toBe(true);
+            }
+        );
+
+        it('fails for a series that keeps no connectors', async () => {
+            chart = await createEnterpriseChart(stageOptions.pyramid);
+
+            expect(errorFrom(() => getFunnelConnectorNodes(chart!))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getFunnelConnectorGroup', () => {
+        it('returns the group the connectors are drawn into', async () => {
+            chart = await createEnterpriseChart(stageOptions.funnel);
+
+            const group = getFunnelConnectorGroup(chart);
+
+            expect(group).toBeInstanceOf(Group);
+            expect(Array.from(group.children())).toEqual(getFunnelConnectorNodes(chart));
+        });
+
+        it('fails for a series that keeps no connector group', async () => {
+            chart = await createEnterpriseChart(stageOptions.pyramid);
+
+            expect(errorFrom(() => getFunnelConnectorGroup(chart!))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getLegendItemSuppressHighlight', () => {
+        it('is true for the bin items of a discrete colour scale', async () => {
+            chart = await createEnterpriseChart(
+                heatmapOptions({ mode: 'discrete', fills: [{ color: 'blue', stop: 25 }, { color: 'red' }] })
+            );
+
+            const items = getLegendItemNodes(chart);
+
+            expect(items.length).toBeGreaterThan(0);
+            expect(items.map(getLegendItemSuppressHighlight)).toEqual(items.map(() => true));
+        });
+
+        it('is undefined for an item that highlights its series', async () => {
+            chart = await createEnterpriseChart({
+                data: STAGES,
+                series: [{ type: 'bar', xKey: 'group', yKey: 'value' }],
+                legend: { enabled: true },
+            });
+
+            expect(getLegendItemNodes(chart).map(getLegendItemSuppressHighlight)).toEqual([undefined]);
+        });
+    });
+
+    describe('getHeatmapCellMethods', () => {
+        it('exposes the per-cell methods of the heatmap series prototype', () => {
+            const methods = getHeatmapCellMethods();
+
+            expect(methods).toBe(HeatmapSeries.prototype);
+            expect(methods.getItemStyle).toBeTypeOf('function');
+            expect(methods.updateNodeDatum).toBeTypeOf('function');
+        });
+
+        it.each(['getItemStyle', 'updateNodeDatum'] as const)('lets a test spy on %s', async (method) => {
+            const spy = vi.spyOn(getHeatmapCellMethods(), method);
+            try {
+                chart = await createEnterpriseChart(heatmapOptions());
+
+                expect(spy).toHaveBeenCalledTimes(4);
+            } finally {
+                spy.mockRestore();
+            }
+        });
+    });
+});
+
+describe('enterprise series test accessors (label and shadow tests)', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const sunburstOptions = (): AgChartOptions => ({
+        data: [{ name: 'Root', children: [{ name: 'A', size: 3 }] }],
+        series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size' }],
+    });
+
+    const flowOptions = (type: 'sankey' | 'chord'): AgChartOptions => ({
+        data: [
+            { from: 'A', to: 'B', size: 5 },
+            { from: 'B', to: 'C', size: 4 },
+        ],
+        series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+    });
+
+    describe('getMapMarkerNodes', () => {
+        const mapMarkerOptions = (): AgChartOptions => ({
+            data: ukData,
+            topology: ukTopology,
+            series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name' }],
+        });
+
+        it('returns a marker node for each datum of the map-marker series at the index', async () => {
+            chart = await createEnterpriseChart(mapMarkerOptions());
+
+            const markers = getMapMarkerNodes<_ModuleSupport.Marker<{ idValue: string }>>(chart, 1);
+
+            expect(markers).toHaveLength(ukData.length);
+            const byName = (a: string, b: string) => a.localeCompare(b);
+            expect(markers.map(({ datum }) => String(datum?.idValue)).sort(byName)).toEqual(
+                ukData.map(({ name }) => name).sort(byName)
+            );
+        });
+
+        it('fails for a series that draws no markers of its own', async () => {
+            chart = await createEnterpriseChart(mapMarkerOptions());
+
+            expect(errorFrom(() => getMapMarkerNodes(chart!, 0))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getPlacedLabelData', () => {
+        const rangeAreaOptions = (): AgChartOptions => ({
+            data: [{ x: 'A', low: 20, high: 80 }],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left', min: 0, max: 100 },
+            },
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'x',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: { enabled: true, placement: 'outside' },
+                },
+            ],
+        });
+
+        it('returns the labels the series placed, with the point each is anchored to', async () => {
+            chart = await createEnterpriseChart(rangeAreaOptions());
+
+            const labels = getPlacedLabelData(chart);
+
+            expect(labels).toHaveLength(2);
+            for (const { y, height, datum } of labels) {
+                expect(y).toEqual(expect.any(Number));
+                expect(height).toBeGreaterThan(0);
+                expect(datum.point.y).toEqual(expect.any(Number));
+            }
+        });
+
+        it('fails for a series that places no labels', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getPlacedLabelData(chart!))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getPyramidStageLabelNodes', () => {
+        const pyramidOptions = (): AgChartOptions => ({
+            data: [
+                { stage: 'Visits', value: 100 },
+                { stage: 'Paid', value: 20 },
+            ],
+            series: [{ type: 'pyramid', stageKey: 'stage', valueKey: 'value' }],
+        });
+
+        it('returns the stage label of each stage', async () => {
+            chart = await createEnterpriseChart(pyramidOptions());
+
+            const labels = getPyramidStageLabelNodes<Text>(chart);
+
+            expect(labels.map(({ text }) => text)).toEqual(['Visits', 'Paid']);
+        });
+
+        it('fails for a series that draws no stage labels', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getPyramidStageLabelNodes(chart!))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getFlowSelectionNodes', () => {
+        it.each(['sankey', 'chord'] as const)('returns the nodes and links a %s series drew in place', async (type) => {
+            chart = await createEnterpriseChart(flowOptions(type));
+
+            const nodes = getFlowSelectionNodes(chart, 'nodeSelection');
+            const links = getFlowSelectionNodes(chart, 'linkSelection');
+
+            expect(nodes.map(({ datum }) => datum)).toEqual(getFlowNodeData(chart));
+            expect(links.map(({ datum }) => datum)).toEqual(getFlowLinkData(chart));
+        });
+
+        it('returns the highlight and focus copies of the hovered item, and none while nothing is hovered', async () => {
+            chart = await createEnterpriseChart(flowOptions('sankey'));
+            expect(getFlowSelectionNodes(chart, 'highlightNodeSelection')).toEqual([]);
+
+            const { ctx, id } = deproxy(chart);
+            const [hovered] = getFlowNodeData(chart);
+            ctx.highlightManager.updateHighlight(id, hovered);
+            await waitForChartStability(chart);
+
+            const highlighted = getFlowSelectionNodes(chart, 'highlightNodeSelection');
+            expect(highlighted.map(({ datum }) => datum)).toEqual([hovered]);
+            expect(getFlowSelectionNodes(chart, 'focusNodeSelection').map(({ datum }) => datum)).toContain(hovered);
+        });
+
+        it('fails for a series that has no such selection', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getFlowSelectionNodes(chart!, 'nodeSelection'))?.name).toBe('AssertionError');
+        });
+    });
+});
+
+describe('enterprise series test accessors (label fit tests)', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const sunburstOptions = (): AgChartOptions => ({
+        data: [{ name: 'Root', children: [{ name: 'A', size: 3 }] }],
+        series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size' }],
+    });
+
+    const treemapOptions = (): AgChartOptions => ({
+        data: [
+            { name: 'A', note: 'First', size: 10 },
+            { name: 'B', note: 'Second', size: 6 },
+        ],
+        series: [{ type: 'treemap', labelKey: 'name', secondaryLabelKey: 'note', sizeKey: 'size' }],
+    });
+
+    describe('getHierarchyNodeLabel', () => {
+        it('returns the text of the labels a treemap tile was laid out with, and no radius', async () => {
+            chart = await createEnterpriseChart(treemapOptions());
+
+            const leaves: HierarchyNode[] = [];
+            getHierarchyRootNode(chart)?.walk((node) => {
+                if (node.children.length === 0) leaves.push(node);
+            });
+
+            expect(leaves.map((leaf) => String(getHierarchyNodeLabel(leaf, 'label')?.text))).toEqual(['A', 'B']);
+            expect(leaves.map((leaf) => String(getHierarchyNodeLabel(leaf, 'secondaryLabel')?.text))).toEqual([
+                'First',
+                'Second',
+            ]);
+            expect(getHierarchyNodeLabel(leaves[0], 'label')?.radius).toBeUndefined();
+        });
+
+        it('returns the radius a sunburst label sits at', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            const labelled: HierarchyNode[] = [];
+            getHierarchyRootNode(chart)?.walk((node) => {
+                if (getHierarchyNodeLabel(node, 'label') != null) labelled.push(node);
+            });
+
+            expect(labelled.length).toBeGreaterThan(0);
+            for (const node of labelled) {
+                expect(getHierarchyNodeLabel(node, 'label')?.radius).toEqual(expect.any(Number));
+            }
+        });
+
+        it('returns undefined for a label the node was not laid out with', async () => {
+            chart = await createEnterpriseChart({
+                data: [{ name: 'A', size: 10 }],
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size' }],
+            });
+
+            const [leaf] = getHierarchyRootNode(chart)?.children ?? [];
+
+            expect(getHierarchyNodeLabel(leaf, 'secondaryLabel')).toBeUndefined();
+        });
+
+        it('fails for a node that has no such property', () => {
+            expect(errorFrom(() => getHierarchyNodeLabel({} as HierarchyNode, 'label'))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('gauge accessors', () => {
+        const createGauge = async (options: AgGaugeOptions) => {
+            const gauge = AgCharts.createGauge(prepareEnterpriseTestOptions({ ...options, width: 400, height: 100 }));
+            await waitForChartStability(gauge);
+            return gauge;
+        };
+        const linearGauge: AgGaugeOptions = {
+            type: 'linear-gauge',
+            direction: 'horizontal',
+            value: 50,
+            scale: { min: 0, max: 100 },
+            label: { enabled: true, text: 'Level' },
+            targets: [{ value: 30, text: 'Target' }],
+        };
+
+        it('getGaugeSelectionNodes returns the target labels and the scale ticks', async () => {
+            chart = await createGauge(linearGauge);
+
+            const targets = getGaugeSelectionNodes(chart, 'targetLabelSelection');
+            const ticks = getGaugeSelectionNodes(chart, 'tickSelection');
+
+            expect(targets.map(({ text }) => text)).toEqual(['Target']);
+            expect(ticks.length).toBeGreaterThan(0);
+            expect(ticks.every(({ visible }) => typeof visible === 'boolean')).toBe(true);
+        });
+
+        it('getGaugeSelectionNodes fails for a series that is not a gauge', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getGaugeSelectionNodes(chart!, 'tickSelection'))?.name).toBe('AssertionError');
+        });
+
+        it('getLinearGaugeRects returns the gauge rect, which lies within the series rect', async () => {
+            chart = await createGauge(linearGauge);
+
+            const { gaugeRect, seriesRect } = getLinearGaugeRects(chart);
+
+            expect(seriesRect.width).toBeGreaterThan(0);
+            expect(gaugeRect.width).toBeGreaterThan(0);
+            expect(gaugeRect.width).toBeLessThanOrEqual(seriesRect.width);
+        });
+
+        it('getLinearGaugeRects fails for a series that is not a linear gauge', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getLinearGaugeRects(chart!))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getMapShapeLabelAspectRatio', () => {
+        const mapShapeOptions = (label: string): AgChartOptions => ({
+            topology: ukTopology,
+            series: [
+                {
+                    type: 'map-shape',
+                    data: [{ name: 'England', label }],
+                    idKey: 'name',
+                    labelKey: 'label',
+                    label: { fontSize: 12 },
+                },
+            ],
+        });
+
+        it('returns a ratio that grows with the width of the label text', async () => {
+            chart = await createEnterpriseChart(mapShapeOptions('Short'));
+            const narrow = getMapShapeLabelAspectRatio(chart, 'England');
+            chart.destroy();
+
+            chart = await createEnterpriseChart(mapShapeOptions('A considerably longer label'));
+            const wide = getMapShapeLabelAspectRatio(chart, 'England');
+
+            expect(wide).toBeGreaterThan(narrow);
+        });
+
+        it('fails for a shape the series laid no label out for', async () => {
+            chart = await createEnterpriseChart(mapShapeOptions('Short'));
+
+            expect(errorFrom(() => getMapShapeLabelAspectRatio(chart!, 'Atlantis'))?.name).toBe('AssertionError');
+        });
+    });
+});
+
+describe('series, legend and navigator test accessors', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const createGauge = async (options: AgLinearGaugeOptions | AgRadialGaugeOptions) => {
+        prepareEnterpriseTestOptions(options);
+        const gauge = AgCharts.createGauge(options);
+        await waitForChartStability(gauge);
+        return gauge;
+    };
+
+    const HLC_DATA = Array.from({ length: 6 }, (_, i) => ({ x: i, hi: 12 + i, lo: 4 - i, cl: 8 + (i % 3) }));
+    const hlcOptions = (extra: Partial<AgCartesianChartOptions> = {}): AgCartesianChartOptions => ({
+        data: HLC_DATA,
+        series: [{ type: 'hlc', xKey: 'x', highKey: 'hi', lowKey: 'lo', closeKey: 'cl' }],
+        axes: { x: { type: 'number' }, y: { type: 'number' } },
+        ...extra,
+    });
+
+    const markerOptions = (marker: Partial<AgMapMarkerSeriesOptions> = {}): AgChartOptions => ({
+        data: ukData,
+        topology: ukTopology,
+        series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name', ...marker }],
+    });
+
+    const barOptions = (extra: Partial<AgCartesianChartOptions> = {}): AgChartOptions => ({
+        data: [
+            { x: 'A', a: 3, b: 4 },
+            { x: 'B', a: 5, b: 2 },
+        ],
+        series: [
+            { type: 'bar', xKey: 'x', yKey: 'a' },
+            { type: 'bar', xKey: 'x', yKey: 'b' },
+        ],
+        ...extra,
+    });
+
+    describe('series instances', () => {
+        it.each([
+            [
+                'getLinearGaugeSeriesInstance',
+                getLinearGaugeSeriesInstance,
+                LinearGaugeSeries,
+                () => createGauge({ type: 'linear-gauge', value: 30 }),
+            ],
+            [
+                'getRadialGaugeSeriesInstance',
+                getRadialGaugeSeriesInstance,
+                RadialGaugeSeries,
+                () => createGauge({ type: 'radial-gauge', value: 30 }),
+            ],
+            [
+                'getWaterfallSeriesInstance',
+                getWaterfallSeriesInstance,
+                WaterfallSeries,
+                () =>
+                    createEnterpriseChart({
+                        data: [
+                            { x: 'A', y: 5 },
+                            { x: 'B', y: -2 },
+                        ],
+                        series: [{ type: 'waterfall', xKey: 'x', yKey: 'y' }],
+                    }),
+            ],
+            ['getHlcSeriesInstance', getHlcSeriesInstance, HlcSeries, () => createEnterpriseChart(hlcOptions())],
+            [
+                'getOhlcSeriesInstance',
+                getOhlcSeriesInstance,
+                OhlcSeries,
+                () =>
+                    createEnterpriseChart({
+                        data: [
+                            { x: 1, o: 3, h: 5, l: 2, c: 4 },
+                            { x: 2, o: 4, h: 6, l: 3, c: 5 },
+                        ],
+                        series: [{ type: 'ohlc', xKey: 'x', openKey: 'o', highKey: 'h', lowKey: 'l', closeKey: 'c' }],
+                    }),
+            ],
+            [
+                'getMapMarkerSeriesInstance',
+                getMapMarkerSeriesInstance,
+                MapMarkerSeries,
+                () =>
+                    createEnterpriseChart({
+                        data: ukData,
+                        topology: ukTopology,
+                        series: [{ type: 'map-marker', idKey: 'name' }],
+                    }),
+            ],
+        ] as const)(
+            '%s returns the series as its class, and fails for another series or a missing one',
+            async (_name, accessor, ctor, create) => {
+                chart = await create();
+
+                expect(accessor(chart)).toBeInstanceOf(ctor);
+                expect(errorFrom(() => accessor(chart!, 5))?.name).toBe('AssertionError');
+            }
+        );
+
+        it('fails for a series of another class', async () => {
+            chart = await createEnterpriseChart(barOptions());
+
+            expect(errorFrom(() => getHlcSeriesInstance(chart!))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getSeriesAreaFocusDatum', () => {
+        it('is undefined before anything is focused and the focused datum after a key press', async () => {
+            chart = await createGauge({ type: 'linear-gauge', value: 30 });
+            expect(getSeriesAreaFocusDatum(chart)).toBeUndefined();
+
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
+            expect(seriesArea).not.toBeNull();
+            seriesArea!.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true })
+            );
+            await waitForChartStability(chart);
+
+            expect(getSeriesAreaFocusDatum(chart)).toBeDefined();
+        });
+    });
+
+    describe('legend', () => {
+        it('getLegendHighlightCallerIds lists the id of each legend, the category legend first', async () => {
+            chart = await createEnterpriseChart(barOptions({ legend: { enabled: true } }));
+
+            const ids = getLegendHighlightCallerIds(chart);
+            expect(ids).toHaveLength(2);
+            expect(new Set(ids).size).toBe(2);
+            expect(ids[0]).toMatch(/^Legend-/);
+            expect(ids[1]).toMatch(/^GradientLegend-/);
+        });
+
+        it('getLegendItemTranslationX gives each item its own offset along the legend', async () => {
+            chart = await createEnterpriseChart(barOptions({ legend: { enabled: true, position: 'bottom' } }));
+
+            const [first, second] = getLegendItemNodes(chart);
+            expect(getLegendItemTranslationX(first)).toBeLessThan(getLegendItemTranslationX(second));
+        });
+
+        it('getLegendItemTranslationX fails for a node without a translation', () => {
+            // A bare object stands in for a node that has no translation to read.
+            expect(errorFrom(() => getLegendItemTranslationX({} as Node))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('map-marker', () => {
+        const SIZED = { sizeKey: 'population', minSize: 10, maxSize: 40 } as const;
+
+        it('getMapMarkerSizeRange returns the range the size values scale into', async () => {
+            chart = await createEnterpriseChart(markerOptions(SIZED));
+
+            expect(getMapMarkerSizeRange(chart, 1)).toEqual([10, 40]);
+        });
+
+        it('getMapMarkerSizeRange fails for a series without a size scale', async () => {
+            chart = await createEnterpriseChart(markerOptions());
+
+            expect(errorFrom(() => getMapMarkerSizeRange(chart!, 0))?.name).toBe('AssertionError');
+        });
+
+        it('getMapMarkerStyleSize resolves the size of the marker the series draws for a datum', async () => {
+            chart = await createEnterpriseChart(markerOptions(SIZED));
+
+            const nodes = getSeriesContextNodeData<MapMarkerNodeDatum>(chart, 1).nodeData;
+            expect(nodes.length).toBeGreaterThan(0);
+            for (const node of nodes) {
+                expect(getMapMarkerStyleSize(chart, node, false, 1)).toBeCloseTo(node.point.size, 10);
+            }
+        });
+
+        it('getMapMarkerStyleSize fails for a series that styles no markers', async () => {
+            chart = await createEnterpriseChart(markerOptions());
+            const [node] = getSeriesContextNodeData<MapMarkerNodeDatum>(chart, 1).nodeData;
+
+            expect(errorFrom(() => getMapMarkerStyleSize(chart!, node, false, 0))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getNavigatorMiniChartSeriesTypes', () => {
+        it('lists the series types the mini chart draws', async () => {
+            chart = await createEnterpriseChart({
+                ...hlcOptions(),
+                navigator: { enabled: true, miniChart: { enabled: true } },
+            });
+
+            expect(getNavigatorMiniChartSeriesTypes(chart)).toEqual(['hlc']);
+        });
+
+        it('is empty while the mini chart is off', async () => {
+            chart = await createEnterpriseChart(hlcOptions({ navigator: { enabled: true } }));
+
+            expect(getNavigatorMiniChartSeriesTypes(chart)).toEqual([]);
+        });
+    });
+
+    describe('hlc', () => {
+        it('getHlcAggregationFilter is undefined while the data is not aggregated', async () => {
+            chart = await createEnterpriseChart(hlcOptions());
+
+            expect(getHlcAggregationFilter(chart)).toBeUndefined();
+        });
+
+        it('getHlcAggregationFilter returns the filter once the data is aggregated', async () => {
+            chart = await createEnterpriseChart(
+                hlcOptions({
+                    data: Array.from({ length: HIGH_VOLUME_COUNT }, (_, i) => ({ x: i, hi: 10, lo: -10, cl: i % 5 })),
+                })
+            );
+
+            const filter = getHlcAggregationFilter(chart);
+            expect(filter?.maxRange).toBeGreaterThan(0);
+            expect(filter?.midpointIndices.length).toBeGreaterThan(0);
+        });
+
+        it('getHlcHighlightData returns the three values of the datum, or undefined when none match', async () => {
+            chart = await createEnterpriseChart(hlcOptions());
+            const nodeData = getSeriesNodeData<HlcMarkerDatum>(chart);
+
+            const highlighted = getHlcHighlightData(chart, nodeData, nodeData[3]);
+            expect(highlighted?.map(({ itemType }) => itemType)).toEqual(['high', 'low', 'close']);
+            expect(new Set(highlighted?.map(({ datum }) => datum))).toEqual(new Set([nodeData[3].datum]));
+
+            expect(getHlcHighlightData(chart, nodeData, { ...nodeData[3], datum: {} })).toBeUndefined();
+        });
+
+        it('getHlcBandEdgeData returns the span the bands meet along, and fails for another series', async () => {
+            chart = await createEnterpriseChart(hlcOptions());
+
+            const edge = getHlcBandEdgeData(chart);
+            expect(edge.length).toBeGreaterThan(0);
+            expect(edge[0]).toHaveProperty('yValue0');
+
+            chart.destroy();
+            chart = await createEnterpriseChart(barOptions());
+            expect(errorFrom(() => getHlcBandEdgeData(chart!))?.name).toBe('AssertionError');
+        });
+    });
+});
+
+describe('radar series test accessors', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const RADAR_DATA = [
+        { subject: 'Maths', gradeA: 7, gradeB: 4.2 },
+        { subject: 'Physics', gradeA: 4.3, gradeB: 8.5 },
+        { subject: 'Biology', gradeA: 3, gradeB: 6 },
+    ];
+
+    const radarAreaOptions = (): AgChartOptions => ({
+        data: RADAR_DATA,
+        series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA' }],
+    });
+
+    const radarLineOptions = (): AgChartOptions => ({
+        data: RADAR_DATA,
+        series: [
+            { type: 'radar-line', angleKey: 'subject', radiusKey: 'gradeA' },
+            { type: 'radar-line', angleKey: 'subject', radiusKey: 'gradeB' },
+        ],
+        legend: { enabled: true },
+    });
+
+    describe('getLegendHighlightCallerIds', () => {
+        it('returns the caller that clears a highlight the legend made', async () => {
+            chart = await createEnterpriseChart(radarLineOptions());
+            const { highlightManager } = deproxy(chart).ctx;
+            const [id] = getLegendHighlightCallerIds(chart);
+
+            highlightManager.updateHighlight(id, getSeriesNodeData(chart)[0]);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            highlightManager.updateHighlight(id);
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
+    });
+
+    describe('getRadarAreaGroups', () => {
+        it('returns the group of the filled area and the group of the outline, each with one shape', async () => {
+            chart = await createEnterpriseChart(radarAreaOptions());
+
+            const { areaGroup, lineGroup } = getRadarAreaGroups(chart);
+
+            expect(areaGroup).toBeInstanceOf(Group);
+            expect(lineGroup).toBeInstanceOf(Group);
+            expect(areaGroup).not.toBe(lineGroup);
+            expect(collectShapes(areaGroup)).toHaveLength(1);
+            expect(collectShapes(lineGroup)).toHaveLength(1);
+        });
+
+        it('fails for a series that is not a radar-area series', async () => {
+            chart = await createEnterpriseChart(radarLineOptions());
+
+            expect(errorFrom(() => getRadarAreaGroups(chart!))?.name).toBe('AssertionError');
         });
     });
 });

@@ -11,9 +11,11 @@ import {
 } from 'ag-charts-community';
 import {
     BIG,
+    type ChartOrProxy,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadarLineStyler,
     type PhasedPropertyExpectation,
+    type PhasedTrajectory,
     type SceneGeometrySample,
     clickAction,
     compareImageSnapshot,
@@ -34,22 +36,22 @@ import {
 } from 'ag-charts-community-test';
 import type { NonNullablePath } from 'ag-charts-core';
 
+import { getSeriesLabelTexts } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RadarLineSeries', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: ChartOrProxy<any>;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        // A test that creates no chart leaves the variable unset, so it must not destroy the previous one again.
+        (chart as ChartOrProxy<any> | undefined)?.destroy();
+        (chart as unknown) = undefined;
     });
 
-    const EXAMPLE_OPTIONS: AgChartOptions = {
+    const EXAMPLE_OPTIONS: AgPolarChartOptions = {
         data: [
             { subject: 'Maths', gradeA: 7, gradeB: 4.2 },
             { subject: 'Physics', gradeA: 4.3, gradeB: 8.5 },
@@ -235,10 +237,9 @@ describe('RadarLineSeries', () => {
             [...sample].filter(([k, v]) => k.startsWith(`series[${seriesIndex}]/marker[`) && v.visible === 1).length;
 
         // A structural snap runs no animation batch, so every captured inter-frame interval traverses no phase.
-        const expectSnapped = (trajectory: SceneGeometrySample[]) => {
-            const intervals = (trajectory as unknown as { phaseIntervals: unknown[][] }).phaseIntervals;
+        const expectSnapped = (trajectory: SceneGeometrySample[] & PhasedTrajectory) => {
             expect(
-                intervals.filter((i) => i.length > 0),
+                trajectory.phaseIntervals.filter((i) => i.length > 0),
                 'expected a structural snap: no animation phase ran'
             ).toEqual([]);
         };
@@ -390,7 +391,7 @@ describe('RadarLineSeries', () => {
         });
     });
 
-    test('AG-8290 label boxing', async () => {
+    it('AG-8290 label boxing', async () => {
         const options: AgChartOptions = {
             data: [
                 { department: 'Sales', quality: 40, efficiency: 75 },
@@ -550,17 +551,17 @@ describe('RadarLineSeries', () => {
                     },
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
             describe('callbacks', () => {
-                test('context', () => {
+                it('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
                     styler.expect().nthCalledWithoutContext(2);
                     styler.expect().toHaveBeenCalledTimes(3);
                 });
-                test('params', () => {
+                it('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
@@ -626,7 +627,7 @@ describe('RadarLineSeries', () => {
                     },
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -660,7 +661,7 @@ describe('RadarLineSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 // The 'pattern' fill type renders slightly differently on GitHub CI, imperceptible without an image-diff aid.
                 await compare(looserSnapshotDefaults(0.08));
             });
@@ -710,12 +711,12 @@ describe('RadarLineSeries', () => {
                     await hoverAction(p.x, p.y)(chart);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 }
-                test('miss', async () => testHover(miss));
-                test('series[0].datum[0]', async () => testHover(series0datum0));
-                test('series[0].datum[2]', async () => testHover(series0datum2));
-                test('series[1].datum[0]', async () => testHover(series1datum0));
-                test('legendItem[0]', async () => testHover(legendItem0));
-                test('legendItem[1]', async () => testHover(legendItem1));
+                it('miss', async () => testHover(miss));
+                it('series[0].datum[0]', async () => testHover(series0datum0));
+                it('series[0].datum[2]', async () => testHover(series0datum2));
+                it('series[1].datum[0]', async () => testHover(series1datum0));
+                it('legendItem[0]', async () => testHover(legendItem0));
+                it('legendItem[1]', async () => testHover(legendItem1));
             });
             describe('sequenced', () => {
                 async function hover(p: { readonly x: number; readonly y: number }) {
@@ -727,7 +728,7 @@ describe('RadarLineSeries', () => {
                     styler.mock.mockClear();
                     return result;
                 }
-                test('1', async () => {
+                it('1', async () => {
                     await hover(miss);
                     expect(popCalls()).toMatchSnapshot();
 
@@ -869,15 +870,9 @@ describe('RadarLineSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -937,15 +932,9 @@ describe('RadarLineSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -953,15 +942,9 @@ describe('RadarLineSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories', async () => {
-            const options: AgChartOptions = {
-                ...RADAR_LINE_NULL_AND_UNDEFINED_KEYS_OPTIONS,
-                series: [
-                    {
-                        ...RADAR_LINE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
+            const series = { ...RADAR_LINE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const options: AgChartOptions = { ...RADAR_LINE_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -994,13 +977,10 @@ describe('RadarLineSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const series = deproxy(chart).series[0];
-            const labelGroup = (series as any).labelGroup;
-
             const countVisibleLabels = () => {
                 let count = 0;
-                for (const node of labelGroup.children()) {
-                    if (node.visible && node.text) {
+                for (const node of getSeriesLabelTexts(chart)) {
+                    if (node.visible && (node.text ?? '') !== '') {
                         count++;
                     }
                 }
@@ -1050,7 +1030,7 @@ describe('RadarLineSeries', () => {
         it('should not warn when every series is toggled off', async () => {
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
-                series: (EXAMPLE_OPTIONS.series as AgRadarLineSeriesOptions[]).map((series) => ({
+                series: EXAMPLE_OPTIONS.series?.map((series) => ({
                     ...series,
                     visible: false,
                 })),

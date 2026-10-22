@@ -1,6 +1,12 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    type AgCartesianChartOptions,
+    type AgChartInstance,
+    type AgChartOptions,
+    AgCharts,
+    type AgOhlcSeriesOptions,
+} from 'ag-charts-community';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -20,6 +26,8 @@ import {
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
+    getSeriesAt,
+    getSeriesOptions,
     isoEpochPair,
     magnitudePair,
     pressKey,
@@ -31,8 +39,8 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
-import { Caster } from 'ag-charts-test';
 
+import { getOhlcSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
@@ -42,7 +50,15 @@ import {
     renderEnterpriseChartImage,
     shadowedShapes,
 } from '../../test/utils';
-import { OhlcSeries } from './ohlcSeries';
+
+const OHLC_SERIES: AgOhlcSeriesOptions = {
+    type: 'ohlc',
+    xKey: 'year',
+    lowKey: 'low',
+    openKey: 'open',
+    closeKey: 'close',
+    highKey: 'high',
+};
 
 const OHLC_OPTIONS: AgChartOptions = {
     data: [
@@ -51,16 +67,7 @@ const OHLC_OPTIONS: AgChartOptions = {
         { year: new Date(2022, 0, 1), low: 4.4, close: 4.41, open: 4.96, high: 5.2 },
         { year: new Date(2023, 0, 1), low: 7.31, open: 7.32, close: 7.33, high: 7.33 },
     ],
-    series: [
-        {
-            type: 'ohlc',
-            xKey: 'year',
-            lowKey: 'low',
-            openKey: 'open',
-            closeKey: 'close',
-            highKey: 'high',
-        },
-    ],
+    series: [OHLC_SERIES],
 };
 
 describe('OhlcSeries', () => {
@@ -195,17 +202,16 @@ describe('OhlcSeries', () => {
             { date: new Date(2023, 0, 2), low: 3, open: 6, close: 4, high: 7 },
             { date: new Date(2023, 0, 3), low: 1, open: 3, close: 5, high: 6 },
         ];
-        const ohlcOptions = (): AgCartesianChartOptions =>
-            ({
-                data: barData(),
-                series: [
-                    { type: 'ohlc', xKey: 'date', lowKey: 'low', openKey: 'open', closeKey: 'close', highKey: 'high' },
-                ],
-                axes: {
-                    x: { type: 'ordinal-time', position: 'bottom' },
-                    y: { type: 'number', position: 'left', min: 0, max: 10 },
-                },
-            }) as AgCartesianChartOptions;
+        const ohlcOptions = (): AgCartesianChartOptions => ({
+            data: barData(),
+            series: [
+                { type: 'ohlc', xKey: 'date', lowKey: 'low', openKey: 'open', closeKey: 'close', highKey: 'high' },
+            ],
+            axes: {
+                x: { type: 'ordinal-time', position: 'bottom' },
+                y: { type: 'number', position: 'left', min: 0, max: 10 },
+            },
+        });
 
         const preparedOhlcOptions = () => prepareEnterpriseTestOptions(ohlcOptions());
 
@@ -325,28 +331,28 @@ describe('OhlcSeries', () => {
     describe('shadow', () => {
         const SPREAD_SHADOW = { ...SHADOW, spread: 6 };
 
-        const buildOptions = (shadow?: typeof SHADOW & { spread?: number }): AgChartOptions => {
-            const options = { ...OHLC_OPTIONS, series: [{ ...OHLC_OPTIONS.series![0], shadow }] } as AgChartOptions;
-            return options;
-        };
+        const buildOptions = (shadow?: typeof SHADOW & { spread?: number }): AgChartOptions => ({
+            ...OHLC_OPTIONS,
+            series: [{ ...OHLC_SERIES, shadow }],
+        });
 
         it('defaults to a disabled shadow', async () => {
-            const chart: any = deproxy(await createEnterpriseChart(buildOptions()));
+            const chart = deproxy(await createEnterpriseChart(buildOptions()));
 
-            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(getSeriesOptions<AgOhlcSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const chart: any = deproxy(await createEnterpriseChart(buildOptions()));
+            const chart = deproxy(await createEnterpriseChart(buildOptions()));
 
             expect(itemNodes(chart)).toHaveLength(4);
-            expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
+            expect(shadowedShapes(getSeriesAt(chart).contentGroup)).toEqual([]);
             chart.destroy();
         });
 
         it('casts the shadow from the stroke of every item, whichever direction', async () => {
-            const chart: any = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
+            const chart = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
 
             const shapes = itemNodes(chart);
             expect(shapes).toHaveLength(4);
@@ -362,7 +368,7 @@ describe('OhlcSeries', () => {
         });
 
         it('carries the shadow spread to the stroke shadow of every item', async () => {
-            const chart: any = deproxy(await createEnterpriseChart(buildOptions(SPREAD_SHADOW)));
+            const chart = deproxy(await createEnterpriseChart(buildOptions(SPREAD_SHADOW)));
 
             expect(itemNodes(chart).length).toBeGreaterThan(0);
 
@@ -377,6 +383,9 @@ describe('OhlcSeries', () => {
             await compareSnapshot(await createEnterpriseChart(buildOptions(SPREAD_SHADOW)));
         });
     });
+
+    // `allowNullKeys` is not in the public types, so it is spread in from a variable rather than written inline.
+    const ALLOW_NULL_KEYS = { allowNullKeys: true };
 
     describe('null category key', () => {
         const OHLC_NULL_CATEGORY_KEY_DATA = [
@@ -425,8 +434,8 @@ describe('OhlcSeries', () => {
                 series: [
                     {
                         ...OHLC_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
+                        ...ALLOW_NULL_KEYS,
+                    },
                 ],
             };
 
@@ -509,8 +518,8 @@ describe('OhlcSeries', () => {
                 series: [
                     {
                         ...OHLC_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
+                        ...ALLOW_NULL_KEYS,
+                    },
                 ],
             };
 
@@ -526,8 +535,8 @@ describe('OhlcSeries', () => {
                 series: [
                     {
                         ...OHLC_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
+                        ...ALLOW_NULL_KEYS,
+                    },
                 ],
             };
 
@@ -639,7 +648,7 @@ describe('OhlcSeries', () => {
     });
 
     describe('keyboard navigation on aggregated data (AG-16824)', () => {
-        let chart: AgChartInstance;
+        let chart: AgChartInstance | undefined;
         let seriesNodeClick: Mock;
 
         beforeEach(() => {
@@ -648,14 +657,11 @@ describe('OhlcSeries', () => {
 
         afterEach(() => {
             chart?.destroy();
-            (chart as any) = undefined;
+            chart = undefined;
         });
 
         function getCandleCentre(nodeIndex: number) {
-            const series = new Caster(deproxy(chart!))
-                .accessProperty('series')
-                .accessProperty('0')
-                .cast(OhlcSeries).value;
+            const series = getOhlcSeriesInstance(chart!);
             const nodeData = series.getNodeData();
             expect(nodeData).toBeDefined();
             const node = nodeData![nodeIndex];

@@ -1,13 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
-    AgCartesianChartOptions,
     AgChartOptions,
-    AgPolarChartOptions,
+    AgMapMarkerSeriesOptions,
+    AgMapMarkerSeriesTooltipRendererParams,
+    AgTopologyChartOptions,
     InteractionRange,
+    _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    type Chart,
+    type ChartOrProxy,
     MIN_TOOLTIP_HIDE_DELAY,
     type SceneNodeExpectation,
     assertTooltipPresentForAll,
@@ -21,18 +23,35 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesContextNodeData,
+    getSeriesOptions,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Transformable } from 'ag-charts-core';
+import { Shape, Transformable } from 'ag-charts-core';
+import { classCast } from 'ag-charts-test';
 
+import {
+    getMapMarkerNodes,
+    getMapMarkerSeriesInstance,
+    getMapMarkerSizeRange,
+    getMapMarkerStyleSize,
+    getSeriesGroup,
+} from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
 import ukTopology from '../map-test/ukTopology.json';
-import type { MapMarkerSeries } from './mapMarkerSeries';
+import type { MapMarkerNodeDatum } from './mapMarkerSeries';
+
+type Marker = _ModuleSupport.Marker;
+
+type UkDatum = { name: string; population?: number | null };
+
+// A node of the map-marker series whose datum is a row of the test data, read by key.
+type UkNodeDatum = MapMarkerNodeDatum & { datum: Record<string, unknown> };
 
 const SIMPLIFIED_EXAMPLE: AgChartOptions = {
     data: ukData,
@@ -64,13 +83,12 @@ const SIZE_EXAMPLE: AgChartOptions = {
 
 describe('MapMarkerSeries', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: ChartOrProxy<any>;
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart?.destroy();
+        // `chart` is not optional in the tests, so the reset needs the cast.
+        (chart as unknown) = undefined;
     });
 
     const ctx = setupMockCanvas();
@@ -92,11 +110,10 @@ describe('MapMarkerSeries', () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
             chart = deproxy(await createEnterpriseChart(options));
 
-            const seriesImpl = chart.series[1] as MapMarkerSeries;
-            const node = seriesImpl?.['contextNodeData']?.nodeData[i];
+            const node = getSeriesContextNodeData<UkNodeDatum>(chart, 1).nodeData[i];
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            const { ctx: chartCtx, id } = deproxy(chart);
+            chartCtx.highlightManager.updateHighlight(id, node);
             await compare();
         });
     });
@@ -126,24 +143,26 @@ describe('MapMarkerSeries', () => {
     });
 
     const testPointerEvents = (testParams: {
-        seriesOptions: any;
-        chartOptions?: any;
-        getNodeData: (series: any) => any[];
-        getNodePoint: (nodeItem: any) => [number, number];
-        getDatumValues: (datum: any, series: any) => any[];
-        getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
-        getHighlightNode: (chart: any, series: any) => any;
+        seriesOptions: AgMapMarkerSeriesOptions;
+        chartOptions?: Pick<AgTopologyChartOptions, 'data' | 'topology'>;
+        getNodeData: (chartInstance: ChartOrProxy<any>, seriesIndex: number) => UkNodeDatum[];
+        getNodePoint: (nodeItem: UkNodeDatum) => [number, number];
+        getDatumValues: (chartInstance: ChartOrProxy<any>, seriesIndex: number, datum: UkNodeDatum) => unknown[];
+        getTooltipRenderedValues: (
+            tooltipRendererParams: AgMapMarkerSeriesTooltipRendererParams<UkNodeDatum['datum']>
+        ) => unknown[];
+        getHighlightNode: (chartInstance: ChartOrProxy<any>, seriesIndex: number) => unknown;
     }) => {
-        const format = (...values: any[]) => values.join(': ');
+        const format = (...values: unknown[]) => values.join(': ');
 
         const chartOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): AgCartesianChartOptions | AgPolarChartOptions => {
+        }): AgTopologyChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
-                      renderer(rParams: any) {
+                      renderer(rParams: AgMapMarkerSeriesTooltipRendererParams<UkNodeDatum['datum']>) {
                           const values = testParams.getTooltipRenderedValues(rParams);
                           return format(...values);
                       },
@@ -152,7 +171,7 @@ describe('MapMarkerSeries', () => {
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
-            const options: AgCartesianChartOptions | AgPolarChartOptions = {
+            const options: AgTopologyChartOptions = {
                 container: document.body,
                 series: [
                     {
@@ -167,17 +186,17 @@ describe('MapMarkerSeries', () => {
                         ...testParams.seriesOptions,
                     },
                 ],
-                ...(testParams.chartOptions ?? {}),
+                ...testParams.chartOptions,
             };
             return options;
         };
 
         const hoverChartNodes = async (
-            chartInstance: any,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
+            chartInstance: ChartOrProxy<any>,
+            iterator: (params: { seriesIndex: number; item: UkNodeDatum; x: number; y: number }) => Promise<void> | void
         ) => {
-            for (const series of chartInstance.series) {
-                const nodeData = testParams.getNodeData(series);
+            for (const [seriesIndex, series] of deproxy(chartInstance).series.entries()) {
+                const nodeData = testParams.getNodeData(chartInstance, seriesIndex);
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
@@ -188,21 +207,21 @@ describe('MapMarkerSeries', () => {
                     );
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
-                    await iterator({ series, item, x, y });
+                    await iterator({ seriesIndex, item, x, y });
                 }
             }
         };
 
-        const checkHighlight = async (chartInstance: any) => {
-            await hoverChartNodes(chartInstance, ({ series }) => {
-                const highlightNode = testParams.getHighlightNode(chartInstance, series);
+        const checkHighlight = async (chartInstance: ChartOrProxy<any>) => {
+            await hoverChartNodes(chartInstance, ({ seriesIndex }) => {
+                const highlightNode = testParams.getHighlightNode(chartInstance, seriesIndex);
                 expect(highlightNode).toBeDefined();
-                expect(highlightNode.fill).toEqual('lime');
+                expect(classCast(highlightNode, Shape).fill).toEqual('lime');
             });
         };
 
         const checkNodeClick = async (
-            chartInstance: Chart,
+            chartInstance: ChartOrProxy<any>,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {
@@ -211,8 +230,8 @@ describe('MapMarkerSeries', () => {
                 await waitForChartStability(chartInstance);
             });
 
-            const nodeCount = chartInstance.series.reduce(
-                (sum, series) => sum + testParams.getNodeData(series).length,
+            const nodeCount = deproxy(chartInstance).series.reduce(
+                (sum, _series, seriesIndex) => sum + testParams.getNodeData(chartInstance, seriesIndex).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
@@ -220,12 +239,12 @@ describe('MapMarkerSeries', () => {
 
         it(`should render tooltip correctly`, async () => {
             chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
-            await hoverChartNodes(chart, ({ series, item }) => {
+            await hoverChartNodes(chart, ({ seriesIndex, item }) => {
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                const values = testParams.getDatumValues(item, series);
+                const values = testParams.getDatumValues(chart, seriesIndex, item);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
@@ -284,11 +303,18 @@ describe('MapMarkerSeries', () => {
                 data: SIMPLIFIED_EXAMPLE.data,
                 topology: SIMPLIFIED_EXAMPLE.topology,
             },
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
-            getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
-            getDatumValues: (item, series) => [item.datum[series.options.idKey]],
-            getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
-            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
+            getNodeData: (chartInstance, seriesIndex) =>
+                getSeriesContextNodeData<UkNodeDatum>(chartInstance, seriesIndex).nodeData,
+            getNodePoint: (item) => {
+                expect(item.midPoint).toBeDefined();
+                return [item.midPoint!.x, item.midPoint!.y];
+            },
+            getDatumValues: (chartInstance, seriesIndex, item) => [
+                item.datum[getSeriesOptions<AgMapMarkerSeriesOptions>(chartInstance, seriesIndex).idKey!],
+            ],
+            getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey!]],
+            getHighlightNode: (chartInstance, seriesIndex) =>
+                getSeriesGroup(chartInstance, 'highlightNodeGroup', seriesIndex).children().next().value,
         });
     });
 
@@ -383,9 +409,9 @@ describe('MapMarkerSeries', () => {
 
         it('should fill missing colorValue with colorScale.missingDataFill', async () => {
             const missingNames = new Set(['Wales', 'Northern Ireland']);
-            const data = ukData.map((datum: any) => {
+            const data = ukData.map((datum): UkDatum => {
                 if (!missingNames.has(datum.name)) return datum;
-                const rest = { ...datum };
+                const rest: UkDatum = { ...datum };
                 delete rest.population;
                 return rest;
             });
@@ -410,21 +436,20 @@ describe('MapMarkerSeries', () => {
             chart = deproxy(await createEnterpriseChart(options));
             await compare();
 
-            const seriesImpl = chart.series[1] as MapMarkerSeries;
             assertTooltipPresentForAll(
-                seriesImpl,
+                getMapMarkerSeriesInstance(chart, 1),
                 data,
-                (datum: any) => missingNames.has(datum.name),
+                (datum) => missingNames.has(datum.name),
                 (i) => i
             );
         });
 
         it('AG-17195 should not warn when colorKey resolves to null/undefined/missing', async () => {
-            const data = ukData.map((datum: any, idx: number) => {
+            const data = ukData.map((datum, idx): UkDatum => {
                 if (idx === 0) return { ...datum, population: null };
                 if (idx === 1) return { ...datum, population: undefined };
                 if (idx === 2) {
-                    const rest = { ...datum };
+                    const rest: UkDatum = { ...datum };
                     delete rest.population;
                     return rest;
                 }
@@ -467,20 +492,19 @@ describe('MapMarkerSeries', () => {
             };
             chart = deproxy(await createEnterpriseChart(options));
 
-            const seriesImpl = chart.series[1] as MapMarkerSeries;
-            const targetNode = seriesImpl?.['contextNodeData']?.nodeData[0];
+            const targetNode = getSeriesContextNodeData<UkNodeDatum>(chart, 1).nodeData[0];
             expect(targetNode).toBeDefined();
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, targetNode);
+            const { ctx: chartCtx, id } = deproxy(chart);
+            chartCtx.highlightManager.updateHighlight(id, targetNode);
             await compare();
         });
 
         it('should preserve missingDataFill on highlighted marker', async () => {
             const missingNames = new Set(['Wales', 'Northern Ireland']);
-            const data = ukData.map((datum: any) => {
+            const data = ukData.map((datum): UkDatum => {
                 if (!missingNames.has(datum.name)) return datum;
-                const rest = { ...datum };
+                const rest: UkDatum = { ...datum };
                 delete rest.population;
                 return rest;
             });
@@ -502,14 +526,13 @@ describe('MapMarkerSeries', () => {
             };
             chart = deproxy(await createEnterpriseChart(options));
 
-            const seriesImpl = chart.series[1] as MapMarkerSeries;
-            const missingNode = seriesImpl?.['contextNodeData']?.nodeData.find((node: any) =>
-                missingNames.has(node.idValue)
+            const missingNode = getSeriesContextNodeData<UkNodeDatum>(chart, 1).nodeData.find(
+                (node) => node.idValue !== undefined && missingNames.has(node.idValue)
             );
             expect(missingNode).toBeDefined();
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, missingNode);
+            const { ctx: chartCtx, id } = deproxy(chart);
+            chartCtx.highlightManager.updateHighlight(id, missingNode);
             await compare();
         });
     });
@@ -657,8 +680,12 @@ describe('MapMarkerSeries', () => {
         });
     });
 
+    // The size each marker of the map-marker series (the second series) is laid out at.
+    const nodeSizes = (target: ChartOrProxy<any>): number[] =>
+        getSeriesContextNodeData<MapMarkerNodeDatum>(target, 1).nodeData.map((d) => d.point.size);
+
     describe('AG-17481 size scaling', () => {
-        const sizeRange = async (markerOverrides: object): Promise<[number, number]> => {
+        const sizeRange = async (markerOverrides: Partial<AgMapMarkerSeriesOptions>): Promise<[number, number]> => {
             const options: AgChartOptions = {
                 ...SIMPLIFIED_EXAMPLE,
                 series: [
@@ -667,7 +694,7 @@ describe('MapMarkerSeries', () => {
                 ],
             };
             chart = deproxy(await createEnterpriseChart(options));
-            return chart.series[1].sizeScale.range;
+            return getMapMarkerSizeRange(chart, 1);
         };
 
         it('uses minSize as the lower bound when sizeKey is present (AC9)', async () => {
@@ -715,7 +742,7 @@ describe('MapMarkerSeries', () => {
             };
             chart = deproxy(await createEnterpriseChart(options));
 
-            const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            const markerSizes = nodeSizes(chart);
             expect(markerSizes.length).toBeGreaterThan(0);
             // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
             expect([...new Set(markerSizes)]).toEqual([20]);
@@ -735,12 +762,13 @@ describe('MapMarkerSeries', () => {
                         sizeDomain: [5],
                         minSize: 10,
                         maxSize: 30,
+                        // `as never`: a one-element sizeDomain is deliberately outside the types.
                     } as never,
                 ],
             };
             chart = deproxy(await createEnterpriseChart(options));
 
-            const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            const markerSizes = nodeSizes(chart);
             expect(markerSizes.length).toBeGreaterThan(0);
             // The malformed sizeDomain is dropped, so sizes resolve from the data domain within
             // [minSize, maxSize] = [10, 30], never NaN.
@@ -773,7 +801,7 @@ describe('MapMarkerSeries', () => {
             };
             chart = deproxy(await createEnterpriseChart(options));
 
-            const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            const markerSizes = nodeSizes(chart);
             expect(markerSizes.length).toBeGreaterThan(0);
             // Directional clamp maps out-of-domain-high values to minSize (10); the non-directional
             // convert({ clamp: true }) would have mapped them to maxSize (40).
@@ -791,32 +819,37 @@ describe('MapMarkerSeries', () => {
             };
             chart = deproxy(await createEnterpriseChart(options));
 
-            const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            const markerSizes = nodeSizes(chart);
             expect(markerSizes.length).toBeGreaterThan(0);
             expect([...new Set(markerSizes)]).toEqual([12]);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
     describe('AG-18508 sizeMode', () => {
-        const build = async (markerOverrides: object, theme?: object) => {
+        const build = async (markerOverrides: Partial<AgMapMarkerSeriesOptions>, theme?: AgChartOptions['theme']) => {
             const options: AgChartOptions = {
                 ...SIMPLIFIED_EXAMPLE,
                 series: [
                     { type: 'map-shape-background' },
                     { type: 'map-marker', idKey: 'name', sizeKey: 'population', ...markerOverrides },
                 ],
-                ...(theme ? { theme } : {}),
-            } as AgChartOptions;
+                ...(theme === undefined ? {} : { theme }),
+            };
             chart = deproxy(await createEnterpriseChart(options));
-            return chart.series[1].contextNodeData?.nodeData as any[];
+            return getSeriesContextNodeData<UkNodeDatum>(chart, 1).nodeData;
         };
-        const sizesByName = (nodes: any[]) => Object.fromEntries(nodes.map((n) => [n.datum.name, n.point.size]));
+        const sizesByName = (nodes: UkNodeDatum[]) =>
+            Object.fromEntries(nodes.map((n) => [n.datum.name, n.point.size]));
         const England = 56e6;
         const NorthernIreland = 2e6;
         const linearScotland = 10 + (30 * 3) / 54;
 
         it('leaves sizes unchanged when sizeMode is unset or diameter', async () => {
-            const base = { minSize: 10, maxSize: 40, sizeDomain: [NorthernIreland, England] };
+            const base: Partial<AgMapMarkerSeriesOptions> = {
+                minSize: 10,
+                maxSize: 40,
+                sizeDomain: [NorthernIreland, England],
+            };
             const unset = sizesByName(await build(base));
             chart.destroy();
             const diameter = sizesByName(await build({ ...base, sizeMode: 'diameter' }));
@@ -870,7 +903,11 @@ describe('MapMarkerSeries', () => {
         });
 
         it('applies sizeMode set through theme overrides', async () => {
-            const base = { minSize: 10, maxSize: 40, sizeDomain: [NorthernIreland, England] };
+            const base: Partial<AgMapMarkerSeriesOptions> = {
+                minSize: 10,
+                maxSize: 40,
+                sizeDomain: [NorthernIreland, England],
+            };
             const viaSeries = sizesByName(await build({ ...base, sizeMode: 'area' }));
             chart.destroy();
             const viaTheme = sizesByName(
@@ -887,7 +924,9 @@ describe('MapMarkerSeries', () => {
                 maxSize: 40,
                 sizeDomain: [NorthernIreland, England],
             });
-            const drawn = (chart.series[1].markerSelection.nodes() as any[]).map((m) => m.size).sort((a, b) => a - b);
+            const drawn = getMapMarkerNodes<Marker>(chart, 1)
+                .map((m) => m.size)
+                .sort((a, b) => a - b);
             const expected = nodes.map((n) => n.point.size).sort((a, b) => a - b);
             expect(drawn.length).toBe(expected.length);
             for (const [i, size] of drawn.entries()) {
@@ -895,19 +934,19 @@ describe('MapMarkerSeries', () => {
             }
             expect(drawn[0]).toBeCloseTo(10, 10);
             expect(drawn.at(-1)).toBeCloseTo(40, 10);
-            const scotland = nodes.find((n) => n.datum.name === 'Scotland');
-            expect(chart.series[1].getMarkerItemStyle(scotland, false).size).toBeCloseTo(scotland.point.size, 10);
+            const scotland = nodes.find((n) => n.datum.name === 'Scotland')!;
+            expect(getMapMarkerStyleSize(chart, scotland, false, 1)).toBeCloseTo(scotland.point.size, 10);
         });
     });
 
     describe('default marker size', () => {
-        const markerSizes = async (markerOverrides: object): Promise<number[]> => {
+        const markerSizes = async (markerOverrides: Partial<AgMapMarkerSeriesOptions>): Promise<number[]> => {
             const options: AgChartOptions = {
                 ...SIMPLIFIED_EXAMPLE,
                 series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name', ...markerOverrides }],
             };
             chart = deproxy(await createEnterpriseChart(options));
-            return chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            return nodeSizes(chart);
         };
 
         it('renders markers at the default size of 7 when no size is specified (AC1)', async () => {

@@ -26,7 +26,8 @@ describe('PieSeries', () => {
 
     afterEach(() => {
         chart?.destroy();
-        (chart as any) = undefined;
+        // `chart` is not optional in the tests, so the reset needs the cast.
+        (chart as unknown) = undefined;
     });
 
     // Pixel-correctness check of overlapping-sector compositing at the settled render; sector
