@@ -27,11 +27,12 @@ setRenderedFeatures([]);
 
 setFontFamilyOptions(CHARTS_FONT_FAMILY_OPTIONS);
 setBorderStyleEditable(false);
-// The button state borders take their unset colour and width from the button border.
+// State borders take their unset parts from the border they vary; the thumb hover colour is a mix, shown unmixed.
 setInheritedBorders({
     buttonHoverBorder: 'buttonBorder',
     buttonActiveBorder: 'buttonBorder',
     buttonDisabledBorder: 'buttonBorder',
+    scrollbarThumbHoverBorder: 'scrollbarThumbBorder',
 });
 
 setProductVersion(VERSION);
