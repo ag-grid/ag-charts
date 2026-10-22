@@ -92,6 +92,30 @@ const options: AgCartesianChartOptions<DataType> = {
     navigator: { enabled: true, miniChart: { enabled: true } },
     contextMenu: { enabled: true },
     annotations: { enabled: true, axesButtons: { enabled: true, axes: 'xy' } },
+    // One annotation per family the toolbar can create, so their on-load DOM is scanned as well.
+    initialState: {
+        annotations: [
+            { type: 'line', start: { x: 'Jan', y: 36 }, end: { x: 'Dec', y: 58 } },
+            { type: 'horizontal-line', value: 50, lineStyle: 'dotted' },
+            { type: 'vertical-line', value: 'Sep', lineStyle: 'dotted' },
+            {
+                type: 'parallel-channel',
+                height: 8,
+                start: { x: 'Feb', y: 28 },
+                end: { x: 'May', y: 40 },
+            },
+            { type: 'comment', x: 'Mar', y: 66, text: 'Strong spring', fontSize: 12 },
+            { type: 'text', x: 'Jan', y: 12, text: 'Mid-year dip', fontSize: 12 },
+            { type: 'note', x: 'Nov', y: 62, text: 'Year-end push', fontSize: 12 },
+            {
+                type: 'callout',
+                start: { x: 'Aug', y: 10 },
+                end: { x: 'Oct', y: 22 },
+                text: 'Q4 target',
+                fontSize: 12,
+            },
+        ],
+    },
 };
 
 AgCharts.create(options);
