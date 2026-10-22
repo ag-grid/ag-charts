@@ -854,6 +854,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         if (batched === this.batched) return;
         this.batched = batched;
         this.cellBatch.visible = batched;
+        if (!batched) {
+            // A hidden batch must not keep the node data of a dataset the series has since replaced.
+            this.cellBatch.datums = [];
+            this.cellBatch.resize(0);
+        }
         this.touchedDatumIndices = undefined;
         this.restyledEveryCell = true;
     }

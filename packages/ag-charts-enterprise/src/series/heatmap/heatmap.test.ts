@@ -3273,6 +3273,11 @@ describe('HeatmapSeries', () => {
         const batchOf = (c: Chart) =>
             [...heatmap(c).contentGroup.descendants()].find((node) => node instanceof HeatmapCellBatch);
         const isBatched = (c: Chart) => batchOf(c)?.visible === true;
+        /** Counts rather than the batch itself, so a failure doesn't print every datum the batch holds. */
+        const hiddenBatchSizes = (c: Chart) => {
+            const batch = batchOf(c) as HeatmapCellBatch;
+            return { cells: batch.size, datums: batch.datums.length };
+        };
         /** The cells drawn as `Rect`s of their own, which is none while the batch paints them. */
         const rectCellCount = (c: Chart) =>
             [...heatmap(c).contentGroup.descendants()].filter((node) => node instanceof Rect).length;
@@ -3634,6 +3639,38 @@ describe('HeatmapSeries', () => {
                 expect(rectCellCount(chart)).toBe(0);
                 expect(cellShapes(chart).filter((shape) => shape.strokeWidth > 0)).toHaveLength(0);
                 expect(ctx.snapshot()).toMatchImage(plain);
+            });
+
+            it('keeps no cell or datum in the hidden batch while the cells are Rects', async () => {
+                const selection = { ...SELECTION, selectedItem: { stroke: 'black', strokeWidth: 3 } };
+                await create({ selection, tooltip: { enabled: false } });
+                expect(hiddenBatchSizes(chart)).toEqual({ cells: GRID.length, datums: GRID.length });
+
+                await select(5);
+                expect(isBatched(chart)).toBe(false);
+                expect(hiddenBatchSizes(chart)).toEqual({ cells: 0, datums: 0 });
+
+                // Replacing the data while the batch is hidden must not bring the old node data back into it.
+                chart.publicApi.updateDelta({ data: GRID.slice(1) });
+                await waitForChartStability(chart);
+                expect(hiddenBatchSizes(chart)).toEqual({ cells: 0, datums: 0 });
+
+                chart.publicApi.setSelection([]);
+                await waitForChartStability(chart);
+                expect(isBatched(chart)).toBe(true);
+                expect(hiddenBatchSizes(chart)).toEqual({ cells: GRID.length - 1, datums: GRID.length - 1 });
+            });
+
+            it('releases the datums of a plain heatmap when corner radius replaces its data and takes it to Rects', async () => {
+                await create({ tooltip: { enabled: false } });
+                expect(hiddenBatchSizes(chart).datums).toBe(GRID.length);
+
+                const next = options({ tooltip: { enabled: false }, cornerRadius: 2 }, GRID.slice(2));
+                chart.publicApi.update(next);
+                await waitForChartStability(chart);
+
+                expect(isBatched(chart)).toBe(false);
+                expect(hiddenBatchSizes(chart)).toEqual({ cells: 0, datums: 0 });
             });
 
             it('moves every cell to Rects while a selection adds a gradient fill, and back when it is removed', async () => {
