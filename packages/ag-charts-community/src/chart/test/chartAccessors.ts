@@ -1,4 +1,4 @@
-import type { BBox, ChartAxisDirection } from 'ag-charts-core';
+import type { BBox, ChartAxisDirection, Mutex } from 'ag-charts-core';
 
 import type { PreSeriesUpdateEvent } from '../../core/eventsHub';
 import type { ChartCaption } from '../chartCaption';
@@ -44,7 +44,7 @@ export function firePreSeriesUpdate(
 
 // The chart serialises its updates behind a private mutex.
 interface UpdateMutexHost {
-    updateMutex: { waitForClearAcquireQueue(): Promise<void> };
+    updateMutex: Pick<Mutex, 'acquire' | 'waitForClearAcquireQueue'>;
 }
 
 /**
@@ -53,6 +53,22 @@ interface UpdateMutexHost {
  */
 export function waitForUpdateQueueDrain(chartOrProxy: ChartOrProxy<any>): Promise<void> {
     return (deproxy(chartOrProxy) as unknown as UpdateMutexHost).updateMutex.waitForClearAcquireQueue();
+}
+
+/**
+ * Takes the chart's update mutex, as a running update does, so anything the chart queues behind it (an update, the
+ * teardown `destroy()` defers) waits. Returns a release function that lets the held update finish and resolves once
+ * it has.
+ */
+export function holdUpdateMutex(chartOrProxy: ChartOrProxy<any>): () => Promise<void> {
+    const { updateMutex } = deproxy(chartOrProxy) as unknown as UpdateMutexHost;
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const held = updateMutex.acquire(() => gate);
+    return () => {
+        release();
+        return held;
+    };
 }
 
 // The caption's accessibility proxy element is private to the caption.

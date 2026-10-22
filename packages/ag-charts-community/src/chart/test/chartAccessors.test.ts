@@ -1,9 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { BBox, ChartAxisDirection, type Mutex } from 'ag-charts-core';
+import { BBox, ChartAxisDirection } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import { firePreSeriesUpdate, getCaptionProxyElement, waitForUpdateQueueDrain } from './chartAccessors';
+import {
+    firePreSeriesUpdate,
+    getCaptionProxyElement,
+    holdUpdateMutex,
+    waitForUpdateQueueDrain,
+} from './chartAccessors';
 import { createChart, delay, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from './utils';
 
 describe('chart test accessors', () => {
@@ -79,9 +84,7 @@ describe('chart test accessors', () => {
             expect(inner.axes.length).toBeGreaterThan(0);
 
             // Hold the update mutex, as a running update does, so the teardown destroy() defers has to queue behind it.
-            const { updateMutex } = inner as unknown as { updateMutex: Mutex };
-            let releaseUpdate!: () => void;
-            const update = updateMutex.acquire(() => new Promise<void>((resolve) => (releaseUpdate = resolve)));
+            const releaseUpdate = holdUpdateMutex(inner);
             inner.destroy();
             (chart as unknown) = undefined; // Destroyed here; the teardown is what the accessor waits for.
 
@@ -91,10 +94,37 @@ describe('chart test accessors', () => {
             expect(drained).toBe(false);
             expect(inner.axes.length).toBeGreaterThan(0);
 
-            releaseUpdate();
-            await update;
+            await releaseUpdate();
             await drain;
             expect(inner.axes).toHaveLength(0);
+        });
+    });
+
+    describe('holdUpdateMutex', () => {
+        it("keeps the chart's queued work waiting until the returned release is called", async () => {
+            chart = await createChart(options);
+            const inner = deproxy(chart);
+            await waitForChartStability(inner);
+
+            const release = holdUpdateMutex(inner);
+            let drained = false;
+            const drain = waitForUpdateQueueDrain(inner).then(() => (drained = true));
+            await delay(20);
+            expect(drained).toBe(false);
+
+            await release();
+            await drain;
+            expect(drained).toBe(true);
+        });
+
+        it('lets the chart queue work again once released', async () => {
+            chart = await createChart(options);
+            const inner = deproxy(chart);
+            await waitForChartStability(inner);
+
+            await holdUpdateMutex(inner)();
+
+            await expect(waitForUpdateQueueDrain(inner)).resolves.toBeUndefined();
         });
     });
 
