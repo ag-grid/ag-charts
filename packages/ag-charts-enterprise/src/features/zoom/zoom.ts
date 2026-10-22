@@ -112,6 +112,7 @@ export class Zoom extends AbstractModuleInstance {
 
     // State
     private dragState = DragState.None;
+    private dragUpdateType: ChartUpdateType = ChartUpdateType.PERFORM_LAYOUT;
     private shouldFlipXY?: boolean;
     private readonly isState = (state: _ModuleSupport.InteractionState) => this.ctx.interactionManager.isState(state);
 
@@ -334,6 +335,10 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         if ((this.dragState = newDragState) !== DragState.None) {
+            // Resolved once per drag: a standalone series moves its own viewport transform, so it needs no layout.
+            this.dragUpdateType = ctx.chartService.series.some((series) => series.supportsStandaloneZoom)
+                ? ChartUpdateType.PRE_SCENE_RENDER
+                : ChartUpdateType.PERFORM_LAYOUT;
             zoomManager.fireZoomPanStartEvent('zoom');
         }
     }
@@ -371,7 +376,7 @@ export class Zoom extends AbstractModuleInstance {
             tooltipManager.updateTooltip(TOOLTIP_ID);
         }
         eventsHub.emit('chart:request-update', {
-            type: ChartUpdateType.PERFORM_LAYOUT,
+            type: this.dragUpdateType,
             opts: { skipAnimations: true },
         });
     }

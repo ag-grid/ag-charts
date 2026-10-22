@@ -47,7 +47,8 @@ permissions:
 
 jobs:
     page-verification:
-        runs-on: ubuntu-latest
+        # Pinned to ubuntu-24.04 because Playwright 1.59.1 (installed below) can't install Chromium on ubuntu-26.04 (now ubuntu-latest).
+        runs-on: ubuntu-24.04
         timeout-minutes: 30
         name: Page Verification (Staging)
         # For manual dispatch: always run.
