@@ -374,6 +374,14 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     private plainRectWidth = 0;
     private plainRectHeight = 0;
 
+    // The clip's values as last applied: a series may edit the clip object it handed over in place, so comparing
+    // objects can't tell that it moved. Scalars, as an array would allocate on every animation frame.
+    private hasAppliedClip = false;
+    private appliedClipX = 0;
+    private appliedClipY = 0;
+    private appliedClipWidth = 0;
+    private appliedClipHeight = 0;
+
     /**
      * When the rectangle's width or height is less than a pixel
      * and crisp mode is on, the rectangle will still fit into the pixel,
@@ -565,7 +573,21 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         visible: boolean,
         crisp: boolean,
         fillShadow: NormalisedDropShadowOptions | undefined
-    ): void {
+    ): boolean {
+        // Only what shapes the path needs it rebuilt, and nothing needs the scene redrawn when nothing changed.
+        const pathChanged =
+            this.__topLeftCornerRadius !== topLeftCornerRadius ||
+            this.__topRightCornerRadius !== topRightCornerRadius ||
+            this.__bottomRightCornerRadius !== bottomRightCornerRadius ||
+            this.__bottomLeftCornerRadius !== bottomLeftCornerRadius ||
+            this.__crisp !== crisp;
+        const changed =
+            pathChanged ||
+            this.__drawingMode !== drawingMode ||
+            this.__visible !== visible ||
+            this.__fillShadow !== fillShadow;
+        if (!changed) return false;
+
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__drawingMode = drawingMode;
         this.__topLeftCornerRadius = topLeftCornerRadius;
@@ -576,11 +598,30 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         this.__crisp = crisp;
         this.__fillShadow = fillShadow;
 
-        // Mark path as dirty since corner radii, crisp, direction, and featherRatio affect path
-        this.dirtyPath = true;
+        if (pathChanged) {
+            this.dirtyPath = true;
+        }
 
         // Single dirty notification for the batch
         this.markDirty();
+        return true;
+    }
+
+    private clipUnchanged(clipBBox: BBox | undefined) {
+        const held = this.__clipBBox;
+        if (!this.hasAppliedClip || clipBBox == null || held == null) {
+            return !this.hasAppliedClip && clipBBox == null && held == null;
+        }
+        return this.isAppliedClip(clipBBox) && this.isAppliedClip(held);
+    }
+
+    private isAppliedClip({ x, y, width, height }: BBox) {
+        return (
+            x === this.appliedClipX &&
+            y === this.appliedClipY &&
+            width === this.appliedClipWidth &&
+            height === this.appliedClipHeight
+        );
     }
 
     /**
@@ -601,6 +642,18 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         opacity: number,
         clipBBox: BBox | undefined
     ): void {
+        // A rect left where it was needs neither its path rebuilt nor the scene redrawn.
+        if (
+            this.clipUnchanged(clipBBox) &&
+            this.__x === x &&
+            this.__y === y &&
+            this.__width === width &&
+            this.__height === height &&
+            this.__opacity === opacity
+        ) {
+            return;
+        }
+
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__x = x;
         this.__y = y;
@@ -608,6 +661,13 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         this.__height = height;
         this.__opacity = opacity;
         this.__clipBBox = clipBBox;
+        this.hasAppliedClip = clipBBox != null;
+        if (clipBBox != null) {
+            this.appliedClipX = clipBBox.x;
+            this.appliedClipY = clipBBox.y;
+            this.appliedClipWidth = clipBBox.width;
+            this.appliedClipHeight = clipBBox.height;
+        }
         this.dirtyPath = true;
 
         // Single dirty notification for the batch

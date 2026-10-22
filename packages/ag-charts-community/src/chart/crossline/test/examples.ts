@@ -1,5 +1,5 @@
 import { mapValues } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgCartesianCrossLineOptions } from 'ag-charts-types';
+import type { AgCartesianAxisOptions, AgCartesianChartOptions, AgCartesianCrossLineOptions } from 'ag-charts-types';
 
 import { DATA_MEAN_SEA_LEVEL } from '../../test/data';
 import { loadExampleOptions } from '../../test/load-example';
@@ -91,6 +91,7 @@ const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, 
             ...baseChartOptions,
             axes: mapValues(baseChartOptions['axes'] ?? {}, (axis) => {
                 const range = axis.position === 'bottom' ? rangeConfig[name].vertical : rangeConfig[name].horizontal;
+                // `baseCrossLineOptions.type` widens to `string`, so the spread needs the cast to match the `type: 'range'` option.
                 return { ...axis, crossLines: [{ ...baseCrossLineOptions, range }] as AgCartesianCrossLineOptions[] };
             }),
         };
@@ -123,7 +124,10 @@ const createChartOptionsWithInvalidCrossLines = (
                 return axis.position === 'left'
                     ? {
                           ...axis,
-                          crossLines: [{ ...baseInvalidCrossLineOptions, ...invalidCrossLineOptions }] as any,
+                          // Invalid on purpose, to exercise validation, so it cannot satisfy the option type.
+                          crossLines: [
+                              { ...baseInvalidCrossLineOptions, ...invalidCrossLineOptions },
+                          ] as unknown as AgCartesianCrossLineOptions[],
                       }
                     : axis;
             }),
@@ -328,80 +332,83 @@ export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
     },
 };
 
+/** The two axes of {@link LINE_CROSSLINES}, typed so a test can extend one without a cast. */
+export const LINE_CROSSLINES_AXES: Record<'x' | 'y', AgCartesianAxisOptions> = {
+    x: {
+        type: 'category',
+        position: 'bottom',
+        title: {
+            text: 'Week',
+        },
+        label: {
+            formatter: (params) => (params.index % 3 === 0 ? params.value : ''),
+        },
+        crossLines: [
+            {
+                type: 'range',
+                range: [1, 13],
+                label: {
+                    text: '1 - 13',
+                    placement: 'top',
+                },
+                ...xAxisCrossLineStyle,
+            },
+            {
+                type: 'range',
+                range: [34, 45],
+                label: {
+                    text: '34 - 45',
+                    placement: 'top',
+                },
+                ...xAxisCrossLineStyle,
+            },
+            {
+                type: 'line',
+                value: 27,
+                label: {
+                    text: '27',
+                    placement: 'top',
+                },
+                ...xAxisLineCrossLineStyle,
+            },
+        ],
+    },
+    y: {
+        type: 'number',
+        position: 'left',
+        title: {
+            text: '£ per kg',
+        },
+        nice: false,
+        min: 0.2,
+        max: 1,
+        crossLines: [
+            {
+                type: 'range',
+                range: [0.25, 0.33],
+                label: {
+                    text: '0.25 - 0.33',
+                    placement: 'inside-left',
+                    padding: 10,
+                },
+                ...yAxisCrossLineStyle,
+            },
+            {
+                type: 'line',
+                value: 0.87,
+                label: {
+                    text: '0.87',
+                    placement: 'top-right',
+                },
+                ...yAxisLineCrossLineStyle,
+            },
+        ],
+    },
+};
+
 export const LINE_CROSSLINES: AgCartesianChartOptions = {
     ...LINE_GRAPH_WITH_GAPS_EXAMPLE,
-    axes: {
-        x: {
-            type: 'category',
-            position: 'bottom',
-            title: {
-                text: 'Week',
-            },
-            label: {
-                formatter: (params) => (params.index % 3 === 0 ? params.value : ''),
-            },
-            crossLines: [
-                {
-                    type: 'range',
-                    range: [1, 13],
-                    label: {
-                        text: '1 - 13',
-                        placement: 'top',
-                    },
-                    ...xAxisCrossLineStyle,
-                },
-                {
-                    type: 'range',
-                    range: [34, 45],
-                    label: {
-                        text: '34 - 45',
-                        placement: 'top',
-                    },
-                    ...xAxisCrossLineStyle,
-                },
-                {
-                    type: 'line',
-                    value: 27,
-                    label: {
-                        text: '27',
-                        placement: 'top',
-                    },
-                    ...xAxisLineCrossLineStyle,
-                },
-            ],
-        },
-        y: {
-            type: 'number',
-            position: 'left',
-            title: {
-                text: '£ per kg',
-            },
-            nice: false,
-            min: 0.2,
-            max: 1,
-            crossLines: [
-                {
-                    type: 'range',
-                    range: [0.25, 0.33],
-                    label: {
-                        text: '0.25 - 0.33',
-                        placement: 'inside-left',
-                        padding: 10,
-                    },
-                    ...yAxisCrossLineStyle,
-                },
-                {
-                    type: 'line',
-                    value: 0.87,
-                    label: {
-                        text: '0.87',
-                        placement: 'top-right',
-                    },
-                    ...yAxisLineCrossLineStyle,
-                },
-            ],
-        },
-    },
+    axes: LINE_CROSSLINES_AXES,
 };
 
 export const AREA_CROSSLINES: AgCartesianChartOptions = {

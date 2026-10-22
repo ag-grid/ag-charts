@@ -4,7 +4,6 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import type { Chart } from '../chart';
 import { applyIntervalBetween, applyIntervalOn } from '../test/axisTestCases';
 import { DOCS_EXAMPLES } from '../test/examples';
 import type { ChartOrProxy } from '../test/utils';
@@ -17,6 +16,7 @@ import {
     repeat,
     setupMockCanvas,
     setupMockConsole,
+    stubChartImageLoader,
 } from '../test/utils';
 
 const DATA = [
@@ -222,11 +222,6 @@ describe('Category Axis', () => {
             preloaded = Object.fromEntries(entries);
         });
 
-        function stubChartImageLoader(chartInstance: Chart) {
-            const imageLoader = (chartInstance.ctx.scene as any).imageLoader;
-            imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
-        }
-
         const DAY_DATA = [
             { day: 'Mon', value: 4 },
             { day: 'Tue', value: 7 },
@@ -236,8 +231,8 @@ describe('Category Axis', () => {
 
         // Bespoke: the image loader must be stubbed before the first render, so it cannot follow `createChart`'s wait.
         async function createStubbedChart(options: AgCartesianChartOptions) {
-            chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })) as any);
-            stubChartImageLoader(chart);
+            chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })));
+            stubChartImageLoader(chart, preloaded);
             await compare();
         }
 

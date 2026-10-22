@@ -2,6 +2,7 @@ import type { ImageSegment, OverflowStrategy, TextWrap } from 'ag-charts-types';
 
 import { findMaxValue } from '../data/binarySearch';
 import { isArray, isFiniteNumber } from '../data/typeGuards';
+import { toRadians } from '../geometry/angle';
 import { type FitRegion, regionWidthAt } from '../geometry/fitRegion';
 import type {
     NormalisedContentSegment,
@@ -14,6 +15,7 @@ import {
     cachedTextMeasurer,
     imageSegmentBox,
     isBlockBoundary,
+    measureLabelText,
     measureTextSegments,
 } from '../rendering/textMeasurer';
 import type {
@@ -69,6 +71,23 @@ export interface LabelFit {
      * the block spans rather than to the room its own row offers.
      */
     readonly boxed?: boolean;
+    /** `'never'` text keeps the explicit lines that fit `maxHeight`, ellipsising the last, rather than overflowing it. */
+    readonly clipLineBreaks?: boolean;
+    /** Hide a label whose ellipsis is wider than `maxWidth`, rather than drawing that ellipsis alone. */
+    readonly hideOverflowingEllipsis?: boolean;
+    /** The label is drawn turned, and its turned extent must stay inside a box; see {@link TurnedBounds}. */
+    readonly rotated?: TurnedBounds;
+}
+
+/**
+ * The box a label drawn turned by `rotation` degrees must stay inside, measured after turning it. A turned
+ * label trades width for height, so no single rectangle in its own frame holds every shape that fits: each
+ * candidate is held to the width its own height leaves. `maxWidth`/`maxHeight` still bound it unturned.
+ */
+export interface TurnedBounds {
+    readonly rotation: number;
+    readonly width: number;
+    readonly height: number;
 }
 
 /** Where a region-bounded block of text sits against its anchor; see {@link LabelFit.regionAlign}. */
@@ -106,6 +125,8 @@ export interface WrapOptions {
     maxWidthAt?: (top: number, bottom: number) => number;
     /** A label fit drops a `'never'` line taller than `maxHeight`; other callers clip or keep it themselves. */
     rejectTallFirstLine?: boolean;
+    /** See {@link LabelFit.clipLineBreaks}. */
+    clipLineBreaks?: boolean;
 }
 
 /** Width the line spanning `[top, bottom]` of the block may use, capped by the label's own `maxWidth`. */
@@ -160,8 +181,8 @@ export function fitLabelText(
     font: FontOptions
 ): NormalisedTextOrSegments {
     if (fit == null) return text;
-    const { maxWidth, maxHeight, wrapping, overflowStrategy, region } = fit;
-    if (maxWidth == null && maxHeight == null && region == null) return text;
+    const { maxWidth, maxHeight, wrapping, overflowStrategy, region, rotated } = fit;
+    if (maxWidth == null && maxHeight == null && region == null && rotated == null) return text;
     const overflow = overflowStrategy ?? 'preserve';
     const options: WrapOptions = {
         font,
@@ -172,13 +193,141 @@ export function fitLabelText(
         textWrap: wrapping,
         overflow,
         rejectTallFirstLine: true,
+        clipLineBreaks: fit.clipLineBreaks,
     };
     // This caller writes the text where it already is, so the fit has to be the one the anchor can draw:
     // an offset chosen to exploit an asymmetric shape would be discarded here and the text overflow it.
     // A caller that can move the label as well calls {@link fitLabelTextToRegion} instead.
-    return region == null
-        ? wrapTextOrSegments(text, options)
-        : wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed).text;
+    if (region != null) {
+        return wrapTextToRegion(text, options, region, fit.regionAlign ?? 'center', true, fit.boxed).text;
+    }
+    return rotated == null ? fitTextToBox(text, fit, options) : fitTurnedText(text, fit, options, rotated);
+}
+
+function fitTextToBox(text: NormalisedTextOrSegments, fit: LabelFit, options: WrapOptions) {
+    const fitted = wrapTextOrSegments(text, options);
+    if (!fit.hideOverflowingEllipsis || !ellipsisOverflows(fitted, options)) return fitted;
+    return isArray(fitted) ? [] : '';
+}
+
+// Below this a turn is taken as square to the box, where floating point leaves residues such as cos(π/2).
+const SQUARE_TURN_EPSILON = 1e-10;
+// Rounding in the turned extent must not reject a candidate that fits exactly.
+const TURNED_EXTENT_EPSILON = 1e-6;
+// How far below a wrap's widest line the next wrap is tried, to force a new break.
+const WRAP_STEP = 1e-6;
+
+/**
+ * Fits text drawn turned inside `bounds`: the widest wrap of the whole text whose turned extent fits wins.
+ * Failing that, each step wraps at the width the room leaves beside one more of the text's measured lines,
+ * which always fits, and the step keeping most text under the overflow strategy wins.
+ */
+function fitTurnedText(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit,
+    options: WrapOptions,
+    bounds: TurnedBounds
+): NormalisedTextOrSegments {
+    const angle = toRadians(bounds.rotation);
+    const sin = Math.abs(Math.sin(angle));
+    const cos = Math.abs(Math.cos(angle));
+    const boxed = (width: number, height: number): WrapOptions => {
+        const maxHeight = Math.min(options.maxHeight ?? Infinity, height);
+        return {
+            ...options,
+            maxWidth: Math.min(options.maxWidth, width),
+            maxHeight: preservesText(options) || !Number.isFinite(maxHeight) ? undefined : maxHeight,
+        };
+    };
+    if (sin < SQUARE_TURN_EPSILON) return fitTextToBox(text, fit, boxed(bounds.width, bounds.height));
+    if (cos < SQUARE_TURN_EPSILON) return fitTextToBox(text, fit, boxed(bounds.height, bounds.width));
+
+    if (!Number.isFinite(bounds.width) && !Number.isFinite(bounds.height)) return fitTextToBox(text, fit, options);
+
+    const widthAt = (height: number) =>
+        Math.min(options.maxWidth, (bounds.width - height * sin) / cos, (bounds.height - height * cos) / sin);
+    const extentFits = (width: number, height: number) =>
+        width * cos + height * sin <= bounds.width + TURNED_EXTENT_EPSILON &&
+        width * sin + height * cos <= bounds.height + TURNED_EXTENT_EPSILON;
+    const fitsTurned = (fitted: NormalisedTextOrSegments) => {
+        const { width, height } = measureLabelText(fitted, options.font);
+        return extentFits(width, height);
+    };
+    const maxHeight = options.maxHeight ?? Infinity;
+
+    // Every distinct wrap of the whole text is tried, widest first. Greedy wrapping lays the text out the same
+    // at any width down to its widest line, so the next distinct wrap is the one just narrower than that.
+    let previousWidth = Infinity;
+    for (let maxWidth = widthAt(0); maxWidth > 0;) {
+        const whole = fitTextToBox(text, fit, { ...options, maxWidth, maxHeight: undefined, overflow: 'hide' });
+        if (isErased(whole)) break;
+        const { width, height } = measureLabelText(whole, options.font);
+        if (width >= previousWidth) break;
+        if (height <= maxHeight + TURNED_EXTENT_EPSILON && extentFits(width, height)) return whole;
+        // Plain text keeps one line height, so a narrower wrap is never shorter; rich text can reflow shorter.
+        if (!isArray(text) && height > maxHeight + TURNED_EXTENT_EPSILON) break;
+        previousWidth = width;
+        maxWidth = (isArray(text) ? width : Math.min(width, widthAt(height))) - WRAP_STEP;
+    }
+
+    const wrapAt = (maxWidth: number) =>
+        lineBottoms(
+            wrapTextOrSegments(text, { ...options, maxWidth, maxHeight: undefined, overflow: 'ellipsis' }),
+            options.font
+        );
+    // 'preserve' never drops text: failing a whole fit, it keeps one line as wide as the room allows.
+    if (preservesText(options)) {
+        return fitTextToBox(text, fit, { ...options, maxWidth: widthAt(wrapAt(widthAt(0))[0]) });
+    }
+    if (options.overflow === 'hide') return isArray(text) ? [] : '';
+
+    let best: NormalisedTextOrSegments | undefined;
+    let bestKept = 0;
+    // The height of the lines the next step keeps, measured off the text as wrapped at the previous step.
+    let height = 0;
+    for (let lines = 0; ; lines++) {
+        const maxWidth = widthAt(height);
+        if (maxWidth <= 0) break;
+        if (lines > 0) {
+            // No wider than the room beside `height` and no taller than it, so the turned extent holds.
+            const partial = fitTextToBox(text, fit, { ...options, maxWidth, maxHeight: height });
+            const kept = keptCharacters(partial);
+            if (kept > bestKept && fitsTurned(partial)) {
+                best = partial;
+                bestKept = kept;
+            }
+        }
+        const bottoms = wrapAt(maxWidth);
+        // The text breaks into no more lines at this width, so a further step cannot keep more of it.
+        if (lines >= bottoms.length || bottoms[lines] > maxHeight + TURNED_EXTENT_EPSILON) break;
+        height = bottoms[lines];
+    }
+    return best ?? (isArray(text) ? [] : '');
+}
+
+/** Where each line of wrapped text ends, measured from its top, by the heights its own content gives it. */
+function lineBottoms(wrapped: string | MeasuredSegment[], font: FontOptions): number[] {
+    if (!isArray(wrapped)) {
+        const lineCount = wrapped.split('\n').length;
+        const lineHeight = measureLabelText(wrapped, font).height / lineCount;
+        return Array.from({ length: lineCount }, (_, index) => (index + 1) * lineHeight);
+    }
+    const { height, lineMetrics } = measureTextSegments(wrapped, font);
+    // A block row's lines share its height rather than adding to it, so the block is only taken whole.
+    if (lineMetrics.some((line) => line.blockRowSpan != null)) return [height];
+    let bottom = 0;
+    return lineMetrics.map((line) => (bottom += line.height));
+}
+
+/** A width narrower than the ellipsis still gets one, so a fit that needs it is drawn wider than its bound. */
+function ellipsisOverflows(fitted: string | MeasuredSegment[], options: WrapOptions) {
+    const { font, maxWidth } = options;
+    if (!isArray(fitted))
+        return fitted.includes(EllipsisChar) && cachedTextMeasurer(font).textWidth(EllipsisChar) > maxWidth;
+    return (
+        fitted.some((segment) => segment.type !== 'image' && segment.text.includes(EllipsisChar)) &&
+        measureTextSegments(fitted, font).width > maxWidth
+    );
 }
 
 /**
@@ -618,8 +767,8 @@ function hasOwnMinimumFontSize(segment: NormalisedContentSegment): boolean {
  * search steps in whole sizes, so the widest-shrinking range drives it and gives it the most steps to fit on.
  */
 function autoSizeDriver(text: NormalisedTextOrSegments, fit: LabelFit, font: FontOptions): FontSizeRange | undefined {
-    const { minimumFontSize, maxWidth, maxHeight, region } = fit;
-    if (maxWidth == null && maxHeight == null && region == null) return undefined;
+    const { minimumFontSize, maxWidth, maxHeight, region, rotated } = fit;
+    if (maxWidth == null && maxHeight == null && region == null && rotated == null) return undefined;
     if (minimumFontSize == null && !(isArray(text) && text.some(hasOwnMinimumFontSize))) return undefined;
 
     let driver = fontSizeRange(font.fontSize, minimumFontSize);
@@ -784,7 +933,8 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             widthOffset = 0;
         }
         if (firstLineOverflows(result, measurer, options)) return [];
-        return shouldHideOverflow(result, options, text) ? [] : result;
+        const clipped = options.clipLineBreaks ? clipLines(result, measurer, options) : result;
+        return shouldHideOverflow(clipped, options, text) ? [] : clipped;
     }
 
     const wrapHyphenate = options.textWrap === 'hyphenate';
@@ -1278,6 +1428,8 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
     let reshaped = false;
     let lineWidth = 0;
     let totalHeight = 0;
+    // The empty line a segment's trailing whitespace broke onto, kept only if a later segment fills it.
+    let trailingWsLine: MeasuredTextSegment | undefined;
     const maxWidth = (height = 0) => lineMaxWidth(options, totalHeight, totalHeight + height);
 
     function truncateLastSegment() {
@@ -1332,6 +1484,8 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
         const cleanLines = wrappedLines.map(unguardTextEdges);
         const firstContentIndex = cleanLines.findIndex((line) => line.trim() !== '');
         const lastContentIndex = cleanLines.findLastIndex((line) => line.trim() !== '');
+        // A break inside the trailing whitespace ends the line at the last word, where the space draws nothing.
+        const brokeInTrailingWs = lastContentIndex !== -1 && lastContentIndex < cleanLines.length - 1;
 
         const lastIndex = cleanLines.length - 1;
         for (let i = 0; i < cleanLines.length; i++) {
@@ -1339,13 +1493,14 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
             if (leadingWs !== '' && i === firstContentIndex) {
                 cleanLine = leadingWs + cleanLine.trimStart();
             }
-            if (trailingWs !== '' && i === lastContentIndex) {
+            if (trailingWs !== '' && i === lastContentIndex && !brokeInTrailingWs) {
                 cleanLine = cleanLine.trimEnd() + trailingWs;
             }
             const textMetrics = measurer.measureText(cleanLine);
             const subSegment = { ...segment, text: cleanLine, textMetrics };
             if (i === lastIndex) {
                 lineWidth += textMetrics.width;
+                if (brokeInTrailingWs) trailingWsLine = subSegment;
             } else {
                 subSegment.text += '\n';
                 lineWidth = 0;
@@ -1415,13 +1570,26 @@ function wrapMeasuredSegments(textSegments: NormalisedContentSegment[], options:
         return true;
     }
 
+    // Drops the trailing-whitespace line when nothing followed onto it, leaving the break before it in place.
+    function dropEmptyTrailingWsLine() {
+        if (trailingWsLine == null || result.at(-1) !== trailingWsLine || trailingWsLine.text !== '') return false;
+        result.pop();
+        totalHeight -= trailingWsLine.lineHeight ?? trailingWsLine.textMetrics.height;
+        trailingWsLine = undefined;
+        return true;
+    }
+
     const { lineMetrics } = measureTextSegments(textSegments, options.font);
     for (let i = 0; i < lineMetrics.length; i++) {
         if (i > 0) {
-            appendLineBreak(result, options.font);
+            if (!dropEmptyTrailingWsLine()) appendLineBreak(result, options.font);
             lineWidth = 0;
         }
         if (!wrapLine(lineMetrics[i])) break;
+    }
+    if (dropEmptyTrailingWsLine()) {
+        const last = result.at(-1);
+        if (last != null && last.type !== 'image') last.text = last.text.replace(/\n$/, '');
     }
 
     return { result, reshaped, height: totalHeight };

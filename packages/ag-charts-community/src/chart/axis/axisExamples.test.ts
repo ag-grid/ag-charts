@@ -1,20 +1,22 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { ChartAxisDirection, ChartUpdateType, mapValues } from 'ag-charts-core';
+import { mapValues } from 'ag-charts-core';
 import type { AgCartesianAxisType, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import { applyRotation, calculateAxisBBox, mixinDerivedCases } from '../test/axisTestCases';
+import { applyRotation, compareAxisSnapshots, mixinDerivedCases } from '../test/axisTestCases';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
 import type { CartesianTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
     PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    clickLegendItem,
     compareImageSnapshot,
     createChart,
-    deproxy,
     expectWarningsCalls,
+    hoverAction,
     repeat,
     reverseAxes,
     setupMockCanvas,
@@ -339,16 +341,7 @@ describe('Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = async () => {
-                for (const axis of deproxy(chart).axes) {
-                    if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
-                        continue;
-                    }
-
-                    const axesBBox = calculateAxisBBox(axis);
-                    await compareImageSnapshot(chart, { ...ctx, bbox: axesBBox }, IMAGE_SNAPSHOT_DEFAULTS);
-                }
-            };
+            const axisCompare = () => compareAxisSnapshots(chart, ctx, { types: example.compare });
 
             chart = await createChart(example.options);
             await axisCompare();
@@ -378,23 +371,24 @@ describe('Axis Examples', () => {
             });
 
             it(`for ${exampleName} it should render identically after legend toggle`, async () => {
+                const seriesCount = example.options.series?.length ?? 0;
+                // One legend item per series: the clicks below toggle each series through its own item.
+                expect(seriesCount).toBeGreaterThan(0);
+                expect(example.options.series?.every((s) => 'yKey' in s && s.yKey != null)).toBe(true);
+
                 chart = await createChart({ ...example.options, legend: { enabled: true } });
                 const reference = await snapshot();
 
-                for (const s of deproxy(chart).series) {
-                    const itemId = s.getKeys(ChartAxisDirection.Y)[0];
-                    (s as any).toggleSeriesItem(true, 'category', itemId, undefined);
+                for (let index = 0; index < seriesCount; index++) {
+                    await clickLegendItem(chart, index);
                 }
-                deproxy(chart).update(ChartUpdateType.FULL);
 
                 const afterUpdate = await snapshot();
                 expect(afterUpdate).not.toMatchImage(reference);
 
-                for (const s of deproxy(chart).series) {
-                    const itemId = s.getKeys(ChartAxisDirection.Y)[0];
-                    (s as any).toggleSeriesItem(false, 'category', itemId, undefined);
+                for (let index = 0; index < seriesCount; index++) {
+                    await clickLegendItem(chart, index);
                 }
-                deproxy(chart).update(ChartUpdateType.FULL);
 
                 const afterFinalUpdate = await snapshot();
                 expect(afterFinalUpdate).toMatchImage(reference);
@@ -403,24 +397,33 @@ describe('Axis Examples', () => {
     });
 
     describe('toggle secondary axis series', () => {
+        // The third series is the one bound to the secondary axis, and its legend item is the third.
+        const SECONDARY_SERIES_INDEX = 2;
+
+        const toggleSecondarySeries = async () => {
+            await clickLegendItem(chart, SECONDARY_SERIES_INDEX);
+            // The click leaves the pointer on the legend item, whose highlight dims the other series.
+            await hoverAction(0, 0)(chart);
+            await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
+        };
+
         it(`for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should render identically after legend toggle`, async () => {
+            expect(examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE.series?.[SECONDARY_SERIES_INDEX]).toMatchObject({
+                yKey: 'exportedTonnes',
+                yKeyAxis: 'ySecondary',
+            });
+
             chart = await createChart({ ...examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE, legend: { enabled: true } });
             const reference = await snapshot();
 
-            const secondarySeries = deproxy(chart).series[2] as any;
-
-            expect(secondarySeries.getKeys(ChartAxisDirection.Y)).toEqual(['exportedTonnes']);
-
             // Hide series bound to secondary axis.
-            secondarySeries.toggleSeriesItem(false, 'category', undefined);
-            deproxy(chart).update(ChartUpdateType.FULL);
+            await toggleSecondarySeries();
 
             const afterUpdate = await snapshot();
-            (expect(afterUpdate) as any).not.toMatchImage(reference);
+            expect(afterUpdate).not.toMatchImage(reference);
 
             // Show series bound to secondary axis.
-            secondarySeries.toggleSeriesItem(true, 'category', undefined);
-            deproxy(chart).update(ChartUpdateType.FULL);
+            await toggleSecondarySeries();
 
             const afterFinalUpdate = await snapshot();
             expect(afterFinalUpdate).toMatchImage(reference);
@@ -434,19 +437,14 @@ describe('Axis Examples', () => {
 
             const reference = await snapshot();
 
-            const secondarySeries = deproxy(chart).series[2] as any;
-            expect(secondarySeries.getKeys(ChartAxisDirection.Y)).toEqual(['exportedTonnes']);
-
             // Hide series bound to secondary axis.
-            secondarySeries.toggleSeriesItem(false, 'category', undefined);
-            deproxy(chart).update(ChartUpdateType.FULL);
+            await toggleSecondarySeries();
 
             const afterUpdate = await snapshot();
-            (expect(afterUpdate) as any).not.toMatchImage(reference);
+            expect(afterUpdate).not.toMatchImage(reference);
 
             // Show series bound to secondary axis.
-            secondarySeries.toggleSeriesItem(true, 'category', undefined);
-            deproxy(chart).update(ChartUpdateType.FULL);
+            await toggleSecondarySeries();
 
             const afterFinalUpdate = await snapshot();
             expect(afterFinalUpdate).toMatchImage(reference);

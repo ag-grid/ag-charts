@@ -6,17 +6,21 @@ import type { ChartOrProxy } from 'ag-charts-community-test';
 import {
     applyIntervalBetween,
     applyIntervalOn,
-    calculateAxisBBox,
     cartesianChartAssertions,
+    compareAxisSnapshots,
     compareImageSnapshot,
     deproxy,
+    expectWarningsCalls,
+    getAxisLabelNodes,
     getAxisLabelTexts,
+    getLabelText,
     mixinDerivedCases,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
+import { getCrossLineLabelNodes } from '../../test/polarCrossLines';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const DATA = [
@@ -527,18 +531,7 @@ describe('Ordinal Time Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = async () => {
-                for (const axis of chart.axes) {
-                    if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
-                        continue;
-                    }
-
-                    await waitForChartStability(chart);
-                    const axisBbox = calculateAxisBBox(axis);
-
-                    await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
-                }
-            };
+            const axisCompare = () => compareAxisSnapshots(chart, ctx, { types: example.compare });
 
             chart = deproxy(await createEnterpriseChart(example.options));
             await axisCompare();
@@ -580,11 +573,7 @@ describe('Ordinal Time Axis Examples', () => {
                 })
             );
 
-            const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
-
-            const axisBbox = calculateAxisBBox(axis);
-
-            await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
+            await compareAxisSnapshots(chart, ctx, { types: ['ordinal-time'] });
         });
     });
 
@@ -666,7 +655,6 @@ describe('Ordinal Time Axis Examples', () => {
             })
         );
 
-        await waitForChartStability(chart);
         expect(chart).toBeDefined();
     });
 
@@ -692,9 +680,65 @@ describe('Ordinal Time Axis Examples', () => {
             })
         );
 
-        const [crossLine] = _ModuleSupport.getCrossLinesPlugin(chart.axes.findById('x'))!.getInstances() as any[];
-        const [node] = crossLine.labelGroup.children();
+        const [node] = getCrossLineLabelNodes(chart, 'x');
+        expect(node).toBeDefined();
         expect(node.text).toContain('\n');
         expect(node.getBBox().width).toBeLessThanOrEqual(40);
+    });
+
+    it('accepts label.maxWidth and truncates a long formatted label', async () => {
+        chart = await createEnterpriseChart({
+            data: DATA.slice(0, 3),
+            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+            axes: {
+                x: {
+                    type: 'ordinal-time',
+                    position: 'bottom',
+                    label: {
+                        maxWidth: 60,
+                        wrapping: 'never',
+                        formatter: () => 'A formatted ordinal time label that is far too long',
+                    },
+                },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        const nodes = getAxisLabelNodes(chart, 'bottom');
+        expect(nodes.length).toBeGreaterThan(0);
+        for (const node of nodes) {
+            expect(getLabelText(node).endsWith('…')).toBe(true);
+            expect(node.getBBox().width).toBeLessThanOrEqual(60.5);
+        }
+        expectWarningsCalls().toEqual([]);
+    });
+
+    it('shrinks a formatted label towards label.minimumFontSize to fit maxWidth', async () => {
+        chart = await createEnterpriseChart({
+            data: DATA.slice(0, 3),
+            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+            axes: {
+                x: {
+                    type: 'ordinal-time',
+                    position: 'bottom',
+                    label: {
+                        maxWidth: 60,
+                        minimumFontSize: 6,
+                        wrapping: 'never',
+                        formatter: () => 'Formatted label',
+                    },
+                },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        const nodes = getAxisLabelNodes(chart, 'bottom');
+        expect(nodes.length).toBeGreaterThan(0);
+        for (const node of nodes) {
+            expect(getLabelText(node)).toBe('Formatted label');
+            expect(node.datum.fontSize).toBeLessThan(12);
+            expect(node.getBBox().width).toBeLessThanOrEqual(60.5);
+        }
+        expectWarningsCalls().toEqual([]);
     });
 });

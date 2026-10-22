@@ -80,6 +80,21 @@ test('benchmark map: scale paths do not leak into series tags', () => {
     assert.deepEqual(ordinal, ['ordinal-time']);
 });
 
+test('benchmark map: organization source and the network folder recommend the organization example', () => {
+    for (const path of [
+        'packages/ag-charts-enterprise/src/series/organization/organizationSeries.ts',
+        'packages/ag-charts-enterprise/src/series/network/networkStackedLayout.ts',
+        'packages/ag-charts-enterprise/src/series/network/networkGraph.ts',
+    ]) {
+        const { examples } = recommend([path]);
+        assert.deepEqual(
+            examples.map((e) => e.name),
+            ['large-organization'],
+            path
+        );
+    }
+});
+
 test('benchmark map: a zoom change can select the dynamic zoom examples', () => {
     const { examples } = recommend(['packages/ag-charts-community/src/chart/interaction/zoomManager.ts']);
     assert.ok(

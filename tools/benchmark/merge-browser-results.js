@@ -10,8 +10,11 @@
  * compare-browser-results.js can still tell a merged memory-pass report from a timing report;
  * shards that disagree on it are rejected, since the merged timings would be a mixture.
  *
+ * `--exclude excluded.json` (the file written by `shard-failures.js excluded`) drops the listed examples,
+ * so an example that failed in any pass is left out of every run rather than compared on fewer runs.
+ *
  * Usage:
- *   node merge-browser-results.js --output merged.json shard1.json shard2.json ...
+ *   node merge-browser-results.js --output merged.json [--exclude excluded.json] shard1.json shard2.json ...
  */
 
 const fs = require('fs');
@@ -25,12 +28,20 @@ const argv = yargs(hideBin(process.argv))
         demandOption: true,
         describe: 'Path to write the merged JSON report',
     })
+    .option('exclude', {
+        type: 'string',
+        describe: 'JSON file listing examples ({ example }[]) to leave out of the merged report',
+    })
     .demandCommand(1, 'At least one input report is required')
     .help()
     .parse();
 
 const inputPaths = argv._.map(String);
 const reports = inputPaths.map((p) => JSON.parse(fs.readFileSync(p, 'utf8')));
+
+const excluded = new Set(
+    argv.exclude ? JSON.parse(fs.readFileSync(argv.exclude, 'utf8')).map(({ example }) => example) : []
+);
 
 const memoryShards = reports.filter((r) => r.memoryPass).length;
 if (memoryShards !== 0 && memoryShards !== reports.length) {
@@ -57,6 +68,9 @@ for (const [i, report] of reports.entries()) {
         if (merged.examples[name]) {
             console.error(`Duplicate example "${name}" in ${inputPaths[i]} — shards must run disjoint example sets`);
             process.exit(1);
+        }
+        if (excluded.has(name)) {
+            continue;
         }
         merged.examples[name] = result;
         merged.summary.total++;

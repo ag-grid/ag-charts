@@ -54,6 +54,7 @@ import {
     expectMonotonic,
     expectNoAnimation,
     expectSceneTrajectory,
+    getAxisScaleDomain,
     getVisibleLabelNodes,
     hoverAction,
     mixinReversedAxesCases,
@@ -3280,6 +3281,30 @@ describe('LineSeries', () => {
             chart = await createChart(options);
 
             await compare();
+        });
+    });
+
+    describe('y autoscale with a fixed x range', () => {
+        const day = (n: number) => new Date(Date.UTC(2024, 0, n));
+
+        // Five daily rows whose y is 1000 on the days just outside the fixed x range of days 2 to 4, where it is 10, 20, 30.
+        const yByDay = [1000, 10, 20, 30, 1000];
+        const rows = yByDay.map((y, i) => ({ date: day(i + 1), y }));
+
+        it.each([
+            ['ascending', rows],
+            ['descending', rows.toReversed()],
+        ])('covers only the rows inside the x range for %s dates', async (_, data) => {
+            chart = await createChart({
+                data,
+                series: [{ type: 'line', xKey: 'date', yKey: 'y' }],
+                axes: {
+                    x: { type: 'time', position: 'bottom', min: day(2), max: day(4) },
+                    y: { type: 'number', position: 'left', nice: false },
+                },
+            });
+
+            expect(getAxisScaleDomain(chart, 'left')).toEqual([10, 30]);
         });
     });
 

@@ -87,7 +87,7 @@ export class AxisWidgets {
                 type: 'axis',
                 domManagerId: axisId,
                 where: 'afterend',
-                role: 'region',
+                classList: ['ag-charts-proxy-axis'],
             });
             const dragInterpreter = new DragInterpreter(widget);
             entry.region = { widget, dragInterpreter };

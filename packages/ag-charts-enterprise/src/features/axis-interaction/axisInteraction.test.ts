@@ -5,8 +5,14 @@
 import { vi } from 'vitest';
 
 import type { AgCartesianChartOptions } from 'ag-charts-community';
-import { clickAction, doubleClickAction, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
-import { closeToBigInt, closeToDate, expectWarningsCalls, setupMockConsole } from 'ag-charts-test';
+import {
+    clickAction,
+    deproxy,
+    doubleClickAction,
+    setupMockCanvas,
+    waitForChartStability,
+} from 'ag-charts-community-test';
+import { closeToBigInt, closeToDate, setupMockConsole } from 'ag-charts-test';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
@@ -947,25 +953,20 @@ describe('AxisInteraction', () => {
             await waitForChartStability(chart);
 
             // A proxy is present, so nothing fired because it was suppressed rather than because the
-            // click missed the axis. Selected by property: jsdom does not reflect `role` to the attribute.
-            const proxies = Array.from(document.querySelectorAll('.ag-charts-proxy-elem'));
-            expect(proxies.some((el) => (el as HTMLElement).role === 'region')).toBe(true);
+            // click missed the axis.
+            expect(document.querySelectorAll('.ag-charts-proxy-axis').length).toBeGreaterThan(0);
             expect(chartClick).not.toHaveBeenCalled();
             expect(chartDoubleClick).not.toHaveBeenCalled();
         });
     });
 
-    describe('axis region aria-label', () => {
+    describe('axis element accessibility', () => {
         const DATA = [
             { x: 1, y: 1, y2: 5 },
             { x: 2, y: 2, y2: 6 },
         ];
 
-        const regionLabels = () =>
-            Array.from(document.querySelectorAll('.ag-charts-proxy-elem'))
-                .filter((el) => (el as HTMLElement).role === 'region')
-                .map((el) => el.getAttribute('aria-label') ?? '')
-                .sort((a, b) => a.localeCompare(b));
+        const axisElements = () => Array.from(document.querySelectorAll<HTMLElement>('.ag-charts-proxy-axis'));
 
         const lineOptions = (axes?: AgCartesianChartOptions['axes'], series?: AgCartesianChartOptions['series']) =>
             ({
@@ -979,113 +980,45 @@ describe('AxisInteraction', () => {
             { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'y2' },
         ];
 
-        async function update(proxy: AgChartInstance, options: AgCartesianChartOptions) {
-            prepareEnterpriseTestOptions(options);
-            await proxy.update(options);
-            await waitForChartStability(chart);
-        }
-
-        test('defaults to the axis keys when no axes are configured', async () => {
-            chart = await createEnterpriseChart(lineOptions());
-            expect(regionLabels()).toEqual(expect.arrayContaining(['x', 'y']));
-        });
-
-        test('uses the axis title text', async () => {
-            chart = await createEnterpriseChart(
-                lineOptions({
-                    x: { type: 'number', title: { text: 'Time' } },
-                    y: { type: 'number', title: { text: 'Price' } },
-                })
-            );
-            expect(regionLabels()).toEqual(['Price', 'Time']);
-        });
-
-        test('ariaLabel wins over the title', async () => {
-            chart = await createEnterpriseChart(
-                lineOptions({
-                    x: { type: 'number', ariaLabel: 'Horizontal', title: { text: 'Time' } },
-                    y: { type: 'number', title: { text: 'Price' } },
-                })
-            );
-            expect(regionLabels()).toEqual(['Horizontal', 'Price']);
-        });
-
-        test('a disabled title falls back to the axis key', async () => {
-            chart = await createEnterpriseChart(
-                lineOptions({
-                    x: { type: 'number', title: { enabled: false, text: 'Time' } },
-                    y: { type: 'number', title: { enabled: true, text: 'Price' } },
-                })
-            );
-            expect(regionLabels()).toEqual(['Price', 'x']);
-        });
-
-        test('a secondary axis is labelled with its key, never the internal id', async () => {
+        test('axis elements are not landmarks and carry no accessible name', async () => {
             chart = await createEnterpriseChart(
                 lineOptions(
                     {
-                        x: { type: 'number' },
-                        y: { type: 'number' },
-                        y2: { type: 'number', position: 'right' },
-                    },
-                    twoYSeries
-                )
-            );
-            const labels = regionLabels();
-            expect(labels).toEqual(['x', 'y', 'y2']);
-            expect(labels.some((l) => l?.startsWith('__AXIS_ID_'))).toBe(false);
-        });
-
-        test('follows a title change on update', async () => {
-            const axes = (text: string): AgCartesianChartOptions['axes'] => ({
-                x: { type: 'number' },
-                y: { type: 'number', title: { text } },
-            });
-            chart = await createEnterpriseChart(lineOptions(axes('Before')));
-            expect(regionLabels()).toEqual(['Before', 'x']);
-
-            await update(chart, lineOptions(axes('After')));
-            expect(regionLabels()).toEqual(['After', 'x']);
-        });
-
-        test('an explicit ariaLabel is unaffected by a title change', async () => {
-            const axes = (text: string): AgCartesianChartOptions['axes'] => ({
-                x: { type: 'number' },
-                y: { type: 'number', ariaLabel: 'Fixed', title: { text } },
-            });
-            chart = await createEnterpriseChart(lineOptions(axes('Before')));
-            expect(regionLabels()).toEqual(['Fixed', 'x']);
-
-            await update(chart, lineOptions(axes('After')));
-            expect(regionLabels()).toEqual(['Fixed', 'x']);
-        });
-
-        test('axes sharing a title are disambiguated by key', async () => {
-            chart = await createEnterpriseChart(
-                lineOptions(
-                    {
-                        x: { type: 'number' },
+                        x: { type: 'number', title: { text: 'Time' } },
                         y: { type: 'number', title: { text: 'Value' } },
                         y2: { type: 'number', position: 'right', title: { text: 'Value' } },
                     },
                     twoYSeries
                 )
             );
-            expect(regionLabels()).toEqual(['Value (y)', 'Value (y2)', 'x']);
+
+            const elements = axisElements();
+            expect(elements).toHaveLength(3);
+            for (const el of elements) {
+                // jsdom does not reflect `role` to the attribute, so check both.
+                expect(el.role).toBeFalsy();
+                expect(el.getAttribute('role')).toBeNull();
+                expect(el.getAttribute('aria-label')).toBeNull();
+            }
         });
 
-        test('identical explicit ariaLabels are kept and warned about', async () => {
-            const options = lineOptions(
-                {
-                    x: { type: 'number' },
-                    y: { type: 'number', ariaLabel: 'Same' },
-                    y2: { type: 'number', position: 'right', ariaLabel: 'Same' },
-                },
-                twoYSeries
-            );
-            chart = await createEnterpriseChart(options);
-            expect(regionLabels()).toEqual(['Same', 'Same', 'x']);
-            expectWarningsCalls().toEqual([[expect.stringContaining('[ariaLabel]')]]);
+        it('an axis added by update() keeps its own key', async () => {
+            const oneY: AgCartesianChartOptions['axes'] = {
+                x: { type: 'number' },
+                y: { type: 'number', position: 'left', title: { text: 'Value' } },
+            };
+            chart = await createEnterpriseChart(lineOptions(oneY));
+
+            const options = lineOptions({ ...oneY, y2: { type: 'number', position: 'right' } }, twoYSeries);
+            prepareEnterpriseTestOptions(options);
+            await chart.update(options);
+            await waitForChartStability(chart);
+
+            const userKeys = deproxy(chart)
+                .axes.map((axis) => axis.userKey)
+                .sort((a, b) => a.localeCompare(b));
+            expect(userKeys).toEqual(['x', 'y', 'y2']);
+            expect(axisElements()).toHaveLength(3);
         });
     });
 });

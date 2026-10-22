@@ -32,6 +32,7 @@ import {
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    stubChartImageLoader,
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
@@ -424,7 +425,6 @@ describe('DonutSeries', () => {
                     series: [{ type: 'donut', angleKey: 'value', sectorLabelKey: 'city', innerRadiusRatio: 0.5 }],
                 })
             );
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([]);
         });
@@ -1627,7 +1627,7 @@ describe('DonutSeries', () => {
                     ) as AgChartOptions
                 ) as AgChartProxy
             );
-            (chart.ctx.scene as any).imageLoader.loadImage = () => preloaded as unknown as HTMLImageElement;
+            stubChartImageLoader(chart, { [icon]: preloaded });
             await waitForChartStability(chart);
 
             await compare();
@@ -2142,7 +2142,7 @@ describe('DonutSeries', () => {
                     prepareTestOptions(richFillOptions({ type: 'image', url: icon })) as AgChartOptions
                 ) as AgChartProxy
             );
-            (chart.ctx.scene as any).imageLoader.loadImage = () => preloaded as unknown as HTMLImageElement;
+            stubChartImageLoader(chart, { [icon]: preloaded });
             await waitForChartStability(chart);
 
             await compare('donut-inner-circle-image-fill');

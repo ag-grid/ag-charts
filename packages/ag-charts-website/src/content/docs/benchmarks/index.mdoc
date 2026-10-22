@@ -159,6 +159,12 @@ Exercises the per-datum styling pipeline when `selection.enabled` is on across e
 
 {% chartExampleRunner title="Data Selection Zoom (Scatter / Bubble / Histogram)" name="data-selection-zoom-xy" type="generated" initialLoadDeferred=true /%}
 
+## Organization Chart at Scale
+
+Exercises the organization series at 1K and 10K nodes, with every director's reports in a stacked column so the chart draws roughly square: initial load, wheel zoom in to native size and back out, and drag panning once zoomed in. Each case shows how the cost grows with the node count.
+
+{% chartExampleRunner title="Organization Chart at Scale" name="large-organization" type="generated" initialLoadDeferred=true /%}
+
 ## Series Label Collision
 
 Exercises the cross-series label placement pass: clustered bubble labels that cascade through their fallback placements, and bar labels that cascade and shrink. Each series runs with labels off, at a single placement, and with the full cascade, so the cost of placement is separated from the cost of drawing the labels. The highlight case measures the cached-solve path a hover takes.

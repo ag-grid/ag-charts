@@ -389,6 +389,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Shadow DOM",
+                            "path": "shadow-dom"
+                        },
+                        {
+                            "type": "item",
                             "title": "Text",
                             "path": "text"
                         },
@@ -566,6 +571,13 @@
                     "title": "Candlestick",
                     "path": "candlestick-series",
                     "icon": "chartsCandlestick",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "HLC",
+                    "path": "hlc-series",
+                    "icon": "chartsOHLC",
                     "isEnterprise": true
                 },
                 {

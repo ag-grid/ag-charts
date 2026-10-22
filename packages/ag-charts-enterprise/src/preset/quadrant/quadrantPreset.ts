@@ -160,6 +160,7 @@ export function createQuadrant(
         'dataIdKey',
         'dataSource',
         'enableRtl',
+        'enableShadowDom',
         'footnote',
         'formatter',
         'height',

@@ -76,6 +76,12 @@ export function focusCursorAtEnd(element: HTMLElement) {
     selection?.addRange(range);
 }
 
+/** Inside a shadow root, `document.activeElement` is the host, so ask the element's own root instead. */
+export function isFocused(element: Element): boolean {
+    const root = element.getRootNode();
+    return 'activeElement' in root && root.activeElement === element;
+}
+
 export function isInputPending() {
     // Chrome-specific API for checking if user-input is pending, and we should yield the main thread
     // to allow it to be processed.
