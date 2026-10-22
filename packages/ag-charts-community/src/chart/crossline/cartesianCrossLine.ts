@@ -30,7 +30,8 @@ import type {
 } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCrossLineLabelPosition, AgCrossLineListeners } from 'ag-charts-types';
 
-import type { ChartRegistry } from '../../module/moduleContext';
+import type { AxisContext } from '../../module/axisContext';
+import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { rangeAlignment } from '../rangeAlignment';
 import { bandRangeExpansion } from '../scaleValue';
 import { type Anchor, type AnchorDirection, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
@@ -102,7 +103,6 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     gridLength: number = 0;
     gridPadding: number = 0;
     containerBox?: BoxBounds = undefined;
-    position: AgCartesianAxisPosition = 'top';
 
     readonly rangeGroup = new Group({ name: this.internalId });
     readonly lineGroup = new Group({ name: this.internalId });
@@ -128,8 +128,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private labelBounds: BBox | undefined = undefined;
     private fitted: (FittedLabel & { measurer: TextMeasurer }) | undefined = undefined;
 
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) {
         this.crossLineRange.pointerEvents = PointerEvents.None;
+    }
+
+    get position(): AgCartesianAxisPosition {
+        return this.ctx.parent.position ?? 'top';
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions) {

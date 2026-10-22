@@ -12,7 +12,6 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { CartesianChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
-import { CartesianCrossLine } from './crossline/cartesianCrossLine';
 import { getCrossLinesPlugin } from './crossline/getCrossLinesPlugin';
 import type { LayoutContext, ScrollbarLayoutMap, SeriesInsetMap } from './layout/layoutManager';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
@@ -563,14 +562,9 @@ export class CartesianChart extends Chart {
         const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0 };
 
         for (const axis of this.axes) {
-            const { position } = axis;
             const crossLines = getCrossLinesPlugin(axis)?.getInstances();
             if (!crossLines) continue;
             for (const crossLine of crossLines) {
-                if (crossLine instanceof CartesianCrossLine) {
-                    crossLine.position = position ?? 'top';
-                }
-
                 crossLine.calculatePadding?.(crossLinePadding);
             }
         }

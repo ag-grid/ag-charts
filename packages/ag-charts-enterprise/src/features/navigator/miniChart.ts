@@ -318,15 +318,6 @@ export class MiniChart extends AbstractModuleInstance {
                 axis.resetAnimation('initial');
             }
 
-            const crossLines = _ModuleSupport.getCrossLinesPlugin(axis)?.getInstances();
-            if (crossLines) {
-                for (const crossLine of crossLines) {
-                    if (crossLine instanceof _ModuleSupport.CartesianCrossLine) {
-                        crossLine.position = axis.position ?? 'top';
-                    }
-                }
-            }
-
             axis.calculateLayout();
             axis.update();
         }

@@ -86,7 +86,7 @@ export interface AxisContext {
     readonly axisType: string;
     continuous: boolean;
     direction: ChartAxisDirection;
-    position?: AgCartesianAxisPosition;
+    readonly position?: AgCartesianAxisPosition;
     scale: Scale<any, any, any>;
     readonly mirrored: boolean;
     readonly reverse: boolean;

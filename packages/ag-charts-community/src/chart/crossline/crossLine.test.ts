@@ -27,7 +27,8 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import type { ChartRegistry } from '../../module/moduleContext';
+import type { AxisContext } from '../../module/axisContext';
+import type { ChartAxisRegistry } from '../../module/moduleContext';
 import type { Chart } from '../chart';
 import { getSeriesRect } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
@@ -1511,9 +1512,13 @@ describe('CrossLine', () => {
         }
 
         function unitCrossLine() {
-            const chartCtx = { domManager: { isRtl: false }, logger: { warnOnce() {}, deprecationOnce() {} } };
-            // A stub of the two context members the unit under test reads, not a full chart context.
-            return new CartesianCrossLine(chartCtx as unknown as DynamicContext<ChartRegistry>);
+            const axisCtx = {
+                domManager: { isRtl: false },
+                logger: { warnOnce() {}, deprecationOnce() {} },
+                parent: { position: 'bottom' },
+            };
+            // A stub of the context members the unit under test reads, not a full axis context.
+            return new CartesianCrossLine(axisCtx as unknown as DynamicContext<ChartAxisRegistry<AxisContext>>);
         }
 
         function crossLineWith(
@@ -1523,7 +1528,6 @@ describe('CrossLine', () => {
         ) {
             const crossLine = unitCrossLine();
             crossLine.applyOptions(crossLineOptions(type, { overflow, position }));
-            crossLine.position = 'bottom';
             return crossLine;
         }
 
@@ -1549,7 +1553,6 @@ describe('CrossLine', () => {
         it('an unset overflow pads as pad-chart does', () => {
             const crossLine = unitCrossLine();
             crossLine.applyOptions(crossLineOptions('line', { position: 'top' }));
-            crossLine.position = 'bottom';
 
             const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
             crossLine.calculatePadding(into);
