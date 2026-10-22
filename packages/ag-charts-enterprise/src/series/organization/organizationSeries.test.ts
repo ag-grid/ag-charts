@@ -1192,7 +1192,6 @@ describe('OrganizationSeries', () => {
             const ids: number[] = [];
             for (const { datum } of getOrganizationCards(c)) {
                 if (!datum.collapsedByAncestor) {
-                    // The fixture's ids are all numeric: a string here is a regression in how the ids were kept.
                     expect(datum.itemId).toBeTypeOf('number');
                     ids.push(Number(datum.itemId));
                 }
