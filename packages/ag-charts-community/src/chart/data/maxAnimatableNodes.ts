@@ -1,0 +1,1 @@
+export const MAX_ANIMATABLE_NODES = 1000;

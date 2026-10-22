@@ -1,6 +1,6 @@
 import { DeferredExecutor, EventEmitter } from 'ag-charts-core';
 
-import { MAX_ANIMATABLE_NODES } from '../data/processors';
+import { MAX_ANIMATABLE_NODES } from '../data/maxAnimatableNodes';
 
 export interface AggregationManagerEvents {
     filtersChanged: void;
