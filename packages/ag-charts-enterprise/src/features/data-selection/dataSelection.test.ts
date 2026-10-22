@@ -24,6 +24,9 @@ import {
     deproxy,
     dragAction,
     getSeriesAggregationInternals,
+    getSeriesAt,
+    getSeriesContextNodeData,
+    getSeriesSelectionNodes,
     isTooltipVisible,
     keyDownAction,
     mouseDownAction,
@@ -37,8 +40,9 @@ import {
     waitForChartStability,
     withPreventDefault,
 } from 'ag-charts-community-test';
-import type { CanvasPoint } from 'ag-charts-core';
+import type { CanvasPoint, Shape } from 'ag-charts-core';
 
+import { getErrorBarGroupOpacity, getSelectionDragRect } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 async function waitForUnhighlight() {
@@ -1173,8 +1177,7 @@ describe('DataSelection', () => {
             expect(renderedMarkerCount).toBeLessThan(aggregatedData.length);
 
             // Inset the drag within the series area so it doesn't clip axes.
-            const seriesRect = (deproxy(chart) as any).seriesAreaManager?.seriesRect;
-            expect(seriesRect).toBeDefined();
+            const seriesRect = deproxy(chart).seriesAreaBoundingBox;
             const x0 = Math.ceil(seriesRect.x) + 2;
             const y0 = Math.ceil(seriesRect.y) + 2;
             const x1 = Math.floor(seriesRect.x + seriesRect.width) - 2;
@@ -1366,18 +1369,10 @@ describe('DataSelection', () => {
                 selection: { enabled: true, selectedItem: { stroke: 'steelblue', strokeWidth: 3 } },
             });
 
-            function getErrorBarGroupOpacity(seriesIndex = 0) {
-                const series = deproxy(chart).series[seriesIndex] as any;
-                const errorBars = series.moduleMap.getModule('errorBar');
-                expect(errorBars).toBeDefined();
-                return errorBars.groupNode.opacity;
-            }
-
             async function setHighlight(datumIndex: number | undefined) {
-                const chartInstance = deproxy(chart) as any;
-                const series = chartInstance.series[0];
-                const nodeData = series.contextNodeData?.nodeData;
-                expect(nodeData?.length).toBeGreaterThan(0);
+                const chartInstance = deproxy(chart);
+                const { nodeData } = getSeriesContextNodeData(chart);
+                expect(nodeData.length).toBeGreaterThan(0);
                 chartInstance.ctx.highlightManager.updateHighlight(
                     chartInstance.id,
                     datumIndex === undefined ? undefined : nodeData[datumIndex]
@@ -1391,19 +1386,19 @@ describe('DataSelection', () => {
             ] as const) {
                 it(`dims and restores error bars on a ${seriesType} series without an intervening highlight`, async () => {
                     chart = await createEnterpriseChart(buildOptions([seriesFactory(monthsData)]));
-                    expect(getErrorBarGroupOpacity()).toBe(1);
+                    expect(getErrorBarGroupOpacity(chart)).toBe(1);
 
                     const series = deproxy(chart).series[0];
                     chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
                     await waitForChartStability(chart);
 
                     // Selecting must dim on its own — no hover required.
-                    expect(getErrorBarGroupOpacity()).toBe(DIMMED_OPACITY);
+                    expect(getErrorBarGroupOpacity(chart)).toBe(DIMMED_OPACITY);
 
                     chart.clearSelection();
                     await waitForChartStability(chart);
 
-                    expect(getErrorBarGroupOpacity()).toBe(1);
+                    expect(getErrorBarGroupOpacity(chart)).toBe(1);
                 });
 
                 it(`restores error bars on a ${seriesType} series when deselecting after the highlight has cleared`, async () => {
@@ -1417,12 +1412,12 @@ describe('DataSelection', () => {
                     // highlight change wrote the dimmed opacity; deselecting must restore it unprompted.
                     await setHighlight(2);
                     await setHighlight(undefined);
-                    expect(getErrorBarGroupOpacity()).toBe(DIMMED_OPACITY);
+                    expect(getErrorBarGroupOpacity(chart)).toBe(DIMMED_OPACITY);
 
                     chart.clearSelection();
                     await waitForChartStability(chart);
 
-                    expect(getErrorBarGroupOpacity()).toBe(1);
+                    expect(getErrorBarGroupOpacity(chart)).toBe(1);
                 });
             }
         });
@@ -5609,13 +5604,14 @@ describe('DataSelection', () => {
 
     describe('series styling', () => {
         test('treemap tiles', async () => {
-            const { data, series, theme, legend, title } = createDiskUsageOptions('treemap');
+            const { data, theme, legend, title } = createDiskUsageOptions('treemap');
             chart = await createEnterpriseChart({
                 data,
                 series: [
                     {
-                        ...(series as any[])[0],
                         type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
                         tile: {
                             selection: {
                                 selectedItem: {
@@ -5665,24 +5661,27 @@ describe('DataSelection', () => {
                                 yKey: 'revenue',
                                 selection: { enabled: true, selectedItem: { stroke: 'green' } },
                                 highlight: { enabled: true, highlightedItem: { fill: 'red', stroke: 'red' } },
-                            } as any,
+                            },
                         ],
                         axes: { x: { type: 'category' }, y: { type: 'number' } },
                     };
                     chart = await createEnterpriseChart(options);
 
-                    const chartInstance = deproxy(chart) as any;
-                    const series = chartInstance.series[0];
+                    const chartInstance = deproxy(chart);
+                    const series = getSeriesAt(chart);
                     chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
                     await waitForChartStability(chart);
 
                     chartInstance.ctx.highlightManager.updateHighlight(
                         chartInstance.id,
-                        series.contextNodeData.nodeData[2]
+                        getSeriesContextNodeData(chart).nodeData[2]
                     );
                     await waitForChartStability(chart);
 
-                    const [node] = series.highlightSelection.nodes();
+                    const [node] = getSeriesSelectionNodes<Shape & { datum: { datumIndex: number } }>(
+                        chart,
+                        'highlightSelection'
+                    );
                     expect(node.datum.datumIndex).toBe(2);
                     // The highlight style applies where it does not conflict with the selection style...
                     expect(node.fill).toBe('red');
@@ -5699,6 +5698,8 @@ describe('DataSelection', () => {
             type C = unknown;
             let selectionChange: SelectionChangeRecorder<D, C>;
             let opts: AgChartOptions<D, C>;
+            // Shared with `opts`, so a test can flip the second series' `selection.enabled` before the next update.
+            let secondSeriesSelection: { enabled: boolean };
             const data: D[] = [
                 { id: 'r2018', year: '2018', assets: 100, liabilities: -70, cash: 30 },
                 { id: 'r2019', year: '2019', assets: 120, liabilities: -80, cash: 40 },
@@ -5710,6 +5711,7 @@ describe('DataSelection', () => {
 
             beforeEach(async () => {
                 selectionChange = createSelectionChangeRecorder<D, C>();
+                secondSeriesSelection = { enabled: true };
                 opts = {
                     data,
                     dataIdKey: 'id',
@@ -5729,7 +5731,7 @@ describe('DataSelection', () => {
                             type: 'line',
                             xKey: 'year',
                             yKey: 'liabilities',
-                            selection: { enabled: true },
+                            selection: secondSeriesSelection,
                         },
                         {
                             id: 's3id',
@@ -5756,7 +5758,7 @@ describe('DataSelection', () => {
             describe('update - disable', () => {
                 beforeEach(async () => {
                     selectionChange.popEvents(); // pop & ignore initial event.
-                    (opts.series![1] as any).selection.enabled = false;
+                    secondSeriesSelection.enabled = false;
                     await chart.update(opts);
                     await waitForChartStability(chart);
                 });
@@ -5768,7 +5770,7 @@ describe('DataSelection', () => {
                 });
                 describe('update - enable', () => {
                     beforeEach(async () => {
-                        (opts.series![1] as any).selection.enabled = true;
+                        secondSeriesSelection.enabled = true;
                         await chart.update(opts);
                         await waitForChartStability(chart);
                     });
@@ -5833,11 +5835,7 @@ describe('DataSelection', () => {
                 zoom: { enabled: false },
             });
 
-            const chartInternals = deproxy(chart) as any;
-            const seriesRect = chartInternals.seriesAreaManager?.seriesRect;
-            expect(seriesRect).toBeDefined();
-            const selectionModule = chartInternals.modulesManager.getModule('selection');
-            expect(selectionModule).toBeDefined();
+            const seriesRect = deproxy(chart).seriesAreaBoundingBox;
 
             // The move target must stay within the canvas for the event to reach the chart, so drag
             // into the axis/padding band beyond the series area rather than off-canvas.
@@ -5852,7 +5850,7 @@ describe('DataSelection', () => {
 
             // Read mid-drag: only drag-move clips to the series area, so an assertion made after
             // drag-end would hold whether or not the clamp is applied.
-            const { dragRect } = selectionModule;
+            const dragRect = getSelectionDragRect(chart);
             expect(dragRect.x).toBe(start.canvasX);
             expect(dragRect.y).toBe(start.canvasY);
             expect(dragRect.x + dragRect.width).toBeCloseTo(seriesRect.x + seriesRect.width, 6);

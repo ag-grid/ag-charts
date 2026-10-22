@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgChartInstance, AgFlashOnUpdateOptions } from 'ag-charts-community';
 import {
     clickAction,
     compareImageSnapshot,
@@ -162,18 +162,8 @@ function generateData(count: number, seed = 1) {
     }));
 }
 
-function withFlash(
-    options: AgCartesianChartOptions,
-    flashOptions: {
-        enabled?: boolean;
-        item?: 'chart' | 'category';
-        fill?: string;
-        fillOpacity?: number;
-        flashDuration?: number;
-        fadeOutDuration?: number;
-    }
-): AgCartesianChartOptions {
-    return { ...options, flashOnUpdate: flashOptions } as any;
+function withFlash(options: AgCartesianChartOptions, flashOptions: AgFlashOnUpdateOptions): AgCartesianChartOptions {
+    return { ...options, flashOnUpdate: flashOptions };
 }
 
 // --- Tests ---
@@ -187,7 +177,7 @@ describe('FlashOnUpdate', () => {
 
     afterEach(() => {
         chart?.destroy();
-        (chart as any) = undefined;
+        chart = undefined!;
     });
 
     const compareSnapshot = async () => {

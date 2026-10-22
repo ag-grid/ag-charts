@@ -6,6 +6,7 @@ import {
     type AgChartOptions,
     type AgChartState,
     type AgInitialStateZoomOptions,
+    type AgZoomOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -623,10 +624,11 @@ describe('Zoom', () => {
             it('should allow independent axis zooming', async () => {
                 await prepareChart(undefined, undefined, {
                     ...twoAxesOptions,
+                    // `enableIndependentAxes` is set by the price-volume preset and is not a public zoom option.
                     zoom: {
                         ...twoAxesOptions.zoom,
                         enableIndependentAxes: true,
-                    } as any,
+                    } as AgZoomOptions,
                 });
 
                 const from = { x: 30, y: cy };
@@ -1770,7 +1772,7 @@ describe('Zoom', () => {
 
             // A real series-area drag: mouse down inside the series area, then two moves without a
             // mouse up, which is what leaves the chart mid-drag.
-            const { x, y, width, height } = (instance as any).seriesRect;
+            const { x, y, width, height } = getSeriesRect(chart);
             const from = { x: x + width * 0.25, y: y + height * 0.5 };
             const to = { x: x + width * 0.75, y: y + height * 0.5 };
             await mouseDownAction(from.x, from.y)(chart);

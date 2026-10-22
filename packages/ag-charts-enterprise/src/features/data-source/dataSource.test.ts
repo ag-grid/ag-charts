@@ -745,7 +745,8 @@ describe('DataSource', () => {
         // Every array (empty, primitives, all-null rows, or rows whose keys do not match the series) is
         // structurally valid and retained silently; only a non-array is a developer error worth warning about.
         it.each([
-            ['a non-array response', undefined as any, true],
+            // A non-array response is what the callback's `Promise<any[]>` return type forbids, so it is cast.
+            ['a non-array response', undefined as unknown as unknown[], true],
             ['an empty array', [], false],
             ['an array of primitives (wrong shape)', [1, 2, 3], false],
             ['an array of all-null-value objects (null fields)', [{ time: null, price: null }], false],

@@ -1,11 +1,32 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
-import type { AgRangesButtonValueFunctionParams, AgRangesButtonValueSource } from 'ag-charts-types';
+import {
+    type Chart,
+    deproxy,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
+import type {
+    AgChartThemeParams,
+    AgRangesButtonValueFunctionParams,
+    AgRangesButtonValueSource,
+    AgRangesOptions,
+    DatumDefault,
+    Padding,
+} from 'ag-charts-types';
 
+import {
+    getRangesDropdownMinWidth,
+    getResolvedRangesOptions,
+    setRangesDropdownMinWidth,
+} from '../../test/featureAccessors';
 import { createEnterpriseChart } from '../../test/utils';
 import { Ranges } from './ranges';
+
+// `minSize` is undocumented: the theme and the price-volume preset set it, so the options type does not know it.
+type RangesTestOptions = AgRangesOptions & { minSize?: number };
 
 describe('Ranges', () => {
     setupMockConsole();
@@ -15,7 +36,7 @@ describe('Ranges', () => {
     afterEach(() => {
         if (chart != null) {
             chart.destroy();
-            (chart as any) = undefined;
+            (chart as unknown) = undefined;
         }
     });
 
@@ -91,7 +112,7 @@ describe('Ranges', () => {
     });
 
     describe('buttonSize', () => {
-        const create = async (ranges: Record<string, unknown>) => {
+        const create = async (ranges: RangesTestOptions) => {
             const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -100,12 +121,12 @@ describe('Ranges', () => {
                     y: { type: 'number', position: 'left' },
                 },
                 ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }], ...ranges },
-            } as any;
+            };
             chart = await createEnterpriseChart(options);
-            return deproxy(chart as any) as any;
+            return deproxy(chart);
         };
 
-        const rangeButtons = (proxy: any, toolbar: 'buttons' | 'dropdown') =>
+        const rangeButtons = (proxy: Chart, toolbar: 'buttons' | 'dropdown') =>
             Array.from<HTMLElement>(
                 proxy.ctx.agDocument.body.querySelectorAll(
                     `.ag-charts-range-buttons--${toolbar} .ag-charts-toolbar__button`
@@ -145,34 +166,33 @@ describe('Ranges', () => {
         });
 
         it('resets the dropdown minimum width when the size changes', async () => {
-            const ranges = {
+            const ranges: AgRangesOptions = {
                 enabled: true,
                 dropdown: { visible: 'always' },
                 buttons: [{ label: 'All', value: [0, 19] }],
             };
-            const proxy = await create({ ...ranges, buttonSize: 40 });
-            const module = proxy.modulesManager.getModule('ranges');
+            await create({ ...ranges, buttonSize: 40 });
             const withSize = (buttonSize: number) =>
                 chart.update({
                     data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     ranges: { ...ranges, buttonSize },
-                } as any);
+                });
 
-            module.dropdownMinWidth = 999;
+            setRangesDropdownMinWidth(chart, 999);
             await withSize(40);
             await waitForChartStability(chart);
-            expect(module.dropdownMinWidth).toBe(999);
+            expect(getRangesDropdownMinWidth(chart)).toBe(999);
 
             await withSize(50);
             await waitForChartStability(chart);
-            expect(module.dropdownMinWidth).not.toBe(999);
+            expect(getRangesDropdownMinWidth(chart)).not.toBe(999);
         });
 
         // `getBounds()` prefers an inline width, so the width written by the previous layout must not
         // survive into the next measurement, or the overflow check and alignment would use the old size.
         it('re-measures both toolbars instead of reusing their inline widths when the size changes', async () => {
-            const ranges = { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] };
+            const ranges: AgRangesOptions = { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] };
             const proxy = await create({ ...ranges, buttonSize: 40 });
             const toolbars = (['buttons', 'dropdown'] as const).map(
                 (toolbar) =>
@@ -184,7 +204,7 @@ describe('Ranges', () => {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { ...ranges, buttonSize: 50 },
-            } as any);
+            });
             await waitForChartStability(chart);
 
             for (const toolbar of toolbars) {
@@ -216,7 +236,7 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any;
+            };
 
             chart = await createEnterpriseChart(options);
 
@@ -248,7 +268,7 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any;
+            };
 
             chart = await createEnterpriseChart(options);
 
@@ -269,7 +289,7 @@ describe('Ranges', () => {
         it('should pass the chart-level context to the value function', async () => {
             const receivedContexts: Array<RangesContext | undefined> = [];
 
-            const options: AgCartesianChartOptions = {
+            const options: AgCartesianChartOptions<DatumDefault, RangesContext> = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes: {
@@ -289,7 +309,7 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any;
+            };
 
             chart = await createEnterpriseChart(options);
 
@@ -319,7 +339,7 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any;
+            };
 
             chart = await createEnterpriseChart(options);
 
@@ -329,7 +349,7 @@ describe('Ranges', () => {
     });
 
     describe('theme params', () => {
-        const resolvedRanges = async (params: Record<string, unknown>, ranges: Record<string, unknown> = {}) => {
+        const resolvedRanges = async (params: AgChartThemeParams, ranges: AgRangesOptions = {}) => {
             const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -339,10 +359,10 @@ describe('Ranges', () => {
                 },
                 ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }], ...ranges },
                 theme: { params },
-            } as any;
+            };
 
             chart = await createEnterpriseChart(options);
-            return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+            return getResolvedRangesOptions(chart);
         };
 
         it('derives the button and dropdown lineHeight from their own fontSize', async () => {
@@ -473,9 +493,9 @@ describe('Ranges', () => {
                     stroke: 'green',
                     buttons: [{ label: 'All', value: [0, 19] }],
                 },
-            } as any;
+            };
             chart = await createEnterpriseChart(options);
-            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+            const ranges = getResolvedRangesOptions(chart);
 
             expect(ranges.button.hover.textColor).toBe('red');
             expect(ranges.button.hover.stroke).toBe('green');
@@ -506,7 +526,7 @@ describe('Ranges', () => {
                 buttonDisabledBorder: true,
             });
 
-            for (const state of ['hover', 'active', 'disabled']) {
+            for (const state of ['hover', 'active', 'disabled'] as const) {
                 expect(ranges.button[state]).toMatchObject({ stroke: 'black', strokeWidth: 2 });
             }
         });
@@ -548,7 +568,7 @@ describe('Ranges', () => {
         it('state border widths default to the buttonBorder width', async () => {
             const ranges = await resolvedRanges({ buttonBorder: { color: 'black', width: 3 } });
 
-            for (const state of ['hover', 'active', 'disabled']) {
+            for (const state of ['hover', 'active', 'disabled'] as const) {
                 expect(ranges.button[state].strokeWidth).toBe(3);
             }
         });
@@ -559,11 +579,11 @@ describe('Ranges', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { enabled: true, strokeWidth: 3, buttons: [{ label: 'All', value: [0, 19] }] },
                 theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
-            } as any;
+            };
             chart = await createEnterpriseChart(options);
-            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+            const ranges = getResolvedRangesOptions(chart);
 
-            for (const state of ['hover', 'active', 'disabled']) {
+            for (const state of ['hover', 'active', 'disabled'] as const) {
                 expect(ranges.button[state].strokeWidth).toBe(3);
             }
         });
@@ -574,11 +594,11 @@ describe('Ranges', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { enabled: true, button: { strokeWidth: 3 }, buttons: [{ label: 'All', value: [0, 19] }] },
                 theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
-            } as any;
+            };
             chart = await createEnterpriseChart(options);
-            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+            const ranges = getResolvedRangesOptions(chart);
 
-            for (const state of ['hover', 'active', 'disabled']) {
+            for (const state of ['hover', 'active', 'disabled'] as const) {
                 expect(ranges.button[state].strokeWidth).toBe(3);
             }
             expect(ranges.dropdown.hover.strokeWidth).toBe(6);
@@ -590,14 +610,14 @@ describe('Ranges', () => {
             expect(ranges.button.padding).toEqual({ top: 6, right: 9, bottom: 6, left: 9 });
         });
 
-        const resolvedUserPadding = async (padding: unknown) => {
+        const resolvedUserPadding = async (padding: Padding) => {
             const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { enabled: true, padding, buttons: [{ label: 'All', value: [0, 19] }] },
-            } as any;
+            };
             chart = await createEnterpriseChart(options);
-            return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges').button.padding;
+            return getResolvedRangesOptions(chart).button.padding;
         };
 
         it('a user-set padding number replaces the default', async () => {

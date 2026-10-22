@@ -8,6 +8,8 @@ import {
     contextMenuAction,
     deproxy,
     expectWarningsCalls,
+    getSeriesAt,
+    getSeriesNodeData,
     hoverAction,
     longTapAction,
     setupMockCanvas,
@@ -21,6 +23,14 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster } from 'ag-charts-test';
 import { pointOnPolarCrossLine, polarCanvasPoint, polarCrossLineAt } from '../../test/polarCrossLines';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
+
+// The bar-shaped datums of the histogram and bar series the tests click on.
+interface BarNodeDatum {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
 
 describe('Context Menu', () => {
     setupMockConsole();
@@ -103,10 +113,9 @@ describe('Context Menu', () => {
 
     // Canvas-space click points, read from the laid-out chart purely to place the pointer.
     function datumCanvasPoint(datumIndex: number) {
-        const series = deproxy(chart).series[0] as any;
-        const node = series.getNodeData()[datumIndex];
+        const node = getSeriesNodeData(chart)[datumIndex];
         expect(node).toBeDefined();
-        return Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
+        return Transformable.toCanvasPoint(getSeriesAt(chart).contentGroup, node.point!.x, node.point!.y);
     }
 
     function seriesAreaCentre() {
@@ -143,10 +152,9 @@ describe('Context Menu', () => {
     };
 
     function histogramBinCentre(datumIndex: number) {
-        const series = deproxy(chart).series[0] as any;
-        const node = series.getNodeData()[datumIndex];
+        const node = getSeriesNodeData<BarNodeDatum>(chart)[datumIndex];
         const { canvasX, canvasY } = Transformable.toCanvasPoint(
-            series.contentGroup,
+            getSeriesAt(chart).contentGroup,
             node.x + node.width / 2,
             node.y + node.height / 2
         );
@@ -268,9 +276,12 @@ describe('Context Menu', () => {
 
     describe('series-node getItems datums (AG-17546)', () => {
         const nodeCanvasPoint = (datumIndex: number) => {
-            const series = deproxy(chart).series[0] as any;
-            const node = series.getNodeData()[datumIndex];
-            return Transformable.toCanvasPoint(series.contentGroup, node.x + node.width / 2, node.y + node.height / 2);
+            const node = getSeriesNodeData<BarNodeDatum>(chart)[datumIndex];
+            return Transformable.toCanvasPoint(
+                getSeriesAt(chart).contentGroup,
+                node.x + node.width / 2,
+                node.y + node.height / 2
+            );
         };
 
         it('passes the bin source rows to getItems as datums', async () => {
