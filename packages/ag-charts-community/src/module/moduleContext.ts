@@ -16,6 +16,7 @@ import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
 import type { ChartState } from '../chart/chartState';
 import type { CrossLine } from '../chart/crossline/crossLine';
+import type { CrossLinesDOMProxy } from '../chart/crossline/crossLinesDOMProxy';
 import type { IDataSelectionService } from '../chart/data/dataSelectionServiceTypes';
 import type { DataService } from '../chart/data/dataService';
 import type { FontManager } from '../chart/fonts/fontManager';
@@ -86,6 +87,7 @@ export interface ChartRegistry {
     readonly annotationManager?: AnnotationManager;
     readonly collapsedManager: CollapsedManager;
     readonly contextMenuRegistry?: ContextMenuRegistry;
+    readonly crossLinesDOMProxy?: CrossLinesDOMProxy;
     readonly formatManager: FormatManager;
     readonly domManager: DOMManager;
     readonly fontManager: FontManager;

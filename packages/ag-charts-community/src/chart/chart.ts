@@ -69,7 +69,6 @@ import { createChartContext } from './chartContext';
 import type { ChartEventMap, ChartEventType, ChartListeners, ChartService } from './chartService';
 import type { ChartState } from './chartState';
 import type { ChartType } from './chartType';
-import { CrossLinesDOMProxy } from './crossline/crossLinesDOMProxy';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
@@ -568,9 +567,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         ctx.domManager.setDataNumber('animationTimeMs', 0);
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
-        const crossLinesDOMProxy = new CrossLinesDOMProxy(ctx, () => this.axes);
         this.cleanup.register(
-            () => crossLinesDOMProxy.destroy(),
             ctx.chartState.observe((get) => this.tooltip.applyOptions(get('options', 'tooltip') ?? {})),
             ctx.chartState.observe((get) => this.overlays.applyOptions(get('options', 'overlays') ?? {})),
             // A tooltip is painted in the browser's top layer (a `popover`), so no z-index can place it

@@ -434,6 +434,12 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'plugin',
+        name: 'cross-lines-dom-proxy',
+        moduleId: 'AllCommunityModule',
+        chartTypes: ['cartesian', 'polar'],
+    },
+    {
+        type: 'plugin',
         name: 'dataSource',
         moduleId: 'DataSourceModule',
         enterprise: true,

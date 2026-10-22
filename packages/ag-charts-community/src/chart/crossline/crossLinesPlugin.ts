@@ -132,6 +132,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         this.axisCtx.attachAxisOverlay(this.rangeGroup, 'low');
         this.axisCtx.attachAxisOverlay(this.lineGroup, 'mid');
         this.axisCtx.attachAxisOverlay(this.labelGroup, 'high');
+        this.ctx.crossLinesDOMProxy?.attach(this);
 
         // Both hit-test this axis's cross lines, then diverge: the context-menu one annotates the
         // series-area handoff, the pointer-click one runs the cross-line listeners directly.
@@ -340,6 +341,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     override destroy(): void {
+        this.ctx.crossLinesDOMProxy?.detach(this);
         for (const source of this.labelSources) {
             this.ctx.labelManager.unregisterSource(source.id, source);
         }

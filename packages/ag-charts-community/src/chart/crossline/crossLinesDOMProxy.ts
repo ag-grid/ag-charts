@@ -2,16 +2,21 @@ import type { BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget } from '
 import { CleanupRegistry, Path, Transformable, createSvgElement } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { ChartAxis } from '../chartAxis';
 import type { CrossLine } from './crossLine';
-import type { CrossLinesPlugin } from './crossLinesPlugin';
-import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 
 const DOM_MANAGER_ID = 'cross-lines';
 const FOCUS_PATH_CLASS = 'ag-charts-proxy-cross-line-focus-path';
 
+/** An axis's cross lines, as the keyboard proxies see them. */
+export interface CrossLinesProxySource {
+    isVisible(): boolean;
+    getInstances(): readonly CrossLine[];
+    isKeyboardClickable(crossLine: CrossLine): boolean;
+    keyboardClick(crossLine: CrossLine, sourceEvent: Event): void;
+}
+
 interface ProxyEntry {
-    readonly plugin: CrossLinesPlugin;
+    readonly plugin: CrossLinesProxySource;
     readonly crossLine: CrossLine;
     readonly bounds: BoxBounds;
     readonly focusPath?: string;
@@ -49,13 +54,11 @@ export class CrossLinesDOMProxy {
     private readonly buttons: ButtonWidget[] = [];
     /** Drawn beside the button they outline, as a button's text content would replace them. */
     private readonly focusPaths: (SVGSVGElement | undefined)[] = [];
+    private readonly plugins = new Set<CrossLinesProxySource>();
     private entries: ProxyEntry[] = [];
     private dirty = true;
 
-    constructor(
-        private readonly ctx: DynamicContext<ChartRegistry>,
-        private readonly getAxes: () => Iterable<ChartAxis>
-    ) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         this.list = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
             domManagerId: DOM_MANAGER_ID,
@@ -76,6 +79,16 @@ export class CrossLinesDOMProxy {
         );
     }
 
+    attach(plugin: CrossLinesProxySource) {
+        this.plugins.add(plugin);
+        this.dirty = true;
+    }
+
+    detach(plugin: CrossLinesProxySource) {
+        this.plugins.delete(plugin);
+        this.dirty = true;
+    }
+
     destroy() {
         this.cleanup.flush();
     }
@@ -85,9 +98,8 @@ export class CrossLinesDOMProxy {
         this.dirty = false;
 
         const entries: ProxyEntry[] = [];
-        for (const axis of this.getAxes()) {
-            const plugin = getCrossLinesPlugin(axis);
-            if (!plugin?.isVisible()) continue;
+        for (const plugin of this.plugins) {
+            if (!plugin.isVisible()) continue;
 
             for (const crossLine of plugin.getInstances()) {
                 if (!plugin.isKeyboardClickable(crossLine)) continue;

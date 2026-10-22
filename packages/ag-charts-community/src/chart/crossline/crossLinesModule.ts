@@ -12,6 +12,7 @@ import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { communityModule } from '../../module/moduleIdentity';
 import { VERSION } from '../../version';
 import { CartesianCrossLine } from './cartesianCrossLine';
+import { CrossLinesDOMProxyModule } from './crossLinesDOMProxyModule';
 import { CrossLinesPlugin } from './crossLinesPlugin';
 
 export const CROSS_LINE_TYPES = ['line', 'range'] as const satisfies ReadonlyArray<AgBaseCrossLineOptions['type']>;
@@ -22,6 +23,7 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
     chartTypes: ['cartesian'],
     enterprise: false,
     version: VERSION,
+    dependencies: [CrossLinesDOMProxyModule],
 
     themeTemplate: {
         $apply: [
