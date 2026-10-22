@@ -8,6 +8,7 @@ import {
     contextMenuAction,
     deproxy,
     expectWarningsCalls,
+    getCrossLinesPlugin,
     hoverAction,
     longTapAction,
     setupMockCanvas,
@@ -130,9 +131,9 @@ describe('Context Menu', () => {
     // Centre of the first cross line's label on the given axis.
     function crossLineLabelCentre(direction: ChartAxisDirection) {
         const axis = deproxy(chart).axes.find((a) => a.direction === direction)!;
-        const [crossLine] = _ModuleSupport.getCrossLinesPlugin(axis)?.getInstances() ?? [];
-        expect(crossLine).toBeInstanceOf(_ModuleSupport.CartesianCrossLine);
-        const { labelGroup } = crossLine as _ModuleSupport.CartesianCrossLine;
+        const [crossLine] = getCrossLinesPlugin(axis)?.getInstances() ?? [];
+        expect(crossLine).toBeDefined();
+        const { labelGroup } = crossLine;
         const { x, y, width, height } = Transformable.toCanvas(labelGroup);
         return { x: x + width / 2, y: y + height / 2 };
     }

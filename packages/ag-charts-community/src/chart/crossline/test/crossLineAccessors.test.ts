@@ -5,8 +5,7 @@ import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { createChart, deproxy, emitFontLoad, setupMockCanvas, setupMockConsole } from '../../test/utils';
 import type { CrossLine } from '../crossLine';
-import { getCrossLinesPlugin } from '../getCrossLinesPlugin';
-import { getCrossLineFittedLabel } from './crossLineAccessors';
+import { getCrossLineFittedLabel, getCrossLinesPlugin } from './crossLineAccessors';
 
 describe('cross line test accessors', () => {
     setupMockConsole();

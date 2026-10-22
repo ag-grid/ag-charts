@@ -54,8 +54,7 @@ import {
 import { CartesianCrossLine } from './cartesianCrossLine';
 import type { CrossLineType } from './crossLine';
 import { CROSS_LINE_TYPES } from './crossLinesModule';
-import { getCrossLinesPlugin } from './getCrossLinesPlugin';
-import { getCrossLineFittedLabel } from './test/crossLineAccessors';
+import { getCrossLineFittedLabel, getCrossLinesPlugin } from './test/crossLineAccessors';
 import * as examples from './test/examples';
 
 type ViFn = ReturnType<typeof vi.fn>;

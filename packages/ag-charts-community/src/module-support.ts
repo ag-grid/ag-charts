@@ -15,7 +15,7 @@ export {
     predictCartesianNonPrimitiveAxis,
 } from './chart/series/cartesian/util';
 export { stackCartesianSeries } from './chart/cartesianUtil';
-export { CartesianCrossLine, crossLineHitTolerance } from './chart/crossline/cartesianCrossLine';
+export { crossLineHitTolerance } from './chart/crossline/cartesianCrossLine';
 export type {
     ActiveLoadMementoEvent,
     AxisLayout,
@@ -252,7 +252,6 @@ export { minimumTimeAxisDatumGranularity } from './chart/axis/timeAxis';
 export type { ChartAxis, FormatDatumParams } from './chart/chartAxis';
 export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/crossLine';
 export type { CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
-export { getCrossLinesPlugin } from './chart/crossline/getCrossLinesPlugin';
 export { bandRangeExpansion, isValidScaleValue } from './chart/scaleValue';
 export {
     buildColorCategoryLegendData,
