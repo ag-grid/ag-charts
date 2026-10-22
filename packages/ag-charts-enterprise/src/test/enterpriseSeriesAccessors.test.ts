@@ -48,10 +48,7 @@ import {
     getFlowHighlightNode,
     getFlowLinkData,
     getFlowNodeData,
-    getFlowSelectionNodes,
-    getFunnelConnectorGroup,
     getFunnelConnectorNodes,
-    getGaugeSelectionNodes,
     getHeatmapCellMethods,
     getHierarchyNodeLabel,
     getHlcAggregationFilter,
@@ -63,7 +60,6 @@ import {
     getLegendItemTranslationX,
     getLinearGaugeRects,
     getLinearGaugeSeriesInstance,
-    getMapMarkerNodes,
     getMapMarkerSeriesInstance,
     getMapMarkerSizeRange,
     getMapMarkerStyleSize,
@@ -81,7 +77,6 @@ import {
     getOrganizationNodeDatumIndex,
     getOrganizationSeriesInstance,
     getPlacedLabelData,
-    getPyramidStageLabelNodes,
     getRadarAreaGroups,
     getRadialGaugeSeriesInstance,
     getSeriesAreaFocusDatum,
@@ -807,11 +802,11 @@ describe('funnel, pyramid and heatmap test accessors', () => {
         });
     });
 
-    describe('getFunnelConnectorGroup', () => {
-        it('returns the group the connectors are drawn into', async () => {
+    describe('getSeriesGroup (funnel connectors)', () => {
+        it('returns the group a funnel series draws its connectors into', async () => {
             chart = await createEnterpriseChart(stageOptions.funnel);
 
-            const group = getFunnelConnectorGroup(chart);
+            const group = getSeriesGroup(chart, 'connectorNodeGroup');
 
             expect(group).toBeInstanceOf(Group);
             expect(Array.from(group.children())).toEqual(getFunnelConnectorNodes(chart));
@@ -820,7 +815,7 @@ describe('funnel, pyramid and heatmap test accessors', () => {
         it('fails for a series that keeps no connector group', async () => {
             chart = await createEnterpriseChart(stageOptions.pyramid);
 
-            expect(errorFrom(() => getFunnelConnectorGroup(chart!))?.name).toBe('AssertionError');
+            expect(errorFrom(() => getSeriesGroup(chart!, 'connectorNodeGroup'))?.name).toBe('AssertionError');
         });
     });
 
@@ -893,17 +888,57 @@ describe('enterprise series test accessors (label and shadow tests)', () => {
         series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
     });
 
-    describe('getMapMarkerNodes', () => {
-        const mapMarkerOptions = (): AgChartOptions => ({
-            data: ukData,
-            topology: ukTopology,
-            series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name' }],
+    const mapMarkerOptions = (): AgChartOptions => ({
+        data: ukData,
+        topology: ukTopology,
+        series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name' }],
+    });
+
+    describe('getEnterpriseSelectionNodes (series-specific selections)', () => {
+        const pyramidOptions = (): AgChartOptions => ({
+            data: [
+                { stage: 'Visits', value: 100 },
+                { stage: 'Paid', value: 20 },
+            ],
+            series: [{ type: 'pyramid', stageKey: 'stage', valueKey: 'value' }],
+        });
+
+        it.each(['sankey', 'chord'] as const)('returns the nodes and links a %s series drew in place', async (type) => {
+            chart = await createEnterpriseChart(flowOptions(type));
+
+            const nodes = getEnterpriseSelectionNodes(chart, 'nodeSelection');
+            const links = getEnterpriseSelectionNodes(chart, 'linkSelection');
+
+            expect(nodes.map(({ datum }) => datum)).toEqual(getFlowNodeData(chart));
+            expect(links.map(({ datum }) => datum)).toEqual(getFlowLinkData(chart));
+        });
+
+        it('returns the highlight and focus copies of the hovered item, and none while nothing is hovered', async () => {
+            chart = await createEnterpriseChart(flowOptions('sankey'));
+            expect(getEnterpriseSelectionNodes(chart, 'highlightNodeSelection')).toEqual([]);
+
+            const { ctx, id } = deproxy(chart);
+            const [hovered] = getFlowNodeData(chart);
+            ctx.highlightManager.updateHighlight(id, hovered);
+            await waitForChartStability(chart);
+
+            const highlighted = getEnterpriseSelectionNodes(chart, 'highlightNodeSelection');
+            expect(highlighted.map(({ datum }) => datum)).toEqual([hovered]);
+            const focused = getEnterpriseSelectionNodes(chart, 'focusNodeSelection');
+            expect(focused.map(({ datum }) => datum)).toContain(hovered);
+            // The link copies are selections of their own: the hovered node has links, so they are not empty.
+            expect(getEnterpriseSelectionNodes(chart, 'focusLinkSelection').length).toBeGreaterThan(0);
+            expect(getEnterpriseSelectionNodes(chart, 'highlightLinkSelection')).toEqual([]);
         });
 
         it('returns a marker node for each datum of the map-marker series at the index', async () => {
             chart = await createEnterpriseChart(mapMarkerOptions());
 
-            const markers = getMapMarkerNodes<_ModuleSupport.Marker<{ idValue: string }>>(chart, 1);
+            const markers = getEnterpriseSelectionNodes<_ModuleSupport.Marker<{ idValue: string }>>(
+                chart,
+                'markerSelection',
+                1
+            );
 
             expect(markers).toHaveLength(ukData.length);
             const byName = (a: string, b: string) => a.localeCompare(b);
@@ -912,11 +947,22 @@ describe('enterprise series test accessors (label and shadow tests)', () => {
             );
         });
 
-        it('fails for a series that draws no markers of its own', async () => {
-            chart = await createEnterpriseChart(mapMarkerOptions());
+        it('returns the stage label of each stage of a pyramid series', async () => {
+            chart = await createEnterpriseChart(pyramidOptions());
 
-            expect(errorFrom(() => getMapMarkerNodes(chart!, 0))?.name).toBe('AssertionError');
+            const labels = getEnterpriseSelectionNodes<Text>(chart, 'stageLabelSelection');
+
+            expect(labels.map(({ text }) => text)).toEqual(['Visits', 'Paid']);
         });
+
+        it.each(['markerSelection', 'stageLabelSelection', 'nodeSelection'] as const)(
+            'fails for a series that has no %s',
+            async (name) => {
+                chart = await createEnterpriseChart(sunburstOptions());
+
+                expect(errorFrom(() => getEnterpriseSelectionNodes(chart!, name))?.name).toBe('AssertionError');
+            }
+        );
     });
 
     describe('getPlacedLabelData', () => {
@@ -954,62 +1000,6 @@ describe('enterprise series test accessors (label and shadow tests)', () => {
             chart = await createEnterpriseChart(sunburstOptions());
 
             expect(errorFrom(() => getPlacedLabelData(chart!))?.name).toBe('AssertionError');
-        });
-    });
-
-    describe('getPyramidStageLabelNodes', () => {
-        const pyramidOptions = (): AgChartOptions => ({
-            data: [
-                { stage: 'Visits', value: 100 },
-                { stage: 'Paid', value: 20 },
-            ],
-            series: [{ type: 'pyramid', stageKey: 'stage', valueKey: 'value' }],
-        });
-
-        it('returns the stage label of each stage', async () => {
-            chart = await createEnterpriseChart(pyramidOptions());
-
-            const labels = getPyramidStageLabelNodes<Text>(chart);
-
-            expect(labels.map(({ text }) => text)).toEqual(['Visits', 'Paid']);
-        });
-
-        it('fails for a series that draws no stage labels', async () => {
-            chart = await createEnterpriseChart(sunburstOptions());
-
-            expect(errorFrom(() => getPyramidStageLabelNodes(chart!))?.name).toBe('AssertionError');
-        });
-    });
-
-    describe('getFlowSelectionNodes', () => {
-        it.each(['sankey', 'chord'] as const)('returns the nodes and links a %s series drew in place', async (type) => {
-            chart = await createEnterpriseChart(flowOptions(type));
-
-            const nodes = getFlowSelectionNodes(chart, 'nodeSelection');
-            const links = getFlowSelectionNodes(chart, 'linkSelection');
-
-            expect(nodes.map(({ datum }) => datum)).toEqual(getFlowNodeData(chart));
-            expect(links.map(({ datum }) => datum)).toEqual(getFlowLinkData(chart));
-        });
-
-        it('returns the highlight and focus copies of the hovered item, and none while nothing is hovered', async () => {
-            chart = await createEnterpriseChart(flowOptions('sankey'));
-            expect(getFlowSelectionNodes(chart, 'highlightNodeSelection')).toEqual([]);
-
-            const { ctx, id } = deproxy(chart);
-            const [hovered] = getFlowNodeData(chart);
-            ctx.highlightManager.updateHighlight(id, hovered);
-            await waitForChartStability(chart);
-
-            const highlighted = getFlowSelectionNodes(chart, 'highlightNodeSelection');
-            expect(highlighted.map(({ datum }) => datum)).toEqual([hovered]);
-            expect(getFlowSelectionNodes(chart, 'focusNodeSelection').map(({ datum }) => datum)).toContain(hovered);
-        });
-
-        it('fails for a series that has no such selection', async () => {
-            chart = await createEnterpriseChart(sunburstOptions());
-
-            expect(errorFrom(() => getFlowSelectionNodes(chart!, 'nodeSelection'))?.name).toBe('AssertionError');
         });
     });
 });
@@ -1100,21 +1090,23 @@ describe('enterprise series test accessors (label fit tests)', () => {
             targets: [{ value: 30, text: 'Target' }],
         };
 
-        it('getGaugeSelectionNodes returns the target labels and the scale ticks', async () => {
-            chart = await createGauge(linearGauge);
+        it.each(['targetLabelSelection', 'tickSelection'] as const)(
+            'getEnterpriseSelectionNodes returns the gauge nodes of its %s',
+            async (name) => {
+                chart = await createGauge(linearGauge);
 
-            const targets = getGaugeSelectionNodes(chart, 'targetLabelSelection');
-            const ticks = getGaugeSelectionNodes(chart, 'tickSelection');
+                const nodes = getEnterpriseSelectionNodes<Text>(chart, name);
 
-            expect(targets.map(({ text }) => text)).toEqual(['Target']);
-            expect(ticks.length).toBeGreaterThan(0);
-            expect(ticks.every(({ visible }) => typeof visible === 'boolean')).toBe(true);
-        });
+                expect(nodes.length).toBeGreaterThan(0);
+                if (name === 'targetLabelSelection') expect(nodes.map(({ text }) => text)).toEqual(['Target']);
+                else expect(nodes.every(({ visible }) => typeof visible === 'boolean')).toBe(true);
+            }
+        );
 
-        it('getGaugeSelectionNodes fails for a series that is not a gauge', async () => {
+        it('getEnterpriseSelectionNodes fails for gauge selections of a series that is not a gauge', async () => {
             chart = await createEnterpriseChart(sunburstOptions());
 
-            expect(errorFrom(() => getGaugeSelectionNodes(chart!, 'tickSelection'))?.name).toBe('AssertionError');
+            expect(errorFrom(() => getEnterpriseSelectionNodes(chart!, 'tickSelection'))?.name).toBe('AssertionError');
         });
 
         it('getLinearGaugeRects returns the gauge rect, which lies within the series rect', async () => {
@@ -1443,20 +1435,6 @@ describe('radar series test accessors', () => {
             { type: 'radar-line', angleKey: 'subject', radiusKey: 'gradeB' },
         ],
         legend: { enabled: true },
-    });
-
-    describe('getLegendHighlightCallerIds', () => {
-        it('returns the caller that clears a highlight the legend made', async () => {
-            chart = await createEnterpriseChart(radarLineOptions());
-            const { highlightManager } = deproxy(chart).ctx;
-            const [id] = getLegendHighlightCallerIds(chart);
-
-            highlightManager.updateHighlight(id, getSeriesNodeData(chart)[0]);
-            expect(highlightManager.getActiveHighlight()).toBeDefined();
-
-            highlightManager.updateHighlight(id);
-            expect(highlightManager.getActiveHighlight()).toBeUndefined();
-        });
     });
 
     describe('getRadarAreaGroups', () => {

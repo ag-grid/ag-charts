@@ -283,7 +283,9 @@ export type SeriesGroupName =
     | 'nodeGroup'
     | 'linkGroup'
     | 'highlightNodeGroup'
-    | 'highlightLinkGroup';
+    | 'highlightLinkGroup'
+    // The funnel-family series (funnel, cone funnel): the group the connectors between stages are drawn into.
+    | 'connectorNodeGroup';
 
 /** A scene group of the series; naming one the series does not have fails. */
 export function getSeriesGroup(chartOrProxy: ChartOrProxy<any>, name: SeriesGroupName, index = 0): Group {
@@ -296,10 +298,27 @@ export function getSeriesLabelTexts(chartOrProxy: ChartOrProxy<any>, index = 0):
 }
 
 /** The scene selections that series keep to themselves and that `getSeriesSelectionNodes` has no name for. */
-export type EnterpriseSelectionName = 'linkSelection' | 'innerCircleSelection';
+export type EnterpriseSelectionName =
+    // The links of a network or flow-proportion series, and the centre circle of a sunburst.
+    | 'linkSelection'
+    | 'innerCircleSelection'
+    // Sankey and chord: the nodes, their copies on the focus layer beside the hovered item's neighbours, and the copies
+    // on the highlight layer.
+    | 'nodeSelection'
+    | 'focusNodeSelection'
+    | 'focusLinkSelection'
+    | 'highlightNodeSelection'
+    | 'highlightLinkSelection'
+    // Map marker: the markers. Pyramid: the stage labels, which sit apart from its value labels.
+    | 'markerSelection'
+    | 'stageLabelSelection'
+    // Gauges: the target labels and the scale ticks (the centre and bar labels are in `getSeriesSelectionNodes`).
+    | 'targetLabelSelection'
+    | 'tickSelection';
 
 /**
- * The nodes a series drew into one of its selections: the links of a network series, the centre circle of a sunburst.
+ * The nodes a series drew into one of its selections: the links of a network series, the centre circle of a sunburst, the
+ * markers of a map-marker series.
  * Prefer the scene-graph accessors (`createSceneGeometrySampler`) when only geometry or counts matter.
  */
 export function getEnterpriseSelectionNodes<TNode extends Node = Node>(
@@ -337,11 +356,6 @@ export function getFunnelConnectorNodes(chartOrProxy: ChartOrProxy<any>, index =
     return selection.value.nodes().map((node) => new Caster(node).cast(FunnelConnector).value);
 }
 
-/** The scene group a funnel-family series (funnel, cone funnel) draws its connectors into; the series keeps it protected. */
-export function getFunnelConnectorGroup(chartOrProxy: ChartOrProxy<any>, index = 0): Group {
-    return new Caster(getSeriesAt(chartOrProxy, index)).accessProperty('connectorNodeGroup').cast(Group).value;
-}
-
 /** What the legend item's datum says about hover: `true` for an item that suppresses the highlight, else `undefined`. */
 export function getLegendItemSuppressHighlight(item: LegendTestItemNode): true | undefined {
     const suppressHighlight = new Caster(item.datum)
@@ -368,36 +382,6 @@ export function getHeatmapCellMethods(): HeatmapCellMethods {
     return prototype.value as unknown as HeatmapCellMethods;
 }
 
-/** The marker nodes a map-marker series drew; the series keeps its marker selection to itself. */
-export function getMapMarkerNodes<TNode extends Node = Node>(chartOrProxy: ChartOrProxy<any>, index = 0): TNode[] {
-    const selection = new Caster(getSeriesAt(chartOrProxy, index))
-        .accessProperty('markerSelection')
-        .cast(Selection).value;
-    return selection.nodes() as TNode[];
-}
-
-/** The scene selections a flow-proportion series (sankey, chord) keeps to itself. */
-export type FlowSelectionName =
-    | 'nodeSelection'
-    | 'linkSelection'
-    | 'focusNodeSelection'
-    | 'focusLinkSelection'
-    | 'highlightNodeSelection'
-    | 'highlightLinkSelection';
-
-/**
- * The shapes a flow-proportion series drew into one of its selections: the nodes and links in place, on the focus
- * layer beside the hovered item's neighbours, and on the highlight layer. Each shape's `datum` is the datum it draws.
- */
-export function getFlowSelectionNodes<TNode extends Node = Node>(
-    chartOrProxy: ChartOrProxy<any>,
-    name: FlowSelectionName,
-    index = 0
-): TNode[] {
-    const selection = new Caster(getSeriesAt(chartOrProxy, index)).accessProperty(name).cast(Selection).value;
-    return selection.nodes() as TNode[];
-}
-
 /**
  * The labels a series placed with the label placement engine (`placedLabelData`), which the series keeps protected, in
  * the series' own coordinates. `TLabel` defaults to what `topLabelAnchorGap` reads.
@@ -408,17 +392,6 @@ export function getPlacedLabelData<TLabel = PlacedLabelGeometry['placedLabelData
 ): TLabel[] {
     const labels = new Caster(getSeriesAt(chartOrProxy, index)).accessProperty('placedLabelData').cast(Array).value;
     return labels as TLabel[];
-}
-
-/** The stage labels a pyramid series drew, which sit apart from its value labels; the series keeps them private. */
-export function getPyramidStageLabelNodes<TNode extends Node = Node>(
-    chartOrProxy: ChartOrProxy<any>,
-    index = 0
-): TNode[] {
-    const selection = new Caster(getSeriesAt(chartOrProxy, index))
-        .accessProperty('stageLabelSelection')
-        .cast(Selection).value;
-    return selection.nodes() as TNode[];
 }
 
 /** The label a hierarchy node (treemap tile, sunburst sector) was laid out with. */
@@ -444,19 +417,6 @@ export function getHierarchyNodeLabel(
         text: caster.accessProperty('text').value,
         radius: caster.accessNullableProperty('radius').value as number | undefined,
     };
-}
-
-/** The label selections a gauge series keeps to itself; its centre and bar labels are in `getSeriesSelectionNodes`. */
-export type GaugeSelectionName = 'targetLabelSelection' | 'tickSelection';
-
-/** The text nodes a gauge series drew for its target labels or its scale ticks, in selection order. */
-export function getGaugeSelectionNodes<TNode extends Node = Text>(
-    chartOrProxy: ChartOrProxy<any>,
-    name: GaugeSelectionName,
-    index = 0
-): TNode[] {
-    const selection = new Caster(getSeriesAt(chartOrProxy, index)).accessProperty(name).cast(Selection).value;
-    return selection.nodes() as TNode[];
 }
 
 /**

@@ -17,7 +17,7 @@ import { type Group, Selection, type Shape, Text, Transformable } from 'ag-chart
 
 import {
     type HierarchyNodeLabel,
-    getGaugeSelectionNodes,
+    getEnterpriseSelectionNodes,
     getHierarchyNodeLabel,
     getLinearGaugeRects,
     getMapShapeLabelAspectRatio,
@@ -1625,9 +1625,9 @@ describe('series label fit', () => {
             expect(gaugeLabelTexts()).toEqual(['Score', 'Label']);
         });
 
-        const targetLabelNodes = () => getGaugeSelectionNodes(chart, 'targetLabelSelection');
+        const targetLabelNodes = () => getEnterpriseSelectionNodes<Text>(chart, 'targetLabelSelection');
         const targetLabelTexts = () => visibleTexts(targetLabelNodes());
-        const scaleLabelTexts = () => visibleTexts(getGaugeSelectionNodes(chart, 'tickSelection'));
+        const scaleLabelTexts = () => visibleTexts(getEnterpriseSelectionNodes<Text>(chart, 'tickSelection'));
         const firstLabelNode = () => labelNodes()[0];
         const horizontalLinearGauge = (options: object) => ({
             type: 'linear-gauge',

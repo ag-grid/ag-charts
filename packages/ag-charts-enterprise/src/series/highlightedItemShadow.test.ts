@@ -22,10 +22,10 @@ import { RadialColumnShape, Rect, Sector } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
 import {
-    type FlowSelectionName,
+    type EnterpriseSelectionName,
+    getEnterpriseSelectionNodes,
     getFlowLinkData,
     getFlowNodeData,
-    getFlowSelectionNodes,
     getSeriesGroup,
 } from '../test/enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
@@ -725,9 +725,9 @@ describe('highlightedItem.shadow (enterprise series)', () => {
         (testCase) => {
             // Every copy of the hovered item: in place, on the focus layer beside its neighbours, and highlighted.
             const copiesOf = (hovered: unknown) => {
-                const copy = (...names: FlowSelectionName[]) =>
+                const copy = (...names: EnterpriseSelectionName[]) =>
                     names.flatMap((name) =>
-                        getFlowSelectionNodes<Shape>(chart, name).filter((shape) => shape.datum === hovered)
+                        getEnterpriseSelectionNodes<Shape>(chart, name).filter((shape) => shape.datum === hovered)
                     );
                 return {
                     inPlace: copy('nodeSelection', 'linkSelection'),
@@ -781,11 +781,11 @@ describe('highlightedItem.shadow (enterprise series)', () => {
 
             const inPlace = (index: number) =>
                 collectShapes(getSeriesAt(chart, index).contentGroup).filter(
-                    (shape) => shape.visible && (shape.constructor as unknown) === GeoGeometry
+                    (shape) => shape.visible && shape instanceof GeoGeometry
                 );
             const highlighted = (index: number) =>
                 collectShapes(getSeriesAt(chart, index).highlightGroup).filter(
-                    (shape) => shape.visible && (shape.constructor as unknown) === GeoGeometry
+                    (shape) => shape.visible && shape instanceof GeoGeometry
                 );
 
             // The hovered series swaps its shadow onto its highlight copy, as in any other series.

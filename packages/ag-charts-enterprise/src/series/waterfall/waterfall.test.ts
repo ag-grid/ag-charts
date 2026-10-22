@@ -291,9 +291,7 @@ describe('WaterfallSeries', () => {
 
         it('exposes totalValue on the seriesNodeClick event for total/subtotal and undefined otherwise', async () => {
             const seriesNodeClick = vi.fn();
-            const options = totalValueOptions();
-            (options as AgChartOptions).listeners = { seriesNodeClick };
-            chart = await createEnterpriseChart(options);
+            chart = await createEnterpriseChart({ ...totalValueOptions(), listeners: { seriesNodeClick } });
 
             const series = seriesOf(chart);
             fireNodeClick(series, nodeOfType(chart, 'subtotal'));
@@ -682,10 +680,10 @@ describe('WaterfallSeries', () => {
         const bandDim = (direction: 'horizontal' | 'vertical') => (direction === 'vertical' ? 'width' : 'height');
 
         const phased = (
-            during: string | readonly string[],
+            during: NonNullable<PhasedPropertyExpectation['during']>,
             ...expectations: readonly TrajectoryExpectation[]
         ): PhasedPropertyExpectation => ({
-            during: during as PhasedPropertyExpectation['during'],
+            during,
             expect: expectations,
         });
 
@@ -923,22 +921,22 @@ describe('WaterfallSeries', () => {
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
         describe('spacing sets the gap between the bar and the label', () => {
-            test('inside-start', async () => {
+            it('inside-start', async () => {
                 await testCase(
                     { placement: 'inside-start', spacing: 30 },
                     'AG-8290-waterfall-label-spacing-inside-start'
                 );
             });
-            test('inside-end', async () => {
+            it('inside-end', async () => {
                 await testCase({ placement: 'inside-end', spacing: 30 }, 'AG-8290-waterfall-label-spacing-inside-end');
             });
-            test('outside-start', async () => {
+            it('outside-start', async () => {
                 await testCase(
                     { placement: 'outside-start', spacing: 30 },
                     'AG-8290-waterfall-label-spacing-outside-start'
                 );
             });
-            test('outside-end', async () => {
+            it('outside-end', async () => {
                 await testCase(
                     { placement: 'outside-end', spacing: 30 },
                     'AG-8290-waterfall-label-spacing-outside-end'
@@ -1247,8 +1245,7 @@ describe('WaterfallSeries', () => {
             const cy = datum.y + datum.height / 2;
             await hoverAction(cx, cy)(chart);
             await waitForChartStability(chart);
-            const el = deproxy(chart).ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')[0] as
-                HTMLElement | undefined;
+            const el = deproxy(chart).ctx.agDocument.body.querySelector<HTMLElement>('.ag-charts-tooltip');
             const html = el?.innerHTML ?? '';
             expect(html).not.toBe('');
             return html;

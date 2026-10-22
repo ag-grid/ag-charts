@@ -41,7 +41,11 @@ import {
 import { CallbackResultMemo, type Rect, Transformable } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
-import { getHeatmapCellMethods, getLegendItemSuppressHighlight } from '../../test/enterpriseSeriesAccessors';
+import {
+    getHeatmapCellMethods,
+    getLegendItemSuppressHighlight,
+    getSeriesLabelTexts,
+} from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
@@ -701,7 +705,7 @@ describe('HeatmapSeries', () => {
             );
 
             const series = getSeriesAt(chart);
-            const legendData = series.getLegendData('category') as { label: { text: string } }[];
+            const legendData = series.getLegendData('category');
             const labels = legendData.map((d) => d.label.text);
 
             // Stops are 150000 / 500000 / 1000000; the final bin runs to the data max (1.5M).
@@ -1626,7 +1630,7 @@ describe('HeatmapSeries', () => {
         const NO_TOOLTIP = { tooltip: { enabled: false } };
         const HIGHLIGHT_OFF = { ...NO_TOOLTIP, highlight: { enabled: false } };
 
-        // The series overrides are free-form (stylers typed per test), so a caller that needs `AgChartOptions` casts the result.
+        // The series overrides stay free-form: typing them would force each test's styler to name its datum type.
         const rawOptions = (overrides: Record<string, unknown> = {}, data: object[] = DATA) => ({
             width: 400,
             height: 300,
@@ -2209,6 +2213,7 @@ describe('HeatmapSeries', () => {
                         });
                     };
                     for (const rect of cellRects(chart)) {
+                        // `Node.datum` is `unknown`; the series gives every cell the datum it draws, which carries `style`.
                         let datum = rect.datum as { style: unknown };
                         watch(datum);
                         // A full update binds new datums to the same cells.
@@ -2301,7 +2306,9 @@ describe('HeatmapSeries', () => {
                     ([, value]) => typeof value === 'object' && value != null && 'fill' in value
                 );
 
-            async function updateWatchingResolvePartial(options: ReturnType<typeof rawOptions>) {
+            async function updateWatchingResolvePartial(
+                options: ReturnType<typeof rawOptions> & Pick<AgChartOptions, 'theme'>
+            ) {
                 chart = deproxy(await createEnterpriseChart(options));
                 prepareEnterpriseTestOptions(options);
                 const resolvePartial = vi.spyOn(deproxy(chart).ctx.optionsGraphService, 'resolvePartial');
@@ -2361,9 +2368,9 @@ describe('HeatmapSeries', () => {
                 const options = {
                     ...rawOptions({ ...NO_TOOLTIP, itemStyler }),
                     theme: { params: { accentColor: 'orange' } },
-                } as AgChartOptions;
+                };
 
-                const resolvePartial = await updateWatchingResolvePartial(options as ReturnType<typeof rawOptions>);
+                const resolvePartial = await updateWatchingResolvePartial(options);
                 try {
                     expect(resolvedStylerResults(resolvePartial)).toHaveLength(DATA.length);
                     expect(cellFills(chart)).toEqual(DATA.map(() => 'orange'));
@@ -2404,7 +2411,7 @@ describe('HeatmapSeries', () => {
         it('repaints the cells in their new colours without rebuilding their paths', async () => {
             chart = deproxy(await createEnterpriseChart(rawOptions()));
             const before = cellFills(chart);
-            const updatePaths = cellRects(chart).map((rect) => vi.spyOn(rect as Rect, 'updatePath'));
+            const updatePaths = itemNodes<Rect>(chart).map((rect) => vi.spyOn(rect, 'updatePath'));
             const updated = () => updatePaths.filter((spy) => spy.mock.calls.length > 0).length;
 
             void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
@@ -2498,8 +2505,7 @@ describe('HeatmapSeries', () => {
             void chart.publicApi!.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
 
-            const labels = () =>
-                collectShapes(heatmapSeriesAt(chart).labelGroup).map((shape) => (shape as { text?: string }).text);
+            const labels = () => getSeriesLabelTexts(chart).map(({ text }) => text);
             expect(labels().sort((a, b) => String(a).localeCompare(String(b)))).toEqual(['10', '100', '40', '5']);
 
             const highlightedIndex = () => deproxy(chart).ctx.highlightManager.getActiveHighlight()?.datumIndex;
@@ -2528,7 +2534,7 @@ describe('HeatmapSeries', () => {
         });
         const NO_TOOLTIP = { tooltip: { enabled: false } };
 
-        // The series overrides are free-form, so a caller that needs `AgChartOptions` casts the result.
+        // The series overrides stay free-form, as above.
         const rawOptions = (data: Cell[], series: Record<string, unknown> = {}) => ({
             width: 400,
             height: 300,
@@ -2571,7 +2577,7 @@ describe('HeatmapSeries', () => {
         }
 
         async function freshCells(data: Cell[], series: Record<string, unknown> = {}) {
-            const reference = deproxy(await createEnterpriseChart(rawOptions(data, series) as AgChartOptions));
+            const reference = deproxy(await createEnterpriseChart(rawOptions(data, series)));
             const result = cells(reference);
             reference.destroy();
             return result;
@@ -2810,9 +2816,7 @@ describe('HeatmapSeries', () => {
             await transactIncrementally([UPDATED('2:2', 5)]);
 
             const reference = deproxy(
-                await createEnterpriseChart(
-                    rawOptions(withUpdates(UPDATED('1:1', 7), UPDATED('2:2', 5)), NO_TOOLTIP) as AgChartOptions
-                )
+                await createEnterpriseChart(rawOptions(withUpdates(UPDATED('1:1', 7), UPDATED('2:2', 5)), NO_TOOLTIP))
             );
             await hoverDatumByIndex(reference, 0, 0);
             const expected = cells(reference);
@@ -3163,7 +3167,7 @@ describe('HeatmapSeries', () => {
                 expect(after.filter((text, i) => text !== before[i])).toHaveLength(1);
 
                 const reference = deproxy(
-                    await createEnterpriseChart(rawOptions(withUpdates(UPDATED('1:1', 8)), series) as AgChartOptions)
+                    await createEnterpriseChart(rawOptions(withUpdates(UPDATED('1:1', 8)), series))
                 );
                 expect(after).toEqual(labelTexts(reference));
                 reference.destroy();

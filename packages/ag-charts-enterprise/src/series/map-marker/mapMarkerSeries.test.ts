@@ -35,7 +35,7 @@ import { Shape, Transformable } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
 import {
-    getMapMarkerNodes,
+    getEnterpriseSelectionNodes,
     getMapMarkerSeriesInstance,
     getMapMarkerSizeRange,
     getMapMarkerStyleSize,
@@ -67,17 +67,19 @@ const SIMPLIFIED_EXAMPLE: AgChartOptions = {
     ],
 };
 
+const SIZED_MARKER_SERIES: AgMapMarkerSeriesOptions = {
+    type: 'map-marker',
+    idKey: 'name',
+    sizeKey: 'population',
+};
+
 const SIZE_EXAMPLE: AgChartOptions = {
     ...SIMPLIFIED_EXAMPLE,
     series: [
         {
             type: 'map-shape-background',
         },
-        {
-            type: 'map-marker',
-            idKey: 'name',
-            sizeKey: 'population',
-        },
+        SIZED_MARKER_SERIES,
     ],
 };
 
@@ -924,7 +926,7 @@ describe('MapMarkerSeries', () => {
                 maxSize: 40,
                 sizeDomain: [NorthernIreland, England],
             });
-            const drawn = getMapMarkerNodes<Marker>(chart, 1)
+            const drawn = getEnterpriseSelectionNodes<Marker>(chart, 'markerSelection', 1)
                 .map((m) => m.size)
                 .sort((a, b) => a - b);
             const expected = nodes.map((n) => n.point.size).sort((a, b) => a - b);
@@ -962,7 +964,7 @@ describe('MapMarkerSeries', () => {
         it('renders a bigint sizeDomain identically to numbers', async () => {
             const buildOptions = (sizeDomain: [number, number] | [bigint, bigint]): AgChartOptions => ({
                 ...SIZE_EXAMPLE,
-                series: [SIZE_EXAMPLE.series![0], { ...SIZE_EXAMPLE.series![1], sizeDomain } as never],
+                series: [SIZE_EXAMPLE.series![0], { ...SIZED_MARKER_SERIES, sizeDomain }],
             });
 
             await expectPixelIdenticalAcrossUpdate(

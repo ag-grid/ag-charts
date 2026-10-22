@@ -35,11 +35,7 @@ import {
 import { Transformable } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
-import {
-    getFunnelConnectorGroup,
-    getFunnelConnectorNodes,
-    getStageHighlightNode,
-} from '../../test/enterpriseSeriesAccessors';
+import { getFunnelConnectorNodes, getSeriesGroup, getStageHighlightNode } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
@@ -499,14 +495,14 @@ describe('ConeFunnelSeries', () => {
         const optionsWithData = (data: unknown[]): AgChartOptions => ({ ...CONE_FUNNEL_EXAMPLE, data });
 
         it('AG-17796 removes a stage node from the scene when a stage is removed from data', async () => {
-            const stages = CONE_FUNNEL_EXAMPLE.data as unknown[];
+            const stages = CONE_FUNNEL_EXAMPLE.data!;
 
             const proxy = await createEnterpriseChart(optionsWithData(stages));
             chart = deproxy(proxy);
             await frames.runToEnd(chart);
 
             const stageNodeCount = () => [...getSeriesDataNodeGroup(chart).children()].length;
-            const connectorNodeCount = () => [...getFunnelConnectorGroup(chart).children()].length;
+            const connectorNodeCount = () => [...getSeriesGroup(chart, 'connectorNodeGroup').children()].length;
 
             expect(stageNodeCount()).toBe(4);
             expect(connectorNodeCount()).toBe(3);

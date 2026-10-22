@@ -11,7 +11,7 @@ import {
 } from 'ag-charts-community-test';
 import type { AgChartInstance, AgMarkerShape } from 'ag-charts-types';
 
-import { getMapMarkerNodes } from '../test/enterpriseSeriesAccessors';
+import { getEnterpriseSelectionNodes } from '../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart } from '../test/utils';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
@@ -134,7 +134,7 @@ describe('marker shadow', () => {
     const visibleMarkers = ({ selection, seriesIndex }: MarkerSeriesCase): Marker[] => {
         const markers =
             selection === 'markerSelection'
-                ? getMapMarkerNodes<Marker>(chart!, seriesIndex)
+                ? getEnterpriseSelectionNodes<Marker>(chart!, selection, seriesIndex)
                 : getSeriesSelectionNodes<Marker>(chart!, selection, seriesIndex);
         return markers.filter((node) => node.visible);
     };
