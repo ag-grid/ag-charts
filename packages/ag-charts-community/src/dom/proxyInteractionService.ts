@@ -76,7 +76,7 @@ type ProxyMeta = {
         result: NativeWidget<HTMLDivElement>;
     };
     axis: {
-        params: ParentProperties<GroupWidget> & ElemParams<'axis'> & { readonly role?: string };
+        params: ParentProperties<GroupWidget> & ElemParams<'axis'>;
         result: AxisWidget;
     };
 
@@ -228,9 +228,8 @@ export class ProxyInteractionService {
 
         if (checkType('axis', meta)) {
             const { params, result } = meta;
-            const axis = result.getElement();
+            // No role: the axis element is a pointer target only, not a landmark.
             this.initInteract(params, result);
-            axis.role = params.role ?? 'region';
             this.setParent(meta.params, meta.result);
         }
 

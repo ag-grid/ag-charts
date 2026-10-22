@@ -111,12 +111,12 @@ test.describe('zoom', () => {
         const readCursor = () => wrapper.evaluate((el) => getComputedStyle(el).cursor);
 
         // `crossAt` places both axes inside the plot area, so their pixel positions depend on data and
-        // zoom; locate the axis from its own proxy region rather than an offset that would go stale.
+        // zoom; locate the axis from its own proxy element rather than an offset that would go stale.
         const band = await page.evaluate(() => {
             const proxy = document.querySelector('.ag-charts-canvas-proxy');
-            const regions = Array.from(proxy?.querySelectorAll('[role="region"]') ?? []);
+            const regions = Array.from(proxy?.querySelectorAll('.ag-charts-proxy-axis') ?? []);
             const xAxis = regions.find((el) => el.clientWidth > el.clientHeight);
-            if (proxy == null || xAxis == null) throw new Error('No x-axis region found');
+            if (proxy == null || xAxis == null) throw new Error('No x-axis proxy found');
             const axisBox = xAxis.getBoundingClientRect();
             const proxyBox = proxy.getBoundingClientRect();
             return { top: axisBox.top - proxyBox.top, bottom: axisBox.bottom - proxyBox.top };

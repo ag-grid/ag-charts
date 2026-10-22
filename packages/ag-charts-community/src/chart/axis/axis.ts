@@ -46,7 +46,6 @@ import {
     isArray,
     mergeDefaults,
     stylerLineHeightOverrides,
-    toPlainText,
 } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
@@ -1384,16 +1383,6 @@ export abstract class Axis<
             get userAxisId() {
                 // Assigned by `Chart.applyAxes` after construction, so read it lazily.
                 return axis.userKey;
-            },
-            get ariaLabel() {
-                return axis.options.ariaLabel;
-            },
-            get titleText() {
-                const { caption } = axis;
-                // `caption.text` keeps its last value when the title is disabled, so gate on `enabled`.
-                if (!caption.enabled) return undefined;
-                const text = toPlainText(caption.text);
-                return text.trim() === '' ? undefined : text;
             },
             axisType: this.type,
             scale: this.scale,

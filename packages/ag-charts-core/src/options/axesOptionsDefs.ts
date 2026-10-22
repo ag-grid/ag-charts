@@ -314,7 +314,6 @@ export const commonAxisIntervalOptionsDefs: OptionsDefs<AgAxisBaseIntervalOption
 
 export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>> = {
     reverse: boolean,
-    ariaLabel: string,
     gridLine: {
         enabled: boolean,
         width: positiveNumber,
@@ -643,9 +642,9 @@ function crossLineThemeOptionsDefs<LabelDefs>(label: LabelDefs) {
 
 /** Theme overrides for a cartesian axis type: its options plus per-position overrides, cross-lines styled by kind. */
 export function cartesianAxisThemeOptionsDefs(axisDefs: OptionsDefs<any>): OptionsDefs<any> {
-    const positioned = without(axisDefs, ['type', 'crossLines', 'position', 'ariaLabel']);
+    const positioned = without(axisDefs, ['type', 'crossLines', 'position']);
     return {
-        ...without(axisDefs, ['type', 'crossLines', 'ariaLabel']),
+        ...without(axisDefs, ['type', 'crossLines']),
         top: positioned,
         right: positioned,
         bottom: positioned,
@@ -660,7 +659,7 @@ export function polarAxisThemeOptionsDefs(
     crossLineLabel: OptionsDefs<any>
 ): OptionsDefs<any> {
     return {
-        ...without(axisDefs, ['type', 'crossLines', 'ariaLabel']),
+        ...without(axisDefs, ['type', 'crossLines']),
         crossLines: crossLineThemeOptionsDefs(crossLineLabel),
     };
 }
