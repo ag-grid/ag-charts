@@ -1,6 +1,6 @@
 import { selectA11yExamples } from './a11y/axe-examples';
 import { expect, test } from './fixture';
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 // The axe scan (e2e/a11y-axe.spec.ts) only earns its coverage if this example keeps rendering every DOM feature
 // it exists for, on load and without any interaction.
@@ -33,9 +33,10 @@ test.describe('axe-kitchen-sink', () => {
         await expect(crossLines.filter({ hasText: 'Target' })).toHaveCount(1);
     });
 
-    test('renders titles for the primary and secondary number axes', async ({ page }) => {
-        await expect(page.getByRole('region', { name: 'Units Sold' })).toHaveCount(1);
-        await expect(page.getByRole('region', { name: 'Financial Indicators' })).toHaveCount(1);
+    test('renders an axis element for the category axis and both number axes', async ({ page }) => {
+        // Axis titles are drawn on the canvas and the axis elements carry no role or label, so the three axes
+        // (x, y and ySecondary) are guarded by their pointer-target elements.
+        await expect(page.locator(SELECTORS.axisProxy)).toHaveCount(3);
     });
 
     test('renders horizontal and vertical scrollbar sliders', async ({ page }) => {
