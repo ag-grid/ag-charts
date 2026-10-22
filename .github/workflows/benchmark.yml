@@ -411,7 +411,12 @@ jobs:
                   mkdir -p reports/browser-benchmarks/shards
                   shard_reports=(reports/browser-benchmarks/shards/*-${{ strategy.job-index }}.r*.json)
                   candidates=$(node ./tools/benchmark/shard-failures.js remaining --examples "${SHARD_EXAMPLES}" ${shard_reports[@]+"${shard_reports[@]}"})
-                  memory_examples=$(node ./tools/benchmark/memory-examples.js --event "${EVENT_NAME}" --candidates "${candidates}" --requested "${REQUESTED_EXAMPLES}")
+                  # An `issue_comment` run uses this file from `latest` but checks out the PR branch, which may
+                  # predate memory-examples.js. The pass is advisory, so fall back to the old family filter.
+                  if ! { [[ -f ./tools/benchmark/memory-examples.js ]] && memory_examples=$(node ./tools/benchmark/memory-examples.js --event "${EVENT_NAME}" --candidates "${candidates}" --requested "${REQUESTED_EXAMPLES}"); }; then
+                    echo "::warning::memory-examples.js is missing or failed; selecting the high-perf and zoom examples"
+                    memory_examples=$(tr ',' '\n' <<< "${candidates}" | grep -E '^(high-perf-|data-selection-zoom-)' | paste -sd, - || true)
+                  fi
                   if [[ -z "${memory_examples}" ]]; then
                     echo "No examples in this shard qualify for the memory pass (or all timed out earlier); skipping the memory pass."
                     exit 0

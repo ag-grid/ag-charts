@@ -124,13 +124,22 @@ function runStep(step, cwd, env) {
  * stub logs `<report>|<examples>|<timeout>` per call and writes a report in which every example named in
  * HANG times out (and, with HANG_ONLY_MEMORY, only in the memory pass) and every one in ERROR errors.
  */
-function withShardJob(fn) {
+function withShardJob(fn, { memoryExamples } = {}) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'shard-job-'));
     try {
         const bin = path.join(dir, 'tools/benchmark');
         fs.mkdirSync(bin, { recursive: true });
-        for (const script of ['shard-failures.js', 'memory-examples.js']) {
+        for (const script of ['shard-failures.js', 'cli-option.js']) {
             fs.copyFileSync(path.join(__dirname, script), path.join(bin, script));
+        }
+        // `memoryExamples: null` is a PR branch cut before the helper existed; a string replaces its source.
+        if (memoryExamples !== null) {
+            for (const script of ['memory-examples.js', 'benchmark-examples.js', 'stats.js']) {
+                fs.copyFileSync(path.join(__dirname, script), path.join(bin, script));
+            }
+            if (memoryExamples !== undefined) {
+                fs.writeFileSync(path.join(bin, 'memory-examples.js'), memoryExamples);
+            }
         }
         fs.writeFileSync(
             path.join(bin, 'stub-runner.js'),
@@ -361,6 +370,37 @@ test('memory pass: a shard holding only zoom examples skips the pass on a bare /
         assert.deepEqual(calls(), []);
         assert.match(proc.stdout, /skipping the memory pass/);
     });
+});
+
+test('memory pass: a branch without memory-examples.js falls back to the high-perf and zoom filter and does not fail', () => {
+    withShardJob(
+        ({ run, calls }) => {
+            const proc = run(memoryStep, {
+                SHARD_EXAMPLES: 'data-selection-zoom-bar,simple-chart,high-perf-bar',
+                EVENT_NAME: 'issue_comment',
+            });
+            assert.equal(proc.status, 0, proc.stderr);
+            assert.match(proc.stdout, /::warning::memory-examples\.js is missing or failed/);
+            assert.deepEqual(callSummary(calls()), [
+                'head-0.mem.json: data-selection-zoom-bar,high-perf-bar',
+                'base-0.mem.json: data-selection-zoom-bar,high-perf-bar',
+            ]);
+        },
+        { memoryExamples: null }
+    );
+});
+
+test('memory pass: a helper that crashes falls back the same way, and an empty fallback skips the pass', () => {
+    withShardJob(
+        ({ run, calls }) => {
+            const proc = run(memoryStep, { SHARD_EXAMPLES: 'simple-chart' });
+            assert.equal(proc.status, 0, proc.stderr);
+            assert.match(proc.stdout, /::warning::memory-examples\.js is missing or failed/);
+            assert.match(proc.stdout, /skipping the memory pass/);
+            assert.deepEqual(calls(), []);
+        },
+        { memoryExamples: 'process.exit(2);\n' }
+    );
 });
 
 // --- Report job: merge and compare steps run on the shard files the passes above leave ---
