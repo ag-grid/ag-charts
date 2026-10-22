@@ -30,25 +30,13 @@ import {
     createChart,
     deproxy,
     emitFontLoad,
+    errorFrom,
     resizeChartContainer,
     setupMockCanvas,
     setupMockConsole,
     spyOnAxisTickLayout,
     waitForChartStability,
 } from './utils';
-
-/**
- * The error `fn` throws. An accessor that gives up on a missing axis must fail on its own `expect(...).toBeDefined()`,
- * an `AssertionError`; a `TypeError` from using the `undefined` it was handed means that check has gone.
- */
-function errorFrom(fn: () => unknown): Error | undefined {
-    try {
-        fn();
-    } catch (error) {
-        return error as Error;
-    }
-    return undefined;
-}
 
 describe('axis test accessors', () => {
     setupMockConsole();
