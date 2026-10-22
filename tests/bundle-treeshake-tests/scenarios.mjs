@@ -1,8 +1,35 @@
 // Bundle tree-shake test scenarios.
-// Each scenario defines an import pattern and a gzip size limit (bytes).
+// Each scenario defines either an import pattern (re-exported symbols) or a `register` list (a chart
+// entry point registering those modules), and a gzip size limit (bytes).
 // Limits are established via `run.sh -u` and should not be edited manually.
 
 export const scenarios = [
+    // === ag-charts-community: minimal charts ===
+    {
+        name: 'community/chart/floor',
+        package: 'ag-charts-community',
+        register: [],
+        limit: 446_000,
+    },
+    {
+        name: 'community/chart/sparkline',
+        package: 'ag-charts-community',
+        register: ['SparklinePresetModule', 'LineSeriesModule', 'CategoryAxisModule', 'NumberAxisModule'],
+        limit: 446_000,
+    },
+    {
+        name: 'community/chart/line',
+        package: 'ag-charts-community',
+        register: ['LineSeriesModule', 'CategoryAxisModule', 'NumberAxisModule'],
+        limit: 446_000,
+    },
+    {
+        name: 'community/chart/pie',
+        package: 'ag-charts-community',
+        register: ['PieSeriesModule'],
+        limit: 464_000,
+    },
+
     // === ag-charts-community ===
     {
         name: 'community/full',
@@ -21,6 +48,14 @@ export const scenarios = [
         package: 'ag-charts-community',
         import: '{ PolarChartModule }',
         limit: 413_000,
+    },
+
+    // === ag-charts-enterprise: minimal charts ===
+    {
+        name: 'enterprise/chart/floor',
+        package: 'ag-charts-enterprise',
+        register: [],
+        limit: 569_000,
     },
 
     // === ag-charts-enterprise ===
