@@ -416,18 +416,18 @@ export abstract class Axis<
 
     /**
      * Three z-index-ordered overlay container groups attached to the chart-level overlay zones
-     * via {@link attachAxis}. Plugins (currently only the cross-lines plugin) anchor their per-axis
+     * via {@link attachAxis}. Plugins anchor their per-axis
      * scene-graph contributions into these groups via {@link AxisContext.attachAxisOverlay}, which
      * keeps overlay rendering scoped to the axis's host chart (main chart vs navigator mini-chart)
      * without the axis itself knowing what gets drawn.
      */
     private readonly overlayLowGroup = new TransformableGroup<never>({
         name: `${this.id}-Overlay-Low`,
-        zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE,
+        zIndex: ZIndexMap.SERIES_AXIS_OVERLAY_LOW,
     });
     private readonly overlayMidGroup = new TransformableGroup<never>({
         name: `${this.id}-Overlay-Mid`,
-        zIndex: ZIndexMap.SERIES_CROSSLINE_LINE,
+        zIndex: ZIndexMap.SERIES_AXIS_OVERLAY_MID,
     });
     private readonly overlayHighGroup = new TransformableGroup<never>({
         name: `${this.id}-Overlay-High`,

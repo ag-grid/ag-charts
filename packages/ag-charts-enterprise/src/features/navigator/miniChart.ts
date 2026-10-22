@@ -25,14 +25,14 @@ export class MiniChart extends AbstractModuleInstance {
     readonly axisGridGroup = this.root.appendChild(new Group({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
     readonly axisGroup = this.root.appendChild(new Group({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
     readonly axisLabelGroup = this.root.appendChild(new Group({ name: 'Axes-Labels', zIndex: ZIndexMap.SERIES_LABEL }));
-    readonly axisCrosslineRangeGroup = this.root.appendChild(
-        new Group({ name: 'Axes-Crosslines-Range', zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE })
+    readonly axisOverlayLowGroup = this.root.appendChild(
+        new Group({ name: 'Axes-Overlay-Low', zIndex: ZIndexMap.SERIES_AXIS_OVERLAY_LOW })
     );
-    readonly axisCrosslineLineGroup = this.root.appendChild(
-        new Group({ name: 'Axes-Crosslines-Line', zIndex: ZIndexMap.SERIES_CROSSLINE_LINE })
+    readonly axisOverlayMidGroup = this.root.appendChild(
+        new Group({ name: 'Axes-Overlay-Mid', zIndex: ZIndexMap.SERIES_AXIS_OVERLAY_MID })
     );
-    readonly axisCrosslineLabelGroup = this.root.appendChild(
-        new Group({ name: 'Axes-Crosslines-Label', zIndex: ZIndexMap.SERIES_LABEL })
+    readonly axisOverlayHighGroup = this.root.appendChild(
+        new Group({ name: 'Axes-Overlay-High', zIndex: ZIndexMap.SERIES_LABEL })
     );
 
     private _destroyed: boolean = false;
@@ -62,9 +62,9 @@ export class MiniChart extends AbstractModuleInstance {
             axisNode: this.axisGroup,
             gridNode: this.axisGridGroup,
             labelNode: this.axisLabelGroup,
-            overlayLowNode: this.axisCrosslineRangeGroup,
-            overlayMidNode: this.axisCrosslineLineGroup,
-            overlayHighNode: this.axisCrosslineLabelGroup,
+            overlayLowNode: this.axisOverlayLowGroup,
+            overlayMidNode: this.axisOverlayMidGroup,
+            overlayHighNode: this.axisOverlayHighGroup,
         };
         for (const axis of previous) {
             if (axes.includes(axis)) continue;

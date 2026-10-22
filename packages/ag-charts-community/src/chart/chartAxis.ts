@@ -48,13 +48,7 @@ export interface AxisGroups {
     axisNode: Group;
     gridNode: Group;
     labelNode: Group;
-    /**
-     * Three z-index-ordered overlay slots that follow the axis transform. Used by axis plugins
-     * (currently {@link CrossLinesPlugin}) to render content scoped to the axis area without
-     * the axis itself needing to know what the plugin draws. Slot order, low to high, matches
-     * the previous `crossLine{Range,Line,Label}Node` zones — kept stable so existing z-index
-     * relationships (cross-lines below series labels, etc.) are preserved.
-     */
+    /** Three z-index-ordered overlay slots that follow the axis transform, for axis plugins to draw into. */
     overlayLowNode: Group;
     overlayMidNode: Group;
     overlayHighNode: Group;

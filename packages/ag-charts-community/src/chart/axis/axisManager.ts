@@ -29,11 +29,11 @@ export class AxisManager {
     readonly axisLabelGroup = new Group({ name: 'Axes-Labels', zIndex: ZIndexMap.SERIES_LABEL });
     readonly axisOverlayLowGroup = new Group({
         name: 'Axes-Overlay-Low',
-        zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE,
+        zIndex: ZIndexMap.SERIES_AXIS_OVERLAY_LOW,
     });
     readonly axisOverlayMidGroup = new Group({
         name: 'Axes-Overlay-Mid',
-        zIndex: ZIndexMap.SERIES_CROSSLINE_LINE,
+        zIndex: ZIndexMap.SERIES_AXIS_OVERLAY_MID,
     });
     readonly axisOverlayHighGroup = new Group({
         name: 'Axes-Overlay-High',
