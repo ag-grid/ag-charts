@@ -43,7 +43,7 @@ This ensures the browser does not reload until all build outputs needed by the d
 
 Within a project's target list, reloadable targets come **before** non-reloadable ones. `buildBuffer` is processed in order and same-kind tasks are batched together, so the reloadable batch runs first and the browser reloads as early as possible; the slower non-reloadable targets (such as `build:types`) follow without delaying it.
 
-Every output the dev server serves must be built by a reloadable target, or the reload fires while that output is still stale. In `chartsWatch.config.js`, the community, enterprise and locale cases queue the changed package's own `build:umd` and `build:package` (vanilla examples read `dist/umd`; islands, TypeScript and framework examples read `dist/package`) before `build:types`. A core edit queues those two targets for community and enterprise, which rebuild core's `dist/package` as a dependency (core has no `build:umd`). They queue those targets rather than the composite `build`, which is not reloadable.
+Every output the dev server serves must be built by a reloadable target, or the reload fires while that output is still stale. In `chartsWatch.config.js`, the community, enterprise and locale cases queue the changed package's own `build:umd` and `build:package` (vanilla examples read `dist/umd`; islands, TypeScript and framework examples read `dist/package`) before `build:types`. A core edit queues those two targets for community and enterprise, which rebuild core's `dist/package` as a dependency (core has no `build:umd`). They queue those targets rather than the composite `build`, which is not reloadable. The types, locale and core cases also avoid `build`: it is a no-op over `build:types` and `build:package` (plus `build:umd` for locale), so each is split into explicit tuples, which lets `build:types` run in the background lane while the rest stays in the foreground.
 
 ### Background lane
 
@@ -57,6 +57,10 @@ A target listed in the config's `backgroundTargets` is slow, nothing the browser
 - A background target must not also be a reload target: the reload would be held back until nothing else is queued, so the watch refuses to start.
 
 A config without `backgroundTargets` (grid, studio) is unaffected.
+
+## Tests
+
+`watch.test.mjs` runs the real `watch.js` against a fake `nx` on `PATH` (`yarn nx test ag-shared`). It covers pre-emption and re-queue, `cancelled` against `failed` in the status file, a build that ignores the kill, no executor left behind, and a config with no `backgroundTargets` (grid) staying as it was.
 
 ## Configuration (`*Watch.config.js`)
 

@@ -14,6 +14,9 @@ if ((process.env.BUILD_FWS ?? '0') !== '1') {
 // (slow tsc) follows every reloadable tuple and runs in the background lane (see
 // `backgroundTargets`), so it never delays the reload or a later save.
 //
+// These projects' `build` is a no-op over build:types, build:package (and build:umd for locale), so
+// it is split into those targets: build:types must be its own tuple to run in the background lane.
+//
 // Fan-out: upstream changes trigger downstream rebuilds in dependency order. build:package
 // depends on ^build:package, so a core edit also rebuilds core's dist/package before the reload.
 function getProjectBuildTargets(project) {
@@ -26,10 +29,11 @@ function getProjectBuildTargets(project) {
             return [
                 // docs-resolved-interfaces triggers a dev server reload for API docs pages.
                 [project, ['docs-resolved-interfaces'], 'watch'],
+                [project, ['build:package'], 'watch'],
                 // Rebuild downstream types so community/enterprise stay in sync.
                 ['ag-charts-community', ['build:types'], 'watch'],
                 ['ag-charts-enterprise', ['build:types'], 'watch'],
-                [project, ['build'], 'watch'],
+                [project, ['build:types'], 'watch'],
             ];
         case 'ag-charts-locale':
             // The dev server serves locale's dist/umd (vanilla examples) directly, so its own
@@ -40,7 +44,7 @@ function getProjectBuildTargets(project) {
                 ['ag-charts-enterprise', ['build:umd', 'build:package'], 'watch'],
                 ['ag-charts-community', ['build:types'], 'watch'],
                 ['ag-charts-enterprise', ['build:types'], 'watch'],
-                [project, ['build'], 'watch'],
+                [project, ['build:types'], 'watch'],
             ];
         case 'ag-charts-core':
             // Core has no build:umd; community's build:package rebuilds its dist/package as a dependency.
@@ -49,7 +53,7 @@ function getProjectBuildTargets(project) {
                 ['ag-charts-enterprise', ['build:umd', 'build:package'], 'watch'],
                 ['ag-charts-community', ['build:types'], 'watch'],
                 ['ag-charts-enterprise', ['build:types'], 'watch'],
-                [project, ['build'], 'watch'],
+                [project, ['build:types'], 'watch'],
             ];
         case 'ag-charts-community':
             // Enterprise depends on community, so rebuild enterprise first.
