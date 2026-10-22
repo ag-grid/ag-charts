@@ -171,7 +171,8 @@ export default defineConfig({
         server: {
             https: httpsEnabled,
             watch: {
-                // agHotModuleReload invalidates these and reloads once per build, not once per written file.
+                // agHotModuleReload invalidates these and reloads once per build, not once per written file. Its
+                // PACKAGE_DIST_FILE regex matches the same paths.
                 ignored: ['**/packages/ag-charts-*/dist/**'],
             },
             cors: {
