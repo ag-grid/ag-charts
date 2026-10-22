@@ -18,32 +18,6 @@ function seedFilters(manager: AggregationManager<MockFilter>, dataLength: number
 }
 
 describe('AggregationManager', () => {
-    describe('discard()', () => {
-        it('drops filters that markStale would keep and notifies subscribers', () => {
-            const manager = new AggregationManager<MockFilter>();
-            seedFilters(manager, 1000);
-            manager.markStale(1200);
-            expect(manager.filters).toBeDefined();
-
-            let notified = 0;
-            manager.events.on('filtersChanged', () => notified++);
-            manager.discard();
-
-            expect(manager.filters).toBeUndefined();
-            expect(manager.getFilterForRange(500)).toBeUndefined();
-            expect(notified).toBe(1);
-        });
-
-        it('does not notify subscribers when there are no filters', () => {
-            const manager = new AggregationManager<MockFilter>();
-            let notified = 0;
-            manager.events.on('filtersChanged', () => notified++);
-            manager.discard();
-
-            expect(notified).toBe(0);
-        });
-    });
-
     describe('markStale()', () => {
         it('should discard filters on large increase (1000 -> 5000)', () => {
             const manager = new AggregationManager<MockFilter>();
@@ -124,6 +98,29 @@ describe('AggregationManager', () => {
             manager.aggregate({ computeFull: () => createMockFilters(), targetRange: 0 });
             manager.markStale(1000);
             expect(manager.filters).toBeUndefined();
+        });
+
+        it('discards filters and notifies subscribers when data drops to an unaggregated size (1001 -> 999)', () => {
+            const manager = new AggregationManager<MockFilter>();
+            seedFilters(manager, 1001);
+            let notified = 0;
+            manager.events.on('filtersChanged', () => notified++);
+
+            manager.markStale(999);
+
+            expect(manager.filters).toBeUndefined();
+            expect(manager.getFilterForRange(500)).toBeUndefined();
+            expect(notified).toBe(1);
+        });
+
+        it('does not notify subscribers when there are no filters to discard', () => {
+            const manager = new AggregationManager<MockFilter>();
+            let notified = 0;
+            manager.events.on('filtersChanged', () => notified++);
+
+            manager.markStale(999);
+
+            expect(notified).toBe(0);
         });
 
         it('should mark existing filters as stale on small change', () => {

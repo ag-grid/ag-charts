@@ -624,10 +624,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
         this.aggregationManager.markStale(processedData.input.count);
 
-        if (processedDataIsAnimatable(processedData)) {
-            this.aggregationManager.discard();
-            return;
-        }
+        if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.getCategoryAxis();
         if (xAxis == null) return;

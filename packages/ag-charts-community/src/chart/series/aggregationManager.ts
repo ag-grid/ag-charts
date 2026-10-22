@@ -1,5 +1,7 @@
 import { DeferredExecutor, EventEmitter } from 'ag-charts-core';
 
+import { MAX_ANIMATABLE_NODES } from '../data/processors';
+
 export interface AggregationManagerEvents {
     filtersChanged: void;
 }
@@ -127,11 +129,13 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
     /**
      * Mark filters as stale or discard them based on data size change.
      * When data size changes significantly (>=2x), filters are discarded to prevent
-     * incorrect array reuse.
+     * incorrect array reuse. Filters are also discarded when the data is small enough
+     * to draw without aggregation, as no aggregation pass will replace them.
      */
     markStale(dataLength: number): void {
         const ratio = this._dataLength > 0 ? dataLength / this._dataLength : 0;
-        const filtersDiscarded = ratio >= 2 || ratio <= 0.5 || this._dataLength === 0;
+        const filtersDiscarded =
+            dataLength <= MAX_ANIMATABLE_NODES || ratio >= 2 || ratio <= 0.5 || this._dataLength === 0;
         if (filtersDiscarded) {
             this.discard();
         } else if (this._filters) {
@@ -144,7 +148,7 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
         this.executor.cancel();
     }
 
-    discard(): void {
+    private discard(): void {
         this.executor.cancel();
         if (this._filters == null) return;
 
