@@ -121,7 +121,7 @@ describe('LinearGaugeSeries', () => {
     });
 
     describe.each(['horizontal', 'vertical'] as const)('series labels (%s)', (direction) => {
-        it.each([
+        it.each<AgLinearGaugeLabelPlacement>([
             'inside-start',
             'outside-start',
             'inside-end',
@@ -131,7 +131,7 @@ describe('LinearGaugeSeries', () => {
             'bar-inside-end',
             'bar-outside-end',
             'bar-end',
-        ] as AgLinearGaugeLabelPlacement[])('should render label at placement %s', async (placement) => {
+        ])('should render label at placement %s', async (placement) => {
             const options: AgLinearGaugeOptions = {
                 ...EXAMPLE_OPTIONS,
                 direction,
@@ -148,7 +148,7 @@ describe('LinearGaugeSeries', () => {
             await compare();
         });
 
-        it.each([
+        it.each<AgLinearGaugeLabelPlacement>([
             'inside-start',
             'outside-start',
             'inside-end',
@@ -158,7 +158,7 @@ describe('LinearGaugeSeries', () => {
             'bar-inside-end',
             'bar-outside-end',
             'bar-end',
-        ] as AgLinearGaugeLabelPlacement[])('should render multi-line labels at placement %s', async (placement) => {
+        ])('should render multi-line labels at placement %s', async (placement) => {
             const options: AgLinearGaugeOptions = {
                 ...EXAMPLE_OPTIONS,
                 direction,

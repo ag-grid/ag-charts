@@ -1,6 +1,27 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartOptions, AgGaugeOptions, AgTreemapSeriesOptions } from 'ag-charts-community';
+import type {
+    AgCartesianChartOptions,
+    AgChartLabelAutoFontSizeOptions,
+    AgChartLabelCollisionFitOptions,
+    AgChartLabelOptions,
+    AgChartOptions,
+    AgChartTheme,
+    AgGaugeOptions,
+    AgHeatmapSeriesOptions,
+    AgLinearGaugeLabelOptions,
+    AgLinearGaugeLabelPlacement,
+    AgLinearGaugeOptions,
+    AgLinearGaugeTargetLabelOptions,
+    AgMapShapeSeriesOptions,
+    AgRadialGaugeOptions,
+    AgRangeAreaSeriesLabelPlacement,
+    AgRangeAreaSeriesOptions,
+    AgSankeySeriesOptions,
+    AgSunburstSeriesOptions,
+    AgTreemapSeriesOptions,
+    AgWaterfallSeriesLabelPlacement,
+} from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
     type ChartOrProxy,
@@ -36,16 +57,31 @@ type PlainText<TDatum = unknown> = Text<TDatum> & { text: string };
 // The label-fit callbacks receive the datum of the row they label.
 type LabelParams = { datum: { label: string } };
 const datumLabel = ({ datum }: LabelParams) => datum.label;
-// The fit options the label-fit tests read back off a resolved series; they are not in the public types.
-type FitSeriesOptions = { label: { wrapping?: string; truncate?: boolean } };
+/** The label options the fit tests build, on top of the public fit options; `TPlacement` is the series' own placement names. */
+type FitLabel<TPlacement extends string = never> = AgChartLabelCollisionFitOptions &
+    AgChartLabelAutoFontSizeOptions &
+    Pick<AgChartLabelOptions<any, unknown>, 'enabled' | 'fontSize' | 'formatter'> & {
+        placement?: TPlacement | TPlacement[];
+    };
+type StageSeriesType = 'funnel' | 'cone-funnel' | 'pyramid';
+// The three stage series name their placements differently and sit in different chart families, so the
+// options for whichever of them is under test are cast to `AgChartOptions` here, the one place that builds all three.
+const stageChartOptions = (
+    type: StageSeriesType,
+    label: FitLabel<string>,
+    chartOptions: { data: object[]; theme?: AgChartTheme }
+) =>
+    ({
+        ...chartOptions,
+        legend: { enabled: false },
+        series: [{ type, stageKey: 'stage', valueKey: 'value', label }],
+    }) as AgChartOptions;
 const contains = (outer: BBox, inner: BBox, tolerance = 0.5) =>
     inner.x >= outer.x - tolerance &&
     inner.y >= outer.y - tolerance &&
     inner.x + inner.width <= outer.x + outer.width + tolerance &&
     inner.y + inner.height <= outer.y + outer.height + tolerance;
 
-// The label-fit options are undocumented, so labels are built untyped and cast at the chart-creation
-// boundary; `setupMockConsole` fails the test on any "property is unknown" warning.
 // Bespoke: the bare `AgCharts.create` calls in `renderAndSnapshot` (when given a size), `renderAt`, `renderNarrow` and the
 // grown-chart test set the size after preparation, which the factory would overwrite with the default canvas size.
 describe('series label fit', () => {
@@ -58,13 +94,13 @@ describe('series label fit', () => {
         chart?.destroy();
     });
 
-    const renderAndSnapshot = async (options: object, size?: { width: number; height: number }) => {
+    const renderAndSnapshot = async (options: AgChartOptions, size?: { width: number; height: number }) => {
         if (size == null) {
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
         } else {
-            prepareEnterpriseTestOptions(options as AgChartOptions);
+            prepareEnterpriseTestOptions(options);
             Object.assign(options, size);
-            chart = AgCharts.create(options as AgChartOptions);
+            chart = AgCharts.create(options);
         }
         await compareImageSnapshot(chart, ctx);
     };
@@ -85,14 +121,17 @@ describe('series label fit', () => {
     const someWrapped = (texts: unknown[]) => texts.some((text) => String(text).includes('\n'));
     const someTruncated = (texts: unknown[]) => texts.some((text) => String(text).includes(ELLIPSIS));
 
-    const cartesianAxes = {
+    const cartesianAxes: AgCartesianChartOptions['axes'] = {
         x: { type: 'category', position: 'bottom' },
         y: { type: 'number', position: 'left' },
     };
-    type LabelNode = PlainText;
-    const drawnLabels = (): LabelNode[] =>
-        getSeriesSelectionNodes<LabelNode>(chart, 'labelSelection').filter((node) => node.visible && node.text !== '');
-    const perDatumLabel = (extra: object) => ({ enabled: true, formatter: datumLabel, ...extra });
+    const drawnLabels = (): PlainText[] =>
+        getSeriesSelectionNodes<PlainText>(chart, 'labelSelection').filter((node) => node.visible && node.text !== '');
+    const perDatumLabel = <TPlacement extends string = never>(extra: FitLabel<TPlacement>): FitLabel<TPlacement> => ({
+        enabled: true,
+        formatter: datumLabel,
+        ...extra,
+    });
 
     it('wraps range-bar inside labels to the bar rect across bars of varied span', async () => {
         // Spans stay tall enough to keep each bar's low/high labels separated; a span short enough to
@@ -155,8 +194,10 @@ describe('series label fit', () => {
     describe('waterfall (fits inside the bar rect)', () => {
         // Waterfall labels default to an outside placement — force `inside-center` so the label fits
         // the bar rect container. Configured per item type here; `series.label` would apply to all three.
-        const waterfallChart = (label: object, data: object[]) => {
-            const itemLabel = { label: { enabled: true, placement: 'inside-center', ...label } };
+        const waterfallChart = (label: FitLabel<AgWaterfallSeriesLabelPlacement>, data: object[]): AgChartOptions => {
+            const itemLabel: { label: FitLabel<AgWaterfallSeriesLabelPlacement> } = {
+                label: { enabled: true, placement: 'inside-center', ...label },
+            };
             return {
                 data,
                 legend: { enabled: false },
@@ -219,7 +260,9 @@ describe('series label fit', () => {
         const FONT_SIZE = 20;
         // Enough bars that none is wide enough for its label at 20px, so the fit layer has to act.
         const bars = Array.from({ length: 6 }, (_, i) => ({ cat: `Cat ${i}`, low: 5, high: 95 - i, value: 100 - i }));
-        const shrinkableLabel = (extra: object) => ({
+        const shrinkableLabel = <TPlacement extends string = never>(
+            extra: FitLabel<TPlacement>
+        ): FitLabel<TPlacement> => ({
             enabled: true,
             fontSize: FONT_SIZE,
             wrapping: 'never',
@@ -242,7 +285,7 @@ describe('series label fit', () => {
                         item: { positive: itemLabel, negative: itemLabel, total: itemLabel },
                     },
                 ],
-            } as AgChartOptions);
+            });
             const rendered = drawnLabels();
             expect(rendered.length).toBe(bars.length);
             for (const node of rendered) {
@@ -265,7 +308,7 @@ describe('series label fit', () => {
                         label: shrinkableLabel({ placement: 'inside', minimumFontSize: 4 }),
                     },
                 ],
-            } as AgChartOptions);
+            });
             const rendered = drawnLabels();
             expect(rendered.length).toBe(bars.length * 2);
             for (const node of rendered) {
@@ -288,14 +331,17 @@ describe('series label fit', () => {
                         label: shrinkableLabel({ placement: 'inside', minimumFontSize: 16 }),
                     },
                 ],
-            } as AgChartOptions);
+            });
             const rendered = drawnLabels();
             expect(rendered.map((node) => node.fontSize)).toEqual(rendered.map(() => 16));
             expect(rendered.some((node) => node.text.includes(ELLIPSIS))).toBe(true);
         });
 
         describe('range-area', () => {
-            const rangeAreaChart = (label: object, theme?: object) => ({
+            const rangeAreaChart = (
+                label: FitLabel<AgRangeAreaSeriesLabelPlacement>,
+                theme?: AgChartTheme
+            ): AgChartOptions => ({
                 data: bars,
                 legend: { enabled: false },
                 axes: cartesianAxes,
@@ -327,17 +373,17 @@ describe('series label fit', () => {
             };
 
             it('keeps labels at their configured size when minimumFontSize is unset', async () => {
-                chart = await createEnterpriseChart(rangeAreaChart({}) as AgChartOptions);
+                chart = await createEnterpriseChart(rangeAreaChart({}));
                 expectAllTruncatedAt(FONT_SIZE);
             });
 
             it('shrinks labels to fit rather than truncating them', async () => {
-                chart = await createEnterpriseChart(rangeAreaChart({ minimumFontSize: 4 }) as AgChartOptions);
+                chart = await createEnterpriseChart(rangeAreaChart({ minimumFontSize: 4 }));
                 expectAllShrunkWhole();
             });
 
             it('stops shrinking at minimumFontSize and truncates from there', async () => {
-                chart = await createEnterpriseChart(rangeAreaChart({ minimumFontSize: 16 }) as AgChartOptions);
+                chart = await createEnterpriseChart(rangeAreaChart({ minimumFontSize: 16 }));
                 expectAllTruncatedAt(16);
             });
 
@@ -347,19 +393,19 @@ describe('series label fit', () => {
                         minimumFontSize: 16,
                         truncate: false,
                         collision: { alwaysShow: false },
-                    }) as AgChartOptions
+                    })
                 );
                 expect(drawnLabels()).toEqual([]);
             });
 
             it('takes minimumFontSize from the theme', async () => {
                 const theme = { overrides: { 'range-area': { series: { label: { minimumFontSize: 4 } } } } };
-                chart = await createEnterpriseChart(rangeAreaChart({}, theme) as AgChartOptions);
+                chart = await createEnterpriseChart(rangeAreaChart({}, theme));
                 expectAllShrunkWhole();
             });
 
             it('shrinks only the labels crowding a neighbour, with a themed minimumFontSize alone', async () => {
-                const crowdedChart = (theme?: object) => ({
+                const crowdedChart = (theme?: AgChartTheme): AgChartOptions => ({
                     data: Array.from({ length: 8 }, (_, i) => ({ cat: `Cat ${i}`, low: 20, high: 80 })),
                     legend: { enabled: false },
                     axes: { ...cartesianAxes, y: { type: 'number', position: 'left', min: 0, max: 100 } },
@@ -374,14 +420,14 @@ describe('series label fit', () => {
                         },
                     ],
                 });
-                chart = await createEnterpriseChart(crowdedChart() as AgChartOptions);
+                chart = await createEnterpriseChart(crowdedChart());
                 expect(drawnLabels().map((node) => node.fontSize)).toEqual(Array(16).fill(FONT_SIZE));
 
                 chart.destroy();
                 chart = await createEnterpriseChart(
                     crowdedChart({
                         overrides: { 'range-area': { series: { label: { minimumFontSize: 6 } } } },
-                    }) as AgChartOptions
+                    })
                 );
                 const sizes = drawnLabels().map((node) => node.fontSize);
                 expect(sizes).toHaveLength(16);
@@ -402,7 +448,7 @@ describe('series label fit', () => {
                     { cat: 'Services', value: 26, label: 'Subscription renewals' },
                     { cat: 'Costs', value: -22, label: 'Operating costs' },
                 ];
-                const itemLabel = (extra: object) => ({
+                const itemLabel = (extra: FitLabel<AgWaterfallSeriesLabelPlacement>) => ({
                     label: shrinkableLabel({
                         placement: 'inside-center',
                         collision: { alwaysShow: true },
@@ -440,11 +486,12 @@ describe('series label fit', () => {
                     { cat: 'D', label: 'Lowest recorded closing value' },
                     { cat: 'E', label: 'Closing quote', inverted: true },
                 ];
-                const series = [
+                const bands: { offset: number; label: FitLabel<AgRangeAreaSeriesLabelPlacement> }[] = [
                     { offset: 0, label: { placement: 'outside' } },
                     { offset: 35, label: { placement: 'inside', minimumFontSize: 6 } },
                     { offset: 70, label: { placement: 'outside', minimumFontSize: 12, wrapping: 'on-space' } },
-                ].map(({ offset, label }, index) => ({
+                ];
+                const series = bands.map(({ offset, label }, index): AgRangeAreaSeriesOptions => ({
                     type: 'range-area',
                     xKey: 'cat',
                     yLowKey: `low${index}`,
@@ -505,28 +552,20 @@ describe('series label fit', () => {
         });
 
         // Cone-funnel's default `start-center` is not bounded by the cone, so its labels move into the stage.
-        describe.each([
+        describe.each<[StageSeriesType, string, number[]]>([
             ['funnel', 'inside-center', [100, 30, 10, 4, 2]],
             ['cone-funnel', 'middle-center', [100, 30, 10, 4, 2]],
             ['pyramid', 'inside-center', [100, 60, 30, 15, 8]],
         ])('%s', (type, placement, values) => {
             const stages = values.map((value, i) => ({ stage: `Stage ${i}`, value }));
-            const stageChart = (label: object, theme?: object) => ({
-                data: stages,
-                legend: { enabled: false },
-                theme,
-                series: [
-                    {
-                        type,
-                        stageKey: 'stage',
-                        valueKey: 'value',
-                        label: shrinkableLabel({ placement, collision: { alwaysShow: true }, ...label }),
-                    },
-                ],
-            });
+            const stageChart = (label: FitLabel<string>, theme?: AgChartTheme) =>
+                stageChartOptions(type, shrinkableLabel({ placement, collision: { alwaysShow: true }, ...label }), {
+                    data: stages,
+                    theme,
+                });
 
             it('keeps labels at their configured size when minimumFontSize is unset', async () => {
-                chart = await createEnterpriseChart(stageChart({}) as AgChartOptions);
+                chart = await createEnterpriseChart(stageChart({}));
                 const rendered = drawnLabels();
                 expect(rendered.length).toBe(stages.length);
                 expect(rendered.map((node) => node.fontSize)).toEqual(rendered.map(() => FONT_SIZE));
@@ -534,14 +573,14 @@ describe('series label fit', () => {
             });
 
             it('shrinks a label into its stage rather than truncating it', async () => {
-                chart = await createEnterpriseChart(stageChart({ minimumFontSize: 4 }) as AgChartOptions);
+                chart = await createEnterpriseChart(stageChart({ minimumFontSize: 4 }));
                 const shrunk = drawnLabels().filter((node) => node.fontSize < FONT_SIZE);
                 expect(shrunk.length).toBeGreaterThan(0);
                 expect(shrunk.some((node) => !node.text.includes(ELLIPSIS))).toBe(true);
             });
 
             it('stops shrinking at minimumFontSize and truncates from there', async () => {
-                chart = await createEnterpriseChart(stageChart({ minimumFontSize: 16 }) as AgChartOptions);
+                chart = await createEnterpriseChart(stageChart({ minimumFontSize: 16 }));
                 const rendered = drawnLabels();
                 expect(rendered.length).toBe(stages.length);
                 expect(rendered.every((node) => node.fontSize >= 16)).toBe(true);
@@ -549,16 +588,12 @@ describe('series label fit', () => {
             });
 
             it('shrinks before hiding when collision.alwaysShow is left to the theme', async () => {
-                chart = await createEnterpriseChart(
-                    stageChart({ minimumFontSize: 4, collision: {} }) as AgChartOptions
-                );
+                chart = await createEnterpriseChart(stageChart({ minimumFontSize: 4, collision: {} }));
                 expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE && !node.text.includes(ELLIPSIS))).toBe(
                     true
                 );
 
-                chart = await createEnterpriseChart(
-                    stageChart({ minimumFontSize: 16, collision: {} }) as AgChartOptions
-                );
+                chart = await createEnterpriseChart(stageChart({ minimumFontSize: 16, collision: {} }));
                 const rendered = drawnLabels();
                 expect(rendered.length).toBeLessThan(stages.length);
                 expect(rendered.every((node) => node.fontSize >= 16)).toBe(true);
@@ -566,10 +601,7 @@ describe('series label fit', () => {
 
             it('takes minimumFontSize from the theme', async () => {
                 chart = await createEnterpriseChart(
-                    stageChart(
-                        {},
-                        { overrides: { [type]: { series: { label: { minimumFontSize: 4 } } } } }
-                    ) as AgChartOptions
+                    stageChart({}, { overrides: { [type]: { series: { label: { minimumFontSize: 4 } } } } })
                 );
                 expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE)).toBe(true);
             });
@@ -584,28 +616,21 @@ describe('series label fit', () => {
                 { stage: 'Paid', value: 9, label: 'Paid subscriptions' },
                 { stage: 'Renewed', value: 4, label: 'Annual renewals completed' },
             ];
-            const renderAt = (width: number, height: number, type: string, label: object) => {
+            const renderAt = (width: number, height: number, type: StageSeriesType, label: FitLabel<string>) => {
                 chart?.destroy();
-                const options = {
-                    data: stages,
-                    legend: { enabled: false },
-                    series: [
-                        {
-                            type,
-                            stageKey: 'stage',
-                            valueKey: 'value',
-                            label: shrinkableLabel({
-                                minimumFontSize: MINIMUM,
-                                collision: { alwaysShow: true },
-                                formatter: datumLabel,
-                                ...label,
-                            }),
-                        },
-                    ],
-                };
-                prepareEnterpriseTestOptions(options as AgChartOptions);
+                const options = stageChartOptions(
+                    type,
+                    shrinkableLabel({
+                        minimumFontSize: MINIMUM,
+                        collision: { alwaysShow: true },
+                        formatter: datumLabel,
+                        ...label,
+                    }),
+                    { data: stages }
+                );
+                prepareEnterpriseTestOptions(options);
                 Object.assign(options, { width, height });
-                chart = AgCharts.create(options as AgChartOptions);
+                chart = AgCharts.create(options);
                 return waitForChartStability(chart);
             };
 
@@ -643,7 +668,7 @@ describe('series label fit', () => {
                 }
             });
 
-            it.each([
+            it.each<[string, StageSeriesType]>([
                 ['start-center', 'cone-funnel'],
                 ['end-center', 'cone-funnel'],
             ])('shrinks %s cone-funnel labels before truncating them', async (placement, type) => {
@@ -658,7 +683,7 @@ describe('series label fit', () => {
             });
 
             // Cone-funnel labels sit on a stage divider rather than inside a stage, so are not height-bound.
-            const stageBound = [
+            const stageBound: [StageSeriesType, string][] = [
                 ['funnel', 'inside-start'],
                 ['funnel', 'inside-center'],
                 ['pyramid', 'inside-center'],
@@ -675,30 +700,34 @@ describe('series label fit', () => {
                 expect(rendered.some((node) => node.fontSize < FONT_SIZE)).toBe(true);
             });
 
-            describe.each([...stageBound, ['cone-funnel', 'middle-center']])('%s %s', (type, placement) => {
-                it.each([
-                    ['never', 380, 80, MINIMUM],
-                    ['on-space', 380, 120, MINIMUM],
-                    ['on-space', 380, 200, MINIMUM],
-                    ['on-space', 380, 200, undefined],
-                ])(
-                    'keeps every %s-wrapped label at %ix%i with minimumFontSize %s when alwaysShow is true',
-                    async (wrapping, width, height, minimumFontSize) => {
-                        await renderAt(width, height, type, { placement, wrapping, minimumFontSize });
-                        const rendered = stageLabels();
-                        expect(rendered.length).toBe(stages.length);
-                        expect(rendered.filter((node) => node.text === ELLIPSIS)).toEqual([]);
-                    }
-                );
-            });
+            describe.each<[StageSeriesType, string]>([...stageBound, ['cone-funnel', 'middle-center']])(
+                '%s %s',
+                (type, placement) => {
+                    it.each<[NonNullable<FitLabel['wrapping']>, number, number, number | undefined]>([
+                        ['never', 380, 80, MINIMUM],
+                        ['on-space', 380, 120, MINIMUM],
+                        ['on-space', 380, 200, MINIMUM],
+                        ['on-space', 380, 200, undefined],
+                    ])(
+                        'keeps every %s-wrapped label at %ix%i with minimumFontSize %s when alwaysShow is true',
+                        async (wrapping, width, height, minimumFontSize) => {
+                            await renderAt(width, height, type, { placement, wrapping, minimumFontSize });
+                            const rendered = stageLabels();
+                            expect(rendered.length).toBe(stages.length);
+                            expect(rendered.filter((node) => node.text === ELLIPSIS)).toEqual([]);
+                        }
+                    );
+                }
+            );
 
             // The largest size anything in the label is drawn at, so a segment with its own size is held too.
             const drawnFontSize = (node: StageLabel) => {
+                // `Text.text` is typed as a string, but a segmented formatter makes it a list of segments.
                 const segments = Array.isArray(node.text) ? (node.text as { fontSize?: number }[]) : [];
                 return Math.max(node.fontSize, ...segments.map((segment) => segment.fontSize ?? 0));
             };
 
-            it.each([
+            it.each<[string, FitLabel['formatter']]>([
                 ['plain', datumLabel],
                 ['segmented', (p: LabelParams) => [{ text: p.datum.label, fontSize: FONT_SIZE }]],
             ])('never grows a %s label as the chart gets shorter', async (_, formatter) => {
@@ -756,7 +785,7 @@ describe('series label fit', () => {
                 }
             );
 
-            it.each([
+            it.each<[string, NonNullable<FitLabel['wrapping']>, number, number]>([
                 ['outside-end', 'on-space', 380, 440],
                 ['inside-center', 'never', 380, 80],
             ])('renders %s %s-wrapped funnel labels at %ix%i', async (placement, wrapping, width, height) => {
@@ -774,22 +803,12 @@ describe('series label fit', () => {
                 { stage: 'Paid', value: 9, label: 'Paid subscriptions' },
                 { stage: 'Renewed', value: 4, label: 'Annual renewals completed' },
             ];
-            const stageSeries = (type: string, label: object) => ({
-                data: spectrum,
-                legend: { enabled: false },
-                series: [
-                    {
-                        type,
-                        stageKey: 'stage',
-                        valueKey: 'value',
-                        label: shrinkableLabel({
-                            collision: { alwaysShow: true },
-                            formatter: datumLabel,
-                            ...label,
-                        }),
-                    },
-                ],
-            });
+            const stageSeries = (type: StageSeriesType, label: FitLabel<string>) =>
+                stageChartOptions(
+                    type,
+                    shrinkableLabel({ collision: { alwaysShow: true }, formatter: datumLabel, ...label }),
+                    { data: spectrum }
+                );
 
             it('renders funnel labels across the shrink spectrum', async () => {
                 await renderAndSnapshot(stageSeries('funnel', { minimumFontSize: 8, wrapping: 'on-space' }));
@@ -887,7 +906,7 @@ describe('series label fit', () => {
             { from: 'Product page visits from every channel', to: 'Bounced', size: 7 },
             { from: 'Pricing', to: 'Free trial sign-up', size: 4 },
         ];
-        const sankeyChart = (label: object, theme?: object) => ({
+        const sankeyChart = (label: AgSankeySeriesOptions['label'], theme?: AgChartTheme): AgChartOptions => ({
             data: flows,
             theme,
             series: [
@@ -900,13 +919,13 @@ describe('series label fit', () => {
                 },
             ],
         });
-        const renderNarrow = async (options: object) => {
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-            chart = AgCharts.create({ ...options, width: 500 } as AgChartOptions);
+        const renderNarrow = async (options: AgChartOptions) => {
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create({ ...options, width: 500 });
             await waitForChartStability(chart);
         };
-        const isWrapped = (node: LabelNode) => node.text.includes('\n');
-        const isTruncated = (node: LabelNode) => node.text.includes(ELLIPSIS);
+        const isWrapped = (node: PlainText) => node.text.includes('\n');
+        const isTruncated = (node: PlainText) => node.text.includes(ELLIPSIS);
 
         it('truncates labels on one line at their configured size when no fit option is set', async () => {
             await renderNarrow(sankeyChart({}));
@@ -958,12 +977,12 @@ describe('series label fit', () => {
 
         it('resolves the other fit options once one is set', async () => {
             await renderNarrow(sankeyChart({}));
-            const { wrapping, truncate } = getSeriesOptions<FitSeriesOptions>(chart).label;
+            const { wrapping, truncate } = getSeriesOptions<AgSankeySeriesOptions>(chart).label ?? {};
             expect([wrapping, truncate]).toEqual([undefined, undefined]);
 
             chart.destroy();
             await renderNarrow(sankeyChart({ minimumFontSize: 6 }));
-            expect(getSeriesOptions<FitSeriesOptions>(chart).label).toMatchObject({
+            expect(getSeriesOptions<AgSankeySeriesOptions>(chart).label).toMatchObject({
                 wrapping: 'on-space',
                 truncate: true,
             });
@@ -996,7 +1015,7 @@ describe('series label fit', () => {
         });
 
         it('renders labels that fit, wrap, shrink and truncate clear of the nodes', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...sankeyChart({ wrapping: 'on-space', minimumFontSize: 9, maxHeight: 30 }),
                 data: [
                     { from: 'Search', to: 'Product page visits from every channel', size: 12 },
@@ -1038,13 +1057,16 @@ describe('series label fit', () => {
                     { from: 'Industry analyst coverage, awards and press', to: 'Paid subscription', size: 2 },
                 ],
             };
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compareImageSnapshot(chart, ctx);
         });
     });
 
     describe('map-shape (fits inside the shape polygon)', () => {
-        const ukSeries = (label: object, labelText = 'A long label that has to wrap inside its shape') => ({
+        const ukSeries = (
+            label: AgMapShapeSeriesOptions['label'],
+            labelText = 'A long label that has to wrap inside its shape'
+        ): AgChartOptions => ({
             topology: ukTopology,
             series: [
                 {
@@ -1096,10 +1118,8 @@ describe('series label fit', () => {
         };
 
         it('sizes the label aspect ratio by its lineHeight', async () => {
-            const aspectRatio = async (label: object) => {
-                chart = await createEnterpriseChart(
-                    ukSeries({ wrapping: 'never', ...label }, 'Short') as AgChartOptions
-                );
+            const aspectRatio = async (label: AgMapShapeSeriesOptions['label']) => {
+                chart = await createEnterpriseChart(ukSeries({ wrapping: 'never', ...label }, 'Short'));
                 const ratio = getMapShapeLabelAspectRatio(chart, 'England');
                 chart.destroy();
                 return ratio;
@@ -1182,7 +1202,7 @@ describe('series label fit', () => {
 
         // Two 10px lines exactly fill a 20px maxHeight, which must not be mistaken for filling the shape.
         describe('with a block that fills maxHeight', () => {
-            const usSeries = () => ({
+            const usSeries = (): AgChartOptions => ({
                 data: usData,
                 topology: usTopology,
                 series: [
@@ -1219,7 +1239,7 @@ describe('series label fit', () => {
             });
 
             it('keeps a label that fits as the chart grows', async () => {
-                const options = usSeries() as AgChartOptions;
+                const options = usSeries();
                 prepareEnterpriseTestOptions(options);
                 Object.assign(options, { width: 890, height: 600 });
                 const api = AgCharts.create(options);
@@ -1285,11 +1305,12 @@ describe('series label fit', () => {
             'Hippopotomonstrosesquipedalian',
             'Incomprehensibilities',
         ];
+        type TreemapTileLabel = NonNullable<AgTreemapSeriesOptions['tile']>['label'];
         const treemapData = [
             { name: 'A broad tile label', value: 200 },
             ...tileNames.map((name) => ({ name, value: 3 })),
         ];
-        const treemapChart = (label: object, secondaryLabel?: object) => ({
+        const treemapChart = (label: TreemapTileLabel, secondaryLabel?: TreemapTileLabel): AgChartOptions => ({
             data: treemapData.map((d) => ({ ...d, detail: 'Secondary detail text' })),
             series: [
                 {
@@ -1301,7 +1322,7 @@ describe('series label fit', () => {
                 },
             ],
         });
-        const sunburstChart = (label: object) => ({
+        const sunburstChart = (label: AgSunburstSeriesOptions['label']): AgChartOptions => ({
             data: tileNames.map((name) => ({ name: 'Group', children: tileNames.map(() => ({ name, value: 1 })) })),
             series: [
                 {
@@ -1312,7 +1333,7 @@ describe('series label fit', () => {
                 },
             ],
         });
-        const heatmapChart = (label: object) => ({
+        const heatmapChart = (label: AgHeatmapSeriesOptions['label']): AgChartOptions => ({
             data: tileNames.flatMap((name, x) => tileNames.map((_, y) => ({ x, y, color: x + y, name }))),
             axes: {
                 x: { type: 'category', position: 'bottom' },
@@ -1355,17 +1376,15 @@ describe('series label fit', () => {
         ] as const)(
             '%s truncates by default, hides with truncate off and keeps with alwaysShow',
             async (_, build, texts) => {
-                chart = await createEnterpriseChart(build({}) as AgChartOptions);
+                chart = await createEnterpriseChart(build({}));
                 expect(someTruncated(texts())).toBe(true);
                 const truncatedCount = texts().length;
 
-                chart = await createEnterpriseChart(build({ truncate: false }) as AgChartOptions);
+                chart = await createEnterpriseChart(build({ truncate: false }));
                 expect(someTruncated(texts())).toBe(false);
                 expect(texts().length).toBeLessThan(truncatedCount);
 
-                chart = await createEnterpriseChart(
-                    build({ truncate: false, collision: { alwaysShow: true } }) as AgChartOptions
-                );
+                chart = await createEnterpriseChart(build({ truncate: false, collision: { alwaysShow: true } }));
                 expect(someTruncated(texts())).toBe(false);
                 expect(texts().length).toBe(truncatedCount);
                 expect(longNameShown(texts())).toBeGreaterThan(0);
@@ -1383,7 +1402,7 @@ describe('series label fit', () => {
                         label: { wrapping: 'never', truncate: false, collision: { alwaysShow: true } },
                     },
                 ],
-            } as AgChartOptions);
+            });
             const labels: HierarchyNodeLabel[] = [];
             getHierarchyRootNode(chart)?.walk((node) => {
                 const label = getHierarchyNodeLabel(node, 'label');
@@ -1397,7 +1416,7 @@ describe('series label fit', () => {
 
         it('keeps a secondary label that alwaysShow marks when the stack does not fit', async () => {
             const options = treemapChart({}, { fontSize: 14, minimumFontSize: 14, truncate: false });
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             const secondaryCount = () => {
                 let count = 0;
                 getHierarchyRootNode(chart)?.walk((node) => {
@@ -1412,13 +1431,13 @@ describe('series label fit', () => {
                 treemapChart(
                     {},
                     { fontSize: 14, minimumFontSize: 14, truncate: false, collision: { alwaysShow: true } }
-                ) as AgChartOptions
+                )
             );
             expect(secondaryCount()).toBe(treemapData.length);
         });
 
         it('warns on the deprecated overflowStrategy and maps `hide` onto truncate off', async () => {
-            chart = await createEnterpriseChart(treemapChart({ overflowStrategy: 'hide' }) as AgChartOptions);
+            chart = await createEnterpriseChart(treemapChart({ overflowStrategy: 'hide' }));
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
@@ -1573,19 +1592,22 @@ describe('series label fit', () => {
             nodes.filter((node) => node.visible).map((node) => String(node.text));
         const labelNodes = () => getSeriesSelectionNodes<Text>(chart, 'labelSelection');
         const gaugeLabelTexts = () => visibleTexts(labelNodes());
-        const renderGauge = async (options: object) => {
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-            chart = AgCharts.createGauge(options as AgGaugeOptions);
+        const renderGauge = async (options: AgGaugeOptions) => {
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.createGauge(options);
             await waitForChartStability(chart);
         };
-        const radialGauge = (label: object, secondaryLabel?: object) => ({
+        const radialGauge = (
+            label: AgRadialGaugeOptions['label'],
+            secondaryLabel?: AgRadialGaugeOptions['secondaryLabel']
+        ): AgRadialGaugeOptions => ({
             type: 'radial-gauge',
             value: 50,
             scale: { min: 0, max: 100 },
             label: { text: longText, wrapping: 'never', fontSize: 14, minimumFontSize: 14, ...label },
             secondaryLabel,
         });
-        const linearGauge = (label: object) => ({
+        const linearGauge = (label: AgLinearGaugeOptions['label']): AgLinearGaugeOptions => ({
             type: 'linear-gauge',
             value: 50,
             scale: { min: 0, max: 100 },
@@ -1629,7 +1651,7 @@ describe('series label fit', () => {
         const targetLabelTexts = () => visibleTexts(targetLabelNodes());
         const scaleLabelTexts = () => visibleTexts(getEnterpriseSelectionNodes<Text>(chart, 'tickSelection'));
         const firstLabelNode = () => labelNodes()[0];
-        const horizontalLinearGauge = (options: object) => ({
+        const horizontalLinearGauge = (options: Partial<AgLinearGaugeOptions>): AgLinearGaugeOptions => ({
             type: 'linear-gauge',
             direction: 'horizontal',
             value: 10,
@@ -1649,14 +1671,14 @@ describe('series label fit', () => {
             expect(firstLabelNode().textAlign).toBe('right');
         });
 
-        it.each([
+        it.each<[AgLinearGaugeOptions['direction'], AgLinearGaugeLabelPlacement, number, number]>([
             ['horizontal', 'inside-center', 60, 20],
             ['vertical', 'inside-center', 60, 20],
             ['horizontal', 'bar-inside', 0, 60],
         ])(
             'reserves room for a %s linear-gauge outside fallback when %s does not fit',
             async (direction, first, value, thickness) => {
-                const options = (placement: string | string[]) =>
+                const options = (placement: AgLinearGaugeLabelPlacement | AgLinearGaugeLabelPlacement[]) =>
                     horizontalLinearGauge({
                         direction,
                         value,
@@ -1676,10 +1698,10 @@ describe('series label fit', () => {
             }
         );
 
-        it.each([['outside-end'], ['inside-center', 'outside-end']])(
+        it.each<AgLinearGaugeLabelPlacement[]>([['outside-end'], ['inside-center', 'outside-end']])(
             'reserves no room for a linear-gauge %s label too tall for the room beside the gauge',
             async (...placement) => {
-                const options = {
+                const options: AgLinearGaugeOptions = {
                     type: 'linear-gauge',
                     direction: 'horizontal',
                     value: 60,
@@ -1687,9 +1709,9 @@ describe('series label fit', () => {
                     scale: { min: 0, max: 100, label: { enabled: false } },
                     label: { enabled: true, text: 'Fallback', padding: 8, border: { enabled: true }, placement },
                 };
-                prepareEnterpriseTestOptions(options as AgChartOptions);
+                prepareEnterpriseTestOptions(options);
                 Object.assign(options, { width: 220, height: 40 });
-                chart = AgCharts.createGauge(options as AgGaugeOptions);
+                chart = AgCharts.createGauge(options);
                 await waitForChartStability(chart);
 
                 const { gaugeRect, seriesRect } = getLinearGaugeRects(chart);
@@ -1699,7 +1721,7 @@ describe('series label fit', () => {
         );
 
         it('shrinks an inside linear-gauge label to the part of the gauge the canvas shows', async () => {
-            const options = {
+            const options: AgLinearGaugeOptions = {
                 type: 'linear-gauge',
                 direction: 'horizontal',
                 value: 60,
@@ -1714,9 +1736,9 @@ describe('series label fit', () => {
                     padding: 4,
                 },
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
+            prepareEnterpriseTestOptions(options);
             Object.assign(options, { width: 420, height: 30 });
-            chart = AgCharts.createGauge(options as AgGaugeOptions);
+            chart = AgCharts.createGauge(options);
             await waitForChartStability(chart);
 
             const label = firstLabelNode();
@@ -1729,7 +1751,7 @@ describe('series label fit', () => {
         });
 
         it('colours linear-gauge labels from insideStyle or outsideStyle by where they land', async () => {
-            const label = {
+            const label: AgLinearGaugeLabelOptions = {
                 enabled: true,
                 text: 'Label',
                 insideStyle: { color: 'red' },
@@ -1756,7 +1778,7 @@ describe('series label fit', () => {
         });
 
         it('boxes linear-gauge labels from insideStyle or outsideStyle and fits the box', async () => {
-            const label = {
+            const label: AgLinearGaugeLabelOptions = {
                 enabled: true,
                 text: 'Label',
                 truncate: false,
@@ -1769,7 +1791,11 @@ describe('series label fit', () => {
             await renderGauge(horizontalLinearGauge({ value: 80, label: { ...label, placement: 'inside-end' } }));
             expect(firstLabelNode().getBoxingProperties()).toMatchObject({ fill: 'grey', border: { enabled: true } });
 
-            const paddedOut = { ...label, insideStyle: { fill: 'yellow', padding: 300 }, placement: 'bar-inside' };
+            const paddedOut: AgLinearGaugeLabelOptions = {
+                ...label,
+                insideStyle: { fill: 'yellow', padding: 300 },
+                placement: 'bar-inside',
+            };
             await renderGauge(horizontalLinearGauge({ value: 80, label: paddedOut }));
             expect(gaugeLabelTexts()).toEqual([]);
 
@@ -1823,7 +1849,12 @@ describe('series label fit', () => {
         });
 
         it('reserves room for an outside linear-gauge label within its maxWidth', async () => {
-            const label = { enabled: true, text: 'A much longer label text', spacing: 10, placement: 'outside-start' };
+            const label: AgLinearGaugeLabelOptions = {
+                enabled: true,
+                text: 'A much longer label text',
+                spacing: 10,
+                placement: 'outside-start',
+            };
             await renderGauge(horizontalLinearGauge({ label: { ...label, maxWidth: 60 } }));
             expect(getLinearGaugeRects(chart).gaugeRect.x).toBeLessThanOrEqual(70);
         });
@@ -1848,7 +1879,13 @@ describe('series label fit', () => {
         });
 
         it('drops the scale labels a linear-gauge label overlaps only when collision is set', async () => {
-            const label = { enabled: true, text: 'Label', fontSize: 40, spacing: 0, placement: 'outside-end' };
+            const label: AgLinearGaugeLabelOptions = {
+                enabled: true,
+                text: 'Label',
+                fontSize: 40,
+                spacing: 0,
+                placement: 'outside-end',
+            };
             const allScaleLabels = ['0', '20', '40', '60', '80', '100'];
             await renderGauge(horizontalLinearGauge({ thickness: 10, label }));
             expect(gaugeLabelTexts()).toEqual(['Label']);
@@ -1863,7 +1900,7 @@ describe('series label fit', () => {
             ['radial-gauge', { type: 'radial-gauge', width: 400, height: 400 }],
             ['linear-gauge', horizontalLinearGauge({})],
         ] as const)('%s drops the scale labels under a target only when its label sets collision', async (_, base) => {
-            const options = (label?: object) => ({
+            const options = (label?: AgLinearGaugeTargetLabelOptions): AgGaugeOptions => ({
                 ...base,
                 value: 50,
                 scale: { min: 0, max: 100 },
@@ -1944,7 +1981,7 @@ describe('series label fit', () => {
             ['radial-gauge', { type: 'radial-gauge', width: 400, height: 400 }],
             ['linear-gauge', horizontalLinearGauge({})],
         ] as const)('%s hides colliding target labels only when collision is set', async (_, base) => {
-            const options = (label?: object) => ({
+            const options = (label?: AgLinearGaugeTargetLabelOptions): AgGaugeOptions => ({
                 ...base,
                 value: 50,
                 scale: { min: 0, max: 100 },
@@ -1963,13 +2000,13 @@ describe('series label fit', () => {
             expect(targetLabelTexts()).toEqual(['Target label text', 'Overlap']);
         });
 
-        const renderGaugeAndSnapshot = async (options: object) => {
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-            chart = AgCharts.createGauge(options as AgGaugeOptions);
+        const renderGaugeAndSnapshot = async (options: AgGaugeOptions) => {
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.createGauge(options);
             await compareImageSnapshot(chart, ctx);
         };
 
-        const fittedLinearGauge = (targetLabel: object) =>
+        const fittedLinearGauge = (targetLabel: AgLinearGaugeTargetLabelOptions) =>
             horizontalLinearGauge({
                 value: 90,
                 label: {
@@ -1989,7 +2026,7 @@ describe('series label fit', () => {
                     { value: 82, text: 'Hidden', label: { collision: {} } },
                 ],
             });
-        const fittedRadialGauge = (targetLabel: object) => ({
+        const fittedRadialGauge = (targetLabel: AgLinearGaugeTargetLabelOptions): AgRadialGaugeOptions => ({
             type: 'radial-gauge',
             width: 400,
             height: 400,
