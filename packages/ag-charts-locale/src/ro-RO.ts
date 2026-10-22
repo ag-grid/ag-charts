@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaLabelColorPickerHue: 'Culoare',
     ariaLabelColorPickerMultiColor: 'Culori multiple',
     ariaLabelColorPickerPalette: 'Paletă',
+    ariaLabelCrossLine: '${label}, Linie transversală ${index}[number] din ${count}[number]',
     ariaLabelFinancialCharts: 'Grafice financiare',
     ariaLabelGaugeTarget: 'Țintă',
     ariaLabelGaugeValue: 'Valoare',

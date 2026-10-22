@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_RU_RU: Record<string, string> = {
     ariaLabelColorPickerHue: 'Оттенок',
     ariaLabelColorPickerMultiColor: 'Многоцветный',
     ariaLabelColorPickerPalette: 'Палитра',
+    ariaLabelCrossLine: '${label}, пересекающая линия ${index}[number] из ${count}[number]',
     ariaLabelFinancialCharts: 'Финансовые диаграммы',
     ariaLabelGaugeTarget: 'Цель',
     ariaLabelGaugeValue: 'Значение',

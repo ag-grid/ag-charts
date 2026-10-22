@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaLabelColorPickerHue: 'Ton',
     ariaLabelColorPickerMultiColor: 'Višebojna',
     ariaLabelColorPickerPalette: 'Paleta',
+    ariaLabelCrossLine: '${label}, Presječna linija ${index}[number] od ${count}[number]',
     ariaLabelFinancialCharts: 'Financijski grafikoni',
     ariaLabelGaugeTarget: 'Cilj',
     ariaLabelGaugeValue: 'Vrijednost',

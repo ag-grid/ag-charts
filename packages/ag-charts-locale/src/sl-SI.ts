@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_SL_SI: Record<string, string> = {
     ariaLabelColorPickerHue: 'Odtenek',
     ariaLabelColorPickerMultiColor: 'Večbarvno',
     ariaLabelColorPickerPalette: 'Paleta',
+    ariaLabelCrossLine: '${label}, prečna črta ${index}[number] od ${count}[number]',
     ariaLabelFinancialCharts: 'Finančni grafikoni',
     ariaLabelGaugeTarget: 'Cilj',
     ariaLabelGaugeValue: 'Vrednost',

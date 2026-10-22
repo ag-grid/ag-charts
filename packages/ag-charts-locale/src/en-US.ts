@@ -59,6 +59,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelColorPickerMultiColor: 'Multi Color',
     // Screen reader text for the 2D palette slider label
     ariaLabelColorPickerPalette: 'Palette',
+    // Screen reader text for a cross line, with its position among the focusable cross lines
+    ariaLabelCrossLine: '${label}, Cross line ${index}[number] of ${count}[number]',
     // Screen reader text for the financial charts toolbar
     ariaLabelFinancialCharts: 'Financial Charts',
     // Screen reader text label for the gauge targets

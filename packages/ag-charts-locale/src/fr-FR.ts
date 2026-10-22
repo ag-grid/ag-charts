@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     ariaLabelColorPickerHue: 'Couleur',
     ariaLabelColorPickerMultiColor: 'Couleurs multiples',
     ariaLabelColorPickerPalette: 'Palette',
+    ariaLabelCrossLine: '${label}, Ligne transversale ${index}[number] sur ${count}[number]',
     ariaLabelFinancialCharts: 'Graphiques financiers',
     ariaLabelGaugeTarget: 'Cible',
     ariaLabelGaugeValue: 'Valeur',
