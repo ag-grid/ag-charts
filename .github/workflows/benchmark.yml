@@ -63,8 +63,6 @@ env:
     # cross-run CV — a single run per side cannot separate a real change from shared-runner CPU
     # drift (~half the suite has a >10% run-to-run noise floor on hosted VMs).
     AG_BENCHMARK_RUNS: 3
-    # Regex over example names that get the memory pass; '.' covers every example.
-    AG_MEMORY_EXAMPLE_PATTERN: '^(high-perf-|data-selection-zoom-)'
     IBM_TELEMETRY_DISABLED: 'true'
 
 permissions:
@@ -108,6 +106,7 @@ jobs:
             base: ${{ steps.get-branch.outputs.base }}
             base-label: ${{ steps.get-branch.outputs.base-label }}
             shards: ${{ steps.shards.outputs.shards }}
+            requested: ${{ steps.shards.outputs.requested }}
             build-matrix: ${{ steps.build-matrix.outputs.build-matrix }}
             comment-id: ${{ steps.notify-start.outputs.result }}
         steps:
@@ -213,6 +212,9 @@ jobs:
                   fi
                   shards=$(node ./tools/benchmark/benchmark-examples.js --shards "$AG_SHARD_COUNT" --examples "${examples}")
                   echo "shards=${shards}" >> $GITHUB_OUTPUT
+                  # Reached only when every name was accepted above, so the output holds known example names.
+                  # The memory pass reads it to tell a named zoom example from a bare `/benchmarks` run.
+                  echo "requested=$(tr -s '[:space:],' ',' <<< "${examples}")" >> $GITHUB_OUTPUT
                   echo "Shard matrix: ${shards}"
 
     build:
@@ -311,8 +313,16 @@ jobs:
                   cache_mode: ro
                   fetch_base: skip
 
+            # Fails closed: a shard without a browser still fails, after the last attempt. The retries
+            # only cover transient download and TLS errors.
             - name: Install Playwright Chromium
-              run: npx playwright install chromium
+              run: |
+                  for delay in 10 30; do
+                    npx playwright install chromium && exit 0
+                    echo "::warning::Playwright Chromium install failed; retrying in ${delay}s"
+                    sleep "${delay}"
+                  done
+                  npx playwright install chromium
 
             - name: Download site artifacts
               uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -391,16 +401,19 @@ jobs:
 
             # Heap sampling slows the page, so it never runs in the timing passes above. Advisory: a
             # failure only leaves "—" in the comparison, which judges deltas against sampling noise.
+            # memory-examples.js picks the examples: the zoom family is left out of a bare `/benchmarks`.
             - name: Run memory pass (heap sampling, once per side)
               env:
                   SHARD_EXAMPLES: ${{ matrix.examples }}
+                  EVENT_NAME: ${{ github.event_name }}
+                  REQUESTED_EXAMPLES: ${{ needs.resolve.outputs.requested }}
               run: |
                   mkdir -p reports/browser-benchmarks/shards
                   shard_reports=(reports/browser-benchmarks/shards/*-${{ strategy.job-index }}.r*.json)
                   candidates=$(node ./tools/benchmark/shard-failures.js remaining --examples "${SHARD_EXAMPLES}" ${shard_reports[@]+"${shard_reports[@]}"})
-                  memory_examples=$(tr ',' '\n' <<< "${candidates}" | grep -E "${AG_MEMORY_EXAMPLE_PATTERN}" | paste -sd, - || true)
+                  memory_examples=$(node ./tools/benchmark/memory-examples.js --event "${EVENT_NAME}" --candidates "${candidates}" --requested "${REQUESTED_EXAMPLES}")
                   if [[ -z "${memory_examples}" ]]; then
-                    echo "No examples in this shard match AG_MEMORY_EXAMPLE_PATTERN (or all timed out earlier); skipping the memory pass."
+                    echo "No examples in this shard qualify for the memory pass (or all timed out earlier); skipping the memory pass."
                     exit 0
                   fi
                   echo "Memory pass examples: ${memory_examples}"

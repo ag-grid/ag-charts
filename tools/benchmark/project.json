@@ -1,0 +1,19 @@
+{
+  "name": "tools-benchmark",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "tools/benchmark",
+  "targets": {
+    "test": {
+      "inputs": ["default", "{workspaceRoot}/.github/workflows/benchmark.yml"],
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "node --test tools/benchmark/*.test.js",
+          "npx tsx --test tools/benchmark/contention.test.ts tools/benchmark/benchmark-versions.test.ts"
+        ],
+        "parallel": false
+      }
+    }
+  },
+  "tags": ["no-sharding"]
+}

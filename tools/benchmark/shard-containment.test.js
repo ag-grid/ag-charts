@@ -7,7 +7,17 @@ const test = require('node:test');
 
 const yaml = require('js-yaml');
 
-const { exampleEntry, node, report, result, runCompare, MERGE, withFiles } = require('./memory-fixtures');
+const {
+    COMPARE,
+    EXCLUDED_ENTRY,
+    MERGE,
+    node,
+    report,
+    result,
+    runCompare,
+    shardReport,
+    withFiles,
+} = require('./memory-fixtures');
 
 /**
  * Containment of a hung example, end to end as CI runs it: the shard job's pass loop, the merge step and the
@@ -24,22 +34,11 @@ const compareStep = workflow.jobs.report.steps.find((s) => runOf(s).includes('co
 
 // --- Merge and comparison options ---
 
-const shardOf = (statuses, { memory = false } = {}) => ({
-    ...report({}, { memory }),
-    examples: Object.fromEntries(
-        Object.entries(statuses).map(([name, status]) => [
-            name,
-            status === 'success' ? exampleEntry([result('t')]) : { status, error: `${status}\nat x`, durationMs: 1 },
-        ])
-    ),
-    summary: { total: Object.keys(statuses).length },
-});
-
 test('merge --exclude leaves the listed examples out of every shard and keeps the rest', () => {
     withFiles(
         {
-            s0: shardOf({ a: 'success', hung: 'timeout' }),
-            s1: shardOf({ b: 'success', c: 'error' }),
+            s0: shardReport({ a: 'success', hung: 'timeout' }),
+            s1: shardReport({ b: 'success', c: 'error' }),
             excluded: [{ example: 'hung' }, { example: 'c' }, { example: 'in-no-shard' }],
         },
         (p) => {
@@ -56,7 +55,7 @@ test('merge --exclude leaves the listed examples out of every shard and keeps th
 });
 
 test('merge without --exclude keeps failed examples, as before', () => {
-    withFiles({ s0: shardOf({ a: 'success', hung: 'timeout' }) }, (p) => {
+    withFiles({ s0: shardReport({ a: 'success', hung: 'timeout' }) }, (p) => {
         const output = path.join(p.dir, 'merged.json');
         assert.equal(node(MERGE, ['--output', output, p.s0]).status, 0);
         assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(output, 'utf8')).examples).sort(), ['a', 'hung']);
@@ -64,32 +63,16 @@ test('merge without --exclude keeps failed examples, as before', () => {
 });
 
 test('merge --exclude with an empty list changes nothing', () => {
-    withFiles({ s0: shardOf({ a: 'success' }), excluded: [] }, (p) => {
+    withFiles({ s0: shardReport({ a: 'success' }), excluded: [] }, (p) => {
         const output = path.join(p.dir, 'merged.json');
         assert.equal(node(MERGE, ['--exclude', p.excluded, '--output', output, p.s0]).status, 0);
         assert.deepEqual(Object.keys(JSON.parse(fs.readFileSync(output, 'utf8')).examples), ['a']);
     });
 });
 
-const EXCLUDED_ENTRY = {
-    example: 'hung',
-    shard: '0',
-    failed: [{ side: 'head', pass: 'r1', status: 'timeout' }],
-    skipped: [{ side: 'base', pass: 'r1' }],
-};
-
 test('compare --excluded compares the healthy examples and lists the excluded ones in the JSON output', () => {
     withFiles({ run: report({ healthy: [result('t')] }), excluded: [EXCLUDED_ENTRY] }, (p) => {
-        const out = node(path.join(__dirname, 'compare-browser-results.js'), [
-            '--base',
-            p.run,
-            '--compare',
-            p.run,
-            '--excluded',
-            p.excluded,
-            '--format',
-            'json',
-        ]);
+        const out = node(COMPARE, ['--base', p.run, '--compare', p.run, '--excluded', p.excluded, '--format', 'json']);
         assert.equal(out.status, 0, out.stderr);
         const json = JSON.parse(out.stdout);
         assert.deepEqual(json.excluded, ['hung: head r1 timeout; skipped: base r1']);
@@ -103,7 +86,7 @@ test('compare --excluded compares the healthy examples and lists the excluded on
 test('compare --excluded prints an Excluded section in the table, and omits it when nothing was excluded', () => {
     withFiles({ run: report({ healthy: [result('t')] }), excluded: [EXCLUDED_ENTRY], none: [] }, (p) => {
         const args = ['--base', p.run, '--compare', p.run, '--format', 'table'];
-        const compare = path.join(__dirname, 'compare-browser-results.js');
+        const compare = COMPARE;
 
         const listed = node(compare, [...args, '--excluded', p.excluded]);
         assert.equal(listed.status, 0, listed.stderr);
@@ -146,7 +129,9 @@ function withShardJob(fn) {
     try {
         const bin = path.join(dir, 'tools/benchmark');
         fs.mkdirSync(bin, { recursive: true });
-        fs.copyFileSync(path.join(__dirname, 'shard-failures.js'), path.join(bin, 'shard-failures.js'));
+        for (const script of ['shard-failures.js', 'memory-examples.js']) {
+            fs.copyFileSync(path.join(__dirname, script), path.join(bin, script));
+        }
         fs.writeFileSync(
             path.join(bin, 'stub-runner.js'),
             `const fs = require('node:fs');
@@ -191,7 +176,8 @@ exec node "$(dirname "$0")/stub-runner.js" "$output" "$examples" "$timeout" "$me
             AG_BENCHMARK_RUNS: '2',
             AG_BENCHMARK_SOFT_FAIL: 'true',
             AG_EXAMPLE_TIMEOUT_MS: '123456',
-            AG_MEMORY_EXAMPLE_PATTERN: '.',
+            EVENT_NAME: 'schedule',
+            REQUESTED_EXAMPLES: '',
         };
         const calls = () =>
             fs
@@ -276,53 +262,104 @@ test('timing passes: a hang in one shard does not affect a different shard index
 
 test('memory pass: examples that timed out in the timing passes are not sampled', () => {
     withShardJob(({ run, calls }) => {
-        run(timingStep, { SHARD_EXAMPLES: 'alpha,hung,omega', HANG: 'hung' });
+        run(timingStep, { SHARD_EXAMPLES: 'high-perf-a,high-perf-hung,high-perf-z', HANG: 'high-perf-hung' });
         const before = calls().length;
-        const proc = run(memoryStep, { SHARD_EXAMPLES: 'alpha,hung,omega', HANG: 'hung' });
+        const proc = run(memoryStep, {
+            SHARD_EXAMPLES: 'high-perf-a,high-perf-hung,high-perf-z',
+            HANG: 'high-perf-hung',
+        });
         assert.equal(proc.status, 0, proc.stderr);
         assert.deepEqual(callSummary(calls().slice(before)), [
-            'head-0.mem.json: alpha,omega',
-            'base-0.mem.json: alpha,omega',
+            'head-0.mem.json: high-perf-a,high-perf-z',
+            'base-0.mem.json: high-perf-a,high-perf-z',
         ]);
     });
 });
 
 test('memory pass: a hang in the head memory pass is not repeated on the base side', () => {
     withShardJob(({ run, calls }) => {
-        const proc = run(memoryStep, { SHARD_EXAMPLES: 'alpha,hung', HANG: 'hung', HANG_ONLY_MEMORY: 'true' });
+        const proc = run(memoryStep, {
+            SHARD_EXAMPLES: 'high-perf-a,high-perf-hung',
+            HANG: 'high-perf-hung',
+            HANG_ONLY_MEMORY: 'true',
+        });
         assert.equal(proc.status, 0, proc.stderr);
-        assert.deepEqual(callSummary(calls()), ['head-0.mem.json: alpha,hung', 'base-0.mem.json: alpha']);
+        assert.deepEqual(callSummary(calls()), [
+            'head-0.mem.json: high-perf-a,high-perf-hung',
+            'base-0.mem.json: high-perf-a',
+        ]);
     });
 });
 
 test('memory pass: when the only example hangs on the head side the base memory pass is skipped', () => {
     withShardJob(({ run, calls }) => {
-        const proc = run(memoryStep, { SHARD_EXAMPLES: 'hung', HANG: 'hung', HANG_ONLY_MEMORY: 'true' });
+        const proc = run(memoryStep, {
+            SHARD_EXAMPLES: 'high-perf-hung',
+            HANG: 'high-perf-hung',
+            HANG_ONLY_MEMORY: 'true',
+        });
         assert.equal(proc.status, 0, proc.stderr);
-        assert.deepEqual(callSummary(calls()), ['head-0.mem.json: hung']);
+        assert.deepEqual(callSummary(calls()), ['head-0.mem.json: high-perf-hung']);
     });
 });
 
-test('memory pass: with every example already hung the pass is skipped without error', () => {
+test('memory pass: with every example already high-perf-hung the pass is skipped without error', () => {
     withShardJob(({ run, calls }) => {
-        run(timingStep, { SHARD_EXAMPLES: 'hung', HANG: 'hung' });
+        run(timingStep, { SHARD_EXAMPLES: 'high-perf-hung', HANG: 'high-perf-hung' });
         const before = calls().length;
-        const proc = run(memoryStep, { SHARD_EXAMPLES: 'hung', HANG: 'hung' });
+        const proc = run(memoryStep, { SHARD_EXAMPLES: 'high-perf-hung', HANG: 'high-perf-hung' });
         assert.equal(proc.status, 0, proc.stderr);
         assert.equal(calls().length, before);
         assert.match(proc.stdout, /skipping the memory pass/);
     });
 });
 
-test('memory pass: still honours AG_MEMORY_EXAMPLE_PATTERN and AG_EXAMPLE_TIMEOUT_MS', () => {
+test('memory pass: only high-perf and zoom examples are sampled, and the timeout still applies', () => {
     withShardJob(({ run, calls }) => {
         run(memoryStep, {
-            SHARD_EXAMPLES: 'high-perf-bar,simple-chart',
-            AG_MEMORY_EXAMPLE_PATTERN: '^high-perf-',
+            SHARD_EXAMPLES: 'high-perf-bar,simple-chart,data-selection-zoom-bar',
             AG_EXAMPLE_TIMEOUT_MS: '4242',
         });
-        assert.deepEqual(callSummary(calls()), ['head-0.mem.json: high-perf-bar', 'base-0.mem.json: high-perf-bar']);
+        assert.deepEqual(callSummary(calls()), [
+            'head-0.mem.json: high-perf-bar,data-selection-zoom-bar',
+            'base-0.mem.json: high-perf-bar,data-selection-zoom-bar',
+        ]);
         assert.ok(calls().every(({ timeout }) => timeout === '4242'));
+    });
+});
+
+test('memory pass: a bare /benchmarks comment samples high-perf examples but not the zoom family', () => {
+    withShardJob(({ run, calls }) => {
+        const proc = run(memoryStep, {
+            SHARD_EXAMPLES: 'data-selection-zoom-bar,high-perf-bar',
+            EVENT_NAME: 'issue_comment',
+        });
+        assert.equal(proc.status, 0, proc.stderr);
+        assert.deepEqual(callSummary(calls()), ['head-0.mem.json: high-perf-bar', 'base-0.mem.json: high-perf-bar']);
+    });
+});
+
+test('memory pass: a /benchmarks comment that names a zoom example still samples it', () => {
+    withShardJob(({ run, calls }) => {
+        const proc = run(memoryStep, {
+            SHARD_EXAMPLES: 'data-selection-zoom-bar,high-perf-bar',
+            EVENT_NAME: 'issue_comment',
+            REQUESTED_EXAMPLES: 'data-selection-zoom-bar,high-perf-bar',
+        });
+        assert.equal(proc.status, 0, proc.stderr);
+        assert.deepEqual(callSummary(calls()), [
+            'head-0.mem.json: data-selection-zoom-bar,high-perf-bar',
+            'base-0.mem.json: data-selection-zoom-bar,high-perf-bar',
+        ]);
+    });
+});
+
+test('memory pass: a shard holding only zoom examples skips the pass on a bare /benchmarks comment', () => {
+    withShardJob(({ run, calls }) => {
+        const proc = run(memoryStep, { SHARD_EXAMPLES: 'data-selection-zoom-bar', EVENT_NAME: 'issue_comment' });
+        assert.equal(proc.status, 0, proc.stderr);
+        assert.deepEqual(calls(), []);
+        assert.match(proc.stdout, /skipping the memory pass/);
     });
 });
 
@@ -346,7 +383,7 @@ function withReportJob({ shards = 2, runs = 3, statuses }, fn) {
                     if (examples) {
                         fs.writeFileSync(
                             path.join(shardDir, `${side}-${shard}.r${run}.json`),
-                            JSON.stringify(shardOf(examples))
+                            JSON.stringify(shardReport(examples))
                         );
                     }
                 }
@@ -437,7 +474,7 @@ test('merge step: memory reports drop the excluded examples too', () => {
         for (const side of ['head', 'base']) {
             fs.writeFileSync(
                 path.join(shardDir, `${side}-0.mem.json`),
-                JSON.stringify(shardOf({ healthy: 'success', hung: 'success' }, { memory: true }))
+                JSON.stringify(shardReport({ healthy: 'success', hung: 'success' }, { memory: true }))
             );
         }
         const proc = merge();
@@ -503,14 +540,7 @@ test('report job: when every example was excluded nothing is compared and the jo
 
 test('compare: an empty comparison with nothing excluded still succeeds, as before', () => {
     withFiles({ run: report({}), none: [] }, (p) => {
-        const out = node(path.join(__dirname, 'compare-browser-results.js'), [
-            '--base',
-            p.run,
-            '--compare',
-            p.run,
-            '--excluded',
-            p.none,
-        ]);
+        const out = node(COMPARE, ['--base', p.run, '--compare', p.run, '--excluded', p.none]);
         assert.equal(out.status, 0, out.stderr);
     });
 });

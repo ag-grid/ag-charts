@@ -45,8 +45,9 @@ function remainingExamples(examples, reportPaths) {
  * remainingExamples leaves a hung example out of later passes.
  */
 function collectExcluded(shardsDir) {
-    const reports = fs
-        .readdirSync(shardsDir)
+    // No shards directory means no shard ran, so there is nothing to exclude.
+    const files = fs.existsSync(shardsDir) ? fs.readdirSync(shardsDir) : [];
+    const reports = files
         .map((file) => ({ file, match: TIMING_PASS.exec(file) }))
         .filter(({ match }) => match)
         .map(({ file, match: [, side, shard, pass] }) => ({

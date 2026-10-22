@@ -4,12 +4,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const { node, report, result, withFiles } = require('./memory-fixtures');
+const { COMPARE, EXCLUDED_ENTRY, node, report, result, withFiles } = require('./memory-fixtures');
 
 /** The Slack message the nightly posts: how failed or timed-out examples are listed beside the comparison. */
 
 const FORMAT = path.join(__dirname, 'format-browser-slack-message.js');
-const COMPARE = path.join(__dirname, 'compare-browser-results.js');
 const SLACK_ENV = { SLACK_CHANNEL: 'c', SLACK_USERNAME: 'u', SLACK_ICON: 'i' };
 
 const ranked = (test_, pct) => ({ test: test_, pctTimeChange: pct, beforeMs: 10, afterMs: 12 });
@@ -77,15 +76,7 @@ test('slack message still carries the healthy comparison when examples were excl
 });
 
 test('compare output with excluded examples feeds the slack message end to end', () => {
-    const excluded = [
-        {
-            example: 'hung',
-            shard: '0',
-            failed: [{ side: 'head', pass: 'r1', status: 'timeout' }],
-            skipped: [{ side: 'base', pass: 'r1' }],
-        },
-    ];
-    withFiles({ run: report({ healthy: [result('t')] }), excluded }, (p) => {
+    withFiles({ run: report({ healthy: [result('t')] }), excluded: [EXCLUDED_ENTRY] }, (p) => {
         const proc = node(COMPARE, ['--base', p.run, '--compare', p.run, '--excluded', p.excluded, '--format', 'json']);
         assert.equal(proc.status, 0, proc.stderr);
         const message = format(JSON.parse(proc.stdout));

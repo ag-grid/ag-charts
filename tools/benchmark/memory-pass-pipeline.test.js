@@ -93,6 +93,31 @@ test('a memory pass that covers only some examples leaves the others as an em da
     );
 });
 
+test('zoom examples left out of the memory pass show an em dash in every cell, and the comparison still passes', () => {
+    withFiles(
+        {
+            timing,
+            // A bare /benchmarks run: high-perf-bar was sampled, data-selection-zoom-line-area was not.
+            baseMem: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 40 })] }),
+            headMem: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 30 })] }),
+        },
+        (p) => {
+            const paths = { base: p.timing, compare: p.timing, baseMemory: p.baseMem, compareMemory: p.headMem };
+            const table = runCompare(paths);
+            assert.equal(table.status, 0, table.stderr);
+            const zoomRow = table.stdout
+                .split('\n')
+                .find((line) => line.includes('data-selection-zoom-line-area / line'));
+            assert.deepEqual(lastCells(zoomRow, 3), ['—', '—', '—']);
+
+            const zoom = runCompare(paths, { format: 'json' }).json.rankedByTime.find(
+                (r) => r.test === 'data-selection-zoom-line-area / line'
+            );
+            assert.deepEqual([zoom.beforeMb, zoom.afterMb, zoom.deltaMb], [null, null, null]);
+        }
+    );
+});
+
 test('a memory pass that recorded nothing on one side shows an em dash and does not fail', () => {
     withFiles(
         {
@@ -330,12 +355,23 @@ test('workflow: a memory merge failure warns instead of failing the report job',
     );
 });
 
-test('workflow: the memory example pattern, when limited, covers the high-perf and data-selection-zoom examples', () => {
-    const pattern = new RegExp(workflow.env.AG_MEMORY_EXAMPLE_PATTERN);
-    for (const name of ['high-perf-bar', 'high-perf-bar-stacked', 'data-selection-zoom-line-area']) {
-        assert.match(name, pattern);
-    }
-    assert.doesNotMatch('simple-chart', pattern);
+test('workflow: the memory pass selects its examples with memory-examples.js, from the trigger and the comment', () => {
+    const step = benchmarkSteps.find((s) => runOf(s).includes('--memory'));
+    assert.match(runOf(step), /memory-examples\.js --event "\$\{EVENT_NAME\}" --candidates "\$\{candidates\}"/);
+    assert.match(runOf(step), /--requested "\$\{REQUESTED_EXAMPLES\}"/);
+    assert.equal(step.env.EVENT_NAME, '${{ github.event_name }}');
+    assert.equal(step.env.REQUESTED_EXAMPLES, '${{ needs.resolve.outputs.requested }}');
+    // The old workflow-wide pattern would override the helper's per-trigger rule.
+    assert.equal(workflow.env.AG_MEMORY_EXAMPLE_PATTERN, undefined);
+});
+
+test('workflow: the resolve job hands the benchmark job the examples a /benchmarks comment named', () => {
+    const shardsStep = workflow.jobs.resolve.steps.find((s) => s.id === 'shards');
+    assert.equal(workflow.jobs.resolve.outputs.requested, '${{ steps.shards.outputs.requested }}');
+    // Written after benchmark-examples.js has rejected unknown names, which `bash -e` makes a hard stop.
+    const script = runOf(shardsStep);
+    assert.ok(script.indexOf('benchmark-examples.js') < script.indexOf('requested='));
+    assert.match(script, /echo "requested=\$\(tr -s '\[:space:\],' ',' <<< "\$\{examples\}"\)" >> \$GITHUB_OUTPUT/);
 });
 
 test('compare-browser-latest.sh parses and offers the memory pass flag', () => {
