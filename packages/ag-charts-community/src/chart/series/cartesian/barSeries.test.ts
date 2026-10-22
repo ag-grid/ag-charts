@@ -1710,8 +1710,6 @@ describe('BarSeries', () => {
             direction: 'horizontal' | 'vertical',
             hideTop = false
         ): AgCartesianChartOptions => {
-            // The snapshots were taken on the default axes: the axes list this once passed (a value axis capped at
-            // 200) is not an `axes` shape the options accept and had no effect, so it is not repeated here.
             return {
                 // Room on every side (collision boundary grows with seriesArea padding) so the beside and
                 // outside labels of edge bars have space, rather than being rejected off the plot.

@@ -681,12 +681,13 @@ describe('HistogramSeries', () => {
 
         // Frequency data is all-positive, so the bar base sits on the plot floor. Extend the y-axis
         // below zero so outside-start labels (rendered below the base) have room instead of being clipped.
-        // The example keys its axes by position, which `axes` also accepts as a list: narrow it to read `y` back.
-        const axes = HISTOGRAM_SERIES_LABELS.axes as { x: object; y: object };
         const withPlacement = (label: Record<string, unknown>) => ({
             options: {
                 ...HISTOGRAM_SERIES_LABELS,
-                axes: { ...axes, y: { ...axes.y, min: -10 } },
+                axes: {
+                    ...HISTOGRAM_SERIES_LABELS.axes,
+                    y: { ...HISTOGRAM_SERIES_LABELS.axes?.y, min: -10 },
+                },
                 series: (HISTOGRAM_SERIES_LABELS.series ?? []).map((s: any) => ({
                     ...s,
                     label: { ...s.label, enabled: true, ...label },

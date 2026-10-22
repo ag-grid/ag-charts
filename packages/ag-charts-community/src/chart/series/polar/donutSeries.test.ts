@@ -15,7 +15,11 @@ import type {
 import { AgCharts } from '../../../api/agCharts';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
-import { getVisibleLabelTextNodes, withUndocumentedOptions } from '../../test/communitySeriesAccessors';
+import {
+    getSeriesCalloutNodes,
+    getVisibleLabelTextNodes,
+    withUndocumentedOptions,
+} from '../../test/communitySeriesAccessors';
 import * as examples from '../../test/examples';
 import { type MockDonutCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import { getLegendItemNodes, getSeriesSelectionNodes } from '../../test/seriesAccessors';
@@ -37,7 +41,6 @@ import {
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
-import type { UnknownSeries } from '../series';
 import { DonutNodeTag, DonutSeries } from './donutSeries';
 import * as polarExamples from './test/examples';
 
@@ -972,14 +975,14 @@ describe('DonutSeries', () => {
             return result;
         };
         const calloutOpacities = (
-            series: UnknownSeries,
+            seriesIndex: number,
             tag: DonutNodeTag,
             property: 'fillOpacity' | 'strokeOpacity'
         ) => {
             const result: number[] = [];
-            for (const node of classCast(series, DonutSeries)['calloutLabelSelection'].selectByTag<Shape>(tag)) {
+            for (const node of getSeriesCalloutNodes<Shape>(chart, tag, seriesIndex)) {
                 expect(node.visible).toBe(true);
-                result[node.unsafeClosestDatum().datumIndex] = node[property];
+                result[(node.closestDatum() as { datumIndex: number }).datumIndex] = node[property];
             }
             return result;
         };
@@ -1026,12 +1029,8 @@ describe('DonutSeries', () => {
 
             // The linked series must resolve every label exactly as the legend owner does.
             expect(sectorLabelOpacities(linked)).toEqual(ownerSector);
-            expect(calloutOpacities(chart.series[linked], DonutNodeTag.CalloutLabel, 'fillOpacity')).toEqual(
-                ownerSector
-            );
-            expect(calloutOpacities(chart.series[linked], DonutNodeTag.CalloutLine, 'strokeOpacity')).toEqual(
-                ownerSector
-            );
+            expect(calloutOpacities(linked, DonutNodeTag.CalloutLabel, 'fillOpacity')).toEqual(ownerSector);
+            expect(calloutOpacities(linked, DonutNodeTag.CalloutLine, 'strokeOpacity')).toEqual(ownerSector);
 
             await compare('donut-series-test-ts-legend-linked-label-highlight');
         });
@@ -1767,12 +1766,7 @@ describe('DonutSeries', () => {
 
         // The cutouts are asserted against the real sector nodes, so the test compares production values with
         // production values.
-        const sectorNodes = (series: DonutSeries) =>
-            getSeriesSelectionNodes<Sector>(
-                chart,
-                'itemSelection',
-                chart.series.findIndex((candidate) => candidate === series)
-            );
+        const sectorNodes = () => getSeriesSelectionNodes<Sector>(chart, 'itemSelection');
         const circleSize = (series: DonutSeries) => series.innerCircleSelection.nodes()[0].size;
 
         const createDonut = async (series: Partial<AgDonutSeriesOptions>) => {
@@ -1795,8 +1789,8 @@ describe('DonutSeries', () => {
 
         // The crescents start at the sector's painted inner edge, so the fill is measured from
         // there rather than from the series' inner radius.
-        const paintedRadii = (series: DonutSeries) => {
-            const [sector] = sectorNodes(series);
+        const paintedRadii = () => {
+            const [sector] = sectorNodes();
             return {
                 innerRadius: sector.innerRadius + sector.concentricEdgeInset,
                 outerRadius: sector.outerRadius - sector.concentricEdgeInset,
@@ -1811,13 +1805,13 @@ describe('DonutSeries', () => {
             const cornerRadius = 20;
             const series = await createDonut({ cornerRadius, innerCircle: { fill: '#c9fdc9' } });
 
-            expectCircleToReach(series, paintedRadii(series).innerRadius + cornerRadius);
+            expectCircleToReach(series, paintedRadii().innerRadius + cornerRadius);
         });
 
         test('never grows the inner circle past the sectors mid-line', async () => {
             const series = await createDonut({ cornerRadius: 1000, innerCircle: { fill: '#c9fdc9' } });
 
-            const { innerRadius, outerRadius } = paintedRadii(series);
+            const { innerRadius, outerRadius } = paintedRadii();
             const midLineRadius = innerRadius + Math.floor((outerRadius - innerRadius) / 2);
             expectCircleToReach(series, midLineRadius);
             expect(midLineRadius).toBeLessThan(series.getOuterRadius());
@@ -1827,7 +1821,7 @@ describe('DonutSeries', () => {
             const series = await createDonut({ cornerRadius: 20, innerCircle: { fill: '#c9fdc9' } });
 
             const cutouts = series.innerCircleCutoutSelection.nodes();
-            const sectors = sectorNodes(series);
+            const sectors = sectorNodes();
             expect(cutouts).toHaveLength(sectors.length);
 
             // Isolation is what stops `destination-out` erasing the chart behind the series.
@@ -1856,7 +1850,7 @@ describe('DonutSeries', () => {
             const sectorSpacing = 6;
             const series = await createDonut({ cornerRadius: 20, sectorSpacing, innerCircle: { fill: '#c9fdc9' } });
 
-            const sectors = sectorNodes(series);
+            const sectors = sectorNodes();
             expect(sectors[0].radialEdgeInset).toBeCloseTo(sectorSpacing / 2, 5);
             for (const [index, cutout] of series.innerCircleCutoutSelection.nodes().entries()) {
                 expect(cutout.radialEdgeInset).toBe(sectors[index].radialEdgeInset);
@@ -1872,7 +1866,7 @@ describe('DonutSeries', () => {
                 innerCircle: { fill: '#c9fdc9' },
             });
 
-            const { innerRadius, outerRadius } = paintedRadii(series);
+            const { innerRadius, outerRadius } = paintedRadii();
             const midLineRadius = innerRadius + Math.floor((outerRadius - innerRadius) / 2);
             expectCircleToReach(series, midLineRadius);
             // The band the spacing carves out is thin enough that the sectors would otherwise sit
@@ -1905,7 +1899,7 @@ describe('DonutSeries', () => {
                 itemStyler: ({ datum }) => (datum.asset === 'Cash' ? { cornerRadius: 0 } : {}),
             });
 
-            expectCircleToReach(series, paintedRadii(series).innerRadius + 20);
+            expectCircleToReach(series, paintedRadii().innerRadius + 20);
             expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(data.length);
         });
 
@@ -1970,13 +1964,13 @@ describe('DonutSeries', () => {
             await waitForChartStability(chart);
 
             expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(data.length - 1);
-            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(sectorNodes(series).length);
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(sectorNodes().length);
 
             // The cutouts are animated by the same tween as the sectors, so they must settle on the
             // sectors' new angles rather than lagging behind them.
             for (const [index, cutout] of series.innerCircleCutoutSelection.nodes().entries()) {
-                expect(cutout.startAngle).toBeCloseTo(sectorNodes(series)[index].startAngle, 5);
-                expect(cutout.endAngle).toBeCloseTo(sectorNodes(series)[index].endAngle, 5);
+                expect(cutout.startAngle).toBeCloseTo(sectorNodes()[index].startAngle, 5);
+                expect(cutout.endAngle).toBeCloseTo(sectorNodes()[index].endAngle, 5);
             }
         });
     });
