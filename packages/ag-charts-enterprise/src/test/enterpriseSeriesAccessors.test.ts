@@ -13,6 +13,7 @@ import {
 import { BBox, Group, Sector, Shape } from 'ag-charts-core';
 
 import { FlowProportionDatumType } from '../series/flow-proportion/flowDatumIndex';
+import type { HierarchyNode } from '../series/hierarchy/hierarchySeries';
 import { OrganizationNode } from '../series/organization/organizationNode';
 import { OrganizationSeries } from '../series/organization/organizationSeries';
 import {
@@ -32,7 +33,9 @@ import {
     getOrganizationSeriesInstance,
     getSeriesGroup,
     getSeriesLabelTexts,
+    getTreemapNodeLayout,
 } from './enterpriseSeriesAccessors';
+import { getHierarchyRootNode } from './seriesAccessors';
 import { collectShapes, createEnterpriseChart } from './utils';
 
 describe('enterprise series test accessors', () => {
@@ -362,6 +365,64 @@ describe('enterprise series test accessors', () => {
             chart = await createEnterpriseChart(sunburstOptions());
 
             expect(errorFrom(() => getNetworkSeriesRect(chart!))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getTreemapNodeLayout', () => {
+        const treemapOptions = (series: object = {}): AgChartOptions => ({
+            data: [
+                {
+                    name: 'Group',
+                    children: [
+                        { name: 'Leaf A', detail: 'Detail A', size: 3 },
+                        { name: 'Leaf B', detail: 'Detail B', size: 2 },
+                    ],
+                },
+            ],
+            series: [{ type: 'treemap', labelKey: 'name', secondaryLabelKey: 'detail', sizeKey: 'size', ...series }],
+            animation: { enabled: false },
+        });
+
+        const nodes = () => {
+            const out: HierarchyNode[] = [];
+            getHierarchyRootNode(chart!)?.walk((node: HierarchyNode) => out.push(node));
+            return out;
+        };
+
+        it('returns the box, padding and title of a group and the labels and box of a tile', async () => {
+            chart = await createEnterpriseChart(treemapOptions());
+            const [, group, leafA, leafB] = nodes().map(getTreemapNodeLayout);
+
+            expect(group.bbox).toBeInstanceOf(BBox);
+            expect(group.label?.text).toBe('Group');
+            expect(group.padding?.top).toBeGreaterThan(group.padding?.bottom ?? Infinity);
+            expect(group.groupTitleLabelHeight).toBeGreaterThan(0);
+            // The tiles share the group's box between them, side by side or stacked.
+            expect(leafA.bbox).toBeInstanceOf(BBox);
+            expect(leafB.bbox).toBeInstanceOf(BBox);
+            expect(leafA.bbox!.width * leafA.bbox!.height).toBeGreaterThan(leafB.bbox!.width * leafB.bbox!.height);
+            expect(leafA.label?.text).toBe('Leaf A');
+            expect(leafA.secondaryLabel?.text).toBe('Detail A');
+            expect(leafA.label!.y).toBeLessThan(leafA.secondaryLabel!.y);
+            expect(leafA.label!.fontSize).toBeGreaterThan(0);
+            expect(leafA.label!.lineHeight).toBeGreaterThan(0);
+            expect(leafA.groupTitleLabelHeight).toBeUndefined();
+        });
+
+        it('returns `undefined` for a label the series laid out nothing for', async () => {
+            chart = await createEnterpriseChart(treemapOptions({ tile: { label: { enabled: false } } }));
+            const [, , leafA] = nodes().map(getTreemapNodeLayout);
+
+            expect(leafA.bbox).toBeInstanceOf(BBox);
+            expect(leafA.label).toBeUndefined();
+            expect(leafA.secondaryLabel?.text).toBe('Detail A');
+        });
+
+        it('fails for a node that is not a treemap node', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+            const [root] = nodes();
+
+            expect(errorFrom(() => getTreemapNodeLayout(root))?.name).toBe('AssertionError');
         });
     });
 

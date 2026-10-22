@@ -45,7 +45,11 @@ import {
 import { Transformable, deepClone } from 'ag-charts-core';
 import type { BBox, Rect } from 'ag-charts-core';
 
-import { getSeriesLabelTexts } from '../../test/enterpriseSeriesAccessors';
+import {
+    type TreemapNodeLayout,
+    getSeriesLabelTexts,
+    getTreemapNodeLayout,
+} from '../../test/enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from '../../test/seriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
@@ -69,6 +73,17 @@ interface ResolvedTreemapOptions {
     tile: { label: ResolvedLabelOptions; secondaryLabel: ResolvedLabelOptions };
 }
 const resolvedOptions = (chartOrProxy: ChartOrProxy<any>) => getSeriesOptions<ResolvedTreemapOptions>(chartOrProxy);
+
+// The nodes of the treemap's tree in pre-order; read what the series laid out for them with `getTreemapNodeLayout`.
+const treemapNodes = (chartOrProxy: ChartOrProxy<any>): HierarchyNode[] => {
+    const nodes: HierarchyNode[] = [];
+    getHierarchyRootNode(chartOrProxy)?.walk((node: HierarchyNode) => {
+        nodes.push(node);
+    });
+    return nodes;
+};
+const treemapLayouts = (chartOrProxy: ChartOrProxy<any>): TreemapNodeLayout[] =>
+    treemapNodes(chartOrProxy).map(getTreemapNodeLayout);
 
 describe('TreemapSeries', () => {
     setupMockConsole();
@@ -155,8 +170,8 @@ describe('TreemapSeries', () => {
             animation: { enabled: false },
         });
 
-        const nodeAtPath = (path: number[]): any =>
-            path.reduce<any>((node, idx) => node?.children[idx], getHierarchyRootNode(chart));
+        const nodeAtPath = (path: number[]): HierarchyNode | undefined =>
+            path.reduce<HierarchyNode | undefined>((node, idx) => node?.children[idx], getHierarchyRootNode(chart));
 
         // Highlight selection holds only the active highlight node, so its fill reveals whether highlighting applied.
         const highlightFill = (): unknown => getSeriesSelectionNodes<Rect>(chart, 'highlightSelection')[0]?.fill;
@@ -251,11 +266,11 @@ describe('TreemapSeries', () => {
             };
             chart = deproxy(await createEnterpriseChart(options));
 
-            const tileNode = nodeAtPath([0, 0]);
+            const { bbox } = getTreemapNodeLayout(nodeAtPath([0, 0])!);
             const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                 getSeriesAt(chart).contentGroup,
-                tileNode.bbox.x + tileNode.bbox.width / 2,
-                tileNode.bbox.y + tileNode.bbox.height / 2
+                bbox!.x + bbox!.width / 2,
+                bbox!.y + bbox!.height / 2
             );
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);
@@ -714,13 +729,10 @@ describe('TreemapSeries', () => {
                 ],
             } as AgChartOptions;
         };
-        const leaves = () => {
-            const out: any[] = [];
-            getHierarchyRootNode(chart)?.walk((node: any) => {
-                if (node.children.length === 0) out.push(node);
-            });
-            return out;
-        };
+        const leaves = () =>
+            treemapNodes(chart)
+                .filter((node) => node.children.length === 0)
+                .map(getTreemapNodeLayout);
         const textBBoxes = () =>
             getSeriesLabelTexts(chart)
                 .filter((text) => text.visible && (text.text ?? '') !== '')
@@ -739,9 +751,9 @@ describe('TreemapSeries', () => {
                 )
             );
             await compare();
-            for (const node of leaves()) {
-                expect(node.label.y).toBeLessThan(node.secondaryLabel.y);
-                expect(node.label.x).toBeLessThan(node.secondaryLabel.x);
+            for (const { label, secondaryLabel } of leaves()) {
+                expect(label!.y).toBeLessThan(secondaryLabel!.y);
+                expect(label!.x).toBeLessThan(secondaryLabel!.x);
             }
         });
 
@@ -835,13 +847,10 @@ describe('TreemapSeries', () => {
                 data,
                 series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'value', group: { label } }],
             }) as AgChartOptions;
-        const groups = () => {
-            const out: any[] = [];
-            getHierarchyRootNode(chart)?.walk((node: any) => {
-                if (node.children.length > 0 && node.datum != null) out.push(node);
-            });
-            return out;
-        };
+        const groups = () =>
+            treemapNodes(chart)
+                .filter((node) => node.children.length > 0 && node.datum != null)
+                .map(getTreemapNodeLayout);
 
         it('fits, shrinks and aligns group labels within their headers', async () => {
             chart = await createEnterpriseChart(
@@ -859,16 +868,16 @@ describe('TreemapSeries', () => {
         it('renders a manual line break in the group label as separate lines', async () => {
             chart = deproxy(await createEnterpriseChart(groupOptions({}, groupData('Fresh\nfruit'))));
             const [fruit, vegetables] = groups();
-            expect(fruit.label.text).toBe('Fresh\nfruit');
-            expect(fruit.padding.top).toBeGreaterThan(vegetables.padding.top);
+            expect(fruit.label!.text).toBe('Fresh\nfruit');
+            expect(fruit.padding!.top).toBeGreaterThan(vegetables.padding!.top);
         });
 
         it('wraps a group label to maxWidth', async () => {
             chart = deproxy(await createEnterpriseChart(groupOptions({ maxWidth: 100 })));
             const [fruit, vegetables] = groups();
-            expect(fruit.label.text).toContain('\n');
-            expect(fruit.label.text).not.toContain('…');
-            expect(fruit.padding.top).toBeGreaterThan(vegetables.padding.top);
+            expect(fruit.label!.text).toContain('\n');
+            expect(fruit.label!.text).not.toContain('…');
+            expect(fruit.padding!.top).toBeGreaterThan(vegetables.padding!.top);
         });
 
         it('shrinks a group label before truncating it', async () => {
@@ -876,20 +885,20 @@ describe('TreemapSeries', () => {
                 await createEnterpriseChart(groupOptions({ maxWidth: 100, wrapping: 'never', minimumFontSize: 6 }))
             );
             const [fruit, vegetables] = groups();
-            expect(fruit.label.fontSize).toBeLessThan(vegetables.label.fontSize);
-            expect(fruit.label.text).not.toContain('…');
+            expect(fruit.label!.fontSize).toBeLessThan(vegetables.label!.fontSize);
+            expect(fruit.label!.text).not.toContain('…');
         });
 
         it('truncates a group label wider than maxWidth', async () => {
             chart = deproxy(await createEnterpriseChart(groupOptions({ maxWidth: 60, wrapping: 'never' })));
-            expect(groups()[0].label.text).toMatch(/…$/);
+            expect(groups()[0].label!.text).toMatch(/…$/);
         });
 
         it('hides a group label taller than maxHeight unless alwaysShow keeps it', async () => {
             chart = deproxy(await createEnterpriseChart(groupOptions({ maxHeight: 5 })));
             const [hidden] = groups();
             expect(hidden.label).toBeUndefined();
-            expect(hidden.padding.top).toBe(resolvedOptions(chart).group.padding);
+            expect(hidden.padding!.top).toBe(resolvedOptions(chart).group.padding);
 
             chart.destroy();
             chart = deproxy(
@@ -905,7 +914,7 @@ describe('TreemapSeries', () => {
                 )
             );
             const { padding, label } = resolvedOptions(chart).group;
-            expect(groups()[1].padding.top).toBeLessThanOrEqual(padding + 10 + label.spacing);
+            expect(groups()[1].padding!.top).toBeLessThanOrEqual(padding + 10 + label.spacing);
         });
 
         it('keeps a group label shrunk to fit maxHeight with its lineHeight in proportion', async () => {
@@ -916,7 +925,7 @@ describe('TreemapSeries', () => {
             );
             const [fruit] = groups();
             expect(fruit.label).toBeDefined();
-            expect(fruit.label.fontSize).toBeLessThan(20);
+            expect(fruit.label!.fontSize).toBeLessThan(20);
         });
 
         it('sizes the group header by the lineHeight of the whole wrapped label', async () => {
@@ -924,8 +933,8 @@ describe('TreemapSeries', () => {
                 await createEnterpriseChart(groupOptions({ maxWidth: 100, maxHeight: 70, lineHeight: 40 }))
             );
             const [fruit] = groups();
-            expect(fruit.label.text.split('\n')).toHaveLength(1);
-            expect(fruit.padding.top).toBeGreaterThanOrEqual(resolvedOptions(chart).group.padding + 70);
+            expect(fruit.label!.text.split('\n')).toHaveLength(1);
+            expect(fruit.padding!.top).toBeGreaterThanOrEqual(resolvedOptions(chart).group.padding + 70);
         });
 
         it('hides a multi-line group label taller than maxHeight when it cannot wrap', async () => {
@@ -940,11 +949,11 @@ describe('TreemapSeries', () => {
         it('draws a wrapped group label at the height it was fitted to', async () => {
             chart = deproxy(await createEnterpriseChart(groupOptions({ maxWidth: 100 })));
             const [fruit] = groups();
-            const text = getSeriesLabelTexts(chart).find((node) => node.visible && node.text === fruit.label.text);
-            const lineCount = fruit.label.text.split('\n').length;
+            const text = getSeriesLabelTexts(chart).find((node) => node.visible && node.text === fruit.label!.text);
+            const lineCount = fruit.label!.text.split('\n').length;
             expect(lineCount).toBeGreaterThan(1);
             expect(text).toBeDefined();
-            expect((text!.lineHeight ?? 0) * lineCount).toBeCloseTo(fruit.groupTitle.title.labelHeight, 1);
+            expect((text!.lineHeight ?? 0) * lineCount).toBeCloseTo(fruit.groupTitleLabelHeight!, 1);
         });
 
         it('shrinks a manually broken group label to fit maxHeight', async () => {
@@ -957,8 +966,8 @@ describe('TreemapSeries', () => {
                 )
             );
             const { label } = groups()[0];
-            expect(label.text).toBe('Fresh\nfruit');
-            expect(label.fontSize).toBeLessThan(16);
+            expect(label!.text).toBe('Fresh\nfruit');
+            expect(label!.fontSize).toBeLessThan(16);
         });
 
         it('aligns a truncated group label vertically within its capped header', async () => {
@@ -970,7 +979,7 @@ describe('TreemapSeries', () => {
                 );
                 const { label, bbox, padding } = groups()[0];
                 chart.destroy();
-                return { y: label.y - bbox.y, headerBottom: padding.top };
+                return { y: label!.y - bbox!.y, headerBottom: padding!.top };
             };
             const top = await labelY('top');
             const middle = await labelY('middle');
@@ -1014,11 +1023,11 @@ describe('TreemapSeries', () => {
             ],
         } as AgChartOptions;
         chart = deproxy(await createEnterpriseChart(options));
-        let secondaryLineHeight: number | undefined;
-        getHierarchyRootNode(chart)?.walk((node: any) => {
-            if (node.secondaryLabel != null) secondaryLineHeight = node.secondaryLabel.lineHeight;
-        });
-        expect(secondaryLineHeight).toBe(30);
+        const secondaryLineHeights = treemapLayouts(chart).flatMap(({ secondaryLabel }) =>
+            secondaryLabel == null ? [] : [secondaryLabel.lineHeight]
+        );
+        expect(secondaryLineHeights.length).toBeGreaterThan(0);
+        expect(new Set(secondaryLineHeights)).toEqual(new Set([30]));
     });
 
     describe('Label itemStyler', () => {
@@ -2053,25 +2062,24 @@ describe('TreemapSeries', () => {
 
         // A laid-out group with no laid-out child renders only its own padding — every rendered group must contain a rendered child.
         const contentlessGroups = (): string[] => {
-            const result: string[] = [];
-            getHierarchyRootNode(chart)?.walk((node: any) => {
-                const isRenderedGroup = node.datum != null && node.children.length > 0 && node.bbox != null;
-                if (isRenderedGroup && !node.children.some((child: any) => child.bbox != null)) {
-                    result.push(node.datum.name);
-                }
-            });
-            return result;
+            return treemapNodes(chart)
+                .filter((node) => {
+                    const isRenderedGroup =
+                        node.datum != null && node.children.length > 0 && getTreemapNodeLayout(node).bbox != null;
+                    return (
+                        isRenderedGroup &&
+                        !node.children.some((child: HierarchyNode) => getTreemapNodeLayout(child).bbox != null)
+                    );
+                })
+                .map((node) => node.datum!.name);
         };
         const renderedTileCount = (): number =>
             getSeriesSelectionNodes(chart, 'datumSelection').filter((rect) => rect.visible).length;
         const leafBbox = (chartInstance: ChartOrProxy<any>, name: string): BBox | undefined => {
-            let bbox: BBox | undefined;
-            getHierarchyRootNode(chartInstance)?.walk((node: any) => {
-                if (node.children.length === 0 && node.datum?.name === name) {
-                    bbox = node.bbox;
-                }
-            });
-            return bbox;
+            const leaf = treemapNodes(chartInstance).findLast(
+                (node) => node.children.length === 0 && node.datum?.name === name
+            );
+            return leaf && getTreemapNodeLayout(leaf).bbox;
         };
 
         it('renders no content-less group tiles at large scale', async () => {
@@ -2102,7 +2110,7 @@ describe('TreemapSeries', () => {
             const withSmalls = leafBbox(chart, 'b');
 
             const referenceProxy = AgCharts.create(bigOnlyAt(1600, 1200));
-            const reference: any = deproxy(referenceProxy);
+            const reference = deproxy(referenceProxy);
             await waitForChartStability(reference);
             const withoutSmalls = leafBbox(reference, 'b');
             referenceProxy.destroy();
@@ -2136,20 +2144,14 @@ describe('TreemapSeries', () => {
         };
         const tilesOutsideSeriesRect = (rect: { width: number; height: number }): number => {
             const tol = 1;
-            let count = 0;
-            getHierarchyRootNode(chart)?.walk((node: any) => {
-                const bbox = node.bbox;
-                if (
+            return treemapLayouts(chart).filter(
+                ({ bbox }) =>
                     bbox != null &&
                     (bbox.x < -tol ||
                         bbox.y < -tol ||
                         bbox.x + bbox.width > rect.width + tol ||
                         bbox.y + bbox.height > rect.height + tol)
-                ) {
-                    count++;
-                }
-            });
-            return count;
+            ).length;
         };
 
         it('leaves no stale tiles outside the series rect after the container shrinks', async () => {
@@ -2310,15 +2312,12 @@ describe('TreemapSeries', () => {
                 ],
                 animation: { enabled: true },
             }) as AgChartOptions;
-        const findTileNode = (title: string): any => {
-            const dfs = (node: any): any =>
-                node?.datum?.title === title ? node : (node?.children ?? []).map(dfs).find(Boolean);
-            return dfs(getHierarchyRootNode(chart));
-        };
+        const findTileNode = (title: string): HierarchyNode | undefined =>
+            treemapNodes(chart).find((node) => node.datum?.title === title);
         // The highlighted and drawn tiles of the chart under test.
-        const highlightTile = (): any => getSeriesSelectionNodes(chart, 'highlightSelection')[0];
-        const baseTileFor = (node: any): any =>
-            getSeriesSelectionNodes(chart, 'datumSelection').find((r: any) => r.datum === node);
+        const highlightTile = () => getSeriesSelectionNodes<Rect<HierarchyNode>>(chart, 'highlightSelection')[0];
+        const baseTileFor = (node: HierarchyNode) =>
+            getSeriesSelectionNodes<Rect<HierarchyNode>>(chart, 'datumSelection').find((rect) => rect.datum === node);
 
         it('highlight through reshuffle: re-highlighting resolves the pointed node, not a stale tile', async () => {
             const proxy = await createEnterpriseChart(withHighlight(ORG_DATA));
@@ -2338,7 +2337,7 @@ describe('TreemapSeries', () => {
             const highlighted = highlightTile();
             expect(highlighted?.datum).toBe(b1);
             expect(highlighted?.fill).toBe('lime');
-            const base = baseTileFor(b1);
+            const base = baseTileFor(b1!)!;
             expect(highlighted?.x).toBeCloseTo(base.x, 5);
             expect(highlighted?.y).toBeCloseTo(base.y, 5);
             expect(highlighted?.width).toBeCloseTo(base.width, 5);

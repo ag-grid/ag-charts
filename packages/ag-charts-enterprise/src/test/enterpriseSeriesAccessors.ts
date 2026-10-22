@@ -10,6 +10,7 @@ import { Caster, classCast } from 'ag-charts-test';
 
 import { FlowProportionDatumType } from '../series/flow-proportion/flowDatumIndex';
 import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../series/flow-proportion/flowProportionSeries';
+import type { HierarchyNode } from '../series/hierarchy/hierarchySeries';
 import type { NetworkLinkNode } from '../series/network/networkLinkNode';
 import { AbstractNetworkSeries } from '../series/network/networkSeries';
 import { OrganizationGraph } from '../series/organization/organizationGraph';
@@ -190,6 +191,70 @@ export function getNetworkContentBBox(chartOrProxy: ChartOrProxy<any>, index = 0
 export function getNetworkSeriesRect(chartOrProxy: ChartOrProxy<any>, index = 0): BBox {
     const series = classCast(getSeriesAt(chartOrProxy, index), AbstractNetworkSeries);
     return new Caster(series).accessProperty('seriesRect').cast(BBox).value;
+}
+
+/** The text of a treemap tile or group label as the series laid it out, and where. */
+export interface TreemapLabelLayout {
+    text: string;
+    fontSize: number;
+    lineHeight: number;
+    x: number;
+    y: number;
+}
+
+/** What a treemap laid out for one node; `undefined` where it laid out nothing (a collapsed group, an unlabelled tile). */
+export interface TreemapNodeLayout {
+    /** The node's tile or group box, in the series' own coordinates. */
+    bbox: BBox | undefined;
+    /** The space a group keeps free around its children, its header included in `top`. */
+    padding: { top: number; right: number; bottom: number; left: number } | undefined;
+    label: TreemapLabelLayout | undefined;
+    secondaryLabel: TreemapLabelLayout | undefined;
+    /** The height of the wrapped group title, which `padding.top` is sized from. */
+    groupTitleLabelHeight: number | undefined;
+}
+
+// A property of a layout the series computed: present once laid out, and a number or text by construction.
+function layoutProperty<T extends number | string>(layout: unknown, name: string): T {
+    return new Caster(layout).accessProperty(name).assertNonNullish().value as T;
+}
+
+function treemapLabelLayout(label: unknown): TreemapLabelLayout | undefined {
+    if (label == null) return undefined;
+    return {
+        text: layoutProperty(label, 'text'),
+        fontSize: layoutProperty(label, 'fontSize'),
+        lineHeight: layoutProperty(label, 'lineHeight'),
+        x: layoutProperty(label, 'x'),
+        y: layoutProperty(label, 'y'),
+    };
+}
+
+/**
+ * What the treemap laid out for `node`, one of the nodes of its `getHierarchyRootNode` tree (the node class is private
+ * to the series). Fails for a node that is not a treemap node.
+ */
+export function getTreemapNodeLayout(node: HierarchyNode): TreemapNodeLayout {
+    const caster = new Caster(node);
+    const bbox = caster.accessProperty('bbox').castNullable(BBox).value;
+    const padding = caster.accessProperty('padding').value;
+    const groupTitle = caster.accessProperty('groupTitle').value;
+    const title = new Caster(groupTitle).accessNullableProperty('title').value;
+    return {
+        bbox,
+        padding:
+            padding == null
+                ? undefined
+                : {
+                      top: layoutProperty(padding, 'top'),
+                      right: layoutProperty(padding, 'right'),
+                      bottom: layoutProperty(padding, 'bottom'),
+                      left: layoutProperty(padding, 'left'),
+                  },
+        label: treemapLabelLayout(caster.accessProperty('label').value),
+        secondaryLabel: treemapLabelLayout(caster.accessProperty('secondaryLabel').value),
+        groupTitleLabelHeight: title == null ? undefined : layoutProperty<number>(title, 'labelHeight'),
+    };
 }
 
 /** The scene groups that series keep to themselves. */
