@@ -1,14 +1,23 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, AgStandaloneChartOptions } from 'ag-charts-community';
-import { deproxy, errorFrom, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
-import { BBox, Group, Sector } from 'ag-charts-core';
+import {
+    deproxy,
+    errorFrom,
+    expectWarningsCalls,
+    getSeriesRect,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
+import { BBox, Group, Sector, Shape } from 'ag-charts-core';
 
 import { FlowProportionDatumType } from '../series/flow-proportion/flowDatumIndex';
 import { OrganizationNode } from '../series/organization/organizationNode';
 import { OrganizationSeries } from '../series/organization/organizationSeries';
 import {
     getEnterpriseSelectionNodes,
+    getFlowHighlightNode,
     getFlowLinkData,
     getFlowNodeData,
     getNetworkContentBBox,
@@ -22,8 +31,9 @@ import {
     getOrganizationNodeDatumIndex,
     getOrganizationSeriesInstance,
     getSeriesGroup,
+    getSeriesLabelTexts,
 } from './enterpriseSeriesAccessors';
-import { createEnterpriseChart } from './utils';
+import { collectShapes, createEnterpriseChart } from './utils';
 
 describe('enterprise series test accessors', () => {
     setupMockConsole();
@@ -117,6 +127,12 @@ describe('enterprise series test accessors', () => {
             }
             expect(graph.findVertexById('missing')).toBeUndefined();
         });
+
+        it('fails for a series that is not an organization series', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getOrganizationGraph(chart!))?.name).toBe('AssertionError');
+        });
     });
 
     describe('getOrganizationNodeDatumIndex', () => {
@@ -134,6 +150,15 @@ describe('enterprise series test accessors', () => {
             const [{ datum: rootLink }] = getOrganizationLinks(chart);
 
             expect(getOrganizationNodeDatumIndex(chart, rootLink.from)).toBeUndefined();
+        });
+
+        it('fails for a series that is not an organization series', async () => {
+            chart = await createEnterpriseChart(orgOptions());
+            const vertex = getOrganizationGraph(chart).findVertexById('ceo')!;
+            chart.destroy();
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getOrganizationNodeDatumIndex(chart!, vertex))?.name).toBe('AssertionError');
         });
     });
 
@@ -157,6 +182,12 @@ describe('enterprise series test accessors', () => {
 
             expect(collapsed).toEqual(['cto', 'cfo']);
         });
+
+        it('fails for a series that draws no cards', async () => {
+            chart = await createEnterpriseChart(chordOptions());
+
+            expect(errorFrom(() => getOrganizationCards(chart!))?.name).toBe('AssertionError');
+        });
     });
 
     describe('getOrganizationLinks', () => {
@@ -176,6 +207,12 @@ describe('enterprise series test accessors', () => {
             const visibility = getOrganizationLinks(chart).map(({ node }) => node.visible);
 
             expect(visibility).toEqual([true, false, false]);
+        });
+
+        it('fails for a series that draws no links', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getOrganizationLinks(chart!))?.name).toBe('AssertionError');
         });
     });
 
@@ -197,6 +234,21 @@ describe('enterprise series test accessors', () => {
 
             expect(getOrganizationCardTexts(ceo.node)).toEqual({ title: 'Alice', subtitle: undefined, labels: [] });
         });
+
+        it('returns no text for a card that has not been laid out', () => {
+            expect(getOrganizationCardTexts(new OrganizationNode())).toEqual({
+                title: undefined,
+                subtitle: undefined,
+                labels: [],
+            });
+        });
+
+        it('fails when what the card holds as its title is not text', () => {
+            const card = new OrganizationNode();
+            Reflect.set(card, 'titleNode', new Group());
+
+            expect(errorFrom(() => getOrganizationCardTexts(card))?.name).toBe('AssertionError');
+        });
     });
 
     describe('getOrganizationCardContentHeight', () => {
@@ -213,6 +265,12 @@ describe('enterprise series test accessors', () => {
             expect(titleOnlyHeight).toBeGreaterThan(0);
             expect(withTiersHeight).toBeGreaterThan(titleOnlyHeight);
         });
+
+        it('fails for a card that has not been laid out', () => {
+            expect(errorFrom(() => getOrganizationCardContentHeight(new OrganizationNode()))?.name).toBe(
+                'AssertionError'
+            );
+        });
     });
 
     describe('getNetworkViewport', () => {
@@ -221,17 +279,14 @@ describe('enterprise series test accessors', () => {
 
             const viewport = getNetworkViewport(chart);
 
+            // Content that fits the series rect is shown at full size, centred in it.
+            const content = getNetworkContentBBox(chart);
+            const { width, height } = getNetworkSeriesRect(chart);
             expect(Object.keys(viewport)).toHaveLength(4);
-            expect(viewport).toEqual({
-                scalingX: expect.any(Number),
-                scalingY: expect.any(Number),
-                translationX: expect.any(Number),
-                translationY: expect.any(Number),
-            });
-            expect(viewport.scalingX).toBeGreaterThan(0);
-            expect(viewport.scalingY).toBe(viewport.scalingX);
-            expect(Number.isFinite(viewport.translationX)).toBe(true);
-            expect(Number.isFinite(viewport.translationY)).toBe(true);
+            expect(viewport.scalingX).toBeCloseTo(1, 5);
+            expect(viewport.scalingY).toBeCloseTo(1, 5);
+            expect(viewport.translationX).toBeCloseTo(width / 2 - (content.x + content.width / 2), 3);
+            expect(viewport.translationY).toBeCloseTo(height / 2 - (content.y + content.height / 2), 3);
         });
 
         it('follows a zoom of the chart', async () => {
@@ -267,24 +322,46 @@ describe('enterprise series test accessors', () => {
 
             const bbox = getNetworkContentBBox(chart);
 
+            const cards = getOrganizationCards(chart).map(({ node }) => node.getBBox());
+            const left = Math.min(...cards.map(({ x }) => x));
+            const top = Math.min(...cards.map(({ y }) => y));
+            const right = Math.max(...cards.map(({ x, width }) => x + width));
+            const bottom = Math.max(...cards.map(({ y, height }) => y + height));
             expect(bbox).toBeInstanceOf(BBox);
-            expect(bbox.width).toBeGreaterThan(0);
-            expect(bbox.height).toBeGreaterThan(0);
+            expect(bbox.x).toBeCloseTo(left, 3);
+            expect(bbox.y).toBeCloseTo(top, 3);
+            expect(bbox.x + bbox.width).toBeCloseTo(right, 3);
+            expect(bbox.y + bbox.height).toBeCloseTo(bottom, 3);
+        });
+
+        it('fails when the layout placed nothing', async () => {
+            chart = await createEnterpriseChart({ ...orgOptions(), data: [] });
+            expectWarningsCalls().toEqual([[expect.stringContaining('No matches were found')]]);
+
+            expect(errorFrom(() => getNetworkContentBBox(chart!))?.name).toBe('AssertionError');
+        });
+
+        it('fails for a series that is not a network series', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getNetworkContentBBox(chart!))?.name).toBe('AssertionError');
         });
     });
 
     describe('getNetworkSeriesRect', () => {
-        it('returns the rect the series lays out in, within the chart', async () => {
+        it('returns the rect the chart gave the series, which is the chart series rect', async () => {
             chart = await createEnterpriseChart(orgOptions());
 
             const rect = getNetworkSeriesRect(chart);
-            const { width, height } = deproxy(chart);
 
             expect(rect).toBeInstanceOf(BBox);
-            expect(rect.width).toBeGreaterThan(0);
-            expect(rect.width).toBeLessThanOrEqual(width ?? 0);
-            expect(rect.height).toBeGreaterThan(0);
-            expect(rect.height).toBeLessThanOrEqual(height ?? 0);
+            expect(rect).toEqual(getSeriesRect(chart));
+        });
+
+        it('fails for a series that is not a network series', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getNetworkSeriesRect(chart!))?.name).toBe('AssertionError');
         });
     });
 
@@ -319,6 +396,24 @@ describe('enterprise series test accessors', () => {
             expect(Array.from(getSeriesGroup(chart, 'innerLabelsGroup').children())).toHaveLength(1);
         });
 
+        it.each(['nodeGroup', 'linkGroup'] as const)('returns the %s of a flow-proportion series', async (name) => {
+            chart = await createEnterpriseChart(sankeyOptions());
+
+            const shapes = collectShapes(getSeriesGroup(chart, name));
+
+            // Three nodes, two links.
+            expect(shapes).toHaveLength(name === 'nodeGroup' ? 3 : 2);
+        });
+
+        it.each(['highlightNodeGroup', 'highlightLinkGroup'] as const)(
+            'returns the %s of a flow-proportion series, empty until something is highlighted',
+            async (name) => {
+                chart = await createEnterpriseChart(sankeyOptions());
+
+                expect(Array.from(getSeriesGroup(chart, name).children())).toHaveLength(0);
+            }
+        );
+
         it('returns the label group of a polar series', async () => {
             chart = await createEnterpriseChart({
                 data: [
@@ -338,6 +433,30 @@ describe('enterprise series test accessors', () => {
             chart = await createEnterpriseChart(orgOptions());
 
             expect(errorFrom(() => getSeriesGroup(chart!, 'sectorGroup'))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getSeriesLabelTexts', () => {
+        it('returns the text nodes a treemap drew for its groups and tiles', async () => {
+            chart = await createEnterpriseChart({
+                data: [
+                    {
+                        name: 'Group',
+                        children: [
+                            { name: 'Leaf A', size: 3 },
+                            { name: 'Leaf B', size: 2 },
+                        ],
+                    },
+                ],
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size' }],
+                animation: { enabled: false },
+            });
+
+            const texts = getSeriesLabelTexts(chart)
+                .filter(({ visible }) => visible)
+                .map(({ text }) => text);
+
+            expect(texts).toEqual(expect.arrayContaining(['Group', 'Leaf A', 'Leaf B']));
         });
     });
 
@@ -389,6 +508,21 @@ describe('enterprise series test accessors', () => {
             expect(ids).toEqual(['A', 'B', 'C']);
             expect(nodes.every(({ type }) => type === FlowProportionDatumType.Node)).toBe(true);
         });
+
+        it('types the geometry a series adds to its node datums', async () => {
+            chart = await createEnterpriseChart(sankeyOptions());
+
+            const nodes = getFlowNodeData<{ x: number; width: number }>(chart);
+
+            expect(nodes).toHaveLength(3);
+            expect(nodes.every(({ x, width }) => Number.isFinite(x) && width > 0)).toBe(true);
+        });
+
+        it('fails for a series that keeps no node data context', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getFlowNodeData(chart!))?.name).toBe('AssertionError');
+        });
     });
 
     describe('getFlowLinkData', () => {
@@ -410,6 +544,49 @@ describe('enterprise series test accessors', () => {
             names.sort((a, b) => a.localeCompare(b));
             expect(names).toEqual(['A->B', 'B->C']);
             expect(links.every(({ type }) => type === FlowProportionDatumType.Link)).toBe(true);
+        });
+
+        it('fails for a series that keeps no node data context', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getFlowLinkData(chart!))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('getFlowHighlightNode', () => {
+        it('returns undefined while nothing is highlighted', async () => {
+            chart = await createEnterpriseChart(sankeyOptions());
+
+            expect(getFlowHighlightNode(chart)).toBeUndefined();
+        });
+
+        it.each([
+            ['node', getFlowNodeData],
+            ['link', getFlowLinkData],
+        ] as const)('returns the highlight-layer copy of the highlighted %s', async (kind, getDatums) => {
+            chart = await createEnterpriseChart(sankeyOptions());
+            const { ctx, id } = deproxy(chart);
+            const datum = getDatums(chart)[0];
+
+            ctx.highlightManager.updateHighlight(id, datum);
+            await waitForChartStability(chart);
+
+            const highlighted = getFlowHighlightNode(chart);
+            expect(highlighted).toBeInstanceOf(Shape);
+            expect(highlighted?.datum).toMatchObject({ itemId: datum.itemId });
+            const layer = kind === 'node' ? 'highlightNodeGroup' : 'highlightLinkGroup';
+            expect(Array.from(getSeriesGroup(chart, layer).children())).toContain(highlighted);
+        });
+
+        it('works for a chord series', async () => {
+            chart = await createEnterpriseChart(chordOptions());
+            const { ctx, id } = deproxy(chart);
+            const [node] = getFlowNodeData(chart);
+
+            ctx.highlightManager.updateHighlight(id, node);
+            await waitForChartStability(chart);
+
+            expect(getFlowHighlightNode(chart)?.datum).toMatchObject({ itemId: node.itemId });
         });
     });
 });

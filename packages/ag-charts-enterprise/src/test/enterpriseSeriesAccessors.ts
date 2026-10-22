@@ -1,10 +1,11 @@
 import {
     type ChartOrProxy,
+    deproxy,
     getSeriesAt,
     getSeriesContextNodeData,
     getSeriesSelectionNodes,
 } from 'ag-charts-community-test';
-import { BBox, Group, type Node, Selection, Text, type Vertex } from 'ag-charts-core';
+import { BBox, Group, type Node, Selection, Shape, Text, type Vertex } from 'ag-charts-core';
 import { Caster, classCast } from 'ag-charts-test';
 
 import { FlowProportionDatumType } from '../series/flow-proportion/flowDatumIndex';
@@ -21,23 +22,32 @@ import type {
     OrganizationVertex,
 } from '../series/organization/organizationTypes';
 
-// Enterprise-only series internals the shared accessors have no name for; each asserts what it reads exists.
+// Enterprise-only series internals the shared accessors have no name for. Each fails with a vitest assertion, as the
+// shared accessors do, when what it reads is missing.
 
-function assert(condition: unknown, message: string): asserts condition {
-    if (!condition) throw new Error(`Expected ${message}`);
+/** `value`, asserted to be neither `null` nor `undefined`. */
+function defined<T>(value: T | null | undefined): T {
+    return new Caster(value).assertNonNullish().value;
 }
 
-/** The node datums of a flow-proportion series (sankey, chord) in node order, empty before the series has laid out. */
-export function getFlowNodeData(chartOrProxy: ChartOrProxy<any>, index = 0): FlowProportionNodeDatum<any, any>[] {
+/**
+ * The node datums of a flow-proportion series (sankey, chord) in node order. Asserts that the series has laid out: the
+ * datums do not exist before then. `TGeometry` is the geometry the series' own node datum adds (sankey: `x`, `y`,
+ * `width`, `height`), which the series does not export.
+ */
+export function getFlowNodeData<TGeometry extends object = object>(
+    chartOrProxy: ChartOrProxy<any>,
+    index = 0
+): (FlowProportionNodeDatum<any, any> & TGeometry)[] {
     return getSeriesContextNodeData<FlowProportionNodeDatum<any, any> | FlowProportionLinkDatum<any, any>>(
         chartOrProxy,
         index
     ).nodeData.filter(
-        (datum): datum is FlowProportionNodeDatum<any, any> => datum.type === FlowProportionDatumType.Node
+        (datum): datum is FlowProportionNodeDatum<any, any> & TGeometry => datum.type === FlowProportionDatumType.Node
     );
 }
 
-/** The link datums of a flow-proportion series (sankey, chord) in link order, empty before the series has laid out. */
+/** The link datums of a flow-proportion series (sankey, chord) in link order. Asserts that the series has laid out. */
 export function getFlowLinkData(chartOrProxy: ChartOrProxy<any>, index = 0): FlowProportionLinkDatum<any, any>[] {
     return getSeriesContextNodeData<FlowProportionNodeDatum<any, any> | FlowProportionLinkDatum<any, any>>(
         chartOrProxy,
@@ -45,6 +55,24 @@ export function getFlowLinkData(chartOrProxy: ChartOrProxy<any>, index = 0): Flo
     ).nodeData.filter(
         (datum): datum is FlowProportionLinkDatum<any, any> => datum.type === FlowProportionDatumType.Link
     );
+}
+
+// The `itemId` of a datum, or of the datum a node was drawn for; both node and link datums have one.
+function datumItemId(datum: unknown): unknown {
+    return datum != null && typeof datum === 'object' && 'itemId' in datum ? datum.itemId : undefined;
+}
+
+/**
+ * The copy of the highlighted node or link that a flow-proportion series (sankey, chord) draws on its highlight layer,
+ * or `undefined` when nothing is highlighted or the series draws no copy of it.
+ */
+export function getFlowHighlightNode(chartOrProxy: ChartOrProxy<any>, index = 0): Shape | undefined {
+    const highlightedId = datumItemId(deproxy(chartOrProxy).ctx.highlightManager.getActiveHighlight());
+    if (highlightedId === undefined) return undefined;
+    return [
+        ...getSeriesGroup(chartOrProxy, 'highlightLinkGroup', index).children(),
+        ...getSeriesGroup(chartOrProxy, 'highlightNodeGroup', index).children(),
+    ].find((child): child is Shape => child instanceof Shape && datumItemId(child.datum) === highlightedId);
 }
 
 /** The organization series at `index`, asserted to be one: its public API (`collapseItem`, `pickFocus`, …) is typed. */
@@ -68,11 +96,10 @@ export function getOrganizationNodeDatumIndex(
     vertex: Vertex<OrganizationVertex, OrganizationEdge>,
     index = 0
 ): number | undefined {
-    const series = getOrganizationSeriesInstance(chartOrProxy, index) as unknown as {
-        getNodeDatumIndex?: (vertex: Vertex<OrganizationVertex, OrganizationEdge>) => number | undefined;
-    };
-    assert(typeof series.getNodeDatumIndex === 'function', `series ${index} getNodeDatumIndex`);
-    return series.getNodeDatumIndex(vertex);
+    const series = getOrganizationSeriesInstance(chartOrProxy, index);
+    const getNodeDatumIndex = new Caster(series).accessProperty('getNodeDatumIndex').cast(Function).value;
+    // The method is protected, so the only way to call it is untyped; it returns `number | undefined`.
+    return getNodeDatumIndex.call(series, vertex) as number | undefined;
 }
 
 /** A node the organization series drew, with the datum it was drawn for; every card's datum carries an `itemId`. */
@@ -84,7 +111,8 @@ export interface OrganizationCard {
 /** The cards the organization series drew, in selection order (render order, which can differ from data order). */
 export function getOrganizationCards(chartOrProxy: ChartOrProxy<any>, index = 0): OrganizationCard[] {
     return getSeriesSelectionNodes<OrganizationNode>(chartOrProxy, 'datumSelection', index).map((node) => {
-        assert(node.datum?.itemId != null, `series ${index} card datum`);
+        defined(node.datum?.itemId);
+        // `itemId` was just checked, but the datum type keeps it optional.
         return { node, datum: node.datum as OrganizationCard['datum'] };
     });
 }
@@ -102,8 +130,7 @@ export function getOrganizationLinks(chartOrProxy: ChartOrProxy<any>, index = 0)
         'linkSelection',
         index
     ).map((node) => {
-        assert(node.datum != null, `series ${index} link datum`);
-        return { node, datum: node.datum };
+        return { node, datum: defined(node.datum) };
     });
 }
 
@@ -117,10 +144,8 @@ export interface OrganizationCardTexts {
 export function getOrganizationCardTexts(card: OrganizationNode): OrganizationCardTexts {
     const textOf = (textNode: unknown): string | undefined => {
         if (textNode == null) return undefined;
-        assert(textNode instanceof Text, 'card text node');
-        const { text } = textNode;
-        assert(text === undefined || typeof text === 'string', 'card text is plain');
-        return text;
+        const { text } = new Caster(textNode).cast(Text).value;
+        return text == null ? undefined : String(text);
     };
     const caster = new Caster(card);
     const labelNodes = caster.accessNullableProperty('labelNodes').value as unknown[] | undefined;
@@ -134,8 +159,7 @@ export function getOrganizationCardTexts(card: OrganizationNode): OrganizationCa
 /** The height of the content a card laid out before any `maxHeight` clipped it. */
 export function getOrganizationCardContentHeight(card: OrganizationNode): number {
     const size = new Caster(card).accessNullableProperty('intrinsicCardSize').value as { height: number } | undefined;
-    assert(size != null, 'card content size');
-    return size.height;
+    return defined(size).height;
 }
 
 /** The zoom and pan a network series applies to everything it draws (its `viewportGroup`). */
@@ -157,11 +181,9 @@ export function getNetworkViewport(chartOrProxy: ChartOrProxy<any>, index = 0): 
 /** The bounds of everything the layout placed, in the viewport's own coordinates. */
 export function getNetworkContentBBox(chartOrProxy: ChartOrProxy<any>, index = 0): BBox {
     const series = classCast(getSeriesAt(chartOrProxy, index), AbstractNetworkSeries);
-    const layout = new Caster(series).accessProperty('layout').value as { getContentBBox?: () => BBox | undefined };
-    assert(typeof layout.getContentBBox === 'function', `series ${index} layout`);
-    const bbox = layout.getContentBBox();
-    assert(bbox instanceof BBox, `series ${index} content bounds`);
-    return bbox;
+    const layout = new Caster(series).accessProperty('layout');
+    const getContentBBox = layout.accessProperty('getContentBBox').cast(Function).value;
+    return new Caster(getContentBBox.call(layout.value)).cast(BBox).value;
 }
 
 /** The rect the chart gave a network series to lay out in, as the series last received it. */
@@ -177,12 +199,22 @@ export type SeriesGroupName =
     | 'sectorGroup'
     | 'scalingGroup'
     | 'innerLabelsGroup'
-    // The polar series' data labels.
-    | 'labelGroup';
+    // The group the polar series and the hierarchy series (treemap) draw their labels into.
+    | 'labelGroup'
+    // The flow-proportion series (sankey, chord): the node and link shapes, and their highlighted copies.
+    | 'nodeGroup'
+    | 'linkGroup'
+    | 'highlightNodeGroup'
+    | 'highlightLinkGroup';
 
 /** A scene group of the series; naming one the series does not have fails. */
 export function getSeriesGroup(chartOrProxy: ChartOrProxy<any>, name: SeriesGroupName, index = 0): Group {
     return new Caster(getSeriesAt(chartOrProxy, index)).accessProperty(name).cast(Group).value;
+}
+
+/** The text nodes a series drew into its label group (a treemap's tile and group labels), in scene order. */
+export function getSeriesLabelTexts(chartOrProxy: ChartOrProxy<any>, index = 0): Text[] {
+    return Selection.selectByClass(getSeriesGroup(chartOrProxy, 'labelGroup', index), Text);
 }
 
 /** The scene selections that series keep to themselves and that `getSeriesSelectionNodes` has no name for. */

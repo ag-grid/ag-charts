@@ -12,7 +12,6 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
-    type Chart,
     type ChartOrProxy,
     GALLERY_EXAMPLES,
     MIN_TOOLTIP_HIDE_DELAY,
@@ -23,23 +22,46 @@ import {
     deproxy,
     expectNoAnimation,
     expectWarningsCalls,
+    getSeriesAt,
+    getSeriesContextNodeData,
+    getSeriesOptions,
+    getSeriesSelectionNodes,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Transformable } from 'ag-charts-core';
+import { type Text, Transformable } from 'ag-charts-core';
 
-import { getFlowLinkData, getFlowNodeData } from '../../test/enterpriseSeriesAccessors';
+import {
+    getFlowHighlightNode,
+    getFlowLinkData,
+    getFlowNodeData,
+    getSeriesGroup,
+} from '../../test/enterpriseSeriesAccessors';
 import { describeFlowProportionShadow, flowProportionShadowOptions } from '../../test/flowProportionShadowTests';
 import {
     SMALL_SHADOW,
+    collectShapes,
     createEnterpriseChart,
     mockCssVarColorSupport,
     prepareEnterpriseTestOptions,
 } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
+
+// What sankey's node datums add to the flow-proportion datum; the series does not export its own datum type.
+interface SankeyNodeBox {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+type LabelNode = Text<{ nodeDatum: unknown }>;
+
+// Sankey labels hold plain strings.
+const textOf = (node: Text<unknown>) => String(node.text);
 
 describe('SankeySeries', () => {
     setupMockConsole();
@@ -300,12 +322,9 @@ describe('SankeySeries', () => {
             chart = deproxy(AgCharts.create({ ...options, width: 500 }));
             await waitForChartStability(chart);
 
-            const series = chart.series[0];
-            const spacing = series.options.label.spacing;
-            const nodes = series.contextNodeData.nodeData.filter(
-                (datum: any) => datum.type === FlowProportionDatumType.Node
-            );
-            const labels = series.labelSelection.nodes().filter((node: any) => node.visible);
+            const spacing = getSeriesOptions<{ label: { spacing: number } }>(chart).label.spacing;
+            const nodes = getFlowNodeData<SankeyNodeBox>(chart);
+            const labels = getSeriesSelectionNodes<LabelNode>(chart, 'labelSelection').filter((node) => node.visible);
             const overlapsVertically = (a: { y: number; height: number }, b: { y: number; height: number }) =>
                 a.y < b.y + b.height && b.y < a.y + a.height;
             let truncatedBesideNode = false;
@@ -313,11 +332,11 @@ describe('SankeySeries', () => {
             for (const node of labels) {
                 const box = node.getBBox();
                 for (const other of nodes) {
-                    if (other === node.datum.nodeDatum || !overlapsVertically(box, other)) continue;
+                    if (other === node.datum?.nodeDatum || !overlapsVertically(box, other)) continue;
                     const gap = Math.max(other.x - (box.x + box.width), box.x - (other.x + other.width));
-                    expect(gap, `"${node.text}" against node "${other.id}"`).toBeGreaterThanOrEqual(spacing - 0.5);
-                    truncatedBesideNode ||= node.text.includes('…');
-                    wrappedBesideNode ||= node.text.includes('\n');
+                    expect(gap, `"${textOf(node)}" against node "${other.id}"`).toBeGreaterThanOrEqual(spacing - 0.5);
+                    truncatedBesideNode ||= textOf(node).includes('…');
+                    wrappedBesideNode ||= textOf(node).includes('\n');
                 }
             }
             return { truncatedBesideNode, wrappedBesideNode };
@@ -363,14 +382,13 @@ describe('SankeySeries', () => {
             chart = deproxy(AgCharts.create({ ...options, width: 500 }));
             await waitForChartStability(chart);
 
-            const series = chart.series[0];
-            const seriesRectHeight = series._nodeDataDependencies.seriesRectHeight;
-            const labels = series.labelSelection.nodes().filter((node: any) => node.visible);
-            expect(labels.some((node: any) => node.text.includes('\n'))).toBe(true);
+            const { seriesRectHeight } = getSeriesAt(chart).nodeDataDependencies;
+            const labels = getSeriesSelectionNodes<Text>(chart, 'labelSelection').filter((node) => node.visible);
+            expect(labels.some((node) => textOf(node).includes('\n'))).toBe(true);
             for (const node of labels) {
                 const box = node.getBBox();
-                expect(box.y, `"${node.text}" top`).toBeGreaterThanOrEqual(-0.5);
-                expect(box.y + box.height, `"${node.text}" bottom`).toBeLessThanOrEqual(seriesRectHeight + 0.5);
+                expect(box.y, `"${textOf(node)}" top`).toBeGreaterThanOrEqual(-0.5);
+                expect(box.y + box.height, `"${textOf(node)}" bottom`).toBeLessThanOrEqual(seriesRectHeight + 0.5);
             }
         });
 
@@ -393,10 +411,9 @@ describe('SankeySeries', () => {
                 prepareEnterpriseTestOptions(options);
                 chart = deproxy(AgCharts.create({ ...options, width: 500 }));
                 await waitForChartStability(chart);
-                return chart.series[0].labelSelection
-                    .nodes()
-                    .filter((node: any) => node.visible)
-                    .map((node: any) => ({ fontSize: node.fontSize as number, width: node.getBBox().width as number }));
+                return getSeriesSelectionNodes<Text>(chart, 'labelSelection')
+                    .filter((node) => node.visible)
+                    .map((node) => ({ fontSize: node.fontSize, width: node.getBBox().width }));
             };
             const label = { fontSize: 14, minimumFontSize: 9, maxWidth: 70, wrapping: 'never' } as const;
 
@@ -465,12 +482,9 @@ describe('SankeySeries', () => {
 
             chart = deproxy(await createEnterpriseChart(options));
 
-            const series = chart.series[0];
-            const node = series.contextNodeData.nodeData.find(
-                (d: any) => d.type === FlowProportionDatumType.Node && d.id === 'two'
-            );
+            const node = getFlowNodeData<SankeyNodeBox>(chart).find((d) => d.id === 'two')!;
             const { canvasX, canvasY } = Transformable.toCanvasPoint(
-                series.contentGroup,
+                getSeriesAt(chart).contentGroup,
                 node.x + node.width / 2,
                 node.y + node.height / 2
             );
@@ -478,7 +492,7 @@ describe('SankeySeries', () => {
             await hoverAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
 
-            expect((chart as Chart).ctx.highlightManager.getActiveHighlight()).toBe(node);
+            expect(deproxy(chart).ctx.highlightManager.getActiveHighlight()).toBe(node);
         });
 
         const complexCornerRadiusOptions = {
@@ -527,7 +541,7 @@ describe('SankeySeries', () => {
 
             const node = getFlowNodeData(chart)[0];
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
+            const highlightManager = deproxy(chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
@@ -550,7 +564,7 @@ describe('SankeySeries', () => {
 
             const node = getFlowNodeData(chart)[0];
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
+            const highlightManager = deproxy(chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
@@ -561,7 +575,7 @@ describe('SankeySeries', () => {
 
             const node = getFlowLinkData(chart)[0];
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
+            const highlightManager = deproxy(chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
@@ -633,11 +647,10 @@ describe('SankeySeries', () => {
     const testPointerEvents = (testParams: {
         seriesOptions: any;
         chartOptions?: any;
-        getNodeData: (series: any) => any[];
+        getNodeData: (chart: ChartOrProxy<any>, seriesIndex: number) => any[];
         getNodePoint: (nodeItem: any) => [number, number];
-        getDatumValues: (datum: any, series: any) => any[];
+        getDatumValues: (datum: any) => any[];
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
-        getHighlightNode: (chart: any, series: any) => any;
     }) => {
         const format = (...values: any[]) => values.join(' ');
 
@@ -679,36 +692,36 @@ describe('SankeySeries', () => {
         };
 
         const hoverChartNodes = async (
-            chartInstance: any,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
+            chartInstance: ChartOrProxy<any>,
+            iterator: (params: { seriesIndex: number; item: any; x: number; y: number }) => Promise<void> | void
         ) => {
-            for (const series of chartInstance.series) {
-                const nodeData = testParams.getNodeData(series);
+            for (const seriesIndex of deproxy(chartInstance).series.keys()) {
+                const nodeData = testParams.getNodeData(chartInstance, seriesIndex);
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
                     const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
-                        series.contentGroup,
+                        getSeriesAt(chartInstance, seriesIndex).contentGroup,
                         itemPoint[0],
                         itemPoint[1]
                     );
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
-                    await iterator({ series, item, x, y });
+                    await iterator({ seriesIndex, item, x, y });
                 }
             }
         };
 
-        const checkHighlight = async (chartInstance: any) => {
-            await hoverChartNodes(chartInstance, ({ series }) => {
-                const highlightNode = testParams.getHighlightNode(chartInstance, series);
+        const checkHighlight = async (chartInstance: ChartOrProxy<any>) => {
+            await hoverChartNodes(chartInstance, ({ seriesIndex }) => {
+                const highlightNode = getFlowHighlightNode(chartInstance, seriesIndex);
                 expect(highlightNode).toBeDefined();
-                expect(highlightNode.fill).toEqual('lime');
+                expect(highlightNode?.fill).toEqual('lime');
             });
         };
 
         const checkNodeClick = async (
-            chartInstance: Chart,
+            chartInstance: ChartOrProxy<any>,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {
@@ -718,8 +731,8 @@ describe('SankeySeries', () => {
                 await waitForChartStability(chartInstance);
             });
 
-            const nodeCount = chartInstance.series.reduce(
-                (sum, series) => sum + testParams.getNodeData(series).length,
+            const nodeCount = deproxy(chartInstance).series.reduce(
+                (sum, _series, seriesIndex) => sum + testParams.getNodeData(chartInstance, seriesIndex).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
@@ -727,12 +740,12 @@ describe('SankeySeries', () => {
 
         it(`should render tooltip correctly`, async () => {
             chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
-            await hoverChartNodes(chart, ({ series, item }) => {
+            await hoverChartNodes(chart, ({ item }) => {
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                const values = testParams.getDatumValues(item, series);
+                const values = testParams.getDatumValues(item);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
@@ -793,14 +806,7 @@ describe('SankeySeries', () => {
             toKey: 'to',
         };
 
-        const cartesianTestParams = {
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
-            getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
-            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
-        } as Parameters<typeof testPointerEvents>[0];
-
         testPointerEvents({
-            ...cartesianTestParams,
             seriesOptions: {
                 type: 'sankey',
                 fromKey: datasets.fromKey,
@@ -809,7 +815,7 @@ describe('SankeySeries', () => {
             chartOptions: {
                 data: datasets.data,
             },
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
+            getNodeData: (chartInstance, seriesIndex) => getSeriesContextNodeData(chartInstance, seriesIndex).nodeData,
             getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
             getDatumValues: (item) => {
                 return item.type === FlowProportionDatumType.Link
@@ -819,12 +825,6 @@ describe('SankeySeries', () => {
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;
                 return datum == null ? ['(node)'] : [datum[params.fromKey], datum[params.toKey], 1];
-            },
-            getHighlightNode: (chartInstance, series) => {
-                const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return [...series.highlightLinkGroup.children(), ...series.highlightNodeGroup.children()].find(
-                    (child: any) => child.datum.id === highlightedDatum.id
-                );
             },
         });
     });
@@ -1058,8 +1058,7 @@ describe('SankeySeries', () => {
                 chart = deproxy(AgCharts.create(options));
                 await waitForChartStability(chart);
 
-                const series = chart.series[0];
-                const [nodeRect] = series.nodeGroup.children();
+                const [nodeRect] = collectShapes(getSeriesGroup(chart, 'nodeGroup'));
 
                 expect(nodeRect.fill).toBe('rgb(0, 128, 0)');
             } finally {
@@ -1090,8 +1089,7 @@ describe('SankeySeries', () => {
                 chart = deproxy(AgCharts.create(options));
                 await waitForChartStability(chart);
 
-                const series = chart.series[0];
-                const [linkShape] = series.linkGroup.children();
+                const [linkShape] = collectShapes(getSeriesGroup(chart, 'linkGroup'));
 
                 expect(linkShape.fill).toBe('rgb(0, 128, 0)');
             } finally {
@@ -1130,7 +1128,7 @@ describe('SankeySeries', () => {
         chart = deproxy(await createEnterpriseChart(options));
 
         const linkNode = getFlowLinkData(chart)[0];
-        chart.ctx.highlightManager.updateHighlight(chart.id, linkNode);
+        deproxy(chart).ctx.highlightManager.updateHighlight(chart.id, linkNode);
         // A leaked (circular) scene datum never settles, so cap the wait: this must fail by assertion, not hang.
         await Promise.race([waitForChartStability(chart), new Promise((resolve) => setTimeout(resolve, 500))]);
 

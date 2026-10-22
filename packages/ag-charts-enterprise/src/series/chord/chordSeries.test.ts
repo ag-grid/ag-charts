@@ -10,7 +10,6 @@ import type {
     InteractionRange,
 } from 'ag-charts-community';
 import {
-    type Chart,
     type ChartOrProxy,
     GALLERY_EXAMPLES,
     MIN_TOOLTIP_HIDE_DELAY,
@@ -20,6 +19,8 @@ import {
     createSceneGeometrySampler,
     deproxy,
     expectNoAnimation,
+    getSeriesAt,
+    getSeriesContextNodeData,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -28,7 +29,7 @@ import {
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 
-import { getFlowLinkData, getFlowNodeData } from '../../test/enterpriseSeriesAccessors';
+import { getFlowHighlightNode, getFlowLinkData, getFlowNodeData } from '../../test/enterpriseSeriesAccessors';
 import { describeFlowProportionShadow, flowProportionShadowOptions } from '../../test/flowProportionShadowTests';
 import { SMALL_SHADOW, createEnterpriseChart } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
@@ -158,7 +159,7 @@ describe('ChordSeries', () => {
 
             const node = getFlowNodeData(chart)[0];
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
+            const highlightManager = deproxy(chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
@@ -183,7 +184,7 @@ describe('ChordSeries', () => {
 
             const node = getFlowNodeData(chart)[0];
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
+            const highlightManager = deproxy(chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
@@ -195,7 +196,7 @@ describe('ChordSeries', () => {
 
             const node = getFlowLinkData(chart)[0];
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
+            const highlightManager = deproxy(chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
@@ -252,11 +253,10 @@ describe('ChordSeries', () => {
     const testPointerEvents = (testParams: {
         seriesOptions: any;
         chartOptions?: any;
-        getNodeData: (series: any) => any[];
+        getNodeData: (chart: ChartOrProxy<any>, seriesIndex: number) => any[];
         getNodePoint: (nodeItem: any) => [number, number];
-        getDatumValues: (datum: any, series: any) => any[];
+        getDatumValues: (datum: any) => any[];
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
-        getHighlightNode: (chart: any, series: any) => any;
     }) => {
         const format = (...values: any[]) => values.join(' ');
 
@@ -298,36 +298,36 @@ describe('ChordSeries', () => {
         };
 
         const hoverChartNodes = async (
-            chartInstance: any,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
+            chartInstance: ChartOrProxy<any>,
+            iterator: (params: { seriesIndex: number; item: any; x: number; y: number }) => Promise<void> | void
         ) => {
-            for (const series of chartInstance.series) {
-                const nodeData = testParams.getNodeData(series);
+            for (const seriesIndex of deproxy(chartInstance).series.keys()) {
+                const nodeData = testParams.getNodeData(chartInstance, seriesIndex);
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
                     const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
-                        series.contentGroup,
+                        getSeriesAt(chartInstance, seriesIndex).contentGroup,
                         itemPoint[0],
                         itemPoint[1]
                     );
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
-                    await iterator({ series, item, x, y });
+                    await iterator({ seriesIndex, item, x, y });
                 }
             }
         };
 
-        const checkHighlight = async (chartInstance: any) => {
-            await hoverChartNodes(chartInstance, ({ series }) => {
-                const highlightNode = testParams.getHighlightNode(chartInstance, series);
+        const checkHighlight = async (chartInstance: ChartOrProxy<any>) => {
+            await hoverChartNodes(chartInstance, ({ seriesIndex }) => {
+                const highlightNode = getFlowHighlightNode(chartInstance, seriesIndex);
                 expect(highlightNode).toBeDefined();
-                expect(highlightNode.fill).toEqual('lime');
+                expect(highlightNode?.fill).toEqual('lime');
             });
         };
 
         const checkNodeClick = async (
-            chartInstance: Chart,
+            chartInstance: ChartOrProxy<any>,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {
@@ -336,8 +336,8 @@ describe('ChordSeries', () => {
                 await waitForChartStability(chartInstance);
             });
 
-            const nodeCount = chartInstance.series.reduce(
-                (sum, series) => sum + testParams.getNodeData(series).length,
+            const nodeCount = deproxy(chartInstance).series.reduce(
+                (sum, _series, seriesIndex) => sum + testParams.getNodeData(chartInstance, seriesIndex).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
@@ -345,12 +345,12 @@ describe('ChordSeries', () => {
 
         it(`should render tooltip correctly`, async () => {
             chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
-            await hoverChartNodes(chart, ({ series, item }) => {
+            await hoverChartNodes(chart, ({ item }) => {
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                const values = testParams.getDatumValues(item, series);
+                const values = testParams.getDatumValues(item);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
@@ -411,14 +411,7 @@ describe('ChordSeries', () => {
             toKey: 'to',
         };
 
-        const cartesianTestParams = {
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
-            getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
-            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
-        } as Parameters<typeof testPointerEvents>[0];
-
         testPointerEvents({
-            ...cartesianTestParams,
             seriesOptions: {
                 type: 'chord',
                 fromKey: datasets.fromKey,
@@ -427,7 +420,7 @@ describe('ChordSeries', () => {
             chartOptions: {
                 data: datasets.data,
             },
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
+            getNodeData: (chartInstance, seriesIndex) => getSeriesContextNodeData(chartInstance, seriesIndex).nodeData,
             getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
             getDatumValues: (item) => {
                 return item.type === FlowProportionDatumType.Link
@@ -437,12 +430,6 @@ describe('ChordSeries', () => {
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;
                 return datum == null ? ['(node)'] : [datum[params.fromKey], datum[params.toKey], 1];
-            },
-            getHighlightNode: (chartInstance, series) => {
-                const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return [...series.highlightLinkGroup.children(), ...series.highlightNodeGroup.children()].find(
-                    (child: any) => child.datum.id === highlightedDatum.id
-                );
             },
         });
     });
@@ -567,7 +554,7 @@ describe('ChordSeries', () => {
         });
     });
 
-    test('AG-8290 label boxing', async () => {
+    it('AG-8290 label boxing', async () => {
         const options: AgChartOptions = {
             data: [
                 { from: 'Asia', to: 'Europe', size: 20 },
@@ -641,7 +628,7 @@ describe('ChordSeries', () => {
         chart = deproxy(await createEnterpriseChart(options));
 
         const linkNode = getFlowLinkData(chart)[0];
-        chart.ctx.highlightManager.updateHighlight(chart.id, linkNode);
+        deproxy(chart).ctx.highlightManager.updateHighlight(chart.id, linkNode);
         // A leaked (circular) scene datum never settles, so cap the wait: this must fail by assertion, not hang.
         await Promise.race([waitForChartStability(chart), new Promise((resolve) => setTimeout(resolve, 500))]);
 

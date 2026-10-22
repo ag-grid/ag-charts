@@ -22,7 +22,9 @@ import {
     dragAction,
     expectSceneSamplesMatch,
     expectWarningsCalls,
+    getSeriesAt,
     getSeriesContextNodeData,
+    getSeriesRect,
     hoverAction,
     looserSnapshotDefaults,
     setupMockCanvas,
@@ -1956,10 +1958,7 @@ describe('OrganizationSeries', () => {
 
             // (2, 2) must stay outside the series rect (default chart padding is 20px) for the
             // leave below to be a real mouseleave rather than another move-off-pill.
-            const seriesRect = new Caster(deproxy(chart))
-                .accessProperty('seriesAreaManager')
-                .accessProperty('seriesRect')
-                .cast(BBox).value;
+            const seriesRect = getSeriesRect(chart);
             expect(seriesRect.containsPoint(2, 2)).toBe(false);
 
             // Outside the series rect a real 'mouseleave' fires, but the clear is debounced by
@@ -2990,7 +2989,7 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const seriesId = deproxy(chart).series[0].id;
+            const seriesId = getSeriesAt(chart).id;
             await chart.setState({
                 version: '13.3.0',
                 zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } },
@@ -3013,7 +3012,7 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const seriesId = deproxy(chart).series[0].id;
+            const seriesId = getSeriesAt(chart).id;
             await chart.setState({
                 version: '13.3.0',
                 zoom: { ratioX: { start: 0.8, end: 1 }, ratioY: { start: 0, end: 1 } },
@@ -3041,7 +3040,7 @@ describe('OrganizationSeries', () => {
 
             // `activeManager.update` is the canonical hover simulation — JSDOM canvas
             // hit-testing is stubbed so DOM events can't drive picking (testing.md).
-            const seriesId = deproxy(chart).series[0].id;
+            const seriesId = getSeriesAt(chart).id;
             deproxy(chart).ctx.activeManager.update({ type: 'series-node', seriesId, itemId: 'leaf-7-4' }, undefined);
             await waitForChartStability(chart);
 
@@ -3363,7 +3362,7 @@ describe('OrganizationSeries', () => {
             });
 
             function dataSet() {
-                return new Caster(deproxy(chart).series[0].data).assertNonNullish().value;
+                return new Caster(getSeriesAt(chart).data).assertNonNullish().value;
             }
 
             // Selection is keyed by DataSet item id; translating via each node's data row lets the
@@ -3377,7 +3376,7 @@ describe('OrganizationSeries', () => {
             }
 
             async function setSelectedNodes(...ids: string[]): Promise<void> {
-                const { id: seriesId } = deproxy(chart).series[0];
+                const { id: seriesId } = getSeriesAt(chart);
                 chart.setSelection(
                     ids.map((nodeId) => ({ seriesId, itemId: dataSet().getItemIdFromIndex(nodeIds.indexOf(nodeId)) }))
                 );
