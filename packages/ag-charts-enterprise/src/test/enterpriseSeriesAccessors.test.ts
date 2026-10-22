@@ -4,6 +4,7 @@ import type { AgChartInstance, AgChartOptions, AgStandaloneChartOptions } from '
 import { deproxy, errorFrom, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 import { BBox, Group, Sector } from 'ag-charts-core';
 
+import { FlowProportionDatumType } from '../series/flow-proportion/flowDatumIndex';
 import { OrganizationNode } from '../series/organization/organizationNode';
 import { OrganizationSeries } from '../series/organization/organizationSeries';
 import {
@@ -72,6 +73,14 @@ describe('enterprise series test accessors', () => {
         animation: { enabled: false },
     });
 
+    const chordOptions = (): AgChartOptions => ({
+        data: [
+            { from: 'A', to: 'B', size: 5 },
+            { from: 'B', to: 'C', size: 4 },
+        ],
+        series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+    });
+
     const sankeyOptions = (): AgStandaloneChartOptions => ({
         data: [
             { from: 'A', to: 'B', size: 5 },
@@ -118,6 +127,13 @@ describe('enterprise series test accessors', () => {
             const indices = ORG_DATA.map(({ id }) => getOrganizationNodeDatumIndex(chart!, graph.findVertexById(id)!));
 
             expect(indices).toEqual([0, 1, 2]);
+        });
+
+        it('returns undefined for a vertex the series draws no node for', async () => {
+            chart = await createEnterpriseChart(orgOptions());
+            const [{ datum: rootLink }] = getOrganizationLinks(chart);
+
+            expect(getOrganizationNodeDatumIndex(chart, rootLink.from)).toBeUndefined();
         });
     });
 
@@ -237,6 +253,12 @@ describe('enterprise series test accessors', () => {
 
             expect(getNetworkViewport(chart)).not.toEqual(before);
         });
+
+        it('fails for a series that is not a network series', async () => {
+            chart = await createEnterpriseChart(sunburstOptions());
+
+            expect(errorFrom(() => getNetworkViewport(chart!))?.name).toBe('AssertionError');
+        });
     });
 
     describe('getNetworkContentBBox', () => {
@@ -353,7 +375,19 @@ describe('enterprise series test accessors', () => {
 
             const ids = getFlowNodeData(chart).map(({ id }) => String(id));
 
-            expect(ids.sort((a, b) => a.localeCompare(b))).toEqual(['A', 'B', 'C']);
+            ids.sort((a, b) => a.localeCompare(b));
+            expect(ids).toEqual(['A', 'B', 'C']);
+        });
+
+        it('returns the node datums of a chord series, and no link datums among them', async () => {
+            chart = await createEnterpriseChart(chordOptions());
+
+            const nodes = getFlowNodeData(chart);
+
+            const ids = nodes.map(({ id }) => String(id));
+            ids.sort((a, b) => a.localeCompare(b));
+            expect(ids).toEqual(['A', 'B', 'C']);
+            expect(nodes.every(({ type }) => type === FlowProportionDatumType.Node)).toBe(true);
         });
     });
 
@@ -363,7 +397,19 @@ describe('enterprise series test accessors', () => {
 
             const links = getFlowLinkData(chart).map(({ fromNode, toNode }) => `${fromNode.id}->${toNode.id}`);
 
-            expect(links.sort((a, b) => a.localeCompare(b))).toEqual(['A->B', 'B->C']);
+            links.sort((a, b) => a.localeCompare(b));
+            expect(links).toEqual(['A->B', 'B->C']);
+        });
+
+        it('returns the link datums of a chord series, and no node datums among them', async () => {
+            chart = await createEnterpriseChart(chordOptions());
+
+            const links = getFlowLinkData(chart);
+
+            const names = links.map(({ fromNode, toNode }) => `${fromNode.id}->${toNode.id}`);
+            names.sort((a, b) => a.localeCompare(b));
+            expect(names).toEqual(['A->B', 'B->C']);
+            expect(links.every(({ type }) => type === FlowProportionDatumType.Link)).toBe(true);
         });
     });
 });
