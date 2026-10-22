@@ -399,6 +399,7 @@ describe('Ranges', () => {
             chart.destroy();
             const expected = (await resolvedRanges({ chromeTextColor: 'red' }))?.button?.disabled?.textColor;
 
+            expect(textColor).toBeDefined();
             expect(textColor).toBe(expected);
         });
 
@@ -438,6 +439,7 @@ describe('Ranges', () => {
         it('button states keep their default styling', async () => {
             const ranges = await resolvedRanges({ borderColor: 'gray', accentColor: 'teal' });
 
+            expect(ranges?.button?.hover?.fill).toBeDefined();
             expect(ranges?.button?.hover?.fill).toBe(ranges?.button?.active?.fill);
             expect(ranges?.button?.hover?.stroke).toBe('gray');
             expect(ranges?.button?.disabled?.stroke).toBe('gray');

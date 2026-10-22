@@ -2,6 +2,7 @@ import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
+    type AgChartInstance,
     type AgChartOptions,
     AgCharts,
     type AgDataSourceRequestSource,
@@ -120,7 +121,7 @@ const GROUPED_CATEGORY_OPTIONS: AgCartesianChartOptions = {
 describe('DataSource', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: AgChartInstance<any>;
     const ctx = setupMockCanvas();
 
     let cx: number = 0;
@@ -146,7 +147,7 @@ describe('DataSource', () => {
     }
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -815,7 +816,7 @@ describe('DataSource', () => {
                 // renderable data — not the blank comparison — is the load-bearing check.
                 const postError = extractImageData(ctx);
                 expect(postError.equals(blank)).toBe(false);
-                expect(chart.chart.series.every((series: { hasData: boolean }) => series.hasData)).toBe(true);
+                expect(deproxy(chart).series.every((series) => series.hasData)).toBe(true);
 
                 const warnCalls = (console.warn as Mock).mock.calls;
                 const invalidValueWarnings = warnCalls.filter(
@@ -919,9 +920,9 @@ describe('DataSource', () => {
             const zoomAfter = chart.getState().zoom!.ratioX!;
             expect(Number.isFinite(zoomAfter.start)).toBe(true);
             expect(Number.isFinite(zoomAfter.end)).toBe(true);
-            expect(zoomAfter.start).toBeGreaterThanOrEqual(zoomBefore.start);
+            expect(zoomAfter.start).toBeGreaterThanOrEqual(zoomBefore.start!);
             // Retained, not committed: the previous render survives.
-            expect(chart.chart.series.every((series: { hasData: boolean }) => series.hasData)).toBe(true);
+            expect(deproxy(chart).series.every((series) => series.hasData)).toBe(true);
 
             expectWarningsCalls(); // drain value-validation warnings
         });
@@ -944,12 +945,12 @@ describe('DataSource', () => {
             prepareEnterpriseTestOptions(pieOptions);
             // Bespoke: waits for the loaded data rather than `waitForChartStability`.
             chart = AgCharts.create(pieOptions);
-            await waitForChartStabilityUntil(chart, () => chart.chart.data.data.length === 2, 'the initial load');
+            await waitForChartStabilityUntil(chart, () => deproxy(chart).data.data.length === 2, 'the initial load');
 
             await chart.applyTransaction({ add: [{ category: 'C', value: 30 }] });
             await waitForChartStability(chart);
 
-            expect(chart.chart.data.data).toEqual([
+            expect(deproxy(chart).data.data).toEqual([
                 { category: 'A', value: 10 },
                 { category: 'B', value: 20 },
                 { category: 'C', value: 30 },
