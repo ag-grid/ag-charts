@@ -345,7 +345,7 @@ export class Zoom extends AbstractModuleInstance {
             paddedRect,
             panner,
             selector,
-            ctx: { interactionManager, tooltipManager, eventsHub, zoomManager },
+            ctx: { interactionManager, tooltipManager, eventsHub, chartService },
         } = this;
 
         if (!enabled || !paddedRect || !this.isState(InteractionState.ZoomDraggable) || this.isIgnoredTouch(event)) {
@@ -370,8 +370,9 @@ export class Zoom extends AbstractModuleInstance {
         if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
             tooltipManager.updateTooltip(TOOLTIP_ID);
         }
+        const sceneOnly = chartService.series.some((series) => series.supportsStandaloneZoom);
         eventsHub.emit('chart:request-update', {
-            type: zoomManager.zoomIsSceneTransform ? ChartUpdateType.PRE_SCENE_RENDER : ChartUpdateType.PERFORM_LAYOUT,
+            type: sceneOnly ? ChartUpdateType.PRE_SCENE_RENDER : ChartUpdateType.PERFORM_LAYOUT,
             opts: { skipAnimations: true },
         });
     }

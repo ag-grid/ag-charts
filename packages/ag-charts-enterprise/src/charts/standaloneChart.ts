@@ -44,11 +44,17 @@ export class StandaloneChart extends Chart {
         if (!zoomManager) return;
 
         const wantsZoom = this.series.some((s) => s.supportsStandaloneZoom);
-        zoomManager.zoomIsSceneTransform = wantsZoom;
         if (wantsZoom === this.standaloneZoomRegistered) return;
 
         zoomManager.setAxes(wantsZoom ? [this.xAxis, this.yAxis] : []);
         this.standaloneZoomRegistered = wantsZoom;
+    }
+
+    // A standalone series that opts into zoom moves its own viewport transform and requests its own re-render, so
+    // the node data refresh and layout pass would be wasted work.
+    protected override onZoomChangeComplete() {
+        if (this.standaloneZoomRegistered) return;
+        super.onZoomChangeComplete();
     }
 
     protected override createDataSet(data: unknown[]): _ModuleSupport.DataSet {
