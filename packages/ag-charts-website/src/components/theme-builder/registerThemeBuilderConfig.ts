@@ -1,3 +1,7 @@
+import {
+    setBorderStyleEditable,
+    setInheritedBorders,
+} from '@ag-website-shared/components/theme-builder/BorderValueEditor';
 import { setFontFamilyOptions } from '@ag-website-shared/components/theme-builder/FontFamilyValueEditor';
 import { setNonAdvancedParams, setParamTypeOverride, setThemeParamSource } from '@ag-website-shared/theming/ParamModel';
 import { setFeatureModels } from '@ag-website-shared/theming/PartModel';
@@ -22,6 +26,13 @@ setRenderedBaseThemeAtom(shadowBaseThemeAtom);
 setRenderedFeatures([]);
 
 setFontFamilyOptions(CHARTS_FONT_FAMILY_OPTIONS);
+setBorderStyleEditable(false);
+// The button state borders take their unset colour and width from the button border.
+setInheritedBorders({
+    buttonHoverBorder: 'buttonBorder',
+    buttonActiveBorder: 'buttonBorder',
+    buttonDisabledBorder: 'buttonBorder',
+});
 
 setProductVersion(VERSION);
 

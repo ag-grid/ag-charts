@@ -39,7 +39,7 @@ describe('charts theme builder param layout', () => {
     it('opens with the designed groups, each leading with its designed rows', () => {
         const DESIGNED: [string, (string | [string, string])[]][] = [
             ['General', [['fontFamily', 'fontSize'], 'backgroundColor', 'foregroundColor', 'accentColor']],
-            ['Borders & Spacing', ['borderColor', 'borderRadius', 'chartPadding']],
+            ['Borders', ['borderColor', 'borderRadius']],
             [
                 'Axis & Grid',
                 ['axisTitleFontFamily', ['axisTitleColor', 'axisTitleFontSize'], 'axisLineColor', 'gridLineColor'],

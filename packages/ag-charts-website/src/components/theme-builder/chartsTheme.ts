@@ -119,14 +119,10 @@ export const chartsParamType = (property: string): ParamType | undefined =>
     property === 'lineHeight' || property.endsWith('LineHeight') ? 'ratio' : undefined;
 
 /**
- * Edited only as on/off toggles, so a stock theme reads them as `true`. The
- * builder does not model their colour and width members.
+ * Their stock defaults follow another border's members, which ag-stack has no
+ * variable for, so a stock theme reads them as `true`.
  */
-export const TOGGLE_ONLY_BORDER_PARAMS = new Set([
-    'scrollbarTrackBorder',
-    'scrollbarThumbBorder',
-    'scrollbarThumbHoverBorder',
-]);
+export const MEMBER_DERIVED_BORDER_PARAMS = new Set(['scrollbarThumbHoverBorder']);
 
 const getThemeInstance = (themeName: AgChartThemeName) => {
     const theme = _Theme.themes[themeName]?.();
@@ -143,7 +139,7 @@ export const getStackParams = (themeName: AgChartThemeName): Record<string, unkn
     return Object.fromEntries(
         PUBLIC_PARAM_NAMES.map((property) => [
             property,
-            TOGGLE_ONLY_BORDER_PARAMS.has(property) ? true : toStackParamValue(property, params[property]),
+            MEMBER_DERIVED_BORDER_PARAMS.has(property) ? true : toStackParamValue(property, params[property]),
         ])
     );
 };

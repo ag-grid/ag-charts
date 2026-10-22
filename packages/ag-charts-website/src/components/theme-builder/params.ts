@@ -4,7 +4,7 @@
  * exactly one group, which `params.test.ts` asserts so that a new API param
  * cannot quietly go missing from the builder.
  */
-import type { LengthIcon } from '@ag-website-shared/components/theme-builder/icons';
+import type { ParamIcon } from '@ag-website-shared/components/theme-builder/icons';
 import { paramToVariableName } from '@ag-website-shared/theming/utils';
 
 import { CHARTS_PARAM_DEFAULTS, PUBLIC_PARAM_NAMES } from './chartsTheme';
@@ -18,7 +18,7 @@ export const SCROLLBAR_GROUP_ID = 'scrollbar';
 export interface ChartsParamConfig {
     key: string;
     label: string;
-    icon?: LengthIcon;
+    icon?: ParamIcon;
     swipeAdjustmentDivisor?: number;
     /** Clamp for length editors (px). Colour and font params ignore these. */
     min?: number;
@@ -57,11 +57,12 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'textColor', label: 'Text Color' },
             { key: 'subtleTextColor', label: 'Subtle Text Color' },
             { key: 'chartBackgroundColor', label: 'Chart Background' },
+            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
         ],
     },
     {
         id: 'borders',
-        label: 'Borders & Spacing',
+        label: 'Borders',
         params: [
             { key: 'borderColor', label: 'Border Color' },
             {
@@ -72,8 +73,14 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
                 min: 0,
                 max: 24,
             },
-            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
-            { key: 'borderWidth', label: 'Border Width', min: 0, max: 8 },
+            {
+                key: 'borderWidth',
+                label: 'Border Width',
+                icon: 'borderWidth',
+                swipeAdjustmentDivisor: 20,
+                min: 0,
+                max: 8,
+            },
         ],
     },
     {
@@ -141,7 +148,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'seriesLabelInsideBackgroundColor', label: 'Inside Background' },
             { key: 'seriesLabelOutsideTextColor', label: 'Outside Text Color' },
             { key: 'seriesLabelOutsideBackgroundColor', label: 'Outside Background' },
-            { key: 'seriesLabelBorder', label: 'Border' },
+            { key: 'seriesLabelBorder', label: 'Border', icon: 'seriesLabelBorder' },
             { key: 'seriesLabelBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
         ],
     },
@@ -158,14 +165,21 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'chromeLineHeight', label: 'Line Height' },
             { key: 'menuBackgroundColor', label: 'Menu Background' },
             { key: 'menuTextColor', label: 'Menu Text' },
-            { key: 'menuBorder', label: 'Menu Border' },
+            { key: 'menuBorder', label: 'Menu Border', icon: 'menuBorder' },
             { key: 'menuBorderRadius', label: 'Menu Radius', icon: 'radius', min: 0, max: 24 },
             { key: 'menuSeparatorColor', label: 'Menu Separator' },
             { key: 'panelBackgroundColor', label: 'Panel Background' },
             { key: 'panelSubtleTextColor', label: 'Panel Subtle Text' },
             { key: 'dragHandleColor', label: 'Drag Handle' },
             { key: 'colorPickerThumbSize', label: 'Color Picker Thumb Size', min: 8, max: 32 },
-            { key: 'colorPickerThumbBorderWidth', label: 'Color Picker Thumb Border', min: 0, max: 8 },
+            {
+                key: 'colorPickerThumbBorderWidth',
+                label: 'Color Picker Thumb Border',
+                icon: 'borderWidth',
+                swipeAdjustmentDivisor: 20,
+                min: 0,
+                max: 8,
+            },
             { key: 'colorPickerTrackSize', label: 'Color Picker Track Size', min: 4, max: 24 },
             {
                 key: 'colorPickerTrackBorderRadius',
@@ -190,7 +204,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'tooltipBackgroundColor', label: 'Background Color' },
             { key: 'tooltipTextColor', label: 'Text Color' },
             { key: 'tooltipSubtleTextColor', label: 'Subtle Text Color' },
-            { key: 'tooltipBorder', label: 'Border' },
+            { key: 'tooltipBorder', label: 'Border', icon: 'tooltipBorder' },
             { key: 'tooltipBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
         ],
     },
@@ -198,7 +212,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         id: 'legend',
         label: 'Legend',
         params: [
-            { key: 'legendBorder', label: 'Border' },
+            { key: 'legendBorder', label: 'Border', icon: 'legendBorder' },
             { key: 'legendBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
             { key: 'legendPadding', label: 'Padding', icon: 'horizontalSpacing', min: 0, max: 40 },
             {
@@ -229,22 +243,22 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         params: [
             { key: 'buttonBackgroundColor', label: 'Button Background' },
             { key: 'buttonTextColor', label: 'Button Text' },
-            { key: 'buttonBorder', label: 'Button Border' },
+            { key: 'buttonBorder', label: 'Button Border', icon: 'buttonBorder' },
             { key: 'buttonBorderRadius', label: 'Button Radius', icon: 'radius', min: 0, max: 24 },
             { key: 'buttonFontWeight', label: 'Button Font Weight' },
             { key: 'buttonHoverBackgroundColor', label: 'Button Hover Background' },
             { key: 'buttonHoverTextColor', label: 'Button Hover Text' },
-            { key: 'buttonHoverBorder', label: 'Button Hover Border' },
+            { key: 'buttonHoverBorder', label: 'Button Hover Border', icon: 'buttonBorder' },
             { key: 'buttonActiveBackgroundColor', label: 'Button Active Background' },
             { key: 'buttonActiveTextColor', label: 'Button Active Text' },
-            { key: 'buttonActiveBorder', label: 'Button Active Border' },
+            { key: 'buttonActiveBorder', label: 'Button Active Border', icon: 'buttonBorder' },
             { key: 'buttonDisabledBackgroundColor', label: 'Button Disabled Background' },
             { key: 'buttonDisabledTextColor', label: 'Button Disabled Text' },
-            { key: 'buttonDisabledBorder', label: 'Button Disabled Border' },
+            { key: 'buttonDisabledBorder', label: 'Button Disabled Border', icon: 'buttonBorder' },
             { key: 'inputBackgroundColor', label: 'Input Background' },
             { key: 'inputTextColor', label: 'Input Text' },
             { key: 'inputPlaceholderTextColor', label: 'Input Placeholder Text' },
-            { key: 'inputBorder', label: 'Input Border' },
+            { key: 'inputBorder', label: 'Input Border', icon: 'inputBorder' },
             { key: 'inputBorderRadius', label: 'Input Radius', icon: 'radius', min: 0, max: 24 },
         ],
     },
@@ -254,13 +268,13 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         params: [
             { key: 'scrollbarThickness', label: 'Thickness', min: 4, max: 32 },
             { key: 'scrollbarTrackBackgroundColor', label: 'Track Background' },
-            { key: 'scrollbarTrackBorder', label: 'Track Border' },
+            { key: 'scrollbarTrackBorder', label: 'Track Border', icon: 'scrollbarTrackBorder' },
             { key: 'scrollbarTrackBorderRadius', label: 'Track Radius', icon: 'radius', min: 0, max: 16 },
             { key: 'scrollbarThumbBackgroundColor', label: 'Thumb Background' },
-            { key: 'scrollbarThumbBorder', label: 'Thumb Border' },
+            { key: 'scrollbarThumbBorder', label: 'Thumb Border', icon: 'scrollbarThumbBorder' },
             { key: 'scrollbarThumbBorderRadius', label: 'Thumb Radius', icon: 'radius', min: 0, max: 16 },
             { key: 'scrollbarThumbHoverBackgroundColor', label: 'Thumb Hover Background' },
-            { key: 'scrollbarThumbHoverBorder', label: 'Thumb Hover Border' },
+            { key: 'scrollbarThumbHoverBorder', label: 'Thumb Hover Border', icon: 'scrollbarThumbBorder' },
         ],
     },
     {
@@ -268,11 +282,11 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         label: 'Navigator',
         params: [
             { key: 'navigatorTrackBackgroundColor', label: 'Track Background' },
-            { key: 'navigatorTrackBorder', label: 'Track Border' },
+            { key: 'navigatorTrackBorder', label: 'Track Border', icon: 'navigatorTrackBorder' },
             { key: 'navigatorTrackBorderRadius', label: 'Track Radius', icon: 'radius', min: 0, max: 16 },
             { key: 'navigatorThumbBackgroundColor', label: 'Thumb Background' },
             { key: 'navigatorHandleBackgroundColor', label: 'Handle Background' },
-            { key: 'navigatorHandleBorder', label: 'Handle Border' },
+            { key: 'navigatorHandleBorder', label: 'Handle Border', icon: 'navigatorHandleBorder' },
             { key: 'navigatorHandleBorderRadius', label: 'Handle Radius', icon: 'radius', min: 0, max: 16 },
         ],
     },
