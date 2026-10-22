@@ -722,9 +722,12 @@ describe('series label fit', () => {
 
             // The largest size anything in the label is drawn at, so a segment with its own size is held too.
             const drawnFontSize = (node: StageLabel) => {
-                // `Text.text` is typed as a string, but a segmented formatter makes it a list of segments.
-                const segments = Array.isArray(node.text) ? (node.text as { fontSize?: number }[]) : [];
-                return Math.max(node.fontSize, ...segments.map((segment) => segment.fontSize ?? 0));
+                // A segmented formatter makes `Text.text` a list of segments, and image segments carry no `fontSize`.
+                const segments = Array.isArray(node.text) ? node.text : [];
+                return Math.max(
+                    node.fontSize,
+                    ...segments.map((segment) => ('fontSize' in segment ? (segment.fontSize ?? 0) : 0))
+                );
             };
 
             it.each<[string, FitLabel['formatter']]>([
