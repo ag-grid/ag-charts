@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { type RotatableText, Transformable } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
+import type {
+    AgBarSeriesLabelPlacement,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartLabelOrientation,
+    AgHistogramSeriesLabelPlacement,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { getAxisLabelNodes } from '../../test/axisAccessors';
@@ -18,6 +24,7 @@ import {
     compareImageSnapshot,
     createChart,
     deproxy,
+    getVisibleLabelNodes,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -82,10 +89,6 @@ type LabelBox = { x: number; y: number; width: number; height: number };
 const seriesVisibleLabelBoxes = (chart: AgChartInstance, seriesIndex: number) =>
     getVisibleLabelTextNodes(chart, seriesIndex).map((node): LabelBox => node.getBBox());
 
-// `collideWith` is undocumented (see `LabelCollisionConfig`), so options that set it are built as plain objects
-// and only become chart options here.
-const asChartOptions = (options: object) => options as AgCartesianChartOptions;
-
 describe('label collision avoidance', () => {
     setupMockConsole();
 
@@ -103,8 +106,7 @@ describe('label collision avoidance', () => {
 
     const placedLabelPlacements = () => getPlacedLabelData(chart);
 
-    const renderedLabelTexts = () =>
-        getVisibleLabelTextNodes(chart).map((node) => (typeof node.text === 'string' ? node.text : ''));
+    const renderedLabelTexts = () => getVisibleLabelNodes(chart).map((node) => node.text);
 
     const expectAllEllipsised = (fullText: string) => {
         const texts = renderedLabelTexts();
@@ -778,7 +780,7 @@ describe('label collision avoidance', () => {
         };
 
         const visibleBarLabelCount = (seriesIndex = 0) => {
-            return getVisibleLabelTextNodes(chart, seriesIndex).length;
+            return getVisibleLabelNodes(chart, seriesIndex).length;
         };
 
         describe('seriesArea', () => {
@@ -1515,7 +1517,7 @@ describe('label collision avoidance', () => {
             ],
         });
         const visibleLabelCount = () => {
-            return getVisibleLabelTextNodes(chart).length;
+            return getVisibleLabelNodes(chart).length;
         };
         const render = async (collision: object, placement?: string | string[]) => {
             const opts = options(collision, placement);
@@ -1564,7 +1566,7 @@ describe('label collision avoidance', () => {
                 ],
             };
             chart = await createChart(opts);
-            const labels = getVisibleLabelTextNodes<{ label?: { placement?: string } }>(chart);
+            const labels = getVisibleLabelNodes<{ label?: { placement?: string } }>(chart);
             expect(labels).toHaveLength(1);
             expect(labels[0].datum?.label?.placement).toBe('outside-end');
         });
@@ -1623,7 +1625,9 @@ describe('label collision avoidance', () => {
     // so an array whose first candidate already fits renders identically to that single placement.
     describe('bar-family placement cascade (first fitting candidate wins)', () => {
         const barData = Array.from({ length: 8 }, (_, i) => ({ x: `C${i}`, y: 20 + 10 * Math.sin(i) }));
-        const barOptions = (placement: string | string[]) => ({
+        const barOptions = (
+            placement: AgBarSeriesLabelPlacement | AgBarSeriesLabelPlacement[]
+        ): AgCartesianChartOptions => ({
             data: barData,
             legend: { enabled: false },
             axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
@@ -1634,13 +1638,15 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                asChartOptions(barOptions('inside-end')),
-                asChartOptions(barOptions(['inside-end', 'outside-end']))
+                barOptions('inside-end'),
+                barOptions(['inside-end', 'outside-end'])
             );
         });
 
         const histData = Array.from({ length: 8 }, (_, i) => ({ x: 20 + 10 * Math.sin(i) }));
-        const histOptions = (placement: string | string[]) => ({
+        const histOptions = (
+            placement: AgHistogramSeriesLabelPlacement | AgHistogramSeriesLabelPlacement[]
+        ): AgCartesianChartOptions => ({
             data: histData,
             legend: { enabled: false },
             axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
@@ -1651,8 +1657,8 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                asChartOptions(histOptions('inside-center')),
-                asChartOptions(histOptions(['inside-center', 'outside-end']))
+                histOptions('inside-center'),
+                histOptions(['inside-center', 'outside-end'])
             );
         });
     });
@@ -1661,15 +1667,26 @@ describe('label collision avoidance', () => {
     // quarter-turn either way. Both a column and a horizontal bar are exercised per orientation.
     describe('bar label orientation', () => {
         const barData = Array.from({ length: 6 }, (_, i) => ({ cat: `Category ${i}`, value: 30 + 10 * Math.sin(i) }));
-        const orientations = ['horizontal', 'vertical', 'vertical-reversed'];
-        const barOrientationOptions = (orientation: string | string[], direction: 'vertical' | 'horizontal') => ({
+        const orientations: AgChartLabelOrientation[] = ['horizontal', 'vertical', 'vertical-reversed'];
+        const barOrientationOptions = (
+            orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined,
+            direction: 'vertical' | 'horizontal'
+        ): AgCartesianChartOptions => ({
             data: barData,
             legend: { enabled: false },
             axes:
                 direction === 'vertical'
                     ? { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } }
                     : { x: { type: 'number', position: 'bottom' }, y: { type: 'category', position: 'left' } },
-            series: [{ type: 'bar', xKey: 'cat', yKey: 'value', direction, label: { enabled: true, orientation } }],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'cat',
+                    yKey: 'value',
+                    direction,
+                    label: { enabled: true, ...(orientation != null && { orientation }) },
+                },
+            ],
         });
 
         for (const orientation of orientations) {
@@ -1685,19 +1702,19 @@ describe('label collision avoidance', () => {
         // `horizontal` maps to 0deg (upright), so it must render identically to an unrotated label —
         // pinning the mapping and the unset default.
         it('renders a horizontal label identically to no orientation', async () => {
-            const unset = barOrientationOptions('horizontal', 'vertical');
-            delete (unset.series[0].label as { orientation?: string }).orientation;
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                asChartOptions(unset),
-                asChartOptions(barOrientationOptions('horizontal', 'vertical'))
+                barOrientationOptions(undefined, 'vertical'),
+                barOrientationOptions('horizontal', 'vertical')
             );
         });
 
         // Orientation array fall-through: many thin columns whose long upright (horizontal) label
         // overflows the bar width, forcing every label through to vertical.
-        const thinColumns = (orientation: string | string[]) => ({
+        const thinColumns = (
+            orientation: AgChartLabelOrientation | AgChartLabelOrientation[]
+        ): AgCartesianChartOptions => ({
             data: Array.from({ length: 12 }, (_, i) => ({ cat: `Category ${i}`, value: 50 })),
             legend: { enabled: false },
             axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
@@ -1718,8 +1735,8 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                asChartOptions(thinColumns(['horizontal', 'vertical'])),
-                asChartOptions(thinColumns('vertical'))
+                thinColumns(['horizontal', 'vertical']),
+                thinColumns('vertical')
             );
         });
 
@@ -1729,8 +1746,8 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                asChartOptions(barOrientationOptions(['vertical'], 'vertical')),
-                asChartOptions(barOrientationOptions('vertical', 'vertical'))
+                barOrientationOptions(['vertical'], 'vertical'),
+                barOrientationOptions('vertical', 'vertical')
             );
         });
 
@@ -1738,7 +1755,7 @@ describe('label collision avoidance', () => {
         // vertical hides its label; neither may revert to the horizontal bake made at node-data time.
         it('keeps a narrowing bar label vertical instead of reverting to horizontal', async () => {
             const optionsAt = (width: number) => {
-                const options = {
+                const chartOptions: AgCartesianChartOptions = {
                     data: Array.from({ length: 8 }, (_, i) => ({ cat: `Category ${i}`, value: 100 })),
                     legend: { enabled: false },
                     axes: {
@@ -1759,7 +1776,6 @@ describe('label collision avoidance', () => {
                         },
                     ],
                 };
-                const chartOptions = asChartOptions(options);
                 prepareTestOptions(chartOptions);
                 chartOptions.width = width;
                 return chartOptions;
@@ -1803,7 +1819,7 @@ describe('label collision avoidance', () => {
         // already-rotated box would make it walk on every resize.
         it('keeps a vertical label pivot stable across resizes (no drift)', async () => {
             const optionsAt = (width: number) => {
-                const options = {
+                const chartOptions: AgCartesianChartOptions = {
                     data: Array.from({ length: 12 }, (_, i) => ({ cat: `Category ${i}`, value: 50 })),
                     legend: { enabled: false },
                     axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
@@ -1821,7 +1837,6 @@ describe('label collision avoidance', () => {
                         },
                     ],
                 };
-                const chartOptions = asChartOptions(options);
                 prepareTestOptions(chartOptions);
                 chartOptions.width = width;
                 return chartOptions;
@@ -1852,7 +1867,7 @@ describe('label collision avoidance', () => {
 
         // An inside-start/end label rotated to the along-bar orientation pivots on its glyph centre,
         // which sits on the bar's edge, so the engine must slide it flush back inside the rect.
-        const thinTallColumns = (placement: string) => ({
+        const thinTallColumns = (placement: AgBarSeriesLabelPlacement): AgCartesianChartOptions => ({
             data: Array.from({ length: 10 }, (_, i) => ({ cat: `Category ${i}`, value: 100 })),
             legend: { enabled: false },
             axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left', max: 100 } },
@@ -1871,14 +1886,15 @@ describe('label collision avoidance', () => {
             ],
         });
 
-        for (const placement of ['inside-start', 'inside-end']) {
+        const insidePlacements: AgBarSeriesLabelPlacement[] = ['inside-start', 'inside-end'];
+        for (const placement of insidePlacements) {
             it(`keeps a resolved '${placement}' label inside the bar rect`, async () => {
                 await renderAndSnapshot(thinTallColumns(placement));
             });
 
             it(`slides a resolved '${placement}' label flush within the bar rect`, async () => {
                 const options = thinTallColumns(placement);
-                chart = await createChart(asChartOptions(options));
+                chart = await createChart(options);
 
                 const { nodeData: bars } = getSeriesContextNodeData<LabelBox>(chart);
                 const rotatedLabels = getVisibleLabelTextNodes(chart).filter((node) => node.rotation !== 0);
@@ -1920,7 +1936,7 @@ describe('label collision avoidance', () => {
         };
 
         const barRotations = () => {
-            const visible = getVisibleLabelTextNodes(chart).length;
+            const visible = getVisibleLabelNodes(chart).length;
             const rotations = getSeriesContextNodeData<unknown, { label?: { rotation?: number } }>(chart).labelData.map(
                 (d) => d.label?.rotation ?? 0
             );
@@ -2000,7 +2016,7 @@ describe('label collision avoidance', () => {
 
         it('vertical bar: keeps the horizontal label spanning the bar width instead of rotating it', async () => {
             const spacing = 35;
-            const options = {
+            const chartOptions: AgCartesianChartOptions = {
                 data: Array.from({ length: 8 }, (_, i) => ({ cat: `Category ${i}`, value: 100 })),
                 legend: { enabled: false },
                 axes: {
@@ -2022,7 +2038,6 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            const chartOptions = asChartOptions(options);
             prepareTestOptions(chartOptions);
             // Bespoke: the size under test is applied after preparation, which the shared factory would overwrite.
             // This applies to every bare create in this suite.
@@ -2053,7 +2068,7 @@ describe('label collision avoidance', () => {
 
         it('horizontal bar: keeps the vertical label spanning the bar height instead of rotating it', async () => {
             const spacing = 35;
-            const options = {
+            const chartOptions: AgCartesianChartOptions = {
                 data: Array.from({ length: 8 }, (_, i) => ({ cat: `Category ${i}`, value: 100 })),
                 legend: { enabled: false },
                 axes: {
@@ -2076,7 +2091,6 @@ describe('label collision avoidance', () => {
                     },
                 ],
             };
-            const chartOptions = asChartOptions(options);
             prepareTestOptions(chartOptions);
             // Thin bars (each shorter than twice the spacing) so an all-sides inset region would reject the
             // vertical label, while it still fits the bar's full height.

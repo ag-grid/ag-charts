@@ -10,6 +10,7 @@ import {
     createChart,
     deproxy,
     expectWarningsCalls,
+    getVisibleLabelNodes,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -40,9 +41,9 @@ describe('label minimumFontSize', () => {
     };
 
     type LabelNode = { fontSize: number; text: string };
-    const drawnLabels = (nodes: Text[]): LabelNode[] =>
+    const drawnLabels = (nodes: Pick<Text, 'fontSize' | 'text'>[]): LabelNode[] =>
         nodes.filter((node) => node.text !== '').map((node) => ({ fontSize: node.fontSize, text: String(node.text) }));
-    const labels = (seriesIndex = 0): LabelNode[] => drawnLabels(getVisibleLabelTextNodes(chart, seriesIndex));
+    const labels = (seriesIndex = 0): LabelNode[] => drawnLabels(getVisibleLabelNodes(chart, seriesIndex));
     const fontSizes = (seriesIndex = 0) => labels(seriesIndex).map((node) => node.fontSize);
 
     const axes = { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } };
@@ -144,9 +145,11 @@ describe('label minimumFontSize', () => {
     it('wraps and shrinks together, landing on the largest size the wrapped text fits at', async () => {
         // Each candidate size is wrapped before it is measured, so the label lands at the largest size
         // whose wrapped text fits the bar; short bars make height the binding constraint here.
-        const short = { ...barChart({ wrapping: 'on-space', truncate: true, minimumFontSize: 4 }) };
-        short.data = data.map((datum, i) => ({ ...datum, value: 9 + i }));
-        short.axes = { ...axes, y: { ...axes.y, max: 100 } } as typeof axes;
+        const short = {
+            ...barChart({ wrapping: 'on-space', truncate: true, minimumFontSize: 4 }),
+            data: data.map((datum, i) => ({ ...datum, value: 9 + i })),
+            axes: { ...axes, y: { ...axes.y, max: 100 } },
+        };
         await render(short);
         const rendered = labels();
         expect(rendered.length).toBe(data.length);

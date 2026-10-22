@@ -1,6 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgDropShadowOptions } from 'ag-charts-types';
+import type {
+    AgAreaSeriesOptions,
+    AgBubbleSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgDropShadowOptions,
+    AgLineSeriesOptions,
+    AgMarkerShape,
+    AgMarkerShapeFn,
+    AgScatterSeriesOptions,
+    AgSeriesMarkerStyle,
+} from 'ag-charts-types';
 
 import type { Marker } from '../../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
@@ -24,9 +35,15 @@ const SCATTER_DATA = [
     { x: 4, y: 8, size: 15 },
 ];
 
+/** The marker settings the cases below vary: the shape, and a styler whose params differ by series type. */
+interface MarkerOverrides {
+    shape?: AgMarkerShape | AgMarkerShapeFn;
+    itemStyler?: (params: any) => AgSeriesMarkerStyle | undefined;
+}
+
 const markerSeriesOptions = {
-    scatter: (marker: object, shadow?: AgDropShadowOptions) => ({
-        type: 'scatter' as const,
+    scatter: (marker: MarkerOverrides, shadow?: AgDropShadowOptions): AgScatterSeriesOptions => ({
+        type: 'scatter',
         xKey: 'x',
         yKey: 'y',
         shape: 'circle',
@@ -34,22 +51,22 @@ const markerSeriesOptions = {
         shadow,
         ...marker,
     }),
-    bubble: (marker: object, shadow?: AgDropShadowOptions) => ({
-        type: 'bubble' as const,
+    bubble: (marker: MarkerOverrides, shadow?: AgDropShadowOptions): AgBubbleSeriesOptions => ({
+        type: 'bubble',
         xKey: 'x',
         yKey: 'y',
         sizeKey: 'size',
         shadow,
         ...marker,
     }),
-    line: (marker: object, shadow?: AgDropShadowOptions) => ({
-        type: 'line' as const,
+    line: (marker: MarkerOverrides, shadow?: AgDropShadowOptions): AgLineSeriesOptions => ({
+        type: 'line',
         xKey: 'x',
         yKey: 'y',
         marker: { enabled: true, size: 12, ...marker, shadow },
     }),
-    area: (marker: object, shadow?: AgDropShadowOptions) => ({
-        type: 'area' as const,
+    area: (marker: MarkerOverrides, shadow?: AgDropShadowOptions): AgAreaSeriesOptions => ({
+        type: 'area',
         xKey: 'x',
         yKey: 'y',
         marker: { enabled: true, size: 12, ...marker, shadow },
@@ -77,14 +94,14 @@ describe('marker shadow', () => {
     const visibleMarkers = (seriesIndex = 0): Marker[] =>
         getSeriesSelectionNodes<Marker>(chart, 'datumSelection', seriesIndex).filter((node) => node.visible);
 
-    const shapeOption = (shape: unknown) => ({ shape });
+    const shapeOption = (shape: AgMarkerShape | AgMarkerShapeFn): MarkerOverrides => ({ shape });
 
     describe.each(['scatter', 'bubble', 'line', 'area'] as const)('%s', (type) => {
         it('applies the shadow to markers with a built-in shape', async () => {
             await create({
                 data: SCATTER_DATA,
                 series: [markerSeriesOptions[type](shapeOption('diamond'), MARKER_SHADOW)],
-            } as AgCartesianChartOptions);
+            });
 
             const markers = visibleMarkers();
             expect(markers).toHaveLength(SCATTER_DATA.length);
@@ -97,7 +114,7 @@ describe('marker shadow', () => {
             await create({
                 data: SCATTER_DATA,
                 series: [markerSeriesOptions[type](shapeOption(customMarkerShape), MARKER_SHADOW)],
-            } as AgCartesianChartOptions);
+            });
 
             const markers = visibleMarkers();
             expect(markers).toHaveLength(SCATTER_DATA.length);
@@ -110,7 +127,7 @@ describe('marker shadow', () => {
             await create({
                 data: SCATTER_DATA,
                 series: [markerSeriesOptions[type](shapeOption('circle'))],
-            } as AgCartesianChartOptions);
+            });
 
             const markers = visibleMarkers();
             expect(markers.length).toBeGreaterThan(0);
@@ -121,11 +138,10 @@ describe('marker shadow', () => {
     });
 
     describe.each(['scatter', 'bubble', 'line', 'area'] as const)('%s dynamic update', (type) => {
-        const options = (shadow: AgDropShadowOptions) =>
-            ({
-                data: SCATTER_DATA,
-                series: [markerSeriesOptions[type](shapeOption('circle'), shadow)],
-            }) as AgCartesianChartOptions;
+        const options = (shadow: AgDropShadowOptions): AgCartesianChartOptions => ({
+            data: SCATTER_DATA,
+            series: [markerSeriesOptions[type](shapeOption('circle'), shadow)],
+        });
 
         const update = async (next: AgCartesianChartOptions) => {
             prepareTestOptions(next);
@@ -177,7 +193,7 @@ describe('marker shadow', () => {
                 await create({
                     data: SCATTER_DATA,
                     series: [markerSeriesOptions[type]({ shape: 'square', itemStyler }, MARKER_SHADOW)],
-                } as AgCartesianChartOptions);
+                });
 
                 expect(received.length).toBeGreaterThan(0);
                 for (const params of received) {
@@ -197,7 +213,7 @@ describe('marker shadow', () => {
             await create({
                 data: SCATTER_DATA,
                 series: [markerSeriesOptions.scatter({ shape: 'square', itemStyler: () => undefined }, MARKER_SHADOW)],
-            } as AgCartesianChartOptions);
+            });
 
             for (const marker of visibleMarkers()) {
                 expect(marker.fillShadow).toMatchObject(MARKER_SHADOW);
@@ -220,7 +236,7 @@ describe('marker shadow', () => {
                     series: [
                         { ...markerSeriesOptions[type]({ shape: 'square' }, MARKER_SHADOW), tooltip: { renderer } },
                     ],
-                } as AgCartesianChartOptions);
+                });
 
                 getSeriesAt(chart).getTooltipContent(0, undefined);
 
@@ -255,7 +271,7 @@ describe('marker shadow', () => {
                         marker: { enabled: true, shape: 'circle', size: 12, shadow: MARKER_SHADOW },
                     },
                 ],
-            } as AgCartesianChartOptions);
+            });
 
             expect(areaFillPath().fillShadow).toMatchObject(AREA_FILL_SHADOW);
             const markers = visibleMarkers();
@@ -277,7 +293,7 @@ describe('marker shadow', () => {
                         marker: { enabled: true, shape: 'circle', size: 12 },
                     },
                 ],
-            } as AgCartesianChartOptions);
+            });
 
             expect(areaFillPath().fillShadow).toMatchObject(AREA_FILL_SHADOW);
             const markers = visibleMarkers();
@@ -298,7 +314,7 @@ describe('marker shadow', () => {
                         marker: { enabled: true, shape: 'circle', size: 12, shadow: MARKER_SHADOW },
                     },
                 ],
-            } as AgCartesianChartOptions);
+            });
 
             expect(areaFillPath().fillShadow?.enabled ?? false).toBe(false);
             const markers = visibleMarkers();
@@ -311,11 +327,12 @@ describe('marker shadow', () => {
 
     describe('image snapshots', () => {
         // Decoration-free axes, padded so the shadowed markers aren't clipped at the edge. Hiding the labels also
-        // keeps the baselines independent of the platform's font rendering.
+        // keeps the baselines independent of the platform's font rendering. `STRIPPED_NUMBER_AXES` is declared with
+        // `type: string` in a shared fixture, so the spread needs this cast to read as axis options.
         const PADDED_AXES = {
             x: { ...STRIPPED_NUMBER_AXES.x, min: 0, max: 5 },
             y: { ...STRIPPED_NUMBER_AXES.y, min: 0, max: 10 },
-        };
+        } as AgCartesianChartOptions['axes'];
 
         const compare = () => compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
 
@@ -333,7 +350,7 @@ describe('marker shadow', () => {
                         shadow: { enabled: true, color: '#000000aa', xOffset: 5, yOffset: 5, blur: 6 },
                     },
                 ],
-            } as AgCartesianChartOptions);
+            });
             await compare();
         });
 
@@ -354,7 +371,7 @@ describe('marker shadow', () => {
                         },
                     },
                 ],
-            } as AgCartesianChartOptions);
+            });
             await compare();
         });
     });

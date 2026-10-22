@@ -43,7 +43,8 @@ export function getSeriesLabelObstacles(chartOrProxy: ChartOrProxy<any>, index =
  * The label nodes a series has on the scene graph and is showing, in selection order. `selection` picks the labels
  * drawn for the datums (`labelSelection`, the default) or for the highlighted datum (`highlightLabelSelection`).
  * `TDatum` is the datum the series wrote onto each label node.
- * Prefer `getVisibleLabelNodes` (`utils`) when only text, size and position are read.
+ * Use `getVisibleLabelNodes` (`utils`) instead when only text, size, position or the datum are read of the datums'
+ * labels; this one is for the highlight selection and for what `RotatableText` adds (`getBBox`, `rotation`, boxing).
  */
 export function getVisibleLabelTextNodes<TDatum = unknown>(
     chartOrProxy: ChartOrProxy<any>,

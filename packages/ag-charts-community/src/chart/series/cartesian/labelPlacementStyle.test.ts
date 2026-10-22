@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
+import type {
+    AgBarSeriesLabelPlacement,
+    AgBarSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartInstance,
+} from 'ag-charts-types';
 
 import { getLabelBoxCornerRadius, getVisibleLabelTextNodes } from '../../test/communitySeriesAccessors';
 import { getSeriesContextNodeData } from '../../test/seriesAccessors';
@@ -55,7 +60,7 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             { cat: 'B', value: 60 },
             { cat: 'C', value: 90 },
         ];
-        const barOptions = (labelOptions: object) => ({
+        const barOptions = (labelOptions: NonNullable<AgBarSeriesOptions['label']>): AgCartesianChartOptions => ({
             data: barData,
             legend: { enabled: false },
             axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
@@ -128,11 +133,11 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
 
         // A colour reaching `label.color` via `theme.overrides` must beat the per-placement default just
         // as a series-level `label.color` does — the default applies only when no colour was supplied.
-        it.each(['inside-center', 'outside-end'])(
+        it.each<AgBarSeriesLabelPlacement>(['inside-center', 'outside-end'])(
             'applies a theme-override label colour for a %s placement',
             async (placement) => {
                 const options: AgCartesianChartOptions = {
-                    ...(barOptions({ placement }) as AgCartesianChartOptions),
+                    ...barOptions({ placement }),
                     theme: { overrides: { bar: { series: { label: { color: 'rgb(190, 55, 55)' } } } } },
                 };
                 chart = await createChart(options);
