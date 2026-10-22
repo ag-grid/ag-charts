@@ -109,6 +109,10 @@ function expectNodeDataOnDatums(chart: ChartOrProxy<any>, seriesIndex: number, w
         expect(node.midPoint, where).toEqual({ x: node.point.x, y: node.point.y });
     }
 
+    // The loop below passes for no spans at all, so a series that drew nothing must not get through it.
+    expect(strokeData.spans.length, `${where}: stroke spans`).toBeGreaterThan(0);
+    if (fillData != null) expect(fillData.spans.length, `${where}: fill spans`).toBeGreaterThan(0);
+
     for (const spans of [strokeData.spans, fillData?.spans ?? []]) {
         for (const { span, xValue0, yValue0, xValue1, yValue1 } of spans) {
             // These cases draw straight segments, which is what makes a span's end points the datums' positions.

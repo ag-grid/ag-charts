@@ -272,6 +272,25 @@ describe('community series test accessors', () => {
             expect(bins.map((bin) => bin.frequency)).toEqual([2, 3]);
         });
 
+        it('returns the bins of the series at the index it is given', async () => {
+            chart = await createChart({
+                data: [
+                    { v: 1, w: 1 },
+                    { v: 2, w: 2 },
+                    { v: 12, w: 12 },
+                    { v: 13, w: 13 },
+                    { v: 14, w: 14 },
+                ],
+                series: [
+                    { type: 'histogram', xKey: 'v', binCount: 2 },
+                    { type: 'histogram', xKey: 'w', binCount: 3 },
+                ],
+            });
+
+            expect(getHistogramBins(chart, 0)).toHaveLength(2);
+            expect(getHistogramBins(chart, 1)).toHaveLength(3);
+        });
+
         it('fails for a series that is not a histogram', async () => {
             chart = await createChart(barOptions);
 
@@ -311,9 +330,23 @@ describe('community series test accessors', () => {
             expect(getPathSeriesContextNodeData(chart).fillData).toBeDefined();
         });
 
-        it('fails for a series that builds no stroke spans', async () => {
-            chart = await createChart({ data, series: [{ type: 'pie', angleKey: 'y' }] });
+        it('returns the spans of the series at the index it is given', async () => {
+            chart = await createChart({
+                data,
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y' },
+                    { type: 'area', xKey: 'x', yKey: 'y' },
+                ],
+            });
 
+            expect(getPathSeriesContextNodeData(chart, 0).fillData).toBeUndefined();
+            expect(getPathSeriesContextNodeData(chart, 1).fillData).toBeDefined();
+        });
+
+        it('fails for a series that has node data but builds no stroke spans', async () => {
+            chart = await createChart(barOptions);
+
+            expect(getSeriesContextNodeData(chart).nodeData).toHaveLength(3);
             expect(errorFrom(() => getPathSeriesContextNodeData(chart))?.name).toBe('AssertionError');
         });
     });
@@ -352,6 +385,30 @@ describe('community series test accessors', () => {
             expect(wideMax - wideMin).toBeGreaterThan(narrowMax - narrowMin);
         });
 
+        it('sizes the extent by the datum it is asked about', async () => {
+            chart = await createChart(bubbleOptions);
+
+            const [smallMin, smallMax] = getXCoordinateRange(chart, 1, 1, 0);
+            const [largeMin, largeMax] = getXCoordinateRange(chart, 1, 1, 1);
+
+            expect(largeMax - largeMin).toBeGreaterThan(smallMax - smallMin);
+        });
+
+        it('measures the series at the index it is given', async () => {
+            chart = await createChart({
+                data: [{ x: 1, y: 1, y2: 1, small: 10, large: 20 }],
+                series: [
+                    { type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'small', sizeDomain: [0, 20] },
+                    { type: 'bubble', xKey: 'x', yKey: 'y2', sizeKey: 'large', sizeDomain: [0, 20] },
+                ],
+            });
+
+            const [firstMin, firstMax] = getXCoordinateRange(chart, 1, 1, 0, 0);
+            const [secondMin, secondMax] = getXCoordinateRange(chart, 1, 1, 0, 1);
+
+            expect(secondMax - secondMin).toBeGreaterThan(firstMax - firstMin);
+        });
+
         it('fails for a series that does not size its datums this way', async () => {
             chart = await createChart({ data, series: [{ type: 'pie', angleKey: 'y' }] });
 
@@ -375,9 +432,26 @@ describe('community series test accessors', () => {
             expect(phantomNodeData).toHaveLength(2);
         });
 
-        it('fails for a series that builds no phantom nodes', async () => {
-            chart = await createChart({ data, series: [{ type: 'pie', angleKey: 'y' }] });
+        it('returns the nodes of the series at the index it is given', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'A', y: 10, y2: 10, f: 4 },
+                    { x: 'B', y: 20, y2: 20, f: 8 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'y' },
+                    withUndocumentedOptions({ type: 'bar', xKey: 'x', yKey: 'y2' } as const, { yFilterKey: 'f' }),
+                ],
+            });
 
+            expect(getBarSeriesContextNodeData(chart, 0).phantomNodeData).toHaveLength(0);
+            expect(getBarSeriesContextNodeData(chart, 1).phantomNodeData).toHaveLength(2);
+        });
+
+        it('fails for a series that has node data but builds no phantom nodes', async () => {
+            chart = await createChart(lineOptions());
+
+            expect(getSeriesContextNodeData(chart).nodeData).toHaveLength(3);
             expect(errorFrom(() => getBarSeriesContextNodeData(chart))?.name).toBe('AssertionError');
         });
     });
@@ -410,6 +484,23 @@ describe('community series test accessors', () => {
             expect(getFilteredValueExceedUnfiltered(chart)).toBe(false);
         });
 
+        it('reads the series at the index it is given', async () => {
+            chart = await createChart({
+                data: [{ x: 'A', a: 60, b: 40, bFiltered: 80 }],
+                legend: { enabled: false },
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'a' },
+                    withUndocumentedOptions(
+                        { type: 'bar', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 } as const,
+                        { yFilterKey: 'bFiltered' }
+                    ),
+                ],
+            });
+
+            expect(getFilteredValueExceedUnfiltered(chart, 1)).toBe(true);
+            expect(errorFrom(() => getFilteredValueExceedUnfiltered(chart, 0))?.name).toBe('AssertionError');
+        });
+
         it('fails for a series that did not reduce the flag', async () => {
             chart = await createChart({ data, series: [{ type: 'pie', angleKey: 'y' }] });
 
@@ -427,38 +518,82 @@ describe('community series test accessors', () => {
             legend: { enabled: false },
             series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
         };
-        const calloutCount = () =>
-            getSeriesCalloutNodes(chart, DonutNodeTag.CalloutLabel).filter((n) => n.visible).length;
+        const visibleCallouts = (seriesIndex = 0) =>
+            getSeriesCalloutNodes<Text>(chart, DonutNodeTag.CalloutLabel, seriesIndex)
+                .filter((node) => node.visible)
+                .map((node) => node.text);
+        const update = async () => {
+            deproxy(chart).update(ChartUpdateType.FULL);
+            await waitForChartStability(chart);
+        };
 
-        it('hides one item of the series and shows it again', async () => {
+        it('hides the item it is given and shows it again', async () => {
             chart = await createChart(pieOptions);
-            expect(calloutCount()).toBe(3);
+            expect(visibleCallouts()).toEqual(['A', 'B', 'C']);
 
             toggleSeriesLegendItem(chart, false, 1);
-            deproxy(chart).update(ChartUpdateType.FULL);
-            await waitForChartStability(chart);
-            expect(calloutCount()).toBe(2);
+            await update();
+            expect(visibleCallouts()).toEqual(['A', 'C']);
 
             toggleSeriesLegendItem(chart, true, 1);
-            deproxy(chart).update(ChartUpdateType.FULL);
-            await waitForChartStability(chart);
-            expect(calloutCount()).toBe(3);
+            await update();
+            expect(visibleCallouts()).toEqual(['A', 'B', 'C']);
+        });
+
+        it('toggles the series at the index it is given', async () => {
+            chart = await createChart({
+                data: [
+                    { label: 'A', value: 10, other: 10 },
+                    { label: 'B', value: 20, other: 20 },
+                ],
+                legend: { enabled: false },
+                series: [
+                    { type: 'pie', angleKey: 'value', calloutLabelKey: 'label' },
+                    { type: 'pie', angleKey: 'other', calloutLabelKey: 'label' },
+                ],
+            });
+
+            expect(visibleCallouts(1)).toEqual(['A', 'B']);
+            toggleSeriesLegendItem(chart, false, 0, 1);
+            await update();
+
+            expect(visibleCallouts(1)).toEqual(['B']);
         });
     });
 
     describe('getSeriesCalloutNodes', () => {
+        const pieOptions: AgChartOptions = {
+            data: [
+                { label: 'A', other: 'X', value: 10 },
+                { label: 'B', other: 'Y', value: 20 },
+            ],
+            series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+        };
+
         it('returns the nodes a pie series drew for the part of the callouts it is given', async () => {
-            chart = await createChart({
-                data: [
-                    { label: 'A', value: 10 },
-                    { label: 'B', value: 20 },
-                ],
-                series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
-            });
+            chart = await createChart(pieOptions);
 
             const labels = getSeriesCalloutNodes<Text>(chart, DonutNodeTag.CalloutLabel);
+            const lines = getSeriesCalloutNodes(chart, DonutNodeTag.CalloutLine);
 
             expect(labels.map((node) => node.text)).toEqual(['A', 'B']);
+            expect(lines).toHaveLength(2);
+        });
+
+        it('returns the nodes of the series at the index it is given', async () => {
+            chart = await createChart({
+                ...pieOptions,
+                legend: { enabled: false },
+                series: [
+                    { type: 'pie', angleKey: 'value', calloutLabelKey: 'label' },
+                    { type: 'pie', angleKey: 'value', calloutLabelKey: 'other' },
+                ],
+            });
+
+            expect(getSeriesCalloutNodes<Text>(chart, DonutNodeTag.CalloutLabel, 1).map((node) => node.text)).toEqual([
+                'X',
+                'Y',
+            ]);
         });
 
         it('fails for a series that has no callouts', async () => {
