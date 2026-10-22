@@ -16,6 +16,7 @@ import { Rect } from 'ag-charts-core';
 
 import { DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from '../features/annotations/axisButton';
 import {
+    dragNavigatorHandle,
     findSceneNodes,
     getAnnotationAxisButtonElement,
     getAnnotationOptionsToolbarButtons,
@@ -29,8 +30,8 @@ import {
     getMiniChartSeriesNodeData,
     getMiniChartSeriesOptions,
     getNavigator,
+    getNavigatorRange,
     getRangesDropdownMinWidth,
-    getResolvedRangesOptions,
     getScrollbarState,
     getSelectionDragRect,
     getSeriesPlacedLabels,
@@ -89,26 +90,6 @@ describe('enterprise feature test accessors', () => {
             setRangesDropdownMinWidth(c, undefined);
             expect(getRangesDropdownMinWidth(c)).toBeUndefined();
         });
-
-        it('reads the themed button and dropdown styles', async () => {
-            const options = getResolvedRangesOptions(await withRanges());
-
-            for (const styles of [options.button, options.dropdown]) {
-                expect(styles.textColor).toEqual(expect.any(String));
-                expect(styles.active.fill).toEqual(expect.any(String));
-                expect(styles.hover.fillOpacity).toEqual(expect.any(Number));
-                expect(styles.disabled.strokeWidth).toEqual(expect.any(Number));
-            }
-        });
-    });
-
-    it('reads the line height the ranges module derives from the font size and the theme', async () => {
-        const c = await create({
-            theme: { params: { chromeLineHeight: 1.5 } },
-            ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 9] }], button: { fontSize: 20 } },
-        });
-
-        expect(getResolvedRangesOptions(c).button.lineHeight).toBe(30);
     });
 
     describe('getErrorBarGroupOpacity', () => {
@@ -363,13 +344,29 @@ describe('enterprise feature test accessors', () => {
             expect(getMiniChart(c).axes.length).toBeGreaterThan(0);
         });
 
+        it('reads the range the navigator shows, and moves a handle along its track', async () => {
+            const c = await create({
+                navigator: { enabled: true },
+                initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
+            });
+            await waitForChartStability(c);
+            expect(getNavigatorRange(c)).toEqual({ min: 0.2, max: 0.6 });
+
+            dragNavigatorHandle(c, 'min', 0.1);
+            expect(getNavigatorRange(c).min).toBeCloseTo(0.1, 5);
+            expect(getNavigatorRange(c).max).toBe(0.6);
+
+            dragNavigatorHandle(c, 'max', 0.9);
+            expect(getNavigatorRange(c).max).toBeCloseTo(0.9, 5);
+        });
+
         it('reads the datums and the resolved options of a mini chart series', async () => {
             const c = await create({
-                navigator: { enabled: true, miniChart: { enabled: true, series: [{ type: 'line', strokeWidth: 1 }] } },
+                navigator: { enabled: true, miniChart: { enabled: true, series: [{ type: 'line', strokeWidth: 3 }] } },
             });
 
             expect(getMiniChartSeriesNodeData(c)).toHaveLength(DATA.length);
-            expect(getMiniChartSeriesOptions<AgLineSeriesOptions>(c).strokeWidth).toBe(1);
+            expect(getMiniChartSeriesOptions<AgLineSeriesOptions>(c).strokeWidth).toBe(3);
         });
     });
 });

@@ -17,11 +17,7 @@ import type {
     Padding,
 } from 'ag-charts-types';
 
-import {
-    getRangesDropdownMinWidth,
-    getResolvedRangesOptions,
-    setRangesDropdownMinWidth,
-} from '../../test/featureAccessors';
+import { getRangesDropdownMinWidth, setRangesDropdownMinWidth } from '../../test/featureAccessors';
 import { createEnterpriseChart } from '../../test/utils';
 import { Ranges } from './ranges';
 
@@ -362,7 +358,7 @@ describe('Ranges', () => {
             };
 
             chart = await createEnterpriseChart(options);
-            return getResolvedRangesOptions(chart);
+            return deproxy(chart).ctx.chartState.getValue('options', 'ranges');
         };
 
         it('derives the button and dropdown lineHeight from their own fontSize', async () => {
@@ -371,8 +367,8 @@ describe('Ranges', () => {
                 { fontSize: 10, button: { fontSize: 20 }, dropdown: { fontSize: 16 } }
             );
 
-            expect(ranges.button.lineHeight).toBe(30);
-            expect(ranges.dropdown.lineHeight).toBe(24);
+            expect(ranges?.button?.lineHeight).toBe(30);
+            expect(ranges?.dropdown?.lineHeight).toBe(24);
         });
 
         it('passes a set ranges lineHeight on to the button and dropdown', async () => {
@@ -381,38 +377,38 @@ describe('Ranges', () => {
                 { lineHeight: 18, button: { fontSize: 20 }, dropdown: { fontSize: 16 } }
             );
 
-            expect(ranges.button.lineHeight).toBe(18);
-            expect(ranges.dropdown.lineHeight).toBe(18);
+            expect(ranges?.button?.lineHeight).toBe(18);
+            expect(ranges?.dropdown?.lineHeight).toBe(18);
         });
 
         it('button text follows buttonTextColor, not chromeTextColor', async () => {
             const ranges = await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' });
 
-            expect(ranges.button.textColor).toBe('red');
+            expect(ranges?.button?.textColor).toBe('red');
         });
 
         it('button hover text follows buttonTextColor', async () => {
             const ranges = await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' });
 
-            expect(ranges.button.hover.textColor).toBe('red');
+            expect(ranges?.button?.hover?.textColor).toBe('red');
         });
 
         it('disabled button text fades buttonTextColor, not chromeTextColor', async () => {
-            const { textColor } = (await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' })).button
-                .disabled;
+            const textColor = (await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' }))?.button
+                ?.disabled?.textColor;
             chart.destroy();
-            const expected = (await resolvedRanges({ chromeTextColor: 'red' })).button.disabled.textColor;
+            const expected = (await resolvedRanges({ chromeTextColor: 'red' }))?.button?.disabled?.textColor;
 
             expect(textColor).toBe(expected);
         });
 
         it('disabled button background derives from buttonBackgroundColor rather than chromeBackgroundColor', async () => {
-            const { fill } = (await resolvedRanges({ buttonBackgroundColor: 'red', chromeBackgroundColor: 'blue' }))
-                .button.disabled;
+            const fill = (await resolvedRanges({ buttonBackgroundColor: 'red', chromeBackgroundColor: 'blue' }))?.button
+                ?.disabled?.fill;
             chart.destroy();
-            const expected = (await resolvedRanges({ chromeBackgroundColor: 'red' })).button.disabled.fill;
+            const expected = (await resolvedRanges({ chromeBackgroundColor: 'red' }))?.button?.disabled?.fill;
             chart.destroy();
-            const fallback = (await resolvedRanges({})).button.disabled.fill;
+            const fallback = (await resolvedRanges({}))?.button?.disabled?.fill;
 
             expect(fill).toBe(expected);
             expect(fill).not.toBe(fallback);
@@ -424,29 +420,29 @@ describe('Ranges', () => {
                 buttonDisabledBackgroundColor: 'rgb(7, 7, 7)',
             });
 
-            expect(ranges.button.disabled.fill).toBe('rgb(7, 7, 7)');
+            expect(ranges?.button?.disabled?.fill).toBe('rgb(7, 7, 7)');
         });
 
         it('button text falls back to chromeTextColor when buttonTextColor is unset', async () => {
             const ranges = await resolvedRanges({ chromeTextColor: 'blue' });
 
-            expect(ranges.button.textColor).toBe('blue');
+            expect(ranges?.button?.textColor).toBe('blue');
         });
 
         it('button text ignores textColor once chromeTextColor is set', async () => {
             const ranges = await resolvedRanges({ textColor: 'green', chromeTextColor: 'blue' });
 
-            expect(ranges.button.textColor).toBe('blue');
+            expect(ranges?.button?.textColor).toBe('blue');
         });
 
         it('button states keep their default styling', async () => {
             const ranges = await resolvedRanges({ borderColor: 'gray', accentColor: 'teal' });
 
-            expect(ranges.button.hover.fill).toBe(ranges.button.active.fill);
-            expect(ranges.button.hover.stroke).toBe('gray');
-            expect(ranges.button.disabled.stroke).toBe('gray');
-            expect(ranges.button.active.stroke).toBe('teal');
-            expect(ranges.button.active.textColor).toBe('teal');
+            expect(ranges?.button?.hover?.fill).toBe(ranges?.button?.active?.fill);
+            expect(ranges?.button?.hover?.stroke).toBe('gray');
+            expect(ranges?.button?.disabled?.stroke).toBe('gray');
+            expect(ranges?.button?.active?.stroke).toBe('teal');
+            expect(ranges?.button?.active?.textColor).toBe('teal');
         });
 
         it('button states follow the button state params', async () => {
@@ -462,17 +458,17 @@ describe('Ranges', () => {
                 buttonDisabledBorder: { color: 'rgb(9, 9, 9)' },
             });
 
-            expect(ranges.button.hover).toMatchObject({
+            expect(ranges?.button?.hover).toMatchObject({
                 fill: 'rgb(1, 1, 1)',
                 textColor: 'rgb(2, 2, 2)',
                 stroke: 'rgb(3, 3, 3)',
             });
-            expect(ranges.button.active).toMatchObject({
+            expect(ranges?.button?.active).toMatchObject({
                 fill: 'rgb(4, 4, 4)',
                 textColor: 'rgb(5, 5, 5)',
                 stroke: 'rgb(6, 6, 6)',
             });
-            expect(ranges.button.disabled).toMatchObject({
+            expect(ranges?.button?.disabled).toMatchObject({
                 fill: 'rgb(7, 7, 7)',
                 textColor: 'rgb(8, 8, 8)',
                 stroke: 'rgb(9, 9, 9)',
@@ -495,17 +491,17 @@ describe('Ranges', () => {
                 },
             };
             chart = await createEnterpriseChart(options);
-            const ranges = getResolvedRangesOptions(chart);
+            const ranges = deproxy(chart).ctx.chartState.getValue('options', 'ranges');
 
-            expect(ranges.button.hover.textColor).toBe('red');
-            expect(ranges.button.hover.stroke).toBe('green');
-            expect(ranges.button.disabled.stroke).toBe('green');
+            expect(ranges?.button?.hover?.textColor).toBe('red');
+            expect(ranges?.button?.hover?.stroke).toBe('green');
+            expect(ranges?.button?.disabled?.stroke).toBe('green');
         });
 
         it('a false state border hides the border colour', async () => {
             const ranges = await resolvedRanges({ buttonHoverBorder: false });
 
-            expect(ranges.button.hover.stroke).toBe('transparent');
+            expect(ranges?.button?.hover?.stroke).toBe('transparent');
         });
 
         it('a false state border keeps the base border width', async () => {
@@ -514,7 +510,7 @@ describe('Ranges', () => {
                 buttonHoverBorder: false,
             });
 
-            expect(ranges.button.hover).toMatchObject({ stroke: 'transparent', strokeWidth: 2 });
+            expect(ranges?.button?.hover).toMatchObject({ stroke: 'transparent', strokeWidth: 2 });
         });
 
         it('state borders set to true inherit the buttonBorder colour and width', async () => {
@@ -527,7 +523,7 @@ describe('Ranges', () => {
             });
 
             for (const state of ['hover', 'active', 'disabled'] as const) {
-                expect(ranges.button[state]).toMatchObject({ stroke: 'black', strokeWidth: 2 });
+                expect(ranges?.button?.[state]).toMatchObject({ stroke: 'black', strokeWidth: 2 });
             }
         });
 
@@ -538,7 +534,7 @@ describe('Ranges', () => {
                 buttonActiveBorder: true,
             });
 
-            expect(ranges.button.active).toMatchObject({ stroke: 'purple', strokeWidth: 1 });
+            expect(ranges?.button?.active).toMatchObject({ stroke: 'purple', strokeWidth: 1 });
         });
 
         it('state border objects apply their width in that state', async () => {
@@ -548,10 +544,10 @@ describe('Ranges', () => {
                 buttonDisabledBorder: { color: 'red', width: 6 },
             });
 
-            expect(ranges.button.strokeWidth).toBe(1);
-            expect(ranges.button.hover).toMatchObject({ stroke: 'orange', strokeWidth: 6 });
-            expect(ranges.button.active).toMatchObject({ stroke: 'green', strokeWidth: 6 });
-            expect(ranges.button.disabled).toMatchObject({ stroke: 'red', strokeWidth: 6 });
+            expect(ranges?.button?.strokeWidth).toBe(1);
+            expect(ranges?.button?.hover).toMatchObject({ stroke: 'orange', strokeWidth: 6 });
+            expect(ranges?.button?.active).toMatchObject({ stroke: 'green', strokeWidth: 6 });
+            expect(ranges?.button?.disabled).toMatchObject({ stroke: 'red', strokeWidth: 6 });
         });
 
         it('state border objects fill an unset colour or width from buttonBorder', async () => {
@@ -561,15 +557,15 @@ describe('Ranges', () => {
                 buttonDisabledBorder: { color: 'red' },
             });
 
-            expect(ranges.button.hover).toMatchObject({ stroke: 'black', strokeWidth: 4 });
-            expect(ranges.button.disabled).toMatchObject({ stroke: 'red', strokeWidth: 2 });
+            expect(ranges?.button?.hover).toMatchObject({ stroke: 'black', strokeWidth: 4 });
+            expect(ranges?.button?.disabled).toMatchObject({ stroke: 'red', strokeWidth: 2 });
         });
 
         it('state border widths default to the buttonBorder width', async () => {
             const ranges = await resolvedRanges({ buttonBorder: { color: 'black', width: 3 } });
 
             for (const state of ['hover', 'active', 'disabled'] as const) {
-                expect(ranges.button[state].strokeWidth).toBe(3);
+                expect(ranges?.button?.[state]?.strokeWidth).toBe(3);
             }
         });
 
@@ -581,10 +577,10 @@ describe('Ranges', () => {
                 theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
             };
             chart = await createEnterpriseChart(options);
-            const ranges = getResolvedRangesOptions(chart);
+            const ranges = deproxy(chart).ctx.chartState.getValue('options', 'ranges');
 
             for (const state of ['hover', 'active', 'disabled'] as const) {
-                expect(ranges.button[state].strokeWidth).toBe(3);
+                expect(ranges?.button?.[state]?.strokeWidth).toBe(3);
             }
         });
 
@@ -596,18 +592,18 @@ describe('Ranges', () => {
                 theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
             };
             chart = await createEnterpriseChart(options);
-            const ranges = getResolvedRangesOptions(chart);
+            const ranges = deproxy(chart).ctx.chartState.getValue('options', 'ranges');
 
             for (const state of ['hover', 'active', 'disabled'] as const) {
-                expect(ranges.button[state].strokeWidth).toBe(3);
+                expect(ranges?.button?.[state]?.strokeWidth).toBe(3);
             }
-            expect(ranges.dropdown.hover.strokeWidth).toBe(6);
+            expect(ranges?.dropdown?.hover?.strokeWidth).toBe(6);
         });
 
         it('button padding keeps its fixed default', async () => {
             const ranges = await resolvedRanges({});
 
-            expect(ranges.button.padding).toEqual({ top: 6, right: 9, bottom: 6, left: 9 });
+            expect(ranges?.button?.padding).toEqual({ top: 6, right: 9, bottom: 6, left: 9 });
         });
 
         const resolvedUserPadding = async (padding: Padding) => {
@@ -617,7 +613,7 @@ describe('Ranges', () => {
                 ranges: { enabled: true, padding, buttons: [{ label: 'All', value: [0, 19] }] },
             };
             chart = await createEnterpriseChart(options);
-            return getResolvedRangesOptions(chart).button.padding;
+            return deproxy(chart).ctx.chartState.getValue('options', 'ranges')?.button?.padding;
         };
 
         it('a user-set padding number replaces the default', async () => {

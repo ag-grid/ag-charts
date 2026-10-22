@@ -986,7 +986,7 @@ describe('ErrorBars', () => {
             chart = await createEnterpriseChart(options);
         });
 
-        test('itemStyler', () => {
+        it('itemStyler', () => {
             expect(Object.isFrozen(seriesContext)).toBe(false);
             itemStyler.expect().toHaveBeenCalledTimes(4).withContext(seriesContext);
         });

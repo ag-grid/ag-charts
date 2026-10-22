@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
@@ -200,12 +200,12 @@ describe('Context Menu', () => {
     });
 
     describe('should show the default actions', () => {
-        test('mouse', async () => {
+        it('mouse', async () => {
             chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(cx, cy)(chart);
             await compare();
         });
-        test('touch', async () => {
+        it('touch', async () => {
             chart = await createEnterpriseChart(chartOptions());
             await longTapAction(cx, cy)(chart);
             await compare();
@@ -213,12 +213,12 @@ describe('Context Menu', () => {
     });
 
     describe('should show the legend actions', () => {
-        test('mouse', async () => {
+        it('mouse', async () => {
             chart = await createEnterpriseChart(chartOptions());
             await contextMenuAction(410, 575)(chart);
             await compare();
         });
-        test('touch', async () => {
+        it('touch', async () => {
             chart = await createEnterpriseChart(chartOptions());
             await longTapAction(410, 575)(chart);
             await compare();
@@ -226,7 +226,7 @@ describe('Context Menu', () => {
     });
 
     describe('legend highlight state', () => {
-        test('clears highlight when opening menu', async () => {
+        it('clears highlight when opening menu', async () => {
             chart = await createEnterpriseChart(chartOptions());
             const chartInstance = deproxy(chart);
             const highlightManager = chartInstance.ctx.highlightManager;
@@ -244,7 +244,7 @@ describe('Context Menu', () => {
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
 
-        test('does not leave highlight after toggling visibility', async () => {
+        it('does not leave highlight after toggling visibility', async () => {
             chart = await createEnterpriseChart(chartOptions());
             const chartInstance = deproxy(chart);
             const highlightManager = chartInstance.ctx.highlightManager;
@@ -361,7 +361,7 @@ describe('Context Menu', () => {
     });
 
     describe('legend-item without toggleSeries (AG-17832)', () => {
-        test('shows legend-item items when toggleSeries is false', async () => {
+        it('shows legend-item items when toggleSeries is false', async () => {
             chart = await createEnterpriseChart(
                 chartOptions(
                     {
@@ -391,7 +391,7 @@ describe('Context Menu', () => {
         });
     });
 
-    test('submenu cycle detection', () => {
+    it('submenu cycle detection', () => {
         const subsubmenu: Exclude<AgContextMenuItem, string> = { label: 'subsubmenu', items: [] };
         const contextMenu: AgChartOptions['contextMenu'] = {
             items: [
@@ -436,7 +436,7 @@ describe('Context Menu', () => {
 
         // Domains are 0..0.6 on x and 0..6 on y, so the series-area centre is exactly 0.3 and 3; every branch aims
         // at that same position and must report it through its own callback.
-        test('reports the axis values under the pointer', async () => {
+        it('reports the axis values under the pointer', async () => {
             await contextMenuAtSeriesAreaCentre();
 
             expect(getItems).toHaveBeenCalledWith(
@@ -449,28 +449,28 @@ describe('Context Menu', () => {
             );
         });
 
-        test('the x-axis context menu reports the same value', async () => {
+        it('the x-axis context menu reports the same value', async () => {
             await contextMenuAction(seriesAreaCentre().x, axisBandCentre(ChartAxisDirection.X).y)(chart);
             await waitForChartStability(chart);
 
             expect(getItems).toHaveBeenCalledWith(expect.objectContaining({ showOn: 'axis', value: veryCloseTo(0.3) }));
         });
 
-        test('the y-axis context menu reports the same value', async () => {
+        it('the y-axis context menu reports the same value', async () => {
             await contextMenuAction(axisBandCentre(ChartAxisDirection.Y).x, seriesAreaCentre().y)(chart);
             await waitForChartStability(chart);
 
             expect(getItems).toHaveBeenCalledWith(expect.objectContaining({ showOn: 'axis', value: veryCloseTo(3) }));
         });
 
-        test('the x-axis click listener reports the same value', async () => {
+        it('the x-axis click listener reports the same value', async () => {
             await clickAction(seriesAreaCentre().x, axisBandCentre(ChartAxisDirection.X).y)(chart);
             await waitForChartStability(chart);
 
             expect(xAxisClick).toHaveBeenCalledWith(expect.objectContaining({ value: veryCloseTo(0.3) }));
         });
 
-        test('the y-axis click listener reports the same value', async () => {
+        it('the y-axis click listener reports the same value', async () => {
             await clickAction(axisBandCentre(ChartAxisDirection.Y).x, seriesAreaCentre().y)(chart);
             await waitForChartStability(chart);
 
@@ -522,7 +522,7 @@ describe('Context Menu', () => {
         });
 
         // The x domain is 0..0.6, so its centre is 0.3.
-        test('reports the axis value under the pointer', async () => {
+        it('reports the axis value under the pointer', async () => {
             await contextMenuAtCrossingAxisCentre();
 
             expect(getItems).toHaveBeenCalledWith(
@@ -556,7 +556,7 @@ describe('Context Menu', () => {
             value: 1.5,
         });
 
-        test('right-clicking the line inside the series area offers the cross line', async () => {
+        it('right-clicking the line inside the series area offers the cross line', async () => {
             const { x } = crossLineLabelCentre(ChartAxisDirection.X);
             const { y, height } = seriesRect();
             await contextMenuAction(x, y + height / 2)(chart);
@@ -565,7 +565,7 @@ describe('Context Menu', () => {
             expect(getItems).toHaveBeenCalledWith(threshold);
         });
 
-        test('right-clicking the label outside the series area offers the cross line', async () => {
+        it('right-clicking the label outside the series area offers the cross line', async () => {
             const { x, y } = crossLineLabelCentre(ChartAxisDirection.X);
             // Guard the premise: a label inside the series area would exercise the series-widget path instead.
             expect(seriesRect().containsPoint(x, y)).toBe(false);
@@ -576,7 +576,7 @@ describe('Context Menu', () => {
             expect(getItems).toHaveBeenCalledWith(threshold);
         });
 
-        test('right-clicking clear of the label outside the series area offers only the always region', async () => {
+        it('right-clicking clear of the label outside the series area offers only the always region', async () => {
             const { x, y } = crossLineLabelCentre(ChartAxisDirection.X);
             // Halfway from the label centre to the series area's left edge: level with the label, clear of it.
             const { x: seriesX } = seriesRect();
@@ -607,7 +607,7 @@ describe('Context Menu', () => {
             getItems = vi.fn(({ defaultItems }) => defaultItems);
         });
 
-        test('right-clicking a marker on the cross line offers the series node first', async () => {
+        it('right-clicking a marker on the cross line offers the series node first', async () => {
             chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }, overlapOptions()));
             const { canvasX, canvasY } = datumCanvasPoint(1);
             await contextMenuAction(canvasX, canvasY)(chart);
@@ -622,7 +622,7 @@ describe('Context Menu', () => {
             );
         });
 
-        test('right-clicking the cross line away from a marker within `nodeClickRange` offers the cross line first', async () => {
+        it('right-clicking the cross line away from a marker within `nodeClickRange` offers the cross line first', async () => {
             chart = await createEnterpriseChart(chartOptions({ enabled: true, getItems }, overlapOptions('nearest')));
             const { canvasX, canvasY } = datumCanvasPoint(1);
             await contextMenuAction(canvasX, canvasY - 30)(chart);
@@ -704,7 +704,7 @@ describe('Context Menu', () => {
             expect(action.mock.calls[0][0].event).toBe(params.event);
         }
 
-        test('always', async () => {
+        it('always', async () => {
             // Reuses the cross-line fixture's "clear of the label, outside the series area" point, which is
             // the one place in this suite where `always` is the primary region.
             const { getItems, action } = await openMenu({
@@ -725,7 +725,7 @@ describe('Context Menu', () => {
             expectActionEvent(action, params);
         });
 
-        test('series-area', async () => {
+        it('series-area', async () => {
             const { getItems, action } = await openMenu({
                 showOn: 'series-area',
                 baseOptions: coordinatesOptions(),
@@ -737,7 +737,7 @@ describe('Context Menu', () => {
             expectActionEvent(action, params);
         });
 
-        test('axis', async () => {
+        it('axis', async () => {
             const { getItems, action } = await openMenu({
                 showOn: 'axis',
                 baseOptions: coordinatesOptions(),
@@ -749,7 +749,7 @@ describe('Context Menu', () => {
             expectActionEvent(action, params);
         });
 
-        test('series-node', async () => {
+        it('series-node', async () => {
             const { getItems, action } = await openMenu({
                 showOn: 'series-node',
                 baseOptions: HISTOGRAM_OPTIONS,
@@ -761,7 +761,7 @@ describe('Context Menu', () => {
             expectActionEvent(action, params);
         });
 
-        test('cross-line', async () => {
+        it('cross-line', async () => {
             const { getItems, action } = await openMenu({
                 showOn: 'cross-line',
                 baseOptions: CROSS_LINE_OPTIONS,
@@ -773,7 +773,7 @@ describe('Context Menu', () => {
             expectActionEvent(action, params);
         });
 
-        test('legend-item', async () => {
+        it('legend-item', async () => {
             const { getItems, action } = await openMenu({
                 showOn: 'legend-item',
                 baseOptions: EXAMPLE_OPTIONS,
@@ -786,7 +786,7 @@ describe('Context Menu', () => {
             expectActionEvent(action, params);
         });
 
-        test('caption', async () => {
+        it('caption', async () => {
             const { getItems, action } = await openMenu({
                 showOn: 'caption',
                 baseOptions: TITLE_OPTIONS,
@@ -805,7 +805,7 @@ describe('Context Menu', () => {
             expectActionEvent(action, params);
         });
 
-        test('a touch long-press reports its synthesised contextmenu event', async () => {
+        it('a touch long-press reports its synthesised contextmenu event', async () => {
             const { getItems, action } = await openMenu({
                 showOn: 'series-area',
                 baseOptions: coordinatesOptions(),
@@ -817,7 +817,7 @@ describe('Context Menu', () => {
             expectActionEvent(action, params);
         });
 
-        test('reports the modifier keys held when the menu was opened', async () => {
+        it('reports the modifier keys held when the menu was opened', async () => {
             const { getItems } = await openMenu({
                 showOn: 'series-area',
                 baseOptions: coordinatesOptions(),
@@ -831,7 +831,7 @@ describe('Context Menu', () => {
 
         // The built-in legend toggles route the opening event into the legend listeners, so a `legendItemClick`
         // raised from the context menu now reports the right-click rather than the menu item's own click.
-        test('the built-in visibility toggle reports the opening event to legendItemClick', async () => {
+        it('the built-in visibility toggle reports the opening event to legendItemClick', async () => {
             const legendItemClick = vi.fn();
             const getItems = vi.fn((params: any) => params.defaultItems);
             chart = await createEnterpriseChart(
@@ -855,7 +855,7 @@ describe('Context Menu', () => {
             expect(payload.event.type).toBe('contextmenu');
         });
 
-        test('the built-in other-series toggle reports the opening event to legendItemDoubleClick', async () => {
+        it('the built-in other-series toggle reports the opening event to legendItemDoubleClick', async () => {
             const legendItemDoubleClick = vi.fn();
             const getItems = vi.fn((params: any) => params.defaultItems);
             // `toggle-other-series` is hidden unless the chart has more than one series.
@@ -942,7 +942,7 @@ describe('Context Menu', () => {
             value: 5,
         });
 
-        test('AC1-AC4: right-clicking an angle range fill offers that cross line', async () => {
+        it('AC1-AC4: right-clicking an angle range fill offers that cross line', async () => {
             const { canvasX, canvasY } = pointOnPolarCrossLine(polarCrossLineAt(deproxy(chart), 'angle'));
             await contextMenuAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
@@ -951,7 +951,7 @@ describe('Context Menu', () => {
             expect(getItems).not.toHaveBeenCalledWith(threshold);
         });
 
-        test('AC1-AC4: right-clicking a radius line offers that cross line', async () => {
+        it('AC1-AC4: right-clicking a radius line offers that cross line', async () => {
             const { canvasX, canvasY } = pointOnPolarCrossLine(polarCrossLineAt(deproxy(chart), 'radius'));
             await contextMenuAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
@@ -960,7 +960,7 @@ describe('Context Menu', () => {
             expect(getItems).not.toHaveBeenCalledWith(band);
         });
 
-        test('AC5: right-clicking clear of both cross lines offers no cross-line region', async () => {
+        it('AC5: right-clicking clear of both cross lines offers no cross-line region', async () => {
             // Q1 sits at the top of the circle, outside the Q2-Q3 band; radius 3.5 is clear of the threshold and the datum.
             const radius = polarCrossLineAt(deproxy(chart), 'radius');
             const { canvasX, canvasY } = polarCanvasPoint(radius, radius.axisOuterRadius * 0.35, -Math.PI / 2);

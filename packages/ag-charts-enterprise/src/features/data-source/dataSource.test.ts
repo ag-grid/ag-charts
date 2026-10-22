@@ -25,6 +25,7 @@ import {
 import { isDate } from 'ag-charts-core';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from 'ag-charts-test';
 
+import { dragNavigatorHandle, getNavigatorRange } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 // Crosshair and exact-range tooltip are disabled so highlight styling — which races with the
@@ -389,7 +390,7 @@ describe('DataSource', () => {
                 await zoomIn(3);
                 const [{ start, end }] = requests.slice(-1);
 
-                const { _min: min, _max: max } = deproxy(chart).modulesManager.getModule<any>('navigator').domProxy;
+                const { min, max } = getNavigatorRange(chart);
 
                 expect(max - min).toBeCloseTo((end - start) / (dataEnd - dataStart), 1);
             });
@@ -397,11 +398,10 @@ describe('DataSource', () => {
             it('requests the time the navigator minimum handle is dragged to', async () => {
                 await prepareZoomableChart();
                 await zoomIn(3);
-                const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
                 const target = 0.1;
 
                 const issued = await settleAfter(() => {
-                    navigator.onDrag('min', { offsetX: navigator.x + navigator.width * target });
+                    dragNavigatorHandle(chart, 'min', target);
                     return Promise.resolve();
                 });
                 const [{ start }] = issued.slice(-1);

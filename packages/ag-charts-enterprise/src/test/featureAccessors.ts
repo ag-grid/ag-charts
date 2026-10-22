@@ -33,39 +33,6 @@ export function setRangesDropdownMinWidth(chartOrProxy: ChartOrProxy<any>, width
     getRanges(chartOrProxy).dropdownMinWidth = width;
 }
 
-/** The state styles a ranges button resolves, with the theme and the user's options merged. */
-export interface ResolvedRangesStateStyles {
-    fill: string;
-    fillOpacity: number;
-    stroke: string;
-    strokeWidth: number;
-    textColor: string;
-}
-
-/** The styles the ranges module resolves for its buttons and its dropdown. */
-export interface ResolvedRangesStyles extends ResolvedRangesStateStyles {
-    lineHeight: number;
-    padding: number | { top?: number; right?: number; bottom?: number; left?: number };
-    active: ResolvedRangesStateStyles;
-    disabled: ResolvedRangesStateStyles;
-    hover: ResolvedRangesStateStyles;
-}
-
-export interface ResolvedRangesOptions {
-    button: ResolvedRangesStyles;
-    dropdown: ResolvedRangesStyles;
-}
-
-/**
- * The ranges options after theming, as the module reads them. The options type describes what a user sets, so it
- * types none of the derived values (`textColor`, `lineHeight`, the per-state styles) that the module fills in.
- */
-export function getResolvedRangesOptions(chartOrProxy: ChartOrProxy<any>): ResolvedRangesOptions {
-    const ranges: unknown = deproxy(chartOrProxy).ctx.chartState.getValue('options', 'ranges');
-    assertPresent(ranges, 'resolved ranges options');
-    return ranges as ResolvedRangesOptions;
-}
-
 // `Series.moduleMap` is protected, and the error bar module keeps the group it draws into private.
 interface SeriesModulesHost {
     moduleMap: { getModule<T>(name: string): T | undefined };
@@ -301,11 +268,38 @@ export function getCrosshairLine(
     return { visible: crosshair.crosshairGroup.visible && line.visible, y1: line.y1 };
 }
 
-/** The navigator module. Its track and mini chart are public;. */
+/** The navigator module. Its track and mini chart are public; the range and drag handling are not, see below. */
 export function getNavigator(chartOrProxy: ChartOrProxy<any>): Navigator {
     const navigator = deproxy(chartOrProxy).modulesManager.getModule<Navigator>('navigator');
     assertPresent(navigator, 'navigator module');
     return navigator;
+}
+
+// `Navigator.domProxy` (which keeps the range) is private, and the bounds the handles are dragged along are protected.
+interface NavigatorRangeHost {
+    domProxy: { _min: number; _max: number };
+    x: number;
+    width: number;
+    onDrag(handle: 'min' | 'max' | 'pan', event: { offsetX: number }): void;
+}
+
+/** The range the navigator shows as a ratio of the full data, from `0` to `1`. */
+export function getNavigatorRange(chartOrProxy: ChartOrProxy<any>): { min: number; max: number } {
+    const { _min: min, _max: max } = (getNavigator(chartOrProxy) as unknown as NavigatorRangeHost).domProxy;
+    return { min, max };
+}
+
+/**
+ * Drags the navigator `handle` to `ratio` of the way along its track, as a pointer drag to that position does. The
+ * navigator has to accept drags, as it does once the chart has settled.
+ */
+export function dragNavigatorHandle(
+    chartOrProxy: ChartOrProxy<any>,
+    handle: 'min' | 'max' | 'pan',
+    ratio: number
+): void {
+    const navigator = getNavigator(chartOrProxy) as unknown as NavigatorRangeHost;
+    navigator.onDrag(handle, { offsetX: navigator.x + navigator.width * ratio });
 }
 
 /** The mini chart of the navigator, which the navigator keeps even while the mini chart is disabled. */
