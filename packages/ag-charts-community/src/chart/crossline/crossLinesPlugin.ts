@@ -172,7 +172,10 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
 
     private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
         const picks = this.pickCrosslines(event);
-        this.toParamsArray(picks, event.crossLine, 'crossLineContextMenuAction');
+        if (picks.length === 0) return;
+        event.regions['cross-line'] ??= [];
+        this.toParamsArray(picks, event.regions['cross-line'], 'crossLineContextMenuAction');
+        if (!event.primaryRegions.includes('cross-line')) event.primaryRegions.push('cross-line');
     }
 
     private onSeriesAreaCanvasClick(event: SeriesAreaCanvasClickEvent): void {
