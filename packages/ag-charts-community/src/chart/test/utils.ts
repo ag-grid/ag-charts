@@ -477,6 +477,7 @@ export function getVisibleLabelNodes<TDatum = any>(
 interface AxisLayoutInternals {
     position: string;
     pickTickData: unknown;
+    scale: { domain: unknown[] };
     tickLabelGroupSelection: {
         nodes(): Iterable<DrawnLabelNode & { fill?: string; rotation: number; textAlign?: string }>;
     };
@@ -521,6 +522,11 @@ export function getAxisTickLayouts(chartOrProxy: ChartOrProxy<any>): AxisTickLay
 /** What the axis at `position` drew from its tick layout, as `getAxisTickLayouts` describes it. */
 export function getAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string): AxisTickLayout {
     return toAxisTickLayout(findAxisInternals(chartOrProxy, position));
+}
+
+/** The domain the scale of the axis at `position` autoscaled to. */
+export function getAxisScaleDomain(chartOrProxy: ChartOrProxy<any>, position: string): unknown[] {
+    return findAxisInternals(chartOrProxy, position).scale.domain;
 }
 
 /** The label texts of the axis at `position`, in order along the axis. */

@@ -1589,15 +1589,20 @@ describe('BarSeries', () => {
             }
         });
 
-        it('draws the first bar of descending keys on a number axis', async () => {
+        it('draws the first bar of descending keys when it sits at the edge of the x axis range', async () => {
             const count = 1456;
+            // The x axis starts at 1400 and ends at the largest key, 1456, which is the first datum. Only the 57 bars
+            // inside that range are in view, so the visible-range search decides whether the first datum is kept.
             chart = await createChart({
                 data: Array.from({ length: count }, (_, i) => ({ x: count - i, y: 269.55 - i * 0.18 })),
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                axes: { x: { type: 'number' }, y: { type: 'number' } },
+                axes: { x: { type: 'number', min: 1400 }, y: { type: 'number' } },
             });
 
-            expect(getNodes().some((d) => d.datumIndex === 0)).toBe(true);
+            const datumIndices = getNodes()
+                .map((d) => d.datumIndex)
+                .toSorted((a, b) => a - b);
+            expect(datumIndices).toEqual(Array.from({ length: 57 }, (_, i) => i));
         });
 
         it('keeps date order for newest-first dates on a unit-time axis', async () => {
