@@ -3,6 +3,7 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     AnimationModule,
+    AnnotationsModule,
     BarSeriesModule,
     CategoryAxisModule,
     ContextMenuModule,
@@ -20,6 +21,7 @@ import { DataType, getData } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
+    AnnotationsModule,
     BarSeriesModule,
     CategoryAxisModule,
     ContextMenuModule,
@@ -89,6 +91,7 @@ const options: AgCartesianChartOptions<DataType> = {
     zoom: { enabled: true, buttons: { visible: 'always' } },
     navigator: { enabled: true, miniChart: { enabled: true } },
     contextMenu: { enabled: true },
+    annotations: { enabled: true, axesButtons: { enabled: true, axes: 'xy' } },
 };
 
 AgCharts.create(options);
