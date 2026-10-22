@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgCartesianChartOptions, AgChartInstance, AgLineSeriesOptions } from 'ag-charts-community';
 import {
     deproxy,
+    getAxisLayoutState,
     hoverAction,
     mouseDownAction,
     mouseMoveAction,
@@ -13,6 +14,7 @@ import {
 } from 'ag-charts-community-test';
 import { Rect } from 'ag-charts-core';
 
+import { DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from '../features/annotations/axisButton';
 import {
     findSceneNodes,
     getAnnotationAxisButtonElement,
@@ -189,11 +191,20 @@ describe('enterprise feature test accessors', () => {
             expect(hasAnnotationAxisButton(c, 'y')).toBe(y);
         });
 
-        it('returns the element of an axis button, and fails where there is none', async () => {
-            const c = await withAnnotations({ enabled: true, axesButtons: { enabled: true, axes: 'x' } });
+        it('returns the element of each axis button, and fails where there is none', async () => {
+            const both = await withAnnotations({ enabled: true, axesButtons: { enabled: true, axes: 'xy' } });
 
-            expect(getAnnotationAxisButtonElement(c, 'x')).toBeInstanceOf(HTMLElement);
-            expect(() => getAnnotationAxisButtonElement(c, 'y')).toThrow();
+            const xButton = getAnnotationAxisButtonElement(both, 'x');
+            const yButton = getAnnotationAxisButtonElement(both, 'y');
+            expect(xButton.classList).toContain(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
+            expect(yButton.classList).toContain(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
+            expect(yButton).not.toBe(xButton);
+            expect(xButton.isConnected).toBe(true);
+
+            both.destroy();
+            const xOnly = await withAnnotations({ enabled: true, axesButtons: { enabled: true, axes: 'x' } });
+
+            expect(() => getAnnotationAxisButtonElement(xOnly, 'y')).toThrow();
         });
 
         it('reads the domain of the y scale annotations are placed on', async () => {
@@ -270,11 +281,45 @@ describe('enterprise feature test accessors', () => {
     });
 
     describe('axis label room', () => {
-        it('reads the room the labels need and the room the layout granted them', async () => {
+        const withLeftLabel = (label: { fontSize?: number; spacing?: number }) =>
+            create({
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', label },
+                },
+            });
+
+        it('reads the room the labels need, which follows the layout state and the label font size', async () => {
+            const small = await withLeftLabel({ fontSize: 10 });
+            const smallThickness = getAxisLabelThickness(small, 'left');
+            expect(smallThickness).toBe(getAxisLayoutState(small, 'left').labelThickness);
+            small.destroy();
+
+            const large = await withLeftLabel({ fontSize: 30 });
+
+            expect(getAxisLabelThickness(large, 'left')).toBe(getAxisLayoutState(large, 'left').labelThickness);
+            expect(getAxisLabelThickness(large, 'left')).toBeGreaterThan(smallThickness);
+        });
+
+        it('reads the room the layout granted, which includes the label spacing and so does not move with it', async () => {
+            const narrow = await withLeftLabel({ spacing: 5 });
+            const grantedNarrow = getAxisGrantedLabelWidth(narrow, 'left');
+            narrow.destroy();
+
+            const wide = await withLeftLabel({ spacing: 25 });
+
+            // The layout grants a width for the spacing and the labels together, so widening the spacing narrows the
+            // limit on the labels by as much and leaves their sum alone.
+            expect(getAxisGrantedLabelWidth(wide, 'left')).toBe(grantedNarrow);
+            expect(grantedNarrow - 5).toBeGreaterThan(0);
+            expect(grantedNarrow - 5).toBeLessThanOrEqual(BASE_OPTIONS.width!);
+        });
+
+        it('fails for an axis that does not exist', async () => {
             const c = await create();
 
-            expect(getAxisLabelThickness(c, 'left')).toBeGreaterThan(0);
-            expect(getAxisGrantedLabelWidth(c, 'left')).toBeGreaterThan(0);
+            expect(() => getAxisLabelThickness(c, 'top')).toThrow();
+            expect(() => getAxisGrantedLabelWidth(c, 'top')).toThrow();
         });
     });
 
