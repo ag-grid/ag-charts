@@ -42,8 +42,8 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
     // assert each label's own stroke and a cross-wired one cannot pass unnoticed.
     const visibleLabelBoxStrokesByCat = (seriesIndex = 0) => {
         return Object.fromEntries(
-            getVisibleLabelTextNodes(chart, seriesIndex).map((node) => [
-                (node.datum as { xValue: string }).xValue,
+            getVisibleLabelTextNodes<{ xValue: string }>(chart, seriesIndex).map((node) => [
+                node.datum?.xValue,
                 node.getBoxingProperties().border?.stroke,
             ])
         );

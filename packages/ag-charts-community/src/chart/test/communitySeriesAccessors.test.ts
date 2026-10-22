@@ -9,7 +9,8 @@ import {
     getSeriesPaths,
     getVisibleLabelTextNodes,
 } from './communitySeriesAccessors';
-import { createChart, deproxy, errorFrom, setupMockCanvas, setupMockConsole } from './utils';
+import { getSeriesAt, getSeriesContextNodeData, getSeriesSelectionNodes } from './seriesAccessors';
+import { createChart, deproxy, errorFrom, setupMockCanvas, setupMockConsole, waitForChartStability } from './utils';
 
 describe('community series test accessors', () => {
     setupMockConsole();
@@ -53,6 +54,29 @@ describe('community series test accessors', () => {
             expect(placed).toBe(getPlacedLabelData(deproxy(chart)));
         });
 
+        it('returns the placed labels of the series at the index it is given', async () => {
+            chart = await createChart({
+                ...lineOptions(),
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y', yName: 'First', label: { enabled: true, placement: 'top' } },
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        yName: 'Second',
+                        label: { enabled: true, placement: 'bottom' },
+                    },
+                ],
+            });
+
+            expect(getPlacedLabelData(chart, 0).map((label) => label.placement)).toEqual(['top', 'top', 'top']);
+            expect(getPlacedLabelData(chart, 1).map((label) => label.placement)).toEqual([
+                'bottom',
+                'bottom',
+                'bottom',
+            ]);
+        });
+
         it('fails for a series that keeps no placed labels', async () => {
             chart = await createChart(barOptions);
 
@@ -68,6 +92,30 @@ describe('community series test accessors', () => {
 
             expect(obstacles).toHaveLength(data.length);
             expect(obstacles.every((obstacle) => obstacle.kind === 'rect')).toBe(true);
+        });
+
+        it('returns the obstacles of the series at the index it is given', async () => {
+            chart = await createChart({
+                data,
+                legend: { enabled: false },
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y' },
+                    { type: 'bar', xKey: 'x', yKey: 'y' },
+                ],
+            });
+
+            expect(getSeriesLabelObstacles(chart, 0)).toHaveLength(0);
+            expect(getSeriesLabelObstacles(chart, 1)).toHaveLength(data.length);
+        });
+
+        it('is empty for a series that can contribute obstacles but has none', async () => {
+            chart = await createChart({
+                data,
+                legend: { enabled: false },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(getSeriesLabelObstacles(chart)).toEqual([]);
         });
 
         it('fails for a series that cannot contribute obstacles', async () => {
@@ -90,6 +138,42 @@ describe('community series test accessors', () => {
             expect(nodes.every((node) => node.visible)).toBe(true);
         });
 
+        it('leaves out a label the series has hidden', async () => {
+            // The bar fills the value axis, so its outside-end label spills into the padding and is hidden.
+            chart = await createChart({
+                data: [{ x: 'A', y: 10 }],
+                legend: { enabled: false },
+                padding: { top: 100, right: 10, bottom: 10, left: 10 },
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: { enabled: true, placement: 'outside-end', collision: { alwaysShow: false } },
+                    },
+                ],
+            });
+
+            expect(getSeriesSelectionNodes(chart, 'labelSelection')).toHaveLength(1);
+            expect(getVisibleLabelTextNodes(chart)).toHaveLength(0);
+        });
+
+        it('returns the highlight labels when that selection is asked for', async () => {
+            chart = await createChart(lineOptions());
+            expect(getVisibleLabelTextNodes(chart, 0, 'highlightLabelSelection')).toHaveLength(0);
+
+            const [datum] = getSeriesContextNodeData(chart).labelData;
+            deproxy(chart).ctx.highlightManager.updateHighlight(getSeriesAt(chart).id, datum);
+            await waitForChartStability(chart);
+
+            expect(getVisibleLabelTextNodes(chart, 0, 'highlightLabelSelection')).toHaveLength(1);
+            expect(getVisibleLabelTextNodes(chart)).toHaveLength(data.length);
+        });
+
         it('returns the labels of another series by index', async () => {
             chart = await createChart({
                 ...lineOptions(),
@@ -103,7 +187,7 @@ describe('community series test accessors', () => {
             expect(getVisibleLabelTextNodes(chart, 1)).toHaveLength(data.length);
         });
 
-        it('fails for a selection the series does not have', async () => {
+        it('fails for a series that does not exist', async () => {
             chart = await createChart(lineOptions());
 
             expect(errorFrom(() => getVisibleLabelTextNodes(chart, 3))?.name).toBe('AssertionError');
@@ -140,6 +224,21 @@ describe('community series test accessors', () => {
             expect(others).toHaveLength(0);
             expect(fillPath.fill).toBe('red');
             expect(strokePath.stroke).toBe('blue');
+        });
+
+        it('returns the paths of the series at the index it is given', async () => {
+            chart = await createChart({
+                data,
+                series: [
+                    { type: 'area', xKey: 'x', yKey: 'y', fill: 'red', stroke: 'blue' },
+                    { type: 'line', xKey: 'x', yKey: 'y', stroke: 'green' },
+                ],
+            });
+
+            expect(getSeriesPaths(chart, 0)).toHaveLength(2);
+            const [linePath, ...others] = getSeriesPaths(chart, 1);
+            expect(others).toHaveLength(0);
+            expect(linePath.stroke).toBe('green');
         });
 
         it('fails for a series that draws no paths', async () => {
