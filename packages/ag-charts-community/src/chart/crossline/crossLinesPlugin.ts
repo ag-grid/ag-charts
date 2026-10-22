@@ -3,6 +3,7 @@ import type {
     BBox,
     CallbackParamRules,
     CanvasPoint,
+    ChartSidePadding,
     DynamicContext,
     Forbid,
     NormalisedAxisCrossLineOptions,
@@ -195,6 +196,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
 
     /** Whether activating `crossLine` from the keyboard would reach a `click` listener at any level. */
     isKeyboardClickable(crossLine: CrossLine): boolean {
+        if (!this.axisCtx.interactionEnabled) return false;
         return (
             crossLine.listeners?.click != null ||
             this.axisCtx.listeners?.crossLineClick != null ||
@@ -318,7 +320,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         }
     }
 
-    collectChartPadding(padding: Partial<Record<'top' | 'right' | 'bottom' | 'left', number>>): void {
+    collectChartPadding(padding: ChartSidePadding): void {
         for (const crossLine of this.instances) {
             crossLine.calculatePadding?.(padding);
         }

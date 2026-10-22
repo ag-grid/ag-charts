@@ -95,6 +95,8 @@ export interface AxisContext {
     readonly range: readonly [number, number];
     /** False while the chart hides its series area because the axes overflow it. */
     readonly seriesAreaVisible: boolean;
+    /** False on axes the user cannot interact with, such as those of the navigator mini chart. */
+    readonly interactionEnabled: boolean;
     hasDefinedDomain(): boolean;
     hasVisibleSeries(): boolean;
     getCanvasBounds(): BoxBounds | undefined;

@@ -6,6 +6,7 @@ import type {
     CallbackParam,
     CanvasPoint,
     ChartAnimationPhase,
+    ChartSidePadding,
     DomainWithMetadata,
     DynamicContext,
     MouseWidgetEvent,
@@ -1022,7 +1023,7 @@ export abstract class Axis<
         return this.overlayHighGroup;
     }
 
-    collectPluginPadding(padding: Partial<Record<'top' | 'right' | 'bottom' | 'left', number>>) {
+    collectPluginPadding(padding: ChartSidePadding) {
         for (const module of this.moduleMap.modules()) {
             (module as Partial<AxisPluginModuleInstance>).collectChartPadding?.(padding);
         }
@@ -1412,6 +1413,9 @@ export abstract class Axis<
             },
             get seriesAreaVisible() {
                 return axis.seriesAreaVisible;
+            },
+            get interactionEnabled() {
+                return axis.interactionEnabled;
             },
             hasDefinedDomain: () => this.hasDefinedDomain(),
             hasVisibleSeries: () => this.hasVisibleSeries(),
