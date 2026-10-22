@@ -21,7 +21,7 @@ import { ukData } from './series/map-test/ukData';
 import { ukRoadData } from './series/map-test/ukRoadData';
 import ukRoadTopology from './series/map-test/ukRoadTopology.json';
 import ukTopology from './series/map-test/ukTopology.json';
-import { getSeriesNodeDataContexts } from './test/featureAccessors';
+import { getSeriesNodeDataContext } from './test/featureAccessors';
 import { getHierarchyRootNode } from './test/seriesAccessors';
 import { createEnterpriseChart } from './test/utils';
 
@@ -59,29 +59,23 @@ describe('Enterprise highlight defaults', () => {
     ): HighlightNodeDatum | undefined => {
         const seriesIndex = testCase.seriesIndex ?? 0;
         const datumIndex = testCase.datumIndex ?? 0;
-        const contexts = getSeriesNodeDataContexts<HighlightNodeDatum>(chartInstance, seriesIndex);
+        const { nodeData } = getSeriesNodeDataContext<HighlightNodeDatum>(chartInstance, seriesIndex) ?? {};
 
-        // A series that keeps a node-data context is highlighted through the first datum any of its contexts offers.
-        for (const { nodeData } of contexts) {
-            const candidate = nodeData?.[datumIndex] ?? nodeData?.[0];
-            if (candidate) return candidate;
-        }
+        // A series that keeps a node-data context is highlighted through its datum, else the first one.
+        const candidate = nodeData?.[datumIndex] ?? nodeData?.[0];
+        if (candidate) return candidate;
 
         const fallback = getSeriesNodeData<HighlightNodeDatum>(chartInstance, seriesIndex);
         return fallback[datumIndex] ?? fallback[0];
     };
 
-    // The first node datum of the series' contexts that `isPreferred` accepts, else the first datum any context holds.
+    // The first node datum of the series' context that `isPreferred` accepts, else the first datum it holds.
     const firstNodeDatum = (
         chartInstance: Chart,
         isPreferred: (datum: HighlightNodeDatum & { type?: unknown; datum?: unknown }) => boolean
     ): HighlightNodeDatum | undefined => {
-        for (const { nodeData } of getSeriesNodeDataContexts<HighlightNodeDatum>(chartInstance)) {
-            const match = nodeData?.find(isPreferred);
-            if (match) return match;
-            if (nodeData && nodeData.length > 0) return nodeData[0];
-        }
-        return undefined;
+        const nodeData = getSeriesNodeDataContext<HighlightNodeDatum>(chartInstance)?.nodeData;
+        return nodeData?.find(isPreferred) ?? nodeData?.[0];
     };
 
     const runHighlightSnapshot = async (testCase: HighlightTestCase) => {

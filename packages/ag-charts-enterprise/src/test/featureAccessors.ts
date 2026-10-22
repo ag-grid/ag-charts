@@ -334,34 +334,30 @@ export function getMiniChartSeriesOptions<TOptions extends object = Record<strin
     return series.options as unknown as TOptions;
 }
 
-// The cartesian and network series keep their node-data context behind `contextNodeData`; most hold one, but the
-// accessor accepts a series that keeps a list. Polar series store their datums on a protected `nodeData` instead.
+// A series keeps at most one node-data context, behind `contextNodeData`: the cartesian, map, pyramid, gauge,
+// network, flow-proportion, radar and radial series all do. Pie and donut keep their datums on a protected
+// `nodeData` instead, and the hierarchy series keep neither.
 interface StoredNodeDataHost<TDatum> {
-    contextNodeData?: { nodeData?: TDatum[] } | { nodeData?: TDatum[] }[];
+    contextNodeData?: { nodeData?: TDatum[] };
     nodeData?: TDatum[];
 }
 
-/**
- * The node-data contexts the series keeps (`contextNodeData`), as a list: empty for a series that keeps none (the
- * hierarchy and polar series), one entry for a series that keeps a single context.
- */
-export function getSeriesNodeDataContexts<TDatum = unknown>(
+/** The node-data context the series keeps (`contextNodeData`), or undefined for a series that keeps none. */
+export function getSeriesNodeDataContext<TDatum = unknown>(
     chartOrProxy: ChartOrProxy<any>,
     seriesIndex = 0
-): { nodeData?: TDatum[] }[] {
+): { nodeData?: TDatum[] } | undefined {
     const { contextNodeData } = getSeriesAt(chartOrProxy, seriesIndex) as unknown as StoredNodeDataHost<TDatum>;
-    if (contextNodeData == null) return [];
-    return Array.isArray(contextNodeData) ? contextNodeData : [contextNodeData];
+    return contextNodeData ?? undefined;
 }
 
 /**
  * The datums the series stored for its nodes: those of its node-data context when it keeps one, else its own
- * `nodeData` field (the polar series), else empty.
+ * `nodeData` field (pie and donut), else empty (the hierarchy series).
  */
 export function getSeriesStoredNodeData<TDatum = unknown>(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): TDatum[] {
-    const [context] = getSeriesNodeDataContexts<TDatum>(chartOrProxy, seriesIndex);
     const series = getSeriesAt(chartOrProxy, seriesIndex) as unknown as StoredNodeDataHost<TDatum>;
-    return context?.nodeData ?? series.nodeData ?? [];
+    return getSeriesNodeDataContext<TDatum>(chartOrProxy, seriesIndex)?.nodeData ?? series.nodeData ?? [];
 }
 
 // `PolarSeries` lays itself out in the middle of the series area, at the largest radius the area allows.

@@ -622,7 +622,9 @@ describe('Quadrant Preset theme isolation', () => {
 
     const DATA = NUMERIC.data;
 
-    const resolveAxes = (options: AgChartOptions, presetType?: 'quadrant') => {
+    const resolveAxes = (options: AgChartOptions | AgQuadrantChartOptions, presetType?: 'quadrant') => {
+        // The cast stays: `processedOptions` is typed as the public options union, which declares no `axes` keyed
+        // by direction, and these tests read the processed axes as `x` / `y`.
         const { processedOptions } = new _ModuleSupport.ChartOptions(
             options,
             {} as AgChartOptions,
@@ -633,9 +635,8 @@ describe('Quadrant Preset theme isolation', () => {
         return processedOptions.axes;
     };
 
-    const quadrantOptions = () => ({ data: DATA, xKey: 'x', yKey: 'y' }) as unknown as AgChartOptions;
-    const plainOptions = () =>
-        ({ data: DATA, series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }] }) as unknown as AgChartOptions;
+    const quadrantOptions = (): AgQuadrantChartOptions => ({ data: DATA, xKey: 'x', yKey: 'y' });
+    const plainOptions = (): AgChartOptions => ({ data: DATA, series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }] });
 
     const expectQuadrantStyling = (axes: Record<'x' | 'y', Record<string, any>>) => {
         expect(axes.x.line.enabled).toBe(true);
@@ -679,6 +680,7 @@ describe('Quadrant Preset theme isolation', () => {
 
 describe('Quadrant Preset label enabled default', () => {
     const resolveLabelEnabled = (options: Partial<AgQuadrantChartOptions>) => {
+        // The cast stays: `processedOptions` is typed from the `{}` overrides, which declares no `series`.
         const { processedOptions } = new _ModuleSupport.ChartOptions(
             { data: NUMERIC.data, xKey: 'x', yKey: 'y', ...options },
             {},

@@ -4,7 +4,6 @@ import type { AgCartesianChartOptions, AgChartInstance, AgLineSeriesOptions } fr
 import {
     deproxy,
     getAxisLayoutState,
-    getSeriesAt,
     hoverAction,
     mouseDownAction,
     mouseMoveAction,
@@ -36,7 +35,7 @@ import {
     getRangesDropdownMinWidth,
     getScrollbarState,
     getSelectionDragRect,
-    getSeriesNodeDataContexts,
+    getSeriesNodeDataContext,
     getSeriesPlacedLabels,
     getSeriesPolarGeometry,
     getSeriesStoredNodeData,
@@ -376,26 +375,16 @@ describe('enterprise feature test accessors', () => {
     });
 
     describe('stored node data', () => {
-        it('lists the node-data context a cartesian series keeps, and its datums', async () => {
+        it('reads the node-data context a cartesian series keeps, and its datums', async () => {
             const c = await create();
 
-            const contexts = getSeriesNodeDataContexts(c);
-            expect(contexts).toHaveLength(1);
-            expect(contexts[0].nodeData).toHaveLength(DATA.length);
-            expect(getSeriesStoredNodeData(c)).toBe(contexts[0].nodeData);
+            const context = getSeriesNodeDataContext(c);
+            expect(context?.nodeData).toHaveLength(DATA.length);
+            // Compared by identity: a failed `toBe` would print the whole node-data array.
+            expect(getSeriesStoredNodeData(c) === context?.nodeData).toBe(true);
         });
 
-        it('lists every context of a series that keeps a list of them, and reads the first one', async () => {
-            const c = await create();
-            const first = { nodeData: [{ id: 'first' }] };
-            const second = { nodeData: [{ id: 'second' }] };
-            Object.defineProperty(getSeriesAt(c), 'contextNodeData', { value: [first, second], configurable: true });
-
-            expect(getSeriesNodeDataContexts(c)).toEqual([first, second]);
-            expect(getSeriesStoredNodeData(c)).toBe(first.nodeData);
-        });
-
-        it('lists no context for a series that keeps none, and reads its own node data instead', async () => {
+        it('reads no context for a series that keeps none, and its own node data instead', async () => {
             const c = await createEnterpriseChart({
                 width: 600,
                 height: 400,
@@ -404,7 +393,7 @@ describe('enterprise feature test accessors', () => {
             });
             chart = c;
 
-            expect(getSeriesNodeDataContexts(c)).toEqual([]);
+            expect(getSeriesNodeDataContext(c)).toBeUndefined();
             expect(getSeriesStoredNodeData(c)).toHaveLength(DATA.length);
         });
 
@@ -417,8 +406,8 @@ describe('enterprise feature test accessors', () => {
             });
             chart = c;
 
-            expect(getSeriesNodeDataContexts(c)).toEqual([]);
-            expect(getSeriesStoredNodeData(c)).toEqual([]);
+            expect(getSeriesNodeDataContext(c)).toBeUndefined();
+            expect(getSeriesStoredNodeData(c)).toHaveLength(0);
         });
     });
 
