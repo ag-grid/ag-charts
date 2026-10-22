@@ -1,10 +1,10 @@
-import type { BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget, Writeable } from 'ag-charts-core';
+import type { BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget } from 'ag-charts-core';
 import { CleanupRegistry, Path, Transformable, createSvgElement } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartAxis } from '../chartAxis';
 import type { CrossLine } from './crossLine';
-import type { CrossLineFocusState, CrossLinesPlugin } from './crossLinesPlugin';
+import type { CrossLineFocusState, CrossLineFocusStateGetter, CrossLinesPlugin } from './crossLinesPlugin';
 import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 
 const DOM_MANAGER_ID = 'cross-lines';
@@ -43,7 +43,7 @@ function getAccessibleText({ type, value, range, label }: CrossLine): string {
  * button bounding its cross line and label. The buttons ignore the pointer, so pointer clicks still reach the
  * series area, which hit-tests cross lines itself.
  */
-export class CrossLinesDOMProxy {
+export class CrossLinesDOMProxy implements CrossLineFocusStateGetter {
     private readonly cleanup = new CleanupRegistry();
     private readonly list: ListWidget;
     private readonly buttons: ButtonWidget[] = [];
@@ -51,7 +51,7 @@ export class CrossLinesDOMProxy {
     private readonly focusPaths: (SVGSVGElement | undefined)[] = [];
     private entries: ProxyEntry[] = [];
     private dirty = true;
-    private focusState: Writeable<CrossLineFocusState> = { entry: undefined };
+    private focusedIndex: number | undefined;
 
     constructor(
         private readonly ctx: DynamicContext<ChartRegistry>,
@@ -81,6 +81,10 @@ export class CrossLinesDOMProxy {
         this.cleanup.flush();
     }
 
+    getFocusState(): CrossLineFocusState | undefined {
+        return this.entries.at(this.focusedIndex ?? Infinity);
+    }
+
     private update() {
         if (!this.dirty) return;
         this.dirty = false;
@@ -91,7 +95,7 @@ export class CrossLinesDOMProxy {
             if (!plugin?.isVisible()) continue;
 
             // Track currently focus cross line (state shared across all axes).
-            plugin?.setKeyboardFocusState(this.focusState);
+            plugin?.setFocusStateGetter(this);
 
             for (const crossLine of plugin.getInstances()) {
                 if (!plugin.isKeyboardClickable(crossLine)) continue;
@@ -101,6 +105,9 @@ export class CrossLinesDOMProxy {
             }
         }
         this.entries = entries;
+        if (this.focusedIndex != null && this.focusedIndex >= entries.length) {
+            this.focusedIndex = undefined;
+        }
 
         // Buttons are reused by index, so a focused proxy keeps focus across re-layouts.
         const { buttons } = this;
@@ -160,10 +167,10 @@ export class CrossLinesDOMProxy {
         });
 
         button.addListener('focus', () => {
-            this.focusState.entry = this.entries[index];
+            this.focusedIndex = index;
         });
         button.addListener('blur', () => {
-            this.focusState.entry = undefined;
+            this.focusedIndex = undefined;
         });
         return button;
     }
