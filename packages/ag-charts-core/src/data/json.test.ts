@@ -478,9 +478,11 @@ describe('json module', () => {
         it('should return false with mismatching property values', () => {
             const source = { a: 1, b: true, c: 'three' };
 
+            const changed: typeof source = { a: 2, b: false, c: 'four' };
+
             for (const key of Object.keys(source) as (keyof typeof source)[]) {
-                const target = { ...source, [key]: `${source[key]}+1` };
-                expect(jsonPropertyCompare<Record<string, unknown>>(source, target)).toEqual(false);
+                const target = { ...source, [key]: changed[key] };
+                expect(jsonPropertyCompare(source, target)).toEqual(false);
             }
         });
 

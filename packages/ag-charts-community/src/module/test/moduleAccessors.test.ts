@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import { fakeComputedStyle, functionAt, invalidOption, omitSeriesData, optionAt, valuesAt } from './moduleAccessors';
+import {
+    fakeComputedStyle,
+    functionAt,
+    invalidOption,
+    omitSeriesData,
+    optionAt,
+    partialModule,
+    strictOptionAt,
+    valuesAt,
+} from './moduleAccessors';
 
 describe('moduleAccessors', () => {
     describe('invalidOption', () => {
@@ -44,6 +53,36 @@ describe('moduleAccessors', () => {
         });
     });
 
+    describe('partialModule', () => {
+        it('returns the members it was given, unchanged', () => {
+            const members = { type: 'series', name: 'line', stackable: true };
+
+            expect(partialModule(members)).toBe(members);
+        });
+    });
+
+    describe('strictOptionAt', () => {
+        const options = { highlight: { mode: 'shared' }, series: [{ label: { padding: 8 }, fill: undefined }] };
+
+        it('reads the leaf, which may be absent, when its parent exists', () => {
+            expect(strictOptionAt(options, 'highlight.mode')).toBe('shared');
+            expect(strictOptionAt(options, 'highlight.other')).toBeUndefined();
+            expect(strictOptionAt(options, 'series[0].fill')).toBeUndefined();
+            expect(strictOptionAt(options, 'series[0].label.padding')).toBe(8);
+        });
+
+        it('fails when the parent is missing, where `optionAt` is just undefined', () => {
+            expect(() => strictOptionAt(options, 'legend.enabled')).toThrow('the parent of legend.enabled');
+            expect(() => strictOptionAt(options, 'series[1].fill')).toThrow('the parent of series[1].fill');
+            expect(() => strictOptionAt(options, 'series[0].label.border.enabled')).toThrow('label.border');
+            expect(optionAt(options, 'legend.enabled')).toBeUndefined();
+        });
+
+        it('reads a top-level leaf from the root', () => {
+            expect(strictOptionAt(options, 'highlight')).toBe(options.highlight);
+        });
+    });
+
     describe('valuesAt', () => {
         const options = { axes: { x: { type: 'category' }, y: { type: 'number' } }, title: 'text' };
 
@@ -51,9 +90,9 @@ describe('moduleAccessors', () => {
             expect(valuesAt(options, 'axes')).toEqual([{ type: 'category' }, { type: 'number' }]);
         });
 
-        it('is empty when the path is missing or not an object', () => {
-            expect(valuesAt(options, 'legend')).toEqual([]);
-            expect(valuesAt(options, 'title')).toEqual([]);
+        it('fails when the path is missing or not an object', () => {
+            expect(() => valuesAt(options, 'legend')).toThrow();
+            expect(() => valuesAt(options, 'title')).toThrow();
         });
     });
 

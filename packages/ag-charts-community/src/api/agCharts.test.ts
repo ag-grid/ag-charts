@@ -216,22 +216,21 @@ describe('AgCharts', () => {
 
     describe('option mutability', () => {
         it('should handle deep options mutations', async () => {
-            const options = {
+            const lineSeries: AgLineSeriesOptions = {
+                type: 'line',
+                xKey: 'month',
+                yKey: 'min',
+                interpolation: { type: 'smooth' },
+            };
+            const options: AgChartOptions = {
                 data: [
                     { month: 'January', max: 8.5, min: 2.6 },
                     { month: 'February', max: 10.4, min: 3 },
                     { month: 'March', max: 10.9, min: 4.7 },
                     { month: 'April', max: 13.7, min: 5 },
                 ],
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'month',
-                        yKey: 'min',
-                        interpolation: { type: 'smooth' },
-                    },
-                ],
-            } satisfies AgChartOptions;
+                series: [lineSeries],
+            };
 
             chart = await createChart(options);
             prepareTestOptions(options);
@@ -243,7 +242,7 @@ describe('AgCharts', () => {
                 interpolation: { type: 'smooth' },
             });
 
-            options.series[0].interpolation = invalidOption({ type: 'smooth', tension: 1 });
+            lineSeries.interpolation = { type: 'smooth', tension: 1 };
             await chart.update(options);
             await chart.waitForUpdate();
 
@@ -254,7 +253,7 @@ describe('AgCharts', () => {
                 interpolation: { type: 'smooth', tension: 1 },
             });
 
-            options.series[0].interpolation = invalidOption({ type: 'linear' });
+            lineSeries.interpolation = { type: 'linear' };
             await chart.update(options);
 
             expect(chart.getOptions().series?.[0]).toStrictEqual({
@@ -266,26 +265,20 @@ describe('AgCharts', () => {
         });
 
         it('should handle deep options enablement mutations', async () => {
-            const options = {
+            const marker: NonNullable<AgLineSeriesOptions['marker']> = {
+                enabled: false,
+                fill: { type: 'gradient' },
+                stroke: 'blue',
+            };
+            const options: AgChartOptions = {
                 data: [
                     { month: 'January', max: 8.5, min: 2.6 },
                     { month: 'February', max: 10.4, min: 3 },
                     { month: 'March', max: 10.9, min: 4.7 },
                     { month: 'April', max: 13.7, min: 5 },
                 ],
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'month',
-                        yKey: 'min',
-                        marker: {
-                            enabled: false,
-                            fill: { type: 'gradient' },
-                            stroke: 'blue',
-                        },
-                    },
-                ],
-            } satisfies AgChartOptions;
+                series: [{ type: 'line', xKey: 'month', yKey: 'min', marker }],
+            };
 
             chart = await createChart(options);
             prepareTestOptions(options);
@@ -296,7 +289,7 @@ describe('AgCharts', () => {
                 enabled: false,
             });
 
-            options.series[0].marker.enabled = invalidOption(true);
+            marker.enabled = true;
             await chart.update(options);
 
             series = realChart.getChartOptions().processedOptions.series?.[0] as AgLineSeriesOptions;
@@ -306,7 +299,7 @@ describe('AgCharts', () => {
                 stroke: 'blue',
             });
 
-            options.series[0].marker.enabled = false;
+            marker.enabled = false;
             await chart.update(options);
 
             series = realChart.getChartOptions().processedOptions.series?.[0] as AgLineSeriesOptions;

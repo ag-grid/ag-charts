@@ -2,6 +2,7 @@ import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    type DeepPartial,
     Logger,
     type ModuleDefinition,
     ModuleRegistry,
@@ -52,6 +53,8 @@ import {
     invalidOption,
     omitSeriesData,
     optionAt,
+    partialModule,
+    strictOptionAt,
     valuesAt,
 } from './test/moduleAccessors';
 
@@ -559,11 +562,9 @@ describe('ChartOptions', () => {
 
     describe('type warnings', () => {
         it('warns when a series type is missing', () => {
-            prepareOptions(
-                invalidOption({
-                    series: [{ xKey: 'x', yKey: 'y' }],
-                })
-            );
+            prepareOptions({
+                series: [invalidOption({ xKey: 'x', yKey: 'y' })],
+            });
 
             expect(console.warn).toHaveBeenCalledTimes(1);
             const [message] = (console.warn as Mock).mock.calls[0];
@@ -614,11 +615,9 @@ describe('ChartOptions', () => {
         });
 
         it('warns when a series type is unknown and suggests valid types', () => {
-            prepareOptions(
-                invalidOption({
-                    series: [{ type: 'lien', xKey: 'x', yKey: 'y' }],
-                })
-            );
+            prepareOptions({
+                series: [{ type: invalidOption('lien'), xKey: 'x', yKey: 'y' }],
+            });
 
             expect(console.warn).toHaveBeenCalledTimes(1);
             const [message] = (console.warn as Mock).mock.calls[0];
@@ -627,15 +626,13 @@ describe('ChartOptions', () => {
         });
 
         it('warns when an axis type is unknown and suggests valid types', () => {
-            prepareOptions(
-                invalidOption({
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: {
-                        x: { type: 'category', position: 'bottom' },
-                        y: { type: 'nmuber', position: 'left' },
-                    },
-                })
-            );
+            prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: invalidOption('nmuber'), position: 'left' },
+                },
+            });
 
             expect(console.warn).toHaveBeenCalledTimes(1);
             const [message] = (console.warn as Mock).mock.calls[0];
@@ -650,13 +647,13 @@ describe('ChartOptions', () => {
             const ambientErrorOnce = vi.spyOn(ambientLogger, 'errorOnce');
 
             prepareOptions(
-                invalidOption({
+                {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
                         x: { type: 'ordinal-time', position: 'bottom' },
                         y: { type: 'number', position: 'left' },
                     },
-                }),
+                },
                 logger
             );
 
@@ -678,13 +675,13 @@ describe('ChartOptions', () => {
                 const ambientWarnOnce = vi.spyOn(ambientLogger, 'warnOnce');
 
                 prepareOptions(
-                    invalidOption({
+                    {
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                         axes: {
                             x: { type: 'ordinal-time', position: 'bottom' },
                             y: { type: 'number', position: 'left' },
                         },
-                    }),
+                    },
                     logger
                 );
 
@@ -810,7 +807,7 @@ describe('ChartOptions', () => {
         });
 
         it('warns exactly once when `series` is set to `true`, and ignores the value', () => {
-            const processedOptions = prepareOptions(invalidOption({ data: [{ x: 'a', y: 1 }], series: true }));
+            const processedOptions = prepareOptions({ data: [{ x: 'a', y: 1 }], series: invalidOption(true) });
 
             expect(console.warn).toHaveBeenCalledTimes(1);
             const [message] = (console.warn as Mock).mock.calls[0];
@@ -947,7 +944,7 @@ describe('ChartOptions', () => {
     });
 
     describe('#processSeriesOptions', () => {
-        test('Simple series options processing works as expected', () => {
+        it('Simple series options processing works as expected', () => {
             const { series: options } = prepareOptions({ series: seriesOptions });
 
             expect(options).toMatchInlineSnapshot(`
@@ -1602,7 +1599,7 @@ describe('ChartOptions', () => {
             `);
         });
 
-        test('Series options with grouped columns processing works as expected', () => {
+        it('Series options with grouped columns processing works as expected', () => {
             const { series: options } = prepareOptions({
                 series: seriesOptions.map((s) => (s.type === 'bar' ? { ...s, grouped: true } : s)),
             });
@@ -2259,7 +2256,7 @@ describe('ChartOptions', () => {
             `);
         });
 
-        test('Series options with stacked columns processing works as expected', () => {
+        it('Series options with stacked columns processing works as expected', () => {
             const { series: options } = prepareOptions({
                 series: seriesOptions.map((s) => (s.type === 'bar' ? { ...s, stacked: true, grouped: undefined } : s)),
             });
@@ -2930,7 +2927,7 @@ describe('ChartOptions', () => {
             for (const [seriesType, { stackable, groupable, stackedByDefault }] of Object.entries(seriesTypes)) {
                 // Only the flags the stacking logic reads: there is no `create`, as no chart is built from these.
                 ModuleRegistry.register(
-                    invalidOption({
+                    partialModule({
                         type: 'series',
                         name: seriesType,
                         chartType: 'cartesian',
@@ -3404,13 +3401,19 @@ describe('ChartOptions', () => {
                 overrides: {
                     common: {
                         annotations: { enabled: true },
-                        navigator: invalidOption({ enabled: true }),
+                        navigator: { enabled: true },
                         axes: {
                             // @ts-expect-error Testing unregistered axis plugins
                             'angle-number': { crosshair: { enabled: true } },
                         },
                     },
-                    'radial-bar': invalidOption({ series: { strokeWidth: 5, errorBar: { visible: true } } }),
+                    'radial-bar': {
+                        series: {
+                            strokeWidth: 5,
+                            // @ts-expect-error Radial bar has no error bars, so the type rejects the override this test expects to be dropped
+                            errorBar: { visible: true },
+                        },
+                    },
                 },
             };
 
@@ -4230,10 +4233,10 @@ describe('ChartOptions', () => {
             it('should discard invalid axes', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: invalidOption({
-                        x: { type: 'invalid' },
-                        y: { type: 'invalid' },
-                    }),
+                    axes: {
+                        x: { type: invalidOption('invalid') },
+                        y: { type: invalidOption('invalid') },
+                    },
                 };
 
                 const preparedOptions = prepareOptions(options);
@@ -4253,10 +4256,10 @@ describe('ChartOptions', () => {
             it('should discard invalid axes and keep valid axes', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: invalidOption({
-                        x: { type: 'invalid' },
+                    axes: {
+                        x: { type: invalidOption('invalid') },
                         y: { type: 'category', position: 'right' },
-                    }),
+                    },
                 };
 
                 const preparedOptions = prepareOptions(options);
@@ -4627,28 +4630,37 @@ describe('ChartOptions', () => {
 
     describe('displayNullData propagation', () => {
         it('should propagate displayNullData to series allowNullKeys', () => {
-            const options: AgCartesianChartOptions = invalidOption({
+            const options: AgCartesianChartOptions = {
                 data: [
                     { x: null, y: 1 },
                     { x: 'a', y: 2 },
                 ],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                // @ts-expect-error `displayNullData` is read by the options processing but is not in the public types
                 displayNullData: true,
-            });
+            };
 
             const processed = prepareOptions(options);
             expect(optionAt(processed, 'series[0].allowNullKeys')).toBe(true);
         });
 
         it('should not propagate displayNullData when series has explicit allowNullKeys', () => {
-            const options: AgCartesianChartOptions = invalidOption({
+            const series: AgBarSeriesOptions = {
+                type: 'bar',
+                xKey: 'x',
+                yKey: 'y',
+                // @ts-expect-error `allowNullKeys` is an internal series option that the public types do not list
+                allowNullKeys: false,
+            };
+            const options: AgCartesianChartOptions = {
                 data: [{ x: null, y: 1 }],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: false }],
+                series: [series],
+                // @ts-expect-error `displayNullData` is read by the options processing but is not in the public types
                 displayNullData: true,
-            });
+            };
 
             const processed = prepareOptions(options);
-            expect(optionAt(processed, 'series[0].allowNullKeys')).toBe(false);
+            expect(strictOptionAt(processed, 'series[0].allowNullKeys')).toBe(false);
         });
 
         it('should not set allowNullKeys when displayNullData is not provided', () => {
@@ -4658,7 +4670,7 @@ describe('ChartOptions', () => {
             };
 
             const processed = prepareOptions(options);
-            expect(optionAt(processed, 'series[0].allowNullKeys')).toBeUndefined();
+            expect(strictOptionAt(processed, 'series[0].allowNullKeys')).toBeUndefined();
         });
     });
 
@@ -4853,8 +4865,8 @@ describe('ChartOptions', () => {
             const container = document.createElement('div');
             mockComputedStyle(container, {});
 
-            const chartOptions = new ChartOptions(
-                invalidOption({
+            const chartOptions = new ChartOptions<AgChartOptions>(
+                {
                     container,
                     theme: {
                         params: {
@@ -4865,7 +4877,7 @@ describe('ChartOptions', () => {
                     data: [{ x: 'a', y: 1 }],
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                     axes: { x: { type: 'category' }, y: { type: 'number' } },
-                }),
+                },
                 {} as AgChartOptions,
                 {},
                 {},
@@ -4937,12 +4949,12 @@ describe('ChartOptions', () => {
             expect(message).toContain('Option `series[0].fill`');
             expect(message).toContain('oklab(0.5 0.1 0.1)');
             expect(message).toContain('ignoring.');
-            expect(optionAt(options, 'series[0].fill')).not.toBe('oklab(0.5 0.1 0.1)');
+            expect(strictOptionAt(options, 'series[0].fill')).not.toBe('oklab(0.5 0.1 0.1)');
         });
 
         it('warns and clears a lab() theme param instead of reaching a blend op', () => {
-            const chartOptions = new ChartOptions(
-                invalidOption({
+            const chartOptions = new ChartOptions<AgChartOptions>(
+                {
                     data: [{ x: 'a', y: 1 }],
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                     axes: { x: { type: 'category' }, y: { type: 'number' } },
@@ -4951,7 +4963,7 @@ describe('ChartOptions', () => {
                             accentColor: 'lab(50% 40 59.5)',
                         },
                     },
-                }),
+                },
                 {} as AgChartOptions,
                 {},
                 {},
@@ -4970,13 +4982,13 @@ describe('ChartOptions', () => {
 
         it('warns and uses the theme default for an operator in a theme param', () => {
             const create = (accentColor?: unknown) =>
-                new ChartOptions(
-                    invalidOption({
+                new ChartOptions<AgChartOptions>(
+                    {
                         data: [{ x: 'a', y: 1 }],
                         series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                         axes: { x: { type: 'category' }, y: { type: 'number' } },
-                        theme: { params: { accentColor } },
-                    }),
+                        theme: { params: { accentColor: invalidOption(accentColor) } },
+                    },
                     {} as AgChartOptions,
                     {},
                     {},
@@ -5000,7 +5012,7 @@ describe('ChartOptions', () => {
             try {
                 const options = prepareOptions<AgCartesianChartOptions>({
                     series: [
-                        invalidOption({
+                        {
                             type: 'scatter',
                             xKey: 'x',
                             yKey: 'y',
@@ -5011,7 +5023,7 @@ describe('ChartOptions', () => {
                                     { color: 'lch(50% 70 40)', stop: 1 },
                                 ],
                             },
-                        }),
+                        },
                     ],
                 });
 
@@ -5021,7 +5033,7 @@ describe('ChartOptions', () => {
                 expect(message).toContain('colorScale');
                 expect(message).toContain('lch(50% 70 40)');
                 expect(message).toContain('ignoring.');
-                expect(optionAt(options, 'series[0].colorScale.fills[1].color')).not.toBe('lch(50% 70 40)');
+                expect(strictOptionAt(options, 'series[0].colorScale.fills[1].color')).not.toBe('lch(50% 70 40)');
             } finally {
                 ModuleRegistry.clearRegistryModes();
             }
@@ -5047,7 +5059,7 @@ describe('ChartOptions', () => {
         it('does not enable a feature from styling supplied through theme overrides', () => {
             const prepared = prepareOptions(barOptions({ label: { border: { stroke: 'rgb(190, 55, 55)' } } }));
 
-            expect(optionAt(prepared, 'series[0].label.border.enabled') ?? false).toBe(false);
+            expect(strictOptionAt(prepared, 'series[0].label.border.enabled') ?? false).toBe(false);
         });
 
         it('honours an explicit enabled supplied through theme overrides', () => {
@@ -5662,10 +5674,9 @@ describe('ChartOptions', () => {
 
         describe('unregistered modules (AC5)', () => {
             describe('a path owned by modules of different chart types', () => {
-                const crossLineOptions = () =>
-                    invalidOption({
-                        axes: { angle: { crossLines: [{ type: 'line', value: 'a' }] } },
-                    });
+                const crossLineOptions = (): AgChartOptions => ({
+                    axes: { angle: { crossLines: [{ type: 'line', value: 'a' }] } },
+                });
                 const scope = ModuleRegistry.resolveModuleScope([CrossLinesModule]);
 
                 it('reports the polar owner when only the cartesian owner is registered', () => {
@@ -5673,7 +5684,7 @@ describe('ChartOptions', () => {
                     const missing = removeUnregisteredModuleOptions('polar', options, scope);
 
                     expect(missing.map(({ module }) => module.moduleId)).toEqual(['PolarCrossLinesModule']);
-                    expect(optionAt(options, 'axes.angle.crossLines')).toBeUndefined();
+                    expect(strictOptionAt(options, 'axes.angle.crossLines')).toBeUndefined();
                 });
 
                 it('treats the path as covered on the chart type the registered owner supports', () => {
@@ -5735,15 +5746,14 @@ describe('ChartOptions', () => {
                 );
             });
 
-            const unregisteredAxisOptions = (extra?: object): AgChartOptions =>
-                invalidOption({
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    axes: {
-                        x: { type: 'ordinal-time', position: 'bottom' },
-                        y: { type: 'number', position: 'left' },
-                    },
-                    ...extra,
-                });
+            const unregisteredAxisOptions = (extra?: object): AgChartOptions => ({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'ordinal-time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                ...extra,
+            });
 
             const moduleThrow = expect.stringMatching(
                 /^Error: AG Charts - validations\.throwOn: error - required modules are not registered/
@@ -5780,15 +5790,14 @@ describe('ChartOptions', () => {
             });
 
             describe('axis click listeners', () => {
-                const axisListenerOptions = (extra?: object): AgChartOptions =>
-                    invalidOption({
-                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                        axes: {
-                            x: { type: 'category', position: 'bottom', listeners: { click: () => {} } },
-                            y: { type: 'number', position: 'left' },
-                        },
-                        ...extra,
-                    });
+                const axisListenerOptions = (extra?: object): AgChartOptions => ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'category', position: 'bottom', listeners: { click: () => {} } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    ...extra,
+                });
 
                 it('reports AxisInteractionModule for an axis click listener and strips the listener', () => {
                     const processed = prepareOptions(axisListenerOptions(), new Logger());
@@ -5868,11 +5877,10 @@ describe('ChartOptions', () => {
     });
 
     describe('validations.issueRaised', () => {
-        const badStrokeWidthOptions = (validations?: object) =>
-            ({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' }],
-                validations,
-            }) as unknown as AgChartOptions;
+        const badStrokeWidthOptions = (validations?: AgChartOptions['validations']): AgChartOptions => ({
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: invalidOption('notanumber') }],
+            validations,
+        });
 
         // `issueRaised` is wired up on the `Chart`, absent at this level, so assert on `issues`, the
         // Logger capture the listener is fed from.
@@ -5937,10 +5945,10 @@ describe('ChartOptions', () => {
         const createBase = (userOptions: AgChartOptions) =>
             new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {});
         const applyDelta = (
-            base: ChartOptions,
-            delta: object,
+            base: ChartOptions<AgChartOptions>,
+            delta: DeepPartial<AgChartOptions>,
             metadata: ConstructorParameters<typeof ChartOptions>[4] = {}
-        ) => new ChartOptions(base, {} as AgChartOptions, {}, {}, metadata, invalidOption(delta));
+        ) => new ChartOptions<AgChartOptions>(base, {} as AgChartOptions, {}, {}, metadata, delta);
 
         // The container is a per-instance element, so it is left out when comparing options.
         const strip = (options: object) => ({ ...options, container: undefined });
@@ -6196,7 +6204,7 @@ describe('ChartOptions', () => {
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                 } as AgChartOptions);
 
-                const updated = applyDelta(base, { data });
+                const updated = applyDelta(base, { data: invalidOption(data) });
 
                 expect(updated.revalidated).toBe(true);
                 expect(updated.processedOptions.data).not.toBe(data);
@@ -6210,7 +6218,7 @@ describe('ChartOptions', () => {
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             } as AgChartOptions;
 
-            it.each([
+            it.each<{ name: string; delta: DeepPartial<AgChartOptions> }>([
                 { name: 'a title', delta: { title: { text: 'After' } } },
                 { name: 'a series colour', delta: { series: [{ type: 'bar', xKey: 'x', yKey: 'y', fill: 'red' }] } },
             ])('does not report a data change for $name', ({ delta }) => {

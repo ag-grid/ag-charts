@@ -7,11 +7,12 @@ interface NumericBandsHost {
     numericBands: number[];
 }
 
-/**
- * Spies on the getter that builds `OrdinalTimeScale.numericBands` (one number per band). Each call is a read of the
- * built bands, and the scale builds them lazily, so the call count shows how many lookups it took to build them.
- * The caller restores the spy (`vi.restoreAllMocks()`).
- */
+/** The scale's built numeric bands, one number per band. */
+export function numericBandsOf(scale: OrdinalTimeScale): number[] {
+    return (scale as unknown as NumericBandsHost).numericBands;
+}
+
+/** Spies on the getter behind `numericBandsOf`; the call count shows how many lookups it took to build the bands. */
 export function spyOnNumericBandsGetter(): MockInstance {
     return vi.spyOn(OrdinalTimeScale.prototype as unknown as NumericBandsHost, 'numericBands', 'get');
 }

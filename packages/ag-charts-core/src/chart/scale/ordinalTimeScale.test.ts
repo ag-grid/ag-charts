@@ -13,11 +13,9 @@ import {
 } from '../../time/duration';
 import { ScaleAlignment } from '../../types/scales';
 import { OrdinalTimeScale } from './ordinalTimeScale';
-import { spyOnNumericBandsGetter } from './test/scaleAccessors';
+import { numericBandsOf, spyOnNumericBandsGetter } from './test/scaleAccessors';
 
 const minutes = (count: number, step = 1) => Array.from({ length: count }, (_, i) => new Date(2024, 0, 1, 0, i * step));
-// `numericBands` is a protected derived cache; bracket access keeps it typed without a cast.
-const numericBandsOf = (scale: OrdinalTimeScale) => scale['numericBands'];
 
 describe('OrdinalTimeScale', () => {
     it('should create nice ticks', () => {
@@ -543,7 +541,7 @@ describe('OrdinalTimeScale', () => {
     });
 
     describe('empty domain', () => {
-        test('convert does not throw', () => {
+        it('convert does not throw', () => {
             const scale = new OrdinalTimeScale();
             scale.domain = [];
             scale.range = [0, 100];
@@ -551,7 +549,7 @@ describe('OrdinalTimeScale', () => {
             expect(() => scale.convert(new Date())).not.toThrow();
         });
 
-        test('convert does not throw', () => {
+        it('convert does not throw', () => {
             const scale = new OrdinalTimeScale();
             scale.domain = [];
             scale.range = [0, 100];

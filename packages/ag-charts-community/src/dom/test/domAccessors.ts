@@ -4,8 +4,7 @@ import type { SizeMonitor } from 'ag-charts-core';
 
 import type { DOMManager } from '../domManager';
 
-// `DOMManager` keeps these private: the tests below cannot assert them through its public API, because they are the
-// state the public behaviour is built from. Reading them is confined to this file.
+// `DOMManager` keeps these private; they are the state its public behaviour is built from.
 interface DOMManagerInternals {
     element: HTMLElement;
     sizeMonitor: SizeMonitor;

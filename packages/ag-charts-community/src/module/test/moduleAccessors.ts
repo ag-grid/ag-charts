@@ -1,20 +1,20 @@
 import { expect } from 'vitest';
 
-/**
- * A value a test passes in on purpose although the types forbid it: a misspelt `type`, a string where a number is
- * expected, `undefined` for the options, an enterprise-only option. Validation is what the test is about, so the
- * bypass is the point, and it stays in this one place rather than as a bare `as any` at every call site. It returns
- * `never`, which fits wherever the call site expects a type, so the call reads as the invalid input, not as a cast.
- */
+import type { ModuleRegistry } from 'ag-charts-core';
+
+/** A value a validation test passes in on purpose although the types forbid it; returns `never` to fit any slot. */
 export function invalidOption(value: unknown): never {
     return value as never;
 }
 
-/**
- * The value at `path` of an options (or theme) object, `undefined` as soon as a segment is missing. Segments are
- * separated by `.` and an array index can be written `[n]`, as in the option paths the validation messages use:
- * `series[0].label.padding`. Typed `unknown` so the caller states what it expects with the assertion it makes.
- */
+type ModuleToRegister = Parameters<typeof ModuleRegistry.register>[0];
+
+/** A module definition holding only the members the code under test reads (no `create`); the cast is that gap. */
+export function partialModule(members: object): ModuleToRegister {
+    return members as ModuleToRegister;
+}
+
+/** The value at `path` (`series[0].label.padding`) of an options object, `undefined` once a segment is missing. */
 export function optionAt(options: unknown, path: string): unknown {
     let value: unknown = options;
     for (const segment of path.split(/[.[\]]+/).filter(Boolean)) {
@@ -24,10 +24,18 @@ export function optionAt(options: unknown, path: string): unknown {
     return value;
 }
 
-/** The values of the object at `path` (an axes map, say), empty when nothing is there. */
+/** Like `optionAt`, but fails unless the object holding the leaf exists, so an absence check cannot pass vacuously. */
+export function strictOptionAt(options: unknown, path: string): unknown {
+    const parentPath = path.replace(/(?:\.[^.[\]]+|\[\d+\]|^[^.[\]]+)$/, '');
+    expect(optionAt(options, parentPath), `the parent of ${path}`).toBeInstanceOf(Object);
+    return optionAt(options, path);
+}
+
+/** The values of the object at `path` (an axes map, say); fails if there is no object there. */
 export function valuesAt(options: unknown, path: string): unknown[] {
     const value = optionAt(options, path);
-    return value != null && typeof value === 'object' ? Object.values(value) : [];
+    expect(value, path).toBeInstanceOf(Object);
+    return Object.values(value as object);
 }
 
 /** A copy of `options` whose series carry no `data`, for a snapshot of everything but the (large) series data. */
@@ -51,11 +59,7 @@ export function functionAt(options: unknown, path: string): (params: object) => 
     return value as (params: object) => unknown;
 }
 
-/**
- * A stand-in for the `CSSStyleDeclaration` that `getComputedStyle` returns, for tests that resolve CSS variables.
- * It answers `getPropertyValue` from `values` (an empty string for a property it does not list, as a browser does) and
- * nothing else, which is all the CSS-variable resolution reads.
- */
+/** A `CSSStyleDeclaration` stand-in that answers `getPropertyValue` from `values`, `''` for any other property. */
 export function fakeComputedStyle(values: Record<string, string>): CSSStyleDeclaration {
     const style: Pick<CSSStyleDeclaration, 'getPropertyValue'> = {
         getPropertyValue: (key) => values[key] ?? '',
