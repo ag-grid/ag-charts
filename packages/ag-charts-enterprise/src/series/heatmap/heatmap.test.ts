@@ -29,7 +29,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { CallbackResultMemo, Rect, Transformable } from 'ag-charts-core';
+import { CallbackResultMemo, Group, Rect, Transformable } from 'ag-charts-core';
 import { classCast, testLogger } from 'ag-charts-test';
 
 import {
@@ -3842,6 +3842,18 @@ describe('HeatmapSeries', () => {
         describe('scene output', () => {
             const SVG_IDS = /id="[^"]*"|url\(#[^)]*\)/g;
             const toSvg = (c: Chart) => c.ctx.scene.toSVG()!.replace(SVG_IDS, '');
+
+            it('collects one shape per cell of a batch too large to pass as call arguments', () => {
+                const CELLS = 250_000;
+                const batch = new HeatmapCellBatch();
+                batch.resize(CELLS);
+                for (let index = 0; index < CELLS; index++) batch.set(index, index, 0, 1, 1, 'red', 1, 1, undefined);
+                batch.commit();
+                const root = new Group();
+                root.appendChild(batch);
+
+                expect(collectShapes(root)).toHaveLength(CELLS);
+            });
 
             it('serialises to the same SVG as the Rects', async () => {
                 const itemStyler = ({ datum }: { datum: GridCell }) => ({
