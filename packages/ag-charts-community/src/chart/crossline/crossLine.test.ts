@@ -28,8 +28,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import type { AxisContext } from '../../module/axisContext';
-import type { ChartAxisRegistry } from '../../module/moduleContext';
 import type { Chart } from '../chart';
 import { getSeriesRect } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
@@ -54,6 +52,7 @@ import {
 } from '../test/utils';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import type { CrossLineType } from './crossLine';
+import type { CrossLinesRegistry } from './crossLinesRegistry';
 import { getCrossLineFittedLabel, getCrossLinesPlugin } from './test/crossLineAccessors';
 import * as examples from './test/examples';
 
@@ -1517,7 +1516,7 @@ describe('CrossLine', () => {
                 parent: { position: 'bottom' },
             };
             // A stub of the context members the unit under test reads, not a full axis context.
-            return new CartesianCrossLine(axisCtx as unknown as DynamicContext<ChartAxisRegistry<AxisContext>>);
+            return new CartesianCrossLine(axisCtx as unknown as DynamicContext<CrossLinesRegistry>);
         }
 
         function crossLineWith(

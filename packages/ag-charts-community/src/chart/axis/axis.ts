@@ -80,7 +80,6 @@ import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContex
 import { ModuleMap } from '../../module/moduleMap';
 import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
-import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
 import type { AxisLabelFormatterCache } from './axisLabelUtil';
@@ -1370,10 +1369,7 @@ export abstract class Axis<
 
     createModuleContext(): DynamicContext<ChartAxisRegistry<AxisContext>> {
         this.axisContext ??= this.createAxisContext();
-        // `crossLine` is only a reserved slot here; the owning cross-lines module registers it in its `register` hook.
-        this.moduleContext ??= this.moduleCtx
-            .child<{ parent: AxisContext; crossLine: CrossLine }>()
-            .constant('parent', this.axisContext);
+        this.moduleContext ??= this.moduleCtx.child<{ parent: AxisContext }>().constant('parent', this.axisContext);
         return this.moduleContext;
     }
 

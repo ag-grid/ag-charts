@@ -30,12 +30,11 @@ import type {
 } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCrossLineLabelPosition, AgCrossLineListeners } from 'ag-charts-types';
 
-import type { AxisContext } from '../../module/axisContext';
-import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { rangeAlignment } from '../rangeAlignment';
 import { bandRangeExpansion } from '../scaleValue';
 import { type Anchor, type AnchorDirection, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
+import type { CrossLinesRegistry } from './crossLinesRegistry';
 
 type PaddingSide = 'left' | 'right' | 'top' | 'bottom';
 
@@ -128,7 +127,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private labelBounds: BBox | undefined = undefined;
     private fitted: (FittedLabel & { measurer: TextMeasurer }) | undefined = undefined;
 
-    constructor(private readonly ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) {
+    constructor(private readonly ctx: DynamicContext<CrossLinesRegistry>) {
         this.crossLineRange.pointerEvents = PointerEvents.None;
     }
 

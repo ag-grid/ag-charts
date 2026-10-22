@@ -13,14 +13,13 @@ import {
 } from 'ag-charts-core';
 import type { AgBaseCrossLineOptions } from 'ag-charts-types';
 
-import type { AxisContext } from '../../module/axisContext';
-import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { communityModule } from '../../module/moduleIdentity';
 import { VERSION } from '../../version';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import { cartesianCrossLineLabelOptionsDefs } from './crossLineOptionsDefs';
 import { CrossLinesDOMProxyModule } from './crossLinesDOMProxyModule';
 import { CrossLinesPlugin } from './crossLinesPlugin';
+import type { CrossLinesRegistry } from './crossLinesRegistry';
 
 function cartesianCrossLines(axisTypes: string[], value: Validator): OptionsContribution {
     return {
@@ -49,7 +48,7 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
         ),
     ],
 
-    register: (ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) => {
+    register: (ctx: DynamicContext<CrossLinesRegistry>) => {
         ctx.factory('crossLine', (c) => new CartesianCrossLine(c));
     },
     create: (ctx) => new CrossLinesPlugin(ctx),

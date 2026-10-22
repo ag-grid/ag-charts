@@ -15,7 +15,6 @@ import type { AgCrossLineClickEvent } from 'ag-charts-types';
 
 import type { SeriesAreaCanvasClickEvent, SeriesAreaContextMenuEvent } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
-import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import type { PlacedLabelSource } from '../layout/labelManager';
@@ -26,6 +25,7 @@ import {
     PendingCrossLineCallbacks,
     type PolarCrossLine,
 } from './crossLine';
+import type { CrossLinesRegistry } from './crossLinesRegistry';
 
 /** One solve group of an axis's cross line labels: kept labels resolve before series labels, droppable ones after. */
 class CrossLineLabelSource implements PlacedLabelSource {
@@ -109,7 +109,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     /** Bumped whenever the label inputs change, so placement can skip an unchanged solve. */
     nodeDataVersion = 0;
 
-    private readonly ctx: DynamicContext<ChartAxisRegistry<AxisContext>>;
+    private readonly ctx: DynamicContext<CrossLinesRegistry>;
     private readonly axisCtx: AxisContext;
     private readonly rangeGroup = new Group({ name: 'CrossLines-Range' });
     private readonly lineGroup = new Group({ name: 'CrossLines-Line' });
@@ -120,7 +120,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private readonly removePointerListeners: (() => void)[];
     readonly labelSources: readonly CrossLineLabelSource[];
 
-    constructor(ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) {
+    constructor(ctx: DynamicContext<CrossLinesRegistry>) {
         super();
         this.ctx = ctx;
         this.axisCtx = ctx.parent;
