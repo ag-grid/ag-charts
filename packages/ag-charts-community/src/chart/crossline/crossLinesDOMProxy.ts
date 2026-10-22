@@ -90,6 +90,9 @@ export class CrossLinesDOMProxy {
             const plugin = getCrossLinesPlugin(axis);
             if (!plugin?.isVisible()) continue;
 
+            // Track currently focus cross line (state shared across all axes).
+            plugin?.setKeyboardFocusState(this.focusState);
+
             for (const crossLine of plugin.getInstances()) {
                 if (!plugin.isKeyboardClickable(crossLine)) continue;
 
@@ -106,7 +109,7 @@ export class CrossLinesDOMProxy {
         }
         this.focusPaths.length = Math.min(this.focusPaths.length, entries.length);
         while (buttons.length < entries.length) {
-            buttons.push(this.createButton(this.entries[buttons.length]));
+            buttons.push(this.createButton(buttons.length));
         }
         for (let i = 0; i < entries.length; i++) {
             const { crossLine, bounds, focusPath } = entries[i];
@@ -144,7 +147,7 @@ export class CrossLinesDOMProxy {
         }
     }
 
-    private createButton(entry: ProxyEntry): ButtonWidget {
+    private createButton(index: number): ButtonWidget {
         const button = this.ctx.proxyInteractionService.createProxyElement({
             type: 'button',
             textContent: '',
@@ -152,16 +155,15 @@ export class CrossLinesDOMProxy {
         });
         // Fires for Enter and Space only: the buttons have `pointer-events: none`.
         button.addListener('click', (event) => {
-            entry.plugin.keyboardClick(entry.crossLine, event.sourceEvent);
+            const entry = this.entries[index];
+            entry?.plugin.keyboardClick(entry.crossLine, event.sourceEvent);
         });
 
-        // Track currently focus cross line (state shared across all axes).
-        entry.plugin.setKeyboardFocusState(this.focusState);
         button.addListener('focus', () => {
-            this.focusState.entry = entry;
+            this.focusState.entry = this.entries[index];
         });
         button.addListener('blur', () => {
-            this.focusState.entry = entry;
+            this.focusState.entry = undefined;
         });
         return button;
     }
