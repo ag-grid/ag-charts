@@ -180,4 +180,18 @@ function onUpdate() {
     chart.updateDelta({ axes: { angle: { shape: angleShape }, radius: { shape: radiusShape } } });
 }
 
-(window as any).agE2E = { popEvents: () => events.splice(0) };
+// Updates a cross line's options without moving focus, so the focused proxy is reused for the new instance.
+function moveThreshold() {
+    chart.updateDelta({
+        axes: {
+            radius: {
+                crossLines: [
+                    { id: 'threshold', type: 'line', value: 6, strokeWidth: 12, listeners: crossLineListeners },
+                    { id: 'ring', type: 'range', range: [7, 8], listeners: crossLineListeners },
+                ],
+            },
+        },
+    });
+}
+
+(window as any).agE2E = { popEvents: () => events.splice(0), moveThreshold };

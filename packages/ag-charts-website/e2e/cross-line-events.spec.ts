@@ -1221,4 +1221,102 @@ test.describe('cross-line-events', () => {
             });
         });
     });
+    // A proxy keeps the keyboard focus only until the pointer is used: hit-testing then follows the pointer again.
+    test.describe('keyboard focus, then pointer', () => {
+        test.describe('click', () => {
+            let toPage: (x: number, y: number) => CanvasPoint;
+
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(
+                    page,
+                    toExamplePageUrl('events-e2e', 'cross-line-click-event-cartesian', 'vanilla').url
+                );
+                toPage = await canvasToPageTransformer(page);
+
+                await page.keyboard.press('Tab'); // -> series area
+                await page.keyboard.press('Tab'); // -> first cross line
+                expect(await focusedText(page)).toBe('Q2 - Q3');
+            });
+
+            test('clicking another cross line reports that cross line alone', async ({ page }) => {
+                const { x, y } = toPage(CARTESIAN.points.threshold.x, CARTESIAN.points.threshold.y);
+                await page.mouse.click(x, y);
+
+                expect(await popEvents(page)).toEqual(expectedEvents('crossLineClick', [CARTESIAN.threshold]));
+            });
+
+            test('a click clear of every cross line reaches only the chart click listener', async ({ page }) => {
+                const { x, y } = toPage(CARTESIAN.points.miss.x, CARTESIAN.points.miss.y);
+                await page.mouse.click(x, y);
+
+                expect(await popEvents(page)).toEqual([CHART_CLICK]);
+            });
+        });
+
+        test.describe('right-click', () => {
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(
+                    page,
+                    toExamplePageUrl('events-e2e', 'cross-line-contextmenu-event-cartesian', 'vanilla').url
+                );
+
+                await page.keyboard.press('Tab'); // -> series area
+                await page.keyboard.press('Tab'); // -> first cross line
+                expect(await focusedText(page)).toBe(FIRST_LOCKDOWN_TEXT);
+            });
+
+            test('right-clicking another cross line shows its item alone', async ({ page }) => {
+                await page.mouse.click(220, 174, { button: 'right' }); // On the icu-capacity line, clear of x ranges.
+
+                await expect(page.locator(CONTEXT_MENU)).toBeVisible();
+                await expect(page.locator(CONTEXT_MENU)).toContainText('Say hello to line cross line icu-capacity');
+                await expect(page.locator(CONTEXT_MENU)).not.toContainText('first-lockdown');
+            });
+        });
+    });
+
+    // The focused proxy is reused for the cross line's new instance when its options change.
+    test.describe('keyboard focus, then options update', () => {
+        const consoleLogs = createConsoleLogs();
+
+        test.beforeEach(async ({ page }) => {
+            await gotoPolarExample(page, 'cross-line-contextmenu-event-polar', 'circle');
+
+            await page.keyboard.press('Tab'); // Update button -> series area
+            await page.keyboard.press('Tab'); // -> first cross line
+            await repeat(2, () => page.keyboard.press('ArrowDown'));
+            expect(await focusedText(page)).toBe('5');
+
+            await evalPageFunction(page, 'moveThreshold'); // threshold: 5 -> 6
+            await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            expect(await focusedText(page)).toBe('6');
+        });
+
+        test('press Enter reports the updated cross line', async ({ page }) => {
+            await page.keyboard.press('Enter');
+
+            expect(await popEvents(page)).toEqual(
+                expectedKeyboardEvents(
+                    {
+                        axisId: 'radius',
+                        direction: 'radius',
+                        crossLineId: 'threshold',
+                        crossLineType: 'line',
+                        value: 6,
+                    },
+                    ['crossLine', 'axis', 'chart']
+                )
+            );
+        });
+
+        test('press ContextMenu, ArrowDown, Enter runs the action of the updated cross line', async ({ page }) => {
+            await page.keyboard.press('ContextMenu');
+            await expect(page.locator(CONTEXT_MENU)).toBeVisible();
+            consoleLogs.clear();
+            await page.keyboard.press('ArrowDown');
+            await page.keyboard.press('Enter');
+
+            await consoleLogs.expectLogs(['Hello radius-line 6!']);
+        });
+    });
 });
