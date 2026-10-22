@@ -577,7 +577,7 @@
                     "type": "item",
                     "title": "HLC",
                     "path": "hlc-series",
-                    "icon": "chartsOHLC",
+                    "icon": "chartsHLC",
                     "isEnterprise": true
                 },
                 {
