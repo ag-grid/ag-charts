@@ -281,7 +281,6 @@ describe('Legend', () => {
                     legend: { enabled: true, listeners },
                 })
             );
-            await waitForChartStability(chart);
         });
 
         test('mouse', async () => {
@@ -731,7 +730,6 @@ describe('Legend', () => {
                     legend: { enabled: true, listeners: { legendItemClick } },
                 })
             );
-            await waitForChartStability(chart);
 
             await clickAction(400, 570)(chart);
             expect(legendItemClick).toHaveBeenCalledTimes(1);
@@ -748,7 +746,6 @@ describe('Legend', () => {
                     legend: { enabled: true, listeners: { legendItemClick } },
                 })
             );
-            await waitForChartStability(chart);
 
             await clickAction(400, 570)(chart);
 
@@ -781,7 +778,6 @@ describe('Legend', () => {
                     legend: { enabled: true, listeners: { legendItemDoubleClick } },
                 })
             );
-            await waitForChartStability(chart);
 
             await doubleClickAction(400, 570)(chart);
 

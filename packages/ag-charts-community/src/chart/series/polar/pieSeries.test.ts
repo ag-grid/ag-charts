@@ -1848,7 +1848,6 @@ describe('PieSeries', () => {
                     ],
                 })
             );
-            await waitForChartStability(chart);
 
             await compare();
         });
@@ -1873,7 +1872,6 @@ describe('PieSeries', () => {
                     ],
                 })
             );
-            await waitForChartStability(chart);
 
             await compare();
         });

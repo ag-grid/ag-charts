@@ -67,6 +67,8 @@ describe('createChart', () => {
         expect(internal.width).toBe(CANVAS_WIDTH);
         expect(internal.height).toBe(CANVAS_HEIGHT);
         expect(internal.series[0].visible).toBe(true);
+        expect(internal.seriesRect?.width).toBeGreaterThan(0);
+        expect(internal.seriesRect?.height).toBeGreaterThan(0);
     });
 
     it('applies the test options: fixed canvas size', async () => {
