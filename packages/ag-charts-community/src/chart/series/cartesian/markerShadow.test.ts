@@ -80,6 +80,7 @@ describe('marker shadow', () => {
 
     afterEach(() => {
         chart?.destroy();
+        // `chart` is assigned by each case; drop the destroyed instance so a case that skips `create` cannot reuse it.
         (chart as unknown) = undefined;
         vi.restoreAllMocks();
     });
