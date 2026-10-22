@@ -1,4 +1,5 @@
 import type { BBox, NormalisedBasePolarAxisOptions, Scale } from 'ag-charts-core';
+import type { AgAxisListeners } from 'ag-charts-types';
 
 import type { AxisContext, PolarAxisLayout } from '../../module/axisContext';
 import { Axis } from './axis';
@@ -27,7 +28,7 @@ export abstract class PolarAxis<
         return this.options.shape;
     }
 
-    protected override get userListeners() {
+    protected override get userListeners(): AgAxisListeners<unknown> | undefined {
         return this.options.listeners;
     }
 
