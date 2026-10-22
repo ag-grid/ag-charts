@@ -618,24 +618,26 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 ctx.domManager.setDataBoolean('animating', false);
                 ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
-            ctx.eventsHub.on('zoom:change-complete', () => {
-                const initialPhase = this.chartAnimationPhase === 'initial';
-                for (const s of this.series) {
-                    (s as any).animationState?.transition('updateData');
-                }
-                if (initialPhase) {
-                    for (const axis of this.axes) {
-                        axis.resetAnimation(this.chartAnimationPhase);
-                    }
-                }
-                this.update(ChartUpdateType.PERFORM_LAYOUT, {
-                    forceNodeDataRefresh: true,
-                    skipAnimations: !initialPhase,
-                });
-            })
+            ctx.eventsHub.on('zoom:change-complete', () => this.onZoomChangeComplete())
         );
 
         this.parentResize(ctx.domManager.containerSize);
+    }
+
+    protected onZoomChangeComplete() {
+        const initialPhase = this.chartAnimationPhase === 'initial';
+        for (const s of this.series) {
+            (s as any).animationState?.transition('updateData');
+        }
+        if (initialPhase) {
+            for (const axis of this.axes) {
+                axis.resetAnimation(this.chartAnimationPhase);
+            }
+        }
+        this.update(ChartUpdateType.PERFORM_LAYOUT, {
+            forceNodeDataRefresh: true,
+            skipAnimations: !initialPhase,
+        });
     }
 
     get listeners(): ChartListeners {
