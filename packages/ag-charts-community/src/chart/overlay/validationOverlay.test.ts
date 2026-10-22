@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartUpdateType } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
@@ -16,11 +16,15 @@ import {
 import type { GroupedValidationIssues } from '../validation/chartValidations';
 import { getValidationOverlay } from './validationOverlay';
 
+// Deliberately invalid: these tests check what the overlay reports when a numeric option is not a number.
+const NOT_A_NUMBER = 'notanumber' as unknown as number;
+const ALSO_NOT_A_NUMBER = 'alsobad' as unknown as number;
+
 // A single-issue misconfiguration: an invalid `strokeWidth` validated against `lineSeriesOptionsDef`
 // before construction, so the chart's `validations` service collects it at `warning` severity.
 const invalidStrokeWidthOptions: AgChartOptions = {
     data: [{ x: 'a', y: 1 }],
-    series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
+    series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: NOT_A_NUMBER }],
 };
 
 describe('ValidationOverlay', () => {
@@ -36,7 +40,7 @@ describe('ValidationOverlay', () => {
     });
 
     describe('#showOverlayOn selection', () => {
-        test("['warning'] renders the overlay with a warnings section and summary, console warning still fires", async () => {
+        it("['warning'] renders the overlay with a warnings section and summary, console warning still fires", async () => {
             chart = deproxy(
                 await createChart({
                     ...invalidStrokeWidthOptions,
@@ -66,7 +70,7 @@ describe('ValidationOverlay', () => {
 `);
         });
 
-        test('the default empty selection renders no overlay; console warning still fires', async () => {
+        it('the default empty selection renders no overlay; console warning still fires', async () => {
             chart = deproxy(await createChart(invalidStrokeWidthOptions));
 
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay')).toBeNull();
@@ -80,7 +84,7 @@ describe('ValidationOverlay', () => {
 `);
         });
 
-        test("['error'] excludes a warning-severity issue, so no overlay is rendered", async () => {
+        it("['error'] excludes a warning-severity issue, so no overlay is rendered", async () => {
             chart = deproxy(
                 await createChart({
                     ...invalidStrokeWidthOptions,
@@ -101,7 +105,7 @@ describe('ValidationOverlay', () => {
     });
 
     describe('#strict priority', () => {
-        test('validation overlay suppresses the no-data overlay while shown', async () => {
+        it('validation overlay suppresses the no-data overlay while shown', async () => {
             chart = deproxy(
                 await createChart({
                     ...invalidStrokeWidthOptions,
@@ -126,7 +130,7 @@ describe('ValidationOverlay', () => {
     describe('#changed issues', () => {
         // The selected overlay state stays 'validation' across both updates (never dismissed), so this
         // exercises the content-refresh path independently of any state transition.
-        test('replacing one issue with another re-renders the overlay content while it stays shown', async () => {
+        it('replacing one issue with another re-renders the overlay content while it stays shown', async () => {
             const options = {
                 ...invalidStrokeWidthOptions,
                 validations: { showOverlayOn: ['warning'] },
@@ -145,7 +149,7 @@ describe('ValidationOverlay', () => {
 
             await proxy.update({
                 ...options,
-                series: [{ type: 'line', xKey: 'x', yKey: 'y', lineDashOffset: 'alsobad' as any }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', lineDashOffset: ALSO_NOT_A_NUMBER }],
             } as AgChartOptions);
             await chart.waitForUpdate(5000, true);
 
@@ -172,7 +176,7 @@ describe('ValidationOverlay', () => {
     describe('#tooltip suppression', () => {
         // The tooltip is a browser top-layer popover, so it paints over the overlay regardless of z-index; a
         // visible overlay must hold it back and clearing the overlay must release it.
-        test('a visible overlay suppresses the tooltip; dismissing it releases the tooltip', async () => {
+        it('a visible overlay suppresses the tooltip; dismissing it releases the tooltip', async () => {
             chart = deproxy(await createChart(invalidStrokeWidthOptions));
             expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
 
@@ -197,7 +201,7 @@ describe('ValidationOverlay', () => {
 `);
         });
 
-        test('a chart whose overlay is visible on the first render suppresses the tooltip immediately', async () => {
+        it('a chart whose overlay is visible on the first render suppresses the tooltip immediately', async () => {
             // The overlay becomes visible while the chart is set up, so the suppression fires before an
             // instance-level spy could attach; spy on the prototype so the initial call is still observed.
             const suppressSpy = vi.spyOn(TooltipManager.prototype, 'suppressTooltip');
@@ -241,11 +245,11 @@ describe('ValidationOverlay', () => {
                     itemStyler: () => {
                         throw new Error('itemStyler boom');
                     },
-                } as any,
+                },
             ],
         };
 
-        test('a throwing itemStyler surfaces one warning entry on the overlay and the chart still renders', async () => {
+        it('a throwing itemStyler surfaces one warning entry on the overlay and the chart still renders', async () => {
             chart = deproxy(
                 await createChart({
                     ...throwingItemStylerOptions,
@@ -275,7 +279,7 @@ describe('ValidationOverlay', () => {
         });
 
         // Each severity is selected on its own, so an errors-only selection must leave a warning unshown.
-        test("['error'] does not render a warning-severity callback issue", async () => {
+        it("['error'] does not render a warning-severity callback issue", async () => {
             chart = deproxy(
                 await createChart({
                     ...throwingItemStylerOptions,
@@ -292,7 +296,7 @@ describe('ValidationOverlay', () => {
             ]);
         });
 
-        test('a still-broken itemStyler stays on the overlay across a cache-hit redraw', async () => {
+        it('a still-broken itemStyler stays on the overlay across a cache-hit redraw', async () => {
             chart = deproxy(
                 await createChart({
                     ...throwingItemStylerOptions,
@@ -325,7 +329,7 @@ describe('ValidationOverlay', () => {
     describe('#dismiss', () => {
         // Assert on `aria-hidden`: hideOverlay clears content via `innerText`, which jsdom does not apply to
         // descendant nodes, so a child element can linger in jsdom while `aria-hidden` stays correct.
-        test('dismiss hides the overlay; a subsequent different issue re-shows it', async () => {
+        it('dismiss hides the overlay; a subsequent different issue re-shows it', async () => {
             const options = {
                 ...invalidStrokeWidthOptions,
                 validations: { showOverlayOn: ['warning'] },
@@ -348,7 +352,7 @@ describe('ValidationOverlay', () => {
 
             await proxy.update({
                 ...options,
-                series: [{ type: 'line', xKey: 'x', yKey: 'y', lineDashOffset: 'alsobad' as any }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', lineDashOffset: ALSO_NOT_A_NUMBER }],
             } as AgChartOptions);
             await chart.waitForUpdate(5000, true);
 
@@ -376,7 +380,7 @@ describe('ValidationOverlay', () => {
     // No community-level deprecated option can drive a deprecation-severity issue through a real chart, so
     // the renderer is exercised directly.
     describe('#deprecation section', () => {
-        test('renders a Deprecations section, count heading and summary for a deprecation-severity issue', async () => {
+        it('renders a Deprecations section, count heading and summary for a deprecation-severity issue', async () => {
             chart = deproxy(
                 await createChart({
                     data: [{ x: 'a', y: 1 }],
@@ -435,7 +439,7 @@ describe('ValidationOverlay', () => {
             return agDocument;
         };
 
-        test('renders the Copy button and writes diagnostics when the clipboard is writable', async () => {
+        it('renders the Copy button and writes diagnostics when the clipboard is writable', async () => {
             chart = deproxy(
                 await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] })
             );
@@ -455,7 +459,7 @@ describe('ValidationOverlay', () => {
             expect(writeText).toHaveBeenCalledWith('[warning] Invalid strokeWidth\nseries[0].strokeWidth');
         });
 
-        test('omits the Copy button but keeps Dismiss when the clipboard is unavailable', async () => {
+        it('omits the Copy button but keeps Dismiss when the clipboard is unavailable', async () => {
             chart = deproxy(
                 await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] })
             );

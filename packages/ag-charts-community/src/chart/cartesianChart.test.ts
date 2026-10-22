@@ -8,8 +8,8 @@ import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 import { AgCharts } from '../api/agCharts';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
-import type { SeriesNodeDataContext } from './series/series';
 import * as examples from './test/examples';
+import { getSeriesContextNodeData } from './test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -226,7 +226,7 @@ describe('CartesianChart', () => {
             });
             if (seriesImpl == null) fail('No seriesImpl found');
 
-            const nodeData: SeriesNodeDataContext<never, never> = (seriesImpl as any)['contextNodeData'];
+            const nodeData = getSeriesContextNodeData<never, never>(chart, chart.series.indexOf(seriesImpl));
 
             const highlightManager = chart.ctx.highlightManager;
 

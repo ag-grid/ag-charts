@@ -1,9 +1,9 @@
 import { fail } from 'assert';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { cycledValue } from 'ag-charts-core';
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
-import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import { CartesianChart } from '../cartesianChart';
@@ -37,7 +37,7 @@ describe('ChartTheme', () => {
         if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
-            (chart as any) = null;
+            (chart as unknown) = null;
         }
     });
 
@@ -183,11 +183,11 @@ describe('ChartTheme', () => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
         });
 
-        test('Options are not mutated after AgCharts.create', () => {
+        it('Options are not mutated after AgCharts.create', () => {
             expect(JSON.stringify(cartesianChartOptions)).toBe(serializedOptions);
         });
 
-        test('Cartesian chart instance properties', () => {
+        it('Cartesian chart instance properties', () => {
             if (!(chart instanceof CartesianChart)) fail();
 
             expect(chart.title?.enabled).toBe(true);
@@ -214,9 +214,9 @@ describe('ChartTheme', () => {
             const areaStrokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
             for (let i = 5; i < 10; i++) {
                 expect(chart.series[i].type).toBe('area');
-                expect((chart.series[i] as unknown as AreaSeries).options.fill).toEqual(areaFills[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).options.stroke).toEqual(areaStrokes[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).options.marker.itemStyler).toBeDefined();
+                expect(classCast(chart.series[i], AreaSeries).options.fill).toEqual(areaFills[i - 5]);
+                expect(classCast(chart.series[i], AreaSeries).options.stroke).toEqual(areaStrokes[i - 5]);
+                expect(classCast(chart.series[i], AreaSeries).options.marker.itemStyler).toBeDefined();
             }
         });
     });
@@ -280,11 +280,11 @@ describe('ChartTheme', () => {
             chart = deproxy(AgCharts.create(polarChartOptions));
         });
 
-        test('Options are not mutated after AgCharts.create', () => {
+        it('Options are not mutated after AgCharts.create', () => {
             expect(JSON.stringify(polarChartOptions)).toBe(serializedOptions);
         });
 
-        test('Polar chart instance properties', () => {
+        it('Polar chart instance properties', () => {
             if (!(chart instanceof PolarChart)) fail();
 
             expect(chart.title?.enabled).toBe(true);
@@ -431,7 +431,7 @@ describe('ChartTheme', () => {
             ],
         };
 
-        test('Cartesian chart instance properties', async () => {
+        it('Cartesian chart instance properties', async () => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
             if (!(chart instanceof CartesianChart)) fail();
 
@@ -458,7 +458,7 @@ describe('ChartTheme', () => {
             }
         });
 
-        test('Polar chart instance properties', async () => {
+        it('Polar chart instance properties', async () => {
             chart = deproxy(AgCharts.create(polarChartOptions));
             if (!(chart instanceof PolarChart)) fail();
 
@@ -483,7 +483,7 @@ describe('ChartTheme', () => {
     });
 
     describe('$lightDark in overrides', () => {
-        test.each([
+        it.each([
             ['ag-default', '#111111'],
             ['ag-default-dark', '#222222'],
             ['ag-financial-dark', '#222222'],
@@ -506,7 +506,7 @@ describe('ChartTheme', () => {
     });
 
     describe('dark and financial theme defaults', () => {
-        test.each([
+        it.each([
             ['ag-default', false, 'block', 'center'],
             ['ag-default-dark', true, 'block', 'center'],
             ['ag-financial', false, 'overlay', 'left'],
@@ -546,10 +546,13 @@ describe('ChartTheme', () => {
                 } as AgCartesianChartOptions)
             );
             await waitForChartStability(chart);
-            return chart.chartOptions.processedOptions as any;
+            // The processed options are typed as every chart type's; this is a cartesian chart of bar series.
+            const { legend, series } = chart.chartOptions.processedOptions as AgCartesianChartOptions;
+            expect(legend).toBeDefined();
+            return { legend: legend!, series: series as AgBarSeriesOptions[] };
         };
 
-        test.each([
+        it.each([
             ['true', true, { enabled: true, stroke: '#112233', strokeWidth: 2 }],
             ['an object width', { width: 3 }, { enabled: true, stroke: '#112233', strokeWidth: 3 }],
             ['an object colour', { color: '#445566' }, { enabled: true, stroke: '#445566', strokeWidth: 2 }],
@@ -559,29 +562,29 @@ describe('ChartTheme', () => {
             expect(legend.border).toMatchObject(expected);
         });
 
-        test('legendBorder false disables the border but keeps the legend stroke and a width of 1', async () => {
+        it('legendBorder false disables the border but keeps the legend stroke and a width of 1', async () => {
             const { legend } = await create({ legendBorder: false });
 
-            expect(legend.border.enabled).toBe(false);
-            expect(legend.border.stroke).not.toBe('#112233');
-            expect(legend.border.strokeWidth).toBe(1);
+            expect(legend.border?.enabled).toBe(false);
+            expect(legend.border?.stroke).not.toBe('#112233');
+            expect(legend.border?.strokeWidth).toBe(1);
         });
 
-        test.each([
+        it.each([
             ['true', true, { enabled: true, stroke: '#112233', strokeWidth: 2 }],
             ['an object width', { width: 3 }, { enabled: true, stroke: '#112233', strokeWidth: 3 }],
             ['an object colour', { color: '#445566' }, { enabled: true, stroke: '#445566', strokeWidth: 2 }],
         ])('seriesLabelBorder as %s resolves the series label border', async (_name, seriesLabelBorder, expected) => {
             const { series } = await create({ seriesLabelBorder });
 
-            expect(series[0].label.border).toMatchObject(expected);
+            expect(series[0].label?.border).toMatchObject(expected);
         });
 
-        test('seriesLabelBorder false leaves the label border off, with a width of 1', async () => {
+        it('seriesLabelBorder false leaves the label border off, with a width of 1', async () => {
             const { series } = await create({ seriesLabelBorder: false });
 
-            expect(series[0].label.border.enabled).toBe(false);
-            expect(series[0].label.border.strokeWidth).toBe(1);
+            expect(series[0].label?.border?.enabled).toBe(false);
+            expect(series[0].label?.border?.strokeWidth).toBe(1);
         });
     });
 
@@ -598,12 +601,12 @@ describe('ChartTheme', () => {
         const resolvedLegend = async (options: AgCartesianChartOptions) => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
-            return (chart as any).ctx.chartState.getValue('options', 'legend');
+            return deproxy(chart).ctx.chartState.getValue('options', 'legend');
         };
 
         // Padding supplied via theme.overrides must resolve identically to the same padding supplied
         // as direct chart options.
-        test('CRT-1145: legend.item.padding partial-side override matches direct options', async () => {
+        it('CRT-1145: legend.item.padding partial-side override matches direct options', async () => {
             const padding = { left: 15, right: 15 };
 
             const direct = await resolvedLegend(baseOptions({ item: { padding } }));
@@ -617,7 +620,7 @@ describe('ChartTheme', () => {
             expect(override.item.padding).toEqual({ top: 4, right: 15, bottom: 4, left: 15 });
         });
 
-        test('CRT-1146: legend.item.marker.padding number override matches direct options', async () => {
+        it('CRT-1146: legend.item.marker.padding number override matches direct options', async () => {
             const direct = await resolvedLegend(baseOptions({ position: 'top', item: { marker: { padding: 8 } } }));
             chart.destroy();
             const override = await resolvedLegend({
@@ -688,7 +691,7 @@ describe('ChartTheme', () => {
             },
         };
 
-        test('Themed bottom category, unthemed left number', async () => {
+        it('Themed bottom category, unthemed left number', async () => {
             chart = deproxy(
                 AgCharts.create({
                     theme,
@@ -725,20 +728,20 @@ describe('ChartTheme', () => {
             if (!(chart instanceof CartesianChart)) fail();
             await waitForChartStability(chart);
 
-            const axisY = chart.axes.y as any;
+            const axisY = chart.axes.y;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('left');
             expect(axisY.options.line.stroke).toBe('#dcdddd');
             expect(axisY.options?.label?.fontSize).toBe(12);
 
-            const axisX = chart.axes.x as any;
+            const axisX = chart.axes.x;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
             expect(axisX.options.line.stroke).toBe('blue');
             expect(axisX.options?.label?.fontSize).toBe(18);
         });
 
-        test('Specialized chart type themed bottom category, unthemed left number', async () => {
+        it('Specialized chart type themed bottom category, unthemed left number', async () => {
             chart = deproxy(
                 AgCharts.create({
                     theme,
@@ -775,20 +778,20 @@ describe('ChartTheme', () => {
             if (!(chart instanceof CartesianChart)) fail();
             await waitForChartStability(chart);
 
-            const axisY = chart.axes.y as any;
+            const axisY = chart.axes.y;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('left');
             expect(axisY.options.line.stroke).toBe('#dcdddd');
             expect(axisY.options?.label?.fontSize).toBe(12);
 
-            const axisX = chart.axes.x as any;
+            const axisX = chart.axes.x;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
             expect(axisX.options.line.stroke).toBe('blue');
             expect(axisX.options?.label?.fontSize).toBe(18);
         });
 
-        test('Themed right number, unthemed top category', async () => {
+        it('Themed right number, unthemed top category', async () => {
             chart = deproxy(
                 AgCharts.create({
                     theme,
@@ -835,20 +838,20 @@ describe('ChartTheme', () => {
             if (!(chart instanceof CartesianChart)) fail();
             await waitForChartStability(chart);
 
-            const axisY = chart.axes.y as any;
+            const axisY = chart.axes.y;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('right');
             expect(axisY.options.line.stroke).toBe('blue');
             expect(axisY.options?.label?.fontSize).toBe(18);
 
-            const axisX = chart.axes.x as any;
+            const axisX = chart.axes.x;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('top');
             expect(axisX.options.line.stroke).toBe('red');
             expect(axisX.options?.label?.fontSize).toBe(12);
         });
 
-        test('Partially themed axes', async () => {
+        it('Partially themed axes', async () => {
             chart = deproxy(
                 AgCharts.create({
                     theme,
@@ -912,7 +915,7 @@ describe('ChartTheme', () => {
             if (!(chart instanceof CartesianChart)) fail();
             await waitForChartStability(chart);
 
-            const axisY = chart.axes.y as any;
+            const axisY = chart.axes.y;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('right');
             expect(axisY.options.line.stroke).toBe('red');
@@ -923,7 +926,7 @@ describe('ChartTheme', () => {
             expect(axisY.options?.label?.padding).toBe(5);
             expect(axisY.options?.label?.rotation).toBe(undefined);
 
-            const axisX = chart.axes.x as any;
+            const axisX = chart.axes.x;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
             expect(axisX.options.line.stroke).toBe('blue');
@@ -983,11 +986,11 @@ describe('ChartTheme', () => {
             return created;
         }
 
-        test('`width` only resolves `strokeWidth` and warns', async () => {
+        it('`width` only resolves `strokeWidth` and warns', async () => {
             chart = await createChart({ width: 5 });
             if (!(chart instanceof CartesianChart)) fail();
 
-            const axisX = chart.axes.x as any;
+            const axisX = chart.axes.x;
             expect(axisX.options.line.strokeWidth).toBe(5);
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
@@ -998,20 +1001,20 @@ describe('ChartTheme', () => {
             `);
         });
 
-        test('`strokeWidth` only resolves without a notice', async () => {
+        it('`strokeWidth` only resolves without a notice', async () => {
             chart = await createChart({ strokeWidth: 5 });
             if (!(chart instanceof CartesianChart)) fail();
 
-            const axisX = chart.axes.x as any;
+            const axisX = chart.axes.x;
             expect(axisX.options.line.strokeWidth).toBe(5);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
-        test('both set: `strokeWidth` wins over `width`, and `width` still warns', async () => {
+        it('both set: `strokeWidth` wins over `width`, and `width` still warns', async () => {
             chart = await createChart({ width: 5, strokeWidth: 3 });
             if (!(chart instanceof CartesianChart)) fail();
 
-            const axisX = chart.axes.x as any;
+            const axisX = chart.axes.x;
             expect(axisX.options.line.strokeWidth).toBe(3);
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
@@ -1022,16 +1025,16 @@ describe('ChartTheme', () => {
             `);
         });
 
-        test('neither set: `strokeWidth` defaults to 1', async () => {
+        it('neither set: `strokeWidth` defaults to 1', async () => {
             chart = await createChart(undefined);
             if (!(chart instanceof CartesianChart)) fail();
 
-            const axisX = chart.axes.x as any;
+            const axisX = chart.axes.x;
             expect(axisX.options.line.strokeWidth).toBe(1);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
-        test('`width` set via a theme override resolves `strokeWidth` and warns', async () => {
+        it('`width` set via a theme override resolves `strokeWidth` and warns', async () => {
             const theme: AgChartTheme = {
                 baseTheme: 'ag-default',
                 overrides: {
@@ -1049,7 +1052,7 @@ describe('ChartTheme', () => {
             chart = await createChart(undefined, theme);
             if (!(chart instanceof CartesianChart)) fail();
 
-            const axisX = chart.axes.x as any;
+            const axisX = chart.axes.x;
             expect(axisX.options.line.strokeWidth).toBe(7);
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
@@ -1060,7 +1063,7 @@ describe('ChartTheme', () => {
             `);
         });
 
-        test('`width` set via a positional theme override resolves `strokeWidth` and warns', async () => {
+        it('`width` set via a positional theme override resolves `strokeWidth` and warns', async () => {
             const theme: AgChartTheme = {
                 baseTheme: 'ag-default',
                 overrides: {
@@ -1103,7 +1106,7 @@ describe('ChartTheme', () => {
             await waitForChartStability(chart);
             if (!(chart instanceof CartesianChart)) fail();
 
-            const axisX = chart.axes.x as any;
+            const axisX = chart.axes.x;
             // Pins the merge-order the plan flagged as the row most likely to diverge:
             // a positional (`number.bottom`) theme override satisfies `$isUserOption` the
             // same way a type-level override does.
@@ -1175,7 +1178,7 @@ describe('ChartTheme', () => {
             ],
         };
 
-        test('Cartesian chart instance properties', async () => {
+        it('Cartesian chart instance properties', async () => {
             chart = deproxy(AgCharts.create(cartesianChartOptions));
             if (!(chart instanceof CartesianChart)) fail();
             await waitForChartStability(chart);

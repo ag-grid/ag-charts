@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { Rect } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgPolarChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { Chart } from './chart';
+import { getSeriesNodeData, getSeriesOptions, getSeriesSelectionNodes } from './test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -81,44 +83,16 @@ describe('Chart highlighting', () => {
     ): HighlightNodeDatum | undefined => {
         const seriesIndex = testCase.seriesIndex ?? 0;
         const datumIndex = testCase.datumIndex ?? 0;
-        const series = chartInstance.series[seriesIndex] as unknown as {
-            contextNodeData?: unknown;
-            _contextNodeData?: unknown;
-        };
-        const context =
-            series?.contextNodeData ?? (series as any)?.['contextNodeData'] ?? (series as any)._contextNodeData;
-
-        if (!context) {
-            const fallback = (series as any).getNodeData?.() as HighlightNodeDatum[] | undefined;
-            return fallback?.[datumIndex] ?? fallback?.[0];
-        }
-
-        const pickFromEntry = (entry: { nodeData?: HighlightNodeDatum[] } | undefined) =>
-            entry?.nodeData?.[datumIndex] ?? entry?.nodeData?.[0];
-
-        if (Array.isArray(context)) {
-            for (const entry of context as Array<{ nodeData?: HighlightNodeDatum[] }>) {
-                const candidate = pickFromEntry(entry);
-                if (candidate) return candidate;
-            }
-            const fallback = (series as any).getNodeData?.() as HighlightNodeDatum[] | undefined;
-            return fallback?.[datumIndex] ?? fallback?.[0];
-        }
-
-        const candidate = pickFromEntry(context as { nodeData?: HighlightNodeDatum[] });
-        if (candidate) return candidate;
-
-        const fallback = (series as any).getNodeData?.() as HighlightNodeDatum[] | undefined;
-        return fallback?.[datumIndex] ?? fallback?.[0];
+        const nodeData = getSeriesNodeData<HighlightNodeDatum>(chartInstance, seriesIndex);
+        return nodeData[datumIndex] ?? nodeData[0];
     };
 
     // The base render layer of a cartesian series; the highlighted item itself is painted
     // separately by `highlightGroup`, so every base node reflects the "unhighlighted" style.
     const baseLayerFillOpacities = (chartInstance: Chart, seriesIndex: number): number[] => {
-        const series = chartInstance.series[seriesIndex] as unknown as {
-            datumSelection: { nodes(): Array<{ fillOpacity: number }> };
-        };
-        return series.datumSelection.nodes().map((node) => node.fillOpacity);
+        return getSeriesSelectionNodes<Rect>(chartInstance, 'datumSelection', seriesIndex).map(
+            (node) => node.fillOpacity
+        );
     };
 
     const runHighlightSnapshot = async (testCase: HighlightTestCase) => {
@@ -668,8 +642,7 @@ describe('Chart highlighting', () => {
         });
 
         const seriesHighlightEnabled = (chartInstance: Chart, seriesIndex: number) =>
-            (chartInstance.series[seriesIndex] as unknown as { options: { highlight: { enabled: boolean } } }).options
-                .highlight.enabled;
+            getSeriesOptions<{ highlight: { enabled: boolean } }>(chartInstance, seriesIndex).highlight.enabled;
 
         it('cascades chart highlight.enabled = false to series that do not override it', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({

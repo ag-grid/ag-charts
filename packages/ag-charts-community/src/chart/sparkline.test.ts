@@ -2,12 +2,15 @@ import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import type { NormalisedSeriesTooltipOptions } from 'ag-charts-core';
+
 import { AgCharts } from '../api/agCharts';
 import { __clearStructuralCacheForTests } from '../module/optionsStructuralCache';
 import type { Chart } from './chart';
 import { __clearSanitizedThemeCacheForTests } from './factory/processModuleOptions';
 import { __clearChartThemeCacheForTests } from './mapping/themes';
 import { formatSeriesTooltip } from './series/seriesTooltip';
+import { getSeriesAt, getSeriesOptions, setAgChartsDebug } from './test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -16,6 +19,18 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
+
+// What a series passes its tooltip renderer; a sparkline's default tooltip reads only these.
+interface TooltipParams {
+    datum: Record<string, unknown>;
+    xKey: string;
+    yKey: string;
+    xValue: unknown;
+    yValue: unknown;
+    seriesId: string;
+    title: undefined;
+    color: undefined;
+}
 
 describe('Sparkline', () => {
     setupMockConsole();
@@ -30,6 +45,14 @@ describe('Sparkline', () => {
     });
 
     const ctx = setupMockCanvas({ width: 200, height: 100 });
+
+    // The tooltip formatting the series applies when a hover reaches it, run on the first series of `c`.
+    const formatFirstSeriesTooltip = (c: Chart, input: Omit<TooltipParams, 'seriesId' | 'title' | 'color'>) => {
+        const series = getSeriesAt(c);
+        const { tooltip } = getSeriesOptions<{ tooltip: NormalisedSeriesTooltipOptions<TooltipParams> }>(c);
+        const params: TooltipParams = { ...input, seriesId: series.id, title: undefined, color: undefined };
+        return formatSeriesTooltip(tooltip, [series.options, series.ctx.chartService], { data: [] }, params);
+    };
 
     const compare = async (chartInstance: Chart, options?: MatchImageSnapshotOptions) => {
         await compareImageSnapshot(chartInstance, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
@@ -140,18 +163,19 @@ describe('Sparkline', () => {
         setupMockConsole({ includeAllLevels: true });
 
         let extraCharts: Chart[];
+        let restoreAgChartsDebug: () => void;
 
         beforeEach(() => {
             __clearStructuralCacheForTests();
             __clearSanitizedThemeCacheForTests();
             __clearChartThemeCacheForTests();
-            (globalThis as any).agChartsDebug = ['opts', 'theme'];
+            restoreAgChartsDebug = setAgChartsDebug(['opts', 'theme']);
             extraCharts = [];
         });
 
         afterEach(() => {
             for (const c of extraCharts) c.destroy();
-            delete (globalThis as any).agChartsDebug;
+            restoreAgChartsDebug();
         });
 
         const probeCalls = (prefix: string, label: string) =>
@@ -285,23 +309,13 @@ describe('Sparkline', () => {
         // JSDOM cannot canvas-pick, so a synthesised hover never reaches the renderer;
         // invoking `formatTooltip` directly mirrors what hover would otherwise trigger.
         const invokeTooltipRenderer = (c: Chart) => {
-            const series = c.series[0] as any;
-            const params: any = {
+            formatFirstSeriesTooltip(c, {
                 datum: { x: 0, y: 1 },
                 xKey: 'x',
                 yKey: 'y',
                 xValue: 0,
                 yValue: 1,
-                seriesId: series.id,
-                title: undefined,
-                color: undefined,
-            };
-            formatSeriesTooltip(
-                series.options.tooltip,
-                [series.options, series.ctx.chartService],
-                { data: [] },
-                params
-            );
+            });
         };
 
         it('passes chart-level context to tooltip.renderer params', async () => {
@@ -376,27 +390,8 @@ describe('Sparkline', () => {
         // The preset must produce a useful default tooltip without a user `renderer`
         // function, which would otherwise poison the structural-cache key for the Grid case.
 
-        const renderDefaultTooltip = (c: Chart, datum: any, xKey: string, yKey: string) => {
-            const series = c.series[0] as any;
-            const xValue = datum[xKey];
-            const yValue = datum[yKey];
-            const params: any = {
-                datum,
-                xKey,
-                yKey,
-                xValue,
-                yValue,
-                seriesId: series.id,
-                title: undefined,
-                color: undefined,
-            };
-            return formatSeriesTooltip(
-                series.options.tooltip,
-                [series.options, series.ctx.chartService],
-                { data: [] },
-                params
-            );
-        };
+        const renderDefaultTooltip = (c: Chart, datum: Record<string, unknown>, xKey: string, yKey: string) =>
+            formatFirstSeriesTooltip(c, { datum, xKey, yKey, xValue: datum[xKey], yValue: datum[yKey] });
 
         it('omits the synthesised x index from number-array data', async () => {
             const instance = AgCharts.__createSparkline({
