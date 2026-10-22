@@ -1,7 +1,7 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { Transformable } from 'ag-charts-core';
+import { Transformable, getElementBBox } from 'ag-charts-core';
 import type {
     AgCaptionListeners,
     AgCartesianChartOptions,
@@ -13,7 +13,7 @@ import type {
 import { AgCharts } from '../api/agCharts';
 import type { Chart } from './chart';
 import type { ChartCaption } from './chartCaption';
-import { getCaptionProxyBounds, getCaptionProxyElement } from './test/chartAccessors';
+import { getCaptionProxyElement } from './test/chartAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -327,22 +327,14 @@ describe('Caption', () => {
         });
 
         it('updating non-empty subtitle to empty preserves layout', async () => {
-            // An update lays the chart out a little differently to a create, so the reference is another update:
-            // one that keeps a non-empty subtitle.
-            const seriesYAfterUpdate = async (subtitle: { text: string }) => {
-                const instance = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
-                chart = deproxy(instance);
-                await instance.update({ ...baseOptions, subtitle });
-                await waitForChartStability(chart);
-                const { y } = chart.seriesAreaBoundingBox;
-                chart.destroy();
-                return y;
-            };
+            const instance = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
+            chart = deproxy(instance);
+            const beforeSeriesY = chart.seriesAreaBoundingBox.y;
 
-            const filledSeriesY = await seriesYAfterUpdate({ text: 'Another subtitle' });
-            const emptiedSeriesY = await seriesYAfterUpdate({ text: '' });
+            await instance.update(prepareTestOptions({ ...baseOptions, subtitle: { text: '' } }));
+            await waitForChartStability(chart);
 
-            expect(emptiedSeriesY).toBeCloseTo(filledSeriesY, 0);
+            expect(chart.seriesAreaBoundingBox.y).toBeCloseTo(beforeSeriesY, 0);
         });
 
         it('empty footnote and filled footnote yield the same series-area bottom', async () => {
@@ -610,9 +602,16 @@ describe('Caption', () => {
 
     // A multi-line rich-text footnote must report the correct bounds for its accessibility proxy element.
     describe('CRT-1041 footnote caption bounds', () => {
+        // The bounds are what the caption gives its accessibility proxy element, which screen readers locate it by.
+        function getProxyBounds(caption: ChartCaption) {
+            const element = getCaptionProxyElement(caption);
+            expect(element).toBeDefined();
+            return getElementBBox(element!);
+        }
+
         function assertProxyBoundsMatchCanvas(caption: ChartCaption) {
             const canvasBBox = Transformable.toCanvas(caption.node);
-            const proxyBBox = getCaptionProxyBounds(caption);
+            const proxyBBox = getProxyBounds(caption);
 
             expect(proxyBBox.x).toBeCloseTo(canvasBBox.x, 0);
             expect(proxyBBox.y).toBeCloseTo(canvasBBox.y, 0);
@@ -633,7 +632,7 @@ describe('Caption', () => {
             assertProxyBoundsMatchCanvas(footnote);
 
             // Footnote proxy must be fully within the canvas area.
-            const proxyBBox = getCaptionProxyBounds(footnote);
+            const proxyBBox = getProxyBounds(footnote);
             expect(proxyBBox.y).toBeGreaterThan(0);
             expect(proxyBBox.y + proxyBBox.height).toBeLessThanOrEqual(chart.height!);
         });
@@ -654,7 +653,7 @@ describe('Caption', () => {
 
             // All proxy elements must be fully within the canvas area.
             for (const caption of [chart.title, chart.subtitle, chart.footnote]) {
-                const proxyBBox = getCaptionProxyBounds(caption);
+                const proxyBBox = getProxyBounds(caption);
                 expect(proxyBBox.y).toBeGreaterThanOrEqual(0);
                 expect(proxyBBox.y + proxyBBox.height).toBeLessThanOrEqual(chart.height!);
             }
@@ -838,12 +837,8 @@ describe('Caption', () => {
          * `clickAction`. `bubbles` matches a genuine click, so the event also reaches the
          * chart-background handler that AC4 requires to stay silent.
          */
-        function captionElement(caption: ChartCaption): HTMLElement | undefined {
-            return getCaptionProxyElement(caption);
-        }
-
         async function clickCaption(caption: ChartCaption, type: 'click' | 'dblclick' = 'click') {
-            const element = captionElement(caption);
+            const element = getCaptionProxyElement(caption);
             if (element == null) {
                 throw new Error('caption has no proxy element');
             }
@@ -853,7 +848,7 @@ describe('Caption', () => {
 
         /** Clicks a caption only if it has a click target, for the cases where it should not have one. */
         async function clickCaptionIfPresent(caption: ChartCaption) {
-            captionElement(caption)?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            getCaptionProxyElement(caption)?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
             return delay(50);
         }
 

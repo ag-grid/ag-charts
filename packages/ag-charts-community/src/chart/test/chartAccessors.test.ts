@@ -1,23 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { BBox, ChartAxisDirection, type Mutex, Transformable } from 'ag-charts-core';
+import { BBox, ChartAxisDirection, type Mutex } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import {
-    firePreSeriesUpdate,
-    getCaptionProxyBounds,
-    getCaptionProxyElement,
-    waitForUpdateQueueDrain,
-} from './chartAccessors';
-import {
-    createChart,
-    delay,
-    deproxy,
-    errorFrom,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from './utils';
+import { firePreSeriesUpdate, getCaptionProxyElement, waitForUpdateQueueDrain } from './chartAccessors';
+import { createChart, delay, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from './utils';
 
 describe('chart test accessors', () => {
     setupMockConsole();
@@ -108,32 +95,6 @@ describe('chart test accessors', () => {
             await update;
             await drain;
             expect(inner.axes).toHaveLength(0);
-        });
-    });
-
-    describe('getCaptionProxyBounds', () => {
-        it('returns the bounds last given to the caption proxy, which match where the caption is drawn', async () => {
-            chart = await createChart(options);
-            const inner = deproxy(chart);
-            await waitForChartStability(inner);
-
-            const bounds = getCaptionProxyBounds(inner.footnote);
-            const drawn = Transformable.toCanvas(inner.footnote.node);
-
-            expect(bounds.x).toBeCloseTo(drawn.x, 0);
-            expect(bounds.y).toBeCloseTo(drawn.y, 0);
-            expect(bounds.width).toBeCloseTo(drawn.width, 0);
-            expect(bounds.height).toBeCloseTo(drawn.height, 0);
-            expect(bounds.width).toBeGreaterThan(0);
-        });
-
-        it('fails for a caption that has no proxy bounds yet', async () => {
-            chart = await createChart(options);
-            const inner = deproxy(chart);
-            await waitForChartStability(inner);
-
-            // The options set no subtitle, so its caption never positioned a proxy.
-            expect(errorFrom(() => getCaptionProxyBounds(inner.subtitle))?.name).toBe('AssertionError');
         });
     });
 

@@ -1,5 +1,3 @@
-import { expect } from 'vitest';
-
 import type { BBox, ChartAxisDirection } from 'ag-charts-core';
 
 import type { PreSeriesUpdateEvent } from '../../core/eventsHub';
@@ -55,25 +53,6 @@ interface UpdateMutexHost {
  */
 export function waitForUpdateQueueDrain(chartOrProxy: ChartOrProxy<any>): Promise<void> {
     return (deproxy(chartOrProxy) as unknown as UpdateMutexHost).updateMutex.waitForClearAcquireQueue();
-}
-
-export interface CaptionProxyBounds {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-// The bounds last sent to the caption's accessibility proxy are private to the caption.
-interface CaptionProxyHost {
-    lastProxyBBox?: CaptionProxyBounds;
-}
-
-/** The bounds the caption last gave its accessibility proxy element, asserted to have been set. */
-export function getCaptionProxyBounds(caption: ChartCaption): CaptionProxyBounds {
-    const { lastProxyBBox } = caption as unknown as CaptionProxyHost;
-    expect(lastProxyBBox).toBeDefined();
-    return lastProxyBBox!;
 }
 
 // The caption's accessibility proxy element is private to the caption.

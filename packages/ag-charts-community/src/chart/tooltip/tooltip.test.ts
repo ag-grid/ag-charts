@@ -48,6 +48,7 @@ describe('Tooltip', () => {
                 ],
                 series: [{ type: 'line', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
                 tooltip: {
+                    // Deliberately invalid: a string where an options object is expected.
                     position: '2' as unknown as AgTooltipPositionOptions,
                 },
             });
@@ -70,6 +71,7 @@ describe('Tooltip', () => {
                 ],
                 series: [{ type: 'line', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
                 tooltip: {
+                    // Deliberately invalid: a misspelt `anchorTo` keyword.
                     position: { anchorTo: 'ponter' as unknown as AgTooltipAnchorTo, xOffset: 80, yOffset: 80 },
                 },
             });
