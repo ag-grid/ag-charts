@@ -139,6 +139,7 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     gridPadding: number;
     id: AxisID;
     interactionEnabled: boolean;
+    seriesAreaVisible: boolean;
     layoutConstraints: AxisLayoutConstraints;
     nice: boolean;
     options: TOptions;

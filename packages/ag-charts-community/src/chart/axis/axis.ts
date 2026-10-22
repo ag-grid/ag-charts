@@ -388,6 +388,7 @@ export abstract class Axis<
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;
+    seriesAreaVisible = true;
 
     protected readonly axisGroup = new Group({ name: `${this.id}-axis` });
 
@@ -1402,6 +1403,9 @@ export abstract class Axis<
             },
             get range() {
                 return axis.range;
+            },
+            get seriesAreaVisible() {
+                return axis.seriesAreaVisible;
             },
             hasDefinedDomain: () => this.hasDefinedDomain(),
             hasVisibleSeries: () => this.hasVisibleSeries(),

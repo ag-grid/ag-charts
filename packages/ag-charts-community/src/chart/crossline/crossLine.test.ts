@@ -2462,8 +2462,14 @@ describe('CrossLine', () => {
             expect(plugin.labelSources[0].getLabelData(BBox.zero)).toMatchObject([{ obstacle: true }]);
 
             const version = plugin.nodeDataVersion;
-            plugin.setVisible(false);
+            await chart.publicApi!.update({
+                ...prepareTestOptions(reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, true)),
+                width: 20,
+                height: 20,
+            });
+            await waitForChartStability(chart);
 
+            expect(axis.seriesAreaVisible).toBe(false);
             expect(plugin.labelSources[0].getLabelData(BBox.zero)).toHaveLength(0);
             expect(plugin.nodeDataVersion).toBeGreaterThan(version);
         });

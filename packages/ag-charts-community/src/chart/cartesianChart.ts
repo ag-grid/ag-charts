@@ -249,8 +249,8 @@ export class CartesianChart extends Chart {
         const { clipSeries, seriesRect, overflows } = this.resolveAxesLayout(layoutBox, scrollbars, seriesInsets);
 
         for (const axis of this.axes) {
+            axis.seriesAreaVisible = !overflows;
             axis.update();
-            getCrossLinesPlugin(axis)?.setVisible(!overflows);
 
             this.clipAxis(axis, seriesRect, layoutBox);
         }

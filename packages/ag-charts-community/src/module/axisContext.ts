@@ -93,6 +93,8 @@ export interface AxisContext {
     readonly gridLength: number;
     readonly gridPadding: number;
     readonly range: readonly [number, number];
+    /** False while the chart hides its series area because the axes overflow it. */
+    readonly seriesAreaVisible: boolean;
     hasDefinedDomain(): boolean;
     hasVisibleSeries(): boolean;
     getCanvasBounds(): BoxBounds | undefined;

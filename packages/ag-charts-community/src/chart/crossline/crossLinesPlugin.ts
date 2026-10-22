@@ -267,6 +267,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     onAxisUpdate(): void {
+        this.setVisible(this.axisCtx.seriesAreaVisible);
         const visible = this.axisCtx.hasDefinedDomain() || this.axisCtx.hasVisibleSeries();
         const { gridPadding } = this.axisCtx;
         const { width, height } = this.ctx.scene;
@@ -315,7 +316,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         }
     }
 
-    setVisible(visible: boolean): void {
+    private setVisible(visible: boolean): void {
         // Layout has already bumped the version by now, so a flip has to invalidate the solve itself.
         if (visible !== this.visible) this.nodeDataVersion++;
         this.visible = visible;
