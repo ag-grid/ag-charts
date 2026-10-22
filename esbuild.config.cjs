@@ -142,11 +142,13 @@ const pureTopLevelSideEffectsPlugin = {
 // bodies execute at definition time and are genuine side effects. Method bodies are
 // FunctionExpression/ArrowFunctionExpression which are already covered.
 const DEFERRED_BODY = new Set(['FunctionExpression', 'FunctionDeclaration', 'ArrowFunctionExpression']);
+const CALL_LIKE = new Set(['CallExpression', 'NewExpression', 'TaggedTemplateExpression']);
 
 function hasSideEffect(node) {
     if (!node) return false;
     if (DEFERRED_BODY.has(node.type)) return false;
-    if (node.type === 'CallExpression' || node.type === 'NewExpression' || node.type === 'TaggedTemplateExpression') {
+    // esbuild keeps any spread, since it may invoke getters.
+    if (CALL_LIKE.has(node.type) || node.type === 'SpreadElement') {
         return true;
     }
     for (const key of Object.keys(node)) {
@@ -206,7 +208,21 @@ function renameReferences(code, node, from, to) {
     return result;
 }
 
-const CALL_LIKE = new Set(['CallExpression', 'NewExpression', 'TaggedTemplateExpression']);
+/**
+ * Marks a top-level initialiser as droppable. Bundlers drop an annotated call but still evaluate the calls
+ * and spreads in its operands, so only a call whose operands are free of those is annotated in place.
+ */
+function annotateInitialiser(code, init, edits) {
+    if (!hasSideEffect(init)) return;
+    const operands =
+        init.type === 'TaggedTemplateExpression' ? [init.tag, init.quasi] : [init.callee, ...(init.arguments ?? [])];
+    if (CALL_LIKE.has(init.type) && !operands.some(hasSideEffect)) {
+        edits.push({ pos: init.start, text: '/*#__PURE__*/ ' });
+        return;
+    }
+    const initCode = code.slice(init.start, init.end);
+    edits.push({ pos: init.start, end: init.end, replace: `/*#__PURE__*/ (() => (${initCode}))()` });
+}
 
 // Bare side-effect imports from AG Charts packages are artefacts of esbuild bundling
 // type-only imports from external dependencies. Safe to remove.
@@ -303,33 +319,12 @@ function annotatePureToplevel(code) {
                 }
 
                 // No trailing exprs — just annotate the initialiser if it has side effects.
-                if (hasSideEffect(decl.init)) {
-                    if (CALL_LIKE.has(decl.init.type)) {
-                        edits.push({ pos: decl.init.start, text: '/*#__PURE__*/ ' });
-                    } else {
-                        const initCode = code.slice(decl.init.start, decl.init.end);
-                        edits.push({
-                            pos: decl.init.start,
-                            end: decl.init.end,
-                            replace: `/*#__PURE__*/ (() => (${initCode}))()`,
-                        });
-                    }
-                }
+                annotateInitialiser(code, decl.init, edits);
             }
         } else if (node.type === 'VariableDeclaration') {
             // Multi-declarator — annotate each initialiser individually.
             for (const decl of node.declarations) {
-                if (!decl.init || !hasSideEffect(decl.init)) continue;
-                if (CALL_LIKE.has(decl.init.type)) {
-                    edits.push({ pos: decl.init.start, text: '/*#__PURE__*/ ' });
-                } else {
-                    const initCode = code.slice(decl.init.start, decl.init.end);
-                    edits.push({
-                        pos: decl.init.start,
-                        end: decl.init.end,
-                        replace: `/*#__PURE__*/ (() => (${initCode}))()`,
-                    });
-                }
+                if (decl.init) annotateInitialiser(code, decl.init, edits);
             }
         }
 
