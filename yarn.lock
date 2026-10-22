@@ -14395,6 +14395,7 @@ __metadata:
     path2d: "npm:^0.3.4"
     skia-canvas: "npm:^3.0.8"
     timezone-mock: "npm:1.4.3"
+    typescript: "npm:~5.8.3"
     vitest: "npm:2.1.9"
   languageName: unknown
   linkType: soft

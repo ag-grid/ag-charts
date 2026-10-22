@@ -29,8 +29,10 @@ const update = process.env.UPDATE_EXPORT_ALLOWLISTS === '1';
 const updateHint =
     'Run `UPDATE_EXPORT_ALLOWLISTS=1 yarn nx test ag-charts-community --skip-nx-cache -- exportAllowlist` to prune it.';
 
+const byName = (a: string, b: string) => a.localeCompare(b);
+
 function writeAllowlist(path: string, names: Iterable<string>) {
-    writeFileSync(path, `${JSON.stringify([...names].sort(), null, 4)}\n`);
+    writeFileSync(path, `${JSON.stringify([...names].sort(byName), null, 4)}\n`);
 }
 
 function exportedNames(path: string) {
@@ -82,7 +84,7 @@ describe.each(GUARDED_BARRELS)('$name export allowlist', ({ name, barrel, allowl
     const allowed: string[] = JSON.parse(readFileSync(allowlistPath, 'utf-8'));
 
     it('should not export names missing from the allowlist', () => {
-        const added = [...exported].filter((n) => !allowed.includes(n)).sort();
+        const added = [...exported].filter((n) => !allowed.includes(n)).sort(byName);
         expect(added, `${name} gained exports. ${alternative}`).toEqual([]);
     });
 
