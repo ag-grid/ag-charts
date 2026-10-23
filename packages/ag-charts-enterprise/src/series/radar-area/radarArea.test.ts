@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-community';
 import {
     BIG,
+    type ChartOrProxy,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadarAreaStyler,
     type SceneNodeExpectation,
@@ -22,6 +23,7 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesOptions,
     hoverAction,
     looserSnapshotDefaults,
     newFreezableMock,
@@ -30,9 +32,11 @@ import {
     spyOnAnimationFrames,
     testLegendItemName,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import type { NonNullablePath } from 'ag-charts-core';
 
+import { destroyChart, getRadarAreaGroups } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
@@ -44,17 +48,14 @@ import {
 
 describe('RadarAreaSeries', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: ChartOrProxy<any>;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
-    const EXAMPLE_OPTIONS: AgChartOptions = {
+    const EXAMPLE_OPTIONS: AgPolarChartOptions = {
         data: [
             { subject: 'Maths', gradeA: 7, gradeB: 4.2 },
             { subject: 'Physics', gradeA: 4.3, gradeB: 8.5 },
@@ -204,7 +205,7 @@ describe('RadarAreaSeries', () => {
             [...sample.keys()].filter((key) => /^series\[\d+\]\/path\[/.test(key));
 
         it('series grow from the polar centre (path bbox 0 -> full, labels fade in) on the initial reveal', async () => {
-            chart = deproxy(await createEnterpriseChart({ ...EXAMPLE_OPTIONS }));
+            chart = await createEnterpriseChart({ ...EXAMPLE_OPTIONS });
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -315,62 +316,39 @@ describe('RadarAreaSeries', () => {
         });
 
         it('should render radar area series with a linear gradient fill', async () => {
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { gradient: 'linear' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
-                series: [
-                    {
-                        type: 'radar-area',
-                        angleKey: 'subject',
-                        radiusKey: 'gradeA',
-                        fill: {
-                            type: 'gradient',
-                            gradient: 'linear',
-                            colorStops: [
-                                {
-                                    color: 'green',
-                                },
-                                {
-                                    color: 'white',
-                                },
-                            ],
-                        },
-                    } as AgRadarAreaSeriesOptions,
-                ],
+                series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA', fill }],
             };
             chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render radar area series with a series bound linear gradient fill', async () => {
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { gradient: 'linear', bounds: 'series' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
-                series: [
-                    {
-                        type: 'radar-area',
-                        angleKey: 'subject',
-                        radiusKey: 'gradeA',
-                        fill: {
-                            type: 'gradient',
-                            gradient: 'linear',
-                            bounds: 'series',
-                            colorStops: [
-                                {
-                                    color: 'green',
-                                },
-                                {
-                                    color: 'white',
-                                },
-                            ],
-                        },
-                    } as AgRadarAreaSeriesOptions,
-                ],
+                series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA', fill }],
             };
             chart = await createEnterpriseChart(options);
             await compare();
         });
     });
 
-    test('AG-8290 label boxing', async () => {
+    it('AG-8290 label boxing', async () => {
         const options: AgChartOptions = {
             data: [
                 { department: 'Sales', quality: 40, efficiency: 75 },
@@ -538,17 +516,17 @@ describe('RadarAreaSeries', () => {
                     },
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
             describe('callbacks', () => {
-                test('context', () => {
+                it('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
                     styler.expect().nthCalledWithoutContext(2);
                     styler.expect().toHaveBeenCalledTimes(3);
                 });
-                test('params', () => {
+                it('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
@@ -616,7 +594,7 @@ describe('RadarAreaSeries', () => {
                     },
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -652,7 +630,7 @@ describe('RadarAreaSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 // The 'pattern' fill type renders slightly differently on GitHub CI, imperceptible without an image-diff aid.
                 await compare(looserSnapshotDefaults(0.08));
             });
@@ -702,12 +680,12 @@ describe('RadarAreaSeries', () => {
                     await hoverAction(p.x, p.y)(chart);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 }
-                test('miss', async () => testHover(miss));
-                test('series[0].datum[0]', async () => testHover(series0datum0));
-                test('series[0].datum[2]', async () => testHover(series0datum2));
-                test('series[1].datum[0]', async () => testHover(series1datum0));
-                test('legendItem[0]', async () => testHover(legendItem0));
-                test('legendItem[1]', async () => testHover(legendItem1));
+                it('miss', async () => testHover(miss));
+                it('series[0].datum[0]', async () => testHover(series0datum0));
+                it('series[0].datum[2]', async () => testHover(series0datum2));
+                it('series[1].datum[0]', async () => testHover(series1datum0));
+                it('legendItem[0]', async () => testHover(legendItem0));
+                it('legendItem[1]', async () => testHover(legendItem1));
             });
             describe('sequenced', () => {
                 async function hover(p: { readonly x: number; readonly y: number }) {
@@ -719,7 +697,7 @@ describe('RadarAreaSeries', () => {
                     styler.mock.mockClear();
                     return result;
                 }
-                test('1', async () => {
+                it('1', async () => {
                     await hover(miss);
                     expect(popCalls()).toMatchSnapshot();
 
@@ -839,15 +817,10 @@ describe('RadarAreaSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RADAR_AREA_NULL_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RADAR_AREA_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(RADAR_AREA_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...RADAR_AREA_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -907,15 +880,10 @@ describe('RadarAreaSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RADAR_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RADAR_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(RADAR_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...RADAR_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -923,15 +891,10 @@ describe('RadarAreaSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories', async () => {
-            const options: AgChartOptions = {
-                ...RADAR_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS,
-                series: [
-                    {
-                        ...RADAR_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(RADAR_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...RADAR_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -968,33 +931,34 @@ describe('RadarAreaSeries', () => {
 
         it('defaults to a disabled shadow', async () => {
             const options = shadowOptions();
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
-            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(getSeriesOptions<AgRadarAreaSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
             const options = shadowOptions();
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
-            const series = chart.series[0];
-            expect(collectShapes(series.contentGroup).length).toBeGreaterThan(0);
-            expect(shadowedShapes(series.contentGroup)).toEqual([]);
+            const { contentGroup } = deproxy(chart).series[0];
+            expect(collectShapes(contentGroup).length).toBeGreaterThan(0);
+            expect(shadowedShapes(contentGroup)).toEqual([]);
         });
 
         it('shadows the fill but not the line', async () => {
             const options = shadowOptions(SHADOW);
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
-            const series = chart.series[0];
-            const areaShapes = collectShapes(series['areaGroup']);
+            const { contentGroup } = deproxy(chart).series[0];
+            const { areaGroup, lineGroup } = getRadarAreaGroups(chart);
+            const areaShapes = collectShapes(areaGroup);
             expect(areaShapes).toHaveLength(1);
             expect(areaShapes[0].fillShadow).toMatchObject(SHADOW);
 
-            const lineShapes = collectShapes(series['lineGroup']);
+            const lineShapes = collectShapes(lineGroup);
             expect(lineShapes).toHaveLength(1);
-            expect(shadowedShapes(series['lineGroup'])).toEqual([]);
-            expect(shadowedShapes(series.contentGroup)).toEqual(areaShapes);
+            expect(shadowedShapes(lineGroup)).toEqual([]);
+            expect(shadowedShapes(contentGroup)).toEqual(areaShapes);
         });
 
         it('renders with the shadow enabled', async () => {
@@ -1008,7 +972,7 @@ describe('RadarAreaSeries', () => {
         it('should not warn when every series is toggled off', async () => {
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
-                series: (EXAMPLE_OPTIONS.series as AgRadarAreaSeriesOptions[]).map((series) => ({
+                series: EXAMPLE_OPTIONS.series?.map((series) => ({
                     ...series,
                     visible: false,
                 })),

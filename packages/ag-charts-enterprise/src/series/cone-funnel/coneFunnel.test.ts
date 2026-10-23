@@ -3,12 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type {
     AgCartesianChartOptions,
     AgChartOptions,
-    AgPolarChartOptions,
+    AgConeFunnelSeriesOptions,
+    AgConeFunnelSeriesTooltipRendererParams,
     InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
-    type Chart,
+    type ChartOrProxy,
     MIN_TOOLTIP_HIDE_DELAY,
     type SceneGeometrySample,
     clickAction,
@@ -18,6 +19,13 @@ import {
     expectAnimatedEndpointsMatchStatic,
     expectSceneTrajectory,
     expectWarningsCalls,
+    findAxis,
+    getLegendItemNodes,
+    getSeriesAt,
+    getSeriesContextNodeData,
+    getSeriesDataNodeGroup,
+    getSeriesOptions,
+    getSeriesSelectionNodes,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -25,7 +33,15 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
+import type { Shape } from 'ag-charts-core';
 
+import {
+    type StageNodeDatum,
+    destroyChart,
+    getFunnelConnectorNodes,
+    getSeriesGroup,
+    getStageHighlightNode,
+} from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
@@ -60,13 +76,10 @@ const CONE_FUNNEL_EXAMPLE: AgChartOptions = {
 
 describe('ConeFunnelSeries', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: ChartOrProxy<any>;
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -86,35 +99,35 @@ describe('ConeFunnelSeries', () => {
         it('should render highlight of node', async () => {
             const options: AgChartOptions = { ...CONE_FUNNEL_EXAMPLE };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            const target = deproxy(await createEnterpriseChart(options));
+            chart = target;
 
-            const node = chart.series[0].contextNodeData.nodeData[0];
+            const node = getSeriesContextNodeData(target).nodeData[0];
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            target.ctx.highlightManager.updateHighlight(target.id, node);
             await compare();
         });
     });
 
     const testPointerEvents = (testParams: {
-        seriesOptions: any;
-        chartOptions?: any;
-        getNodeData: (series: any) => any[];
-        getNodePoint: (nodeItem: any) => [number, number];
-        getDatumValues: (datum: any, series: any) => any[];
-        getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
-        getHighlightNode: (chart: any, series: any) => any;
+        seriesOptions: AgConeFunnelSeriesOptions;
+        chartOptions?: AgCartesianChartOptions;
+        getNodePoint: (nodeItem: StageNodeDatum) => [number, number];
+        getDatumValues: (datum: StageNodeDatum) => unknown[];
+        getTooltipRenderedValues: (tooltipRendererParams: AgConeFunnelSeriesTooltipRendererParams) => unknown[];
     }) => {
-        const format = (...values: any[]) => values.join(' ');
+        const format = (...values: unknown[]) => values.join(' ');
+        const getNodeData = (chartInstance: ChartOrProxy<any>, seriesIndex: number) =>
+            getSeriesContextNodeData<StageNodeDatum>(chartInstance, seriesIndex).nodeData;
 
         const chartOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): AgCartesianChartOptions | AgPolarChartOptions => {
+        }): AgCartesianChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
-                      renderer(rParams: any) {
+                      renderer(rParams: AgConeFunnelSeriesTooltipRendererParams) {
                           const values = testParams.getTooltipRenderedValues(rParams);
                           return format(...values);
                       },
@@ -123,7 +136,7 @@ describe('ConeFunnelSeries', () => {
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
-            const options: AgCartesianChartOptions | AgPolarChartOptions = {
+            const options: AgCartesianChartOptions = {
                 container: document.body,
                 series: [
                     {
@@ -144,36 +157,41 @@ describe('ConeFunnelSeries', () => {
         };
 
         const hoverChartNodes = async (
-            chartInstance: any,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
+            chartInstance: ChartOrProxy<any>,
+            iterator: (params: {
+                seriesIndex: number;
+                item: StageNodeDatum;
+                x: number;
+                y: number;
+            }) => Promise<void> | void
         ) => {
-            for (const series of chartInstance.series) {
-                const nodeData = testParams.getNodeData(series);
+            for (const seriesIndex of deproxy(chartInstance).series.keys()) {
+                const nodeData = getNodeData(chartInstance, seriesIndex);
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
                     const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
-                        series.contentGroup,
+                        getSeriesAt(chartInstance, seriesIndex).contentGroup,
                         itemPoint[0],
                         itemPoint[1]
                     );
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
-                    await iterator({ series, item, x, y });
+                    await iterator({ seriesIndex, item, x, y });
                 }
             }
         };
 
-        const checkHighlight = async (chartInstance: any) => {
-            await hoverChartNodes(chartInstance, ({ series }) => {
-                const highlightNode = testParams.getHighlightNode(chartInstance, series);
+        const checkHighlight = async (chartInstance: ChartOrProxy<any>) => {
+            await hoverChartNodes(chartInstance, ({ seriesIndex }) => {
+                const highlightNode = getStageHighlightNode(chartInstance, seriesIndex);
                 expect(highlightNode).toBeDefined();
-                expect(highlightNode.stroke).toEqual('lime');
+                expect(highlightNode?.stroke).toEqual('lime');
             });
         };
 
         const checkNodeClick = async (
-            chartInstance: Chart,
+            chartInstance: ChartOrProxy<any>,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {
@@ -182,34 +200,31 @@ describe('ConeFunnelSeries', () => {
                 await waitForChartStability(chartInstance);
             });
 
-            const nodeCount = chartInstance.series.reduce(
-                (sum, series) => sum + testParams.getNodeData(series).length,
+            const nodeCount = deproxy(chartInstance).series.reduce(
+                (sum, _series, seriesIndex) => sum + getNodeData(chartInstance, seriesIndex).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
         };
 
-        const checkLegendClick = async (chartInstance: any) => {
+        const checkLegendClick = async (chartInstance: ChartOrProxy<any>) => {
             await waitForChartStability(chart);
-            for (const { legend } of deproxy(chart).modulesManager.legends()) {
-                const markerLabels = (legend as any).itemSelection?._nodes ?? [];
-                for (const label of markerLabels) {
-                    const { x, y } = Transformable.toCanvas(label).computeCenter();
-                    await clickAction(x, y)(chartInstance);
-                    await waitForChartStability(chart);
-                    await compare();
-                }
+            for (const label of getLegendItemNodes(chart)) {
+                const { x, y } = Transformable.toCanvas(label).computeCenter();
+                await clickAction(x, y)(chartInstance);
+                await waitForChartStability(chart);
+                await compare();
             }
         };
 
         it(`should render tooltip correctly`, async () => {
             chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
-            await hoverChartNodes(chart, ({ series, item }) => {
+            await hoverChartNodes(chart, ({ item }) => {
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                const values = testParams.getDatumValues(item, series);
+                const values = testParams.getDatumValues(item);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
@@ -273,7 +288,6 @@ describe('ConeFunnelSeries', () => {
                     enabled: true,
                 },
             },
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getNodePoint: (item) => {
                 const { x, y } = item;
                 // Ensure y is in series area
@@ -284,56 +298,50 @@ describe('ConeFunnelSeries', () => {
                 return [datum[datasets.stageKey], datum[datasets.valueKey]];
             },
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
-            getHighlightNode: (chartInstance, series) => {
-                const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return [...series.highlightNodeGroup.children()].find(
-                    (child: any) => child.datum.id === highlightedDatum.id
-                );
-            },
         });
     });
 
     describe('shadow', () => {
         const buildOptions = (shadow?: typeof SHADOW): AgChartOptions => {
-            const options = {
+            const options: AgChartOptions = {
                 ...CONE_FUNNEL_EXAMPLE,
-                series: [{ ...CONE_FUNNEL_EXAMPLE.series![0], shadow }],
-            } as AgChartOptions;
+                series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value', shadow }],
+            };
             return options;
         };
         const create = async (shadow?: typeof SHADOW) => {
-            chart = deproxy(await createEnterpriseChart(buildOptions(shadow)));
-            return chart.series[0];
+            chart = await createEnterpriseChart(buildOptions(shadow));
         };
-        const nodesOf = (series: any, selection: string): any[] => series[selection].nodes();
+        // The stage dividers: one line per stage.
+        const dividers = () => getSeriesSelectionNodes<Shape>(chart, 'datumSelection');
 
         it('defaults to a disabled shadow', async () => {
-            const series = await create();
+            await create();
 
-            expect(series['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(getSeriesOptions<AgConeFunnelSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const series = await create();
+            await create();
 
-            const shapes = [...nodesOf(series, 'connectorSelection'), ...nodesOf(series, 'datumSelection')];
+            const shapes = [...getFunnelConnectorNodes(chart), ...dividers()];
             expect(shapes.length).toBeGreaterThan(0);
             expect(shapes.filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
         });
 
         it('casts one silhouette shadow from each connector and none from the dividers', async () => {
-            const series = await create(SHADOW);
+            await create(SHADOW);
 
-            const connectors = nodesOf(series, 'connectorSelection');
+            const connectors = getFunnelConnectorNodes(chart);
             expect(connectors).toHaveLength(3);
             for (const connector of connectors) {
                 expect(connector.shadowMode).toBe('silhouette');
                 expect(connector.fillShadow).toMatchObject(SHADOW);
             }
 
-            const dividers = nodesOf(series, 'datumSelection');
-            expect(dividers).toHaveLength(4);
-            for (const divider of dividers) {
+            const stageDividers = dividers();
+            expect(stageDividers).toHaveLength(4);
+            for (const divider of stageDividers) {
                 expect(divider.fillShadow?.enabled).not.toBe(true);
             }
         });
@@ -341,9 +349,9 @@ describe('ConeFunnelSeries', () => {
         it('keeps the connector shadow when the connectors are stroked with no fill', async () => {
             const options = buildOptions(SHADOW);
             Object.assign(options.series![0], { fillOpacity: 0, strokes: ['navy'], strokeWidth: 3 });
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(options);
 
-            const connectors = nodesOf(chart.series[0], 'connectorSelection');
+            const connectors = getFunnelConnectorNodes(chart);
             expect(connectors).toHaveLength(3);
             for (const connector of connectors) {
                 expect(connector.fillOpacity).toBe(0);
@@ -361,7 +369,7 @@ describe('ConeFunnelSeries', () => {
 
     describe('gradient fill', () => {
         it('should render cone funnel series with a default gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...CONE_FUNNEL_EXAMPLE,
                 series: [
                     {
@@ -377,12 +385,12 @@ describe('ConeFunnelSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render cone funnel series with a gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...CONE_FUNNEL_EXAMPLE,
                 series: [
                     {
@@ -406,12 +414,12 @@ describe('ConeFunnelSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render cone funnel series with a mix of gradient and string fills', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...CONE_FUNNEL_EXAMPLE,
                 series: [
                     {
@@ -436,12 +444,12 @@ describe('ConeFunnelSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
 
-    test('AG-8290 label boxing', async () => {
+    it('AG-8290 label boxing', async () => {
         const options: AgChartOptions = {
             data: [
                 { group: 'Close', value: 4460 },
@@ -482,15 +490,14 @@ describe('ConeFunnelSeries', () => {
         const optionsWithData = (data: unknown[]): AgChartOptions => ({ ...CONE_FUNNEL_EXAMPLE, data });
 
         it('AG-17796 removes a stage node from the scene when a stage is removed from data', async () => {
-            const stages = CONE_FUNNEL_EXAMPLE.data as unknown[];
+            const stages = CONE_FUNNEL_EXAMPLE.data!;
 
             const proxy = await createEnterpriseChart(optionsWithData(stages));
             chart = deproxy(proxy);
             await frames.runToEnd(chart);
 
-            const series = chart.series[0];
-            const stageNodeCount = () => [...series.dataNodeGroup.children()].length;
-            const connectorNodeCount = () => [...series.connectorNodeGroup.children()].length;
+            const stageNodeCount = () => [...getSeriesDataNodeGroup(chart).children()].length;
+            const connectorNodeCount = () => [...getSeriesGroup(chart, 'connectorNodeGroup').children()].length;
 
             expect(stageNodeCount()).toBe(4);
             expect(connectorNodeCount()).toBe(3);
@@ -532,7 +539,7 @@ describe('ConeFunnelSeries', () => {
             };
 
             chart = deproxy(await createEnterpriseChart(options));
-            return chart.axes.y.position;
+            return findAxis(chart, 'y').position;
         };
 
         it.each([
