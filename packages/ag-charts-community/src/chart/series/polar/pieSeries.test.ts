@@ -676,6 +676,27 @@ describe('PieSeries', () => {
         });
     });
 
+    describe('cross lines', () => {
+        it('ignores cross-line listeners, which pie charts do not support', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [{ cat: 'a', dog: 10 }],
+                    series: [{ type: 'pie', calloutLabelKey: 'cat', angleKey: 'dog' }],
+                    listeners: { crossLineClick: () => {} },
+                })
+            );
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`listeners.crossLineClick\` is not supported by \`pie\` series, ignoring.",
+                ],
+              ]
+            `);
+        });
+    });
+
     describe('null category key', () => {
         it('should reject null category key with warning', async () => {
             const opts: AgChartOptions = examples.PIE_NULL_ANGLE_KEY_EXAMPLE;

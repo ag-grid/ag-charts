@@ -28,17 +28,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                 $and: [
                     { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
                     {
-                        $or: [
-                            { $isChartType: 'cartesian' },
-                            { $isChartType: 'standalone' },
-                            {
-                                $and: [
-                                    { $isChartType: 'polar' },
-                                    { $not: { $isSeriesType: 'pie' } },
-                                    { $not: { $isSeriesType: 'donut' } },
-                                ],
-                            },
-                        ],
+                        $or: [{ $isChartType: 'cartesian' }, { $isChartType: 'standalone' }, { $isChartType: 'polar' }],
                     },
                 ],
             },

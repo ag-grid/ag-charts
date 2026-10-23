@@ -266,6 +266,7 @@ export * from './rendering/textMeasurer';
 // chart
 export * from './chart/aggregation';
 export * from './chart/cartesianSeriesUtil';
+export * from './chart/circleLayout';
 export * from './chart/crossLine';
 export * from './chart/legendUtil';
 export * from './chart/markerShapes';

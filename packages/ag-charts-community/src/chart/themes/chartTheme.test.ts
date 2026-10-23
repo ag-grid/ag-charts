@@ -7,11 +7,11 @@ import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartTheme, AgPolar
 
 import { AgCharts } from '../../api/agCharts';
 import { CartesianChart } from '../cartesianChart';
-import { PolarChart } from '../polarChart';
 import { AreaSeries } from '../series/cartesian/areaSeries';
 import { BarSeries } from '../series/cartesian/barSeries';
 import { LineSeries } from '../series/cartesian/lineSeries';
 import { PieSeries } from '../series/polar/pieSeries';
+import { StandaloneChart } from '../standaloneChart';
 import type { ChartOrProxy } from '../test/utils';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
@@ -284,8 +284,8 @@ describe('ChartTheme', () => {
             expect(JSON.stringify(polarChartOptions)).toBe(serializedOptions);
         });
 
-        it('Polar chart instance properties', () => {
-            if (!(chart instanceof PolarChart)) fail();
+        it('Pie chart instance properties', () => {
+            if (!(chart instanceof StandaloneChart)) fail();
 
             expect(chart.title?.enabled).toBe(true);
             expect(chart.title?.opts.fontSize).toBe(24);
@@ -458,9 +458,9 @@ describe('ChartTheme', () => {
             }
         });
 
-        it('Polar chart instance properties', async () => {
+        it('Pie chart instance properties', async () => {
             chart = deproxy(AgCharts.create(polarChartOptions));
-            if (!(chart instanceof PolarChart)) fail();
+            if (!(chart instanceof StandaloneChart)) fail();
 
             await waitForChartStability(chart);
 

@@ -41,6 +41,7 @@ import type { AgNumericValue } from 'ag-charts-types';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { formatWithContext } from '../../utils/formatter';
+import { gaugeChartAriaLabel } from '../gauge-util/ariaLabel';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
@@ -173,6 +174,7 @@ export class RadialGaugeSeries
     implements _ModuleSupport.GaugeSeries
 {
     static override readonly className = 'RadialGaugeSeries';
+    override readonly navigatesWithinSeries = true;
     static readonly type = 'radial-gauge' as const;
 
     public centerX: number = 0;
@@ -1477,6 +1479,10 @@ export class RadialGaugeSeries
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
         return pickGaugeFocus(this, opts);
+    }
+
+    override getChartAriaLabel(caption: string, series: readonly _ModuleSupport.UnknownSeries[]) {
+        return gaugeChartAriaLabel(this.ctx.localeManager, caption, series);
     }
 
     getCaptionText(): string {

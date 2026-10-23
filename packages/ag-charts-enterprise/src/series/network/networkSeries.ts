@@ -138,6 +138,7 @@ export abstract class AbstractNetworkSeries<
     TDatum,
     NetworkSeriesContextNodeData<TVertex, TEdge>
 > {
+    override readonly navigatesWithinSeries = true;
     protected dataModel?: _ModuleSupport.DataModel<any, any, any>;
     protected processedData?: _ModuleSupport.ProcessedData<any>;
 

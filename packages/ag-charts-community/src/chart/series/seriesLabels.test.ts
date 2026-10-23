@@ -9,10 +9,10 @@ import {
     cartesianChartAssertions,
     compareImageSnapshot,
     createChart,
-    polarChartAssertions,
     repeat,
     setupMockCanvas,
     setupMockConsole,
+    standaloneChartAssertions,
 } from '../test/utils';
 import * as examples from './test/examples';
 
@@ -103,15 +103,15 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     },
     PIE_SERIES_LABELS: {
         options: examples.PIE_SERIES_LABELS,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
     },
     DONUT_SERIES_LABELS: {
         options: examples.DONUT_SERIES_LABELS,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
     GROUPED_DONUT_SERIES_LABELS: {
         options: examples.GROUPED_DONUT_SERIES_LABELS,
-        assertions: polarChartAssertions({ seriesTypes: repeat('donut', 2) }),
+        assertions: standaloneChartAssertions({ seriesTypes: repeat('donut', 2) }),
     },
     LINE_COLUMN_COMBO_SERIES_LABELS: {
         options: examples.LINE_COLUMN_COMBO_SERIES_LABELS,

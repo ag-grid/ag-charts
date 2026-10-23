@@ -12,10 +12,10 @@ import {
     createChart,
     deproxy,
     hoverAction,
-    polarChartAssertions,
     repeat,
     setupMockCanvas,
     setupMockConsole,
+    standaloneChartAssertions,
     waitForChartStability,
 } from '../../test/utils';
 import * as examples from './test/examples';
@@ -23,83 +23,87 @@ import * as examples from './test/examples';
 const EXAMPLES: Record<string, PolarTestCase> = {
     PIE_SERIES: {
         options: examples.PIE_SERIES,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
     },
     PIE_SERIES_NEGATIVE_VALUES: {
         options: examples.PIE_SERIES_NEGATIVE_VALUES,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
     },
     PIE_SECTORS_DIFFERENT_RADII: {
         options: examples.PIE_SECTORS_DIFFERENT_RADII,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
     },
     PIE_SECTORS_DIFFERENT_RADII_SMALL_RADIUS_MIN: {
         options: examples.PIE_SECTORS_DIFFERENT_RADII_SMALL_RADIUS_MIN,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
     },
     PIE_SECTORS_DIFFERENT_RADII_LARGE_RADIUS_MIN: {
         options: examples.PIE_SECTORS_DIFFERENT_RADII_LARGE_RADIUS_MIN,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
     },
     PIE_SECTORS_DIFFERENT_RADII_SMALL_RADIUS_MAX: {
         options: examples.PIE_SECTORS_DIFFERENT_RADII_SMALL_RADIUS_MAX,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
     },
     PIE_SECTORS_DIFFERENT_RADII_LARGE_RADIUS_MAX: {
         options: examples.PIE_SECTORS_DIFFERENT_RADII_LARGE_RADIUS_MAX,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
     },
     PIE_SECTORS_LABELS: {
         options: examples.PIE_SECTORS_LABELS,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
     },
     DONUT_SERIES: {
         options: examples.DONUT_SERIES,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
     DONUT_SERIES_INNER_TEXT: {
         options: examples.DONUT_SERIES_INNER_TEXT,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
     DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS: {
         options: examples.DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
     DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: {
         options: examples.DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
     DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING: {
         options: examples.DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
     DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT: {
         options: examples.DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
     DONUT_SERIES_RATIO: {
         options: examples.DONUT_SERIES_RATIO,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
     DONUT_SERIES_DIFFERENT_RADII: {
         options: examples.DONUT_SERIES_DIFFERENT_RADII,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
     GROUPED_DONUT_SERIES: {
         options: examples.GROUPED_DONUT_SERIES,
-        assertions: polarChartAssertions({ seriesTypes: repeat('donut', 2) }),
+        assertions: standaloneChartAssertions({ seriesTypes: repeat('donut', 2) }),
+    },
+    GROUPED_DONUT_SERIES_FIRST_HIDDEN: {
+        options: examples.GROUPED_DONUT_SERIES_FIRST_HIDDEN,
+        assertions: standaloneChartAssertions({ seriesTypes: repeat('donut', 2) }),
     },
     GROUPED_DONUT_SERIES_DIFFERENT_RADII: {
         options: examples.GROUPED_DONUT_SERIES_DIFFERENT_RADII,
-        assertions: polarChartAssertions({ seriesTypes: repeat('donut', 2) }),
+        assertions: standaloneChartAssertions({ seriesTypes: repeat('donut', 2) }),
     },
     PIE_CALLOUT_LABELS_COLLISIONS: {
         options: examples.PIE_CALLOUT_LABELS_COLLISIONS,
-        assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
     },
     DONUT_VARIABLE_RADIUS_CALLOUT_COLLISIONS: {
         options: examples.DONUT_VARIABLE_RADIUS_CALLOUT_COLLISIONS,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
     },
 };
 

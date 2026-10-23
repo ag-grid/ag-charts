@@ -25,6 +25,8 @@ import {
 } from 'ag-charts-core';
 import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
 
+import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
+
 const {
     SeriesNodePickMode,
     buildColorCategoryLegendData,
@@ -152,6 +154,18 @@ export abstract class HierarchySeries<
     TNode extends Node<TNodeClass>,
     TOptions extends NormalisedHierarchySeriesKeys,
 > extends _ModuleSupport.Series<TNodeClass, TOptions> {
+    override readonly navigatesWithinSeries = true;
+
+    override createChartDataSet(data: unknown[], dataIdKey: string | undefined) {
+        const { childrenKey } = this.options;
+        if (childrenKey == null) return;
+        return new HierarchyDataSet(data, dataIdKey, childrenKey, this.ctx.logger);
+    }
+
+    override getChartAriaLabel(caption: string) {
+        return this.ctx.localeManager.t('ariaAnnounceHierarchyChart', { caption });
+    }
+
     protected abstract NodeClass: new (...params: ConstructorParameters<typeof HierarchyNode<any, any>>) => TNodeClass;
 
     rootNode: TNodeClass | undefined;

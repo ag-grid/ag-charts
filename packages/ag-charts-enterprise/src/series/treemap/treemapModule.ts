@@ -1,4 +1,4 @@
-import { type AgTreemapSeriesOptions, VERSION } from 'ag-charts-community';
+import { type AgTreemapSeriesOptions, StandaloneChartModule, VERSION } from 'ag-charts-community';
 import {
     AUTO_SIZED_LABEL_TRUNCATE,
     FILL_GRADIENT_LINEAR_DEFAULTS,
@@ -17,7 +17,6 @@ import {
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
-import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { TreemapSeries } from './treemapSeries';
 import { treemapSeriesOptionsDef, treemapSeriesThemeableOptionsDef } from './treemapSeriesOptionsDef';
 

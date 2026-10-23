@@ -226,12 +226,6 @@ export abstract class PolarSeries<
         return text;
     }
 
-    getInnerRadius(): number {
-        return 0;
-    }
-
-    surroundingRadius?: number;
-
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null | Promise<BBox | null> {
         return null;
     }
