@@ -9,10 +9,27 @@ const INITIALISERS = [
     ['treats a function argument as deferred', 'var x = f(() => g());', 'var x = /*#__PURE__*/ f(() => g());'],
     ['wraps a nested call', 'var x = f(g());', 'var x = /*#__PURE__*/ (() => (f(g())))();'],
     ['wraps a spread argument', 'var x = f(...a);', 'var x = /*#__PURE__*/ (() => (f(...a)))();'],
+    ['wraps a member read argument', 'var x = f({ a: A.b });', 'var x = /*#__PURE__*/ (() => (f({ a: A.b })))();'],
+    [
+        'wraps a computed member key argument',
+        'var x = f({ [A.b]: 1 });',
+        'var x = /*#__PURE__*/ (() => (f({ [A.b]: 1 })))();',
+    ],
+    ['annotates a member read callee in place', 'var x = A.f(1);', 'var x = /*#__PURE__*/ A.f(1);'],
+    [
+        'treats a member read in a function argument as deferred',
+        'var x = f(() => A.b);',
+        'var x = /*#__PURE__*/ f(() => A.b);',
+    ],
     [
         'wraps a non-call initialiser holding a call',
         'var x = { a: f() };',
         'var x = /*#__PURE__*/ (() => ({ a: f() }))();',
+    ],
+    [
+        'wraps a non-call initialiser holding a member read',
+        'var x = { a: A.b };',
+        'var x = /*#__PURE__*/ (() => ({ a: A.b }))();',
     ],
     ['leaves a side-effect-free initialiser alone', 'var x = 1;', 'var x = 1;'],
     [
@@ -24,6 +41,11 @@ const INITIALISERS = [
         'merges trailing class statements, renaming references but not literals',
         'var _Foo = class {};\n_Foo.className = "_Foo";\n_Foo.registry = { _Foo };',
         'var _Foo = /*#__PURE__*/ (() => { var _c$0 = class {}; _c$0.className = "_Foo"; _c$0.registry = { _Foo: _c$0 }; return _c$0; })()',
+    ],
+    [
+        'merges a namespace __export into its declaration',
+        'var ns_exports = {};\n__export(ns_exports, {\n  a: () => a\n});',
+        'var ns_exports = /*#__PURE__*/ (() => { var _c$0 = {}; __export(_c$0, {\n  a: () => a\n}); return _c$0; })()',
     ],
     ['wraps a __VERIFY statement', '__VERIFY(x);', '/*#__PURE__*/ (() => { __VERIFY(x); })();'],
     [

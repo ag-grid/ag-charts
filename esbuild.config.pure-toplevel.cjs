@@ -8,27 +8,29 @@ const acorn = require('acorn');
 const DEFERRED_BODY = new Set(['FunctionExpression', 'FunctionDeclaration', 'ArrowFunctionExpression']);
 const CALL_LIKE = new Set(['CallExpression', 'NewExpression', 'TaggedTemplateExpression']);
 
-function hasSideEffect(node) {
+function containsEager(node, matches) {
     if (!node) return false;
     if (DEFERRED_BODY.has(node.type)) return false;
-    // esbuild keeps any spread, since it may invoke getters.
-    if (CALL_LIKE.has(node.type) || node.type === 'SpreadElement') {
-        return true;
-    }
+    if (matches(node)) return true;
     for (const key of Object.keys(node)) {
         const val = node[key];
         if (val && typeof val === 'object') {
             if (Array.isArray(val)) {
                 for (const item of val) {
-                    if (item?.type && hasSideEffect(item)) return true;
+                    if (item?.type && containsEager(item, matches)) return true;
                 }
-            } else if (val.type && hasSideEffect(val)) {
+            } else if (val.type && containsEager(val, matches)) {
                 return true;
             }
         }
     }
     return false;
 }
+
+const isCallOrSpread = (node) => CALL_LIKE.has(node.type) || node.type === 'SpreadElement';
+// esbuild keeps spreads and property reads, since either may invoke a getter; it drops a pure call's callee.
+const hasSideEffect = (node) => containsEager(node, (n) => isCallOrSpread(n) || n.type === 'MemberExpression');
+const hasCalleeSideEffect = (node) => containsEager(node, isCallOrSpread);
 
 /**
  * Rename every reference to `from` inside `node` to `to`, using identifier positions from
@@ -73,14 +75,14 @@ function renameReferences(code, node, from, to) {
 }
 
 /**
- * Marks a top-level initialiser as droppable. Bundlers drop an annotated call but still evaluate the calls
- * and spreads in its operands, so only a call whose operands are free of those is annotated in place.
+ * Marks a top-level initialiser as droppable. Bundlers drop an annotated call but still evaluate the calls,
+ * spreads and property reads in its arguments, so only a call whose arguments are free of those is annotated in place.
  */
 function annotateInitialiser(code, init, edits) {
     if (!hasSideEffect(init)) return;
-    const operands =
-        init.type === 'TaggedTemplateExpression' ? [init.tag, init.quasi] : [init.callee, ...(init.arguments ?? [])];
-    if (CALL_LIKE.has(init.type) && !operands.some(hasSideEffect)) {
+    const [callee, args] =
+        init.type === 'TaggedTemplateExpression' ? [init.tag, [init.quasi]] : [init.callee, init.arguments ?? []];
+    if (CALL_LIKE.has(init.type) && !hasCalleeSideEffect(callee) && !args.some(hasSideEffect)) {
         edits.push({ pos: init.start, text: '/*#__PURE__*/ ' });
         return;
     }
@@ -95,6 +97,8 @@ const AG_PACKAGES = new Set(['ag-charts-core', 'ag-charts-community', 'ag-charts
 // Patterns for expression statements that can be merged into their parent class IIFE.
 // These reference a class variable (e.g. _Foo.prototype, _Foo.bar) and only affect that class.
 const CLASS_EXPR_PATTERN = /^(__decorateClass\(\[[\s\S]*?],\s*)(_?[A-Z][a-zA-Z0-9$]*)\.|^(_?[A-Z][a-zA-Z0-9$]*)\./;
+// `export * as ns` compiles to `var ns_exports = {}; __export(ns_exports, { ...getters });`.
+const NAMESPACE_EXPORT_PATTERN = /^__export\d*\(([\w$]+),/;
 // __VERIFY statements are build-time checks, safe to drop unconditionally.
 const SAFE_VERIFY_PATTERN = /^__VERIFY/;
 
@@ -158,7 +162,8 @@ function annotatePureToplevel(code) {
                 while (j < body.length && body[j].type === 'ExpressionStatement') {
                     const exprText = code.slice(body[j].start, body[j].end);
                     const match = CLASS_EXPR_PATTERN.exec(exprText);
-                    if (match && (match[2] ?? match[3]) === varName) {
+                    const namespaceMatch = NAMESPACE_EXPORT_PATTERN.exec(exprText);
+                    if ((match && (match[2] ?? match[3]) === varName) || namespaceMatch?.[1] === varName) {
                         trailingExprs.push(body[j]);
                         j++;
                     } else {
