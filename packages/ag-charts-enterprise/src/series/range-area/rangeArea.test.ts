@@ -177,6 +177,29 @@ describe('RangeAreaSeries', () => {
         await compare();
     });
 
+    it.each([
+        ['ag-default', '#00000080'],
+        ['ag-default-dark', 'rgba(0, 0, 0, 1)'],
+    ])('should default the series and marker shadow colour for %s', async (theme, expected) => {
+        chart = deproxy(
+            await createEnterpriseChart({
+                ...RANGE_AREA_OPTIONS,
+                theme,
+                series: [
+                    {
+                        ...RANGE_AREA_OPTIONS.series?.[0],
+                        shadow: { enabled: true },
+                        marker: { shadow: { enabled: true } },
+                    },
+                ],
+            } as AgCartesianChartOptions)
+        );
+
+        const [series] = chart.chartOptions.processedOptions.series;
+        expect(series.shadow.color).toBe(expected);
+        expect(series.marker.shadow.color).toBe(expected);
+    });
+
     describe('node interactions with markers disabled (AG-10226)', () => {
         const seriesNodeClick = vi.fn();
 
