@@ -1307,34 +1307,9 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         );
     }
 
-    // An enabled close marker takes over from the bands symbol: the close line, the value the series is read by.
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { item } = this.getStyle(undefined);
-        if (!this.options.item.close.marker.enabled) {
-            return { marker: hlcBandsMarker(item.high, item.low, item.close) };
-        }
-
-        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = item.close;
-
-        return {
-            marker: {
-                shape: marker.shape,
-                fill: marker.fill,
-                stroke: marker.stroke,
-                fillOpacity: marker.fillOpacity,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
-            },
-            line: {
-                enabled: true,
-                stroke,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-            },
-        };
+        return { marker: hlcBandsMarker(item.high, item.low, item.close) };
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
