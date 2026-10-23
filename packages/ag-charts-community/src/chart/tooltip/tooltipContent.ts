@@ -12,6 +12,7 @@ import type { AgTooltipMode, TextValue } from 'ag-charts-types';
 import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-charts-tooltip';
+const ROW_SYMBOL_SIZE = 8;
 
 interface LocaleManager {
     t(key: string, variables?: Record<string, any>): string;
@@ -29,8 +30,8 @@ function tooltipTextHtml(ctx: TooltipHtmlContext, text: NormalisedTextOrSegments
 }
 
 export type TooltipContentDataRow =
-    | { label: string; fallbackLabel?: string; value: TextValue; missing?: boolean }
-    | { label: undefined; fallbackLabel: string; value: TextValue; missing?: boolean };
+    | { label: string; fallbackLabel?: string; value: TextValue; missing?: boolean; symbol?: LegendSymbolOptions }
+    | { label: undefined; fallbackLabel: string; value: TextValue; missing?: boolean; symbol?: LegendSymbolOptions };
 
 export type TooltipStructuredContent = {
     heading?: NormalisedTextOrSegments;
@@ -151,7 +152,13 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[], logg
     return ariaLabel.filter((s) => s !== '').join('; ');
 }
 
-function dataHtml(ctx: TooltipHtmlContext, label: string | undefined, value: string, inline: boolean) {
+function dataHtml(
+    ctx: TooltipHtmlContext,
+    label: string | undefined,
+    value: string,
+    inline: boolean,
+    symbol: LegendSymbolOptions | undefined
+) {
     let rowHtml = '';
 
     if (textOrSegmentsIsDefined(label)) {
@@ -163,8 +170,12 @@ function dataHtml(ctx: TooltipHtmlContext, label: string | undefined, value: str
     }
 
     const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}-row`];
-    if (inline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}-row--inline`);
+    if (inline || symbol != null) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}-row--inline`);
     rowHtml = `<div class="${rowClassNames.join(' ')}">${rowHtml}</div>`;
+
+    if (symbol != null) {
+        rowHtml = `<span class="${DEFAULT_TOOLTIP_CLASS}-symbol">${legendSymbolSvg(symbol, ROW_SYMBOL_SIZE)}</span>${rowHtml}`;
+    }
 
     return rowHtml;
 }
@@ -195,7 +206,13 @@ function tooltipRowContentHtml(ctx: TooltipHtmlContext, content: GroupedStructur
         for (const datum of content.data) {
             // Skip data rows that are marked as missing
             if (datum.missing === true) continue;
-            html += dataHtml(ctx, datum.label ?? datum.fallbackLabel, toPlainText(datum.value), dataInline);
+            html += dataHtml(
+                ctx,
+                datum.label ?? datum.fallbackLabel,
+                toPlainText(datum.value),
+                dataInline,
+                datum.symbol
+            );
             html += ' ';
         }
     }
@@ -253,7 +270,7 @@ function tooltipContentHtml(
             for (const datum of singleItem.data) {
                 // Skip data rows that are marked as missing
                 if (datum.missing === true) continue;
-                html += dataHtml(ctx, datum.label ?? compactFallbackLabel, toPlainText(datum.value), false);
+                html += dataHtml(ctx, datum.label ?? compactFallbackLabel, toPlainText(datum.value), false, undefined);
                 html += ' ';
             }
         }
