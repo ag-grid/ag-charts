@@ -27,6 +27,7 @@ import type {
 import {
     type VolumeProfileDatum,
     inferVolumeProfileTickSize,
+    lacksVolumeProfileVolumes,
     normaliseVolumeProfile,
     warnMissingVolumeProfileKeys,
 } from './volumeProfileUtils';
@@ -39,12 +40,11 @@ export function groupVolumeProfile(
     tickSize: number | undefined,
     logger: Logger
 ) {
-    warnMissingVolumeProfileKeys(data, { priceKey, upKey, downKey }, logger);
-    return normaliseVolumeProfile(
-        data,
-        { priceKey, upKey, downKey },
-        tickSize ?? inferVolumeProfileTickSize(data, priceKey) ?? 1
-    );
+    const keys = { priceKey, upKey, downKey };
+    warnMissingVolumeProfileKeys(data, keys, logger);
+    if (lacksVolumeProfileVolumes(data, keys)) return [];
+
+    return normaliseVolumeProfile(data, keys, tickSize ?? inferVolumeProfileTickSize(data, priceKey) ?? 1);
 }
 
 /** Fixed series ids of the two profile series, in both the Volume Profile Chart and the Financial Chart. */

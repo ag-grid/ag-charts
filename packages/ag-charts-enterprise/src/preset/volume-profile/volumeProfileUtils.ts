@@ -17,6 +17,11 @@ export function warnMissingVolumeProfileKeys(data: DatumDefault[], keys: VolumeP
     }
 }
 
+/** Whether neither volume key is in the data, so every level would be drawn empty. */
+export function lacksVolumeProfileVolumes(data: DatumDefault[], { upKey, downKey }: VolumeProfileKeys) {
+    return data.length > 0 && !data.some((d) => d?.[upKey] !== undefined || d?.[downKey] !== undefined);
+}
+
 export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: string): number | undefined {
     const prices = data
         .map((d) => d[priceKey])
