@@ -91,6 +91,6 @@ export interface ITextMeasurer {
     measureText(text: string): TextMetricsBox;
     measureLines(text: string | string[]): MultilineTextMetricsBox;
     baselineDistance(textBaseline: CanvasTextBaseline): number;
-    textWidth(text: string, estimate?: boolean): number;
+    textWidth(text: string): number;
     lineHeight(): number;
 }

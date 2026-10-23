@@ -883,30 +883,76 @@ export function wrapLines(text: string, options: WrapOptions) {
     return textWrap(text, options);
 }
 
-export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
-    const ellipsisWidth = measurer.textWidth(EllipsisChar);
-    const graphemes = graphemeSegments(text);
-    let estimatedWidth = 0;
-    let charOffset = 0;
+/**
+ * How many leading `graphemes` fit `maxWidth` once `draw` turns them into the string that is drawn. Summed
+ * grapheme widths only guess the count; measuring the drawn string decides it.
+ */
+function fittingGraphemeCount(
+    graphemes: readonly string[],
+    measurer: ITextMeasurer,
+    maxWidth: number,
+    draw?: (prefix: string) => string
+): number {
+    // OPTIMIZATION: cached grapheme widths land the guess within a step or two of the measured answer.
+    let count = 0;
+    let estimate = draw ? measurer.textWidth(draw('')) : 0;
     for (const grapheme of graphemes) {
-        const charWidth = measurer.textWidth(grapheme);
-        if (estimatedWidth + charWidth > maxWidth) break;
-        estimatedWidth += charWidth;
-        charOffset += grapheme.length;
+        estimate += measurer.textWidth(grapheme);
+        if (estimate > maxWidth) break;
+        count += 1;
     }
-    if (charOffset === text.length && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
-        return ellipsisForce ? appendEllipsis(text) : text;
-    }
-    text = text.slice(0, charOffset).trimEnd();
-    const g = graphemeSegments(text);
-    while (g.length > 0 && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
-        g.pop();
-        while (g.length > 0 && g.at(-1)!.trim() === '') {
-            g.pop();
+    const fits = (n: number) => {
+        if (n === 0) return true;
+        const prefix = graphemes.slice(0, n).join('');
+        return measurer.textWidth(draw ? draw(prefix) : prefix) <= maxWidth;
+    };
+    return largestFitting(count, graphemes.length, fits);
+}
+
+/**
+ * The largest count up to `max` that `fits`, which must hold for 0 and stop holding past some count. Searching
+ * away from `guess` in doubling strides, then bisecting, costs O(log n) probes however far off the guess is.
+ */
+function largestFitting(guess: number, max: number, fits: (count: number) => boolean): number {
+    let fit = guess;
+    let miss = guess;
+    let step = 1;
+    if (guess < max && fits(guess + 1)) {
+        fit = guess + 1;
+        miss = max + 1;
+        while (fit < max) {
+            const probe = Math.min(fit + step, max);
+            if (!fits(probe)) {
+                miss = probe;
+                break;
+            }
+            fit = probe;
+            step *= 2;
         }
-        text = g.join('');
+    } else {
+        while (!fits(fit)) {
+            miss = fit;
+            fit = Math.max(fit - step, 0);
+            step *= 2;
+        }
     }
-    return appendEllipsis(text);
+    while (miss - fit > 1) {
+        const mid = (fit + miss) >> 1;
+        if (fits(mid)) fit = mid;
+        else miss = mid;
+    }
+    return fit;
+}
+
+export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
+    if (text === '') return ellipsisForce ? EllipsisChar : text;
+    const whole = ellipsisForce ? appendEllipsis(text) : text;
+    if (measurer.textWidth(whole) <= maxWidth) return whole;
+
+    const graphemes = graphemeSegments(text);
+    const drawTruncated = (prefix: string) => appendEllipsis(prefix.trimEnd());
+    const count = fittingGraphemeCount(graphemes, measurer, maxWidth, drawTruncated);
+    return drawTruncated(graphemes.slice(0, count).join(''));
 }
 
 function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop = 0) {
@@ -948,123 +994,91 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             continue;
         }
 
-        let graphemes = graphemeSegments(line);
-        let i = 0;
-        let charOffset = 0;
-        let estimatedWidth = 0;
-        let lastSpaceIndex = 0;
-
-        // Cut `line` at `breakIndex` and restart the scan at the head of what remains.
+        // Cut `line` at `breakIndex` so the next pass fits what remains.
         const resumeAfterBreak = (breakIndex: number) => {
             line = line.slice(breakIndex).trimStart();
-            graphemes = graphemeSegments(line);
-            i = 0;
-            charOffset = 0;
-            estimatedWidth = 0;
-            lastSpaceIndex = 0;
         };
 
-        if (result.length === 0) {
-            estimatedWidth = widthOffset;
-        }
+        // Only the whole line is measured: what remains after a break is fitted by prefix, never measured whole.
+        const fitsWhole = measurer.textWidth(line) <= maxWidth() - (result.length === 0 ? widthOffset : 0);
+        while (line !== '' && !fitsWhole) {
+            const offset = result.length === 0 ? widthOffset : 0;
+            const graphemes = graphemeSegments(line);
+            const fitted = fittingGraphemeCount(graphemes, measurer, maxWidth() - offset);
+            if (fitted === graphemes.length) break;
 
-        while (i < graphemes.length) {
-            const char = graphemes[i];
-
-            if (char === ' ') {
-                lastSpaceIndex = charOffset;
+            // The first grapheme that does not fit, and the last space at or before it.
+            let charOffset = 0;
+            let lastSpaceIndex = 0;
+            for (let g = 0; g <= fitted; g++) {
+                if (graphemes[g] === ' ') lastSpaceIndex = charOffset;
+                if (g < fitted) charOffset += graphemes[g].length;
             }
 
-            estimatedWidth += measurer.textWidth(char);
-
-            if (estimatedWidth > maxWidth()) {
-                // char width is greater than the line's max width
-                if (i === 0) {
-                    if (!preserveText) {
-                        line = '';
-                    }
-                    break;
-                }
-
-                // check actual width in case estimation is off
-                let actualWidth = measurer.textWidth(line.slice(0, charOffset + char.length));
-                if (result.length === 0) {
-                    actualWidth += widthOffset;
-                }
-                if (actualWidth <= maxWidth()) {
-                    estimatedWidth = actualWidth;
-                    charOffset += char.length;
-                    i++;
-                    continue;
-                }
-
-                if (preserveText && wrapOnSpace) {
-                    // A word with no space to break at overhangs whole rather than being cut short.
-                    const breakIndex = lastSpaceIndex === 0 ? line.indexOf(' ', 1) : lastSpaceIndex;
-                    if (breakIndex < 1) break;
-                    result.push(line.slice(0, breakIndex).trimEnd());
-                    resumeAfterBreak(breakIndex);
-                    continue;
-                }
-
-                if (lastSpaceIndex !== 0) {
-                    const nextWord = getWordAt(line, lastSpaceIndex + 1);
-                    const textWidth = measurer.textWidth(nextWord);
-
-                    if (textWidth <= maxWidth()) {
-                        result.push(line.slice(0, lastSpaceIndex).trimEnd());
-                        resumeAfterBreak(lastSpaceIndex);
-                        continue;
-                    } else if (wrapOnSpace) {
-                        // The word that did not fit lands on the line below, whose width a shape-bounded
-                        // label narrows band by band, so that is the width it answers to.
-                        const remainder = line.slice(lastSpaceIndex).trimStart();
-                        result.push(line.slice(0, lastSpaceIndex).trimEnd());
-                        const remainderWidth = maxWidth();
-                        result.push(
-                            measurer.textWidth(remainder) <= remainderWidth
-                                ? remainder
-                                : truncateLine(remainder, measurer, remainderWidth, true)
-                        );
-                    }
-                } else if (wrapOnSpace) {
-                    const newLine = truncateLine(line, measurer, maxWidth(), true);
-                    if (newLine !== '') {
-                        result.push(newLine);
-                    }
-                }
-
-                if (wrapOnSpace) {
+            if (fitted === 0) {
+                if (!preserveText) {
                     line = '';
-                    break;
                 }
+                break;
+            }
 
-                const postfix = wrapHyphenate ? '-' : '';
-                let newLine = line.slice(0, charOffset).trim();
-                const g = graphemeSegments(newLine);
-                while (g.length > 0 && measurer.textWidth(newLine + postfix) > maxWidth()) {
-                    g.pop();
-                    while (g.length > 0 && g.at(-1)!.trim() === '') {
-                        g.pop();
-                    }
-                    newLine = g.join('');
-                }
-
-                if (newLine !== '' && newLine !== TrimEdgeGuard) {
-                    result.push(preserveArabicJoining(newLine) + postfix);
-                } else {
-                    if (!preserveText) {
-                        line = '';
-                    }
-                    break;
-                }
-
-                resumeAfterBreak(newLine.length);
+            if (preserveText && wrapOnSpace) {
+                // A word with no space to break at overhangs whole rather than being cut short.
+                const breakIndex = lastSpaceIndex === 0 ? line.indexOf(' ', 1) : lastSpaceIndex;
+                if (breakIndex < 1) break;
+                result.push(line.slice(0, breakIndex).trimEnd());
+                resumeAfterBreak(breakIndex);
                 continue;
             }
 
-            charOffset += char.length;
-            i++;
+            if (lastSpaceIndex !== 0) {
+                const nextWord = getWordAt(line, lastSpaceIndex + 1);
+                const textWidth = measurer.textWidth(nextWord);
+
+                if (textWidth <= maxWidth()) {
+                    result.push(line.slice(0, lastSpaceIndex).trimEnd());
+                    resumeAfterBreak(lastSpaceIndex);
+                    continue;
+                } else if (wrapOnSpace) {
+                    // The word that did not fit lands on the line below, whose width a shape-bounded
+                    // label narrows band by band, so that is the width it answers to.
+                    const remainder = line.slice(lastSpaceIndex).trimStart();
+                    result.push(line.slice(0, lastSpaceIndex).trimEnd());
+                    const remainderWidth = maxWidth();
+                    result.push(
+                        measurer.textWidth(remainder) <= remainderWidth
+                            ? remainder
+                            : truncateLine(remainder, measurer, remainderWidth, true)
+                    );
+                }
+            } else if (wrapOnSpace) {
+                const newLine = truncateLine(line, measurer, maxWidth() - offset, true);
+                if (newLine !== '') {
+                    result.push(newLine);
+                }
+            }
+
+            if (wrapOnSpace) {
+                line = '';
+                break;
+            }
+
+            const postfix = wrapHyphenate ? '-' : '';
+            const head = graphemeSegments(line.slice(0, charOffset).trim());
+            const drawBroken = (prefix: string) => preserveArabicJoining(prefix.trimEnd()) + postfix;
+            const kept = fittingGraphemeCount(head, measurer, maxWidth() - offset, drawBroken);
+            const newLine = head.slice(0, kept).join('').trimEnd();
+
+            if (newLine !== '' && newLine !== TrimEdgeGuard) {
+                result.push(drawBroken(newLine));
+            } else {
+                if (!preserveText) {
+                    line = '';
+                }
+                break;
+            }
+
+            resumeAfterBreak(newLine.length);
         }
 
         if (line !== '') {
