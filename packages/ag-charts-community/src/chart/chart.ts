@@ -2255,7 +2255,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
         for (const module of moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
             if (!moduleMatchesChartType(module, chartType)) continue;
 
-            const pluginOpts = readContributedValue(moduleRegistry.moduleContributions(module.name), 'axis', options);
+            const optionsKey = module.optionsKey ?? module.name;
+            // Only the plugin's own key carries its options; its other contributions (e.g. listeners) do not.
+            const ownContributions = moduleRegistry
+                .moduleContributions(module.name)
+                .filter(({ relative }) => relative.segments.length === 1 && relative.segments[0].key === optionsKey);
+            const pluginOpts = readContributedValue(ownContributions, 'axis', options);
             const shouldBeEnabled = pluginOpts != null;
             const isEnabled = moduleMap.isEnabled(module.name);
 

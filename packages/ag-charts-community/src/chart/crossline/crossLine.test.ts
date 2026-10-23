@@ -616,6 +616,24 @@ describe('CrossLine', () => {
             );
         });
 
+        it('leaves the plugin off for an axis with listeners but no cross lines', async () => {
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                listeners: { crossLineClick: vi.fn(), crossLineDoubleClick: vi.fn() },
+                            },
+                        },
+                    })
+                )
+            );
+
+            expect(chart.axes.map((axis) => getCrossLinesPlugin(axis))).toEqual([undefined, undefined]);
+        });
+
         it('AC2: double-clicking a cross line fires `doubleClick`', async () => {
             const click = vi.fn();
             const doubleClick = vi.fn();
