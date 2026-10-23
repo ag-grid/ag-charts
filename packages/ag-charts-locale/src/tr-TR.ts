@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaLabelColorPickerHue: 'Ton',
     ariaLabelColorPickerMultiColor: 'Çok Renkli',
     ariaLabelColorPickerPalette: 'Palet',
+    ariaLabelCrossLine: '${label}, Kesişim çizgisi ${index}[number] / ${count}[number]',
     ariaLabelFinancialCharts: 'Finansal Grafikler',
     ariaLabelGaugeTarget: 'Hedef',
     ariaLabelGaugeValue: 'Değer',

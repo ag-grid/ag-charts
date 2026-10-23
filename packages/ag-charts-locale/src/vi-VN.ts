@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaLabelColorPickerHue: 'Màu sắc',
     ariaLabelColorPickerMultiColor: 'Nhiều màu sắc',
     ariaLabelColorPickerPalette: 'Bảng màu',
+    ariaLabelCrossLine: '${label}, Đường cắt ${index}[number] trên ${count}[number]',
     ariaLabelFinancialCharts: 'Biểu đồ tài chính',
     ariaLabelGaugeTarget: 'Mục tiêu',
     ariaLabelGaugeValue: 'Giá trị',

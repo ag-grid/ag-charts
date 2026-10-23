@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaLabelColorPickerHue: 'Цвят',
     ariaLabelColorPickerMultiColor: 'Многоцветен',
     ariaLabelColorPickerPalette: 'Палитра',
+    ariaLabelCrossLine: '${label}, Пресичаща линия ${index}[number] от ${count}[number]',
     ariaLabelFinancialCharts: 'Финансови диаграми',
     ariaLabelGaugeTarget: 'Цел',
     ariaLabelGaugeValue: 'Стойност',
