@@ -230,6 +230,7 @@ export * from './scene/sceneDebug';
 export * from './scene/sectorBox';
 export * from './scene/segmentedGroup';
 export * from './scene/selection';
+export * from './scene/shadowCollector';
 export * from './scene/shadowCompositor';
 export * from './scene/shadowPass';
 export * from './scene/shape/arc';

@@ -10,6 +10,10 @@ export class SegmentedGroup extends TranslatableGroup {
     @SceneRefChangeDetection()
     segments?: Segment[] = [];
 
+    protected override supportsSharedShadows(): boolean {
+        return this.segments == null || this.segments.length === 0;
+    }
+
     private readonly scalablePath = new (Scalable(Path))();
 
     protected override renderInContext(childRenderCtx: RenderContext) {

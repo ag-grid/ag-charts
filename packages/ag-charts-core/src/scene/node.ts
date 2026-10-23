@@ -10,6 +10,7 @@ import type { SerializedNodeProps, SerializedNodeState } from '../types/scene';
 import { BBox } from './bbox';
 import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
+import type { ShadowCollector } from './shadowCollector';
 import { type ZIndex } from './zIndex';
 
 export enum PointerEvents {
@@ -304,6 +305,11 @@ export abstract class Node<TDatum = unknown> {
 
     setScene(scene?: IScene) {
         this.scene = scene;
+    }
+
+    /** Records the shared-shadow groups at or below the node, without rendering. Only groups have any. */
+    gatherShadows(_collector: ShadowCollector<unknown>): void {
+        // Nothing to do by default.
     }
 
     *traverseUp(includeSelf?: boolean): Generator<Node, void, unknown> {

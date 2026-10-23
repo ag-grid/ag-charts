@@ -8,8 +8,17 @@ import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { ChildNodeCounts, IScene, RenderContext } from './node';
 import { Node, PointerEvents } from './node';
-import { getBatchedShadow, releaseShadowScratch, renderChildrenWithShadowBatches } from './shadowCompositor';
+import type { ShadowCollector } from './shadowCollector';
+import {
+    getBatchedShadow,
+    hasEnabledShadow,
+    releaseShadowScratch,
+    renderChildrenWithShadowBatches,
+    renderChildrenWithSuppressedShadows,
+} from './shadowCompositor';
+import { getHighlightShadowPlacement } from './shadowPass';
 import { type CanvasContext, Shape } from './shape/shape';
+import { type SharedShadowGroup, releaseSharedShadows, renderSharedShadows } from './sharedShadow';
 import {
     Rotatable,
     type RotatableType,
@@ -83,7 +92,19 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      * them, as the markers of an aggregated scatter do, uses `true`, so that they stay one batch.
      */
     @SceneChangeDetection()
-    batchShadows: boolean | 'by-layer' = false;
+    batchShadows: boolean | 'by-layer' | 'shared' | 'shared-highlight' = false;
+
+    /**
+     * Whether the group draws the shadows of the `'shared'` and `'shared-highlight'` groups below it before any of them
+     * draws, so that they all sit beneath all of the items. See {@link renderSharedShadows}.
+     */
+    readonly shadowRoot: boolean;
+
+    /** Bumped whenever the group or a descendant is marked dirty, which invalidates the root's cache of its shadows. */
+    shadowEpoch = 0;
+
+    /** On a shadow root, the groups that its last shared pass cast the shadows of. */
+    private sharedShadowCover: ReadonlySet<SharedShadowGroup> | undefined = undefined;
 
     /** The children that cast a batched shadow, counted by {@link preRender}, or -1 until then. */
     private shadowCasterCount = -1;
@@ -116,13 +137,15 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         readonly zIndex?: ZIndex;
         readonly renderToOffscreenCanvas?: boolean;
         readonly optimizeForInfrequentRedraws?: boolean;
-        readonly batchShadows?: boolean | 'by-layer';
+        readonly batchShadows?: boolean | 'by-layer' | 'shared' | 'shared-highlight';
+        readonly shadowRoot?: boolean;
     }) {
         super(opts);
         this.isContainerNode = true;
         this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
         this.optimizeForInfrequentRedraws = opts?.optimizeForInfrequentRedraws === true;
         this.batchShadows = opts?.batchShadows ?? false;
+        this.shadowRoot = opts?.shadowRoot === true;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.
@@ -178,6 +201,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
         if (previousScene !== scene) {
             releaseShadowScratch(previousScene, this);
+            if (this.shadowRoot) {
+                releaseSharedShadows(this);
+                this.sharedShadowCover = undefined;
+            }
         }
 
         if (this.layer && previousScene && previousScene !== scene) {
@@ -218,11 +245,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this.fullDirty = true;
         this._childFontDirty = true;
         this.shadowCasterCount = -1;
+        this.shadowEpoch++;
         super.markDirty(property);
     }
 
     /** Only the nearest layer owner records the source; anything that can't repaint in part takes an ordinary mark. */
     override markDirtyRegionOf(source: Node): void {
+        this.shadowEpoch++;
         if (this.batchLevel > 0) {
             super.markDirtyRegionOf(source);
             return;
@@ -632,15 +661,95 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 childRenderCtx.clipBBox = Transformable.toCanvas(this, this.clipRect);
             }
 
+            if (this.shadowRoot) {
+                this.sharedShadowCover = this.castSharedShadows(childRenderCtx);
+            }
+
             this.renderChildren(childRenderCtx);
         } finally {
             ctx.restore();
         }
     }
 
+    /** Fails open: if the shared pass can't draw, every group casts its own shadows. */
+    private castSharedShadows(childRenderCtx: RenderContext): ReadonlySet<SharedShadowGroup> | undefined {
+        try {
+            return renderSharedShadows(this, this.scene, childRenderCtx);
+        } catch (e) {
+            childRenderCtx.logger.warnOnce('Error during the shared shadow pass', e);
+            return;
+        }
+    }
+
+    /** Whether the group casts its shadows through the nearest shadow root, rather than through batches of its own. */
+    private sharesShadows(): boolean {
+        const { batchShadows } = this;
+        if (batchShadows === 'shared') return true;
+        return batchShadows === 'shared-highlight' && getHighlightShadowPlacement() !== 'above';
+    }
+
+    /** Whether the shared pass can reproduce how the group draws its children. Overridden by groups that clip them. */
+    protected supportsSharedShadows(): boolean {
+        return true;
+    }
+
+    /** Records the shared-shadow groups below the group, without rendering. Called through the parent, not `render`. */
+    override gatherShadows(collector: ShadowCollector<SharedShadowGroup>): void {
+        const { ctx } = collector;
+        const { alpha } = collector;
+        const clipCount = collector.clips.length;
+        ctx.save();
+        try {
+            collector.alpha = alpha * this.opacity;
+            if (this.clipRect != null) {
+                const { x, y, width, height } = this.clipRect;
+                collector.pushClip(x, y, width, height);
+            }
+            this.gatherShadowChildren(collector);
+        } finally {
+            ctx.restore();
+            collector.alpha = alpha;
+            collector.clips.length = clipCount;
+        }
+    }
+
+    gatherShadowChildren(collector: ShadowCollector<SharedShadowGroup>): void {
+        if (this.dirtyZIndex) {
+            this.sortChildren(Group.compareChildren);
+            this.dirtyZIndex = false;
+        }
+
+        if (this.sharesShadows() && this.supportsSharedShadows()) {
+            collector.addFrame(this, this.batchShadows === 'shared-highlight');
+        }
+
+        for (const child of this.children()) {
+            if (child.visible && child instanceof Group) child.gatherShadows(collector);
+        }
+    }
+
+    /** The shared-shadow group's nearest shadow root, if its last pass cast the group's shadows. */
+    private isCoveredBySharedShadows(): boolean {
+        if (!this.sharesShadows()) return false;
+
+        for (const node of this.traverseUp()) {
+            if (node instanceof Group && node.shadowRoot) return node.sharedShadowCover?.has(this) === true;
+        }
+        return false;
+    }
+
     /** Renders the children in order, with each run that shares a shadow batched if {@link batchShadows} is on. */
     protected renderChildren(childRenderCtx: RenderContext) {
         const { stats } = childRenderCtx;
+
+        if (this.isCoveredBySharedShadows()) {
+            renderChildrenWithSuppressedShadows(
+                this.children(),
+                childRenderCtx,
+                this.batchShadows === 'shared-highlight' ? hasEnabledShadow : (node) => getBatchedShadow(node) != null
+            );
+            return;
+        }
 
         if (this.hasBatchedShadows()) {
             renderChildrenWithShadowBatches(
@@ -674,6 +783,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     /** The number of children that cast a batched shadow, which is cached until the group is next marked dirty. */
+    getShadowCasterCount(): number {
+        return this.countShadowCasters();
+    }
+
     private countShadowCasters(): number {
         if (this.shadowCasterCount < 0) {
             let casters = 0;

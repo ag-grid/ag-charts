@@ -4,8 +4,13 @@
  * - `none`: nodes cast their own shadows.
  * - `mask`: casters draw their silhouettes, with their real paint, into the batch's scratch canvas.
  * - `suppress`: casters draw as usual but cast no shadow, because the batch cast it beneath them.
+ * - `knockout`: shapes erase their fill from the context, which the shared shadow pass uses to clear a highlight shadow
+ *   from where other items are drawn.
  */
-export type ShadowPassState = 'none' | 'mask' | 'suppress';
+export type ShadowPassState = 'none' | 'mask' | 'suppress' | 'knockout';
+
+/** Where the shadow of a highlighted item lands. Internal and undocumented: see {@link getHighlightShadowPlacement}. */
+export type HighlightShadowPlacement = 'above' | 'beneath' | 'beneath-knockout';
 
 /** Module state rather than render context, because `Shape.fillStroke()` has no access to the render context. */
 export const shadowPass: {
@@ -21,3 +26,11 @@ export const shadowPass: {
      */
     resolution: { x: number; y: number };
 } = { state: 'none', opaque: false, resolution: { x: 1, y: 1 } };
+
+const HIGHLIGHT_PLACEMENT_FLAG = '__agHighlightShadowPlacement';
+
+/** The chart-wide switch for the highlight shadow, read from a global so that a page can set it before the chart. */
+export function getHighlightShadowPlacement(): HighlightShadowPlacement {
+    const value: unknown = Reflect.get(globalThis, HIGHLIGHT_PLACEMENT_FLAG);
+    return value === 'beneath' || value === 'beneath-knockout' ? value : 'above';
+}
