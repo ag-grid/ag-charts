@@ -2,13 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgCartesianCrossLineOptions, AgChartInstance } from 'ag-charts-types';
 
-import {
-    createChart,
-    getTabStopGroups,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from '../test/utils';
+import { createChart, getTabStopGroups, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 const X_CROSS_LINES: AgCartesianCrossLineOptions[] = [{ type: 'line', value: 'Feb', label: { text: 'X1' } }];
 
