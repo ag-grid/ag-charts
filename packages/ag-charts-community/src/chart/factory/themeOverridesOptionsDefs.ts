@@ -1,13 +1,13 @@
 import {
-    type ContributionHost,
     type ModuleScope,
     ModuleType,
     type OptionsContribution,
     type OptionsDefs,
     type ResolvedContribution,
     boolean,
+    cartesianAxisThemePositions,
     commonThemeOverridesOptionsDefs,
-    composeContributedDefs,
+    composeHostContributedDefs,
     contributionMatchesAxisType,
     contributionMatchesChartType,
     contributionMatchesSeriesType,
@@ -26,24 +26,39 @@ import { uncoveredContributions } from './processModuleOptions';
  * is not registered only gets a shape check, so its key stays known until `sanitizeThemeModules` drops it.
  */
 export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsDefs<AgThemeOverrides> {
-    const contributions: ResolvedContribution[] = [
-        ...moduleRegistry.optionsContributions(),
-        ...uncoveredContributions(ExpectedModules.values(), moduleRegistry, undefined),
-    ];
+    const registered = [...moduleRegistry.optionsContributions()];
+    const contributionsByChartType = new Map<string | undefined, ResolvedContribution[]>();
+    // A path can be owned for one chart type and still missing for another, so placeholders resolve per chart type.
+    function contributionsFor(chartType: string | undefined) {
+        let contributions = contributionsByChartType.get(chartType);
+        if (contributions == null) {
+            contributions = [
+                ...registered,
+                ...uncoveredContributions(ExpectedModules.values(), moduleRegistry, chartType),
+            ];
+            contributionsByChartType.set(chartType, contributions);
+        }
+        return contributions;
+    }
     const axisModules = [...moduleRegistry.listModulesByType(ModuleType.Axis)];
 
     function axesDefs(chartType: string | undefined) {
         const axes: OptionsDefs<any> = {};
         for (const axis of axisModules) {
             if (chartType != null && axis.chartType !== chartType) continue;
-            axes[axis.name] = composeHostDefs(
-                axis.themeOptions,
-                contributions,
-                'axis',
-                (contribution) =>
-                    contributionMatchesChartType(contribution, axis.chartType) &&
-                    contributionMatchesAxisType(contribution, axis.name)
-            );
+            const contributions = contributionsFor(axis.chartType);
+            const applies = (contribution: OptionsContribution) =>
+                contributionMatchesChartType(contribution, axis.chartType) &&
+                contributionMatchesAxisType(contribution, axis.name);
+            const defs = composeHostContributedDefs<any>(axis.themeOptions, contributions, 'axis', applies, true);
+            for (const position of cartesianAxisThemePositions) {
+                const positioned = axis.themeOptions[position];
+                if (positioned == null) continue;
+                // A positional override only extends the option groups it declares, such as `listeners`.
+                const nested = contributions.filter(({ relative }) => relative.segments[0].key in positioned);
+                defs[position] = composeHostContributedDefs(positioned, nested, 'axis', applies, true);
+            }
+            axes[axis.name] = defs;
         }
         for (const placeholder of ExpectedModules.values()) {
             if (placeholder.type !== ModuleType.Axis || moduleRegistry.hasModule(placeholder.name)) continue;
@@ -55,29 +70,32 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
     }
 
     const entries: Record<string, unknown> = {
-        common: composeHostDefs(
+        common: composeHostContributedDefs<any>(
             { ...commonThemeOverridesOptionsDefs, axes: axesDefs(undefined) },
-            contributions,
+            contributionsFor(undefined),
             'chart',
-            () => true
+            () => true,
+            true
         ),
     };
 
     for (const series of moduleRegistry.listModulesByType(ModuleType.Series)) {
         const { chartType } = series;
-        const chartDefs = composeHostDefs(
+        const chartDefs = composeHostContributedDefs(
             moduleRegistry.getChartModule(chartType).themeOptions,
-            contributions,
+            contributionsFor(chartType),
             'chart',
-            (contribution) => contributionMatchesChartType(contribution, chartType)
+            (contribution) => contributionMatchesChartType(contribution, chartType),
+            true
         );
-        const seriesDefs = composeHostDefs(
+        const seriesDefs = composeHostContributedDefs(
             series.themeOptions,
-            contributions,
+            contributionsFor(chartType),
             'series',
             (contribution) =>
                 contributionMatchesChartType(contribution, chartType) &&
-                contributionMatchesSeriesType(contribution, series.name)
+                contributionMatchesSeriesType(contribution, series.name),
+            true
         );
         if (isPresetOverridesType(series.name)) {
             entries[series.name] = { ...chartDefs, ...seriesDefs };
@@ -97,28 +115,4 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
     }
 
     return entries as OptionsDefs<AgThemeOverrides>;
-}
-
-/**
- * Installs each contribution that descends into `host` and `applies`, relative to one host instance:
- * its `themeOptions ?? options`, or the def `defs` already declares there.
- */
-function composeHostDefs(
-    defs: OptionsDefs<any>,
-    contributions: readonly ResolvedContribution[],
-    host: ContributionHost,
-    applies: (contribution: OptionsContribution) => boolean
-): OptionsDefs<any> {
-    const installed: ResolvedContribution[] = [];
-    for (const resolved of contributions) {
-        const { contribution, relative } = resolved;
-        if (resolved.host !== host || !applies(contribution)) continue;
-        installed.push({
-            ...resolved,
-            host: 'chart',
-            path: relative,
-            contribution: { ...contribution, options: contribution.themeOptions ?? contribution.options },
-        });
-    }
-    return composeContributedDefs(defs, installed);
 }

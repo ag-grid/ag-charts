@@ -1,19 +1,11 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type Chart, type ChartOrProxy, deproxy } from 'ag-charts-community-test';
+import { type Chart, type ChartOrProxy, deproxy, getCrossLinesPlugin } from 'ag-charts-community-test';
 import { ChartAxisDirection, Text, Transformable } from 'ag-charts-core';
 
 import type { PolarCrossLine } from '../axes/polar-crosslines/polarCrossLine';
 
-type CrossLinesPlugin = NonNullable<ReturnType<typeof _ModuleSupport.getCrossLinesPlugin>>;
-
-// Polar axes get the enterprise `polarCrossLines` module, which the module map keys by that
-// name — so `getCrossLinesPlugin`, which looks up `crossLines`, only resolves cartesian axes.
 export function crossLineInstances(target: Chart, axisId: string) {
     const axis = target.axes.findById(axisId);
-    if (axis == null) return [];
-    const plugin =
-        _ModuleSupport.getCrossLinesPlugin(axis) ?? axis.getModuleMap().getModule<CrossLinesPlugin>('polarCrossLines');
-    return plugin?.getInstances() ?? [];
+    return (axis && getCrossLinesPlugin(axis)?.getInstances()) ?? [];
 }
 
 /** The label text nodes of the cross lines on `axisId`, polar or cartesian, in instance order. */

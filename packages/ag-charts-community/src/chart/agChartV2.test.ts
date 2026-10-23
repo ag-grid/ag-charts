@@ -136,7 +136,7 @@ describe('AgChartV2', () => {
                     }
 
                     if (previousSnapshot != null) {
-                        (expect(exampleSnapshot) as any).not.toMatchImage(previousSnapshot, {
+                        expect(exampleSnapshot).not.toMatchImage(previousSnapshot, {
                             writeDiff: false,
                         });
                     }

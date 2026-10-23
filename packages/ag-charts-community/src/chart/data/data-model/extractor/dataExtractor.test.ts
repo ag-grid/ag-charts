@@ -18,7 +18,8 @@ function mutilatedBrowserData() {
         delete datum[keyToDelete];
         if (idx % 3 === 0) {
             const illegalValueKey = datumKeys[(idx + 1) % 4];
-            datum[illegalValueKey] = 'illegal value' as any;
+            // Deliberately invalid: a string where the browser share fixture holds numbers.
+            datum[illegalValueKey] = 'illegal value' as unknown as number;
         }
     }
     return rawData;

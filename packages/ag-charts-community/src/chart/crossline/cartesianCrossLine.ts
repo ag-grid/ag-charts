@@ -6,9 +6,11 @@ import {
     type TextMeasurer,
     Transformable,
     TransformableText,
+    bandRangeExpansion,
     cachedTextMeasurer,
     clampArray,
     createId,
+    crossLineHitTolerance,
     findMinMax,
     fitLabelText,
     fitLabelTextAutoSize,
@@ -17,10 +19,13 @@ import {
     resolveLabelFit,
     resolvePadding,
     toRadians,
+    validateCrossLineValue,
 } from 'ag-charts-core';
 import type {
     BoxBounds,
     CanvasPoint,
+    CrossLine,
+    CrossLineType,
     DynamicContext,
     NormalisedAxisCrossLineLabelOptions,
     NormalisedAxisCrossLineOptions,
@@ -30,11 +35,9 @@ import type {
 } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCrossLineLabelPosition, AgCrossLineListeners } from 'ag-charts-types';
 
-import type { ChartRegistry } from '../../module/moduleContext';
 import { rangeAlignment } from '../rangeAlignment';
-import { bandRangeExpansion } from '../scaleValue';
 import { type Anchor, type AnchorDirection, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
-import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
+import type { CrossLinesRegistry } from './crossLinesRegistry';
 
 type PaddingSide = 'left' | 'right' | 'top' | 'bottom';
 
@@ -70,13 +73,6 @@ export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions
 type NodeData = [number, number];
 type FittedLabel = { text: string; fontSize: number };
 
-const CROSS_LINE_MIN_HIT_TOLERANCE = 5;
-
-/** Pointer hit tolerance in pixels: half the stroke, floored so thin `line` cross lines remain targetable. */
-export function crossLineHitTolerance(strokeWidth: number | undefined): number {
-    return Math.max(CROSS_LINE_MIN_HIT_TOLERANCE, (strokeWidth ?? 1) / 2);
-}
-
 const DEFAULT_RANGE_FILL = '#c16068';
 
 export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOptions> {
@@ -102,7 +98,6 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     gridLength: number = 0;
     gridPadding: number = 0;
     containerBox?: BoxBounds = undefined;
-    position: AgCartesianAxisPosition = 'top';
 
     readonly rangeGroup = new Group({ name: this.internalId });
     readonly lineGroup = new Group({ name: this.internalId });
@@ -128,8 +123,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private labelBounds: BBox | undefined = undefined;
     private fitted: (FittedLabel & { measurer: TextMeasurer }) | undefined = undefined;
 
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<CrossLinesRegistry>) {
         this.crossLineRange.pointerEvents = PointerEvents.None;
+    }
+
+    get position(): AgCartesianAxisPosition {
+        return this.ctx.parent.position ?? 'top';
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions) {

@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SegmentedPath, getPath2D, shadowPass } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
+import { fakeLayersManagerWithCanvas } from '../test/sceneFakes';
+
 describe('SegmentedPath', () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -29,7 +31,7 @@ describe('SegmentedPath', () => {
         path.segments = [{ clipRect: { x0: 100, y0: 100, x1: 200, y1: 200 } }];
         // Drawn in logical space (the context transform scales by pixelRatio), so the inverse mask
         // must reach the logical canvas extent, not the smaller device-pixel extent.
-        vi.spyOn(path, 'layerManager', 'get').mockReturnValue({ canvas: { pixelRatio } } as any);
+        vi.spyOn(path, 'layerManager', 'get').mockReturnValue(fakeLayersManagerWithCanvas({ pixelRatio }));
 
         const ctx = {
             canvas: { width: deviceWidth, height: deviceHeight },
@@ -57,7 +59,7 @@ describe('SegmentedPath', () => {
         path.fill = 'none';
         path.stroke = 'none';
         path.segments = [{ clipRect: { x0: 100, y0: 100, x1: 200, y1: 200 } }];
-        vi.spyOn(path, 'layerManager', 'get').mockReturnValue({ canvas: { pixelRatio: 2 } } as any);
+        vi.spyOn(path, 'layerManager', 'get').mockReturnValue(fakeLayersManagerWithCanvas({ pixelRatio: 2 }));
 
         // The mask canvas is a quarter of the layer along x and half along y, and the context transform makes up for it.
         shadowPass.state = 'mask';

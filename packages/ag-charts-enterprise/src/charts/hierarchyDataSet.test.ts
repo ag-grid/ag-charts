@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { _ModuleSupport } from 'ag-charts-community';
 import { expectWarningMessages, setupMockConsole } from 'ag-charts-community-test';
@@ -12,6 +12,9 @@ interface TreeItem {
     value?: number;
     children?: TreeItem[];
 }
+
+// A removal is matched by the id key alone, so the other fields are left out.
+const removal = (id: string) => ({ id }) as TreeItem;
 
 function createTestData(): TreeItem[] {
     return [
@@ -73,15 +76,16 @@ describe('HierarchyDataSet', () => {
     setupMockConsole();
 
     describe('dataIdKey validation', () => {
-        test('warns when dataIdKey field is not found on any data item', () => {
+        it('warns when dataIdKey field is not found on any data item', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'nonExistent', 'children', testLogger);
-            ds.addTransaction({ remove: [{ nonExistent: 'x' } as any] });
+            const removed: TreeItem & { nonExistent: string } = { id: 'x', name: 'x', nonExistent: 'x' };
+            ds.addTransaction({ remove: [removed] });
             ds.commitPendingTransactions(undefined);
             expectWarningMessages(["AG Charts - dataIdKey 'nonExistent' was not found on any data item."]);
         });
 
-        test('does not warn when dataIdKey field exists on data items', () => {
+        it('does not warn when dataIdKey field exists on data items', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
             ds.addTransaction({ update: [{ id: 'eng-fe', name: 'Frontend', value: 50 }] });
@@ -92,7 +96,7 @@ describe('HierarchyDataSet', () => {
     });
 
     describe('update by ID', () => {
-        test('should update a root-level item', () => {
+        it('should update a root-level item', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -104,7 +108,7 @@ describe('HierarchyDataSet', () => {
             expect(ds.data.length).toBe(3);
         });
 
-        test('should update a nested leaf item in-place', () => {
+        it('should update a nested leaf item in-place', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -118,7 +122,7 @@ describe('HierarchyDataSet', () => {
             expect(ds.data[0].children![0].value).toBe(50);
         });
 
-        test('should update multiple nested items across different parents', () => {
+        it('should update multiple nested items across different parents', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -137,22 +141,22 @@ describe('HierarchyDataSet', () => {
     });
 
     describe('remove by ID', () => {
-        test('should remove a root-level item', () => {
+        it('should remove a root-level item', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
-            ds.addTransaction({ remove: [{ id: 'ops' } as TreeItem] });
+            ds.addTransaction({ remove: [removal('ops')] });
             ds.commitPendingTransactions(undefined);
 
             expect(ds.data.length).toBe(2);
             expect(ds.data.map((d) => d.id)).toEqual(['eng', 'sales']);
         });
 
-        test('should remove a nested leaf item', () => {
+        it('should remove a nested leaf item', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
-            ds.addTransaction({ remove: [{ id: 'eng-infra' } as TreeItem] });
+            ds.addTransaction({ remove: [removal('eng-infra')] });
             ds.commitPendingTransactions(undefined);
 
             // Root array unchanged
@@ -162,12 +166,12 @@ describe('HierarchyDataSet', () => {
             expect(ds.data[0].children!.map((c) => c.id)).toEqual(['eng-fe', 'eng-be']);
         });
 
-        test('should remove multiple nested items', () => {
+        it('should remove multiple nested items', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
             ds.addTransaction({
-                remove: [{ id: 'eng-fe' } as TreeItem, { id: 'sales-na' } as TreeItem],
+                remove: [removal('eng-fe'), removal('sales-na')],
             });
             ds.commitPendingTransactions(undefined);
 
@@ -177,7 +181,7 @@ describe('HierarchyDataSet', () => {
     });
 
     describe('add with nested deduplication', () => {
-        test('should not duplicate items already nested in the tree', () => {
+        it('should not duplicate items already nested in the tree', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -193,7 +197,7 @@ describe('HierarchyDataSet', () => {
             expect(ds.data[0].children![3].id).toBe('eng-new');
         });
 
-        test('should allow adding genuinely new root-level items', () => {
+        it('should allow adding genuinely new root-level items', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -205,7 +209,7 @@ describe('HierarchyDataSet', () => {
             expect(ds.data[3].id).toBe('marketing');
         });
 
-        test('should handle add + manual nested push in same transaction', () => {
+        it('should handle add + manual nested push in same transaction', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -228,13 +232,13 @@ describe('HierarchyDataSet', () => {
     });
 
     describe('mixed operations', () => {
-        test('should handle update + remove in same transaction', () => {
+        it('should handle update + remove in same transaction', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
             ds.addTransaction({
                 update: [{ id: 'eng-fe', name: 'Frontend', value: 100 }],
-                remove: [{ id: 'eng-infra' } as TreeItem],
+                remove: [removal('eng-infra')],
             });
             ds.commitPendingTransactions(undefined);
 
@@ -245,7 +249,7 @@ describe('HierarchyDataSet', () => {
     });
 
     describe('sequential transactions', () => {
-        test('should update nested items correctly across multiple commits', () => {
+        it('should update nested items correctly across multiple commits', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -262,12 +266,12 @@ describe('HierarchyDataSet', () => {
             expect(ds.data.length).toBe(3);
         });
 
-        test('should handle remove then update across commits', () => {
+        it('should handle remove then update across commits', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
             // First: remove a nested item
-            ds.addTransaction({ remove: [{ id: 'eng-infra' } as TreeItem] });
+            ds.addTransaction({ remove: [removal('eng-infra')] });
             ds.commitPendingTransactions(undefined);
             expect(ds.data[0].children!.length).toBe(2);
 
@@ -278,7 +282,7 @@ describe('HierarchyDataSet', () => {
             expect(ds.data[0].children!.length).toBe(2);
         });
 
-        test('should handle add-with-dedup then update across commits', () => {
+        it('should handle add-with-dedup then update across commits', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -298,7 +302,7 @@ describe('HierarchyDataSet', () => {
     });
 
     describe('manual mutation + transaction remove', () => {
-        test('should silently ignore remove of an item already manually spliced from children', () => {
+        it('should silently ignore remove of an item already manually spliced from children', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -318,7 +322,7 @@ describe('HierarchyDataSet', () => {
     });
 
     describe('mid-index (addIndex) insert then remove', () => {
-        test('should correctly cancel a mid-index add when removed in the same commit', () => {
+        it('should correctly cancel a mid-index add when removed in the same commit', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -334,7 +338,7 @@ describe('HierarchyDataSet', () => {
             expect(ds.data.map((d) => d.id)).toEqual(['eng', 'sales', 'ops']);
         });
 
-        test('should correctly add at mid-index when not removed', () => {
+        it('should correctly add at mid-index when not removed', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -348,7 +352,7 @@ describe('HierarchyDataSet', () => {
     });
 
     describe('without dataIdKey', () => {
-        test('should behave like base DataSet when no dataIdKey is set', () => {
+        it('should behave like base DataSet when no dataIdKey is set', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, undefined, 'children', testLogger);
 
@@ -364,7 +368,7 @@ describe('HierarchyDataSet', () => {
     // DFS order of createTestData(): eng(0), eng-fe(1), eng-be(2), eng-infra(3),
     // sales(4), sales-na(5), sales-eu(6), ops(7), ops-hr(8) → size() === 9
     describe('data-selection across transactions', () => {
-        test('should not throw and should preserve selection when appending a root node', () => {
+        it('should not throw and should preserve selection when appending a root node', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -382,7 +386,7 @@ describe('HierarchyDataSet', () => {
             expect(sel.selectedIndices()).toEqual([1, 8]);
         });
 
-        test('should drop the removed node and shift survivors when removing a nested leaf', () => {
+        it('should drop the removed node and shift survivors when removing a nested leaf', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -391,7 +395,7 @@ describe('HierarchyDataSet', () => {
             sel.select(2); // eng-be
             sel.select(8); // ops-hr
 
-            ds.addTransaction({ remove: [{ id: 'eng-fe' } as TreeItem] });
+            ds.addTransaction({ remove: [removal('eng-fe')] });
             ds.commitPendingTransactions(sel);
 
             // New DFS: eng(0), eng-be(1), eng-infra(2), sales(3), sales-na(4),
@@ -400,7 +404,7 @@ describe('HierarchyDataSet', () => {
             expect(sel.selectedIndices()).toEqual([1, 7]);
         });
 
-        test('should preserve selection when updating a nested node in-place by id', () => {
+        it('should preserve selection when updating a nested node in-place by id', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -415,7 +419,7 @@ describe('HierarchyDataSet', () => {
             expect(sel.selectedIndices()).toEqual([1]);
         });
 
-        test('should shift later survivors when inserting a nested leaf mid-tree', () => {
+        it('should shift later survivors when inserting a nested leaf mid-tree', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -435,7 +439,7 @@ describe('HierarchyDataSet', () => {
             expect(sel.selectedIndices()).toEqual([2, 9]);
         });
 
-        test('should drop a whole subtree contiguously when removing a root group', () => {
+        it('should drop a whole subtree contiguously when removing a root group', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children', testLogger);
 
@@ -445,7 +449,7 @@ describe('HierarchyDataSet', () => {
             sel.select(6); // sales-eu (removed with parent)
             sel.select(8); // ops-hr (survives)
 
-            ds.addTransaction({ remove: [{ id: 'sales' } as TreeItem] });
+            ds.addTransaction({ remove: [removal('sales')] });
             ds.commitPendingTransactions(sel);
 
             // New DFS: eng(0), eng-fe(1), eng-be(2), eng-infra(3), ops(4), ops-hr(5).

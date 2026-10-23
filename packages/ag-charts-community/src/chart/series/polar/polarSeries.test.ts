@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ChartUpdateType, type Point, Sector, Selection, Transformable } from 'ag-charts-core';
 import type { AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
+import { toggleSeriesLegendItem } from '../../test/communitySeriesAccessors';
+import { getSeriesNodeData } from '../../test/seriesAccessors';
 import type { ChartOrProxy, PolarTestCase } from '../../test/utils';
 import {
     type Chart,
@@ -169,17 +171,17 @@ describe('PolarSeries', () => {
 
             if (options.data) {
                 for (const [idx] of options.data.entries()) {
-                    (deproxied.series[0] as any).toggleSeriesItem(false, 'category', idx, undefined);
+                    toggleSeriesLegendItem(deproxied, false, idx);
                 }
             }
             deproxied.update(ChartUpdateType.FULL);
 
             const afterUpdate = await snapshot();
-            (expect(afterUpdate) as any).not.toMatchImage(reference);
+            expect(afterUpdate).not.toMatchImage(reference);
 
             if (options.data) {
                 for (const [idx] of options.data.entries()) {
-                    (deproxied.series[0] as any).toggleSeriesItem(true, 'category', idx, undefined);
+                    toggleSeriesLegendItem(deproxied, true, idx);
                 }
             }
             deproxied.update(ChartUpdateType.FULL);
@@ -211,9 +213,9 @@ describe('PolarSeries', () => {
             chart = deproxy(await createChart(options));
 
             const series = chart.series[0];
-            const nodeToHighlight = (series as any).nodeData[0];
+            const [nodeToHighlight] = getSeriesNodeData<{ midPoint: Point }>(chart);
 
-            let { x, y } = nodeToHighlight.midPoint as Point;
+            let { x, y } = nodeToHighlight.midPoint;
             ({ canvasX: x, canvasY: y } = Transformable.toCanvasPoint(series.contentGroup, x, y));
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);

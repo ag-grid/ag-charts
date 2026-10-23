@@ -469,7 +469,7 @@
             {
                 "title": "HLC",
                 "seriesName": "hlc",
-                "icon": "chartsOHLC",
+                "icon": "chartsHLC",
                 "enterprise": true,
                 "examples": [
                     {

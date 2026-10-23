@@ -16,9 +16,10 @@ describe('CollapsedManager', () => {
 
     beforeEach(() => {
         eventsHub = new EventEmitter<EventsHubMap>();
+        // The manager only calls `callListener`, so the service is a stub of that one method.
         chartService = {
             callListener: () => {},
-        } as any;
+        } as unknown as ChartService;
         collapsedManager = new CollapsedManager(eventsHub, chartService);
         justCollapsed = [];
         justExpanded = [];

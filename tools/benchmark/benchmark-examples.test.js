@@ -102,7 +102,7 @@ test('shardExamples beats round-robin when the costs are skewed', () => {
     // Every shard-count-th name is heavy, which is the worst case for dealing names round-robin.
     const count = 4;
     const costs = Object.fromEntries(names.map((name, i) => [name, i % count === 0 ? 1000 : 10]));
-    const weighted = Math.max(...loads(shardExamples(count), costs));
+    const weighted = Math.max(...loads(shardExamples(count, [], costs), costs));
     const dealt = Math.max(...loads(roundRobin(names, count), costs));
     assert.ok(weighted < dealt, `weighted max ${weighted} should beat round-robin max ${dealt}`);
 });

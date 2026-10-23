@@ -366,7 +366,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
-        const xAxis = this.axes[ChartAxisDirection.X];
+        const xAxis = this.getCategoryAxis();
         if (xAxis == null) return;
 
         const targetRange = this.estimateTargetRange();
@@ -400,7 +400,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     protected override createBucketLookupFeature(): _ModuleSupport.BucketLookupFeature {
         return new _ModuleSupport.BucketLookupManager({
             series: this,
-            getXAxis: () => this.axes[ChartAxisDirection.X],
+            getXAxis: () => this.getCategoryAxis(),
             getDataModel: () => this.dataModel,
             getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
@@ -410,7 +410,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     private estimateTargetRange(): number {
-        const xAxis = this.axes[ChartAxisDirection.X];
+        const xAxis = this.getCategoryAxis();
         if (xAxis?.scale == null) return 0;
 
         const [r0, r1] = xAxis.scale.range;
@@ -613,9 +613,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const yMinIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
         const yMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MAX];
 
+        const xMin = ctx.xPosition(xMinIndex);
+        const xMax = ctx.xPosition(xMaxIndex);
+
         scratch.datumIndex = datumIndex;
-        scratch.x = ctx.xPosition(datumIndex);
-        scratch.width = Math.abs(ctx.xPosition(xMinIndex) - ctx.xPosition(xMaxIndex)) + ctx.barWidth;
+        scratch.x = Math.min(xMin, xMax);
+        scratch.width = Math.abs(xMax - xMin) + ctx.barWidth;
         scratch.yLow = ctx.yLowValues[yMinIndex];
         scratch.yHigh = ctx.yHighValues[yMaxIndex];
         scratch.crisp = ctx.crisp;
@@ -770,10 +773,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { maxRange, indexData, midpointIndices } = dataAggregationFilter;
         const [start, end] = visibleRangeIndices(1, maxRange, ctx.xAxis.range, (index) => {
             const aggIndex = index * AGGREGATION_SPAN;
-            const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
-            const midDatumIndex = midpointIndices[index];
-            if (midDatumIndex === -1) return;
-            return [ctx.xPosition(midDatumIndex), ctx.xPosition(xMaxIndex) + ctx.barWidth];
+            if (midpointIndices[index] === -1) return;
+            const xMin = ctx.xPosition(indexData[aggIndex + AGGREGATION_INDEX_X_MIN]);
+            const xMax = ctx.xPosition(indexData[aggIndex + AGGREGATION_INDEX_X_MAX]);
+            return [Math.min(xMin, xMax), Math.max(xMin, xMax) + ctx.barWidth];
         });
 
         for (let i = start; i < end; i += 1) {

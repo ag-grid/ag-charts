@@ -130,15 +130,13 @@ export function mockCssVarColorSupport(container: HTMLElement, vars: Record<stri
 }
 
 /** The `Rect` each cell of a batch stands in for, which holds what the cell paints. */
-function batchCellRects(batch: HeatmapCellBatch): Rect[] {
-    const rects: Rect[] = [];
+function pushBatchCellRects(batch: HeatmapCellBatch, rects: Shape[]) {
     for (let index = 0; index < batch.size; index++) {
         const { x, y, width, height, fill, opacity } = batch.readCell(index);
         const rect = new Rect();
         Object.assign(rect, { x, y, width, height, fill, fillOpacity: opacity, crisp: batch.crisp });
         rects.push(rect);
     }
-    return rects;
 }
 
 /**
@@ -151,7 +149,8 @@ export function collectShapes(root: Group): Shape[] {
         if (node instanceof Shape) {
             shapes.push(node);
         } else if (node instanceof HeatmapCellBatch && node.visible) {
-            shapes.push(...batchCellRects(node));
+            // A loop rather than a spread, since a large batch has more cells than a call can take as arguments.
+            pushBatchCellRects(node, shapes);
         }
     }
     return shapes;

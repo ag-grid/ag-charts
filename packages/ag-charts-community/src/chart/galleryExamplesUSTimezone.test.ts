@@ -15,7 +15,7 @@ import {
 
 const TIME_AXIS_EXAMPLES = Object.entries(EXAMPLES)
     .filter(([, { options }]) => {
-        return Object.values((options as any as AgCartesianChartOptions).axes ?? {}).some((axis) =>
+        return Object.values((options as AgCartesianChartOptions).axes ?? {}).some((axis) =>
             axis.type?.endsWith('time')
         );
     })

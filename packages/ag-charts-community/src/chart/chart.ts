@@ -69,7 +69,6 @@ import { createChartContext } from './chartContext';
 import type { ChartEventMap, ChartEventType, ChartListeners, ChartService } from './chartService';
 import type { ChartState } from './chartState';
 import type { ChartType } from './chartType';
-import { CrossLinesDOMProxy } from './crossline/crossLinesDOMProxy';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
@@ -568,9 +567,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         ctx.domManager.setDataNumber('animationTimeMs', 0);
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
-        const crossLinesDOMProxy = new CrossLinesDOMProxy(ctx, () => this.axes);
         this.cleanup.register(
-            () => crossLinesDOMProxy.destroy(),
             ctx.chartState.observe((get) => this.tooltip.applyOptions(get('options', 'tooltip') ?? {})),
             ctx.chartState.observe((get) => this.overlays.applyOptions(get('options', 'overlays') ?? {})),
             // A tooltip is painted in the browser's top layer (a `popover`), so no z-index can place it
@@ -618,24 +615,26 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 ctx.domManager.setDataBoolean('animating', false);
                 ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
-            ctx.eventsHub.on('zoom:change-complete', () => {
-                const initialPhase = this.chartAnimationPhase === 'initial';
-                for (const s of this.series) {
-                    (s as any).animationState?.transition('updateData');
-                }
-                if (initialPhase) {
-                    for (const axis of this.axes) {
-                        axis.resetAnimation(this.chartAnimationPhase);
-                    }
-                }
-                this.update(ChartUpdateType.PERFORM_LAYOUT, {
-                    forceNodeDataRefresh: true,
-                    skipAnimations: !initialPhase,
-                });
-            })
+            ctx.eventsHub.on('zoom:change-complete', () => this.onZoomChangeComplete())
         );
 
         this.parentResize(ctx.domManager.containerSize);
+    }
+
+    protected onZoomChangeComplete() {
+        const initialPhase = this.chartAnimationPhase === 'initial';
+        for (const s of this.series) {
+            (s as any).animationState?.transition('updateData');
+        }
+        if (initialPhase) {
+            for (const axis of this.axes) {
+                axis.resetAnimation(this.chartAnimationPhase);
+            }
+        }
+        this.update(ChartUpdateType.PERFORM_LAYOUT, {
+            forceNodeDataRefresh: true,
+            skipAnimations: !initialPhase,
+        });
     }
 
     get listeners(): ChartListeners {
@@ -2256,7 +2255,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
         for (const module of moduleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
             if (!moduleMatchesChartType(module, chartType)) continue;
 
-            const pluginOpts = readContributedValue(moduleRegistry.moduleContributions(module.name), 'axis', options);
+            const optionsKey = module.optionsKey ?? module.name;
+            // Only the plugin's own key carries its options; its other contributions (e.g. listeners) do not.
+            const ownContributions = moduleRegistry
+                .moduleContributions(module.name)
+                .filter(({ relative }) => relative.segments.length === 1 && relative.segments[0].key === optionsKey);
+            const pluginOpts = readContributedValue(ownContributions, 'axis', options);
             const shouldBeEnabled = pluginOpts != null;
             const isEnabled = moduleMap.isEnabled(module.name);
 

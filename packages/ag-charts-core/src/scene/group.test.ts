@@ -4,7 +4,9 @@ import { Logger } from '../logging/logger';
 import { BBox } from './bbox';
 import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import { Group, TranslatableGroup } from './group';
+import type { LayersManager } from './layersManager';
 import { type IScene, Node, type RenderContext } from './node';
+import { fake } from './test/sceneAccessors';
 
 const sceneTestLogger = new Logger();
 
@@ -21,23 +23,21 @@ function createMockScene(): { scene: IScene; layersManager: MockLayersManager } 
     const layersManager = new MockLayersManager();
     const scene: IScene = {
         imageLoader: null!,
-        layersManager: layersManager as any,
+        layersManager: fake<LayersManager>(layersManager),
         isRtl: false,
     };
     return { scene, layersManager };
 }
 
 class MockLayersManager {
-    private readonly layersMap = new Map<HdpiOffscreenCanvas, any>();
+    private readonly layersMap = new Map<HdpiOffscreenCanvas, object>();
 
     get size() {
         return this.layersMap.size;
     }
 
     addLayer(_opts: { name?: string }): HdpiOffscreenCanvas {
-        const mockCanvas = {
-            destroy: () => {},
-        } as any;
+        const mockCanvas = fake<HdpiOffscreenCanvas>({ destroy: () => {} });
         this.layersMap.set(mockCanvas, {});
         return mockCanvas;
     }
@@ -45,9 +45,7 @@ class MockLayersManager {
     removeLayer(canvas: HdpiOffscreenCanvas) {
         if (this.layersMap.has(canvas)) {
             this.layersMap.delete(canvas);
-            if (typeof (canvas as any).destroy === 'function') {
-                (canvas as any).destroy();
-            }
+            canvas.destroy();
         }
     }
 }
@@ -157,7 +155,7 @@ describe('Group', () => {
 
                 // Create a render context and call preRender to trigger layer creation
                 const renderCtx: RenderContext = {
-                    ctx: {} as any,
+                    ctx: fake<CanvasRenderingContext2D>({}),
                     direction: 'ltr',
                     width: 100,
                     height: 100,
@@ -197,7 +195,7 @@ describe('Group', () => {
                 group.setScene(scene1);
 
                 const renderCtx: RenderContext = {
-                    ctx: {} as any,
+                    ctx: fake<CanvasRenderingContext2D>({}),
                     direction: 'ltr',
                     width: 100,
                     height: 100,
@@ -231,7 +229,7 @@ describe('Group', () => {
                 group.setScene(scene);
 
                 const renderCtx: RenderContext = {
-                    ctx: {} as any,
+                    ctx: fake<CanvasRenderingContext2D>({}),
                     direction: 'ltr',
                     width: 100,
                     height: 100,

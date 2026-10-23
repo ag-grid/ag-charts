@@ -64,9 +64,10 @@ class ExampleHierarchySeries extends HierarchySeries<
 }
 
 function createSeries(keys: Pick<NormalisedHierarchySeriesKeys, 'sizeKey' | 'colorKey'> = {}) {
+    // The series only subscribes to the events hub, so the rest of the context is left out.
     const series = new ExampleHierarchySeries({
         eventsHub: new EventEmitter(),
-    } as any);
+    } as unknown as ConstructorParameters<typeof ExampleHierarchySeries>[0]);
     const options: NormalisedSeriesOptions<NormalisedHierarchySeriesKeys> = {
         childrenKey: 'children',
         fills: [],

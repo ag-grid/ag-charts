@@ -76,7 +76,11 @@ export interface AxisPluginModuleInstance extends ModuleInstance {
     onAxisLayout?(this: void): void;
     onScaleChange?(this: void): void;
     onGridChange?(this: void): void;
+    /** Raises `padding` to the space the plugin needs outside the series area, by chart side. */
+    collectChartPadding?(this: void, padding: ChartSidePadding): void;
 }
+
+export type ChartSidePadding = Partial<Record<'top' | 'right' | 'bottom' | 'left', number>>;
 
 export interface SeriesPluginModuleInstance extends ModuleInstance {
     applyOptions(this: void, options: any, diff?: any): void;

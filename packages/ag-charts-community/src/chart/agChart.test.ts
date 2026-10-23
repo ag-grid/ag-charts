@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import { NumberAxis } from './axis/numberAxis';
@@ -8,6 +8,8 @@ import { themes } from './mapping/themes';
 import { AreaSeries } from './series/cartesian/areaSeries';
 import { BarSeries } from './series/cartesian/barSeries';
 import { LineSeries } from './series/cartesian/lineSeries';
+import { findAxis } from './test/axisAccessors';
+import { getSeriesOptions } from './test/seriesAccessors';
 import { Chart, delay, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
 
 const revenueProfitData = [
@@ -58,12 +60,12 @@ describe('AgChart', () => {
     afterEach(() => {
         if (chartProxy != null) {
             chartProxy.destroy();
-            chartProxy = undefined as any;
+            (chartProxy as unknown) = undefined;
         }
     });
 
     // Bespoke: these tests exercise the unprepared defaults (theme, size, `getOptions()`), which `createChart` would override.
-    test('cartesian chart top-level properties', async () => {
+    it('cartesian chart top-level properties', async () => {
         chartProxy = AgCharts.create({
             // chart type is optional because it defaults to `cartesian`
             container: document.body,
@@ -163,7 +165,7 @@ describe('AgChart', () => {
         expect(chart.subtitle?.enabled).toBe(false);
         expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
         expect(chart.ctx.chartState.getValue('options', 'background').visible).toBe(false);
-        expect((chart.series[0] as any).options.marker.shape).toBe('plus');
+        expect(getSeriesOptions<AgLineSeriesOptions>(chart).marker?.shape).toBe('plus');
 
         await chartProxy.updateDelta({
             data: revenueProfitData,
@@ -205,7 +207,7 @@ describe('AgChart', () => {
         expect(chart.subtitle?.text).toBe(theme.config.line.subtitle.text);
     });
 
-    test('series', async () => {
+    it('series', async () => {
         chartProxy = AgCharts.create({
             data: revenueProfitData,
             series: [
@@ -397,7 +399,7 @@ describe('AgChart', () => {
         expect(updatedSeries4[2].id).not.toEqual(lineSeries.id);
     });
 
-    test('axes', async () => {
+    it('axes', async () => {
         chartProxy = AgCharts.create({
             data: revenueProfitData,
             series: [{ type: 'line', xKey: 'month', yKey: 'revenue' }],
@@ -428,7 +430,7 @@ describe('AgChart', () => {
         expect(axes.length).toBe(2);
         expect(axes[0] instanceof NumberAxis).toBe(true);
         expect(axes[1] instanceof NumberAxis).toBe(true);
-        let leftAxis = axes.find((axis) => axis.position === 'left') as any;
+        let leftAxis = findAxis(chart, 'left');
         expect(axes.find((axis) => axis.position === 'bottom')).toBeDefined();
         expect(leftAxis).toBeDefined();
         expect(leftAxis?.options.title?.text).toBe('Hello');
@@ -471,7 +473,7 @@ describe('AgChart', () => {
         });
         await waitForChartStability(chartProxy);
 
-        leftAxis = chart.axes.find((axis) => axis.position === 'left');
+        leftAxis = findAxis(chart, 'left');
         expect(leftAxis?.options.gridLine.style).toEqual([
             {
                 fillOpacity: 1,
@@ -489,7 +491,7 @@ describe('AgChart', () => {
     });
 
     // Synchronous updateDelta()s must not wipe out an earlier, still-unapplied updateDelta().
-    test('rapid updateDelta() calls', async () => {
+    it('rapid updateDelta() calls', async () => {
         chartProxy = AgCharts.create({
             data: revenueProfitData,
             series: [
@@ -518,7 +520,7 @@ describe('AgChart', () => {
         });
     });
 
-    test('option deletion updateDelta() calls', async () => {
+    it('option deletion updateDelta() calls', async () => {
         chartProxy = AgCharts.create({
             data: revenueProfitData,
             theme: {
@@ -595,7 +597,7 @@ describe('Chart re-creation canvas attachment (AG-17444)', () => {
 
     // A chart-type change transfers the scene to a re-created chart, so the old chart's deferred
     // teardown must not remove the <canvas> the new chart has already adopted.
-    test.each(Object.keys(SERIES))(
+    it.each(Object.keys(SERIES))(
         'canvas stays attached to the container when update() applies a %s series',
         async (seriesType) => {
             const container = document.createElement('div');

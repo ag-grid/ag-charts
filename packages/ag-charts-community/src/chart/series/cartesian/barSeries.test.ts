@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ChartAxisDirection, Transformable } from 'ag-charts-core';
+import { type BandScale, ChartAxisDirection, Transformable } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 import type {
     AgBarSeriesItemStylerParams,
@@ -30,6 +30,14 @@ import {
     scaleToBigIntFinite,
 } from '../../test/bigintExamples';
 import {
+    type BarNodeDatum,
+    getBarSeriesContextNodeData,
+    getFilteredValueExceedUnfiltered,
+    getSeriesLabelObstacles,
+    getVisibleLabelTextNodes,
+    withUndocumentedOptions,
+} from '../../test/communitySeriesAccessors';
+import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
     DATA_NEGATIVE_LOG_AXIS,
@@ -39,6 +47,7 @@ import {
 import * as examples from '../../test/examples';
 import { type MockBarStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
+import { getSeriesContextNodeData, getSeriesOptions } from '../../test/seriesAccessors';
 import type { CartesianOrPolarTestCase, SceneFrameInvariant, SceneNodeExpectation } from '../../test/utils';
 import {
     CATEGORY_CENTRE_GRIDLINE_AXES,
@@ -1174,7 +1183,7 @@ describe('BarSeries', () => {
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
 
-            const fillOf = () => (deproxy(chart).series[0] as any).options.fill;
+            const fillOf = () => getSeriesOptions<AgBarSeriesOptions>(chart).fill;
             const fillBefore = fillOf();
             await chart.update({ ...options, theme: 'ag-sheets' });
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
@@ -1417,6 +1426,262 @@ describe('BarSeries', () => {
 
     // Invisible stacked series must still populate nodeData so animation uses the coordinated 'update'
     // phase rather than the out-of-sync 'remove'/'add' phases.
+    describe('category axis with unsorted keys (AG-18952)', () => {
+        type BarNode = { datumIndex: number; x: number; y: number; width: number; height: number };
+
+        // Unique categories in an order unrelated to their value, with the bar length falling with row order, as when
+        // rows are sorted by the bar value rather than the category. 7919 is prime, so the keys stay unique.
+        const unsortedCategoryRows = (count: number) =>
+            Array.from({ length: count }, (_, i) => ({ high: 100 + ((i * 7919) % count), low: 269.55 - i * 0.18 }));
+
+        const horizontalOptions = (data: object[], series: object = {}, categoryAxis: object = {}) => ({
+            data,
+            series: [{ type: 'bar' as const, direction: 'horizontal' as const, xKey: 'high', yKey: 'low', ...series }],
+            axes: { x: { type: 'number' as const }, y: { type: 'category' as const, ...categoryAxis } },
+        });
+
+        const getNodes = (seriesIndex = 0) =>
+            (getSeriesAggregationInternals(chart, seriesIndex).contextNodeData?.nodeData ?? []) as BarNode[];
+
+        // Asserts one shape per bucket in data order, each within a few bands, inside the series area and not
+        // overlapping its neighbours, with `longestDatum` drawn at the start (or end) of the category axis.
+        const expectBarsInBands = (
+            count: number,
+            {
+                horizontal = true,
+                longestDatum = 0,
+                longestAtStart = true,
+                reversed = false,
+                seriesIndex = 0,
+            }: {
+                horizontal?: boolean;
+                longestDatum?: number;
+                longestAtStart?: boolean;
+                reversed?: boolean;
+                seriesIndex?: number;
+            } = {}
+        ) => {
+            const { width: seriesWidth, height: seriesHeight } = deproxy(chart).seriesRect!;
+            const categoryLength = horizontal ? seriesHeight : seriesWidth;
+            const valueLength = horizontal ? seriesWidth : seriesHeight;
+            const nodes = getNodes(seriesIndex).map((d) => ({
+                datumIndex: d.datumIndex,
+                start: horizontal ? d.y : d.x,
+                size: horizontal ? d.height : d.width,
+                valueStart: horizontal ? d.x : d.y,
+                valueSize: horizontal ? d.width : d.height,
+            }));
+            const epsilon = 0.5;
+
+            expect(nodes.length).toBeGreaterThan(0);
+            expect(new Set(nodes.map((d) => d.datumIndex)).size).toBe(nodes.length);
+
+            const bandStep = categoryLength / count;
+            for (const { start, size, valueStart, valueSize } of nodes) {
+                expect(size).toBeLessThanOrEqual(Math.max(3 * bandStep, 1));
+                expect(start).toBeGreaterThanOrEqual(-epsilon);
+                expect(start + size).toBeLessThanOrEqual(categoryLength + epsilon);
+                expect(valueStart).toBeGreaterThanOrEqual(-epsilon);
+                expect(valueStart + valueSize).toBeLessThanOrEqual(valueLength + epsilon);
+            }
+
+            const byPosition = nodes.toSorted((a, b) => a.start - b.start);
+            for (let i = 1; i < byPosition.length; i++) {
+                expect(byPosition[i].start).toBeGreaterThanOrEqual(
+                    byPosition[i - 1].start + byPosition[i - 1].size - epsilon
+                );
+                const ascending = byPosition[i].datumIndex > byPosition[i - 1].datumIndex;
+                expect(ascending).toBe(!reversed);
+            }
+
+            const longest = nodes.find((d) => d.datumIndex === longestDatum);
+            expect(longest).toBeDefined();
+            if (longestAtStart) {
+                expect(longest!.start).toBeLessThan(2);
+            } else {
+                expect(longest!.start + longest!.size).toBeGreaterThan(categoryLength - 2);
+            }
+        };
+
+        it.each([999, 1000, 1001, 1456])('draws every bar of %i unsorted categories within its band', async (count) => {
+            chart = await createChart(horizontalOptions(unsortedCategoryRows(count)));
+            expectBarsInBands(count);
+        });
+
+        it('draws the longest bar at the bottom when rows are in ascending order', async () => {
+            const count = 1456;
+            chart = await createChart(horizontalOptions(unsortedCategoryRows(count).reverse()));
+            expectBarsInBands(count, { longestDatum: count - 1, longestAtStart: false });
+        });
+
+        it.each([
+            ['ascending', 1],
+            ['descending', -1],
+        ])('draws every bar of sorted %s categories', async (_, direction) => {
+            const count = 1456;
+            const data = unsortedCategoryRows(count)
+                .map(({ low }, i) => ({ high: 100 + direction * i, low }))
+                .toSorted((a, b) => direction * (a.high - b.high));
+            chart = await createChart(horizontalOptions(data));
+            expectBarsInBands(count);
+        });
+
+        it('draws every bar of string categories', async () => {
+            const count = 1456;
+            const data = unsortedCategoryRows(count).map(({ high, low }) => ({ high: String(high), low }));
+            chart = await createChart(horizontalOptions(data));
+            expectBarsInBands(count);
+        });
+
+        it('draws every bar of a single stacked series', async () => {
+            const count = 1456;
+            chart = await createChart(horizontalOptions(unsortedCategoryRows(count), { stacked: true }));
+            expectBarsInBands(count);
+        });
+
+        it('draws every bar on a reversed category axis', async () => {
+            const count = 1456;
+            chart = await createChart(horizontalOptions(unsortedCategoryRows(count), {}, { reverse: true }));
+            expectBarsInBands(count, { longestAtStart: false, reversed: true });
+        });
+
+        it('draws every bar of vertical bars', async () => {
+            const count = 1456;
+            chart = await createChart({
+                data: unsortedCategoryRows(count),
+                series: [{ type: 'bar', xKey: 'high', yKey: 'low' }],
+                axes: { x: { type: 'category' }, y: { type: 'number' } },
+            });
+            expectBarsInBands(count, { horizontal: false });
+        });
+
+        it.each([false, true])('draws every bar of two series with stacked: %s', async (stacked) => {
+            const count = 1456;
+            const data = unsortedCategoryRows(count).map((d) => ({ ...d, other: d.low / 2 }));
+            chart = await createChart({
+                data,
+                series: [
+                    { type: 'bar', direction: 'horizontal', xKey: 'high', yKey: 'low', stacked },
+                    { type: 'bar', direction: 'horizontal', xKey: 'high', yKey: 'other', stacked },
+                ],
+                axes: { x: { type: 'number' }, y: { type: 'category' } },
+            });
+            expectBarsInBands(count, { seriesIndex: 0 });
+            expectBarsInBands(count, { seriesIndex: 1 });
+        });
+
+        it('draws positive and negative bars of mixed-sign values once each', async () => {
+            const count = 1456;
+            const data = unsortedCategoryRows(count).map(({ high, low }, i) => ({
+                high,
+                low: i % 2 === 0 ? low : -low,
+            }));
+            chart = await createChart(horizontalOptions(data));
+
+            const nodes = getNodes();
+            const datumIndices = new Set(nodes.map((d) => d.datumIndex));
+            expect(datumIndices.size).toBe(nodes.length);
+            expect(datumIndices.has(0)).toBe(true);
+            expect(nodes.some((d) => d.datumIndex % 2 === 1)).toBe(true);
+        });
+
+        it('groups only neighbouring categories into one bucket', async () => {
+            const count = 1456;
+            chart = await createChart(horizontalOptions(unsortedCategoryRows(count)));
+
+            const readRange = getSeriesAggregationInternals(chart).ensureBucketLookupFeature()!.getRangeReader()!;
+            for (const { datumIndex } of getNodes()) {
+                const [start, end] = readRange(datumIndex)!;
+                expect(start).toBeLessThanOrEqual(datumIndex);
+                expect(end).toBeGreaterThanOrEqual(datumIndex);
+                expect(end - start).toBeLessThan(8);
+            }
+        });
+
+        it('draws the first bar of descending keys when it sits at the edge of the x axis range', async () => {
+            const count = 1456;
+            // The x axis starts at 1400 and ends at the largest key, 1456, which is the first datum. Only the 57 bars
+            // inside that range are in view, so the visible-range search decides whether the first datum is kept.
+            chart = await createChart({
+                data: Array.from({ length: count }, (_, i) => ({ x: count - i, y: 269.55 - i * 0.18 })),
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                axes: { x: { type: 'number', min: 1400 }, y: { type: 'number' } },
+            });
+
+            const datumIndices = getNodes()
+                .map((d) => d.datumIndex)
+                .toSorted((a, b) => a - b);
+            expect(datumIndices).toEqual(Array.from({ length: 57 }, (_, i) => i));
+        });
+
+        it('keeps date order for newest-first dates on a unit-time axis', async () => {
+            const count = 1456;
+            chart = await createChart({
+                data: Array.from({ length: count }, (_, i) => ({
+                    date: new Date(Date.UTC(2020, 0, 1 + count - i)),
+                    y: 269.55 - i * 0.18,
+                })),
+                series: [{ type: 'bar', xKey: 'date', yKey: 'y' }],
+                axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+            });
+
+            const nodes = getNodes().toSorted((a, b) => a.x - b.x);
+            expect(nodes.some((d) => d.datumIndex === 0)).toBe(true);
+            for (let i = 1; i < nodes.length; i++) {
+                expect(nodes[i].datumIndex).toBeLessThan(nodes[i - 1].datumIndex);
+            }
+        });
+
+        describe('when another series sets the category order', () => {
+            const ascending = ['A', 'B', 'C', 'D', 'E'];
+            const values: Record<string, number> = { A: 10, B: 20, C: 30, D: 40, E: 50 };
+            const twoSeriesOptions = (order: string[]) => ({
+                series: [
+                    { type: 'bar' as const, xKey: 'x', yKey: 'y', data: ascending.map((x) => ({ x, y: 1 })) },
+                    { type: 'bar' as const, xKey: 'x', yKey: 'y', data: order.map((x) => ({ x, y: values[x] })) },
+                ],
+                axes: { x: { type: 'category' as const }, y: { type: 'number' as const } },
+            });
+
+            // The value range of the second series over the bands of categories A and B.
+            const visibleRangeOfAB = () => {
+                const series = deproxy(chart).series[1];
+                const scale = series.axes[ChartAxisDirection.X]!.scale as BandScale<string>;
+                return series.getRange(ChartAxisDirection.Y, [
+                    scale.convert('A'),
+                    scale.convert('B') + scale.bandwidth,
+                ]);
+            };
+
+            it.each([
+                ['reversed', ['E', 'D', 'C', 'B', 'A']],
+                ['shuffled', ['C', 'A', 'E', 'B', 'D']],
+            ])('autoscales to the visible categories of a series listing them %s', async (_, order) => {
+                chart = await createChart(twoSeriesOptions(order));
+                expect(visibleRangeOfAB()).toEqual([0, 20]);
+            });
+
+            it('autoscales to the visible categories after the data order changes', async () => {
+                chart = await createChart(twoSeriesOptions(ascending));
+                expect(visibleRangeOfAB()).toEqual([0, 20]);
+
+                await chart.update(prepareTestOptions(twoSeriesOptions(ascending.toReversed())));
+                expect(visibleRangeOfAB()).toEqual([0, 20]);
+            });
+        });
+
+        it('converges on the same bars when updated in place across the aggregation threshold', async () => {
+            const rows = unsortedCategoryRows(1456);
+            chart = await createChart(horizontalOptions(rows));
+            expectBarsInBands(1456);
+
+            for (const count of [1000, 999, 1200, 1456]) {
+                await chart.updateDelta({ data: rows.slice(0, count) });
+                expectBarsInBands(count);
+            }
+        });
+    });
+
     describe('stacked bar legend toggle nodeData (CRT-1040)', () => {
         const animate = spyOnAnimationManager();
 
@@ -1444,12 +1709,10 @@ describe('BarSeries', () => {
             await chart.update(options);
             await waitForChartStability(chart);
 
-            const chartInstance = deproxy(chart);
-            const invisibleSeries = chartInstance.series[1] as any;
-            const nodeData = invisibleSeries.contextNodeData?.nodeData;
+            const { nodeData } = getSeriesContextNodeData<BarNodeDatum>(chart, 1);
 
             expect(nodeData).toHaveLength(2);
-            for (const datum of nodeData!) {
+            for (const datum of nodeData) {
                 expect(datum.yValue).toBe(0);
             }
         });
@@ -1564,14 +1827,9 @@ describe('BarSeries', () => {
 
             // The text anchor clears the bar by more than `spacing`: the extra is the padding + border the
             // box reserves toward the bar. A bare `spacing` gap (no box reserved) would fail this.
-            const series = deproxy(chart as any).series[0] as unknown as {
-                contextNodeData?: {
-                    nodeData?: { x: number; width: number }[];
-                    labelData?: { label?: { x?: number } }[];
-                };
-            };
-            const barRight = series.contextNodeData!.nodeData![0].x + series.contextNodeData!.nodeData![0].width;
-            const labelX = series.contextNodeData!.labelData![0].label!.x!;
+            const { nodeData, labelData } = getSeriesContextNodeData<BarNodeDatum, BarNodeDatum>(chart);
+            const barRight = nodeData[0].x + nodeData[0].width;
+            const labelX = labelData[0].label!.x;
             expect(labelX - barRight).toBeGreaterThan(SPACING);
         });
 
@@ -1601,14 +1859,9 @@ describe('BarSeries', () => {
             chart = await createChart(options);
             await compare();
 
-            const series = deproxy(chart as any).series[0] as unknown as {
-                contextNodeData?: {
-                    nodeData?: { x: number; width: number }[];
-                    labelData?: { label?: { candidates?: { box: { x: number } }[] } }[];
-                };
-            };
-            const barRight = series.contextNodeData!.nodeData![0].x + series.contextNodeData!.nodeData![0].width;
-            const box = series.contextNodeData!.labelData![0].label!.candidates![0].box;
+            const { nodeData, labelData } = getSeriesContextNodeData<BarNodeDatum, BarNodeDatum>(chart);
+            const barRight = nodeData[0].x + nodeData[0].width;
+            const box = labelData[0].label!.candidates![0].box;
             // beside-after sits the label to the right of the bar, so the box's left edge faces it and must be
             // `spacing` clear of the bar, not `spacing + boxExtent`.
             expect(box.x - barRight).toBeCloseTo(SPACING);
@@ -1672,7 +1925,7 @@ describe('BarSeries', () => {
                 axes: {
                     x: { type: 'category', position: 'bottom', reverse: true },
                     y: { type: 'number', position: 'left' },
-                } as any,
+                },
             };
 
             chart = await createChart(options);
@@ -1694,7 +1947,7 @@ describe('BarSeries', () => {
                 axes: {
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left', reverse: true },
-                } as any,
+                },
             };
 
             chart = await createChart(options);
@@ -1709,11 +1962,10 @@ describe('BarSeries', () => {
             color: 'black',
             formatter: () => text,
         });
-        const stackedCascadeOptions = (direction: 'horizontal' | 'vertical', hideTop = false): AgChartOptions => {
-            // Headroom above the stacks so an outermost `outside-end` label sits outside the bar without
-            // overflowing the plot, which is a separate concern with its own test.
-            const valueAxis = { type: 'number', max: 200 };
-            const categoryAxis = { type: 'category' };
+        const stackedCascadeOptions = (
+            direction: 'horizontal' | 'vertical',
+            hideTop = false
+        ): AgCartesianChartOptions => {
             return {
                 // Room on every side (collision boundary grows with seriesArea padding) so the beside and
                 // outside labels of edge bars have space, rather than being rejected off the plot.
@@ -1724,16 +1976,6 @@ describe('BarSeries', () => {
                     { x: 'c', bottom: 90, middle: 3, top: 3 },
                     { x: 'd', bottom: 140, middle: 3, top: 3 },
                 ],
-                axes:
-                    direction === 'horizontal'
-                        ? ([
-                              { ...valueAxis, position: 'bottom' },
-                              { ...categoryAxis, position: 'left' },
-                          ] as any)
-                        : ([
-                              { ...categoryAxis, position: 'bottom' },
-                              { ...valueAxis, position: 'left' },
-                          ] as any),
                 series: [
                     { type: 'bar', direction, xKey: 'x', yKey: 'bottom', stacked: true, label: stackedLabel('base') },
                     { type: 'bar', direction, xKey: 'x', yKey: 'middle', stacked: true, label: stackedLabel('mid') },
@@ -1777,9 +2019,7 @@ describe('BarSeries', () => {
     describe('alwaysShow single-placement hiding', () => {
         const visibleLabelCounts = async (options: AgChartOptions) => {
             chart = await createChart(options);
-            return (deproxy(chart).series as any[]).map(
-                (series) => series.labelSelection.nodes().filter((node: any) => node.visible).length
-            );
+            return deproxy(chart).series.map((_, index) => getVisibleLabelTextNodes(chart, index).length);
         };
         const visibleLabelCount = async (options: AgChartOptions) => (await visibleLabelCounts(options))[0];
 
@@ -1817,8 +2057,7 @@ describe('BarSeries', () => {
         it('restores hidden labels when alwaysShow is toggled back on', async () => {
             const hiddenOptions = wideLabel(false);
             chart = await createChart(hiddenOptions);
-            const series = deproxy(chart).series[0] as any;
-            const visible = () => series.labelSelection.nodes().filter((node: any) => node.visible).length;
+            const visible = () => getVisibleLabelTextNodes(chart).length;
             expect(visible()).toBeLessThan(wideLabelData.length);
 
             const shownOptions = wideLabel(true);
@@ -2001,7 +2240,7 @@ describe('BarSeries', () => {
             ];
             const options: AgChartOptions = {
                 data,
-                axes: { y: { type: 'number', min: -1 }, x: { type: 'category' } } as any,
+                axes: { y: { type: 'number', min: -1 }, x: { type: 'category' } },
                 series: [
                     {
                         type: 'bar',
@@ -2043,7 +2282,7 @@ describe('BarSeries', () => {
             const options: AgChartOptions = {
                 data,
                 seriesArea: { padding: { bottom: 60 } },
-                axes: { y: { type: 'number', min: -1 }, x: { type: 'category' } } as any,
+                axes: { y: { type: 'number', min: -1 }, x: { type: 'category' } },
                 series: [
                     {
                         type: 'bar',
@@ -3273,15 +3512,12 @@ describe('BarSeries', () => {
             chart = await createChart(options);
 
             // Get initial node data references
-            const chartInstance = deproxy(chart);
-            const series = chartInstance.series[0] as any;
-            const initialNodeData = series.contextNodeData?.nodeData;
-            expect(initialNodeData).toBeDefined();
-            expect(initialNodeData!.length).toBeGreaterThan(0);
+            const { nodeData: initialNodeData } = getSeriesContextNodeData(chart);
+            expect(initialNodeData.length).toBeGreaterThan(0);
 
             // Store references to some nodes
-            const firstNode = initialNodeData![0];
-            const middleNode = initialNodeData![Math.floor(initialNodeData!.length / 2)];
+            const firstNode = initialNodeData[0];
+            const middleNode = initialNodeData[Math.floor(initialNodeData.length / 2)];
 
             // Update data (same structure, different values) - this should trigger incremental update
             const updatedData = largeData.map((d) => ({
@@ -3298,16 +3534,13 @@ describe('BarSeries', () => {
             await waitForChartStability(chart);
 
             // Verify nodes were reused (same object references)
-            const updatedChartInstance = deproxy(chart);
-            const updatedSeries = updatedChartInstance.series[0] as any;
-            const updatedNodeData = updatedSeries.contextNodeData?.nodeData;
-            expect(updatedNodeData).toBeDefined();
-            expect(updatedNodeData!.length).toBe(initialNodeData!.length);
+            const { nodeData: updatedNodeData } = getSeriesContextNodeData(chart);
+            expect(updatedNodeData.length).toBe(initialNodeData.length);
 
             // With aggregation active, incremental updates should reuse node objects
             // Check that at least some nodes are reused (they should be the same references)
-            expect(updatedNodeData![0]).toBe(firstNode);
-            expect(updatedNodeData![Math.floor(updatedNodeData!.length / 2)]).toBe(middleNode);
+            expect(updatedNodeData[0]).toBe(firstNode);
+            expect(updatedNodeData[Math.floor(updatedNodeData.length / 2)]).toBe(middleNode);
 
             chart.destroy();
         });
@@ -3533,7 +3766,7 @@ describe('BarSeries', () => {
                 ],
             };
             chart = await createChart(options);
-            (options.series as any)[0].width = 40;
+            (options.series![0] as AgBarSeriesOptions).width = 40;
             await chart.update(prepareTestOptions(options));
             await compare();
         });
@@ -3557,7 +3790,7 @@ describe('BarSeries', () => {
             expect(categoryAxis.visibleRange[0]).toBe(0);
             expect(categoryAxis.visibleRange[1]).toBeLessThan(1);
 
-            const nodeData = (instance.series[0] as any).contextNodeData?.nodeData as Array<{ width: number }>;
+            const { nodeData } = getSeriesContextNodeData<BarNodeDatum>(chart);
             expect(nodeData).toHaveLength(manyCategories.length);
             for (const datum of nodeData) {
                 expect(datum.width).toBe(fixedWidth);
@@ -3628,17 +3861,19 @@ describe('BarSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
                 series: [
-                    {
-                        type: 'bar',
-                        xKey: 'x',
-                        yKey: 'y',
-                        allowNullKeys: true,
-                        listeners: {
-                            seriesNodeClick: (event: any) => {
-                                clicks.push(event.datum);
+                    withUndocumentedOptions<AgBarSeriesOptions>(
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            listeners: {
+                                seriesNodeClick: (event) => {
+                                    clicks.push(event.datum);
+                                },
                             },
                         },
-                    } as any,
+                        { allowNullKeys: true }
+                    ),
                 ],
             };
             chart = await createChart(options);
@@ -3870,7 +4105,12 @@ describe('BarSeries', () => {
             // node.yValue is set to the filter value (yFilter > y in this case).
             const options = {
                 data: filterLargerData,
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', yFilterKey: 'yFilter' } as any],
+                series: [
+                    withUndocumentedOptions<AgBarSeriesOptions>(
+                        { type: 'bar', xKey: 'x', yKey: 'y' },
+                        { yFilterKey: 'yFilter' }
+                    ),
+                ],
             };
             chart = await createChart(options);
 
@@ -3882,7 +4122,12 @@ describe('BarSeries', () => {
             // node.yValue is set to the filter value (yFilter < y in this case).
             const options = {
                 data: filterSmallerData,
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', yFilterKey: 'yFilter' } as any],
+                series: [
+                    withUndocumentedOptions<AgBarSeriesOptions>(
+                        { type: 'bar', xKey: 'x', yKey: 'y' },
+                        { yFilterKey: 'yFilter' }
+                    ),
+                ],
             };
             chart = await createChart(options);
 
@@ -3897,8 +4142,14 @@ describe('BarSeries', () => {
             const options = {
                 data: stackData,
                 series: [
-                    { type: 'bar', xKey: 'x', yKey: 'y1', yFilterKey: 'yFilter1', stacked: true } as any,
-                    { type: 'bar', xKey: 'x', yKey: 'y2', yFilterKey: 'yFilter2', stacked: true } as any,
+                    withUndocumentedOptions<AgBarSeriesOptions>(
+                        { type: 'bar', xKey: 'x', yKey: 'y1', stacked: true },
+                        { yFilterKey: 'yFilter1' }
+                    ),
+                    withUndocumentedOptions<AgBarSeriesOptions>(
+                        { type: 'bar', xKey: 'x', yKey: 'y2', stacked: true },
+                        { yFilterKey: 'yFilter2' }
+                    ),
                 ],
             };
             chart = await createChart(options);
@@ -3914,8 +4165,14 @@ describe('BarSeries', () => {
             const options = {
                 data: stackData,
                 series: [
-                    { type: 'bar', xKey: 'x', yKey: 'y1', yFilterKey: 'yFilter1', stacked: true } as any,
-                    { type: 'bar', xKey: 'x', yKey: 'y2', yFilterKey: 'yFilter2', stacked: true } as any,
+                    withUndocumentedOptions<AgBarSeriesOptions>(
+                        { type: 'bar', xKey: 'x', yKey: 'y1', stacked: true },
+                        { yFilterKey: 'yFilter1' }
+                    ),
+                    withUndocumentedOptions<AgBarSeriesOptions>(
+                        { type: 'bar', xKey: 'x', yKey: 'y2', stacked: true },
+                        { yFilterKey: 'yFilter2' }
+                    ),
                 ],
             };
             chart = await createChart(options);
@@ -3931,22 +4188,14 @@ describe('BarSeries', () => {
         const normalizedFilterOptions = (data: any[] = normalizedFilterData) => ({
             data,
             series: [
-                {
-                    type: 'bar',
-                    xKey: 'quarter',
-                    yKey: 'a',
-                    stacked: true,
-                    normalizedTo: 100,
-                    yFilterKey: 'aFiltered',
-                } as any,
-                {
-                    type: 'bar',
-                    xKey: 'quarter',
-                    yKey: 'b',
-                    stacked: true,
-                    normalizedTo: 100,
-                    yFilterKey: 'bFiltered',
-                } as any,
+                withUndocumentedOptions<AgBarSeriesOptions>(
+                    { type: 'bar', xKey: 'quarter', yKey: 'a', stacked: true, normalizedTo: 100 },
+                    { yFilterKey: 'aFiltered' }
+                ),
+                withUndocumentedOptions<AgBarSeriesOptions>(
+                    { type: 'bar', xKey: 'quarter', yKey: 'b', stacked: true, normalizedTo: 100 },
+                    { yFilterKey: 'bFiltered' }
+                ),
             ],
         });
 
@@ -3955,15 +4204,15 @@ describe('BarSeries', () => {
             chart = await createChart(normalizedFilterOptions());
 
             const { axes } = deproxy(chart);
-            const yAxis = axes.find((a: any) => a.direction === ChartAxisDirection.Y);
+            const yAxis = axes.find((a) => a.direction === ChartAxisDirection.Y);
             expect(yAxis!.dataDomain.domain).toEqual([0, 100]);
         });
 
         it('normalizedTo: filtered overlay is drawn as its true proportion of the bar', async () => {
             chart = await createChart(normalizedFilterOptions());
 
-            const series = deproxy(chart).series as any[];
-            expect(series[0].processedData.reduced.filteredValueExceedUnfiltered).toBe(false);
+            expect(getFilteredValueExceedUnfiltered(chart)).toBe(false);
+            const seriesCount = deproxy(chart).series.length;
 
             const expectedRatios: Array<Record<string, number>> = [
                 { Q1: 200 / 300, Q2: 300 / 500, Q3: 400 / 800 },
@@ -3971,21 +4220,26 @@ describe('BarSeries', () => {
             ];
 
             for (const [seriesIndex, ratios] of expectedRatios.entries()) {
-                const { nodeData, phantomNodeData } = series[seriesIndex].contextNodeData;
+                const { nodeData, phantomNodeData } = getBarSeriesContextNodeData(chart, seriesIndex);
                 expect(nodeData).toHaveLength(3);
                 expect(phantomNodeData).toHaveLength(3);
 
                 for (const [xValue, ratio] of Object.entries(ratios)) {
-                    const filtered = nodeData.find((d: any) => d.xValue === xValue);
-                    const unfiltered = phantomNodeData.find((d: any) => d.xValue === xValue);
+                    const filtered = nodeData.find((d) => d.xValue === xValue);
+                    const unfiltered = phantomNodeData.find((d) => d.xValue === xValue);
                     // clipBBox is the drawn segment; `height` is the whole-stack bbox and is equal for every segment.
-                    expect(filtered.clipBBox.height / unfiltered.clipBBox.height).toBeCloseTo(ratio, 5);
+                    expect(filtered!.clipBBox!.height / unfiltered!.clipBBox!.height).toBeCloseTo(ratio, 5);
                 }
             }
 
             // The unfiltered segments of one x stack fill the whole normalised bar.
             const stackHeights = [0, 1, 2].map((datumIndex) =>
-                series.reduce((total, s) => total + s.contextNodeData.phantomNodeData[datumIndex].clipBBox.height, 0)
+                Array.from({ length: seriesCount }, (_, seriesIndex) => seriesIndex).reduce(
+                    (total, seriesIndex) =>
+                        total +
+                        getBarSeriesContextNodeData(chart, seriesIndex).phantomNodeData[datumIndex].clipBBox!.height,
+                    0
+                )
             );
             const fullHeight = Math.max(...stackHeights);
             for (const stackHeight of stackHeights) {
@@ -3999,55 +4253,52 @@ describe('BarSeries', () => {
             const data = normalizedFilterData.map((d, i) => (i === 1 ? { ...d, aFiltered: null } : d));
             chart = await createChart(normalizedFilterOptions(data));
 
-            const { nodeData, phantomNodeData } = (deproxy(chart).series[0] as any).contextNodeData;
+            const { nodeData, phantomNodeData } = getBarSeriesContextNodeData(chart);
             // The null-filter datum is dropped upstream by the data model, so it contributes no node at all.
-            expect(nodeData.map((d: any) => d.xValue)).toEqual(['Q1', 'Q3']);
+            expect(nodeData.map((d) => d.xValue)).toEqual(['Q1', 'Q3']);
 
             for (const datum of [...nodeData, ...phantomNodeData]) {
-                for (const value of [datum.clipBBox.x, datum.clipBBox.y, datum.clipBBox.width, datum.clipBBox.height]) {
+                const { x, y, width, height } = datum.clipBBox!;
+                for (const value of [x, y, width, height]) {
                     expect(Number.isNaN(value)).toBe(false);
                 }
             }
 
             for (const [xValue, ratio] of Object.entries({ Q1: 200 / 300, Q3: 400 / 800 })) {
-                const filtered = nodeData.find((d: any) => d.xValue === xValue);
-                const unfiltered = phantomNodeData.find((d: any) => d.xValue === xValue);
-                expect(filtered.clipBBox.height / unfiltered.clipBBox.height).toBeCloseTo(ratio, 5);
+                const filtered = nodeData.find((d) => d.xValue === xValue);
+                const unfiltered = phantomNodeData.find((d) => d.xValue === xValue);
+                expect(filtered!.clipBBox!.height / unfiltered!.clipBBox!.height).toBeCloseTo(ratio, 5);
             }
         });
         it('normalizedTo: a stack mixing filtered and unfiltered series keeps the normalised domain', async () => {
-            const options = {
+            const options: AgCartesianChartOptions = {
                 data: normalizedFilterData,
                 series: [
-                    {
-                        type: 'bar',
-                        xKey: 'quarter',
-                        yKey: 'a',
-                        stacked: true,
-                        normalizedTo: 100,
-                        yFilterKey: 'aFiltered',
-                    } as any,
-                    { type: 'bar', xKey: 'quarter', yKey: 'b', stacked: true, normalizedTo: 100 } as any,
+                    withUndocumentedOptions<AgBarSeriesOptions>(
+                        { type: 'bar', xKey: 'quarter', yKey: 'a', stacked: true, normalizedTo: 100 },
+                        { yFilterKey: 'aFiltered' }
+                    ),
+                    { type: 'bar', xKey: 'quarter', yKey: 'b', stacked: true, normalizedTo: 100 },
                 ],
             };
             chart = await createChart(options);
 
-            const { axes, series } = deproxy(chart);
-            const yAxis = axes.find((a: any) => a.direction === ChartAxisDirection.Y);
+            const { axes } = deproxy(chart);
+            const yAxis = axes.find((a) => a.direction === ChartAxisDirection.Y);
             expect(yAxis!.dataDomain.domain).toEqual([0, 100]);
 
-            const { nodeData, phantomNodeData } = (series[0] as any).contextNodeData;
+            const { nodeData, phantomNodeData } = getBarSeriesContextNodeData(chart);
             for (const [xValue, ratio] of Object.entries({ Q1: 200 / 300, Q2: 300 / 500, Q3: 400 / 800 })) {
-                const filtered = nodeData.find((d: any) => d.xValue === xValue);
-                const unfiltered = phantomNodeData.find((d: any) => d.xValue === xValue);
-                expect(filtered.clipBBox.height / unfiltered.clipBBox.height).toBeCloseTo(ratio, 5);
+                const filtered = nodeData.find((d) => d.xValue === xValue);
+                const unfiltered = phantomNodeData.find((d) => d.xValue === xValue);
+                expect(filtered!.clipBBox!.height / unfiltered!.clipBBox!.height).toBeCloseTo(ratio, 5);
             }
         });
     });
 
     describe('AG-16933 reverse + bandAlignment', () => {
         it('should maintain reversed domain when processDomains is called multiple times', async () => {
-            const options = {
+            const options: AgCartesianChartOptions = {
                 data: [
                     { category: 'A', value: 1 },
                     { category: 'B', value: 2 },
@@ -4058,16 +4309,16 @@ describe('BarSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-            } as any;
+            };
             chart = await createChart(options);
 
             const chartObj = deproxy(chart);
-            const categoryAxis = chartObj.axes.find((a: any) => a.type === 'category') as any;
+            const categoryAxis = chartObj.axes.find((a) => a.type === 'category')!;
             expect(categoryAxis.scale.domain).toEqual(['C', 'B', 'A']);
 
             // Simulate what happens when resize triggers PROCESS_DOMAIN:
             // processDomains() re-calls axis.processData() → axis.setDomains()
-            (chartObj as any).processDomains();
+            await chartObj.processDomains();
 
             // Domain must remain reversed after the second processDomains() call
             expect(categoryAxis.dataDomain.domain).toEqual(['C', 'B', 'A']);
@@ -4297,8 +4548,7 @@ describe('BarSeries', () => {
             };
             chart = await createChart(options);
 
-            const series = deproxy(chart).series[0] as any;
-            const nodeData = series.contextNodeData?.nodeData;
+            const { nodeData } = getBarSeriesContextNodeData(chart);
 
             expect(nodeData).toHaveLength(2);
             expect(nodeData[0].cumulativeValueExact).toBe(BIG);
@@ -4319,14 +4569,8 @@ describe('BarSeries', () => {
             };
             chart = await createChart(options);
 
-            const series = deproxy(chart).series[0] as any;
-            const nodeData = series.contextNodeData?.nodeData as Array<{
-                x: number;
-                y: number;
-                width: number;
-                height: number;
-            }>;
-            const obstacles = series.getLabelObstacles();
+            const { nodeData } = getBarSeriesContextNodeData(chart);
+            const obstacles = getSeriesLabelObstacles(chart);
 
             expect(nodeData).toHaveLength(2);
             expect(obstacles).toEqual(
@@ -4372,10 +4616,9 @@ describe('BarSeries', () => {
                 ],
             };
             chart = await createChart(options);
-            const series = deproxy(chart).series[0] as any;
-            const nodes = series.labelSelection.nodes().filter((node: any) => node.visible);
+            const nodes = getVisibleLabelTextNodes(chart);
             expect(nodes.length).toBe(paddingData.length);
-            return nodes.map((node: any) => ({ x: node.x as number, y: node.y as number }));
+            return nodes.map((node) => ({ x: node.x, y: node.y }));
         };
 
         const expectPerSideMatchesScalar = async (
@@ -4435,9 +4678,8 @@ describe('BarSeries', () => {
                 ],
             };
             chart = await createChart(options);
-            const series = deproxy(chart).series[0] as any;
-            const node = series.labelSelection.nodes().find((n: any) => n.visible);
-            const bar = series.contextNodeData?.nodeData?.[0];
+            const [node] = getVisibleLabelTextNodes(chart);
+            const bar = getBarSeriesContextNodeData(chart).nodeData[0];
             const box = node.getTextMeasureBBox();
             const r = node.rotation;
             // Box rotates about its centre; at ±90° its bar-facing (vertical) extent is the box width.
@@ -4593,7 +4835,7 @@ describe('BarSeries', () => {
                 series: ['iphone', 'ipad'].map((yKey) => ({ type: 'bar' as const, xKey: 'quarter', yKey })),
             });
 
-            const nodeData = (deproxy(chart).series[1] as any).contextNodeData.nodeData as any[];
+            const { nodeData } = getBarSeriesContextNodeData(chart, 1);
             expect(nodeData.map((nodeDatum) => nodeDatum.xValue)).toEqual(QUARTERS.slice(0, 3));
         });
     });
@@ -4622,7 +4864,7 @@ describe('BarSeries category/gridline pixel alignment', () => {
         for (const width of WIDTHS) {
             for (const barWidth of BAR_WIDTHS) {
                 it(`every bar renders on a gridline (dpr ${dpr}, width ${width}, bar ${barWidth ?? 'auto'})`, async () => {
-                    const options: any = prepareTestOptions({
+                    const options = prepareTestOptions<AgCartesianChartOptions>({
                         data: DATA,
                         series: [
                             {
@@ -4633,10 +4875,9 @@ describe('BarSeries category/gridline pixel alignment', () => {
                             },
                         ],
                         axes: CATEGORY_CENTRE_GRIDLINE_AXES,
-                    } as any);
-                    options.width = width;
-                    options.height = 400;
-                    options.overrideDevicePixelRatio = dpr;
+                    });
+                    // The device pixel ratio override is a test hook the public options do not declare.
+                    Object.assign(options, { width, height: 400, overrideDevicePixelRatio: dpr });
 
                     chart = AgCharts.create(options);
                     await waitForChartStability(chart);

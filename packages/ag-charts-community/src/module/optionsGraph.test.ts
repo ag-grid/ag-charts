@@ -5,6 +5,7 @@ import { expectWarningsCalls, setupMockConsole, testLogger } from 'ag-charts-tes
 import type { AgChartThemeName } from 'ag-charts-types';
 
 import { getChartTheme } from '../chart/mapping/themes';
+import { setAgChartsDebug } from '../chart/test/seriesAccessors';
 import { OptionsGraph, createOptionsGraph } from './optionsGraph';
 
 function prepareOptions(options: PlainObject) {
@@ -1073,7 +1074,7 @@ describe('OptionsGraph', () => {
         });
 
         it('should resolve the `else` branch of `$isType` on an unrecognised type name', () => {
-            (globalThis as any).agChartsDebug = 'dev';
+            const restoreDebug = setAgChartsDebug('dev');
 
             try {
                 const themeConfig = {
@@ -1096,7 +1097,7 @@ describe('OptionsGraph', () => {
                   ]
                 `);
             } finally {
-                delete (globalThis as any).agChartsDebug;
+                restoreDebug();
             }
         });
 

@@ -3,8 +3,8 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedAngleCategoryAxisOptions,
+    type WithoutCrossLineOptions,
     commonAxisThemeTemplate,
-    commonCrossLineLabelOptionsDefs,
     mergeDefaults,
     polarAxisThemeOptionsDefs,
 } from 'ag-charts-core';
@@ -12,7 +12,10 @@ import {
 import { AngleCategoryAxis } from './angleCategoryAxis';
 import { angleCategoryAxisOptionsDefs } from './angleCategoryAxisOptionsDefs';
 
-export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOptions, AngleCategoryAxis> = {
+export const AngleCategoryAxisModule: AxisModuleDefinition<
+    WithoutCrossLineOptions<AgAngleCategoryAxisOptions>,
+    AngleCategoryAxis
+> = {
     type: 'axis',
     name: 'angle-category',
     chartType: 'polar',
@@ -22,10 +25,7 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
 
     options: angleCategoryAxisOptionsDefs,
 
-    themeOptions: /* #__PURE__ */ polarAxisThemeOptionsDefs(
-        angleCategoryAxisOptionsDefs,
-        commonCrossLineLabelOptionsDefs
-    ),
+    themeOptions: /* #__PURE__ */ polarAxisThemeOptionsDefs(angleCategoryAxisOptionsDefs),
     themeTemplate: mergeDefaults(
         {
             startAngle: 0,

@@ -238,7 +238,7 @@ export class AxisInteraction extends AbstractModuleInstance {
 
         // Annotate the overlapping axis so the series-area dispatch offers it as an additional region,
         // rather than dispatching a competing axis-only menu. This lets a node and an axis co-exist.
-        event.axis = this.pickAxisValue(axis.axisId, event);
+        event.regions.axis = this.pickAxisValue(axis.axisId, event);
     }
 
     private onSeriesAreaDoubleClick(event: DblClickWidgetEvent) {

@@ -15,7 +15,6 @@ import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
 import type { ChartState } from '../chart/chartState';
-import type { CrossLine } from '../chart/crossline/crossLine';
 import type { IDataSelectionService } from '../chart/data/dataSelectionServiceTypes';
 import type { DataService } from '../chart/data/dataService';
 import type { FontManager } from '../chart/fonts/fontManager';
@@ -108,13 +107,6 @@ export interface ChartRegistry {
 
 export interface ChartAxisRegistry<P> extends ChartRegistry {
     parent: P;
-    /**
-     * Per-axis cross-line factory installed by the owning cross-lines module's `register` hook.
-     * Each access (`ctx.crossLine`) yields a fresh instance via `DynamicContext.factory()`.
-     * Community `CrossLinesModule` installs the cartesian implementation on cartesian axes;
-     * enterprise `PolarCrossLinesModule` installs a polar-aware factory on polar axes.
-     */
-    crossLine: CrossLine;
 }
 
 export interface ChartSeriesRegistry extends ChartRegistry {

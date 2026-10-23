@@ -1,11 +1,28 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
-import type { AgRangesButtonValueFunctionParams, AgRangesButtonValueSource } from 'ag-charts-types';
+import {
+    type Chart,
+    deproxy,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
+import type {
+    AgChartThemeParams,
+    AgRangesButtonValueFunctionParams,
+    AgRangesButtonValueSource,
+    AgRangesOptions,
+    DatumDefault,
+    Padding,
+} from 'ag-charts-types';
 
+import { getRangesDropdownMinWidth, setRangesDropdownMinWidth } from '../../test/featureAccessors';
 import { createEnterpriseChart } from '../../test/utils';
 import { Ranges } from './ranges';
+
+// `minSize` is undocumented: the theme and the price-volume preset set it, so the options type does not know it.
+type RangesTestOptions = AgRangesOptions & { minSize?: number };
 
 describe('Ranges', () => {
     setupMockConsole();
@@ -15,7 +32,7 @@ describe('Ranges', () => {
     afterEach(() => {
         if (chart != null) {
             chart.destroy();
-            (chart as any) = undefined;
+            (chart as unknown) = undefined;
         }
     });
 
@@ -91,7 +108,7 @@ describe('Ranges', () => {
     });
 
     describe('buttonSize', () => {
-        const create = async (ranges: Record<string, unknown>) => {
+        const create = async (ranges: RangesTestOptions) => {
             const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -100,12 +117,12 @@ describe('Ranges', () => {
                     y: { type: 'number', position: 'left' },
                 },
                 ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }], ...ranges },
-            } as any;
+            };
             chart = await createEnterpriseChart(options);
-            return deproxy(chart as any) as any;
+            return deproxy(chart);
         };
 
-        const rangeButtons = (proxy: any, toolbar: 'buttons' | 'dropdown') =>
+        const rangeButtons = (proxy: Chart, toolbar: 'buttons' | 'dropdown') =>
             Array.from<HTMLElement>(
                 proxy.ctx.agDocument.body.querySelectorAll(
                     `.ag-charts-range-buttons--${toolbar} .ag-charts-toolbar__button`
@@ -145,34 +162,33 @@ describe('Ranges', () => {
         });
 
         it('resets the dropdown minimum width when the size changes', async () => {
-            const ranges = {
+            const ranges: AgRangesOptions = {
                 enabled: true,
                 dropdown: { visible: 'always' },
                 buttons: [{ label: 'All', value: [0, 19] }],
             };
-            const proxy = await create({ ...ranges, buttonSize: 40 });
-            const module = proxy.modulesManager.getModule('ranges');
+            await create({ ...ranges, buttonSize: 40 });
             const withSize = (buttonSize: number) =>
                 chart.update({
                     data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     ranges: { ...ranges, buttonSize },
-                } as any);
+                });
 
-            module.dropdownMinWidth = 999;
+            setRangesDropdownMinWidth(chart, 999);
             await withSize(40);
             await waitForChartStability(chart);
-            expect(module.dropdownMinWidth).toBe(999);
+            expect(getRangesDropdownMinWidth(chart)).toBe(999);
 
             await withSize(50);
             await waitForChartStability(chart);
-            expect(module.dropdownMinWidth).not.toBe(999);
+            expect(getRangesDropdownMinWidth(chart)).not.toBe(999);
         });
 
         // `getBounds()` prefers an inline width, so the width written by the previous layout must not
         // survive into the next measurement, or the overflow check and alignment would use the old size.
         it('re-measures both toolbars instead of reusing their inline widths when the size changes', async () => {
-            const ranges = { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] };
+            const ranges: AgRangesOptions = { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] };
             const proxy = await create({ ...ranges, buttonSize: 40 });
             const toolbars = (['buttons', 'dropdown'] as const).map(
                 (toolbar) =>
@@ -184,7 +200,7 @@ describe('Ranges', () => {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { ...ranges, buttonSize: 50 },
-            } as any);
+            });
             await waitForChartStability(chart);
 
             for (const toolbar of toolbars) {
@@ -216,7 +232,7 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any;
+            };
 
             chart = await createEnterpriseChart(options);
 
@@ -248,7 +264,7 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any;
+            };
 
             chart = await createEnterpriseChart(options);
 
@@ -269,7 +285,7 @@ describe('Ranges', () => {
         it('should pass the chart-level context to the value function', async () => {
             const receivedContexts: Array<RangesContext | undefined> = [];
 
-            const options: AgCartesianChartOptions = {
+            const options: AgCartesianChartOptions<DatumDefault, RangesContext> = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes: {
@@ -289,7 +305,7 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any;
+            };
 
             chart = await createEnterpriseChart(options);
 
@@ -319,7 +335,7 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any;
+            };
 
             chart = await createEnterpriseChart(options);
 
@@ -329,7 +345,7 @@ describe('Ranges', () => {
     });
 
     describe('theme params', () => {
-        const resolvedRanges = async (params: Record<string, unknown>, ranges: Record<string, unknown> = {}) => {
+        const resolvedRanges = async (params: AgChartThemeParams, ranges: AgRangesOptions = {}) => {
             const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -339,10 +355,10 @@ describe('Ranges', () => {
                 },
                 ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }], ...ranges },
                 theme: { params },
-            } as any;
+            };
 
             chart = await createEnterpriseChart(options);
-            return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+            return deproxy(chart).ctx.chartState.getValue('options', 'ranges');
         };
 
         it('derives the button and dropdown lineHeight from their own fontSize', async () => {
@@ -351,8 +367,8 @@ describe('Ranges', () => {
                 { fontSize: 10, button: { fontSize: 20 }, dropdown: { fontSize: 16 } }
             );
 
-            expect(ranges.button.lineHeight).toBe(30);
-            expect(ranges.dropdown.lineHeight).toBe(24);
+            expect(ranges?.button?.lineHeight).toBe(30);
+            expect(ranges?.dropdown?.lineHeight).toBe(24);
         });
 
         it('passes a set ranges lineHeight on to the button and dropdown', async () => {
@@ -361,38 +377,39 @@ describe('Ranges', () => {
                 { lineHeight: 18, button: { fontSize: 20 }, dropdown: { fontSize: 16 } }
             );
 
-            expect(ranges.button.lineHeight).toBe(18);
-            expect(ranges.dropdown.lineHeight).toBe(18);
+            expect(ranges?.button?.lineHeight).toBe(18);
+            expect(ranges?.dropdown?.lineHeight).toBe(18);
         });
 
         it('button text follows buttonTextColor, not chromeTextColor', async () => {
             const ranges = await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' });
 
-            expect(ranges.button.textColor).toBe('red');
+            expect(ranges?.button?.textColor).toBe('red');
         });
 
         it('button hover text follows buttonTextColor', async () => {
             const ranges = await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' });
 
-            expect(ranges.button.hover.textColor).toBe('red');
+            expect(ranges?.button?.hover?.textColor).toBe('red');
         });
 
         it('disabled button text fades buttonTextColor, not chromeTextColor', async () => {
-            const { textColor } = (await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' })).button
-                .disabled;
+            const textColor = (await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' }))?.button
+                ?.disabled?.textColor;
             chart.destroy();
-            const expected = (await resolvedRanges({ chromeTextColor: 'red' })).button.disabled.textColor;
+            const expected = (await resolvedRanges({ chromeTextColor: 'red' }))?.button?.disabled?.textColor;
 
+            expect(textColor).toBeDefined();
             expect(textColor).toBe(expected);
         });
 
         it('disabled button background derives from buttonBackgroundColor rather than chromeBackgroundColor', async () => {
-            const { fill } = (await resolvedRanges({ buttonBackgroundColor: 'red', chromeBackgroundColor: 'blue' }))
-                .button.disabled;
+            const fill = (await resolvedRanges({ buttonBackgroundColor: 'red', chromeBackgroundColor: 'blue' }))?.button
+                ?.disabled?.fill;
             chart.destroy();
-            const expected = (await resolvedRanges({ chromeBackgroundColor: 'red' })).button.disabled.fill;
+            const expected = (await resolvedRanges({ chromeBackgroundColor: 'red' }))?.button?.disabled?.fill;
             chart.destroy();
-            const fallback = (await resolvedRanges({})).button.disabled.fill;
+            const fallback = (await resolvedRanges({}))?.button?.disabled?.fill;
 
             expect(fill).toBe(expected);
             expect(fill).not.toBe(fallback);
@@ -404,29 +421,30 @@ describe('Ranges', () => {
                 buttonDisabledBackgroundColor: 'rgb(7, 7, 7)',
             });
 
-            expect(ranges.button.disabled.fill).toBe('rgb(7, 7, 7)');
+            expect(ranges?.button?.disabled?.fill).toBe('rgb(7, 7, 7)');
         });
 
         it('button text falls back to chromeTextColor when buttonTextColor is unset', async () => {
             const ranges = await resolvedRanges({ chromeTextColor: 'blue' });
 
-            expect(ranges.button.textColor).toBe('blue');
+            expect(ranges?.button?.textColor).toBe('blue');
         });
 
         it('button text ignores textColor once chromeTextColor is set', async () => {
             const ranges = await resolvedRanges({ textColor: 'green', chromeTextColor: 'blue' });
 
-            expect(ranges.button.textColor).toBe('blue');
+            expect(ranges?.button?.textColor).toBe('blue');
         });
 
         it('button states keep their default styling', async () => {
             const ranges = await resolvedRanges({ borderColor: 'gray', accentColor: 'teal' });
 
-            expect(ranges.button.hover.fill).toBe(ranges.button.active.fill);
-            expect(ranges.button.hover.stroke).toBe('gray');
-            expect(ranges.button.disabled.stroke).toBe('gray');
-            expect(ranges.button.active.stroke).toBe('teal');
-            expect(ranges.button.active.textColor).toBe('teal');
+            expect(ranges?.button?.hover?.fill).toBeDefined();
+            expect(ranges?.button?.hover?.fill).toBe(ranges?.button?.active?.fill);
+            expect(ranges?.button?.hover?.stroke).toBe('gray');
+            expect(ranges?.button?.disabled?.stroke).toBe('gray');
+            expect(ranges?.button?.active?.stroke).toBe('teal');
+            expect(ranges?.button?.active?.textColor).toBe('teal');
         });
 
         it('button states follow the button state params', async () => {
@@ -442,17 +460,17 @@ describe('Ranges', () => {
                 buttonDisabledBorder: { color: 'rgb(9, 9, 9)' },
             });
 
-            expect(ranges.button.hover).toMatchObject({
+            expect(ranges?.button?.hover).toMatchObject({
                 fill: 'rgb(1, 1, 1)',
                 textColor: 'rgb(2, 2, 2)',
                 stroke: 'rgb(3, 3, 3)',
             });
-            expect(ranges.button.active).toMatchObject({
+            expect(ranges?.button?.active).toMatchObject({
                 fill: 'rgb(4, 4, 4)',
                 textColor: 'rgb(5, 5, 5)',
                 stroke: 'rgb(6, 6, 6)',
             });
-            expect(ranges.button.disabled).toMatchObject({
+            expect(ranges?.button?.disabled).toMatchObject({
                 fill: 'rgb(7, 7, 7)',
                 textColor: 'rgb(8, 8, 8)',
                 stroke: 'rgb(9, 9, 9)',
@@ -473,19 +491,19 @@ describe('Ranges', () => {
                     stroke: 'green',
                     buttons: [{ label: 'All', value: [0, 19] }],
                 },
-            } as any;
+            };
             chart = await createEnterpriseChart(options);
-            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+            const ranges = deproxy(chart).ctx.chartState.getValue('options', 'ranges');
 
-            expect(ranges.button.hover.textColor).toBe('red');
-            expect(ranges.button.hover.stroke).toBe('green');
-            expect(ranges.button.disabled.stroke).toBe('green');
+            expect(ranges?.button?.hover?.textColor).toBe('red');
+            expect(ranges?.button?.hover?.stroke).toBe('green');
+            expect(ranges?.button?.disabled?.stroke).toBe('green');
         });
 
         it('a false state border hides the border colour', async () => {
             const ranges = await resolvedRanges({ buttonHoverBorder: false });
 
-            expect(ranges.button.hover.stroke).toBe('transparent');
+            expect(ranges?.button?.hover?.stroke).toBe('transparent');
         });
 
         it('a false state border keeps the base border width', async () => {
@@ -494,7 +512,7 @@ describe('Ranges', () => {
                 buttonHoverBorder: false,
             });
 
-            expect(ranges.button.hover).toMatchObject({ stroke: 'transparent', strokeWidth: 2 });
+            expect(ranges?.button?.hover).toMatchObject({ stroke: 'transparent', strokeWidth: 2 });
         });
 
         it('state borders set to true inherit the buttonBorder colour and width', async () => {
@@ -506,8 +524,8 @@ describe('Ranges', () => {
                 buttonDisabledBorder: true,
             });
 
-            for (const state of ['hover', 'active', 'disabled']) {
-                expect(ranges.button[state]).toMatchObject({ stroke: 'black', strokeWidth: 2 });
+            for (const state of ['hover', 'active', 'disabled'] as const) {
+                expect(ranges?.button?.[state]).toMatchObject({ stroke: 'black', strokeWidth: 2 });
             }
         });
 
@@ -518,7 +536,7 @@ describe('Ranges', () => {
                 buttonActiveBorder: true,
             });
 
-            expect(ranges.button.active).toMatchObject({ stroke: 'purple', strokeWidth: 1 });
+            expect(ranges?.button?.active).toMatchObject({ stroke: 'purple', strokeWidth: 1 });
         });
 
         it('state border objects apply their width in that state', async () => {
@@ -528,10 +546,10 @@ describe('Ranges', () => {
                 buttonDisabledBorder: { color: 'red', width: 6 },
             });
 
-            expect(ranges.button.strokeWidth).toBe(1);
-            expect(ranges.button.hover).toMatchObject({ stroke: 'orange', strokeWidth: 6 });
-            expect(ranges.button.active).toMatchObject({ stroke: 'green', strokeWidth: 6 });
-            expect(ranges.button.disabled).toMatchObject({ stroke: 'red', strokeWidth: 6 });
+            expect(ranges?.button?.strokeWidth).toBe(1);
+            expect(ranges?.button?.hover).toMatchObject({ stroke: 'orange', strokeWidth: 6 });
+            expect(ranges?.button?.active).toMatchObject({ stroke: 'green', strokeWidth: 6 });
+            expect(ranges?.button?.disabled).toMatchObject({ stroke: 'red', strokeWidth: 6 });
         });
 
         it('state border objects fill an unset colour or width from buttonBorder', async () => {
@@ -541,15 +559,15 @@ describe('Ranges', () => {
                 buttonDisabledBorder: { color: 'red' },
             });
 
-            expect(ranges.button.hover).toMatchObject({ stroke: 'black', strokeWidth: 4 });
-            expect(ranges.button.disabled).toMatchObject({ stroke: 'red', strokeWidth: 2 });
+            expect(ranges?.button?.hover).toMatchObject({ stroke: 'black', strokeWidth: 4 });
+            expect(ranges?.button?.disabled).toMatchObject({ stroke: 'red', strokeWidth: 2 });
         });
 
         it('state border widths default to the buttonBorder width', async () => {
             const ranges = await resolvedRanges({ buttonBorder: { color: 'black', width: 3 } });
 
-            for (const state of ['hover', 'active', 'disabled']) {
-                expect(ranges.button[state].strokeWidth).toBe(3);
+            for (const state of ['hover', 'active', 'disabled'] as const) {
+                expect(ranges?.button?.[state]?.strokeWidth).toBe(3);
             }
         });
 
@@ -559,12 +577,12 @@ describe('Ranges', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { enabled: true, strokeWidth: 3, buttons: [{ label: 'All', value: [0, 19] }] },
                 theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
-            } as any;
+            };
             chart = await createEnterpriseChart(options);
-            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+            const ranges = deproxy(chart).ctx.chartState.getValue('options', 'ranges');
 
-            for (const state of ['hover', 'active', 'disabled']) {
-                expect(ranges.button[state].strokeWidth).toBe(3);
+            for (const state of ['hover', 'active', 'disabled'] as const) {
+                expect(ranges?.button?.[state]?.strokeWidth).toBe(3);
             }
         });
 
@@ -574,30 +592,30 @@ describe('Ranges', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { enabled: true, button: { strokeWidth: 3 }, buttons: [{ label: 'All', value: [0, 19] }] },
                 theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
-            } as any;
+            };
             chart = await createEnterpriseChart(options);
-            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+            const ranges = deproxy(chart).ctx.chartState.getValue('options', 'ranges');
 
-            for (const state of ['hover', 'active', 'disabled']) {
-                expect(ranges.button[state].strokeWidth).toBe(3);
+            for (const state of ['hover', 'active', 'disabled'] as const) {
+                expect(ranges?.button?.[state]?.strokeWidth).toBe(3);
             }
-            expect(ranges.dropdown.hover.strokeWidth).toBe(6);
+            expect(ranges?.dropdown?.hover?.strokeWidth).toBe(6);
         });
 
         it('button padding keeps its fixed default', async () => {
             const ranges = await resolvedRanges({});
 
-            expect(ranges.button.padding).toEqual({ top: 6, right: 9, bottom: 6, left: 9 });
+            expect(ranges?.button?.padding).toEqual({ top: 6, right: 9, bottom: 6, left: 9 });
         });
 
-        const resolvedUserPadding = async (padding: unknown) => {
+        const resolvedUserPadding = async (padding: Padding) => {
             const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { enabled: true, padding, buttons: [{ label: 'All', value: [0, 19] }] },
-            } as any;
+            };
             chart = await createEnterpriseChart(options);
-            return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges').button.padding;
+            return deproxy(chart).ctx.chartState.getValue('options', 'ranges')?.button?.padding;
         };
 
         it('a user-set padding number replaces the default', async () => {

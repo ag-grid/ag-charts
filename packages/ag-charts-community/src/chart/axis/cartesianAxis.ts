@@ -308,7 +308,7 @@ export abstract class CartesianAxis<
         // Mutate rather than spread so the live getters defined on the base context
         // (`range`, `gridLength`, `mirrored`, etc.) are preserved.
         const ctx = super.createAxisContext();
-        ctx.position = this.position;
+        Object.defineProperty(ctx, 'position', { get: () => this.position, enumerable: true });
         return ctx;
     }
 
@@ -333,7 +333,6 @@ export abstract class CartesianAxis<
         }
 
         if (this.axisContext) {
-            this.axisContext.position = this.position;
             this.axisContext.direction = this.direction;
         }
     }

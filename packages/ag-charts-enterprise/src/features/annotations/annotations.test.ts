@@ -1,16 +1,28 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgCartesianChartOptions } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
     clickAction,
     deproxy,
     expectWarningsCalls,
+    getAxisLayoutState,
+    getSeriesRect,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Group, type Node, Text } from 'ag-charts-core';
+import type { AgHorizontalLineAnnotation } from 'ag-charts-types';
 
+import {
+    findSceneNodes,
+    getAnnotationAxisButtonElement,
+    getAnnotationOptionsToolbarButtons,
+    getAnnotationToolbarsEnabled,
+    getAnnotationYAxisDomain,
+    hasAnnotationAxisButton,
+} from '../../test/featureAccessors';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import {
     ANNOTATIONS_EXAMPLE_OPTIONS,
@@ -19,9 +31,12 @@ import {
     restoreAnnotations,
 } from './test/fixture';
 
+// The name of the group the annotations module draws an annotation's label on its axis into.
+const ANNOTATION_AXIS_LABEL_GROUP = 'AnnotationAxisLabelGroup';
+
 describe('Annotations', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     async function prepareChart(
@@ -35,10 +50,8 @@ describe('Annotations', () => {
     }
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart?.destroy();
+        (chart as unknown) = undefined;
     });
 
     const compare = () => compareAnnotationsSnapshot(chart, ctx);
@@ -375,7 +388,15 @@ describe('Annotations', () => {
     });
 
     describe('lines with text', () => {
-        const annotations = [
+        interface TextAnnotation {
+            text: {
+                label: string;
+                position: 'top' | 'center' | 'bottom';
+                alignment: 'left' | 'center' | 'right';
+            };
+        }
+
+        const annotations: TextAnnotation[] = [
             {
                 text: {
                     label: 'Lorem ipsum',
@@ -450,7 +471,7 @@ describe('Annotations', () => {
                     const month = [2, 6, 10][index % 3];
 
                     return {
-                        ...(annotation as any),
+                        ...annotation,
                         type: 'line',
                         start: { x: { __type: 'date', value: `2024-${String(month).padStart(2, '0')}-01` }, y: y },
                         end: {
@@ -466,7 +487,7 @@ describe('Annotations', () => {
         it('should render horizontal line annotations with text', async () => {
             await prepareChart({
                 annotations: annotations.map((annotation, index) => ({
-                    ...(annotation as any),
+                    ...annotation,
                     type: 'horizontal-line',
                     value: 90 - index * 10,
                 })),
@@ -477,7 +498,7 @@ describe('Annotations', () => {
         it('should render vertical line annotations with text', async () => {
             await prepareChart({
                 annotations: annotations.map((annotation, index) => ({
-                    ...(annotation as any),
+                    ...annotation,
                     type: 'vertical-line',
                     value: { __type: 'date', value: `2024-${String(2 + index).padStart(2, '0')}-01` },
                 })),
@@ -505,7 +526,7 @@ describe('Annotations', () => {
                             y: y - 20,
                         },
                         height: 15,
-                    } as any;
+                    };
                 }),
             });
             await compare();
@@ -532,7 +553,7 @@ describe('Annotations', () => {
                         },
                         startHeight: 10,
                         endHeight: 20,
-                    } as any;
+                    };
                 }),
             });
             await compare();
@@ -547,7 +568,7 @@ describe('Annotations', () => {
                     const month = [1, 5, 9][index % 3];
 
                     return {
-                        ...(annotation as any),
+                        ...annotation,
                         type: 'date-price-range',
                         start: { x: { __type: 'date', value: `2024-${String(month).padStart(2, '0')}-01` }, y: y },
                         end: {
@@ -862,7 +883,6 @@ describe('Annotations', () => {
     });
 
     describe('toolbar options', () => {
-        const annotationsModule = () => deproxy(chart).modulesManager.getModule<any>('annotations');
         const withAnnotations = (annotations: AgCartesianChartOptions['annotations']): AgCartesianChartOptions => ({
             ...ANNOTATIONS_EXAMPLE_OPTIONS,
             annotations,
@@ -871,15 +891,15 @@ describe('Annotations', () => {
         it('enables both toolbars from `annotations.enabled` when they are not configured', async () => {
             await prepareChart(undefined, withAnnotations({ enabled: true }));
 
-            expect(annotationsModule().toolbar.enabled).toBe(true);
-            expect(annotationsModule().optionsToolbar.enabled).toBe(true);
+            expect(getAnnotationToolbarsEnabled(chart).toolbar).toBe(true);
+            expect(getAnnotationToolbarsEnabled(chart).optionsToolbar).toBe(true);
         });
 
         it('keeps the options toolbar enabled when only the toolbar is disabled', async () => {
             await prepareChart();
 
-            expect(annotationsModule().toolbar.enabled).toBe(false);
-            expect(annotationsModule().optionsToolbar.enabled).toBe(true);
+            expect(getAnnotationToolbarsEnabled(chart).toolbar).toBe(false);
+            expect(getAnnotationToolbarsEnabled(chart).optionsToolbar).toBe(true);
         });
 
         it.each([
@@ -893,8 +913,8 @@ describe('Annotations', () => {
                 withAnnotations({ enabled: true, toolbar: { enabled: false }, axesButtons: { enabled: true, axes } })
             );
 
-            expect(annotationsModule().xAxis?.button != null).toBe(x);
-            expect(annotationsModule().yAxis?.button != null).toBe(y);
+            expect(hasAnnotationAxisButton(chart, 'x')).toBe(x);
+            expect(hasAnnotationAxisButton(chart, 'y')).toBe(y);
         });
 
         it('returns the axis button to the y axis when `axesButtons.axes` is removed on update', async () => {
@@ -906,15 +926,15 @@ describe('Annotations', () => {
                     axesButtons: { enabled: true, axes: 'x' },
                 })
             );
-            expect(annotationsModule().xAxis?.button != null).toBe(true);
+            expect(hasAnnotationAxisButton(chart, 'x')).toBe(true);
 
             await chart.update(
                 prepareEnterpriseTestOptions(withAnnotations({ enabled: true, toolbar: { enabled: false } }))
             );
             await waitForChartStability(chart);
 
-            expect(annotationsModule().xAxis?.button != null).toBe(false);
-            expect(annotationsModule().yAxis?.button != null).toBe(true);
+            expect(hasAnnotationAxisButton(chart, 'x')).toBe(false);
+            expect(hasAnnotationAxisButton(chart, 'y')).toBe(true);
         });
 
         describe('buttonSize', () => {
@@ -980,12 +1000,7 @@ describe('Annotations', () => {
                     },
                     withAnnotations({ enabled: true, optionsToolbar: { buttonSize: 44 } })
                 );
-                const { optionsToolbar, annotationData } = annotationsModule();
-                optionsToolbar.updateButtons(annotationData.at(0));
-
-                const buttons = Array.from<Element>(
-                    optionsToolbar.toolbar.getElement().querySelectorAll('.ag-charts-toolbar__button')
-                );
+                const buttons = getAnnotationOptionsToolbarButtons(chart);
                 expect(buttons.length).toBeGreaterThan(0);
                 for (const button of buttons) {
                     expect(sizeOf(button)).toBe('44px');
@@ -996,8 +1011,7 @@ describe('Annotations', () => {
         describe('axis button position', () => {
             const BUTTON_SIZE = 20;
 
-            const buttonElement = (axis: 'xAxis' | 'yAxis'): HTMLElement =>
-                annotationsModule()[axis].button.button.getElement();
+            const buttonElement = (axis: 'x' | 'y'): HTMLElement => getAnnotationAxisButtonElement(chart, axis);
 
             const prepareAxisButtons = async () => {
                 await prepareChart(
@@ -1008,17 +1022,17 @@ describe('Annotations', () => {
                         axesButtons: { enabled: true, axes: 'xy' },
                     })
                 );
-                for (const axis of ['xAxis', 'yAxis'] as const) {
+                for (const axis of ['x', 'y'] as const) {
                     const element = buttonElement(axis);
                     Object.defineProperty(element, 'clientWidth', { configurable: true, value: BUTTON_SIZE });
                     Object.defineProperty(element, 'clientHeight', { configurable: true, value: BUTTON_SIZE });
                 }
-                const { seriesRect } = annotationsModule();
+                const seriesRect = getSeriesRect(chart);
                 await hoverAction(seriesRect.x + seriesRect.width / 2, seriesRect.y + seriesRect.height / 2)(chart);
                 return seriesRect;
             };
 
-            const moveOverButton = (axis: 'xAxis' | 'yAxis', clientX: number, clientY: number) => {
+            const moveOverButton = (axis: 'x' | 'y', clientX: number, clientY: number) => {
                 const element = buttonElement(axis);
                 element.dispatchEvent(new MouseEvent('mousemove', { clientX, clientY, bubbles: true }));
                 const [, x, y] = /translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(element.style.transform)!;
@@ -1032,7 +1046,7 @@ describe('Annotations', () => {
                 const seriesRect = await prepareAxisButtons();
                 const clientY = seriesRect.y + edge * seriesRect.height + offset;
 
-                const { y } = moveOverButton('yAxis', seriesRect.x + seriesRect.width / 2, clientY);
+                const { y } = moveOverButton('y', seriesRect.x + seriesRect.width / 2, clientY);
 
                 expect(y).toBe(Math.round(edge * (seriesRect.height - BUTTON_SIZE)));
             });
@@ -1044,24 +1058,24 @@ describe('Annotations', () => {
                 const seriesRect = await prepareAxisButtons();
                 const clientX = seriesRect.x + edge * seriesRect.width + offset;
 
-                const { x } = moveOverButton('xAxis', clientX, seriesRect.y + seriesRect.height / 2);
+                const { x } = moveOverButton('x', clientX, seriesRect.y + seriesRect.height / 2);
 
                 expect(x).toBe(Math.round(edge * (seriesRect.width - BUTTON_SIZE)));
             });
 
             it('adds a horizontal line near the top of the domain when the clamped y-axis button is clicked', async () => {
                 const seriesRect = await prepareAxisButtons();
-                moveOverButton('yAxis', seriesRect.x + seriesRect.width / 2, seriesRect.y - 40);
+                moveOverButton('y', seriesRect.x + seriesRect.width / 2, seriesRect.y - 40);
 
-                buttonElement('yAxis').click();
+                buttonElement('y').click();
                 await waitForChartStability(chart);
 
-                const [yMin, yMax] = annotationsModule().yAxis.context.scale.domain;
+                const [yMin, yMax] = getAnnotationYAxisDomain(chart);
                 const expected = yMax - ((yMax - yMin) * (BUTTON_SIZE / 2)) / seriesRect.height;
-                const { annotations } = chart.getState();
+                const { annotations = [] } = chart.getState();
                 expect(annotations).toHaveLength(1);
                 expect(annotations[0]).toMatchObject({ type: 'horizontal-line' });
-                expect(annotations[0].value).toBeCloseTo(expected, 6);
+                expect((annotations[0] as AgHorizontalLineAnnotation).value).toBeCloseTo(expected, 6);
             });
         });
 
@@ -1208,14 +1222,7 @@ describe('Annotations', () => {
         // The scene position is the assertion: an image comparison cannot separate the label moving
         // from the axis area around it resizing, and both happen when a label spacing changes.
         const axisLabelX = () => {
-            const found: any[] = [];
-            const visit = (node: any) => {
-                if (node.name === 'AnnotationAxisLabelGroup') found.push(node);
-                if (typeof node.children === 'function') {
-                    for (const child of node.children()) visit(child);
-                }
-            };
-            visit((deproxy(chart) as any).ctx.scene.root);
+            const found = findSceneNodes(chart, (node) => node.name === ANNOTATION_AXIS_LABEL_GROUP);
             expect(found).toHaveLength(1);
             return found[0].getBBox().x;
         };
@@ -1256,23 +1263,15 @@ describe('Annotations', () => {
         // Gap between the two labels' text edges facing the axis line - text, not box, is what the
         // unboxed default aligns. A tick label's anchor is that edge; its bbox would cover the drawn box.
         const textEdgeGap = (position: 'left' | 'right') => {
-            const annotationTexts: any[] = [];
-            const tickTexts: any[] = [];
-            const visit = (node: any, inAnnotation: boolean) => {
-                const annotation = inAnnotation || node.name === 'AnnotationAxisLabelGroup';
-                if (typeof node.text === 'string' && /^\d+$/.test(node.text)) {
-                    (annotation ? annotationTexts : tickTexts).push(node);
-                }
-                if (typeof node.children === 'function') {
-                    for (const child of node.children()) visit(child, annotation);
-                }
-            };
-            const deproxied = deproxy(chart) as any;
-            visit(deproxied.ctx.scene.root, false);
+            const isNumberText = (node: Node): node is Text => node instanceof Text && /^\d+$/.test(String(node.text));
+            const annotationTexts = findSceneNodes(chart, (node) => node.name === ANNOTATION_AXIS_LABEL_GROUP)
+                .flatMap((group) => (group instanceof Group ? Array.from(group.descendants()) : []))
+                .filter(isNumberText);
+            const tickTexts = findSceneNodes(chart, isNumberText).filter((node) => !annotationTexts.includes(node));
             expect(annotationTexts).toHaveLength(1);
             expect(tickTexts.length).toBeGreaterThan(0);
 
-            const axisX = deproxied.axes.find((axis: any) => axis.direction === 'y').translation.x;
+            const axisX = getAxisLayoutState(chart, position).translation.x;
             const annotationBox = annotationTexts[0].getBBox();
             const annotationEdge = position === 'right' ? annotationBox.x : annotationBox.x + annotationBox.width;
             return annotationEdge - (axisX + tickTexts[0].x);

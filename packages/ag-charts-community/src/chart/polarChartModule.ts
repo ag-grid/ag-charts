@@ -1,8 +1,8 @@
 import {
     type ChartModuleDefinition,
-    type ModuleOwnedChartOptions,
     UnknownError,
     ValidationError,
+    type WithoutModuleOwnedOptions,
     commonChartOptionsDefs,
     commonChartThemeTemplate,
     polarChartOptionsDefs,
@@ -18,7 +18,7 @@ import type { TransferableResources } from './chart';
 import { PolarChart } from './polarChart';
 import { SeriesAreaModule } from './series-area/seriesAreaModule';
 
-export const PolarChartModule: ChartModuleDefinition<Omit<AgPolarChartOptions, ModuleOwnedChartOptions>> =
+export const PolarChartModule: ChartModuleDefinition<WithoutModuleOwnedOptions<AgPolarChartOptions>> =
     /* #__PURE__ */ communityModule({
         type: 'chart',
         name: 'polar',

@@ -1,7 +1,7 @@
 // Module placeholders generated from the exported module definitions by
 // packages/ag-charts-enterprise/src/moduleTables.test.ts. Do not edit by hand:
 // Run `UPDATE_MODULE_TABLES=1 yarn nx test ag-charts-enterprise -- moduleTables` to regenerate.
-import { array, callback, object } from 'ag-charts-core';
+import { array, callback, defined, object } from 'ag-charts-core';
 
 import type { ModulePlaceholder } from './modulePlaceholder';
 
@@ -434,6 +434,12 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'plugin',
+        name: 'cross-lines-dom-proxy',
+        moduleId: 'AllCommunityModule',
+        chartTypes: ['cartesian', 'polar'],
+    },
+    {
+        type: 'plugin',
         name: 'dataSource',
         moduleId: 'DataSourceModule',
         enterprise: true,
@@ -650,6 +656,25 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         contributes: [
             {
                 path: 'axes[].crossLines',
+                options: defined,
+                themeOptions: object,
+                axisTypes: ['category', 'grouped-category', 'number', 'log', 'time', 'unit-time', 'ordinal-time'],
+            },
+            {
+                path: 'axes[].listeners.crossLineClick',
+                options: callback,
+            },
+            {
+                path: 'axes[].listeners.crossLineDoubleClick',
+                options: callback,
+            },
+            {
+                path: 'listeners.crossLineClick',
+                options: callback,
+            },
+            {
+                path: 'listeners.crossLineDoubleClick',
+                options: callback,
             },
         ],
     },
@@ -664,7 +689,25 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         contributes: [
             {
                 path: 'axes[].crossLines',
+                options: defined,
+                themeOptions: object,
                 axisTypes: ['angle-category', 'angle-number', 'radius-category', 'radius-number'],
+            },
+            {
+                path: 'axes[].listeners.crossLineClick',
+                options: callback,
+            },
+            {
+                path: 'axes[].listeners.crossLineDoubleClick',
+                options: callback,
+            },
+            {
+                path: 'listeners.crossLineClick',
+                options: callback,
+            },
+            {
+                path: 'listeners.crossLineDoubleClick',
+                options: callback,
             },
         ],
     },

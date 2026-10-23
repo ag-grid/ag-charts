@@ -8,6 +8,7 @@ export * from './chart/test/bigintExamples';
 export * from './chart/test/aggregationStubs';
 export { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from './chart/test/examples-gallery';
 export * as CROSSLINE_EXAMPLES from './chart/crossline/test/examples';
+export { getCrossLinesPlugin } from './chart/crossline/test/crossLineAccessors';
 export * from './chart/test/examples';
 export * from './chart/series/test/examples';
 export * from './chart/test/findTarget';

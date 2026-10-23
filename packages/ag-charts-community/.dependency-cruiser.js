@@ -145,7 +145,7 @@ module.exports = {
             from: {
                 path: '^(src)',
                 pathNot:
-                    '(src/chart/test)|(src/util/test)|(.(spec|test).(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$)|(.test.d.ts$)',
+                    '(src/chart/test)|(src/(dom|module|scene)/test)|(src/util/test)|(.(spec|test).(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$)|(.test.d.ts$)',
             },
             to: {
                 dependencyTypes: ['npm-dev'],

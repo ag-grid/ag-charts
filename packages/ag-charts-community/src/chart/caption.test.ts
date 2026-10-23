@@ -1,12 +1,19 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
-import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { Transformable } from 'ag-charts-core';
-import type { AgCaptionListeners, AgCartesianChartOptions, AgChartOptions, TextAlign } from 'ag-charts-types';
+import { Transformable, getElementBBox } from 'ag-charts-core';
+import type {
+    AgCaptionListeners,
+    AgCartesianChartOptions,
+    AgChartCaptionOptions,
+    AgChartOptions,
+    TextAlign,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import type { Chart } from './chart';
 import type { ChartCaption } from './chartCaption';
+import { getCaptionProxyElement } from './test/chartAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -22,6 +29,10 @@ import {
 } from './test/utils';
 import type { AgChartProxy, ChartOrProxy } from './test/utils';
 
+// `truncate` is an internal caption option, absent from the public `AgChartCaptionOptions`.
+const untruncated = (caption: AgChartCaptionOptions): AgChartCaptionOptions =>
+    ({ ...caption, truncate: false }) as AgChartCaptionOptions;
+
 describe('Caption', () => {
     setupMockConsole();
 
@@ -34,7 +45,7 @@ describe('Caption', () => {
 
     describe('#create', () => {
         describe('text align', () => {
-            test('left', async () => {
+            it('left', async () => {
                 const instance = await createChart({
                     title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
                     subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'left' },
@@ -43,7 +54,7 @@ describe('Caption', () => {
                 await compare(instance);
             });
 
-            test('center', async () => {
+            it('center', async () => {
                 const instance = await createChart({
                     title: { text: 'Monthly Sales Report\n2023', textAlign: 'center' },
                     subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
@@ -52,7 +63,7 @@ describe('Caption', () => {
                 await compare(instance);
             });
 
-            test('right', async () => {
+            it('right', async () => {
                 const instance = await createChart({
                     title: { text: 'Monthly Sales Report\n2023', textAlign: 'right' },
                     subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'right' },
@@ -61,7 +72,7 @@ describe('Caption', () => {
                 await compare(instance);
             });
 
-            test('mixed', async () => {
+            it('mixed', async () => {
                 const instance = await createChart({
                     title: { text: 'Monthly Sales Report\n2023', textAlign: 'left' },
                     subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'center' },
@@ -72,7 +83,7 @@ describe('Caption', () => {
         });
 
         describe('segmented text align', () => {
-            test.each(['left', 'center', 'right'] as const)(
+            it.each(['left', 'center', 'right'] as const)(
                 'aligns explicit and wrapped segment lines to textAlign=%s',
                 async (textAlign) => {
                     const instance = await createChart({
@@ -95,27 +106,27 @@ describe('Caption', () => {
             const longText =
                 'This is an extremely long title that should definitely exceed the width of the chart container and be truncated under normal circumstances';
 
-            test('truncate: false on title', async () => {
+            it('truncate: false on title', async () => {
                 const instance = await createChart({
-                    title: { text: longText, truncate: false } as any,
+                    title: untruncated({ text: longText }),
                     subtitle: { text: longText },
                     footnote: { text: longText },
                 });
                 await compare(instance);
             });
 
-            test('truncate: false on all captions', async () => {
+            it('truncate: false on all captions', async () => {
                 const instance = await createChart({
-                    title: { text: longText, truncate: false } as any,
-                    subtitle: { text: longText, truncate: false } as any,
-                    footnote: { text: longText, truncate: false } as any,
+                    title: untruncated({ text: longText }),
+                    subtitle: untruncated({ text: longText }),
+                    footnote: untruncated({ text: longText }),
                 });
                 await compare(instance);
             });
 
-            test('truncate: false with maxWidth', async () => {
+            it('truncate: false with maxWidth', async () => {
                 const instance = await createChart({
-                    title: { text: longText, truncate: false, maxWidth: 200 } as any,
+                    title: untruncated({ text: longText, maxWidth: 200 }),
                     subtitle: { text: longText },
                     footnote: { text: longText },
                 });
@@ -141,7 +152,7 @@ describe('Caption', () => {
             return { proxy, caption: chartInstance.title };
         }
 
-        test('a title that cannot fit its maxWidth truncates at its configured font size', async () => {
+        it('a title that cannot fit its maxWidth truncates at its configured font size', async () => {
             const { proxy, caption } = await createTitle({
                 text: titleText,
                 fontSize: 20,
@@ -153,7 +164,7 @@ describe('Caption', () => {
             proxy.destroy();
         });
 
-        test('minimumFontSize shrinks the title so it fits whole instead of truncating', async () => {
+        it('minimumFontSize shrinks the title so it fits whole instead of truncating', async () => {
             const { proxy, caption } = await createTitle({
                 text: titleText,
                 fontSize: 20,
@@ -167,7 +178,7 @@ describe('Caption', () => {
             proxy.destroy();
         });
 
-        test('title, subtitle and footnote all shrink rather than truncate', async () => {
+        it('title, subtitle and footnote all shrink rather than truncate', async () => {
             const instance = await createChart({
                 title: { text: titleText, fontSize: 20, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
                 subtitle: { text: titleText, fontSize: 16, minimumFontSize: 8, maxWidth: 150, wrapping: 'never' },
@@ -176,7 +187,7 @@ describe('Caption', () => {
             await compare(instance);
         });
 
-        test('a wrapping title shrinks until every line fits its maxHeight', async () => {
+        it('a wrapping title shrinks until every line fits its maxHeight', async () => {
             const { proxy, caption } = await createTitle({
                 text: titleText,
                 fontSize: 20,
@@ -189,7 +200,7 @@ describe('Caption', () => {
             proxy.destroy();
         });
 
-        test('a title that still does not fit at minimumFontSize truncates at that size', async () => {
+        it('a title that still does not fit at minimumFontSize truncates at that size', async () => {
             const { proxy, caption } = await createTitle({
                 text: titleText,
                 fontSize: 20,
@@ -202,7 +213,7 @@ describe('Caption', () => {
             proxy.destroy();
         });
 
-        test('a title that already fits keeps its configured font size', async () => {
+        it('a title that already fits keeps its configured font size', async () => {
             const { proxy, caption } = await createTitle({
                 text: titleText,
                 fontSize: 20,
@@ -215,7 +226,7 @@ describe('Caption', () => {
             proxy.destroy();
         });
 
-        test('minimumFontSize above fontSize is rejected', async () => {
+        it('minimumFontSize above fontSize is rejected', async () => {
             const { proxy } = await createTitle({ text: titleText, fontSize: 12, minimumFontSize: 20 });
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
@@ -229,7 +240,7 @@ describe('Caption', () => {
     });
 
     describe('#validation', () => {
-        test('invalid text align', async () => {
+        it('invalid text align', async () => {
             await createChart({
                 title: { text: 'Monthly Sales Report\n2023', textAlign: 'LEFT' as TextAlign },
                 subtitle: { text: 'Region: North America\n(Values in USD)', textAlign: 'centre' as TextAlign },
@@ -266,33 +277,33 @@ describe('Caption', () => {
         const baseOptions = { ...seriesOptions, title: { text: 'Title' } };
 
         describe('visual snapshots', () => {
-            test('filled subtitle (reference)', async () => {
+            it('filled subtitle (reference)', async () => {
                 const instance = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
                 await compare(instance);
             });
 
-            test('empty subtitle reserves the same space as filled', async () => {
+            it('empty subtitle reserves the same space as filled', async () => {
                 const instance = await createChart({ ...baseOptions, subtitle: { text: '' } });
                 await compare(instance);
             });
 
-            test('disabled subtitle reclaims the space', async () => {
+            it('disabled subtitle reclaims the space', async () => {
                 const instance = await createChart({ ...baseOptions, subtitle: { enabled: false } });
                 await compare(instance);
             });
 
-            test('filled footnote (reference)', async () => {
+            it('filled footnote (reference)', async () => {
                 const instance = await createChart({ ...baseOptions, footnote: { text: 'Footnote' } });
                 await compare(instance);
             });
 
-            test('empty footnote reserves the same space as filled', async () => {
+            it('empty footnote reserves the same space as filled', async () => {
                 const instance = await createChart({ ...baseOptions, footnote: { text: '' } });
                 await compare(instance);
             });
         });
 
-        test('empty subtitle and filled subtitle yield the same series-area y', async () => {
+        it('empty subtitle and filled subtitle yield the same series-area y', async () => {
             chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } }));
             const filledSeriesY = chart.seriesAreaBoundingBox.y;
 
@@ -305,7 +316,7 @@ describe('Caption', () => {
             expect(titleBBox.y + titleBBox.height).toBeLessThanOrEqual(emptySeriesY);
         });
 
-        test('disabled subtitle reclaims the space', async () => {
+        it('disabled subtitle reclaims the space', async () => {
             chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: '' } }));
             const enabledEmptySeriesY = chart.seriesAreaBoundingBox.y;
 
@@ -315,17 +326,18 @@ describe('Caption', () => {
             expect(disabledSeriesY).toBeLessThan(enabledEmptySeriesY);
         });
 
-        test('updating non-empty subtitle to empty preserves layout', async () => {
-            chart = deproxy(await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } }));
+        it('updating non-empty subtitle to empty preserves layout', async () => {
+            const instance = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
+            chart = deproxy(instance);
             const beforeSeriesY = chart.seriesAreaBoundingBox.y;
 
-            await (chart as any).update({ ...baseOptions, subtitle: { text: '' } });
+            await instance.update(prepareTestOptions({ ...baseOptions, subtitle: { text: '' } }));
             await waitForChartStability(chart);
 
             expect(chart.seriesAreaBoundingBox.y).toBeCloseTo(beforeSeriesY, 0);
         });
 
-        test('empty footnote and filled footnote yield the same series-area bottom', async () => {
+        it('empty footnote and filled footnote yield the same series-area bottom', async () => {
             chart = deproxy(await createChart({ ...baseOptions, footnote: { text: 'Footnote' } }));
             const filledSeriesBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
 
@@ -349,7 +361,7 @@ describe('Caption', () => {
             legend: { enabled: false },
         };
 
-        test('left-aligned title is horizontally inset by its padding when unboxed', async () => {
+        it('left-aligned title is horizontally inset by its padding when unboxed', async () => {
             chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue', textAlign: 'left' } }));
             const withoutPadding = Transformable.toCanvas(chart.title.node).x;
 
@@ -364,7 +376,7 @@ describe('Caption', () => {
             expect(withPadding - withoutPadding).toBeCloseTo(16, 0);
         });
 
-        test('title padding reserves vertical layout space when unboxed', async () => {
+        it('title padding reserves vertical layout space when unboxed', async () => {
             chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue' } }));
             const withoutPadding = chart.seriesAreaBoundingBox.y;
 
@@ -390,7 +402,7 @@ describe('Caption', () => {
         const boxPadding = { top: 20, right: 12, bottom: 20, left: 12 };
 
         describe('visual snapshots', () => {
-            test('title fill and fillOpacity', async () => {
+            it('title fill and fillOpacity', async () => {
                 const instance = await createChart({
                     ...seriesOptions,
                     title: { text: 'Revenue', fill: '#4a90d9', fillOpacity: 0.5 },
@@ -398,7 +410,7 @@ describe('Caption', () => {
                 await compare(instance);
             });
 
-            test('title border', async () => {
+            it('title border', async () => {
                 const instance = await createChart({
                     ...seriesOptions,
                     title: { text: 'Revenue', border: { enabled: true, stroke: '#204060', strokeWidth: 2 } },
@@ -406,7 +418,7 @@ describe('Caption', () => {
                 await compare(instance);
             });
 
-            test('title cornerRadius and object padding', async () => {
+            it('title cornerRadius and object padding', async () => {
                 const instance = await createChart({
                     ...seriesOptions,
                     title: {
@@ -419,7 +431,7 @@ describe('Caption', () => {
                 await compare(instance);
             });
 
-            test('title numeric padding', async () => {
+            it('title numeric padding', async () => {
                 const instance = await createChart({
                     ...seriesOptions,
                     title: { text: 'Revenue', fill: '#e0e8f0', padding: 20 },
@@ -427,7 +439,7 @@ describe('Caption', () => {
                 await compare(instance);
             });
 
-            test('subtitle fill', async () => {
+            it('subtitle fill', async () => {
                 const instance = await createChart({
                     ...seriesOptions,
                     title: { text: 'Revenue' },
@@ -436,7 +448,7 @@ describe('Caption', () => {
                 await compare(instance);
             });
 
-            test('footnote fill', async () => {
+            it('footnote fill', async () => {
                 const instance = await createChart({
                     ...seriesOptions,
                     footnote: { text: 'Source: internal', fill: '#d0f0d0' },
@@ -447,7 +459,7 @@ describe('Caption', () => {
 
         // AC4: fill or border with no explicit padding still reserves non-zero inset, so the
         // background box grows the caption bounds rather than clipping the text.
-        test('bordered title with no explicit padding grows the caption bbox', async () => {
+        it('bordered title with no explicit padding grows the caption bbox', async () => {
             chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue' } }));
             const plainBBox = chart.title.node.getBBox();
 
@@ -463,7 +475,7 @@ describe('Caption', () => {
             expect(borderedBBox.height).toBeGreaterThan(plainBBox.height);
         });
 
-        test('fill-only title with no explicit padding grows the caption bbox', async () => {
+        it('fill-only title with no explicit padding grows the caption bbox', async () => {
             chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue' } }));
             const plainBBox = chart.title.node.getBBox();
 
@@ -475,7 +487,7 @@ describe('Caption', () => {
         });
 
         // TC1: layout reserves space for the box, pushing the series area away from the caption.
-        test('boxed title pushes the series area down vs unboxed', async () => {
+        it('boxed title pushes the series area down vs unboxed', async () => {
             chart = deproxy(await createChart({ ...seriesOptions, title: { text: 'Revenue' } }));
             const unboxedSeriesY = chart.seriesAreaBoundingBox.y;
 
@@ -490,7 +502,7 @@ describe('Caption', () => {
             expect(boxedSeriesY).toBeGreaterThan(unboxedSeriesY);
         });
 
-        test('boxed footnote lifts the series area bottom vs unboxed', async () => {
+        it('boxed footnote lifts the series area bottom vs unboxed', async () => {
             chart = deproxy(await createChart({ ...seriesOptions, footnote: { text: 'Source' } }));
             const unboxedBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
 
@@ -507,7 +519,7 @@ describe('Caption', () => {
 
         // Rich-text/segment captions render the box but their bbox is not grown by the box
         // padding, so the layout reservation is compensated caption-side.
-        test('boxed rich-text title reserves box padding in the layout', async () => {
+        it('boxed rich-text title reserves box padding in the layout', async () => {
             chart = deproxy(await createChart({ ...seriesOptions, title: { text: [{ text: 'Revenue' }] } }));
             const unboxedSeriesY = chart.seriesAreaBoundingBox.y;
 
@@ -524,7 +536,7 @@ describe('Caption', () => {
 
         // A rich-text box does not grow the caption bbox, so the layout compensates — without
         // double-counting the padding against the caption's inset position.
-        test('boxed rich-text caption does not double-count box padding vs plain text', async () => {
+        it('boxed rich-text caption does not double-count box padding vs plain text', async () => {
             chart = deproxy(
                 await createChart({
                     ...seriesOptions,
@@ -565,11 +577,11 @@ describe('Caption', () => {
 
         // The caption layer is sized to node.getBBox(), so a segment bbox omitting the box padding clips
         // the box top. `truncate: false` stops the padded title wrapping to a zero-height bbox here.
-        test('boxed rich-text title bbox includes the box like plain text (no clip)', async () => {
+        it('boxed rich-text title bbox includes the box like plain text (no clip)', async () => {
             chart = deproxy(
                 await createChart({
                     ...seriesOptions,
-                    title: { text: 'Revenue', fill: '#4a90d9', padding: boxPadding, truncate: false } as any,
+                    title: untruncated({ text: 'Revenue', fill: '#4a90d9', padding: boxPadding }),
                 })
             );
             const plainBBox = chart.title.node.getBBox();
@@ -577,12 +589,7 @@ describe('Caption', () => {
             chart = deproxy(
                 await createChart({
                     ...seriesOptions,
-                    title: {
-                        text: [{ text: 'Revenue' }],
-                        fill: '#4a90d9',
-                        padding: boxPadding,
-                        truncate: false,
-                    } as any,
+                    title: untruncated({ text: [{ text: 'Revenue' }], fill: '#4a90d9', padding: boxPadding }),
                 })
             );
             const richBBox = chart.title.node.getBBox();
@@ -595,19 +602,24 @@ describe('Caption', () => {
 
     // A multi-line rich-text footnote must report the correct bounds for its accessibility proxy element.
     describe('CRT-1041 footnote caption bounds', () => {
-        function assertProxyBoundsMatchCanvas(caption: ChartCaption) {
-            const canvasBBox = Transformable.toCanvas(caption.node);
-            const proxyBBox = (caption as any).lastProxyBBox as
-                { x: number; y: number; width: number; height: number } | undefined;
-
-            expect(proxyBBox).toBeDefined();
-            expect(proxyBBox!.x).toBeCloseTo(canvasBBox.x, 0);
-            expect(proxyBBox!.y).toBeCloseTo(canvasBBox.y, 0);
-            expect(proxyBBox!.width).toBeCloseTo(canvasBBox.width, 0);
-            expect(proxyBBox!.height).toBeCloseTo(canvasBBox.height, 0);
+        // The bounds are what the caption gives its accessibility proxy element, which screen readers locate it by.
+        function getProxyBounds(caption: ChartCaption) {
+            const element = getCaptionProxyElement(caption);
+            expect(element).toBeDefined();
+            return getElementBBox(element!);
         }
 
-        test('multi-line footnote proxy bounds match canvas position', async () => {
+        function assertProxyBoundsMatchCanvas(caption: ChartCaption) {
+            const canvasBBox = Transformable.toCanvas(caption.node);
+            const proxyBBox = getProxyBounds(caption);
+
+            expect(proxyBBox.x).toBeCloseTo(canvasBBox.x, 0);
+            expect(proxyBBox.y).toBeCloseTo(canvasBBox.y, 0);
+            expect(proxyBBox.width).toBeCloseTo(canvasBBox.width, 0);
+            expect(proxyBBox.height).toBeCloseTo(canvasBBox.height, 0);
+        }
+
+        it('multi-line footnote proxy bounds match canvas position', async () => {
             chart = deproxy(
                 await createChart({
                     title: { text: 'Chart Title' },
@@ -620,12 +632,12 @@ describe('Caption', () => {
             assertProxyBoundsMatchCanvas(footnote);
 
             // Footnote proxy must be fully within the canvas area.
-            const proxyBBox = (footnote as any).lastProxyBBox;
+            const proxyBBox = getProxyBounds(footnote);
             expect(proxyBBox.y).toBeGreaterThan(0);
             expect(proxyBBox.y + proxyBBox.height).toBeLessThanOrEqual(chart.height!);
         });
 
-        test('multi-line captions proxy bounds match canvas position', async () => {
+        it('multi-line captions proxy bounds match canvas position', async () => {
             chart = deproxy(
                 await createChart({
                     title: { text: 'Title Line 1\nTitle Line 2' },
@@ -641,7 +653,7 @@ describe('Caption', () => {
 
             // All proxy elements must be fully within the canvas area.
             for (const caption of [chart.title, chart.subtitle, chart.footnote]) {
-                const proxyBBox = (caption as any).lastProxyBBox;
+                const proxyBBox = getProxyBounds(caption);
                 expect(proxyBBox.y).toBeGreaterThanOrEqual(0);
                 expect(proxyBBox.y + proxyBBox.height).toBeLessThanOrEqual(chart.height!);
             }
@@ -660,7 +672,7 @@ describe('Caption', () => {
             legend: { enabled: false },
         };
 
-        test.each(['title', 'subtitle', 'footnote'] as const)(
+        it.each(['title', 'subtitle', 'footnote'] as const)(
             'disabling %s hides the node, re-enabling shows it again',
             async (key) => {
                 const proxy = (await createChart({
@@ -712,7 +724,7 @@ describe('Caption', () => {
             expectWarningsCalls().toHaveLength(0);
         }
 
-        test('leading block image with a multi-line title column', async () => {
+        it('leading block image with a multi-line title column', async () => {
             await createStubbedChart({
                 title: {
                     text: [
@@ -724,7 +736,7 @@ describe('Caption', () => {
             });
         });
 
-        test('block image in the subtitle', async () => {
+        it('block image in the subtitle', async () => {
             await createStubbedChart({
                 title: { text: 'Sales Overview' },
                 subtitle: {
@@ -736,7 +748,7 @@ describe('Caption', () => {
             });
         });
 
-        test('block and inline image mix in a caption', async () => {
+        it('block and inline image mix in a caption', async () => {
             await createStubbedChart({
                 title: {
                     text: [
@@ -749,7 +761,7 @@ describe('Caption', () => {
             });
         });
 
-        test.each(['left', 'center', 'right'] as const)(
+        it.each(['left', 'center', 'right'] as const)(
             'block image with textAlign=%s (block rows left-anchored within the centred caption)',
             async (textAlign) => {
                 await createStubbedChart({
@@ -765,7 +777,7 @@ describe('Caption', () => {
             }
         );
 
-        test('narrow caption wraps the text column beside the block image', async () => {
+        it('narrow caption wraps the text column beside the block image', async () => {
             await createStubbedChart({
                 title: {
                     maxWidth: 260,
@@ -780,7 +792,7 @@ describe('Caption', () => {
             });
         });
 
-        test("oversized block image is dropped under default 'hide' so the title text still renders", async () => {
+        it("oversized block image is dropped under default 'hide' so the title text still renders", async () => {
             await createStubbedChart({
                 title: {
                     maxWidth: 300,
@@ -825,13 +837,8 @@ describe('Caption', () => {
          * `clickAction`. `bubbles` matches a genuine click, so the event also reaches the
          * chart-background handler that AC4 requires to stay silent.
          */
-        function captionElement(caption: ChartCaption): HTMLElement | undefined {
-            const { proxyText } = caption as unknown as { proxyText?: { getElement(): HTMLElement } };
-            return proxyText?.getElement();
-        }
-
         async function clickCaption(caption: ChartCaption, type: 'click' | 'dblclick' = 'click') {
-            const element = captionElement(caption);
+            const element = getCaptionProxyElement(caption);
             if (element == null) {
                 throw new Error('caption has no proxy element');
             }
@@ -841,7 +848,7 @@ describe('Caption', () => {
 
         /** Clicks a caption only if it has a click target, for the cases where it should not have one. */
         async function clickCaptionIfPresent(caption: ChartCaption) {
-            captionElement(caption)?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            getCaptionProxyElement(caption)?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
             return delay(50);
         }
 
@@ -853,7 +860,7 @@ describe('Caption', () => {
         });
 
         describe('caption-level listeners', () => {
-            test('AC1: clicking the title fires `click` with the title discriminator', async () => {
+            it('AC1: clicking the title fires `click` with the title discriminator', async () => {
                 const click = vi.fn();
                 chart = deproxy(await createChart(chartOptions(withListeners({ click }))));
 
@@ -870,7 +877,7 @@ describe('Caption', () => {
                 );
             });
 
-            test('AC3: clicking the subtitle fires `click` with the subtitle discriminator', async () => {
+            it('AC3: clicking the subtitle fires `click` with the subtitle discriminator', async () => {
                 const click = vi.fn();
                 chart = deproxy(await createChart(chartOptions(withListeners({ click }))));
 
@@ -882,7 +889,7 @@ describe('Caption', () => {
                 );
             });
 
-            test('AC3: clicking the footnote fires `click` with the footnote discriminator', async () => {
+            it('AC3: clicking the footnote fires `click` with the footnote discriminator', async () => {
                 const click = vi.fn();
                 chart = deproxy(await createChart(chartOptions(withListeners({ click }))));
 
@@ -894,7 +901,7 @@ describe('Caption', () => {
                 );
             });
 
-            test('AC2: double-clicking the footnote fires `doubleClick`', async () => {
+            it('AC2: double-clicking the footnote fires `doubleClick`', async () => {
                 const doubleClick = vi.fn();
                 chart = deproxy(await createChart(chartOptions(withListeners({ doubleClick }))));
 
@@ -907,7 +914,7 @@ describe('Caption', () => {
             });
 
             // The browser precedes every `dblclick` with two `click` events, so both listeners fire.
-            test('AC2: a real double-click sequence fires `click` twice and `doubleClick` once', async () => {
+            it('AC2: a real double-click sequence fires `click` twice and `doubleClick` once', async () => {
                 const click = vi.fn();
                 const doubleClick = vi.fn();
                 chart = deproxy(await createChart(chartOptions(withListeners({ click, doubleClick }))));
@@ -920,7 +927,7 @@ describe('Caption', () => {
                 expect(doubleClick).toHaveBeenCalledTimes(1);
             });
 
-            test('AC3: clicking one caption does not fire the others', async () => {
+            it('AC3: clicking one caption does not fire the others', async () => {
                 const titleClick = vi.fn();
                 const subtitleClick = vi.fn();
                 const footnoteClick = vi.fn();
@@ -941,7 +948,7 @@ describe('Caption', () => {
                 expect(footnoteClick).not.toHaveBeenCalled();
             });
 
-            test('the chart `context` is passed to the listener', async () => {
+            it('the chart `context` is passed to the listener', async () => {
                 const click = vi.fn();
                 const context = { source: 'unit-test' };
                 chart = deproxy(await createChart(chartOptions({ ...withListeners({ click }), context })));
@@ -951,7 +958,7 @@ describe('Caption', () => {
                 expect(click).toHaveBeenCalledWith(expect.objectContaining({ context }));
             });
 
-            test('listeners added by a later update are picked up', async () => {
+            it('listeners added by a later update are picked up', async () => {
                 const click = vi.fn();
                 const proxy = (await createChart(chartOptions())) as AgChartProxy;
                 chart = deproxy(proxy);
@@ -965,7 +972,7 @@ describe('Caption', () => {
         });
 
         describe('chart-level listeners', () => {
-            test('AC6: clicking the title fires `captionClick`', async () => {
+            it('AC6: clicking the title fires `captionClick`', async () => {
                 const captionClick = vi.fn();
                 chart = deproxy(await createChart(chartOptions({ listeners: { captionClick } })));
 
@@ -977,7 +984,7 @@ describe('Caption', () => {
                 );
             });
 
-            test('AC6: clicking the footnote fires the same `captionClick` listener', async () => {
+            it('AC6: clicking the footnote fires the same `captionClick` listener', async () => {
                 const captionClick = vi.fn();
                 chart = deproxy(await createChart(chartOptions({ listeners: { captionClick } })));
 
@@ -989,7 +996,7 @@ describe('Caption', () => {
                 );
             });
 
-            test('AC6: double-clicking a caption fires `captionDoubleClick`', async () => {
+            it('AC6: double-clicking a caption fires `captionDoubleClick`', async () => {
                 const captionDoubleClick = vi.fn();
                 chart = deproxy(await createChart(chartOptions({ listeners: { captionDoubleClick } })));
 
@@ -1001,7 +1008,7 @@ describe('Caption', () => {
                 );
             });
 
-            test('AC6: the chart-level listener fires alongside the caption-level one', async () => {
+            it('AC6: the chart-level listener fires alongside the caption-level one', async () => {
                 const click = vi.fn();
                 const captionClick = vi.fn();
                 chart = deproxy(
@@ -1018,7 +1025,7 @@ describe('Caption', () => {
         // The chart-level `click` listener only fires for the chart container itself, so a caption click must not reach it.
         describe('AC4/AC5: interaction with the chart-background handler', () => {
             // Control for the negative assertions below: the chart `click` listener really is reachable here.
-            test('a click on the chart background does fire the chart `click` listener', async () => {
+            it('a click on the chart background does fire the chart `click` listener', async () => {
                 const chartClick = vi.fn();
                 chart = deproxy(await createChart(chartOptions({ listeners: { click: chartClick } })));
 
@@ -1030,7 +1037,7 @@ describe('Caption', () => {
                 expect(chartClick).toHaveBeenCalledTimes(1);
             });
 
-            test('AC4: a caption click does not also fire the chart `click` listener', async () => {
+            it('AC4: a caption click does not also fire the chart `click` listener', async () => {
                 const captionClickListener = vi.fn();
                 const chartClick = vi.fn();
                 chart = deproxy(
@@ -1048,7 +1055,7 @@ describe('Caption', () => {
                 expect(chartClick).not.toHaveBeenCalled();
             });
 
-            test('AC5: with no caption listener nothing is fired', async () => {
+            it('AC5: with no caption listener nothing is fired', async () => {
                 const chartClick = vi.fn();
                 chart = deproxy(await createChart(chartOptions({ listeners: { click: chartClick } })));
 
@@ -1063,7 +1070,7 @@ describe('Caption', () => {
         describe('TC1: only present captions are interactive', () => {
             // The chart-level listener needs no per-caption configuration: adding a `subtitle` key at all would
             // give it the theme's default text and make it a real caption.
-            test('an unconfigured subtitle and footnote are not clickable', async () => {
+            it('an unconfigured subtitle and footnote are not clickable', async () => {
                 const captionClick = vi.fn();
                 chart = deproxy(
                     await createChart({
@@ -1086,7 +1093,7 @@ describe('Caption', () => {
                 expect(captionClick).toHaveBeenCalledWith(expect.objectContaining({ captionType: 'title' }));
             });
 
-            test('a disabled caption is not clickable', async () => {
+            it('a disabled caption is not clickable', async () => {
                 const click = vi.fn();
                 chart = deproxy(
                     await createChart(
@@ -1152,7 +1159,7 @@ describe('AG-13301 layout-driven caption shrinking', () => {
             },
         };
 
-        test('every caption shrinks toward its minimumFontSize to free up the plot area', async () => {
+        it('every caption shrinks toward its minimumFontSize to free up the plot area', async () => {
             const { proxy, chart } = await createSizedChart(600, 220, captions);
 
             // Each caption keeps its text whole, at a size no smaller than its own floor.
@@ -1171,7 +1178,7 @@ describe('AG-13301 layout-driven caption shrinking', () => {
             proxy.destroy();
         });
 
-        test('captions with room to spare keep their configured font size', async () => {
+        it('captions with room to spare keep their configured font size', async () => {
             const { proxy, chart } = await createSizedChart(600, 600, captions);
 
             for (const key of ['title', 'subtitle', 'footnote'] as const) {
@@ -1211,7 +1218,7 @@ describe('AG-13301 layout-driven caption shrinking', () => {
         const sizeOf = (fitted: Array<{ text: string; fontSize: number }>, needle: string) =>
             fitted.find((s) => s.text.includes(needle))!.fontSize;
 
-        test('every segment shrinks to the same fraction of its own range', async () => {
+        it('every segment shrinks to the same fraction of its own range', async () => {
             const { proxy, chart } = await createSizedChart(420, 320, { title: titleOptions });
 
             const { node } = chart.title;
@@ -1233,7 +1240,7 @@ describe('AG-13301 layout-driven caption shrinking', () => {
             proxy.destroy();
         });
 
-        test('a segment with a minimum of its own keeps its emphasis at the narrowest fit', async () => {
+        it('a segment with a minimum of its own keeps its emphasis at the narrowest fit', async () => {
             const { proxy, chart } = await createSizedChart(180, 320, { title: titleOptions });
 
             const fitted = chart.title.node.text as Array<{ text: string; fontSize: number }>;
@@ -1256,7 +1263,7 @@ describe('AG-13301 layout-driven caption shrinking', () => {
             proxy.destroy();
         });
 
-        test('a segmented title that fits keeps every configured segment size', async () => {
+        it('a segmented title that fits keeps every configured segment size', async () => {
             const shortSegments = [
                 { text: '2025 ', color: 'dodgerblue' },
                 { text: 'Growth', fontSize: 34, fontStyle: 'italic' as const },

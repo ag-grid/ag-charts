@@ -1,11 +1,13 @@
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 
 const yaml = require('js-yaml');
 
+const { parseExamplesArg } = require('./benchmark-examples');
 const { COMPARE, MB, MERGE, lastCells, node, report, result, runCompare, withFiles } = require('./memory-fixtures');
 
 /**
@@ -89,6 +91,31 @@ test('a memory pass that covers only some examples leaves the others as an em da
             assert.deepEqual(lastCells(row('high-perf-bar / create'), 3), ['40.00', '30.00', '-10.00']);
             assert.deepEqual(lastCells(row('high-perf-bar / update'), 3), ['—', '—', '—']);
             assert.match(out.stdout, /Δ \(MB\)/);
+        }
+    );
+});
+
+test('zoom examples left out of the memory pass show an em dash in every cell, and the comparison still passes', () => {
+    withFiles(
+        {
+            timing,
+            // A bare /benchmarks run: high-perf-bar was sampled, data-selection-zoom-line-area was not.
+            baseMem: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 40 })] }),
+            headMem: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 30 })] }),
+        },
+        (p) => {
+            const paths = { base: p.timing, compare: p.timing, baseMemory: p.baseMem, compareMemory: p.headMem };
+            const table = runCompare(paths);
+            assert.equal(table.status, 0, table.stderr);
+            const zoomRow = table.stdout
+                .split('\n')
+                .find((line) => line.includes('data-selection-zoom-line-area / line'));
+            assert.deepEqual(lastCells(zoomRow, 3), ['—', '—', '—']);
+
+            const zoom = runCompare(paths, { format: 'json' }).json.rankedByTime.find(
+                (r) => r.test === 'data-selection-zoom-line-area / line'
+            );
+            assert.deepEqual([zoom.beforeMb, zoom.afterMb, zoom.deltaMb], [null, null, null]);
         }
     );
 });
@@ -330,12 +357,116 @@ test('workflow: a memory merge failure warns instead of failing the report job',
     );
 });
 
-test('workflow: the memory example pattern, when limited, covers the high-perf and data-selection-zoom examples', () => {
-    const pattern = new RegExp(workflow.env.AG_MEMORY_EXAMPLE_PATTERN);
-    for (const name of ['high-perf-bar', 'high-perf-bar-stacked', 'data-selection-zoom-line-area']) {
-        assert.match(name, pattern);
+test('workflow: the memory pass selects its examples with memory-examples.js, from the trigger and the comment', () => {
+    const step = benchmarkSteps.find((s) => runOf(s).includes('--memory'));
+    assert.match(runOf(step), /memory-examples\.js --event "\$\{EVENT_NAME\}" --candidates "\$\{candidates\}"/);
+    assert.match(runOf(step), /--requested "\$\{REQUESTED_EXAMPLES\}"/);
+    assert.equal(step.env.EVENT_NAME, '${{ github.event_name }}');
+    assert.equal(step.env.REQUESTED_EXAMPLES, '${{ needs.resolve.outputs.requested }}');
+    // The old workflow-wide pattern would override the helper's per-trigger rule.
+    assert.equal(workflow.env.AG_MEMORY_EXAMPLE_PATTERN, undefined);
+});
+
+test('workflow: the resolve job hands the benchmark job the examples a /benchmarks comment named', () => {
+    const shardsStep = workflow.jobs.resolve.steps.find((s) => s.id === 'shards');
+    assert.equal(workflow.jobs.resolve.outputs.requested, '${{ steps.shards.outputs.requested }}');
+    // Written after benchmark-examples.js has rejected unknown names, which `bash -e` makes a hard stop.
+    const script = runOf(shardsStep);
+    assert.ok(script.indexOf('benchmark-examples.js') < script.indexOf('requested='));
+    assert.match(script, /echo "requested=\$\(tr -s '\[:space:\],' ',' <<< "\$\{examples\}"\)" >> \$GITHUB_OUTPUT/);
+});
+
+/** Runs the resolve job's shard step for a trigger and returns `{ status, stderr, outputs }` from its `$GITHUB_OUTPUT`. */
+function runResolveShards({ eventName, commentBody = '' }) {
+    const step = workflow.jobs.resolve.steps.find((s) => s.id === 'shards');
+    const script = runOf(step).replaceAll('${{ github.event_name }}', eventName);
+    assert.doesNotMatch(script, /\$\{\{/, 'step uses an expression this harness does not substitute');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'resolve-shards-'));
+    try {
+        const outputFile = path.join(dir, 'github-output');
+        fs.writeFileSync(outputFile, '');
+        const proc = spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', script], {
+            cwd: REPO_ROOT,
+            encoding: 'utf8',
+            env: {
+                ...process.env,
+                AG_SHARD_COUNT: String(workflow.env.AG_SHARD_COUNT),
+                COMMENT_BODY: commentBody,
+                GITHUB_OUTPUT: outputFile,
+            },
+        });
+        const outputs = Object.fromEntries(
+            fs
+                .readFileSync(outputFile, 'utf8')
+                .split('\n')
+                .filter(Boolean)
+                .map((line) => [line.slice(0, line.indexOf('=')), line.slice(line.indexOf('=') + 1)])
+        );
+        return { status: proc.status, stderr: proc.stderr, outputs };
+    } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
     }
-    assert.doesNotMatch('simple-chart', pattern);
+}
+
+/** What the memory pass would sample of `candidates`, given the resolve step's `requested` output. */
+function memorySelection(event, requested, candidates) {
+    const proc = node(path.join(BENCHMARK_DIR, 'memory-examples.js'), [
+        '--event',
+        event,
+        '--candidates',
+        candidates.join(','),
+        '--requested',
+        requested,
+    ]);
+    assert.equal(proc.status, 0, proc.stderr);
+    return proc.stdout.trim().split(',').filter(Boolean);
+}
+
+const ZOOM_CANDIDATES = ['data-selection-zoom-bar', 'data-selection-zoom-xy', 'high-perf-bar'];
+
+test('resolve step to memory pass: a bare /benchmarks comment samples high-perf only', () => {
+    const { status, stderr, outputs } = runResolveShards({ eventName: 'issue_comment', commentBody: '/benchmarks' });
+    assert.equal(status, 0, stderr);
+    assert.deepEqual(parseExamplesArg(outputs.requested), []);
+    assert.deepEqual(memorySelection('issue_comment', outputs.requested, ZOOM_CANDIDATES), ['high-perf-bar']);
+});
+
+test('resolve step to memory pass: a comment naming a zoom example keeps that example and no other zoom example', () => {
+    const { status, stderr, outputs } = runResolveShards({
+        eventName: 'issue_comment',
+        commentBody: '/benchmarks data-selection-zoom-bar, high-perf-bar',
+    });
+    assert.equal(status, 0, stderr);
+    assert.deepEqual(memorySelection('issue_comment', outputs.requested, ZOOM_CANDIDATES), [
+        'data-selection-zoom-bar',
+        'high-perf-bar',
+    ]);
+});
+
+test('resolve step to memory pass: only the comment first line names examples', () => {
+    const { status, stderr, outputs } = runResolveShards({
+        eventName: 'issue_comment',
+        commentBody: '/benchmarks high-perf-bar\ndata-selection-zoom-xy please\nthanks',
+    });
+    assert.equal(status, 0, stderr);
+    assert.deepEqual(memorySelection('issue_comment', outputs.requested, ZOOM_CANDIDATES), ['high-perf-bar']);
+});
+
+test('resolve step to memory pass: a non-comment trigger ignores the comment body and keeps the zoom family', () => {
+    const { status, stderr, outputs } = runResolveShards({ eventName: 'schedule' });
+    assert.equal(status, 0, stderr);
+    assert.deepEqual(parseExamplesArg(outputs.requested), []);
+    assert.deepEqual(memorySelection('schedule', outputs.requested, ZOOM_CANDIDATES), ZOOM_CANDIDATES);
+});
+
+test('resolve step: an unknown example name fails the step before any requested output is written', () => {
+    const { status, stderr, outputs } = runResolveShards({
+        eventName: 'issue_comment',
+        commentBody: '/benchmarks data-selection-zoom-nope',
+    });
+    assert.notEqual(status, 0);
+    assert.match(stderr, /data-selection-zoom-nope/);
+    assert.equal(outputs.requested, undefined);
 });
 
 test('compare-browser-latest.sh parses and offers the memory pass flag', () => {

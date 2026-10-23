@@ -1291,13 +1291,13 @@ describe('placeLabels orientation candidates', () => {
 
 describe('bar label placement helpers', () => {
     describe('barLabelResolvesOrientation', () => {
-        it.each([
+        it.each<[AgChartLabelOrientation | AgChartLabelOrientation[] | undefined, boolean]>([
             [undefined, false],
-            ['horizontal' as const, false],
-            [['horizontal'] as const, false],
-            [['horizontal', 'vertical'] as const, true],
+            ['horizontal', false],
+            [['horizontal'], false],
+            [['horizontal', 'vertical'], true],
         ])('%o -> %s', (orientation, expected) => {
-            expect(barLabelResolvesOrientation(orientation as any)).toBe(expected);
+            expect(barLabelResolvesOrientation(orientation)).toBe(expected);
         });
     });
 
@@ -1308,7 +1308,7 @@ describe('bar label placement helpers', () => {
             [['inside-center'] as const, false],
             [['inside-center', 'outside-end'] as const, true],
         ])('%o -> %s', (placement, expected) => {
-            expect(barLabelResolvesPlacement(placement as any)).toBe(expected);
+            expect(barLabelResolvesPlacement(placement)).toBe(expected);
         });
     });
 

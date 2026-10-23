@@ -1,29 +1,32 @@
 import type { AgCrossLineListeners } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
 import {
     BandScale,
     type CanvasPoint,
     ChartAxisDirection,
     ContinuousScale,
+    type PolarCrossLine as CorePolarCrossLine,
+    type CrossLineType,
     Group,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
     Path,
+    type PolarAxisLayout,
     RotatableText,
     type Scale,
     Sector,
     Transformable,
     clamp,
     createId,
+    crossLineHitTolerance,
+    getCrossLineValue,
     isNumberEqual,
     normalizeAngle360,
     normalizeAngle360FromDegrees,
+    validateCrossLineValue,
 } from 'ag-charts-core';
 import type { BBox, ExtendedPath2D, Node, Point } from 'ag-charts-core';
 
 import { drawPolygonRing } from '../polygonRing';
-
-const { crossLineHitTolerance, getCrossLineValue, validateCrossLineValue } = _ModuleSupport;
 
 /** Polar axes reserve no padding, so `overflow: 'pad-chart'` leaves the label at its configured position. */
 export type PolarCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions;
@@ -74,13 +77,13 @@ function extendEnds(points: Point[], distance: number) {
  * appropriate direction; `applyPolarLayout` populates whichever fields the active direction
  * consumes (`ticks` for angle, `gridAngles` for radius).
  */
-export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossLineLabelOptions> {
+export class PolarCrossLine implements CorePolarCrossLine<PolarCrossLineLabelOptions> {
     static readonly className = 'PolarCrossLine';
     readonly internalId = createId(this);
 
     id?: string;
     enabled?: boolean;
-    type!: _ModuleSupport.CrossLineType;
+    type!: CrossLineType;
     range?: [unknown, unknown];
     value?: unknown;
     fill?: string;
@@ -162,7 +165,7 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
         this.label = options.label;
     }
 
-    applyPolarLayout(layout: _ModuleSupport.PolarAxisLayout): void {
+    applyPolarLayout(layout: PolarAxisLayout): void {
         this.shape = layout.shape;
         this.axisOuterRadius = layout.axisOuterRadius;
         this.axisInnerRadius = layout.axisInnerRadius;

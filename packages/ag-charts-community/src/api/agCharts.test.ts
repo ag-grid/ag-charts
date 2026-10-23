@@ -7,6 +7,7 @@ import { AgCharts } from '../api/agCharts';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import { PieSeriesModule } from '../chart/series/polar/pieSeriesModule';
+import { setAgChartsDebug } from '../chart/test/seriesAccessors';
 import {
     createChart,
     deproxy,
@@ -20,6 +21,7 @@ import {
 import { locateChartWrapper } from '../dom/test/testUtils';
 import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
 import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
+import { invalidOption } from '../module/test/moduleAccessors';
 
 describe('AgCharts', () => {
     setupMockConsole({ includeAllLevels: true });
@@ -81,12 +83,14 @@ describe('AgCharts', () => {
         expect(console.log).not.toHaveBeenCalledWith(expect.stringMatching(/Pool\[name=.*\]/), expect.any(Object));
     }
 
+    let restoreAgChartsDebug: () => void;
+
     beforeEach(() => {
-        (globalThis as any).agChartsDebug = ['perf', 'pool', 'dev'];
+        restoreAgChartsDebug = setAgChartsDebug(['perf', 'pool', 'dev']);
     });
 
     afterEach(() => {
-        delete (globalThis as any).agChartsDebug;
+        restoreAgChartsDebug();
     });
 
     describe('sparkline optimisations', () => {
@@ -212,22 +216,21 @@ describe('AgCharts', () => {
 
     describe('option mutability', () => {
         it('should handle deep options mutations', async () => {
-            const options = {
+            const lineSeries: AgLineSeriesOptions = {
+                type: 'line',
+                xKey: 'month',
+                yKey: 'min',
+                interpolation: { type: 'smooth' },
+            };
+            const options: AgChartOptions = {
                 data: [
                     { month: 'January', max: 8.5, min: 2.6 },
                     { month: 'February', max: 10.4, min: 3 },
                     { month: 'March', max: 10.9, min: 4.7 },
                     { month: 'April', max: 13.7, min: 5 },
                 ],
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'month',
-                        yKey: 'min',
-                        interpolation: { type: 'smooth' },
-                    },
-                ],
-            } satisfies AgChartOptions;
+                series: [lineSeries],
+            };
 
             chart = await createChart(options);
             prepareTestOptions(options);
@@ -239,7 +242,7 @@ describe('AgCharts', () => {
                 interpolation: { type: 'smooth' },
             });
 
-            options.series[0].interpolation = { type: 'smooth', tension: 1 } as any;
+            lineSeries.interpolation = { type: 'smooth', tension: 1 };
             await chart.update(options);
             await chart.waitForUpdate();
 
@@ -250,7 +253,7 @@ describe('AgCharts', () => {
                 interpolation: { type: 'smooth', tension: 1 },
             });
 
-            options.series[0].interpolation = { type: 'linear' } as any;
+            lineSeries.interpolation = { type: 'linear' };
             await chart.update(options);
 
             expect(chart.getOptions().series?.[0]).toStrictEqual({
@@ -262,26 +265,20 @@ describe('AgCharts', () => {
         });
 
         it('should handle deep options enablement mutations', async () => {
-            const options = {
+            const marker: NonNullable<AgLineSeriesOptions['marker']> = {
+                enabled: false,
+                fill: { type: 'gradient' },
+                stroke: 'blue',
+            };
+            const options: AgChartOptions = {
                 data: [
                     { month: 'January', max: 8.5, min: 2.6 },
                     { month: 'February', max: 10.4, min: 3 },
                     { month: 'March', max: 10.9, min: 4.7 },
                     { month: 'April', max: 13.7, min: 5 },
                 ],
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'month',
-                        yKey: 'min',
-                        marker: {
-                            enabled: false,
-                            fill: { type: 'gradient' },
-                            stroke: 'blue',
-                        },
-                    },
-                ],
-            } satisfies AgChartOptions;
+                series: [{ type: 'line', xKey: 'month', yKey: 'min', marker }],
+            };
 
             chart = await createChart(options);
             prepareTestOptions(options);
@@ -292,7 +289,7 @@ describe('AgCharts', () => {
                 enabled: false,
             });
 
-            options.series[0].marker.enabled = true as any;
+            marker.enabled = true;
             await chart.update(options);
 
             series = realChart.getChartOptions().processedOptions.series?.[0] as AgLineSeriesOptions;
@@ -302,7 +299,7 @@ describe('AgCharts', () => {
                 stroke: 'blue',
             });
 
-            options.series[0].marker.enabled = false;
+            marker.enabled = false;
             await chart.update(options);
 
             series = realChart.getChartOptions().processedOptions.series?.[0] as AgLineSeriesOptions;
@@ -395,7 +392,7 @@ describe('AgCharts', () => {
             ]);
 
             const realChart = deproxy(chart);
-            for (const series of realChart.series as any[]) {
+            for (const series of realChart.series) {
                 expect(findFill(series.contentGroup, 'lab(50% 40 59.5)')).toBe(false);
             }
         });
@@ -462,7 +459,7 @@ describe('AgCharts', () => {
             ['an empty array', []],
             ['an empty object', {}],
         ])('logs a descriptive error for %s and still returns an instance', (_name, options) => {
-            expect(() => (chart = AgCharts.create(options as any))).not.toThrow();
+            expect(() => (chart = AgCharts.create(invalidOption(options)))).not.toThrow();
             expect(chart).toBeDefined();
             expectErrorsCalls().toEqual([[expect.stringMatching(expectedError)]]);
             expect(console.warn).not.toHaveBeenCalled();
@@ -470,7 +467,7 @@ describe('AgCharts', () => {
 
         it('names the value it received', () => {
             const received = (options: unknown) => {
-                chart = AgCharts.create(options as any);
+                chart = AgCharts.create(invalidOption(options));
                 chart.destroy();
                 const [[message]] = (console.error as Mock).mock.calls;
                 (console.error as Mock).mockClear();
@@ -486,7 +483,7 @@ describe('AgCharts', () => {
         });
 
         it('records the error as a validation issue the overlay can show', () => {
-            chart = AgCharts.create(undefined as any);
+            chart = AgCharts.create(invalidOption(undefined));
             expectErrorsCalls().toHaveLength(1);
             const { validations } = deproxy(chart).ctx;
             validations.setShowOverlayOn(['error']);
@@ -502,7 +499,7 @@ describe('AgCharts', () => {
                 undefined,
                 'AgCharts `options` prop'
             );
-            chart = AgCharts.create({ ...wrapperOptions, container } as any);
+            chart = AgCharts.create(invalidOption({ ...wrapperOptions, container }));
             expectErrorsCalls().toEqual([
                 [
                     expect.stringMatching(
@@ -518,7 +515,7 @@ describe('AgCharts', () => {
             expectWarningsCalls();
 
             const wrapperOptions = AgCharts.__validateOptionsArgument<object | undefined>(
-                3 as any,
+                invalidOption(3),
                 'AgCharts `options` prop'
             );
             await chart.update({ ...wrapperOptions, container } as AgChartOptions);
@@ -536,15 +533,23 @@ describe('AgCharts', () => {
         // The enterprise presets are unregistered in this community-only registry, so each also reports
         // the module the caller needs before its entry point can do anything.
         it.each([
-            ['createFinancialChart', () => AgCharts.createFinancialChart(undefined as any), ['FinancialChartModule']],
-            ['createGauge', () => AgCharts.createGauge(undefined as any), ['AllGaugeModule']],
-            ['createQuadrantChart', () => AgCharts.createQuadrantChart(undefined as any), ['QuadrantChartModule']],
             [
-                'createVolumeProfileChart',
-                () => AgCharts.createVolumeProfileChart(undefined as any),
+                'createFinancialChart',
+                () => AgCharts.createFinancialChart(invalidOption(undefined)),
                 ['FinancialChartModule'],
             ],
-            ['__createSparkline', () => AgCharts.__createSparkline(undefined as any), []],
+            ['createGauge', () => AgCharts.createGauge(invalidOption(undefined)), ['AllGaugeModule']],
+            [
+                'createQuadrantChart',
+                () => AgCharts.createQuadrantChart(invalidOption(undefined)),
+                ['QuadrantChartModule'],
+            ],
+            [
+                'createVolumeProfileChart',
+                () => AgCharts.createVolumeProfileChart(invalidOption(undefined)),
+                ['FinancialChartModule'],
+            ],
+            ['__createSparkline', () => AgCharts.__createSparkline(invalidOption(undefined)), []],
         ])('names %s in the error it reports', (methodName, call, missingModules) => {
             expect(() => (chart = call() as AgChartInstance)).not.toThrow();
             expectErrorsCalls().toEqual([
@@ -560,7 +565,7 @@ describe('AgCharts', () => {
         });
 
         it('rejects a sparkline whose only option is `pool`', () => {
-            chart = AgCharts.__createSparkline({ pool: true } as any) as AgChartInstance;
+            chart = AgCharts.__createSparkline(invalidOption({ pool: true })) as AgChartInstance;
             expectErrorsCalls().toEqual([
                 [
                     expect.stringMatching(
@@ -573,7 +578,7 @@ describe('AgCharts', () => {
 
         it('does not throw for a non-empty object that is missing `container` or `series`', async () => {
             // `container` is optional by design; per-option problems stay on the warn-and-continue path.
-            expect(() => (chart = AgCharts.create({ foo: true } as any))).not.toThrow();
+            expect(() => (chart = AgCharts.create(invalidOption({ foo: true })))).not.toThrow();
             await chart.waitForUpdate();
 
             expectWarningsCalls().toEqual([[expect.stringMatching(/Unknown option `foo`/)]]);

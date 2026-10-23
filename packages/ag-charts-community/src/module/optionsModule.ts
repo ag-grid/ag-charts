@@ -67,6 +67,7 @@ import {
 
 import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expectedModules';
 import {
+    composeAxisOptionsDefs,
     composeChartOptionsDefs,
     processModuleOptions,
     removeIncompatibleModuleOptions,
@@ -1071,7 +1072,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             const { validate: validateAxis = validate } = axisDef;
-            const { cleared, invalid } = validateAxis(axisOptions, axisDef.options, keyPath, params);
+            const axisDefs = composeAxisOptionsDefs(axisDef, this.moduleRegistry);
+            const { cleared, invalid } = validateAxis(axisOptions, axisDefs, keyPath, params);
 
             this.logValidationErrors(invalid);
 

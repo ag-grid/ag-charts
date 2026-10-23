@@ -484,6 +484,7 @@ export function getVisibleLabelNodes<TDatum = any>(
 interface AxisLayoutInternals {
     position: string;
     pickTickData: unknown;
+    scale: { domain: unknown[] };
     tickLabelGroupSelection: {
         nodes(): Iterable<DrawnLabelNode & { fill?: string; rotation: number; textAlign?: string }>;
     };
@@ -528,6 +529,11 @@ export function getAxisTickLayouts(chartOrProxy: ChartOrProxy<any>): AxisTickLay
 /** What the axis at `position` drew from its tick layout, as `getAxisTickLayouts` describes it. */
 export function getAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string): AxisTickLayout {
     return toAxisTickLayout(findAxisInternals(chartOrProxy, position));
+}
+
+/** The domain the scale of the axis at `position` autoscaled to. */
+export function getAxisScaleDomain(chartOrProxy: ChartOrProxy<any>, position: string): unknown[] {
+    return findAxisInternals(chartOrProxy, position).scale.domain;
 }
 
 /** The label texts of the axis at `position`, in order along the axis. */
@@ -1286,6 +1292,15 @@ export async function tabIntoChart(chart: ChartOrProxy) {
     expect(announcer).not.toBeNull();
     announcer!.focus();
     await waitForChartStability(chart);
+}
+
+/** The chart's keyboard tab stops in DOM order, each named by the first class of the proxy group holding it. */
+export function getTabStopGroups() {
+    const canvasProxy = document.querySelector('.ag-charts-canvas-proxy');
+    expect(canvasProxy).not.toBeNull();
+    return Array.from(canvasProxy!.querySelectorAll<HTMLElement>('*'))
+        .filter((element) => element.tabIndex >= 0)
+        .map((element) => element.closest('.ag-charts-proxy-container, .ag-charts-series-area')?.classList[0]);
 }
 
 // The swap-chain's visible announcer is labelled by the text read out for the focused datum.

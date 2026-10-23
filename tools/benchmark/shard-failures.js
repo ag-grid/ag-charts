@@ -12,6 +12,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+const { option: cliOption } = require('./cli-option');
+
 const TIMING_PASS = /^(head|base)-(\d+)\.(r\d+)\.json$/;
 
 /** Examples that timed out in any of the given report files. Missing files are ignored. An `error` does not count: only a hang costs the whole timeout each pass. */
@@ -45,8 +47,9 @@ function remainingExamples(examples, reportPaths) {
  * remainingExamples leaves a hung example out of later passes.
  */
 function collectExcluded(shardsDir) {
-    const reports = fs
-        .readdirSync(shardsDir)
+    // No shards directory means no shard ran, so there is nothing to exclude.
+    const files = fs.existsSync(shardsDir) ? fs.readdirSync(shardsDir) : [];
+    const reports = files
         .map((file) => ({ file, match: TIMING_PASS.exec(file) }))
         .filter(({ match }) => match)
         .map(({ file, match: [, side, shard, pass] }) => ({
@@ -96,10 +99,7 @@ module.exports = { timedOutExamples, remainingExamples, collectExcluded, formatE
 if (require.main === module) {
     const { argv } = process;
     const [command] = argv.slice(2);
-    const option = (name) => {
-        const index = argv.indexOf(name);
-        return index === -1 ? undefined : argv[index + 1];
-    };
+    const option = (name) => cliOption(argv, name);
 
     if (command === 'remaining') {
         const examples = (option('--examples') ?? '').split(/[\s,]+/).filter(Boolean);

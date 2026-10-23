@@ -9,6 +9,7 @@ import { Marker } from '../../chart/marker/marker';
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
+import { fakeLayersManagerWithCanvas } from '../test/sceneFakes';
 
 describe('Shape', () => {
     setupMockConsole();
@@ -980,9 +981,9 @@ describe('Shape', () => {
             });
             node.path.rect(20, 20, 30, 50);
             // A 200x110 layer at a pixel ratio of 2 is the 400x220 canvas.
-            vi.spyOn(node, 'layerManager', 'get').mockReturnValue({
-                canvas: { width: 200, height: 110, pixelRatio: 2 },
-            } as any);
+            vi.spyOn(node, 'layerManager', 'get').mockReturnValue(
+                fakeLayersManagerWithCanvas({ width: 200, height: 110, pixelRatio: 2 })
+            );
 
             clearCanvas();
             ctx.save();
