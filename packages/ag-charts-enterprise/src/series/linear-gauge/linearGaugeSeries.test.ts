@@ -21,8 +21,9 @@ import {
 import { Transformable } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { getLinearGaugeSeriesInstance, getSeriesAreaFocusDatum } from '../../test/enterpriseSeriesAccessors';
+import { destroyChart, getSeriesAreaFocusDatum, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { LinearGaugeSeries } from './linearGaugeSeries';
 
 describe('LinearGaugeSeries', () => {
     setupMockConsole();
@@ -38,9 +39,7 @@ describe('LinearGaugeSeries', () => {
     };
 
     afterEach(() => {
-        chart?.destroy();
-        // `chart` is not optional in the tests, so the reset needs the cast.
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -308,7 +307,7 @@ describe('LinearGaugeSeries', () => {
             chart = deproxy(AgCharts.createGauge(options));
             await waitForChartStability(chart);
 
-            const lineNode = [...getLinearGaugeSeriesInstance(chart).targetSelection.nodes()][0];
+            const lineNode = [...getSeriesInstance(chart, LinearGaugeSeries).targetSelection.nodes()][0];
             const lineBBox = Transformable.toCanvas(lineNode);
             const lineCx = lineBBox.x + lineBBox.width / 2;
             const lineCy = lineBBox.y + lineBBox.height / 2;
@@ -365,7 +364,7 @@ describe('LinearGaugeSeries', () => {
         describe('AC1 – ArrowUp from non-first target returns to bar (regression)', () => {
             it('direct pickFocus: ArrowUp with datumIndex=2 in layer 1 resolves to layer 0 at datumIndex 0', async () => {
                 const c = await setupKeyNavChart(SEGMENTED_WITH_TARGETS);
-                const series = getLinearGaugeSeriesInstance(c);
+                const series = getSeriesInstance(c, LinearGaugeSeries);
 
                 // The inputs onArrow produces after Down→Right→Right→Up.
                 const pick = series.pickFocus({
@@ -445,7 +444,7 @@ describe('LinearGaugeSeries', () => {
 
             it('direct pickFocus: ArrowUp with datumIndex=0 in layer 1 also resolves to layer 0', async () => {
                 const c = await setupKeyNavChart(SEGMENTED_WITH_TARGETS);
-                const series = getLinearGaugeSeriesInstance(c);
+                const series = getSeriesInstance(c, LinearGaugeSeries);
 
                 const pick = series.pickFocus({
                     datumIndex: 0,
@@ -490,7 +489,7 @@ describe('LinearGaugeSeries', () => {
                     segmentation: { enabled: true, interval: { count: 5 } },
                 };
                 const c = await setupKeyNavChart(noTargets);
-                const series = getLinearGaugeSeriesInstance(c);
+                const series = getSeriesInstance(c, LinearGaugeSeries);
 
                 const pick = series.pickFocus({
                     datumIndex: 0,
@@ -516,7 +515,7 @@ describe('LinearGaugeSeries', () => {
             prepareEnterpriseTestOptions(options);
             chart = deproxy(AgCharts.createGauge(options));
             await waitForChartStability(chart);
-            return getLinearGaugeSeriesInstance(chart).getCaptionText();
+            return getSeriesInstance(chart, LinearGaugeSeries).getCaptionText();
         };
 
         it('should render the bigint value label at full precision without throwing', async () => {

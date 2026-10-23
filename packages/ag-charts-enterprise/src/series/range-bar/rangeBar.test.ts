@@ -40,7 +40,6 @@ import {
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
     getSeriesAggregationInternals,
-    getSeriesAt,
     getSeriesContextNodeData,
     getSeriesDataNodeGroup,
     getSeriesRect,
@@ -58,10 +57,13 @@ import {
     tabIntoChart,
     testLegendItemName,
     waitForChartStability,
+    withUndocumentedChartOptions,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import { Shape, Transformable, roundTo } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
+import { destroyChart, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     createEnterpriseChart,
@@ -78,9 +80,7 @@ describe('RangeBarSeries', () => {
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        // A test that creates no chart leaves the variable unset, so it must not destroy the previous one again.
-        (chart as AgChartInstance | undefined)?.destroy();
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const CONTINUOUS_DATA = [
@@ -1947,8 +1947,9 @@ describe('RangeBarSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
 
             chart = await createEnterpriseChart(options);
@@ -2021,8 +2022,9 @@ describe('RangeBarSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
 
             chart = await createEnterpriseChart(options);
@@ -2032,8 +2034,9 @@ describe('RangeBarSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
 
             chart = await createEnterpriseChart(options);
@@ -2194,7 +2197,7 @@ describe('RangeBarSeries', () => {
         });
 
         function getBarCentre(seriesIndex: number, nodeIndex: number) {
-            const series = classCast(getSeriesAt(chart, seriesIndex), RangeBarSeries);
+            const series = getSeriesInstance(chart, RangeBarSeries, seriesIndex);
             const nodeData = series.getNodeData();
             expect(nodeData).toBeDefined();
             const node = nodeData![nodeIndex];
@@ -2375,11 +2378,12 @@ describe('RangeBarSeries category/gridline pixel alignment', () => {
                         ],
                         axes: CATEGORY_CENTRE_GRIDLINE_AXES,
                     });
-                    // `overrideDevicePixelRatio` is not in the public types; spreading it in avoids the excess-property check.
-                    const sizing = { width, height: 400, overrideDevicePixelRatio: dpr };
-
                     // Bespoke: the size is set after preparation.
-                    chart = AgCharts.create({ ...options, ...sizing });
+                    chart = AgCharts.create({
+                        ...withUndocumentedChartOptions(options, { overrideDevicePixelRatio: dpr }),
+                        width,
+                        height: 400,
+                    });
                     await waitForChartStability(chart);
 
                     expectBarCentresOnCategoryGridlines(chart, CATEGORIES.length);
@@ -2420,10 +2424,9 @@ describe('RangeBarSeries aggregated device-pixel snap', () => {
                 // `STRIPPED_NUMBER_AXES` types each axis `type` as `string`, so it needs the cast to the option type.
                 axes: STRIPPED_NUMBER_AXES as AgCartesianChartOptions['axes'],
             };
-            // `overrideDevicePixelRatio` is not in the public types; spreading it in avoids the excess-property check.
-            const sizing = { overrideDevicePixelRatio: dpr };
-
-            chart = await createEnterpriseChart({ ...options, ...sizing });
+            chart = await createEnterpriseChart(
+                withUndocumentedChartOptions(options, { overrideDevicePixelRatio: dpr })
+            );
 
             const series = getSeriesAggregationInternals(chart);
             expect(typeof series.estimateTargetRange).toBe('function');
@@ -2518,10 +2521,11 @@ describe('RangeBarSeries redraw with identical data', () => {
             axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
             ...extra,
         });
-        // `overrideDevicePixelRatio` is not in the public types; spreading it in avoids the excess-property check.
-        const sizing = { overrideDevicePixelRatio: dpr, width: 1200, height: 600 };
-
-        chart = AgCharts.create({ ...options, ...sizing });
+        chart = AgCharts.create({
+            ...withUndocumentedChartOptions(options, { overrideDevicePixelRatio: dpr }),
+            width: 1200,
+            height: 600,
+        });
         await waitForChartStability(chart);
         return chart;
     };

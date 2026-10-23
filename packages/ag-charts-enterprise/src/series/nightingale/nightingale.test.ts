@@ -37,10 +37,11 @@ import {
     tapAction,
     testLegendItemName,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import type { Sector } from 'ag-charts-core';
 
-import { getLegendHighlightCallerIds } from '../../test/enterpriseSeriesAccessors';
+import { destroyChart, getLegendHighlightCallerIds } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 
@@ -51,9 +52,7 @@ describe('NightingaleSeries', () => {
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        // A test that creates no chart leaves the variable unset, so it must not destroy the previous one again.
-        (chart as ChartOrProxy<any> | undefined)?.destroy();
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
@@ -499,12 +498,13 @@ describe('NightingaleSeries', () => {
         });
 
         it('should render nightingale series with an item bound gradient fill', async () => {
-            // `bounds` is not in the public types; building the fill first avoids the excess-property check.
-            const fill = {
-                type: 'gradient' as const,
-                bounds: 'item',
-                colorStops: [{ color: 'green' }, { color: 'white' }],
-            };
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { bounds: 'item' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [{ type: 'nightingale', angleKey: 'quarter', radiusKey: 'Mountain air', fill }],
@@ -514,12 +514,13 @@ describe('NightingaleSeries', () => {
         });
 
         it('should render nightingale series with a linear gradient fill', async () => {
-            // `gradient` is not in the public types; building the fill first avoids the excess-property check.
-            const fill = {
-                type: 'gradient' as const,
-                gradient: 'linear',
-                colorStops: [{ color: 'green' }, { color: 'white' }],
-            };
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { gradient: 'linear' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [{ type: 'nightingale', angleKey: 'quarter', radiusKey: 'Mountain air', fill }],
@@ -529,13 +530,13 @@ describe('NightingaleSeries', () => {
         });
 
         it('should render nightingale series with a series bound linear gradient fill', async () => {
-            // `gradient` and `bounds` are not in the public types; building the fill first avoids the excess-property check.
-            const fill = {
-                type: 'gradient' as const,
-                gradient: 'linear',
-                bounds: 'series',
-                colorStops: [{ color: 'green' }, { color: 'white' }],
-            };
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { gradient: 'linear', bounds: 'series' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [{ type: 'nightingale', angleKey: 'quarter', radiusKey: 'Mountain air', fill }],
@@ -867,8 +868,9 @@ describe('NightingaleSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
@@ -929,8 +931,9 @@ describe('NightingaleSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
@@ -939,8 +942,9 @@ describe('NightingaleSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 

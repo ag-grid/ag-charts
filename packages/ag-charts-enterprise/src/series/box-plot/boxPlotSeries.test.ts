@@ -38,6 +38,7 @@ import {
     spyOnAnimationManager,
     stripAxes,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 
 import {
@@ -1057,8 +1058,9 @@ describe('BoxPlotSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...BOX_PLOT_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             const chart = await createEnterpriseChart(options);
 
@@ -1135,8 +1137,9 @@ describe('BoxPlotSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...BOX_PLOT_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(BOX_PLOT_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...BOX_PLOT_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             const chart = await createEnterpriseChart(options);
 
@@ -1145,8 +1148,9 @@ describe('BoxPlotSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...BOX_PLOT_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(BOX_PLOT_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...BOX_PLOT_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             const chart = await createEnterpriseChart(options);
 

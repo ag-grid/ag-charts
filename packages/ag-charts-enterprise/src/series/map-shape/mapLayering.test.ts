@@ -15,7 +15,11 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { getLegendHighlightCallerIds, getLegendItemTranslationX } from '../../test/enterpriseSeriesAccessors';
+import {
+    destroyChart,
+    getLegendHighlightCallerIds,
+    getLegendItemTranslationX,
+} from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart } from '../../test/utils';
 import { data as heatmapData } from './map-layering-fixtures/heatmap-floating/data';
 import { topology as heatmapTopology } from './map-layering-fixtures/heatmap-floating/topology';
@@ -114,9 +118,7 @@ describe('Map layering', () => {
     let chart: Chart;
 
     afterEach(() => {
-        chart?.destroy();
-        // `chart` is not optional in the tests, so the reset needs the cast.
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();

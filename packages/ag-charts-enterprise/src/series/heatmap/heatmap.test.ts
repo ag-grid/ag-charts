@@ -39,13 +39,16 @@ import {
     stubChartImageLoader,
     tabIntoChart,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import { CallbackResultMemo, Group, Rect, Transformable } from 'ag-charts-core';
-import { classCast, testLogger } from 'ag-charts-test';
+import { testLogger } from 'ag-charts-test';
 
 import {
+    destroyChart,
     getHeatmapCellMethods,
     getLegendItemSuppressHighlight,
+    getSeriesInstance,
     getSeriesLabelTexts,
 } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -61,18 +64,10 @@ import {
 import { HeatmapCellBatch } from './heatmapCellBatch';
 import { HeatmapSeries } from './heatmapSeries';
 
-// The chart's series as a heatmap series, for the public members (groups, `getNodeData`) its own type declares.
-const heatmapSeriesAt = (chart: ChartOrProxy<any>, seriesIndex = 0) =>
-    classCast(getSeriesAt(chart, seriesIndex), HeatmapSeries);
-
-// `allowNullKeys` is not in the public types, so the series is built in a variable to clear the excess-property check.
-const ALLOW_NULL_KEYS_SERIES = {
-    type: 'heatmap' as const,
-    xKey: 'year',
-    yKey: 'person',
-    colorKey: 'spending',
-    allowNullKeys: true,
-};
+const ALLOW_NULL_KEYS_SERIES = withUndocumentedOptions(
+    { type: 'heatmap' as const, xKey: 'year', yKey: 'person', colorKey: 'spending' },
+    { allowNullKeys: true }
+);
 
 // Resolves nodeData fresh on every call so it stays valid across `proxy.update(...)` rebuilds.
 async function hoverDatumByIndex(
@@ -81,7 +76,7 @@ async function hoverDatumByIndex(
     datumIndex: number,
     hideDelay?: number
 ) {
-    const series = heatmapSeriesAt(chart, seriesIndex);
+    const series = getSeriesInstance(chart, HeatmapSeries, seriesIndex);
     const nodeData = series.getNodeData();
     expect(nodeData).toBeDefined();
     const datum = nodeData!.find((n) => n.datumIndex === datumIndex);
@@ -113,15 +108,11 @@ describe('HeatmapSeries', () => {
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart != null) {
-            chart.destroy();
-            // Cleared so that a test which fails before creating its chart does not destroy the previous one again.
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     async function select(datumIndex: number) {
-        const series = heatmapSeriesAt(chart);
+        const series = getSeriesInstance(chart, HeatmapSeries);
         const itemId = series.data!.getItemIdFromIndex(datumIndex);
         deproxy(chart).publicApi!.setSelection([{ seriesId: series.id, itemId }]);
         await waitForChartStability(chart);
@@ -853,7 +844,7 @@ describe('HeatmapSeries', () => {
             );
             await compare();
 
-            const seriesImpl = heatmapSeriesAt(chart);
+            const seriesImpl = getSeriesInstance(chart, HeatmapSeries);
             assertTooltipSuppressedForMissing(
                 seriesImpl,
                 data,
@@ -1432,7 +1423,7 @@ describe('HeatmapSeries', () => {
         const readAnchor = async (options: AgChartOptions) => {
             chart = deproxy(await createEnterpriseChart(options));
 
-            const context = heatmapSeriesAt(chart).contextNodeData;
+            const context = getSeriesInstance(chart, HeatmapSeries).contextNodeData;
             expect(context).toBeDefined();
 
             const labelDatum = context!.labelData[0];
@@ -1449,9 +1440,7 @@ describe('HeatmapSeries', () => {
                 textBaseline: labelDatum.textBaseline,
             };
 
-            chart.destroy();
-            // Cleared so that afterEach does not destroy the chart a second time.
-            (chart as unknown) = undefined;
+            chart = destroyChart(chart);
             return anchor;
         };
 
@@ -1529,7 +1518,7 @@ describe('HeatmapSeries', () => {
             it('anchors every cell to the alignment its styler returned', async () => {
                 chart = deproxy(await createEnterpriseChart(styledOptions()));
 
-                const context = heatmapSeriesAt(chart).contextNodeData;
+                const context = getSeriesInstance(chart, HeatmapSeries).contextNodeData;
                 expect(context).toBeDefined();
                 expect(context!.labelData).toHaveLength(9);
 
@@ -1977,7 +1966,7 @@ describe('HeatmapSeries', () => {
                     strokeWidth: STROKE_WIDTH_BY_STATE[highlightState as string] ?? 2,
                 }));
                 const highlightWidths = () =>
-                    collectShapes(heatmapSeriesAt(chart).highlightGroup).map((r) => r.strokeWidth);
+                    collectShapes(getSeriesInstance(chart, HeatmapSeries).highlightGroup).map((r) => r.strokeWidth);
                 chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, itemStyler })));
                 expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
                 expect(strokeWidths(chart)).toEqual([2, 2, 2, 2]);
@@ -2053,7 +2042,7 @@ describe('HeatmapSeries', () => {
             const ROWS = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
 
             const highlightWidths = () =>
-                collectShapes(heatmapSeriesAt(chart).highlightGroup).map((r) => r.strokeWidth);
+                collectShapes(getSeriesInstance(chart, HeatmapSeries).highlightGroup).map((r) => r.strokeWidth);
 
             describe.each([
                 ['undefined', () => undefined],
@@ -2403,7 +2392,7 @@ describe('HeatmapSeries', () => {
         it('keeps the colour scale fill in the tooltip symbol', async () => {
             chart = deproxy(await createEnterpriseChart(rawOptions()));
 
-            const series = heatmapSeriesAt(chart);
+            const series = getSeriesInstance(chart, HeatmapSeries);
             const content = series.getTooltipContent(2);
             expect(content).toMatchObject({ type: 'structured', symbol: { marker: { fill: cellFills(chart)[2] } } });
         });
@@ -2482,7 +2471,7 @@ describe('HeatmapSeries', () => {
             };
             const others = await nonCellRects(highlight);
             chart = deproxy(await createEnterpriseChart(rawOptions({ ...NO_TOOLTIP, highlight })));
-            const series = heatmapSeriesAt(chart);
+            const series = getSeriesInstance(chart, HeatmapSeries);
 
             const { rects } = await countFills(() => hoverDatumByIndex(chart, 0, 1));
 
@@ -2570,7 +2559,7 @@ describe('HeatmapSeries', () => {
         const buildOptions = (...args: Parameters<typeof rawOptions>) =>
             prepareEnterpriseTestOptions(rawOptions(...args));
 
-        const heatmap = (c: ChartOrProxy<any>) => heatmapSeriesAt(c);
+        const heatmap = (c: ChartOrProxy<any>) => getSeriesInstance(c, HeatmapSeries);
         const rects = (c: ChartOrProxy<any>) => itemNodes<Rect>(c);
         const cells = (c: ChartOrProxy<any>) =>
             rects(c).map((rect) => ({
@@ -3281,7 +3270,7 @@ describe('HeatmapSeries', () => {
                 legend: { enabled: false },
             } as AgChartOptions);
 
-        const heatmap = (c: ChartOrProxy<any>) => heatmapSeriesAt(c);
+        const heatmap = (c: ChartOrProxy<any>) => getSeriesInstance(c, HeatmapSeries);
         const batchOf = (c: ChartOrProxy<any>) =>
             [...heatmap(c).contentGroup.descendants()].find((node) => node instanceof HeatmapCellBatch);
         const isBatched = (c: ChartOrProxy<any>) => batchOf(c)?.visible === true;

@@ -37,10 +37,11 @@ import {
     spyOnAnimationFrames,
     tabIntoChart,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 
-import { getOhlcSeriesInstance } from '../../test/enterpriseSeriesAccessors';
+import { getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
@@ -50,6 +51,7 @@ import {
     renderEnterpriseChartImage,
     shadowedShapes,
 } from '../../test/utils';
+import { OhlcSeries } from './ohlcSeries';
 
 const OHLC_SERIES: AgOhlcSeriesOptions = {
     type: 'ohlc',
@@ -384,9 +386,6 @@ describe('OhlcSeries', () => {
         });
     });
 
-    // `allowNullKeys` is not in the public types, so it is spread in from a variable rather than written inline.
-    const ALLOW_NULL_KEYS = { allowNullKeys: true };
-
     describe('null category key', () => {
         const OHLC_NULL_CATEGORY_KEY_DATA = [
             { year: '2020', low: 3.07, close: 4.78, open: 6.3, high: 7.27 },
@@ -431,12 +430,7 @@ describe('OhlcSeries', () => {
         it('should accept null category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = {
                 ...OHLC_NULL_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...OHLC_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        ...ALLOW_NULL_KEYS,
-                    },
-                ],
+                series: [withUndocumentedOptions(OHLC_NULL_CATEGORY_KEY_OPTIONS.series![0], { allowNullKeys: true })],
             };
 
             const chart = await createEnterpriseChart(options);
@@ -516,10 +510,7 @@ describe('OhlcSeries', () => {
             const options: AgChartOptions = {
                 ...OHLC_UNDEFINED_CATEGORY_KEY_OPTIONS,
                 series: [
-                    {
-                        ...OHLC_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        ...ALLOW_NULL_KEYS,
-                    },
+                    withUndocumentedOptions(OHLC_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], { allowNullKeys: true }),
                 ],
             };
 
@@ -533,10 +524,7 @@ describe('OhlcSeries', () => {
             const options: AgChartOptions = {
                 ...OHLC_NULL_AND_UNDEFINED_KEYS_OPTIONS,
                 series: [
-                    {
-                        ...OHLC_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        ...ALLOW_NULL_KEYS,
-                    },
+                    withUndocumentedOptions(OHLC_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], { allowNullKeys: true }),
                 ],
             };
 
@@ -661,7 +649,7 @@ describe('OhlcSeries', () => {
         });
 
         function getCandleCentre(nodeIndex: number) {
-            const series = getOhlcSeriesInstance(chart!);
+            const series = getSeriesInstance(chart!, OhlcSeries);
             const nodeData = series.getNodeData();
             expect(nodeData).toBeDefined();
             const node = nodeData![nodeIndex];

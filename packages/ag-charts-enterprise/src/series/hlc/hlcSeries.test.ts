@@ -46,14 +46,15 @@ import {
 import { AGGREGATION_INDEX_UNSET, ChartAxisDirection, Transformable } from 'ag-charts-core';
 
 import {
+    destroyChart,
     getHlcAggregationFilter,
     getHlcBandEdgeData,
     getHlcHighlightData,
-    getHlcSeriesInstance,
     getNavigatorMiniChartSeriesTypes,
+    getSeriesInstance,
 } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
-import type { HlcSeries } from './hlcSeries';
+import { HlcSeries } from './hlcSeries';
 import type { HlcMarkerDatum } from './hlcUtil';
 
 type Datum = { date: Date; high: number; low: number; close: number };
@@ -99,9 +100,7 @@ describe('HlcSeries', () => {
     let chart: ChartOrProxy<any>;
 
     afterEach(() => {
-        chart?.destroy();
-        // `chart` is not optional in the tests, so the reset needs the cast.
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const compare = async () => {
@@ -111,7 +110,7 @@ describe('HlcSeries', () => {
 
     const renderSeries = async (options: AgChartOptions) => {
         chart = await createEnterpriseChart(options);
-        return getHlcSeriesInstance(chart);
+        return getSeriesInstance(chart, HlcSeries);
     };
 
     // The rows of a structured tooltip, as `[label, value]`.

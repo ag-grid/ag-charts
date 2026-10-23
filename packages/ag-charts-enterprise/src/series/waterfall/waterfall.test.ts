@@ -41,10 +41,12 @@ import {
     spyOnAnimationFrames,
     stripAxes,
     waitForChartStability,
+    withUndocumentedChartOptions,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import type { Rect } from 'ag-charts-core';
 
-import { getWaterfallSeriesInstance } from '../../test/enterpriseSeriesAccessors';
+import { destroyChart, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SMALL_SHADOW,
@@ -52,7 +54,7 @@ import {
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
 } from '../../test/utils';
-import type { WaterfallNodeDatum, WaterfallSeries } from './waterfallSeries';
+import { type WaterfallNodeDatum, WaterfallSeries } from './waterfallSeries';
 
 type WaterfallItemLabel = NonNullable<NonNullable<NonNullable<AgWaterfallSeriesOptions['item']>['positive']>['label']>;
 
@@ -71,9 +73,7 @@ describe('WaterfallSeries', () => {
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        chart?.destroy();
-        // `chart` is not optional in the tests, so the reset needs the cast.
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const TOTALS_META_DATA: WaterfallSeriesTotalMeta[] = [
@@ -207,11 +207,9 @@ describe('WaterfallSeries', () => {
     });
 
     it('rejects focusIndex as a solo series', async () => {
-        const UNKNOWN_FOCUS_INDEX = { focusIndex: 0 };
         chart = await createEnterpriseChart({
             data: [{ type: 'Revenue', value: 10 }],
-            // `focusIndex` is not a waterfall option; it is built in a variable so no excess-property check applies.
-            series: [{ type: 'waterfall', xKey: 'type', yKey: 'value', ...UNKNOWN_FOCUS_INDEX }],
+            series: [withUndocumentedOptions({ type: 'waterfall', xKey: 'type', yKey: 'value' }, { focusIndex: 0 })],
         });
 
         expectWarningMessages(['AG Charts - Unknown option `series[0].focusIndex`, ignoring.']);
@@ -242,7 +240,7 @@ describe('WaterfallSeries', () => {
             ],
         });
 
-        const seriesOf = (c: AgChartInstance) => getWaterfallSeriesInstance(c);
+        const seriesOf = (c: AgChartInstance) => getSeriesInstance(c, WaterfallSeries);
         const nodeOfType = (c: AgChartInstance, itemType: string) => {
             const node = seriesOf(c)
                 .getNodeData()
@@ -973,9 +971,6 @@ describe('WaterfallSeries', () => {
         });
     });
 
-    // `allowNullKeys` is not in the public types, so it is spread in from a variable rather than written inline.
-    const ALLOW_NULL_KEYS = { allowNullKeys: true };
-
     describe('null category key', () => {
         const WATERFALL_NULL_CATEGORY_KEY_DATA = [
             { year: '2020', spending: 10 },
@@ -1018,10 +1013,7 @@ describe('WaterfallSeries', () => {
             const options: AgChartOptions = {
                 ...WATERFALL_NULL_CATEGORY_KEY_OPTIONS,
                 series: [
-                    {
-                        ...WATERFALL_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        ...ALLOW_NULL_KEYS,
-                    },
+                    withUndocumentedOptions(WATERFALL_NULL_CATEGORY_KEY_OPTIONS.series![0], { allowNullKeys: true }),
                 ],
             };
 
@@ -1096,10 +1088,9 @@ describe('WaterfallSeries', () => {
             const options: AgChartOptions = {
                 ...WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS,
                 series: [
-                    {
-                        ...WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        ...ALLOW_NULL_KEYS,
-                    },
+                    withUndocumentedOptions(WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                        allowNullKeys: true,
+                    }),
                 ],
             };
 
@@ -1113,10 +1104,9 @@ describe('WaterfallSeries', () => {
             const options: AgChartOptions = {
                 ...WATERFALL_NULL_AND_UNDEFINED_KEYS_OPTIONS,
                 series: [
-                    {
-                        ...WATERFALL_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        ...ALLOW_NULL_KEYS,
-                    },
+                    withUndocumentedOptions(WATERFALL_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                        allowNullKeys: true,
+                    }),
                 ],
             };
 
@@ -1159,7 +1149,7 @@ describe('WaterfallSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = getWaterfallSeriesInstance(chart);
+            const series = getSeriesInstance(chart, WaterfallSeries);
 
             // Index 3 is the first subtotal (after data indices 0, 1, 2)
             const subtotalContent = series.getTooltipContent(3);
@@ -1175,7 +1165,7 @@ describe('WaterfallSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = getWaterfallSeriesInstance(chart);
+            const series = getSeriesInstance(chart, WaterfallSeries);
 
             // Last index is the total node
             const totalIndex = getSeriesContextNodeData<WaterfallNodeDatum>(chart).nodeData.length - 1;
@@ -1192,7 +1182,7 @@ describe('WaterfallSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = getWaterfallSeriesInstance(chart);
+            const series = getSeriesInstance(chart, WaterfallSeries);
 
             const regularContent = series.getTooltipContent(0);
             expect(regularContent).toBeDefined();
@@ -1207,7 +1197,7 @@ describe('WaterfallSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = getWaterfallSeriesInstance(chart);
+            const series = getSeriesInstance(chart, WaterfallSeries);
             const nodeData = getSeriesContextNodeData<WaterfallNodeDatum>(chart).nodeData;
 
             for (let i = 0; i < nodeData.length; i++) {
@@ -1352,7 +1342,7 @@ describe('WaterfallSeries', () => {
         const createWaterfall = async (series: AgWaterfallSeriesOptions) => {
             const options: AgCartesianChartOptions = { ...TOTALS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
-            return getWaterfallSeriesInstance(chart);
+            return getSeriesInstance(chart, WaterfallSeries);
         };
 
         const getNodeData = (_series: WaterfallSeries) => getSeriesContextNodeData<WaterfallNodeDatum>(chart).nodeData;
@@ -1463,7 +1453,7 @@ describe('WaterfallSeries', () => {
                 ],
             };
             chart = await createEnterpriseChart(options);
-            const series = getWaterfallSeriesInstance(chart);
+            const series = getSeriesInstance(chart, WaterfallSeries);
             const nodeData = getNodeData(series);
 
             // Real bar's itemId is unset, so the event/active itemId resolves via dataIdKey (`year`) and round-trips through findNodeDatum.
@@ -1498,7 +1488,7 @@ describe('WaterfallSeries', () => {
                 ],
             };
             chart = await createEnterpriseChart(options);
-            const series = getWaterfallSeriesInstance(chart);
+            const series = getSeriesInstance(chart, WaterfallSeries);
             const nodeData = getNodeData(series);
 
             // Distinct itemIds keep both 'Total'-labelled bars separate rather than collapsing onto one band.
@@ -1565,7 +1555,7 @@ describe('WaterfallSeries', () => {
                 listeners: { activeChange: (e) => events.push(e) },
             };
             chart = await createEnterpriseChart(options);
-            const series = getWaterfallSeriesInstance(chart);
+            const series = getSeriesInstance(chart, WaterfallSeries);
             const total = series.getNodeData()!.find((n) => n.itemType === 'total')!;
 
             // activeManager.update is the canonical hover simulation since jsdom canvas hit-testing is stubbed.
@@ -1717,9 +1707,11 @@ describe('WaterfallSeries category/gridline pixel alignment', () => {
             series: [{ type: 'waterfall', xKey: 'cat', yKey: 'value' }],
             axes: CATEGORY_CENTRE_GRIDLINE_AXES,
         });
-        // `overrideDevicePixelRatio` is a test-only option outside the public types, so it is spread in from a variable.
-        const testOnlyOptions = { overrideDevicePixelRatio: 1.75 };
-        const options: AgCartesianChartOptions = { ...prepared, ...testOnlyOptions, width: 897, height: 400 };
+        const options: AgCartesianChartOptions = {
+            ...withUndocumentedChartOptions(prepared, { overrideDevicePixelRatio: 1.75 }),
+            width: 897,
+            height: 400,
+        };
 
         // Bespoke: the size is set after preparation.
         chart = AgCharts.create(options);
@@ -1753,9 +1745,11 @@ describe('WaterfallSeries redraw with identical data', () => {
             legend: { enabled: false },
             axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
         });
-        // `overrideDevicePixelRatio` is a test-only option outside the public types, so it is spread in from a variable.
-        const testOnlyOptions = { overrideDevicePixelRatio: dpr };
-        const options: AgCartesianChartOptions = { ...prepared, ...testOnlyOptions, width: 1200, height: 600 };
+        const options: AgCartesianChartOptions = {
+            ...withUndocumentedChartOptions(prepared, { overrideDevicePixelRatio: dpr }),
+            width: 1200,
+            height: 600,
+        };
 
         const created = AgCharts.create(options);
         chart = created;

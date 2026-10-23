@@ -30,11 +30,12 @@ import {
     setupMockConsole,
     spyOnAnimationFrames,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import { Group, Rect, Transformable } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
 
-import { getStageHighlightNode } from '../../test/enterpriseSeriesAccessors';
+import { type StageNodeDatum, destroyChart, getStageHighlightNode } from '../../test/enterpriseSeriesAccessors';
 import {
     createEnterpriseChart,
     funnelLabelFadeIn,
@@ -67,19 +68,17 @@ const FUNNEL_EXAMPLE: AgChartOptions = {
     },
 };
 
-// `allowNullKeys` is not in the public types, so the series is built in a variable to clear the excess-property check.
-const ALLOW_NULL_KEYS_SERIES = { type: 'funnel' as const, stageKey: 'group', valueKey: 'value', allowNullKeys: true };
+const ALLOW_NULL_KEYS_SERIES = withUndocumentedOptions(
+    { type: 'funnel' as const, stageKey: 'group', valueKey: 'value' },
+    { allowNullKeys: true }
+);
 
 describe('FunnelSeries', () => {
     setupMockConsole();
     let chart: ChartOrProxy<any>;
 
     afterEach(() => {
-        if (chart != null) {
-            chart.destroy();
-            // Cleared so that a test which fails before creating its chart does not destroy the previous one again.
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -137,12 +136,6 @@ describe('FunnelSeries', () => {
             await compare();
         });
     });
-
-    // What the pointer tests read from the stage datums the series built.
-    interface StageNodeDatum {
-        midPoint: { x: number; y: number };
-        datum: Record<string, unknown>;
-    }
 
     const testPointerEvents = (testParams: {
         seriesOptions: AgFunnelSeriesOptions;
@@ -345,12 +338,13 @@ describe('FunnelSeries', () => {
     });
 
     describe('gradient fill', () => {
-        // `bounds` is not in the public gradient type, so the fill is built in a variable to clear the excess-property check.
-        const seriesBoundGradient = {
-            type: 'gradient' as const,
-            bounds: 'series',
-            colorStops: [{ color: 'green' }, { color: 'white' }],
-        };
+        const seriesBoundGradient = withUndocumentedOptions(
+            {
+                type: 'gradient' as const,
+                colorStops: [{ color: 'green' }, { color: 'white' }],
+            },
+            { bounds: 'series' }
+        );
 
         it('should render funnel series with a default gradient fill', async () => {
             const options: AgChartOptions = {

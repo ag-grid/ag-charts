@@ -35,16 +35,18 @@ import { Shape, Transformable } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
 import {
+    destroyChart,
     getEnterpriseSelectionNodes,
-    getMapMarkerSeriesInstance,
     getMapMarkerSizeRange,
     getMapMarkerStyleSize,
     getSeriesGroup,
+    getSeriesInstance,
 } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
 import ukTopology from '../map-test/ukTopology.json';
 import type { MapMarkerNodeDatum } from './mapMarkerSeries';
+import { MapMarkerSeries } from './mapMarkerSeries';
 
 type Marker = _ModuleSupport.Marker;
 
@@ -88,9 +90,7 @@ describe('MapMarkerSeries', () => {
     let chart: ChartOrProxy<any>;
 
     afterEach(() => {
-        chart?.destroy();
-        // `chart` is not optional in the tests, so the reset needs the cast.
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -439,7 +439,7 @@ describe('MapMarkerSeries', () => {
             await compare();
 
             assertTooltipPresentForAll(
-                getMapMarkerSeriesInstance(chart, 1),
+                getSeriesInstance(chart, MapMarkerSeries, 1),
                 data,
                 (datum) => missingNames.has(datum.name),
                 (i) => i

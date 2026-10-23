@@ -24,7 +24,6 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
-    getSeriesAt,
     getSeriesContextNodeData,
     hoverAction,
     newFreezableMock,
@@ -33,9 +32,10 @@ import {
     spyOnAnimationFrames,
     testLegendItemName,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { classCast } from 'ag-charts-test';
 
+import { destroyChart, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import {
     createEnterpriseChart,
     mockCssVarColorSupport,
@@ -52,9 +52,7 @@ describe('RadialBarSeries', () => {
     let chart: ChartOrProxy<any>;
     const ctx = setupMockCanvas();
     afterEach(() => {
-        // A test that creates no chart leaves the variable unset, so it must not destroy the previous one again.
-        (chart as ChartOrProxy<any> | undefined)?.destroy();
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
@@ -442,12 +440,13 @@ describe('RadialBarSeries', () => {
         });
 
         it('should render radial bar series with a series bound gradient fill', async () => {
-            // `bounds` is not in the public types; building the fill first avoids the excess-property check.
-            const fill = {
-                type: 'gradient' as const,
-                bounds: 'series',
-                colorStops: [{ color: '#080' }, { color: '#fff' }],
-            };
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: '#080' }, { color: '#fff' }],
+                },
+                { bounds: 'series' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [
@@ -805,7 +804,7 @@ describe('RadialBarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                const [sector] = classCast(getSeriesAt(chart), RadialBarSeries).getItemNodes();
+                const [sector] = getSeriesInstance(chart, RadialBarSeries).getItemNodes();
 
                 expect(sector.fill).toBe('rgb(0, 128, 0)');
             } finally {
@@ -863,8 +862,9 @@ describe('RadialBarSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
@@ -925,8 +925,9 @@ describe('RadialBarSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
@@ -935,8 +936,9 @@ describe('RadialBarSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 

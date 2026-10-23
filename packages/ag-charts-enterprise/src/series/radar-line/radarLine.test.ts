@@ -33,10 +33,11 @@ import {
     spyOnAnimationFrames,
     testLegendItemName,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import type { NonNullablePath } from 'ag-charts-core';
 
-import { getSeriesLabelTexts } from '../../test/enterpriseSeriesAccessors';
+import { destroyChart, getSeriesLabelTexts } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RadarLineSeries', () => {
@@ -46,9 +47,7 @@ describe('RadarLineSeries', () => {
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        // A test that creates no chart leaves the variable unset, so it must not destroy the previous one again.
-        (chart as ChartOrProxy<any> | undefined)?.destroy();
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const EXAMPLE_OPTIONS: AgPolarChartOptions = {
@@ -870,8 +869,9 @@ describe('RadarLineSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADAR_LINE_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
@@ -932,8 +932,9 @@ describe('RadarLineSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADAR_LINE_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
@@ -942,8 +943,9 @@ describe('RadarLineSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADAR_LINE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADAR_LINE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADAR_LINE_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 

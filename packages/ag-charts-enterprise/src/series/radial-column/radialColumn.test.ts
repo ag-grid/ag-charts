@@ -39,9 +39,11 @@ import {
     stripAxes,
     testLegendItemName,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import { type Sector } from 'ag-charts-core';
 
+import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
@@ -59,9 +61,7 @@ describe('RadialColumnSeries', () => {
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        // A test that creates no chart leaves the variable unset, so it must not destroy the previous one again.
-        (chart as ChartOrProxy<any> | undefined)?.destroy();
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
@@ -741,12 +741,13 @@ describe('RadialColumnSeries', () => {
         });
 
         it('should render radial column series with an item bound gradient fill', async () => {
-            // `bounds` is not in the public types; building the fill first avoids the excess-property check.
-            const fill = {
-                type: 'gradient' as const,
-                bounds: 'item',
-                colorStops: [{ color: 'green' }, { color: 'white' }],
-            };
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { bounds: 'item' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [{ type: 'radial-column', angleKey: 'quarter', radiusKey: 'Mountain air', fill }],
@@ -756,12 +757,13 @@ describe('RadialColumnSeries', () => {
         });
 
         it('should render radial column series with a linear gradient fill', async () => {
-            // `gradient` is not in the public types; building the fill first avoids the excess-property check.
-            const fill = {
-                type: 'gradient' as const,
-                gradient: 'linear',
-                colorStops: [{ color: 'green' }, { color: 'white' }],
-            };
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { gradient: 'linear' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [{ type: 'radial-column', angleKey: 'quarter', radiusKey: 'Mountain air', fill }],
@@ -771,13 +773,13 @@ describe('RadialColumnSeries', () => {
         });
 
         it('should render radial column series with an item bound linear gradient fill', async () => {
-            // `gradient` and `bounds` are not in the public types; building the fill first avoids the excess-property check.
-            const fill = {
-                type: 'gradient' as const,
-                gradient: 'linear',
-                bounds: 'item',
-                colorStops: [{ color: 'green' }, { color: 'white' }],
-            };
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { gradient: 'linear', bounds: 'item' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [{ type: 'radial-column', angleKey: 'quarter', radiusKey: 'Mountain air', fill }],
@@ -1153,8 +1155,9 @@ describe('RadialColumnSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADIAL_COLUMN_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADIAL_COLUMN_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADIAL_COLUMN_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
@@ -1215,8 +1218,9 @@ describe('RadialColumnSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADIAL_COLUMN_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADIAL_COLUMN_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADIAL_COLUMN_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
@@ -1225,8 +1229,9 @@ describe('RadialColumnSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADIAL_COLUMN_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADIAL_COLUMN_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADIAL_COLUMN_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 

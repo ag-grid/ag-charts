@@ -13,6 +13,7 @@ import {
 } from 'ag-charts-community-test';
 import { expectWarningsCalls } from 'ag-charts-test';
 
+import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart } from '../../test/utils';
 
 describe('PieSeries', () => {
@@ -25,9 +26,7 @@ describe('PieSeries', () => {
     };
 
     afterEach(() => {
-        chart?.destroy();
-        // `chart` is not optional in the tests, so the reset needs the cast.
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     // Pixel-correctness check of overlapping-sector compositing at the settled render; sector

@@ -44,6 +44,7 @@ import { OrganizationSeries } from '../series/organization/organizationSeries';
 import { RadialGaugeSeries } from '../series/radial-gauge/radialGaugeSeries';
 import { WaterfallSeries } from '../series/waterfall/waterfallSeries';
 import {
+    destroyChart,
     getEnterpriseSelectionNodes,
     getFlowHighlightNode,
     getFlowLinkData,
@@ -54,13 +55,10 @@ import {
     getHlcAggregationFilter,
     getHlcBandEdgeData,
     getHlcHighlightData,
-    getHlcSeriesInstance,
     getLegendHighlightCallerIds,
     getLegendItemSuppressHighlight,
     getLegendItemTranslationX,
     getLinearGaugeRects,
-    getLinearGaugeSeriesInstance,
-    getMapMarkerSeriesInstance,
     getMapMarkerSizeRange,
     getMapMarkerStyleSize,
     getMapShapeLabelAspectRatio,
@@ -68,23 +66,20 @@ import {
     getNetworkContentBBox,
     getNetworkSeriesRect,
     getNetworkViewport,
-    getOhlcSeriesInstance,
     getOrganizationCardContentHeight,
     getOrganizationCardTexts,
     getOrganizationCards,
     getOrganizationGraph,
     getOrganizationLinks,
     getOrganizationNodeDatumIndex,
-    getOrganizationSeriesInstance,
     getPlacedLabelData,
     getRadarAreaGroups,
-    getRadialGaugeSeriesInstance,
     getSeriesAreaFocusDatum,
     getSeriesGroup,
+    getSeriesInstance,
     getSeriesLabelTexts,
     getStageHighlightNode,
     getTreemapNodeLayout,
-    getWaterfallSeriesInstance,
 } from './enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from './seriesAccessors';
 import { collectShapes, createEnterpriseChart, prepareEnterpriseTestOptions } from './utils';
@@ -153,20 +148,20 @@ describe('enterprise series test accessors', () => {
         series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
     });
 
-    describe('getOrganizationSeriesInstance', () => {
+    describe('getSeriesInstance (organization)', () => {
         it('returns the organization series, from a chart or its proxy', async () => {
             chart = await createEnterpriseChart(orgOptions());
 
-            const series = getOrganizationSeriesInstance(chart);
+            const series = getSeriesInstance(chart, OrganizationSeries);
 
             expect(series).toBeInstanceOf(OrganizationSeries);
-            expect(getOrganizationSeriesInstance(deproxy(chart))).toBe(series);
+            expect(getSeriesInstance(deproxy(chart), OrganizationSeries)).toBe(series);
         });
 
         it('fails for a series that is not an organization series', async () => {
             chart = await createEnterpriseChart(sunburstOptions());
 
-            expect(errorFrom(() => getOrganizationSeriesInstance(chart!))?.name).toBe('AssertionError');
+            expect(errorFrom(() => getSeriesInstance(chart!, OrganizationSeries))?.name).toBe('AssertionError');
         });
     });
 
@@ -1203,23 +1198,12 @@ describe('series, legend and navigator test accessors', () => {
         ...extra,
     });
 
-    describe('series instances', () => {
+    describe('getSeriesInstance', () => {
         it.each([
+            ['LinearGaugeSeries', LinearGaugeSeries, () => createGauge({ type: 'linear-gauge', value: 30 })],
+            ['RadialGaugeSeries', RadialGaugeSeries, () => createGauge({ type: 'radial-gauge', value: 30 })],
             [
-                'getLinearGaugeSeriesInstance',
-                getLinearGaugeSeriesInstance,
-                LinearGaugeSeries,
-                () => createGauge({ type: 'linear-gauge', value: 30 }),
-            ],
-            [
-                'getRadialGaugeSeriesInstance',
-                getRadialGaugeSeriesInstance,
-                RadialGaugeSeries,
-                () => createGauge({ type: 'radial-gauge', value: 30 }),
-            ],
-            [
-                'getWaterfallSeriesInstance',
-                getWaterfallSeriesInstance,
+                'WaterfallSeries',
                 WaterfallSeries,
                 () =>
                     createEnterpriseChart({
@@ -1230,10 +1214,9 @@ describe('series, legend and navigator test accessors', () => {
                         series: [{ type: 'waterfall', xKey: 'x', yKey: 'y' }],
                     }),
             ],
-            ['getHlcSeriesInstance', getHlcSeriesInstance, HlcSeries, () => createEnterpriseChart(hlcOptions())],
+            ['HlcSeries', HlcSeries, () => createEnterpriseChart(hlcOptions())],
             [
-                'getOhlcSeriesInstance',
-                getOhlcSeriesInstance,
+                'OhlcSeries',
                 OhlcSeries,
                 () =>
                     createEnterpriseChart({
@@ -1245,8 +1228,7 @@ describe('series, legend and navigator test accessors', () => {
                     }),
             ],
             [
-                'getMapMarkerSeriesInstance',
-                getMapMarkerSeriesInstance,
+                'MapMarkerSeries',
                 MapMarkerSeries,
                 () =>
                     createEnterpriseChart({
@@ -1256,19 +1238,51 @@ describe('series, legend and navigator test accessors', () => {
                     }),
             ],
         ] as const)(
-            '%s returns the series as its class, and fails for another series or a missing one',
-            async (_name, accessor, ctor, create) => {
+            'returns the %s as its class, and fails for a missing series',
+            async (_name, ctor: abstract new (...args: any[]) => object, create) => {
                 chart = await create();
 
-                expect(accessor(chart)).toBeInstanceOf(ctor);
-                expect(errorFrom(() => accessor(chart!, 5))?.name).toBe('AssertionError');
+                expect(getSeriesInstance(chart, ctor)).toBeInstanceOf(ctor);
+                expect(errorFrom(() => getSeriesInstance(chart!, ctor, 5))?.name).toBe('AssertionError');
             }
         );
+
+        it('returns the series at the index it is given', async () => {
+            chart = await createEnterpriseChart(
+                hlcOptions({
+                    series: [
+                        { type: 'bar', xKey: 'x', yKey: 'hi' },
+                        { type: 'hlc', xKey: 'x', highKey: 'hi', lowKey: 'lo', closeKey: 'cl' },
+                    ],
+                })
+            );
+
+            expect(getSeriesInstance(chart, HlcSeries, 1)).toBe(getSeriesAt(chart, 1));
+        });
 
         it('fails for a series of another class', async () => {
             chart = await createEnterpriseChart(barOptions());
 
-            expect(errorFrom(() => getHlcSeriesInstance(chart!))?.name).toBe('AssertionError');
+            expect(errorFrom(() => getSeriesInstance(chart!, HlcSeries))?.name).toBe('AssertionError');
+        });
+    });
+
+    describe('destroyChart', () => {
+        it('destroys the chart and returns undefined for the test to store', async () => {
+            chart = await createEnterpriseChart(barOptions());
+            const inner = deproxy(chart);
+            expect(inner.destroyed).toBe(false);
+
+            const cleared: unknown = destroyChart(chart);
+
+            expect(cleared).toBeUndefined();
+            expect(inner.destroyed).toBe(true);
+        });
+
+        it('returns undefined when the test built no chart', () => {
+            const cleared: unknown = destroyChart(undefined);
+
+            expect(cleared).toBeUndefined();
         });
     });
 

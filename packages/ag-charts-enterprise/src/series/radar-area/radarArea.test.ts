@@ -32,10 +32,11 @@ import {
     spyOnAnimationFrames,
     testLegendItemName,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import type { NonNullablePath } from 'ag-charts-core';
 
-import { getRadarAreaGroups } from '../../test/enterpriseSeriesAccessors';
+import { destroyChart, getRadarAreaGroups } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
@@ -51,9 +52,7 @@ describe('RadarAreaSeries', () => {
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        // A test that creates no chart leaves the variable unset, so it must not destroy the previous one again.
-        (chart as ChartOrProxy<any> | undefined)?.destroy();
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const EXAMPLE_OPTIONS: AgPolarChartOptions = {
@@ -317,12 +316,13 @@ describe('RadarAreaSeries', () => {
         });
 
         it('should render radar area series with a linear gradient fill', async () => {
-            // `gradient` is not in the public types; building the fill first avoids the excess-property check.
-            const fill = {
-                type: 'gradient' as const,
-                gradient: 'linear',
-                colorStops: [{ color: 'green' }, { color: 'white' }],
-            };
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { gradient: 'linear' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA', fill }],
@@ -332,13 +332,13 @@ describe('RadarAreaSeries', () => {
         });
 
         it('should render radar area series with a series bound linear gradient fill', async () => {
-            // `gradient` and `bounds` are not in the public types; building the fill first avoids the excess-property check.
-            const fill = {
-                type: 'gradient' as const,
-                gradient: 'linear',
-                bounds: 'series',
-                colorStops: [{ color: 'green' }, { color: 'white' }],
-            };
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { gradient: 'linear', bounds: 'series' }
+            );
             const options: AgChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA', fill }],
@@ -817,8 +817,9 @@ describe('RadarAreaSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADAR_AREA_NULL_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADAR_AREA_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADAR_AREA_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
@@ -879,8 +880,9 @@ describe('RadarAreaSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADAR_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADAR_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADAR_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 
@@ -889,8 +891,9 @@ describe('RadarAreaSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories', async () => {
-            // `allowNullKeys` is not in the public types; building the series first avoids the excess-property check.
-            const series = { ...RADAR_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], allowNullKeys: true };
+            const series = withUndocumentedOptions(RADAR_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
             const options: AgChartOptions = { ...RADAR_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
             chart = await createEnterpriseChart(options);
 

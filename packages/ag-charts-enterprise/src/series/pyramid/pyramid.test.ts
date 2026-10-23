@@ -30,10 +30,11 @@ import {
     setupMockConsole,
     spyOnAnimationFrames,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 
-import { getStageHighlightNode } from '../../test/enterpriseSeriesAccessors';
+import { type StageNodeDatum, destroyChart, getStageHighlightNode } from '../../test/enterpriseSeriesAccessors';
 import {
     createEnterpriseChart,
     funnelLabelFadeIn,
@@ -67,11 +68,7 @@ describe('PyramidSeries', () => {
     let chart: ChartOrProxy<any>;
 
     afterEach(() => {
-        if (chart != null) {
-            chart.destroy();
-            // Cleared so that a test which fails before creating its chart does not destroy the previous one again.
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -100,12 +97,6 @@ describe('PyramidSeries', () => {
             await compare();
         });
     });
-
-    // What the pointer tests read from the stage datums the series built.
-    interface StageNodeDatum {
-        midPoint: { x: number; y: number };
-        datum: Record<string, unknown>;
-    }
 
     const testPointerEvents = (testParams: {
         seriesOptions: AgPyramidSeriesOptions;
@@ -386,12 +377,13 @@ describe('PyramidSeries', () => {
         });
 
         it('should render pyramid series with a series bound gradient fill', async () => {
-            // `bounds` is not in the public gradient type, so the fill is built in a variable to clear the excess-property check.
-            const fill = {
-                type: 'gradient' as const,
-                bounds: 'series',
-                colorStops: [{ color: 'green' }, { color: 'white' }],
-            };
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { bounds: 'series' }
+            );
             const options: AgChartOptions = {
                 ...PYRAMID_EXAMPLE,
                 series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value', fills: [fill] }],
@@ -403,13 +395,10 @@ describe('PyramidSeries', () => {
     });
 
     describe('null category key', () => {
-        // `allowNullKeys` is not in the public types, so the series is built in a variable to clear the excess-property check.
-        const allowNullKeysSeries = {
-            type: 'pyramid' as const,
-            stageKey: 'group',
-            valueKey: 'value',
-            allowNullKeys: true,
-        };
+        const allowNullKeysSeries = withUndocumentedOptions(
+            { type: 'pyramid' as const, stageKey: 'group', valueKey: 'value' },
+            { allowNullKeys: true }
+        );
 
         it('should render with null category key value', async () => {
             const options: AgChartOptions = {

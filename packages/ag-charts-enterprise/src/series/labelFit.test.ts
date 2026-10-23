@@ -27,7 +27,6 @@ import {
     type ChartOrProxy,
     compareImageSnapshot,
     expectWarningsCalls,
-    getSeriesAt,
     getSeriesContextNodeData,
     getSeriesOptions,
     getSeriesSelectionNodes,
@@ -36,7 +35,6 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { type Group, Selection, type Shape, Text, Transformable } from 'ag-charts-core';
-import { classCast } from 'ag-charts-test';
 
 import {
     type HierarchyNodeLabel,
@@ -44,6 +42,7 @@ import {
     getHierarchyNodeLabel,
     getLinearGaugeRects,
     getMapShapeLabelAspectRatio,
+    getSeriesInstance,
 } from '../test/enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
@@ -1512,7 +1511,7 @@ describe('series label fit', () => {
             );
             const cells = new Map<number, BBox>();
             // A plain heatmap paints its cells from one batched node, which holds them in node data order.
-            const series = classCast(getSeriesAt(chart), HeatmapSeries);
+            const series = getSeriesInstance(chart, HeatmapSeries);
             const batch = Array.from(series.contentGroup.descendants()).find(
                 (node): node is HeatmapCellBatch => node instanceof HeatmapCellBatch && node.visible
             );

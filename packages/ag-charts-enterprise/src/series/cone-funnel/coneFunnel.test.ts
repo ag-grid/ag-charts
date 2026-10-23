@@ -35,7 +35,13 @@ import {
 import { Transformable } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
-import { getFunnelConnectorNodes, getSeriesGroup, getStageHighlightNode } from '../../test/enterpriseSeriesAccessors';
+import {
+    type StageNodeDatum,
+    destroyChart,
+    getFunnelConnectorNodes,
+    getSeriesGroup,
+    getStageHighlightNode,
+} from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     SHADOW,
@@ -73,11 +79,7 @@ describe('ConeFunnelSeries', () => {
     let chart: ChartOrProxy<any>;
 
     afterEach(() => {
-        if (chart != null) {
-            chart.destroy();
-            // Cleared so that a test which fails before creating its chart does not destroy the previous one again.
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -106,13 +108,6 @@ describe('ConeFunnelSeries', () => {
             await compare();
         });
     });
-
-    // What the pointer tests read from the stage datums the series built.
-    interface StageNodeDatum {
-        x: number;
-        y: number;
-        datum: Record<string, unknown>;
-    }
 
     const testPointerEvents = (testParams: {
         seriesOptions: AgConeFunnelSeriesOptions;

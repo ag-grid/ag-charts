@@ -47,7 +47,7 @@ import {
     getOrganizationGraph,
     getOrganizationLinks,
     getOrganizationNodeDatumIndex,
-    getOrganizationSeriesInstance,
+    getSeriesInstance,
 } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { OrganizationNodeTag } from './organizationNode';
@@ -1232,7 +1232,7 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = getOrganizationSeriesInstance(chart);
+            const series = getSeriesInstance(chart, OrganizationSeries);
             const { collapsedManager } = series.ctx;
 
             series.collapseItem(2, 'api-call');
@@ -1248,7 +1248,7 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const node = getOrganizationSeriesInstance(chart).findNodeDatum(2);
+            const node = getSeriesInstance(chart, OrganizationSeries).findNodeDatum(2);
             expect(node?.itemId).toBe(2);
             expect(node?.datum).toMatchObject({ name: 'Bob Smith' });
         });
@@ -2101,7 +2101,7 @@ describe('OrganizationSeries', () => {
 
             chart = await createEnterpriseChart(options);
 
-            const series = getOrganizationSeriesInstance(chart);
+            const series = getSeriesInstance(chart, OrganizationSeries);
 
             // A parent node has an expander, so its full bbox overhangs its card (shape) bbox.
             let target: { datumIndex: number; cardBox: BBox; fullBox: BBox } | undefined;
@@ -2563,7 +2563,7 @@ describe('OrganizationSeries', () => {
             for (const card of getOrganizationCards(chart)) {
                 texts.push({ id: String(card.datum.itemId), ...getOrganizationCardTexts(card.node) });
             }
-            return { texts, series: getOrganizationSeriesInstance(chart) };
+            return { texts, series: getSeriesInstance(chart, OrganizationSeries) };
         };
 
         const titleOf = (texts: NodeTexts[], id = 'ceo') => texts.find((t) => t.id === id)?.title;
@@ -3063,7 +3063,7 @@ describe('OrganizationSeries', () => {
         async function setupChart() {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             chart = await createEnterpriseChart(options);
-            return getOrganizationSeriesInstance(chart);
+            return getSeriesInstance(chart, OrganizationSeries);
         }
 
         function press(series: OrganizationSeries, key: typeof ARROW_DOWN, datumIndex: number, otherIndex = 0) {
@@ -3125,7 +3125,7 @@ describe('OrganizationSeries', () => {
         it('ArrowDown into a collapsed node auto-expands to first child', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
             chart = await createEnterpriseChart(options);
-            const series = getOrganizationSeriesInstance(chart);
+            const series = getSeriesInstance(chart, OrganizationSeries);
             const pick = press(series, ARROW_DOWN, 1, 2);
             expect(pick?.datum).toHaveProperty('itemId', 'dev');
         });

@@ -17,8 +17,9 @@ import {
 } from 'ag-charts-community-test';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { getRadialGaugeSeriesInstance } from '../../test/enterpriseSeriesAccessors';
+import { destroyChart, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { RadialGaugeSeries } from './radialGaugeSeries';
 
 describe('RadialGaugeSeries', () => {
     setupMockConsole();
@@ -34,9 +35,7 @@ describe('RadialGaugeSeries', () => {
     };
 
     afterEach(() => {
-        chart?.destroy();
-        // `chart` is not optional in the tests, so the reset needs the cast.
-        (chart as unknown) = undefined;
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -245,7 +244,7 @@ describe('RadialGaugeSeries', () => {
             prepareEnterpriseTestOptions(options);
             chart = deproxy(AgCharts.createGauge(options));
             await waitForChartStability(chart);
-            return getRadialGaugeSeriesInstance(chart).getCaptionText();
+            return getSeriesInstance(chart, RadialGaugeSeries).getCaptionText();
         };
 
         it('should render with bigint value, scale and target without throwing', async () => {
