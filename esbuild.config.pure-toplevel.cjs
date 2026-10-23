@@ -103,6 +103,8 @@ const AG_PACKAGES = new Set(['ag-charts-core', 'ag-charts-community', 'ag-charts
 const CLASS_EXPR_PATTERN = /^(__decorateClass\(\[[\s\S]*?],\s*)(_?[A-Z][a-zA-Z0-9$]*)\.|^(_?[A-Z][a-zA-Z0-9$]*)\./;
 // `export * as ns` compiles to `var ns_exports = {}; __export(ns_exports, { ...getters });`.
 const NAMESPACE_EXPORT_PATTERN = /^__export\d*\(([\w$]+),/;
+// A lowered `#private` field's storage, initialised straight after the class that owns it.
+const PRIVATE_FIELD_INIT_PATTERN = /^_[\w$]+ = new Weak(?:Map|Set)\(\);?$/;
 // __VERIFY statements are build-time checks, safe to drop unconditionally.
 const SAFE_VERIFY_PATTERN = /^__VERIFY/;
 
@@ -167,7 +169,11 @@ function annotatePureToplevel(code) {
                     const exprText = code.slice(body[j].start, body[j].end);
                     const match = CLASS_EXPR_PATTERN.exec(exprText);
                     const namespaceMatch = NAMESPACE_EXPORT_PATTERN.exec(exprText);
-                    if ((match && (match[2] ?? match[3]) === varName) || namespaceMatch?.[1] === varName) {
+                    if (
+                        (match && (match[2] ?? match[3]) === varName) ||
+                        namespaceMatch?.[1] === varName ||
+                        PRIVATE_FIELD_INIT_PATTERN.test(exprText)
+                    ) {
                         trailingExprs.push(body[j]);
                         j++;
                     } else {

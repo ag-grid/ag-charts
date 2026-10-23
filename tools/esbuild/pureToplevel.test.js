@@ -33,6 +33,11 @@ const INITIALISERS = [
         'var _Foo = /*#__PURE__*/ (() => { var _c$0 = class {}; _c$0.className = "_Foo"; _c$0.registry = { _Foo: _c$0 }; return _c$0; })()',
     ],
     [
+        'merges a lowered private field initialiser with the class statements around it',
+        'var _Foo = class {};\n_x = new WeakMap();\n_Foo.s = 1;',
+        'var _Foo = /*#__PURE__*/ (() => { var _c$0 = class {}; _x = new WeakMap(); _c$0.s = 1; return _c$0; })()',
+    ],
+    [
         'merges a namespace __export into its declaration',
         'var ns_exports = {};\n__export(ns_exports, {\n  a: () => a\n});',
         'var ns_exports = /*#__PURE__*/ (() => { var _c$0 = {}; __export(_c$0, {\n  a: () => a\n}); return _c$0; })()',

@@ -41,13 +41,13 @@ export const scenarios = [
         name: 'community/CartesianChartModule',
         package: 'ag-charts-community',
         import: '{ CartesianChartModule }',
-        limit: 315_000,
+        limit: 276_000,
     },
     {
         name: 'community/PolarChartModule',
         package: 'ag-charts-community',
         import: '{ PolarChartModule }',
-        limit: 273_000,
+        limit: 233_000,
     },
 
     // === ag-charts-enterprise: minimal charts ===
@@ -81,7 +81,7 @@ export const scenarios = [
         name: 'enterprise/AllMapSeriesModule',
         package: 'ag-charts-enterprise',
         import: '{ AllMapSeriesModule }',
-        limit: 403_000,
+        limit: 402_000,
     },
     {
         name: 'enterprise/AllEnterpriseModule',
@@ -105,24 +105,24 @@ export const scenarios = [
         name: 'enterprise/MixedB',
         package: 'ag-charts-enterprise',
         import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
-        limit: 396_000,
+        limit: 395_000,
     },
     {
         name: 'enterprise/MixedC',
         package: 'ag-charts-enterprise',
         import: '{ FunnelSeriesModule, MapLineSeriesModule, CrosshairModule, GradientLegendModule }',
-        limit: 411_000,
+        limit: 410_000,
     },
     {
         name: 'enterprise/MixedD',
         package: 'ag-charts-enterprise',
         import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
-        limit: 419_000,
+        limit: 418_000,
     },
     {
         name: 'enterprise/MixedE',
         package: 'ag-charts-enterprise',
         import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
-        limit: 441_000,
+        limit: 440_000,
     },
 ];
