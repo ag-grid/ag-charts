@@ -12,6 +12,7 @@ import { GALLERY_CTAS } from '@components/gallery/galleryCtas';
 import { galleryFamilyHeading, resolveGalleryH1 } from '@components/gallery/utils/gallerySeo';
 import { DISABLE_MARKDOWN_DOCS, GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 import { getModifiedGalleryExamples } from '@components/gallery/utils/modifiedExamples';
+import { FrameworkLinks } from '@components/framework-links/FrameworkLinks';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import styles from '@pages-styles/gallery.module.scss';
 
@@ -34,7 +35,12 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
         <div class:list={[styles.toolbarInner, 'layout-page-max-width']}>
             <div class={styles.toolbarCtas}>
                 {GALLERY_CTAS.map((cta) => (
-                    <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
+                    <a
+                        id={cta.id}
+                        href={urlWithBaseUrl(cta.url)}
+                        class="button-tertiary"
+                        data-framework-link={cta.followsFramework || undefined}
+                    >
                         {cta.title} <Icon name="chevronRight" />
                     </a>
                 ))}
@@ -102,6 +108,7 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
             </div>
         </div>
     </div>
+    <FrameworkLinks client:idle />
 </Layout>
 
 <script>
