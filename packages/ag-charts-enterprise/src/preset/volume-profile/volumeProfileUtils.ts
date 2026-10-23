@@ -7,14 +7,21 @@ export interface VolumeProfileKeys {
     downKey: string;
 }
 
+const hasKey = (data: DatumDefault[], key: string) => data.some((d) => d?.[key] !== undefined);
+
 /** The series read the grouped levels, so the data model cannot see a key the rows lack. */
 export function warnMissingVolumeProfileKeys(data: DatumDefault[], keys: VolumeProfileKeys, logger: Logger) {
     if (data.length === 0) return;
 
     for (const key of new Set([keys.priceKey, keys.upKey, keys.downKey])) {
-        if (data.some((d) => d?.[key] !== undefined)) continue;
+        if (hasKey(data, key)) continue;
         logger.warnOnce(`the key '${key}' was not found in any data element.`);
     }
+}
+
+/** Whether neither volume key is in the data, so every level would be drawn empty. */
+export function lacksVolumeProfileVolumes(data: DatumDefault[], { upKey, downKey }: VolumeProfileKeys) {
+    return data.length > 0 && !hasKey(data, upKey) && !hasKey(data, downKey);
 }
 
 export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: string): number | undefined {
