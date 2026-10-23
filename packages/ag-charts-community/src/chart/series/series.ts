@@ -257,6 +257,8 @@ export abstract class Series<
     /** Reuses the focused series index for its own navigation (depth, datum type) instead of moving between series. */
     readonly navigatesWithinSeries: boolean = false;
     readonly supportsDataTransactions: boolean = true;
+    /** Lets the standalone chart round the series area origin down to whole pixels. */
+    readonly snapsSeriesAreaOrigin: boolean = true;
     /** Lays out every series sharing this function, before the chart updates them. */
     readonly seriesAreaLayout?: SeriesAreaLayout;
 

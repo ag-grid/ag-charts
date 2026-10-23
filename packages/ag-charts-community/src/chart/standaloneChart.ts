@@ -66,9 +66,10 @@ export class StandaloneChart extends Chart {
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
 
+        const snap = this.series.every((s) => s.snapsSeriesAreaOrigin);
         for (const group of [seriesRoot, annotationRoot]) {
-            group.translationX = Math.floor(seriesRect.x);
-            group.translationY = Math.floor(seriesRect.y);
+            group.translationX = snap ? Math.floor(seriesRect.x) : seriesRect.x;
+            group.translationY = snap ? Math.floor(seriesRect.y) : seriesRect.y;
         }
 
         // Matches cartesian: clip panned content out of title/subtitle/footnote.

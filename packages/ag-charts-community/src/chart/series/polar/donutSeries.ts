@@ -471,6 +471,7 @@ export class DonutSeries extends PolarSeries<
     surroundingRadius?: number = undefined;
 
     override readonly supportsDataTransactions = false;
+    override readonly snapsSeriesAreaOrigin = false;
     override readonly seriesAreaLayout = layoutDonutSeries;
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>) {
