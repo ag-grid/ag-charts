@@ -21,6 +21,12 @@ import {
 } from '../test/utils';
 import { ChartValidations, FailFastError, type ValidationSeverity } from './chartValidations';
 
+// Deliberately invalid option values. Each is cast to the type its option declares, so the rest of the options around
+// it stay type-checked.
+const INVALID_SERIES_TYPE = '' as unknown as AgBarSeriesOptions['type'];
+const INVALID_FILL = 123 as unknown as string;
+const INVALID_STROKE_WIDTH = 'thick' as unknown as number;
+
 const errorIssue = { severity: 'error', message: 'runtime boom' } as const;
 const warningIssue = { severity: 'warning', message: 'bad option' } as const;
 const deprecationIssue = { severity: 'deprecation', message: 'deprecated thing' } as const;
@@ -825,7 +831,7 @@ describe('ChartValidations - chart integration', () => {
             // `captureUncaught` rather than the factory's stability wait, and the next test creates without awaiting.
             const proxy = AgCharts.create(
                 preparedOptions({
-                    series: [{ type: '' as any, xKey: 'x', yKey: 'y' }],
+                    series: [{ type: INVALID_SERIES_TYPE, xKey: 'x', yKey: 'y' }],
                     validations: { showOverlayOn: ['warning'], throwOn: ['warning'], issueRaised },
                 })
             ) as AgChartProxy;
@@ -877,7 +883,7 @@ describe('ChartValidations - chart integration', () => {
         chart = deproxy(
             await createChart(
                 options({
-                    series: [{ xKey: 'x', yKey: 'y' } as any],
+                    series: [{ xKey: 'x', yKey: 'y' } as AgBarSeriesOptions],
                     validations: { showOverlayOn: ['warning'], issueRaised },
                 })
             )
@@ -896,7 +902,7 @@ describe('ChartValidations - chart integration', () => {
         chart = deproxy(
             await createChart(
                 options({
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: INVALID_FILL }) }],
                     validations: { showOverlayOn: ['warning'], issueRaised },
                 })
             )
@@ -936,7 +942,7 @@ describe('ChartValidations - chart integration', () => {
         chart = deproxy(
             await createChart(
                 options({
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: INVALID_FILL }) }],
                     validations: { showOverlayOn: ['warning'] },
                 })
             )
@@ -1110,7 +1116,7 @@ describe('ChartValidations - chart integration', () => {
         chart = deproxy(
             await createChart(
                 options({
-                    series: [{ type: '' as any, xKey: 'x', yKey: 'y' }],
+                    series: [{ type: INVALID_SERIES_TYPE, xKey: 'x', yKey: 'y' }],
                     validations: { showOverlayOn: ['warning'], issueRaised },
                 })
             )
@@ -1148,7 +1154,7 @@ describe('ChartValidations - chart integration', () => {
         chart = deproxy(
             await createChart(
                 options({
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: INVALID_STROKE_WIDTH }],
                     validations: { showOverlayOn: ['warning'], issueRaised },
                 })
             )

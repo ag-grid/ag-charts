@@ -14,6 +14,11 @@ import {
     waitForChartStability,
 } from '../test/utils';
 
+// `allowNullKeys` is internal (set from `displayNullData`), so the public series types reject it.
+function withInternalOptions<const T extends object>(series: T): T & { allowNullKeys?: boolean } {
+    return series;
+}
+
 describe('Format Manager', () => {
     setupMockConsole();
 
@@ -325,7 +330,7 @@ describe('Format Manager', () => {
                             { [xKey]: nullValue, [yKey]: 140 },
                             { [xKey]: 'Mac', [yKey]: 20 },
                         ],
-                        series: [{ type, xKey, yKey, allowNullKeys } as any],
+                        series: [withInternalOptions({ type, xKey, yKey, allowNullKeys })],
                         formatter: { x: xFormatter },
                     };
 
@@ -368,7 +373,7 @@ describe('Format Manager', () => {
                         { [xKey]: null, [yKey]: 140 },
                         { [xKey]: 'Mac', [yKey]: 20 },
                     ],
-                    series: [{ type, xKey, yKey, allowNullKeys: true } as any],
+                    series: [withInternalOptions({ type, xKey, yKey, allowNullKeys: true })],
                     axes: {
                         x: { type: 'category', position: 'bottom', label: { formatter: axisFormatter } },
                         y: { type: 'number', position: 'left' },
@@ -389,7 +394,7 @@ describe('Format Manager', () => {
                         { [xKey]: null, [yKey]: 100 },
                         { [xKey]: 'Mac', [yKey]: 20 },
                     ],
-                    series: [{ type, xKey, yKey, allowNullKeys: true } as any],
+                    series: [withInternalOptions({ type, xKey, yKey, allowNullKeys: true })],
                     formatter: { x: xFormatter },
                 };
 
@@ -418,7 +423,7 @@ describe('Format Manager', () => {
                             { [xKey]: nullValue, [yKey]: 140, [sizeKey]: 10 },
                             { [xKey]: 'Mac', [yKey]: 20, [sizeKey]: 5 },
                         ],
-                        series: [{ type, xKey, yKey, sizeKey, allowNullKeys } as any],
+                        series: [withInternalOptions({ type, xKey, yKey, sizeKey, allowNullKeys })],
                         formatter: { x: xFormatter },
                     };
 
@@ -458,7 +463,7 @@ describe('Format Manager', () => {
                         { [xKey]: null, [yKey]: 100, [sizeKey]: 8 },
                         { [xKey]: 'Mac', [yKey]: 20, [sizeKey]: 5 },
                     ],
-                    series: [{ type, xKey, yKey, sizeKey, allowNullKeys: true } as any],
+                    series: [withInternalOptions({ type, xKey, yKey, sizeKey, allowNullKeys: true })],
                     formatter: { x: xFormatter },
                 };
 
@@ -484,7 +489,7 @@ describe('Format Manager', () => {
                         { product: null, value: 140 },
                         { product: 'Mac', value: 20 },
                     ],
-                    series: [{ type: 'bar', xKey: 'product', yKey: 'value', allowNullKeys: true } as any],
+                    series: [withInternalOptions({ type: 'bar', xKey: 'product', yKey: 'value', allowNullKeys: true })],
                     formatter: { x: xFormatter },
                 };
 
@@ -511,7 +516,7 @@ describe('Format Manager', () => {
                         { product: null, value: 140 },
                         { product: 'Mac', value: 20 },
                     ],
-                    series: [{ type: 'bar', xKey: 'product', yKey: 'value', allowNullKeys: true } as any],
+                    series: [withInternalOptions({ type: 'bar', xKey: 'product', yKey: 'value', allowNullKeys: true })],
                     formatter: { x: xFormatter },
                 };
 
@@ -537,13 +542,13 @@ describe('Format Manager', () => {
                         { product: 'Mac', value: 20 },
                     ],
                     series: [
-                        {
+                        withInternalOptions({
                             type: 'bar',
                             xKey: 'product',
                             yKey: 'value',
                             allowNullKeys: true,
                             label: { enabled: true, formatter: labelFormatter },
-                        } as any,
+                        }),
                     ],
                 };
 
@@ -573,7 +578,7 @@ describe('Format Manager', () => {
                             { [legendItemKey]: null, [angleKey]: 140 },
                             { [legendItemKey]: 'Mac', [angleKey]: 20 },
                         ],
-                        series: [{ type, legendItemKey, angleKey } as any],
+                        series: [{ type, legendItemKey, angleKey }],
                     };
 
                     chart = await createChart(options);
@@ -597,7 +602,7 @@ describe('Format Manager', () => {
                             { [legendItemKey]: null, [angleKey]: 140 },
                             { [legendItemKey]: 'Mac', [angleKey]: 20 },
                         ],
-                        series: [{ type, legendItemKey, angleKey, allowNullKeys: true } as any],
+                        series: [withInternalOptions({ type, legendItemKey, angleKey, allowNullKeys: true })],
                     };
 
                     chart = await createChart(options);
@@ -613,7 +618,7 @@ describe('Format Manager', () => {
                             { [legendItemKey]: undefined, [angleKey]: 140 },
                             { [legendItemKey]: 'Mac', [angleKey]: 20 },
                         ],
-                        series: [{ type, legendItemKey, angleKey } as any],
+                        series: [{ type, legendItemKey, angleKey }],
                     };
 
                     chart = await createChart(options);
@@ -637,7 +642,7 @@ describe('Format Manager', () => {
                             { [legendItemKey]: undefined, [angleKey]: 140 },
                             { [legendItemKey]: 'Mac', [angleKey]: 20 },
                         ],
-                        series: [{ type, legendItemKey, angleKey, allowNullKeys: true } as any],
+                        series: [withInternalOptions({ type, legendItemKey, angleKey, allowNullKeys: true })],
                     };
 
                     chart = await createChart(options);
