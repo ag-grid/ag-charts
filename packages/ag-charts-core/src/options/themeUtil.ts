@@ -659,7 +659,13 @@ export const FONT_THEME_DEFAULTS = {
 } as const;
 
 /** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
-export const SHADOW_THEME_DEFAULTS = { enabled: false, color: '#00000080', xOffset: 3, yOffset: 3, blur: 5 };
+export const SHADOW_THEME_DEFAULTS = {
+    enabled: false,
+    color: { $ref: 'shadowColor' },
+    xOffset: 3,
+    yOffset: 3,
+    blur: 5,
+} as const;
 
 type SeriesTooltipTheme = WithThemeParams<Pick<AgSeriesTooltip<never>, 'range' | 'position' | 'interaction'>>;
 
