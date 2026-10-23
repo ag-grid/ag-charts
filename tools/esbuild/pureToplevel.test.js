@@ -25,6 +25,12 @@ const INITIALISERS = [
         'var _Foo = class {};\n_Foo.className = "_Foo";\n_Foo.registry = { _Foo };',
         'var _Foo = /*#__PURE__*/ (() => { var _c$0 = class {}; _c$0.className = "_Foo"; _c$0.registry = { _Foo: _c$0 }; return _c$0; })()',
     ],
+    ['wraps a __VERIFY statement', '__VERIFY(x);', '/*#__PURE__*/ (() => { __VERIFY(x); })();'],
+    [
+        'drops bare AG Charts imports but keeps other side-effect imports',
+        'import "ag-charts-core";\nimport "./side-effect.css";',
+        '\nimport "./side-effect.css";',
+    ],
 ];
 
 for (const [name, input, expected] of INITIALISERS) {
