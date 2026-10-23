@@ -462,6 +462,21 @@ describe('Navigator', () => {
         );
     });
 
+    describe('mini chart cross lines', () => {
+        it('gives keyboard proxies to the main chart cross lines only', async () => {
+            chart = await createEnterpriseChart({
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                axes: {
+                    x: { type: 'category', position: 'bottom', crossLines: [{ type: 'line', value: 4 }] },
+                    y: { type: 'number', position: 'left' },
+                },
+                listeners: { crossLineClick: () => {} },
+            });
+
+            expect(document.querySelectorAll('.ag-charts-proxy-cross-lines button').length).toBe(1);
+        });
+    });
+
     describe('mini chart toggling', () => {
         it('disables and re-enables the mini chart without errors', async () => {
             const base: AgCartesianChartOptions = {

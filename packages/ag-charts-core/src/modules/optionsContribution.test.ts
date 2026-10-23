@@ -5,6 +5,7 @@ import { type ModuleDefinition, ModuleType } from './moduleDefinition';
 import { createModuleScope } from './moduleScope';
 import {
     composeContributedDefs,
+    composeHostContributedDefs,
     contributedKeysUnder,
     contributionHost,
     contributionMatchesChartType,
@@ -377,5 +378,38 @@ describe('composeContributedDefs', () => {
                 ])
             )
         ).toBe(defs);
+    });
+});
+
+describe('composeHostContributedDefs', () => {
+    const numberDefs = { enabled: number };
+    const themeDefs = { enabled: boolean };
+    const contributions = resolveContributions([
+        {
+            type: ModuleType.AxisPlugin,
+            name: 'crossLines',
+            ...base,
+            contributes: [
+                { path: 'axes[].crossLines', axisTypes: ['number'], options: numberDefs, themeOptions: themeDefs },
+                { path: 'axes[].crossLines', axisTypes: ['category'], options: callback },
+            ],
+        },
+        plugin('zoom'),
+    ]);
+    const forNumberAxis = (contribution: { axisTypes?: readonly string[] }) =>
+        contribution.axisTypes?.includes('number') ?? true;
+
+    it('installs the contributions to one host instance that apply, at their relative paths', () => {
+        const defs = { label: boolean } as any;
+        const composed = composeHostContributedDefs(defs, contributions, 'axis', forNumberAxis) as any;
+
+        expect(composed).toEqual({ label: boolean, crossLines: numberDefs });
+        expect(defs.crossLines).toBeUndefined();
+    });
+
+    it('prefers `themeOptions` for theme overrides', () => {
+        const composed = composeHostContributedDefs({} as any, contributions, 'axis', forNumberAxis, true) as any;
+
+        expect(composed.crossLines).toBe(themeDefs);
     });
 });

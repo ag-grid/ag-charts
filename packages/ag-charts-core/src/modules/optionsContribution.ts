@@ -305,7 +305,7 @@ export function isContributionRequested(contribution: OptionsContribution, value
  * Returns `defs` with each contribution's `options` installed at its path, so one validation pass
  * covers module-owned locations. A contribution without `options` keeps whatever `defs` already
  * declares there, falling back to `object` so the value survives to the module that owns it. Only
- * chart-host paths apply: axis and series hosts validate against their own module defs.
+ * chart-host paths apply; `composeHostContributedDefs` installs the others into one host's defs.
  */
 export function composeContributedDefs<T>(
     defs: OptionsDefs<T>,
@@ -329,4 +329,25 @@ export function composeContributedDefs<T>(
         target[leaf] = contribution.options ?? target[leaf] ?? object;
     }
     return (composed ?? defs) as OptionsDefs<T>;
+}
+
+/**
+ * Returns `defs` for one instance of `host` with each contribution that descends into it and `applies`
+ * installed at its relative path. Theme overrides take a contribution's `themeOptions` where it has them.
+ */
+export function composeHostContributedDefs<T>(
+    defs: OptionsDefs<T>,
+    contributions: Iterable<ResolvedContribution>,
+    host: ContributionHost,
+    applies: (contribution: OptionsContribution) => boolean,
+    theme = false
+): OptionsDefs<T> {
+    const installed: ResolvedContribution[] = [];
+    for (const resolved of contributions) {
+        const { contribution, relative } = resolved;
+        if (resolved.host !== host || !applies(contribution)) continue;
+        const options = theme ? (contribution.themeOptions ?? contribution.options) : contribution.options;
+        installed.push({ ...resolved, host: 'chart', path: relative, contribution: { ...contribution, options } });
+    }
+    return composeContributedDefs(defs, installed);
 }

@@ -3,15 +3,15 @@
  *
  * Everything derivable from the module definitions lives in `module-mappings.generated.mjs`, kept in
  * step by `packages/ag-charts-enterprise/src/moduleTables.test.ts`. This file holds the knowledge the
- * definitions do not carry, and merges it with the generated tables.
+ * definitions do not carry, and re-exports the generated tables.
  */
-import * as generated from './module-mappings.generated.mjs';
-
 export {
+    axisListenerToModule,
     axisPluginToModule,
     axisTypeToModule,
     bundleContents,
     cartesianSeriesModules,
+    chartListenerToModule,
     chartOptionPathToModule,
     enterpriseBundleContents,
     enterpriseImpliedModules,
@@ -26,20 +26,6 @@ export {
     seriesTypeToModule,
     validModuleIds,
 } from './module-mappings.generated.mjs';
-
-// The cross-line events are dispatched by the cross-lines plugins, which own `axes[].crossLines` rather
-// than declaring the listener paths, so they are listed here alongside the generated listener owners.
-export const axisListenerToModule = new Map([
-    ...generated.axisListenerToModule,
-    ['crossLineClick', 'CrossLinesModule'],
-    ['crossLineDoubleClick', 'CrossLinesModule'],
-]);
-
-export const chartListenerToModule = new Map([
-    ...generated.chartListenerToModule,
-    ['crossLineClick', 'CrossLinesModule'],
-    ['crossLineDoubleClick', 'CrossLinesModule'],
-]);
 
 // Nested annotations plugin option → Module ID
 export const annotationsPluginToModule = new Map([['toolbar', 'ChartToolbarModule']]);

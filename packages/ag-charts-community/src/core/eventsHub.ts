@@ -27,6 +27,7 @@ import type {
     AgAutoScaledAxes,
     AgCartesianAxisPosition,
     AgContextMenuItemShowOn,
+    AgMatchedParams,
     AgNumericValue,
     AgScrollbarPlacement,
     AgStateGroupingValueType,
@@ -36,12 +37,10 @@ import type {
     AgZoomEventSource,
 } from 'ag-charts-types';
 
-import type { CrossLineValuePick, PendingCrossLineCallbacks } from '../chart/crossline/crossLine';
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextMenuRegionContexts, ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { ChartLegendType } from '../chart/legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../chart/series/seriesTypes';
-import type { AxisValuePick } from '../module/axisContext';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
 
@@ -91,27 +90,32 @@ export interface SeriesAreaClickEvent {
     readonly target: Node<unknown> | undefined;
 }
 
+/** A module's share of a series-area click: the elements it matched and the listeners it defers. */
+export interface SeriesAreaClickClaim {
+    /** Reported in `allMatchedParams` to every claim and to the series node listeners. */
+    readonly matchedParams: readonly AgMatchedParams<unknown>[];
+    /** Whether the claim takes the click from the series node and chart-level listeners. */
+    isHandled(): boolean;
+    fire(allMatchedParams: AgMatchedParams<unknown>[]): void;
+}
+
 export interface SeriesAreaCanvasClickEvent extends Readonly<CanvasPoint> {
     readonly type: 'click' | 'dblclick';
     readonly sourceEvent: Event;
-    // Left-click listeners are not neatly consolidated into a single option like right-click (contextmenu)
-    // listeners. Therefore left-click listeners can added deferred `callWithContext` entries into
-    // `pendingCrossLineCallbacks` if-and-when needed:
-    readonly pendingCrossLineCallbacks: PendingCrossLineCallbacks;
+    // Left-click listeners are not consolidated into a single option like right-click (contextmenu) listeners,
+    // so modules defer them as claims that the series area fires once every module has hit-tested.
+    readonly claims: SeriesAreaClickClaim[];
 }
 
 export interface SeriesAreaContextMenuEvent extends Readonly<CanvasPoint> {
     readonly widgetEvent: MouseWidgetEvent<'contextmenu'>;
     /**
-     * The overlapping axis, if any, at the pointer. Modules that own axes annotate this so the series-area
-     * dispatch can offer the axis region alongside the series region rather than dispatching a competing menu.
+     * The regions at the pointer, keyed by `showOn`. Modules annotate the ones they own so the series-area
+     * dispatch offers them alongside the series regions rather than dispatching a competing menu.
      */
-    axis?: AxisValuePick;
-    /**
-     * The cross line, if any, at the pointer. The cross-lines plugin annotates this (mirroring `axis`) so the
-     * series-area dispatch can offer the cross-line region alongside the series region.
-     */
-    crossLine: CrossLineValuePick[];
+    readonly regions: ContextMenuRegionContexts;
+    /** Annotated regions that win the primary `showOn` over a nearby series node, and apply outside the series area. */
+    readonly primaryRegions: AgContextMenuItemShowOn[];
 }
 
 export interface DataModelSeriesDiff {

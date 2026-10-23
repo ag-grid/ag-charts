@@ -578,6 +578,15 @@ describe('PolarCrossLine listeners', () => {
         expect(chartClick).toHaveBeenCalledWith(expected);
     });
 
+    it('leaves the plugin off for an axis with listeners but no cross lines', async () => {
+        const options = polarOptions('polygon', [], []);
+        const { crossLines: _, ...radius } = options.axes!.radius!;
+        options.axes!.radius = { ...radius, listeners: { crossLineClick: vi.fn(), crossLineDoubleClick: vi.fn() } };
+        chart = deproxy(await createEnterpriseChart(options));
+
+        expect(crossLineInstances(chart, 'radius')).toEqual([]);
+    });
+
     it('polar axes reject axis click listeners', async () => {
         const options = polarOptions('polygon', [{ type: 'line', value: 'Q2' }], []);
         // Axis click listeners are cartesian-only: deliberately not valid polar axis options.

@@ -14,7 +14,6 @@ import type {
     TranslatableGroup,
     WheelWidgetEvent,
     Widget,
-    Writeable,
 } from 'ag-charts-core';
 import {
     BBox,
@@ -25,6 +24,7 @@ import {
     clamp,
     createId,
     debouncedAnimationFrame,
+    strictObjectKeys,
 } from 'ag-charts-core';
 import type {
     AgActiveItemState,
@@ -52,7 +52,6 @@ import type {
 } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartType } from '../chartType';
-import { type PendingCrossLineCallbacks, fireAllPendingCrossLineCallbacks } from '../crossline/crossLine';
 import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -157,15 +156,16 @@ function seriesNodeContexts(pickedNodes: readonly HighlightNodeDatum[]): SeriesN
 
 /** Primary region for backwards-compatible `showOn`, matching the winner `onClick` picks for the same point. */
 function primaryContextMenuRegion(
-    hasNode: boolean,
+    contexts: ContextMenuRegionContexts,
     directNodeHit: boolean,
-    hasCrossLine: boolean,
-    hasAxis: boolean
+    primaryRegions: readonly AgContextMenuItemShowOn[]
 ): AgContextMenuItemShowOn {
-    if (hasNode && (directNodeHit || !hasCrossLine)) return 'series-node';
-    if (hasCrossLine) return 'cross-line';
-    if (hasAxis) return 'axis';
-    return 'series-area';
+    const hasNode = contexts['series-node'] != null;
+    if (hasNode && directNodeHit) return 'series-node';
+    const primary = primaryRegions.find((region) => contexts[region] != null);
+    if (primary != null) return primary;
+    if (hasNode) return 'series-node';
+    return strictObjectKeys(contexts).at(0) ?? 'series-area';
 }
 
 function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
@@ -509,34 +509,19 @@ export class SeriesAreaManager extends BaseManager {
         this.clearAll();
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
 
-        const regions: AgContextMenuItemShowOn[] = ['series-area'];
         const contexts: ContextMenuRegionContexts = {};
         const nodeContexts = seriesNodeContexts(pickedNodes);
         if (nodeContexts.length > 0) {
-            regions.push('series-node');
             contexts['series-node'] = nodeContexts;
         }
 
-        // Ask axis-owning modules whether an axis overlaps this point (mirrors the hover/drag handoff). They
-        // annotate `axis` rather than dispatching, so a single menu can offer both the series and axis regions.
-        const collectEvent = this.collectContextMenuRegions(event, { canvasX, canvasY });
-        if (collectEvent.axis) {
-            regions.push('axis');
-            contexts.axis = collectEvent.axis;
-        }
-        const hasCrossLine = collectEvent.crossLine.length > 0;
-        if (hasCrossLine) {
-            regions.push('cross-line');
-            contexts['cross-line'] = collectEvent.crossLine;
-        }
+        // Ask the modules owning other regions whether they overlap this point (mirrors the hover/drag handoff).
+        // They annotate rather than dispatch, so a single menu can offer every region at the point.
+        const { primaryRegions } = this.collectContextMenuRegions(event, { canvasX, canvasY }, contexts);
+        const regions: AgContextMenuItemShowOn[] = ['series-area', ...strictObjectKeys(contexts)];
 
         this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
-            primaryContextMenuRegion(
-                contexts['series-node'] != null,
-                directNodeHit,
-                hasCrossLine,
-                collectEvent.axis != null
-            ),
+            primaryContextMenuRegion(contexts, directNodeHit, primaryRegions),
             regions,
             contexts,
             { widgetEvent: event, canvasX, canvasY },
@@ -544,7 +529,7 @@ export class SeriesAreaManager extends BaseManager {
         );
     }
 
-    // A cross-line label positioned outside the series area is drawn on the container, so it must be hit-tested here.
+    // A region drawn outside the series area, such as a cross-line label, is on the container, so it is hit-tested here.
     private onContainerContextMenu(event: MouseWidgetEvent<'contextmenu'>): void {
         // The series widget is nested inside the container, so its right-clicks bubble here after being dispatched.
         const seriesElement = this.chart.ctx.widgets.seriesWidget.getElement();
@@ -555,26 +540,29 @@ export class SeriesAreaManager extends BaseManager {
         const { currentX: canvasX, currentY: canvasY } = event;
         const pointerEvent = { widgetEvent: event, canvasX, canvasY };
 
-        // Only the cross-line annotation is honoured here. An overlapping axis is annotated too, but offering it
-        // from outside the series area would widen the axis region, which is beyond this handoff's purpose.
-        const collectEvent = this.collectContextMenuRegions(event, pointerEvent);
-        if (collectEvent.crossLine.length > 0) {
-            this.chart.ctx.contextMenuRegistry?.dispatchContext('cross-line', pointerEvent, collectEvent.crossLine);
-        } else {
+        // Only primary regions are offered here; offering the rest would widen them beyond the series area.
+        const contexts: ContextMenuRegionContexts = {};
+        const { primaryRegions } = this.collectContextMenuRegions(event, pointerEvent, contexts);
+        const primary = primaryRegions.find((region) => contexts[region] != null);
+        if (primary == null) {
             this.chart.ctx.contextMenuRegistry?.dispatchContext('always', pointerEvent, undefined);
+        } else {
+            this.chart.ctx.contextMenuRegistry?.dispatchContext(primary, pointerEvent, contexts[primary]);
         }
     }
 
-    /** Lets the axis and cross-line owners annotate the regions overlapping `point`; they never dispatch themselves. */
+    /** Lets the modules owning other regions annotate those overlapping `point`; they never dispatch themselves. */
     private collectContextMenuRegions(
         event: MouseWidgetEvent<'contextmenu'>,
-        { canvasX, canvasY }: CanvasPoint
-    ): Writeable<SeriesAreaContextMenuEvent> {
-        const collectEvent: Writeable<SeriesAreaContextMenuEvent> = {
+        { canvasX, canvasY }: CanvasPoint,
+        regions: ContextMenuRegionContexts
+    ): SeriesAreaContextMenuEvent {
+        const collectEvent: SeriesAreaContextMenuEvent = {
             canvasX,
             canvasY,
             widgetEvent: event,
-            crossLine: [],
+            regions,
+            primaryRegions: [],
         };
         this.chart.ctx.eventsHub.emit('series-area:contextmenu', collectEvent);
         return collectEvent;
@@ -685,20 +673,22 @@ export class SeriesAreaManager extends BaseManager {
             ? this.toCanvasCoordinates(event)
             : { canvasX: event.currentX, canvasY: event.currentY };
 
-        const pendingCrossLineCallbacks = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
-        const clickedCrossLine =
-            this.checkCrossLineClick(event, pendingCrossLineCallbacks) &&
-            !(isSeriesWidget && this.isHandledNodeHit(event));
-        if (clickedCrossLine) {
-            // The cross line wins the event, but still reports the series nodes within `nodeClickRange`.
+        const claims = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
+        const claimedParams = claims.flatMap((claim) => claim.matchedParams);
+        const claimed = claims.some((claim) => claim.isHandled()) && !(isSeriesWidget && this.isHandledNodeHit(event));
+        if (claimed) {
+            // The claim wins the event, but still reports the series nodes within `nodeClickRange`.
             const nodeParams = isSeriesWidget ? this.pickSeriesNodeHitParams(event) : [];
-            fireAllPendingCrossLineCallbacks(pendingCrossLineCallbacks, nodeParams);
+            const allMatchedParams = nodeParams.length > 0 ? [...claimedParams, ...nodeParams] : claimedParams;
+            for (const claim of claims) {
+                claim.fire(allMatchedParams);
+            }
             return; // dodge chart-level / series-level user callbacks.
         }
 
         if (isSeriesWidget) {
-            // Cross-line-only here, and populated whether or not any cross-line listener exists.
-            const clicked = this.checkSeriesNodeClick(event, pendingCrossLineCallbacks.allMatchedParams);
+            // Populated whether or not any claiming listener exists.
+            const clicked = this.checkSeriesNodeClick(event, claimedParams);
             if (clicked) {
                 if (clicked.defaultPrevented) return;
                 this.emitSeriesAreaClickEvent(event, true, clicked.node, clicked.target);
@@ -732,14 +722,10 @@ export class SeriesAreaManager extends BaseManager {
             canvasX,
             canvasY,
             sourceEvent,
-            pendingCrossLineCallbacks: {
-                allMatchedParams: [],
-                axes: new Map(),
-                crossLines: new Map(),
-            },
+            claims: [],
         };
         this.chart.ctx.eventsHub.emit('series-area:canvas-click', payload);
-        return payload.pendingCrossLineCallbacks;
+        return payload.claims;
     }
 
     private emitSeriesAreaClickEvent(
@@ -958,15 +944,6 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private checkCrossLineClick(event: ClickLikeEvent, pendingCallbacks: PendingCrossLineCallbacks): boolean {
-        const { allMatchedParams, axes, crossLines } = pendingCallbacks;
-        const chartListener =
-            event.type === 'click'
-                ? this.chart.ctx.chartService.listeners.crossLineClick
-                : this.chart.ctx.chartService.listeners.crossLineDoubleClick;
-        return allMatchedParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
-    }
-
     /** Whether the picked node reacts to a click or double-click, which is when it shows the pointer cursor. */
     private isClickable(pick: PickedNodes | undefined): boolean {
         return this.handlesNodeEvent(pick, 'click') || this.handlesNodeEvent(pick, 'dblclick');
@@ -1006,7 +983,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private checkSeriesNodeClick(
         event: ClickLikeEvent & CurrentPoint & { preventZoomDblClick?: boolean },
-        crossLineParams: AgMatchedParams<unknown>[]
+        claimedParams: AgMatchedParams<unknown>[]
     ): SeriesNodeClickCheck | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
@@ -1029,7 +1006,7 @@ export class SeriesAreaManager extends BaseManager {
             datums: matches,
             winner: matches.indexOf(updated.active),
             coordinates,
-            otherHitParams: crossLineParams,
+            otherHitParams: claimedParams,
         };
 
         if (event.type === 'click') {

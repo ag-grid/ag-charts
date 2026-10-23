@@ -12,8 +12,6 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { CartesianChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
-import { CartesianCrossLine } from './crossline/cartesianCrossLine';
-import { getCrossLinesPlugin } from './crossline/getCrossLinesPlugin';
 import type { LayoutContext, ScrollbarLayoutMap, SeriesInsetMap } from './layout/layoutManager';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { UnknownSeries } from './series/series';
@@ -250,8 +248,8 @@ export class CartesianChart extends Chart {
         const { clipSeries, seriesRect, overflows } = this.resolveAxesLayout(layoutBox, scrollbars, seriesInsets);
 
         for (const axis of this.axes) {
+            axis.seriesAreaVisible = !overflows;
             axis.update();
-            getCrossLinesPlugin(axis)?.setVisible(!overflows);
 
             this.clipAxis(axis, seriesRect, layoutBox);
         }
@@ -321,15 +319,15 @@ export class CartesianChart extends Chart {
 
         const totalWidth = (axisAreaWidths.get('left') ?? 0) + (axisAreaWidths.get('right') ?? 0);
         const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0);
-        const crossLinePadding = this.buildCrossLinePadding(outerSpace);
+        const pluginPadding = this.buildAxisPluginPadding(outerSpace);
 
         if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {
             // Not enough space for rendering
             overflows = true;
         } else {
-            clampPaddingPair(crossLinePadding, 'left', 'right', axisAreaBound.width - totalWidth);
-            clampPaddingPair(crossLinePadding, 'top', 'bottom', axisAreaBound.height - totalHeight);
-            axisAreaBound.shrink(crossLinePadding);
+            clampPaddingPair(pluginPadding, 'left', 'right', axisAreaBound.width - totalWidth);
+            clampPaddingPair(pluginPadding, 'top', 'bottom', axisAreaBound.height - totalHeight);
+            axisAreaBound.shrink(pluginPadding);
         }
 
         const { scene } = this.ctx;
@@ -559,27 +557,18 @@ export class CartesianChart extends Chart {
         }
     }
 
-    private buildCrossLinePadding(outerSpace: AreaWidthMap) {
-        const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0 };
+    private buildAxisPluginPadding(outerSpace: AreaWidthMap) {
+        const pluginPadding = { top: 0, right: 0, bottom: 0, left: 0 };
 
         for (const axis of this.axes) {
-            const { position } = axis;
-            const crossLines = getCrossLinesPlugin(axis)?.getInstances();
-            if (!crossLines) continue;
-            for (const crossLine of crossLines) {
-                if (crossLine instanceof CartesianCrossLine) {
-                    crossLine.position = position ?? 'top';
-                }
-
-                crossLine.calculatePadding?.(crossLinePadding);
-            }
+            axis.collectPluginPadding(pluginPadding);
         }
-        // Reduce cross-line padding to account for overlap with axes and series area padding.
-        for (const [side, padding = 0] of entries(crossLinePadding)) {
-            crossLinePadding[side] = Math.max(padding - (outerSpace.get(side) ?? 0), 0);
+        // Reduce plugin padding to account for overlap with axes and series area padding.
+        for (const [side, padding = 0] of entries(pluginPadding)) {
+            pluginPadding[side] = Math.max(padding - (outerSpace.get(side) ?? 0), 0);
         }
 
-        return crossLinePadding;
+        return pluginPadding;
     }
 
     private clampToOutsideSeriesRect(seriesRect: BBox, value: number, dimension: Dimension, direction: Direction) {

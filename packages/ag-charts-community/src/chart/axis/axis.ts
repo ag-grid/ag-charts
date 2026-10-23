@@ -6,6 +6,7 @@ import type {
     CallbackParam,
     CanvasPoint,
     ChartAnimationPhase,
+    ChartSidePadding,
     DomainWithMetadata,
     DynamicContext,
     MouseWidgetEvent,
@@ -79,7 +80,6 @@ import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContex
 import { ModuleMap } from '../../module/moduleMap';
 import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
-import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
 import type { AxisLabelFormatterCache } from './axisLabelUtil';
@@ -388,6 +388,7 @@ export abstract class Axis<
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;
+    seriesAreaVisible = true;
 
     protected readonly axisGroup = new Group({ name: `${this.id}-axis` });
 
@@ -415,18 +416,18 @@ export abstract class Axis<
 
     /**
      * Three z-index-ordered overlay container groups attached to the chart-level overlay zones
-     * via {@link attachAxis}. Plugins (currently only the cross-lines plugin) anchor their per-axis
+     * via {@link attachAxis}. Plugins anchor their per-axis
      * scene-graph contributions into these groups via {@link AxisContext.attachAxisOverlay}, which
      * keeps overlay rendering scoped to the axis's host chart (main chart vs navigator mini-chart)
      * without the axis itself knowing what gets drawn.
      */
     private readonly overlayLowGroup = new TransformableGroup<never>({
         name: `${this.id}-Overlay-Low`,
-        zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE,
+        zIndex: ZIndexMap.SERIES_AXIS_OVERLAY_LOW,
     });
     private readonly overlayMidGroup = new TransformableGroup<never>({
         name: `${this.id}-Overlay-Mid`,
-        zIndex: ZIndexMap.SERIES_CROSSLINE_LINE,
+        zIndex: ZIndexMap.SERIES_AXIS_OVERLAY_MID,
     });
     private readonly overlayHighGroup = new TransformableGroup<never>({
         name: `${this.id}-Overlay-High`,
@@ -1021,6 +1022,12 @@ export abstract class Axis<
         return this.overlayHighGroup;
     }
 
+    collectPluginPadding(padding: ChartSidePadding) {
+        for (const module of this.moduleMap.modules()) {
+            (module as Partial<AxisPluginModuleInstance>).collectChartPadding?.(padding);
+        }
+    }
+
     /**
      * Generic dispatch that fans an axis-lifecycle phase out to every {@link AxisPluginModuleInstance}
      * registered in the module map. Plugins read whatever live state they need from {@link AxisContext}.
@@ -1362,10 +1369,7 @@ export abstract class Axis<
 
     createModuleContext(): DynamicContext<ChartAxisRegistry<AxisContext>> {
         this.axisContext ??= this.createAxisContext();
-        // `crossLine` is only a reserved slot here; the owning cross-lines module registers it in its `register` hook.
-        this.moduleContext ??= this.moduleCtx
-            .child<{ parent: AxisContext; crossLine: CrossLine }>()
-            .constant('parent', this.axisContext);
+        this.moduleContext ??= this.moduleCtx.child<{ parent: AxisContext }>().constant('parent', this.axisContext);
         return this.moduleContext;
     }
 
@@ -1402,6 +1406,12 @@ export abstract class Axis<
             },
             get range() {
                 return axis.range;
+            },
+            get seriesAreaVisible() {
+                return axis.seriesAreaVisible;
+            },
+            get interactionEnabled() {
+                return axis.interactionEnabled;
             },
             hasDefinedDomain: () => this.hasDefinedDomain(),
             hasVisibleSeries: () => this.hasVisibleSeries(),

@@ -1,13 +1,13 @@
 import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
 import { Group } from 'ag-charts-core';
-import type { AgBaseChartListeners, AgChartInstance, AgCoordinates } from 'ag-charts-types';
+import type { AgAxesChartListeners, AgChartInstance, AgCoordinates } from 'ag-charts-types';
 
 import type { CaptionLike } from './captionLike';
 import type { ChartType } from './chartType';
 import type { DatumIndex, ISeries, ISeriesOptions, SeriesNodeDatum } from './series/seriesTypes';
 import type { CategoryGroupSeries } from './sharedCategoryGroup';
 
-export type ChartListeners = AgBaseChartListeners<unknown, unknown>;
+export type ChartListeners = AgAxesChartListeners<unknown, unknown>;
 export type ChartEventType = keyof ChartListeners;
 export type ChartEventMap = { [K in ChartEventType]: Parameters<NonNullable<ChartListeners[K]>>[0] };
 

@@ -82,11 +82,15 @@ export const axisPluginToModule = new Map([
 export const polarAxisPluginToModule = new Map([['crossLines', 'PolarCrossLinesModule']]);
 export const axisListenerToModule = new Map([
     ['click', 'AxisInteractionModule'],
+    ['crossLineClick', 'CrossLinesModule'],
+    ['crossLineDoubleClick', 'CrossLinesModule'],
     ['doubleClick', 'AxisInteractionModule'],
 ]);
 export const chartListenerToModule = new Map([
     ['axisClick', 'AxisInteractionModule'],
     ['axisDoubleClick', 'AxisInteractionModule'],
+    ['crossLineClick', 'CrossLinesModule'],
+    ['crossLineDoubleClick', 'CrossLinesModule'],
 ]);
 export const seriesPluginToModule = new Map([['errorBar', 'ErrorBarsModule']]);
 export const seriesChartType = new Map([

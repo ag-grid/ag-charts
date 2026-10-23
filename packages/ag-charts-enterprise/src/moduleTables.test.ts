@@ -268,22 +268,46 @@ function sortedPlaceholders(catalogue: ModuleCatalogue) {
                 axisTypes: definition.axisTypes,
                 seriesTypes: definition.seriesTypes,
                 apiName: definition.apiName,
-                contributes: placeholderContributions(definition)?.map((contribution) => {
-                    const options = placeholderValidator(contribution.options);
-                    const themeOptions = placeholderValidator(contribution.themeOptions);
-                    return compact({
-                        path: contribution.path,
-                        options,
-                        themeOptions: themeOptions === options ? undefined : themeOptions,
-                        chartTypes: inheritedChartTypes(definition, contribution) ? undefined : contribution.chartTypes,
-                        axisTypes: contribution.axisTypes,
-                        seriesTypes: contribution.seriesTypes,
-                        requested: contribution.requested,
-                        apiName: contribution.apiName,
-                    });
-                }),
+                contributes: mergeAxisTypes(
+                    placeholderContributions(definition)?.map((contribution) => {
+                        const options = placeholderValidator(contribution.options);
+                        const themeOptions = placeholderValidator(contribution.themeOptions);
+                        return compact({
+                            path: contribution.path,
+                            options,
+                            themeOptions: themeOptions === options ? undefined : themeOptions,
+                            chartTypes: inheritedChartTypes(definition, contribution)
+                                ? undefined
+                                : contribution.chartTypes,
+                            axisTypes: contribution.axisTypes,
+                            seriesTypes: contribution.seriesTypes,
+                            requested: contribution.requested,
+                            apiName: contribution.apiName,
+                        });
+                    })
+                ),
             })
         );
+}
+
+/** Placeholder validators are coarser than the real ones, so per-axis-type contributions often collapse to one. */
+function mergeAxisTypes<T extends { axisTypes?: readonly string[] }>(contributions: T[] | undefined) {
+    if (contributions == null) return;
+    const merged: T[] = [];
+    const indexByShape = new Map<string, number>();
+    for (const contribution of contributions) {
+        const { axisTypes, ...shape } = contribution;
+        const key = JSON.stringify(shape);
+        const index = indexByShape.get(key);
+        const previousAxisTypes = index == null ? undefined : merged[index].axisTypes;
+        if (axisTypes == null || index == null || previousAxisTypes == null) {
+            if (axisTypes != null) indexByShape.set(key, merged.length);
+            merged.push(contribution);
+        } else {
+            merged[index] = { ...merged[index], axisTypes: [...previousAxisTypes, ...axisTypes] };
+        }
+    }
+    return merged;
 }
 
 type Placeholder = ReturnType<typeof sortedPlaceholders>[number];
@@ -434,18 +458,20 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
             case ModuleType.Plugin:
             case ModuleType.AxisPlugin:
             case ModuleType.SeriesPlugin:
+                const chartTypes = definition.chartTypes ?? [];
+                const everywhere = chartTypes.length === 0;
+                const onCartesian = everywhere || chartTypes.includes('cartesian');
                 for (const contribution of contributionsOf(definition)) {
                     const { host, relative } = contributionHost(parseOptionsPath(contribution.path));
                     const keys = relative.segments.map((segment) => segment.key);
                     const [head, ...rest] = keys;
                     if (host === 'axis') {
                         if (keys.length === 1) {
-                            const chartTypes = definition.chartTypes ?? [];
-                            const everywhere = chartTypes.length === 0;
                             if (everywhere || chartTypes.includes('polar'))
                                 tables.polarAxisPluginToModule.set(head, id);
-                            if (everywhere || chartTypes.includes('cartesian')) tables.axisPluginToModule.set(head, id);
-                        } else if (keys.length === 2 && head === 'listeners') {
+                            if (onCartesian) tables.axisPluginToModule.set(head, id);
+                        } else if (keys.length === 2 && head === 'listeners' && onCartesian) {
+                            // The ESLint rule has no polar variant for listeners, so a cartesian owner names them.
                             tables.axisListenerToModule.set(rest[0], id);
                         }
                     } else if (host === 'series') {
@@ -453,7 +479,7 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
                     } else if (keys.length === 1) {
                         tables.pluginOptionToModule.set(head, id);
                     } else if (keys.length === 2 && head === 'listeners') {
-                        tables.chartListenerToModule.set(rest[0], id);
+                        if (onCartesian) tables.chartListenerToModule.set(rest[0], id);
                     } else {
                         tables.chartOptionPathToModule.set(keys.join('.'), id);
                     }

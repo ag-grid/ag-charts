@@ -8,6 +8,7 @@ import {
     contextMenuAction,
     deproxy,
     expectWarningsCalls,
+    getCrossLinesPlugin,
     getSeriesAt,
     getSeriesNodeData,
     hoverAction,
@@ -139,9 +140,9 @@ describe('Context Menu', () => {
     // Centre of the first cross line's label on the given axis.
     function crossLineLabelCentre(direction: ChartAxisDirection) {
         const axis = deproxy(chart).axes.find((a) => a.direction === direction)!;
-        const [crossLine] = _ModuleSupport.getCrossLinesPlugin(axis)?.getInstances() ?? [];
-        expect(crossLine).toBeInstanceOf(_ModuleSupport.CartesianCrossLine);
-        const { labelGroup } = crossLine as _ModuleSupport.CartesianCrossLine;
+        const [crossLine] = getCrossLinesPlugin(axis)?.getInstances() ?? [];
+        expect(crossLine).toBeDefined();
+        const { labelGroup } = crossLine;
         const { x, y, width, height } = Transformable.toCanvas(labelGroup);
         return { x: x + width / 2, y: y + height / 2 };
     }
@@ -638,6 +639,39 @@ describe('Context Menu', () => {
                     ]),
                 })
             );
+        });
+
+        it('orders every matched scope when a marker sits on a crossing axis and a cross line', async () => {
+            chart = await createEnterpriseChart(
+                chartOptions(
+                    { enabled: true, getItems },
+                    {
+                        data: Array.from({ length: 4 }, (_, i) => ({ x: i, y: i * 2 - 2 })),
+                        axes: {
+                            x: {
+                                type: 'number',
+                                crossAt: { value: 0 },
+                                crossLines: [{ id: 'threshold', type: 'line', value: 1 }],
+                            },
+                            y: { type: 'number' },
+                        },
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    }
+                )
+            );
+            const { canvasX, canvasY } = datumCanvasPoint(1);
+            await contextMenuAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledTimes(1);
+            const [{ showOn, allShowOnParams }] = getItems.mock.calls[0];
+            expect(showOn).toBe('series-node');
+            expect(allShowOnParams.map((params: { showOn: string }) => params.showOn)).toEqual([
+                'series-area',
+                'axis',
+                'cross-line',
+                'series-node',
+            ]);
         });
     });
     // AG-18600: `getItems` receives the DOM event that opened the menu, as the very same object the

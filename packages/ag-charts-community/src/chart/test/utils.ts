@@ -1294,6 +1294,15 @@ export async function tabIntoChart(chart: ChartOrProxy) {
     await waitForChartStability(chart);
 }
 
+/** The chart's keyboard tab stops in DOM order, each named by the first class of the proxy group holding it. */
+export function getTabStopGroups() {
+    const canvasProxy = document.querySelector('.ag-charts-canvas-proxy');
+    expect(canvasProxy).not.toBeNull();
+    return Array.from(canvasProxy!.querySelectorAll<HTMLElement>('*'))
+        .filter((element) => element.tabIndex >= 0)
+        .map((element) => element.closest('.ag-charts-proxy-container, .ag-charts-series-area')?.classList[0]);
+}
+
 // The swap-chain's visible announcer is labelled by the text read out for the focused datum.
 export function getSwapChainText() {
     const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[aria-hidden="false"]');

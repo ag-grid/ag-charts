@@ -31,7 +31,7 @@ import type {
 } from './crossLineOptions';
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
 import type { AgNumericValue, AgTimeValue } from './dataValues';
-import type { AgAxisListeners } from './eventOptions';
+import type { AgAxesChartListeners, AgAxisListeners } from './eventOptions';
 import type { AgChartLabelAutoFontSizeOptions, AgChartLabelFitOptions, AgChartLabelStyleOptions } from './labelOptions';
 import type {
     AxisValue,
@@ -540,6 +540,8 @@ export interface AgBaseCartesianThemeOptions<
     axes?: AgCartesianAxesTheme<TContext>;
     /** Configuration relating to the series area. */
     seriesArea?: AgCartesianSeriesAreaThemableOptions;
+    /** A map of event names to event listeners. */
+    listeners?: AgAxesChartListeners<TDatum, TContext>;
 }
 
 export interface AgCartesianSeriesAreaThemableOptions extends AgSeriesAreaOptions {

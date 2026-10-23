@@ -1,4 +1,7 @@
-import type { CrossLine } from '../crossLine';
+import type { CrossLine } from 'ag-charts-core';
+
+import type { ChartAxis } from '../../chartAxis';
+import type { CrossLinesPlugin } from '../crossLinesPlugin';
 
 // `CartesianCrossLine.fitted` is the private cache (other cross line kinds have none) of the label as fitted to its `maxWidth`/`maxHeight`.
 interface FittedLabelHost {
@@ -11,4 +14,12 @@ interface FittedLabelHost {
  */
 export function getCrossLineFittedLabel(crossLine: CrossLine): object | undefined {
     return (crossLine as unknown as FittedLabelHost).fitted;
+}
+
+/** The cross-lines plugin of `axis`, registered as `crossLines` on cartesian axes and `polarCrossLines` on polar ones. */
+export function getCrossLinesPlugin(axis: ChartAxis): CrossLinesPlugin | undefined {
+    const moduleMap = axis.getModuleMap();
+    return (
+        moduleMap.getModule<CrossLinesPlugin>('crossLines') ?? moduleMap.getModule<CrossLinesPlugin>('polarCrossLines')
+    );
 }

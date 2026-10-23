@@ -10,16 +10,16 @@ import {
     ScaleAlignment,
     TransformableText,
     Vec4,
+    bandRangeExpansion,
     clampArray,
     createId,
     fitLabelTextAutoSize,
     fontWithSize,
+    isValidScaleValue,
     resolveLabelFit,
     toRadians,
 } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegionLabelPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
-
-const { bandRangeExpansion, isValidScaleValue } = _ModuleSupport;
 
 type AnchorDirection = 1 | 0 | -1;
 

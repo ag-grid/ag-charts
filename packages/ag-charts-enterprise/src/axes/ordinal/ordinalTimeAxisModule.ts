@@ -3,6 +3,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedOrdinalTimeAxisOptions,
+    type WithoutCrossLineOptions,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
@@ -15,7 +16,10 @@ import { BackgroundRegionsModule } from '../../features/background-regions/backg
 import { OrdinalTimeAxis } from './ordinalTimeAxis';
 import { ordinalTimeAxisOptionsDefs } from './ordinalTimeAxisOptionsDefs';
 
-export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOptions, OrdinalTimeAxis> = {
+export const OrdinalTimeAxisModule: AxisModuleDefinition<
+    WithoutCrossLineOptions<AgOrdinalTimeAxisOptions>,
+    OrdinalTimeAxis
+> = {
     type: 'axis',
     name: 'ordinal-time',
     chartType: 'cartesian',

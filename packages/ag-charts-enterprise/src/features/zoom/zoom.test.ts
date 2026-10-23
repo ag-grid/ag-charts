@@ -22,6 +22,7 @@ import {
     getAggregatedMarkerXValues,
     getAxisLabelDatums,
     getAxisPickTickData,
+    getCrossLinesPlugin,
     getLegendModule,
     getSeriesRect,
     getSwapChainText,
@@ -1831,7 +1832,7 @@ describe('Zoom', () => {
             await waitForChartStability(chart);
 
             const instance = deproxy(chart);
-            const [crossLine] = _ModuleSupport.getCrossLinesPlugin(instance.axes.findById('x')!)!.getInstances();
+            const [crossLine] = getCrossLinesPlugin(instance.axes.findById('x')!)!.getInstances();
             return { crossLine, seriesRect: instance.seriesRect! };
         }
 

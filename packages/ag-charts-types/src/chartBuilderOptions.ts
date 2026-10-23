@@ -3,7 +3,7 @@ import type { AgInitialStateOptions } from './api/initialStateOptions';
 import type { AgBaseCartesianChartOptions, AgCartesianSeriesAreaOptions } from './chart/cartesianOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type { AgDataTransaction } from './chart/dataTransaction';
-import type { AgSelectionItem, AgSelectionItemIds } from './chart/eventOptions';
+import type { AgAxesChartListeners, AgSelectionItem, AgSelectionItemIds } from './chart/eventOptions';
 import type { AgBasePolarChartOptions } from './chart/polarOptions';
 import type {
     AgBaseChartThemeOptions,
@@ -40,11 +40,15 @@ export interface AgCartesianChartOptions<TDatum = DatumDefault, TContext = Conte
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
     /** Configuration relating to the series area. */
     seriesArea?: AgCartesianSeriesAreaOptions;
+    /** A map of event names to event listeners. */
+    listeners?: AgAxesChartListeners<TDatum, TContext>;
 }
 
 export interface AgPolarChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBasePolarChartOptions<TDatum, TContext>, AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
+    /** A map of event names to event listeners. */
+    listeners?: AgAxesChartListeners<TDatum, TContext>;
 }
 
 export interface AgTopologyChartOptions<TDatum = DatumDefault, TContext = ContextDefault>

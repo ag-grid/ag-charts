@@ -10,6 +10,8 @@ import {
     type PlainObject,
     type ResolvedContribution,
     composeContributedDefs,
+    composeHostContributedDefs,
+    contributionMatchesAxisType,
     contributionMatchesChartType,
     contributionsOf,
     createScopedCache,
@@ -467,6 +469,34 @@ export function composeChartOptionsDefs<T>(
         );
         composed = composeContributedDefs(chartDefs, applicable);
         byChartType.set(chartType, composed);
+    }
+    return composed;
+}
+
+const composedAxisDefsCaches = createScopedCache(
+    () => ({ defs: new WeakMap<object, OptionsDefs<any>>() }),
+    (cache) => {
+        cache.defs = new WeakMap();
+    }
+);
+
+/** The axis module's defs with every module-owned location on that axis type installed, cached like the chart defs. */
+export function composeAxisOptionsDefs<T>(
+    axisDef: { readonly name: string; readonly chartType: string; readonly options: OptionsDefs<T> },
+    moduleRegistry: ModuleScope
+): OptionsDefs<T> {
+    const cache = composedAxisDefsCaches.for(moduleRegistry);
+    let composed = cache.defs.get(axisDef.options) as OptionsDefs<T> | undefined;
+    if (composed == null) {
+        const { name, chartType } = axisDef;
+        composed = composeHostContributedDefs(
+            axisDef.options,
+            knownContributions(moduleRegistry, chartType),
+            'axis',
+            (contribution) =>
+                contributionMatchesChartType(contribution, chartType) && contributionMatchesAxisType(contribution, name)
+        );
+        cache.defs.set(axisDef.options, composed);
     }
     return composed;
 }

@@ -14,7 +14,7 @@ import type {
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
-import { type ModuleOwnedChartOptions, commonChartOptionsDefs } from './chartDefaults';
+import { type WithoutModuleOwnedOptions, commonChartOptionsDefs } from './chartDefaults';
 import { geoJson } from './geoJsonValidator';
 import { borderOptionsDef, padding, themeOperator } from './optionsDefaults';
 import {
@@ -42,7 +42,7 @@ import {
 } from './validation';
 
 /** `seriesArea.backgroundRegions` is owned by the enterprise background regions module. */
-export type CartesianChartDefOptions = Omit<AgCartesianChartOptions, ModuleOwnedChartOptions | 'seriesArea'> & {
+export type CartesianChartDefOptions = Omit<WithoutModuleOwnedOptions<AgCartesianChartOptions>, 'seriesArea'> & {
     seriesArea?: Omit<AgCartesianSeriesAreaThemableOptions, 'backgroundRegions'>;
 };
 
@@ -115,7 +115,7 @@ export const cartesianChartOptionsDefs: OptionsDefs<CartesianChartDefOptions> = 
     },
 };
 
-export const polarChartOptionsDefs: OptionsDefs<Omit<AgPolarChartOptions, ModuleOwnedChartOptions>> = {
+export const polarChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgPolarChartOptions>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     axes: object,
@@ -123,7 +123,7 @@ export const polarChartOptionsDefs: OptionsDefs<Omit<AgPolarChartOptions, Module
     dataIdKey: string,
 };
 
-export const topologyChartOptionsDefs: OptionsDefs<Omit<AgTopologyChartOptions, ModuleOwnedChartOptions>> = {
+export const topologyChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgTopologyChartOptions>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
@@ -131,7 +131,7 @@ export const topologyChartOptionsDefs: OptionsDefs<Omit<AgTopologyChartOptions, 
     topology: geoJson,
 };
 
-export const standaloneChartOptionsDefs: OptionsDefs<Omit<AgStandaloneChartOptions, ModuleOwnedChartOptions>> = {
+export const standaloneChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgStandaloneChartOptions>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
@@ -149,7 +149,7 @@ const serializableDate = optionsDefs<AgStateSerializableDate>(
 const zoomRangeDef = { start: or(number, serializableDate), end: or(number, serializableDate) };
 const zoomRatioDef = { start: ratio, end: ratio };
 
-export const cartesianChartThemeOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, ModuleOwnedChartOptions>> = {
+export const cartesianChartThemeOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBaseThemeableChartOptions>> = {
     ...commonChartOptionsDefs,
     ...undocumentedDefs({
         paired: boolean,
@@ -158,7 +158,7 @@ export const cartesianChartThemeOptionsDefs: OptionsDefs<Omit<AgBaseThemeableCha
 
 /** Theme overrides under `common`; axes and module-owned keys are composed in from the registered modules. */
 export const commonThemeOverridesOptionsDefs: OptionsDefs<
-    Omit<AgCommonThemeableChartOptions, ModuleOwnedChartOptions | 'axes'>
+    Omit<WithoutModuleOwnedOptions<AgCommonThemeableChartOptions>, 'axes'>
 > = {
     ...commonChartOptionsDefs,
     initialState: {
