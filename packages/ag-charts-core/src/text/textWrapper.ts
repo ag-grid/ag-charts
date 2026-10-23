@@ -895,7 +895,7 @@ function fittingGraphemeCount(
 ): number {
     // OPTIMIZATION: cached grapheme widths land the guess within a step or two of the measured answer.
     let count = 0;
-    let estimate = 0;
+    let estimate = draw ? measurer.textWidth(draw('')) : 0;
     for (const grapheme of graphemes) {
         estimate += measurer.textWidth(grapheme);
         if (estimate > maxWidth) break;

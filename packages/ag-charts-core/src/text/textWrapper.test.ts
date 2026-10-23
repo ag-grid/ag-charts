@@ -299,7 +299,7 @@ describe('truncateLine', () => {
             expect(truncateLine('abcdefghij', createMockMeasurer(10, -3), 60)).toBe(`abcdefg${E}`);
         });
 
-        it('measures logarithmically often however far the character sum misses the drawn width', () => {
+        it('bounds measurements logarithmically however far the character sum misses the drawn width', () => {
             // Each extra 'a' draws 5px but sums 10px, so the sum guesses about half the fitting prefix.
             const halved = createMockMeasurer(10, -5);
             const text = 'a'.repeat(200);
@@ -1575,7 +1575,9 @@ describe('wrapping fits each line as drawn, not by the sum of its characters', (
                     const maxWidth = 30 + Math.floor(random() * 90);
                     const lines = wrapLines(words, { font, maxWidth, textWrap });
                     const context = `${JSON.stringify(words)} in ${maxWidth}px, ${textWrap}, join ${join}`;
-                    expect(lines, context).toEqual(measurer.textWidth(words) <= maxWidth ? [words] : lines);
+                    expect(lines.length === 1 && lines[0] === words, context).toBe(
+                        measurer.textWidth(words) <= maxWidth
+                    );
                     for (const line of lines) {
                         expect(measurer.textWidth(line), `${context}: ${JSON.stringify(line)}`).toBeLessThanOrEqual(
                             maxWidth
