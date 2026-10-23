@@ -8,8 +8,8 @@ import {
     flowProportionChartAssertions,
     gaugeAssertions,
     hierarchyChartAssertions,
-    polarChartAssertions,
     repeat,
+    standaloneChartAssertions,
 } from './utils';
 
 interface BaseTestCase<Options extends AgChartOptions | AgGaugeOptions> {
@@ -98,12 +98,12 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES = {
     },
     SIMPLE_PIE_CHART_EXAMPLE: {
         options: examples.SIMPLE_PIE_CHART_EXAMPLE,
-        assertions: polarChartAssertions(),
+        assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
         enterprise: false,
     },
     SIMPLE_DONUT_CHART_EXAMPLE: {
         options: examples.SIMPLE_DONUT_CHART_EXAMPLE,
-        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+        assertions: standaloneChartAssertions({ seriesTypes: ['donut'] }),
         enterprise: false,
     },
     SIMPLE_LINE_CHART_EXAMPLE: {

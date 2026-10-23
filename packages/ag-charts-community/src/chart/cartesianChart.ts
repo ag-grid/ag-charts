@@ -1,6 +1,12 @@
 import type { AxisPrimaryTickCount, BBox, CanvasPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
 import { ChartAxisDirection, ContinuousScale, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
-import type { AgCartesianAxisPosition, AgCoordinates } from 'ag-charts-types';
+import type {
+    AgCartesianAxisPosition,
+    AgChartOptions,
+    AgCoordinates,
+    AgMiniChartSeriesOptions,
+    SeriesType,
+} from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
@@ -8,11 +14,12 @@ import { CartesianAxis } from './axis/cartesianAxis';
 import { CategoryAxis } from './axis/categoryAxis';
 import { NumberAxis } from './axis/numberAxis';
 import { stackCartesianSeries } from './cartesianUtil';
-import type { TransferableResources } from './chart';
+import type { SeriesAxesHost, TransferableResources } from './chart';
 import { Chart } from './chart';
-import { CartesianChartAxes } from './chartAxes';
+import { CartesianChartAxes, ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import type { LayoutContext, ScrollbarLayoutMap, SeriesInsetMap } from './layout/layoutManager';
+import { deriveMiniChartOptions, filterMiniChartSeries } from './miniChartOptions';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { UnknownSeries } from './series/series';
 
@@ -70,6 +77,9 @@ export class CartesianChart extends Chart {
 
     private lastAreaWidths?: AreaWidthMap;
 
+    private _requiredRange = 0;
+    private _requiredRangeDirection = ChartAxisDirection.X;
+
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
     }
@@ -95,6 +105,108 @@ export class CartesianChart extends Chart {
                     return !ignoreZoom && linkZoom == null;
                 })
             );
+        }
+    }
+
+    protected override processRanges() {
+        const seriesRanges: Record<string, number[]> = {};
+        const chartRanges: Record<string, number> = {};
+        const seriesTypes = new Map();
+
+        this._requiredRangeDirection = ChartAxisDirection.X;
+
+        // First apply the minimum range from each series by type.
+        for (const series of this.series) {
+            if (!series.visible) continue;
+            seriesRanges[series.type] ??= [];
+            series.getMinimumRangeSeries(seriesRanges[series.type]);
+            if (series.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y) {
+                this._requiredRangeDirection = ChartAxisDirection.Y;
+            }
+            if (!seriesTypes.has(series.type)) {
+                seriesTypes.set(series.type, series);
+            }
+        }
+
+        // Then apply the minimum range required by a group of series by type. For example, bar series have padding
+        // between each series which should only be applied once and is calculated from the width of the bars.
+        for (const [type, firstSeries] of seriesTypes) {
+            chartRanges[type] = firstSeries.getMinimumRangeChart(seriesRanges[type]);
+        }
+
+        if (Object.keys(chartRanges).length === 0) {
+            this._requiredRange = 0;
+        } else {
+            // Set only during PROCESS_RANGE: zoomManager's oscillation guard needs this stable across
+            // re-layouts to tell option changes from layout-triggered dimension changes.
+            this._requiredRange = Math.ceil(Math.max(...Object.values(chartRanges)));
+        }
+
+        for (const axis of this.axes) {
+            axis.requiredRange = this._requiredRange;
+        }
+    }
+
+    protected override preSeriesUpdate() {
+        const { _requiredRange, seriesRect } = this;
+        if (seriesRect == null) return;
+
+        const dimension = this._requiredRangeDirection === ChartAxisDirection.X ? seriesRect.width : seriesRect.height;
+        const rangeRatio = _requiredRange / dimension;
+        const requiredRangeRatio = Number.isNaN(rangeRatio) ? 0 : rangeRatio; // In case it's NaN, return 0.
+
+        // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
+        this.ctx.eventsHub.emit('update:pre-series', {
+            requiredRangeRatio,
+            requiredRangeDirection: this._requiredRangeDirection,
+            requiredRange: _requiredRange,
+        });
+    }
+
+    protected override applyChartTypeOptions(newOpts: AgChartOptions, oldOpts: AgChartOptions & { type?: SeriesType }) {
+        const navigatorModule = this.modulesManager.getModule<{ miniChart?: SeriesAxesHost & { enabled?: boolean } }>(
+            'navigator'
+        );
+        const miniChart = navigatorModule?.miniChart;
+        const miniChartSeries =
+            (newOpts.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? newOpts.series;
+        if (miniChart?.enabled === true && miniChartSeries != null) {
+            this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
+        } else if (miniChart?.enabled === false) {
+            miniChart.setSeries([]);
+            miniChart.setAxes(new ChartAxes());
+        }
+    }
+
+    private applyMiniChartOptions(
+        miniChart: any,
+        miniChartSeries: NonNullable<AgChartOptions['series']>,
+        completeOptions: AgChartOptions,
+        oldOpts: AgChartOptions & { type?: SeriesType }
+    ) {
+        const oldSeries =
+            (oldOpts?.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? oldOpts?.series;
+        const miniChartSeriesStatus = this.applySeries(
+            miniChart,
+            filterMiniChartSeries(miniChartSeries),
+            filterMiniChartSeries(oldSeries)
+        );
+        const derivedOptions = deriveMiniChartOptions(completeOptions);
+        this.applyAxes(miniChart, derivedOptions, this.chartOptions, miniChartSeriesStatus);
+
+        const axes = miniChart.axes as ChartAxis[];
+
+        // The navigator overlay derives from the main domain-direction axis after `nice` rounding, so the
+        // matching mini-chart axis must inherit `nice` or the handles drift; cross axes keep `nice = false`.
+        const domainDirection = this.series.some(
+            (s) => s.visible && s.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y
+        )
+            ? ChartAxisDirection.Y
+            : ChartAxisDirection.X;
+        const mainDomainAxis = this.axes.find((axis) => axis.direction === domainDirection);
+        for (const axis of axes) {
+            axis.nice = axis.direction === domainDirection ? (mainDomainAxis?.nice ?? true) : false;
+            axis.interactionEnabled = false;
         }
     }
 

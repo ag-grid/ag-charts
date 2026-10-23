@@ -104,4 +104,24 @@ describe('tooltipContent', () => {
             expect(html).toContain(`<span class="ag-charts-tooltip-label">שינוי ${mark('-12.5%')}</span>`);
         });
     });
+
+    describe('tooltipHtml row symbol', () => {
+        it('places the symbol before its own row only', () => {
+            const content: TooltipContent = {
+                type: 'structured',
+                data: [
+                    { label: 'High', value: '5', symbol: { marker: { shape: 'circle', fill: 'red' } } },
+                    { label: 'Low', value: '1' },
+                ],
+            };
+            const html = tooltipHtml({ isRtl: false }, [content], 'shared', undefined) ?? '';
+            expect(html.match(/ag-charts-tooltip-symbol/g)).toHaveLength(1);
+            expect(html).toMatch(
+                /<span class="ag-charts-tooltip-symbol"><svg.*<\/svg><\/span><div class="ag-charts-tooltip-row ag-charts-tooltip-row--inline"><span class="ag-charts-tooltip-label">High<\/span>/
+            );
+            expect(html).toContain(
+                '<div class="ag-charts-tooltip-row"><span class="ag-charts-tooltip-label">Low</span>'
+            );
+        });
+    });
 });

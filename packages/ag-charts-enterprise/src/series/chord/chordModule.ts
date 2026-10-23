@@ -1,4 +1,4 @@
-import { type AgChordSeriesOptions, VERSION } from 'ag-charts-community';
+import { type AgChordSeriesOptions, StandaloneChartModule, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
@@ -15,7 +15,6 @@ import {
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
-import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { ChordSeries } from './chordSeries';
 import { chordSeriesOptionsDef, chordSeriesThemeableOptionsDef } from './chordSeriesOptionsDef';
 

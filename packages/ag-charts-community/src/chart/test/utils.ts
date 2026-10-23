@@ -862,17 +862,6 @@ export function cartesianChartAssertions(params?: {
     };
 }
 
-export function polarChartAssertions(params?: { seriesTypes?: string[] }) {
-    const { seriesTypes = ['pie'] } = params ?? {};
-
-    return (chartOrProxy: ChartOrProxy) => {
-        const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toContain('PolarChart');
-        expect(chart.axes).toHaveLength(0);
-        expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
-    };
-}
-
 export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['treemap'] } = params ?? {};
 

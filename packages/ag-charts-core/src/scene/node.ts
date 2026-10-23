@@ -25,12 +25,20 @@ export type RenderContext = {
     devicePixelRatio: number;
     logger: Logger;
     clipBBox?: BBox;
+    /**
+     * Set while a layer repaints only part of itself: the region of the layer's canvas, in device pixels, that has been
+     * cleared and is clipped to, so a node may skip anything it paints that falls entirely outside it. Painting more
+     * than the region is always correct, as the clip bounds it.
+     */
+    dirtyRegion?: BBox;
     stats?: {
         opsPerformed: number;
         opsSkipped: number;
         nodesRendered: number;
         nodesSkipped: number;
         layersRendered: number;
+        /** Of `layersRendered`, the layers that repainted only the dirty region of their sources. */
+        layersPartiallyRendered: number;
         layersSkipped: number;
     };
     debugNodeSearch?: (string | RegExp)[];
@@ -129,7 +137,7 @@ export abstract class Node<TDatum = unknown> {
 
     parentNode: Node | undefined = undefined;
 
-    private cachedBBox: BBox | undefined = undefined;
+    protected cachedBBox: BBox | undefined = undefined;
 
     /**
      * To simplify the type system (especially in Selections) we don't have the `Parent` node
@@ -151,6 +159,8 @@ export abstract class Node<TDatum = unknown> {
 
     protected batchLevel = 0;
     private batchDirty = false;
+    /** Sources of {@link markDirtyRegion} marks that arrived during a batch, to be passed on when it ends. */
+    private batchRegionSources: Set<Node> | undefined = undefined;
 
     constructor(options?: NodeOptions) {
         this.name = options?.name;
@@ -253,6 +263,9 @@ export abstract class Node<TDatum = unknown> {
         try {
             this.render(renderCtx);
         } catch (e: any) {
+            // The failed node may have left the layer's bitmap half painted, so it can't be repainted in part.
+            this.invalidateLayerOnRenderError();
+
             const errorCount = e.errorCount ?? 1;
 
             // If there are multiple failures, fail faster since raising errors is expensive and
@@ -328,16 +341,36 @@ export abstract class Node<TDatum = unknown> {
         }
     }
 
+    /** Ends one level of batching and, at the outermost, makes the dirty marks that the batch held back. */
+    private endBatchLevel() {
+        this.batchLevel--;
+        if (this.batchLevel !== 0) return;
+
+        const { batchRegionSources } = this;
+        if (this.batchDirty) {
+            this.markDirty();
+            this.batchDirty = false;
+            batchRegionSources?.clear();
+        } else if (batchRegionSources != null && batchRegionSources.size > 0) {
+            // A batch with no ordinary mark keeps the bounds of its region marks.
+            const sources = [...batchRegionSources];
+            batchRegionSources.clear();
+            for (const source of sources) {
+                if (source === this) {
+                    this.markDirtyRegion();
+                } else {
+                    this.markDirtyRegionOf(source);
+                }
+            }
+        }
+    }
+
     batchedUpdate(fn: () => void) {
         this.batchLevel++;
         try {
             fn();
         } finally {
-            this.batchLevel--;
-            if (this.batchLevel === 0 && this.batchDirty) {
-                this.markDirty();
-                this.batchDirty = false;
-            }
+            this.endBatchLevel();
         }
     }
 
@@ -353,11 +386,7 @@ export abstract class Node<TDatum = unknown> {
                 target[key] = source[key];
             }
         } finally {
-            this.batchLevel--;
-            if (this.batchLevel === 0 && this.batchDirty) {
-                this.markDirty();
-                this.batchDirty = false;
-            }
+            this.endBatchLevel();
         }
         return this;
     }
@@ -373,11 +402,7 @@ export abstract class Node<TDatum = unknown> {
                 target[key] = source[key];
             }
         } finally {
-            this.batchLevel--;
-            if (this.batchLevel === 0 && this.batchDirty) {
-                this.markDirty();
-                this.batchDirty = false;
-            }
+            this.endBatchLevel();
         }
         return this;
     }
@@ -452,6 +477,54 @@ export abstract class Node<TDatum = unknown> {
 
         this.cachedBBox = undefined;
         this.parentNode?.markDirty();
+    }
+
+    /**
+     * Marks the node dirty when only the region it reports from {@link getDirtyRegion} changed, so a layer that holds
+     * it may repaint that region alone. Parents are marked dirty as usual for the render pass to reach the node, but
+     * the first one to own a persistent layer records the node instead of being fully dirtied. A node that calls this
+     * must paint nothing outside its reported region, and reproduce the same pixels inside it as a full repaint would.
+     *
+     * Every other change must call {@link markDirty}: a region is only ever painted in addition to the dirty marks of
+     * the same frame, and any ordinary mark in the layer's subtree repaints the whole layer.
+     */
+    markDirtyRegion() {
+        if (this.batchLevel > 0) {
+            this.batchRegionSources ??= new Set();
+            this.batchRegionSources.add(this);
+            return;
+        }
+
+        this.cachedBBox = undefined;
+        this.parentNode?.markDirtyRegionOf(this);
+    }
+
+    /**
+     * Records that a descendant changed within its dirty region. A node that is not a group has no descendants, so this
+     * is only called on groups, which forward it to the first persistent layer. Anything else is an ordinary mark.
+     * @internal
+     */
+    markDirtyRegionOf(source: Node) {
+        if (this.batchLevel > 0) {
+            this.batchRegionSources ??= new Set();
+            this.batchRegionSources.add(source);
+            return;
+        }
+        this.markDirty();
+    }
+
+    /**
+     * The region the node repainted last, in its own coordinate space, for a node that calls {@link markDirtyRegion}.
+     * It must cover every pixel the change touched, including the pixels the node held before it. Returning
+     * `undefined` or an empty box repaints the whole layer.
+     */
+    getDirtyRegion(): BBox | undefined {
+        return undefined;
+    }
+
+    /** Invalidates the layer that holds this node, if any, after a render error. Overridden by groups with a layer. */
+    protected invalidateLayerOnRenderError() {
+        this.parentNode?.invalidateLayerOnRenderError();
     }
 
     private markDebugProperties(property: string) {

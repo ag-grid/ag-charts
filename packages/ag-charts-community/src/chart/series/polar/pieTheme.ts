@@ -104,4 +104,18 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         selection: SERIES_SELECTION_THEME,
     },
     legend: { enabled: true },
+    tooltip: {
+        mode: {
+            $if: [
+                {
+                    $and: [
+                        { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
+                        { $lessThan: [{ $size: { $path: '/series' } }, 4] },
+                    ],
+                },
+                'shared',
+                'single',
+            ],
+        },
+    },
 };

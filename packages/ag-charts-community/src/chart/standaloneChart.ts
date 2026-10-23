@@ -1,21 +1,23 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { AxisID, CanvasPoint } from 'ag-charts-core';
+import type { AxisID, BBox, CanvasPoint } from 'ag-charts-core';
 import { ChartAxisDirection, PanToBBoxScalingModeEnum, createId } from 'ag-charts-core';
 import type { AgCoordinates } from 'ag-charts-types';
 
-import { HierarchyDataSet } from './hierarchyDataSet';
-
-const { Chart } = _ModuleSupport;
+import type { ChartOptions } from '../module/optionsModule';
+import { Axis } from './axis/axis';
+import type { TransferableResources } from './chart';
+import { Chart } from './chart';
+import type { LayoutContext } from './layout/layoutManager';
+import type { SeriesAreaLayout, UnknownSeries } from './series/series';
 
 export class StandaloneChart extends Chart {
     static override readonly className = 'StandaloneChart';
     static readonly type = 'standalone' as const;
 
-    private readonly xAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.X } as const;
-    private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;
+    private readonly xAxis = { id: createId<AxisID>(Axis), direction: ChartAxisDirection.X } as const;
+    private readonly yAxis = { id: createId<AxisID>(Axis), direction: ChartAxisDirection.Y } as const;
     private standaloneZoomRegistered = false;
 
-    constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
+    constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
 
         if (this.ctx.zoomManager) {
@@ -57,29 +59,17 @@ export class StandaloneChart extends Chart {
         super.onZoomChangeComplete();
     }
 
-    protected override createDataSet(data: unknown[]): _ModuleSupport.DataSet {
-        for (const series of this.series) {
-            const source: object = series.options;
-            if ('childrenKey' in source && typeof source.childrenKey === 'string') {
-                const dataIdKey = this.ctx.chartState.getValue('options', 'dataIdKey');
-                const ds = new HierarchyDataSet(data, dataIdKey, source.childrenKey, this.ctx.logger);
-                if (this.data != null) this.ctx.dataSelectionService?.transferDataSet(ds, this.data);
-                return ds;
-            }
-        }
-        return super.createDataSet(data);
-    }
-
-    protected performLayout(ctx: _ModuleSupport.LayoutContext) {
+    protected async performLayout(ctx: LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
         const seriesRect = ctx.layoutBox.clone().shrink(this.getSeriesAreaPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
 
+        const snap = this.series.every((s) => s.snapsSeriesAreaOrigin);
         for (const group of [seriesRoot, annotationRoot]) {
-            group.translationX = Math.floor(seriesRect.x);
-            group.translationY = Math.floor(seriesRect.y);
+            group.translationX = snap ? Math.floor(seriesRect.x) : seriesRect.x;
+            group.translationY = snap ? Math.floor(seriesRect.y) : seriesRect.y;
         }
 
         // Matches cartesian: clip panned content out of title/subtitle/footnote.
@@ -87,7 +77,9 @@ export class StandaloneChart extends Chart {
         seriesRoot.setClipRect(clipRect);
         annotationRoot.setClipRect(clipRect);
 
-        seriesRoot.visible = this.series[0].visible;
+        seriesRoot.visible = this.series.some((s) => s.visible);
+
+        await this.layoutSeriesGroups(seriesRect);
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: true, rect: seriesRect, paddedRect: ctx.layoutBox },
@@ -95,32 +87,25 @@ export class StandaloneChart extends Chart {
         });
     }
 
-    protected override getAriaLabel(): string {
-        const seriesType = this.series[0]?.type;
-        if (seriesType == null) return '';
-
-        const caption = this.getCaptionText();
-
-        switch (seriesType) {
-            case 'radial-gauge':
-            case 'linear-gauge': {
-                const captions: string[] = [];
-                if (caption.length !== 0) {
-                    captions.push(caption);
-                }
-
-                for (const series of this.series) {
-                    captions.push((series as _ModuleSupport.GaugeSeries).getCaptionText());
-                }
-
-                return this.ctx.localeManager.t('ariaAnnounceGaugeChart', { caption: captions.join('. ') });
+    private async layoutSeriesGroups(seriesRect: BBox) {
+        const groups = new Map<SeriesAreaLayout, UnknownSeries[]>();
+        for (const series of this.series) {
+            const { seriesAreaLayout } = series;
+            if (seriesAreaLayout == null) continue;
+            let group = groups.get(seriesAreaLayout);
+            if (group == null) {
+                group = [];
+                groups.set(seriesAreaLayout, group);
             }
-            case 'treemap':
-            case 'sunburst':
-                return this.ctx.localeManager.t('ariaAnnounceHierarchyChart', { caption });
-            default: {
-                return this.ctx.localeManager.t('ariaAnnounceStandaloneChart', { caption });
-            }
+            group.push(series);
         }
+        for (const [layout, series] of groups) {
+            await layout(series, seriesRect);
+        }
+    }
+
+    protected override getDefaultAriaLabel(): string {
+        if (this.series.length === 0) return '';
+        return this.ctx.localeManager.t('ariaAnnounceStandaloneChart', { caption: this.getCaptionText() });
     }
 }

@@ -587,6 +587,20 @@ describe('PolarCrossLine listeners', () => {
         expect(crossLineInstances(chart, 'radius')).toEqual([]);
     });
 
+    it('pie and donut charts reject cross-line listeners', async () => {
+        chart = deproxy(
+            await createEnterpriseChart({
+                data: [{ label: 'a', value: 1 }],
+                series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label' }],
+                listeners: { crossLineClick: vi.fn() },
+            })
+        );
+
+        expectWarningMessages([
+            'AG Charts - Option `listeners.crossLineClick` is not supported by `donut` series, ignoring.',
+        ]);
+    });
+
     it('polar axes reject axis click listeners', async () => {
         const options = polarOptions('polygon', [{ type: 'line', value: 'Q2' }], []);
         // Axis click listeners are cartesian-only: deliberately not valid polar axis options.

@@ -214,12 +214,13 @@ describe('HlcSeries', () => {
             await compare();
         });
 
-        it.each<[string, Partial<AgHlcSeriesOptions>]>([
-            ['the series markers are enabled', { marker: { enabled: true } }],
-            ['the close marker is enabled', { item: { close: { marker: { enabled: true } } } }],
-        ])('renders the close line and marker as the symbol when %s', async (_name, overrides) => {
+        it('keeps the bands symbol when the series and close markers are enabled', async () => {
             await renderSeries({
-                ...withSeries({ yName: 'HLC', ...overrides }),
+                ...withSeries({
+                    yName: 'HLC',
+                    marker: { enabled: true },
+                    item: { close: { marker: { enabled: true } } },
+                }),
                 theme: UP_DOWN_THEME,
                 legend: { enabled: true },
             });

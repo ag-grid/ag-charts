@@ -100,6 +100,7 @@ export abstract class FlowProportionSeries<
     TLabel,
     _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>
 > {
+    override readonly navigatesWithinSeries = true;
     // `size`/`label` live on the context node data rather than on the picked datum, so they need a lookup.
     override createNodeParams(datum: TDatum<TNodeDatum, TLinkDatum>) {
         const nodeDatum = this.contextNodeData?.nodeData.find(

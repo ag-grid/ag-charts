@@ -1,4 +1,4 @@
-import { VERSION } from 'ag-charts-community';
+import { StandaloneChartModule, VERSION } from 'ag-charts-community';
 import {
     type OptionsDefs,
     type PresetModuleDefinition,
@@ -11,7 +11,6 @@ import {
 } from 'ag-charts-core';
 import type { AgBaseGaugePresetOptions, AgGaugeOptions, AgSeriesTooltip } from 'ag-charts-types';
 
-import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { gaugeTooltipOptionsDef } from '../../series/gauge-util/gaugeOptionsDefs';
 import { linearGaugeSeriesOptionsDef } from '../../series/linear-gauge/linearGaugeSeriesOptionsDef';
 import { radialGaugeSeriesOptionsDef } from '../../series/radial-gauge/radialGaugeSeriesOptionsDef';

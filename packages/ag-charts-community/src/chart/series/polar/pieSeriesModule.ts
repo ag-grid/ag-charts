@@ -4,7 +4,7 @@ import type { AgPieSeriesOptions } from 'ag-charts-types';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
-import { PolarChartModule } from '../../polarChartModule';
+import { StandaloneChartModule } from '../../standaloneChartModule';
 import { PieSeries } from './pieSeries';
 import { pieSeriesOptionsDef, pieSeriesThemeableOptionsDef } from './pieSeriesOptionsDef';
 import { pieTheme } from './pieTheme';
@@ -12,9 +12,9 @@ import { pieTheme } from './pieTheme';
 export const PieSeriesModule: SeriesModuleDefinition<AgPieSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'pie',
-    chartType: 'polar',
+    chartType: 'standalone',
     version: VERSION,
-    dependencies: [PolarChartModule],
+    dependencies: [StandaloneChartModule],
 
     options: pieSeriesOptionsDef,
 

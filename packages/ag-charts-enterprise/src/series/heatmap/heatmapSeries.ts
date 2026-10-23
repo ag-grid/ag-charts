@@ -1061,11 +1061,17 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             );
         };
 
+        const crispChanged = cellBatch.crisp !== crisp;
         cellBatch.crisp = crisp;
         cellBatch.datums = nodeData;
         if (touchedDatumIndices != null && !this.restyledEveryCell && cellBatch.size === nodeData.length) {
             // OPTIMIZATION: only the updated cells differ from what the batch already holds.
             for (const datumIndex of touchedDatumIndices) writeCell(datumIndex);
+            if (crisp && !crispChanged && this.chart?.isMiniChart !== true) {
+                // OPTIMIZATION: the layer repaints only where those cells are. The mini chart's always repaints whole.
+                cellBatch.markDirtyRegion();
+                return;
+            }
         } else {
             cellBatch.resize(nodeData.length);
             for (let index = 0; index < nodeData.length; index++) writeCell(index);

@@ -1268,12 +1268,32 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
             stylerStyle.item[itemType].marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
-        const row = (label: string | undefined, key: string, value: AgNumericValue) => ({
-            label,
-            fallbackLabel: key,
-            value: this.getAxisValueText(yAxis, 'tooltip', value, datum, key, legendItemName),
-            missing: _ModuleSupport.isTooltipValueMissing(value),
-        });
+        const row = (
+            type: AgHlcSeriesItemType,
+            label: string | undefined,
+            key: string,
+            value: AgNumericValue
+        ): _ModuleSupport.TooltipContentDataRow => {
+            const { marker } = stylerStyle.item[type];
+            return {
+                label,
+                fallbackLabel: key,
+                value: this.getAxisValueText(yAxis, 'tooltip', value, datum, key, legendItemName),
+                missing: _ModuleSupport.isTooltipValueMissing(value),
+                symbol: {
+                    marker: {
+                        shape: marker.shape,
+                        fill: marker.fill,
+                        stroke: marker.stroke,
+                        fillOpacity: marker.fillOpacity,
+                        strokeOpacity: marker.strokeOpacity,
+                        strokeWidth: marker.strokeWidth,
+                        lineDash: marker.lineDash,
+                        lineDashOffset: marker.lineDashOffset,
+                    },
+                },
+            };
+        };
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1282,9 +1302,9 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
                 title: legendItemName ?? yName,
                 symbol: this.legendItemSymbol(),
                 data: [
-                    row(highName, highKey, highValue),
-                    row(lowName, lowKey, lowValue),
-                    row(closeName, closeKey, closeValue),
+                    row('high', highName, highKey, highValue),
+                    row('low', lowName, lowKey, lowValue),
+                    row('close', closeName, closeKey, closeValue),
                 ],
             },
             {
@@ -1307,34 +1327,9 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         );
     }
 
-    // An enabled close marker takes over from the bands symbol: the close line, the value the series is read by.
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { item } = this.getStyle(undefined);
-        if (!this.options.item.close.marker.enabled) {
-            return { marker: hlcBandsMarker(item.high, item.low, item.close) };
-        }
-
-        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = item.close;
-
-        return {
-            marker: {
-                shape: marker.shape,
-                fill: marker.fill,
-                stroke: marker.stroke,
-                fillOpacity: marker.fillOpacity,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
-            },
-            line: {
-                enabled: true,
-                stroke,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-            },
-        };
+        return { marker: hlcBandsMarker(item.high, item.low, item.close) };
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
