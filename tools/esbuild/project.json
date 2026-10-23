@@ -1,0 +1,14 @@
+{
+  "name": "tools-esbuild",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "tools/esbuild",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node --test tools/esbuild/*.test.js"
+      }
+    }
+  },
+  "tags": ["no-sharding"]
+}
