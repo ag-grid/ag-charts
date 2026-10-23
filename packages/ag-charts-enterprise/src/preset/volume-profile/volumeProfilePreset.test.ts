@@ -12,9 +12,11 @@ import {
     waitForChartStability,
     waitForChartStabilityUntil,
 } from 'ag-charts-community-test';
+import { cachedTextMeasurer } from 'ag-charts-core';
 import type { AgChartInstance, AgChartTheme, AgVolumeProfileChartOptions } from 'ag-charts-types';
 
 import { setupEnterpriseModules } from '../../setup';
+import { totalSegmentBlocks, totalSegmentLabels } from '../test/totalSegment';
 import { getIrregularVolumeProfile, getRegularVolumeProfile } from '../test/volumeProfileData';
 
 setupEnterpriseModules();
@@ -174,6 +176,23 @@ describe('volumeProfilePreset', () => {
             await chart.updateDelta({ totalSegment: { enabled: false } });
             await waitForChartStability(chart);
             expect(ctx.snapshot()).toMatchImage(without);
+        });
+
+        it('should size the segment to leave headroom beyond the measured width of its widest label', async () => {
+            const text = 'Total 305.9M traded';
+            chart = AgCharts.createVolumeProfileChart(
+                prepareFinancialTestOptions({
+                    ...volumeProfile,
+                    totalSegment: { enabled: true, minWidth: 1, label: { padding: 0, formatter: () => text } },
+                })
+            );
+            await waitForChartStability(chart);
+
+            const [block] = totalSegmentBlocks(chart);
+            const [label] = totalSegmentLabels(chart);
+            const measured = cachedTextMeasurer(label).textWidth(text);
+            expect(block.width).toBeGreaterThanOrEqual(measured * 1.1);
+            expect(label.text).toBe(text);
         });
 
         it('should resize the segment when its width and gap change', async () => {

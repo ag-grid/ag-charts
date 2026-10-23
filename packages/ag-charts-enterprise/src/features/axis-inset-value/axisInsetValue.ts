@@ -24,6 +24,9 @@ type AxisContext = _ModuleSupport.AxisContext;
 
 const DEFAULT_FONT_SIZE = 12;
 
+/** Truncation sums per-character widths, which exceed the kerned whole-string width measured here, so an exact fit is cut. */
+const LABEL_WIDTH_ALLOWANCE = 1.1;
+
 /** The strip width when it is automatic but there are no labels to size it by. */
 
 /** Thickness below which a block is too thin to carry a readable label. */
@@ -252,7 +255,7 @@ export class AxisInsetValue extends AbstractModuleInstance {
         for (const text of texts) {
             widest = Math.max(widest, measurer.textWidth(text));
         }
-        const result = widest > 0 ? Math.ceil(widest + padding * 2) : 0;
+        const result = widest > 0 ? Math.ceil(widest * LABEL_WIDTH_ALLOWANCE + padding * 2) : 0;
         this.autoWidth = { texts, font, padding, width: result };
         return result;
     }
