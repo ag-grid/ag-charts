@@ -75,7 +75,8 @@ class CrossLineLabelSource implements PlacedLabelSource {
     }
 }
 
-// Every axis's cross lines add to one claim per click, so each chart and axis listener fires once.
+// Workaround until pointer interactions treat overlapping hits as first-class: every axis's cross lines
+// add to one claim per click, so each chart and axis listener fires once.
 const claimsByClick = new WeakMap<SeriesAreaCanvasClickEvent, PendingCrossLineCallbacks>();
 
 /**

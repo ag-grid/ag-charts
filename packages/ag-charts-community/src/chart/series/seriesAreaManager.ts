@@ -547,12 +547,7 @@ export class SeriesAreaManager extends BaseManager {
         if (primary == null) {
             this.chart.ctx.contextMenuRegistry?.dispatchContext('always', pointerEvent, undefined);
         } else {
-            this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
-                primary,
-                [primary],
-                { [primary]: contexts[primary] },
-                pointerEvent
-            );
+            this.chart.ctx.contextMenuRegistry?.dispatchContext(primary, pointerEvent, contexts[primary]);
         }
     }
 
