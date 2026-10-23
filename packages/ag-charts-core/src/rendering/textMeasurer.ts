@@ -17,9 +17,12 @@ import {
 } from '../types/text';
 import { createCanvasContext } from './canvasUtil';
 
+const MAX_CACHED_WIDTHS = 10_000;
+
 export class TextMeasurer implements ITextMeasurer {
     private readonly baselineMap = new Map<string, number>();
     private readonly charMap = new Map<string, number>();
+    private readonly widthMap = new Map<string, number>();
     private lineHeightCache: number | null = null;
 
     constructor(
@@ -71,18 +74,19 @@ export class TextMeasurer implements ITextMeasurer {
         return { width, height, lineMetrics };
     }
 
-    textWidth(text: string, estimate?: boolean): number {
-        if (estimate) {
-            let estimatedWidth = 0;
-            for (let i = 0; i < text.length; i++) {
-                estimatedWidth += this.textWidth(text.charAt(i));
-            }
-            return estimatedWidth;
-        }
+    textWidth(text: string): number {
         if (text.length > 1) {
-            return this.ctx.measureText(text).width;
+            return this.widthMap.get(text) ?? this.stringWidth(text);
         }
         return this.charMap.get(text) ?? this.charWidth(text);
+    }
+
+    // OPTIMIZATION: a plain Map cleared when full costs one lookup per hit, where an LRU refresh costs four.
+    private stringWidth(text: string) {
+        if (this.widthMap.size >= MAX_CACHED_WIDTHS) this.widthMap.clear();
+        const { width } = this.ctx.measureText(text);
+        this.widthMap.set(text, width);
+        return width;
     }
 
     private charWidth(char: string) {

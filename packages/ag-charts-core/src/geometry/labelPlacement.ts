@@ -4,7 +4,7 @@ import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import type { NormalisedChartLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
 import { type TextMeasurer, cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
-import { EllipsisChar, graphemeSegments, lineHeightAtSize, toFontString, toTextString } from '../text/textUtil';
+import { appendEllipsis, graphemeSegments, lineHeightAtSize, toFontString, toTextString } from '../text/textUtil';
 import {
     type LabelFit,
     type RegionAlign,
@@ -1852,7 +1852,7 @@ function widestWordWidth(lines: string[], wrapping: FitWrapping): number {
     for (const line of lines) {
         for (const unit of wrapping === 'never' ? [line.trimEnd()] : line.split(' ')) {
             if (unit !== '') {
-                widest = Math.max(widest, wordWidth(measurer, unit));
+                widest = Math.max(widest, measurer.textWidth(unit));
             }
         }
     }
@@ -1865,25 +1865,15 @@ function widestWordWidth(lines: string[], wrapping: FitWrapping): number {
  */
 function narrowestLeadWidth(lines: string[], wrapping: FitWrapping): number {
     const measurer = cascadeMeasurer!;
-    const ellipsisWidth = measurer.textWidth(EllipsisChar);
     let narrowest = Infinity;
     for (const line of lines) {
         // Only the line's leading word can survive a truncation, so the rest of the line is moot.
         const lead = (wrapping === 'never' ? [line.trimEnd()] : line.split(' ')).find((unit) => unit !== '');
         if (lead == null) continue;
-        const first = measurer.textWidth(graphemeSegments(lead)[0]) + ellipsisWidth;
-        narrowest = Math.min(narrowest, wordWidth(measurer, lead), first);
+        const first = measurer.textWidth(appendEllipsis(graphemeSegments(lead)[0]));
+        narrowest = Math.min(narrowest, measurer.textWidth(lead), first);
     }
     return narrowest;
-}
-
-/** The smaller of a word's per-grapheme estimate and its measured width, as `textWrap` judges a fit. */
-function wordWidth(measurer: TextMeasurer, word: string): number {
-    let estimate = 0;
-    for (const grapheme of graphemeSegments(word)) {
-        estimate += measurer.textWidth(grapheme);
-    }
-    return Math.min(estimate, measurer.textWidth(word));
 }
 
 /**
@@ -2771,22 +2761,16 @@ function fitKeptAtFloor(fit: LabelFitDescriptor, floorFont: FontOptions): boolea
     return fitLabelToCandidate(fit, floorFont, undefined, keptLineContainer, false) && hasRealChars(fittedLabel.text);
 }
 
-/**
- * Width of the text's first character followed by an ellipsis, in the font that character is drawn in. Each is
- * measured on its own, as truncation budgets them.
- */
+/** Width of the text's first character drawn with an ellipsis, in the font that character is drawn in. */
 function leadCharacterWidth(text: NormalisedTextOrSegments, font: FontOptions): number {
     if (!isArray(text)) {
         const lead = leadCharacter(toTextString(text));
-        return lead == null ? 0 : measureLabelText(lead, font).width + measureLabelText(EllipsisChar, font).width;
+        return lead == null ? 0 : measureLabelText(appendEllipsis(lead), font).width;
     }
     for (const segment of text) {
         if (segment.type === 'image') continue;
         const lead = leadCharacter(toTextString(segment.text));
-        if (lead != null) {
-            const leadWidth = measureLabelText([{ ...segment, text: lead }], font).width;
-            return leadWidth + measureLabelText([{ ...segment, text: EllipsisChar }], font).width;
-        }
+        if (lead != null) return measureLabelText([{ ...segment, text: appendEllipsis(lead) }], font).width;
     }
     return 0;
 }
