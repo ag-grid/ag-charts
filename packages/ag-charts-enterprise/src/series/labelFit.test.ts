@@ -13,6 +13,7 @@ import {
 import { Transformable } from 'ag-charts-core';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
+import { HeatmapCellBatch } from './heatmap/heatmapCellBatch';
 import ukTopology from './map-test/ukTopology.json';
 import { usData } from './map-test/usData';
 import usTopology from './map-test/usTopology.json';
@@ -1477,8 +1478,21 @@ describe('series label fit', () => {
             );
             const series = chart.series[0];
             const cells = new Map<number, BBox>();
-            for (const rect of series.datumSelection.nodes()) {
-                cells.set(rect.datum.datumIndex, Transformable.toCanvas(rect));
+            // A plain heatmap paints its cells from one batched node, which holds them in node data order.
+            const batch = Array.from(series.contentGroup.descendants()).find(
+                (node): node is HeatmapCellBatch => node instanceof HeatmapCellBatch && node.visible
+            );
+            if (batch == null) {
+                for (const rect of series.datumSelection.nodes()) {
+                    cells.set(rect.datum.datumIndex, Transformable.toCanvas(rect));
+                }
+            } else {
+                const nodeData = series.getNodeData();
+                for (let index = 0; index < batch.size; index++) {
+                    const { x, y, width, height } = batch.readCell(index);
+                    const { canvasX, canvasY } = Transformable.toCanvasPoint(batch, x, y);
+                    cells.set(nodeData[index].datumIndex, { x: canvasX, y: canvasY, width, height });
+                }
             }
             const labels = (series.labelSelection.nodes() as any[]).filter((node) => node.visible && node.text !== '');
             expect(labels.length).toBe(cells.size);

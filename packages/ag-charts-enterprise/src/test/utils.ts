@@ -12,9 +12,10 @@ import {
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Group, Shape } from 'ag-charts-core';
+import { Group, Rect, Shape } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
+import { HeatmapCellBatch } from '../series/heatmap/heatmapCellBatch';
 import { setupEnterpriseModules } from '../setup';
 
 setupEnterpriseModules();
@@ -128,12 +129,31 @@ export function mockCssVarColorSupport(container: HTMLElement, vars: Record<stri
     };
 }
 
+/** The `Rect` each cell of a batch stands in for, which holds what the cell paints. */
+function pushBatchCellRects(batch: HeatmapCellBatch, rects: Shape[]) {
+    for (let index = 0; index < batch.size; index++) {
+        const { x, y, width, height, fill, opacity } = batch.readCell(index);
+        const rect = new Rect();
+        Object.assign(rect, { x, y, width, height, fill, fillOpacity: opacity, crisp: batch.crisp });
+        rects.push(rect);
+    }
+}
+
 /**
- * Every `Shape` under `root`, for checking the drop shadow a series applies to its drawn shapes.
- * Kept `expect`-free since enterprise `src/test` is linted as shippable source.
+ * Every `Shape` under `root`, for checking the drop shadow a series applies to its drawn shapes, with one `Rect` for
+ * each cell of a batched node. Kept `expect`-free since enterprise `src/test` is linted as shippable source.
  */
 export function collectShapes(root: Group): Shape[] {
-    return Array.from(root.descendants()).filter((node): node is Shape => node instanceof Shape);
+    const shapes: Shape[] = [];
+    for (const node of root.descendants()) {
+        if (node instanceof Shape) {
+            shapes.push(node);
+        } else if (node instanceof HeatmapCellBatch && node.visible) {
+            // A loop rather than a spread, since a large batch has more cells than a call can take as arguments.
+            pushBatchCellRects(node, shapes);
+        }
+    }
+    return shapes;
 }
 
 /** The theme-resolved `shadow` defaults of a fill series: present but disabled. */
