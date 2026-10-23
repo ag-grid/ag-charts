@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { getSpatialIndexCellCount } from '../test/coreAccessors';
 import { type BoxBounds, boxCollides } from './boxBounds';
 import { SpatialIndex, anyOverlap } from './spatialIndex';
 
@@ -75,8 +76,7 @@ describe('SpatialIndex', () => {
         const index = new SpatialIndex<BoxBounds>();
         // A 1px cell size over 2000×2000 would be 4,000,000 cells without the cap.
         index.reset(largeBounds, 1);
-        const cellCount = (index as unknown as { cellCount: number }).cellCount;
-        expect(cellCount).toBeLessThanOrEqual(1 << 14);
+        expect(getSpatialIndexCellCount(index)).toBeLessThanOrEqual(1 << 14);
 
         const stored = { x: 100, y: 100, width: 20, height: 20 };
         index.insert(stored, stored);

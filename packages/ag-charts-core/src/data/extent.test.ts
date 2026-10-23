@@ -2,7 +2,7 @@ import { extent, normalisedExtentWithMetadata, normalisedTimeExtentWithMetadata 
 
 describe('extent module', () => {
     describe('extent with isContinuous', () => {
-        test('returns lowest and highest numbers from list of numbers', () => {
+        it('returns lowest and highest numbers from list of numbers', () => {
             {
                 const result = extent([3, 7, 1, 2, 9, -2]);
                 expect(result?.[0]).toBe(-2);
@@ -20,34 +20,34 @@ describe('extent module', () => {
             }
         });
 
-        test('returns undefined for list of invalid values', () => {
-            const result = extent([Number.NaN, null, undefined] as any[]);
+        it('returns undefined for list of invalid values', () => {
+            const result = extent([Number.NaN, null, undefined]);
             expect(result).toBe(null);
         });
 
-        test('returns undefined for empty list', () => {
+        it('returns undefined for empty list', () => {
             const result = extent([]);
             expect(result).toBe(null);
         });
 
-        test('returns same lowest and highest number for single number', () => {
+        it('returns same lowest and highest number for single number', () => {
             const result = extent([5]);
             expect(result?.[0]).toBe(5);
             expect(result?.[1]).toBe(5);
         });
 
-        test('returns valid lowest and highest number from mixed values', () => {
+        it('returns valid lowest and highest number from mixed values', () => {
             const result = extent([undefined, 4, 3, 7, null, {}, 1, 5]);
             expect(result?.[0]).toBe(1);
             expect(result?.[1]).toBe(7);
         });
 
-        test('does not coerce objects', () => {
+        it('does not coerce objects', () => {
             const result = extent([{ toString: () => '2' }, { toString: () => '1' }]);
             expect(result).toBe(null);
         });
 
-        test('coerces Dates to numbers', () => {
+        it('coerces Dates to numbers', () => {
             const earliest = 5270400000;
             const latest = 1568332800000;
 
@@ -59,19 +59,19 @@ describe('extent module', () => {
             expect(result?.[1]).toBe(latest);
         });
 
-        test('retains exact bigint endpoints (AG-16608)', () => {
+        it('retains exact bigint endpoints (AG-16608)', () => {
             const result = extent([0n, 5n, 9_007_199_254_740_993n, 2n]);
             expect(result?.[0]).toBe(0n);
             expect(result?.[1]).toBe(9_007_199_254_740_993n);
         });
 
-        test('retains bigint endpoints via the sorted fast path', () => {
+        it('retains bigint endpoints via the sorted fast path', () => {
             const result = extent([0n, 10n ** 21n], 1);
             expect(result?.[0]).toBe(0n);
             expect(result?.[1]).toBe(10n ** 21n);
         });
 
-        test('returns earliest and latest timestamp for mixed Dates and numbers', () => {
+        it('returns earliest and latest timestamp for mixed Dates and numbers', () => {
             const earliest = 5270400000;
             const latest = 1568468277000;
 
@@ -85,63 +85,63 @@ describe('extent module', () => {
     });
 
     describe('normalisedExtentWithMetadata', () => {
-        test('expands extents to include min/max', () => {
+        it('expands extents to include min/max', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -80, 75);
             expect(result.extent[0]).toBe(-80);
             expect(result.extent[1]).toBe(75);
             expect(result.clipped).toBe(false);
         });
 
-        test('not clipped when only min expands domain', () => {
+        it('not clipped when only min expands domain', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -80);
             expect(result.extent[0]).toBe(-80);
             expect(result.extent[1]).toBe(50);
             expect(result.clipped).toBe(false);
         });
 
-        test('not clipped when only max expands domain', () => {
+        it('not clipped when only max expands domain', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], undefined, 80);
             expect(result.extent[0]).toBe(-50);
             expect(result.extent[1]).toBe(80);
             expect(result.clipped).toBe(false);
         });
 
-        test('expands extents to include preferredMin/preferredMax', () => {
+        it('expands extents to include preferredMin/preferredMax', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], undefined, undefined, -65, 60);
             expect(result.extent[0]).toBe(-65);
             expect(result.extent[1]).toBe(60);
             expect(result.clipped).toBe(false);
         });
 
-        test('contracts extents when min/max within domain', () => {
+        it('contracts extents when min/max within domain', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -30, 45);
             expect(result.extent[0]).toBe(-30);
             expect(result.extent[1]).toBe(45);
             expect(result.clipped).toBe(true);
         });
 
-        test('does not contract extents when preferredMin/preferredMax within domain', () => {
+        it('does not contract extents when preferredMin/preferredMax within domain', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], undefined, undefined, -30, 45);
             expect(result.extent[0]).toBe(-50);
             expect(result.extent[1]).toBe(50);
             expect(result.clipped).toBe(false);
         });
 
-        test('prioritises min/max over preferredMin/preferredMax', () => {
+        it('prioritises min/max over preferredMin/preferredMax', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -30, 70, -65, 60);
             expect(result.extent[0]).toBe(-30);
             expect(result.extent[1]).toBe(70);
             expect(result.clipped).toBe(true);
         });
 
-        test('clipped when only min is set', () => {
+        it('clipped when only min is set', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -30);
             expect(result.extent[0]).toBe(-30);
             expect(result.extent[1]).toBe(50);
             expect(result.clipped).toBe(true);
         });
 
-        test('clipped when only max is set', () => {
+        it('clipped when only max is set', () => {
             const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], undefined, 45);
             expect(result.extent[0]).toBe(-50);
             expect(result.extent[1]).toBe(45);
@@ -150,7 +150,7 @@ describe('extent module', () => {
     });
 
     describe('normalisedTimeExtentWithMetadata', () => {
-        test('expands extents to include min/max', () => {
+        it('expands extents to include min/max', () => {
             const result = normalisedTimeExtentWithMetadata(
                 {
                     domain: [
@@ -169,7 +169,7 @@ describe('extent module', () => {
             expect(result.clipped).toBe(false);
         });
 
-        test('expands extents to include preferredMin/preferredMax', () => {
+        it('expands extents to include preferredMin/preferredMax', () => {
             const result = normalisedTimeExtentWithMetadata(
                 {
                     domain: [
@@ -190,7 +190,7 @@ describe('extent module', () => {
             expect(result.clipped).toBe(false);
         });
 
-        test('contracts extents when min/max within domain', () => {
+        it('contracts extents when min/max within domain', () => {
             const result = normalisedTimeExtentWithMetadata(
                 {
                     domain: [
@@ -209,7 +209,7 @@ describe('extent module', () => {
             expect(result.clipped).toBe(true);
         });
 
-        test('does not contract extents when preferredMin/preferredMax within domain', () => {
+        it('does not contract extents when preferredMin/preferredMax within domain', () => {
             const result = normalisedTimeExtentWithMetadata(
                 {
                     domain: [
@@ -230,7 +230,7 @@ describe('extent module', () => {
             expect(result.clipped).toBe(false);
         });
 
-        test('prioritises min/max over preferredMin/preferredMax', () => {
+        it('prioritises min/max over preferredMin/preferredMax', () => {
             const result = normalisedTimeExtentWithMetadata(
                 {
                     domain: [

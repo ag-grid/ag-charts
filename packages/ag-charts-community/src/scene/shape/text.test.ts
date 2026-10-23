@@ -16,20 +16,10 @@ import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { expectWarningMessages, setupMockConsole } from '../../util/test/mockConsole';
+import { fakeImageLoader, fakeScene, getRichTextLines } from '../test/sceneFakes';
 
-function setUpMockScene(canvasCtx: any): IScene {
-    return {
-        imageLoader: null!,
-        layersManager: {
-            debug: {} as any,
-            canvas: canvasCtx.nodeCanvas,
-            markDirty: () => {},
-            addLayer: () => undefined,
-            moveLayer: () => {},
-            removeLayer: () => {},
-        } as any,
-        isRtl: false,
-    };
+function setUpMockScene(canvasCtx: ReturnType<typeof setupMockCanvas>): IScene {
+    return fakeScene(canvasCtx.nodeCanvas);
 }
 
 const BASE_OPTIONS = {
@@ -512,15 +502,7 @@ describe('Text', () => {
         function makeImageLoaderScene(imagesByUri: Record<string, Image>): IScene {
             return {
                 ...setUpMockScene(canvasCtx),
-                imageLoader: {
-                    loadImage: (uri: string) => imagesByUri[uri] as unknown as HTMLImageElement,
-                    waitingToLoad: () => false,
-                    destroy: () => {},
-                    on: () => () => {},
-                    off: () => {},
-                    once: () => () => {},
-                    emit: () => {},
-                } as any,
+                imageLoader: fakeImageLoader(imagesByUri),
             };
         }
 
@@ -945,12 +927,8 @@ describe('Text', () => {
                 { text: '\nlabel 2', fontSize: 8, fontFamily: 'Verdana' },
             ];
 
-            function lineChildren(node: Text): Text[] {
-                return [...(node as any).richText.children()];
-            }
-
             function lineEdges(node: Text) {
-                return lineChildren(node).map((child) => {
+                return getRichTextLines(node).map((child) => {
                     const { x, width } = child.getBBox();
                     return { left: x, centre: x + width / 2, right: x + width };
                 });
@@ -969,7 +947,7 @@ describe('Text', () => {
             });
 
             it('relays out the lines when the scene direction flips a start alignment', () => {
-                const lineXs = (node: Text) => lineChildren(node).map((child) => child.x);
+                const lineXs = (node: Text) => getRichTextLines(node).map((child) => child.x);
                 const rightAligned = lineXs(renderSegments(new Text(), RAGGED, {}, { textAlign: 'right' }).node);
                 const node = new Text();
 

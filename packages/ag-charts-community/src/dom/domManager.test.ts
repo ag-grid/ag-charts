@@ -4,6 +4,15 @@ import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
 
 import type { EventsHub } from '../core/eventsHub';
 import { DOMManager } from './domManager';
+import {
+    applyContainerSize,
+    clearInjectedHeadStyles,
+    getManagerElement,
+    getManagerSizeMonitor,
+    hasDeferredProxy,
+    stubScrollableOverflow,
+    zeroPaddingComputedStyle,
+} from './test/domAccessors';
 import { locateChartWrapper } from './test/testUtils';
 
 describe('DOMManager', () => {
@@ -12,7 +21,7 @@ describe('DOMManager', () => {
     beforeEach(() => {
         // Prevent bleed of state between tests.
         doc.head.innerHTML = '';
-        (DOMManager as any).headStyles.delete(doc.head);
+        clearInjectedHeadStyles(DOMManager, doc.head);
     });
 
     const eventsHub: EventsHub = new EventEmitter();
@@ -24,7 +33,7 @@ describe('DOMManager', () => {
         const container = doc.createElement('div');
         scrollable.append(container);
         doc.body.append(scrollable);
-        (scrollable as any).computedStyleMap = () => ({ get: () => 'auto' });
+        stubScrollableOverflow(scrollable);
         vi.spyOn(scrollable, 'getBoundingClientRect').mockReturnValue(scrollableRect);
         return container;
     };
@@ -496,12 +505,7 @@ describe('DOMManager', () => {
             doc.body.append(container);
             Object.defineProperty(container, 'clientWidth', { value: 400, configurable: true });
             Object.defineProperty(container, 'clientHeight', { value: 250, configurable: true });
-            vi.spyOn(doc.window, 'getComputedStyle').mockReturnValue({
-                paddingLeft: '0px',
-                paddingRight: '0px',
-                paddingTop: '0px',
-                paddingBottom: '0px',
-            } as any);
+            vi.spyOn(doc.window, 'getComputedStyle').mockReturnValue(zeroPaddingComputedStyle());
 
             dm.setDeferring(false);
             vi.runAllTimers();
@@ -524,12 +528,7 @@ describe('DOMManager', () => {
             doc.body.append(container);
             Object.defineProperty(container, 'clientWidth', { value: 400, configurable: true });
             Object.defineProperty(container, 'clientHeight', { value: 250, configurable: true });
-            vi.spyOn(doc.window, 'getComputedStyle').mockReturnValue({
-                paddingLeft: '0px',
-                paddingRight: '0px',
-                paddingTop: '0px',
-                paddingBottom: '0px',
-            } as any);
+            vi.spyOn(doc.window, 'getComputedStyle').mockReturnValue(zeroPaddingComputedStyle());
             await vi.runAllTimersAsync();
 
             expect(dm.containerSize).toMatchObject({ width: 400, height: 250 });
@@ -553,12 +552,7 @@ describe('DOMManager', () => {
             doc.body.append(component);
             Object.defineProperty(container, 'clientWidth', { value: 400, configurable: true });
             Object.defineProperty(container, 'clientHeight', { value: 250, configurable: true });
-            vi.spyOn(doc.window, 'getComputedStyle').mockReturnValue({
-                paddingLeft: '0px',
-                paddingRight: '0px',
-                paddingTop: '0px',
-                paddingBottom: '0px',
-            } as any);
+            vi.spyOn(doc.window, 'getComputedStyle').mockReturnValue(zeroPaddingComputedStyle());
             await vi.runAllTimersAsync();
 
             expect(dm.containerSize).toMatchObject({ width: 400, height: 250 });
@@ -588,7 +582,7 @@ describe('DOMManager', () => {
             it('does not re-append a detached manager element when the attach observer fires', async () => {
                 const container = doc.createElement('div');
                 const dm = new DOMManager(eventsHub, 'replaced-observer', doc, container);
-                const refresh = vi.spyOn((dm as any).sizeMonitor, 'refresh');
+                const refresh = vi.spyOn(getManagerSizeMonitor(dm), 'refresh');
 
                 dm.detachFromContainer();
                 doc.body.append(container);
@@ -898,7 +892,7 @@ describe('DOMManager', () => {
                 setPopoverSupported(false);
                 const { outer, inner, container } = buildShadowTree();
                 vi.spyOn(outer, 'getBoundingClientRect').mockReturnValue(shadowRect);
-                (inner as any).computedStyleMap = () => ({ get: () => 'auto' });
+                stubScrollableOverflow(inner);
                 vi.spyOn(inner, 'getBoundingClientRect').mockReturnValue(scrollableRect);
                 const dm = new DOMManager(eventsHub, undefined, doc, container);
 
@@ -965,7 +959,7 @@ describe('DOMManager', () => {
         describe('inside a shadow root', () => {
             it('returns the canvas rect clipped to a scrollable ancestor inside the shadow root', () => {
                 const { inner, container } = buildShadowTree();
-                (inner as any).computedStyleMap = () => ({ get: () => 'auto' });
+                stubScrollableOverflow(inner);
                 vi.spyOn(inner, 'getBoundingClientRect').mockReturnValue(scrollableRect);
                 const dm = new DOMManager(eventsHub, undefined, doc, container);
                 vi.spyOn(dm.getParent('canvas'), 'getBoundingClientRect').mockReturnValue(canvasRect);
@@ -1224,9 +1218,7 @@ describe('DOMManager', () => {
             dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
             dm.removeChild('canvas-overlay', 'test-proxy');
 
-            // Access private field to verify cleanup
-            const deferredProxies = (dm as any).deferredProxies as Map<string, unknown>;
-            expect(deferredProxies.has('canvas-overlay:test-proxy')).toBe(false);
+            expect(hasDeferredProxy(dm, 'canvas-overlay', 'test-proxy')).toBe(false);
         });
     });
 
@@ -1248,7 +1240,7 @@ describe('DOMManager', () => {
             dm.updateCursor('test', 'pointer');
 
             // Spy on the element style cursor setter after the first write
-            const element = (dm as any).element as HTMLElement;
+            const element = getManagerElement(dm);
             const descriptor = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'cursor')!;
             const setter = vi.fn(descriptor.set!.bind(element.style));
             Object.defineProperty(element.style, 'cursor', {
@@ -1272,7 +1264,7 @@ describe('DOMManager', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
             const dm = new DOMManager(eventsHub, undefined, doc, container);
-            return { dm, element: (dm as any).element as HTMLElement };
+            return { dm, element: getManagerElement(dm) };
         };
 
         it('should toggle the cursor-locked class across a lock/unlock round-trip', () => {
@@ -1318,7 +1310,7 @@ describe('DOMManager', () => {
 
             // A fractional content-box arrives at fractional zoom (e.g. 110% → DPR 1.1).
             dm.containerSize = { width: 108.9, height: 99.9, pixelRatio: 1.1 };
-            (dm as any).updateContainerSize();
+            applyContainerSize(dm);
 
             // canvas-center must match the floored canvas size, else the observer ping-pongs by 1px.
             expect(centerSize(dm)).toEqual({ width: '108px', height: '99px' });
@@ -1333,7 +1325,7 @@ describe('DOMManager', () => {
             const heights: string[] = [];
             for (const reported of [99.9, 99.4, 99.7, 99.2, 99.8]) {
                 dm.containerSize = { width: 200, height: reported, pixelRatio: 1.1 };
-                (dm as any).updateContainerSize();
+                applyContainerSize(dm);
                 heights.push(dm.getParent('canvas-center').style.height);
             }
 
@@ -1386,7 +1378,7 @@ describe('DOMManager', () => {
 
         describe('button state borders', () => {
             const cssVar = (dm: DOMManager, name: string) =>
-                (dm as any).element.style.getPropertyValue(`--ag-charts-button-${name}`);
+                getManagerElement(dm).style.getPropertyValue(`--ag-charts-button-${name}`);
 
             it('a state border set to true inherits the buttonBorder colour and width', () => {
                 const { dm } = setup();
