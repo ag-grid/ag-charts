@@ -1,11 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type {
+    AgBubbleSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgLineSeriesOptions,
+} from 'ag-charts-types';
 
+import { getSeriesAt, getSeriesContextNodeData } from '../../test/seriesAccessors';
 import {
     compareImageSnapshot,
     createChart,
-    deproxy,
     getVisibleLabelNodes,
     prepareTestOptions,
     setupMockCanvas,
@@ -31,18 +36,16 @@ describe('label itemStyler participates in placement', () => {
     const visibleLabels = (seriesIndex = 0) => getVisibleLabelNodes(chart, seriesIndex);
 
     /** What the series hands the placement engine: the labels that reserve space and act as obstacles. */
-    const placementLabelData = (seriesIndex = 0) => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            getLabelData(): unknown[];
-        };
-        return series.getLabelData();
-    };
+    const placementLabelData = (seriesIndex = 0) => getSeriesAt(chart, seriesIndex).getLabelData();
 
     const render = async (options: object) => {
         chart = await createChart(options);
     };
 
-    const lineChart = (label: object, marker: object = {}) => ({
+    const lineChart = (
+        label: NonNullable<AgLineSeriesOptions['label']>,
+        marker: NonNullable<AgLineSeriesOptions['marker']> = {}
+    ): AgCartesianChartOptions => ({
         data: [
             { x: 'A', y: 10 },
             { x: 'B', y: 20 },
@@ -61,7 +64,7 @@ describe('label itemStyler participates in placement', () => {
     });
 
     /** The y each label was drawn at, in datum order. */
-    const labelYs = async (options: object) => {
+    const labelYs = async (options: AgCartesianChartOptions) => {
         await render(options);
         const ys = visibleLabels().map((node) => node.y);
         expect(ys.length).toBeGreaterThan(0);
@@ -101,7 +104,7 @@ describe('label itemStyler participates in placement', () => {
         expect(styled.length).toBeGreaterThan(0);
 
         // Same chart, so the update reuses the node data the first render built.
-        await chart.update(prepareTestOptions(lineChart({}, { itemStyler: () => ({}) }) as any) as AgChartOptions);
+        await chart.update(prepareTestOptions(lineChart({}, { itemStyler: () => ({}) })));
         await waitForChartStability(chart);
         const reverted = visibleLabels().map((node) => node.y);
 
@@ -146,15 +149,11 @@ describe('label itemStyler participates in placement', () => {
          * render pass reuses the cached styler result for the winning candidate, so the last recorded call
          * is the last candidate the cascade probed, not the one it chose.
          */
+        type DrawnBarLabel = { label?: { placement?: string; rotation: number; hidden?: boolean } };
         const drawnLabels = async (label: object, styler: (params: any) => object) => {
             await render(barChart({ ...label, itemStyler: styler }));
-            const series = deproxy(chart as any).series[0] as unknown as {
-                contextNodeData?: {
-                    labelData: { label?: { placement?: string; rotation: number; hidden?: boolean } }[];
-                };
-            };
-            const drawn = (series.contextNodeData?.labelData ?? [])
-                .map((node) => node.label)
+            const drawn = getSeriesContextNodeData<unknown, DrawnBarLabel>(chart)
+                .labelData.map((node) => node.label)
                 .filter((nodeLabel) => nodeLabel != null && nodeLabel.hidden !== true);
             expect(drawn.length).toBeGreaterThan(0);
             return drawn;
@@ -218,7 +217,7 @@ describe('label itemStyler participates in placement', () => {
     });
 
     describe('bubble', () => {
-        const bubbleChart = (label: object) => ({
+        const bubbleChart = (label: NonNullable<AgBubbleSeriesOptions['label']>): AgCartesianChartOptions => ({
             data: [{ x: 1, y: 1, size: 4, label: 'one' }],
             legend: { enabled: false },
             axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },

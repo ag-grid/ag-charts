@@ -1,12 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import type { Text } from 'ag-charts-core';
 import type { AgChartInstance } from 'ag-charts-types';
 
+import { getVisibleLabelTextNodes } from '../../test/communitySeriesAccessors';
+import { getSeriesAt, getSeriesContextNodeData } from '../../test/seriesAccessors';
 import {
     compareImageSnapshot,
     createChart,
     deproxy,
     expectWarningsCalls,
+    getVisibleLabelNodes,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -36,13 +40,10 @@ describe('label minimumFontSize', () => {
         await compareImageSnapshot(chart, ctx);
     };
 
-    type LabelNode = { visible: boolean; fontSize: number; text: string };
-    const labels = (seriesIndex = 0): LabelNode[] => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            labelSelection: { nodes(): LabelNode[] };
-        };
-        return series.labelSelection.nodes().filter((node) => node.visible && node.text !== '');
-    };
+    type LabelNode = { fontSize: number; text: string };
+    const drawnLabels = (nodes: Pick<Text, 'fontSize' | 'text'>[]): LabelNode[] =>
+        nodes.filter((node) => node.text !== '').map((node) => ({ fontSize: node.fontSize, text: String(node.text) }));
+    const labels = (seriesIndex = 0): LabelNode[] => drawnLabels(getVisibleLabelNodes(chart, seriesIndex));
     const fontSizes = (seriesIndex = 0) => labels(seriesIndex).map((node) => node.fontSize);
 
     const axes = { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } };
@@ -144,9 +145,11 @@ describe('label minimumFontSize', () => {
     it('wraps and shrinks together, landing on the largest size the wrapped text fits at', async () => {
         // Each candidate size is wrapped before it is measured, so the label lands at the largest size
         // whose wrapped text fits the bar; short bars make height the binding constraint here.
-        const short = { ...barChart({ wrapping: 'on-space', truncate: true, minimumFontSize: 4 }) };
-        short.data = data.map((datum, i) => ({ ...datum, value: 9 + i }));
-        short.axes = { ...axes, y: { ...axes.y, max: 100 } } as typeof axes;
+        const short = {
+            ...barChart({ wrapping: 'on-space', truncate: true, minimumFontSize: 4 }),
+            data: data.map((datum, i) => ({ ...datum, value: 9 + i })),
+            axes: { ...axes, y: { ...axes.y, max: 100 } },
+        };
         await render(short);
         const rendered = labels();
         expect(rendered.length).toBe(data.length);
@@ -470,13 +473,12 @@ describe('label minimumFontSize', () => {
         it('keeps the fitted size on the highlighted bubble label', async () => {
             await render(bubbleChart({ minimumFontSize: 4 }));
             const placed = fontSizes();
-            const series = deproxy(chart as any).series[0] as any;
-            const [datum] = series.contextNodeData.labelData;
-            deproxy(chart as any).ctx.highlightManager.updateHighlight(series.id, datum);
+            const [datum] = getSeriesContextNodeData(chart).labelData;
+            deproxy(chart).ctx.highlightManager.updateHighlight(getSeriesAt(chart).id, datum);
             await waitForChartStability(chart);
-            const highlighted = (series.highlightLabelSelection.nodes() as LabelNode[])
-                .filter((node) => node.visible && node.text !== '')
-                .map((node) => node.fontSize);
+            const highlighted = drawnLabels(getVisibleLabelTextNodes(chart, 0, 'highlightLabelSelection')).map(
+                (node) => node.fontSize
+            );
             expect(highlighted.length).toBeGreaterThan(0);
             for (const size of highlighted) {
                 expect(placed).toContain(size);
