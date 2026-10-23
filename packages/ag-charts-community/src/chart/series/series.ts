@@ -311,7 +311,7 @@ export abstract class Series<
     });
 
     readonly highlightNodeGroup = this.highlightGroup.appendChild(
-        new Group<TDatum>({ name: `${this.internalId}-highlight-node`, batchShadows: true })
+        new Group<TDatum>({ name: `${this.internalId}-highlight-node`, batchShadows: 'shared-highlight' })
     );
 
     readonly highlightLabelGroup = this.highlightGroup.appendChild(

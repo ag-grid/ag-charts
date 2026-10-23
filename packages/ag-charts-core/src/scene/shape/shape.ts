@@ -436,6 +436,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             return;
         }
 
+        if (shadowPass.state === 'knockout') {
+            this.renderKnockout(ctx, path);
+            return;
+        }
+
         if (this.__drawingMode === 'cutout') {
             // Opaque, so a sibling's fill style left on the context can't weaken the cutout.
             ctx.fillStyle = '#000';
@@ -450,6 +455,17 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         this.renderFill(ctx, logger, path, bboxOverride, fillBBoxOverride);
         this.renderStroke(ctx, path, bboxOverride);
+    }
+
+    /** Erases the shape's fill from the context, whatever its paint, so that nothing beneath shows through it. */
+    private renderKnockout(ctx: CanvasContext, path?: Path2D) {
+        const { __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
+        if (fill == null || fill === 'none' || fillOpacity <= 0) return;
+
+        ctx.fillStyle = '#000';
+        ctx.globalCompositeOperation = 'destination-out';
+        this.executeFill(ctx, path);
+        ctx.globalCompositeOperation = 'source-over';
     }
 
     /**

@@ -29,18 +29,18 @@ import { compareZIndex } from './zIndex';
  */
 
 /** How far a canvas shadow reaches past its source, in blurs: its Gaussian has a deviation of half the blur. */
-const SHADOW_BLUR_REACH = 1.5;
+export const SHADOW_BLUR_REACH = 1.5;
 
 /** How far two casters' strengths may differ for the batch to cast them as one. */
-const UNIFORM_STRENGTH_TOLERANCE = 1 / 512;
+export const UNIFORM_STRENGTH_TOLERANCE = 1 / 512;
 
 /** The most that the mask extends past the layer on one side, in device pixels. Items further off the layer cast nothing. */
-const MAX_MASK_PAD = 4096;
+export const MAX_MASK_PAD = 4096;
 
 /** The most pixels that the mask has: a canvas larger than this is more than iOS Safari can allocate (4096 x 4096). */
 const MAX_MASK_AREA = 4096 * 4096;
 
-type ShadowCaster = Shape & { __fillShadow: NormalisedDropShadowOptions };
+export type ShadowCaster = Shape & { __fillShadow: NormalisedDropShadowOptions };
 
 /** The shadow options that a node casts through a batch, or undefined if it casts none. */
 export function getBatchedShadow(node: Node): NormalisedDropShadowOptions | undefined {
@@ -50,10 +50,15 @@ export function getBatchedShadow(node: Node): NormalisedDropShadowOptions | unde
     return shadow?.enabled === true && node.__drawingMode !== 'cutout' ? shadow : undefined;
 }
 
-/** The corners, in the coordinates of the group, of the rectangle that a path clips its drawing and its shadow to. */
-type ShadowClip = readonly number[];
+/** Whether a node casts a shadow of its own, in any drawing mode. A cutout is excluded from {@link getBatchedShadow}. */
+export function hasEnabledShadow(node: Node): boolean {
+    return node instanceof Shape && node.__fillShadow?.enabled === true;
+}
 
-function getShadowClip(node: Node): ShadowClip | undefined {
+/** The corners, in the coordinates of the group, of the rectangle that a path clips its drawing and its shadow to. */
+export type ShadowClip = readonly number[];
+
+export function getShadowClip(node: Node): ShadowClip | undefined {
     if (!(node instanceof Path)) return;
 
     const rect = node.getShadowClip();
@@ -87,7 +92,7 @@ function sameLayer(a: Node, b: Node) {
     return aIndex === bIndex || compareZIndex(aIndex, bIndex) === 0;
 }
 
-function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
+export function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
     return (
         a === b ||
         (a.color === b.color &&
@@ -99,11 +104,11 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
 }
 
 /** The resolution that keeps a mask canvas within {@link MAX_MASK_AREA}. A shadow is blurred anyway, so it loses little. */
-function fitMask(maskWidth: number, maskHeight: number): number {
+export function fitMask(maskWidth: number, maskHeight: number): number {
     return Math.min(1, Math.sqrt(MAX_MASK_AREA / (maskWidth * maskHeight)));
 }
 
-interface ShadowScratch {
+export interface ShadowScratch {
     readonly canvas: OffscreenCanvas;
     readonly context: OffscreenCanvasRenderingContext2D;
 }
@@ -143,7 +148,7 @@ function freeScratch(pool: ScratchPool) {
  * one after another, so they share it. It only grows, because layers differ in size, and each pass clears the part it
  * uses. `user` is the group, which keeps the canvas alive until it calls {@link releaseShadowScratch}.
  */
-function acquireShadowScratch(
+export function acquireShadowScratch(
     scene: object | undefined,
     user: object,
     width: number,
@@ -198,7 +203,7 @@ export function destroyShadowScratch(scene: object) {
     freeScratch(pool);
 }
 
-function renderPass(
+export function renderPass(
     children: readonly Node[],
     renderCtx: RenderContext,
     state: 'mask' | 'suppress',
@@ -243,7 +248,7 @@ function getUniformSpreadStrength(casters: readonly ShadowCaster[]): number | un
 }
 
 /** The colour with its alpha scaled, or undefined if it can't be read. */
-function scaleColourAlpha(colour: string, scale: number): string | undefined {
+export function scaleColourAlpha(colour: string, scale: number): string | undefined {
     try {
         const { r, g, b, a } = Color.fromString(colour);
         return new Color(r, g, b, a * scale).toRgbaString();
@@ -365,6 +370,33 @@ function renderBatch(
 
     renderPass(casters, renderCtx, 'suppress');
     return true;
+}
+
+/**
+ * Renders the children of a group whose shadows are cast by a shared shadow pass: each child that `castsShadow` draws
+ * without its shadow, and the others draw as usual.
+ */
+export function renderChildrenWithSuppressedShadows(
+    children: Iterable<Node>,
+    renderCtx: RenderContext,
+    castsShadow: (node: Node) => boolean
+): void {
+    const { stats } = renderCtx;
+    for (const child of children) {
+        if (!child.visible) {
+            if (stats) {
+                stats.nodesSkipped += child.childNodeCounts.nonGroups + child.childNodeCounts.groups;
+                stats.opsSkipped += child.childNodeCounts.complexity;
+            }
+            continue;
+        }
+
+        if (castsShadow(child)) {
+            renderPass([child], renderCtx, 'suppress');
+        } else {
+            child.isolatedRender(renderCtx);
+        }
+    }
 }
 
 /**
