@@ -7,7 +7,8 @@ type TestNode = SeriesNodeDatum;
 
 function mockNode(overrides: Partial<TestNode> & { datum?: unknown; datumIndex?: any }): TestNode {
     return {
-        series: {} as any,
+        // The helper under test never reads the series, so an empty stand-in is enough.
+        series: {} as TestNode['series'],
         datum: overrides.datum ?? {},
         datumIndex: overrides.datumIndex ?? 0,
         ...overrides,

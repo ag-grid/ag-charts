@@ -1,12 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import type { Text } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { getSeriesCalloutNodes, getVisibleLabelTextNodes } from '../test/communitySeriesAccessors';
+import { getSeriesContextNodeData, getSeriesNodeData, getSeriesSelectionNodes } from '../test/seriesAccessors';
 import {
     compareImageSnapshot,
     createChart,
-    deproxy,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -15,6 +17,11 @@ import {
 import { DonutNodeTag } from './polar/donutSeries';
 
 const ELLIPSIS = '…';
+
+// The part of a label datum the fit writes its outcome onto.
+interface FittedLabelDatum {
+    label?: { text?: unknown; fittedText?: unknown; hidden?: boolean };
+}
 
 // Several series here still keep their label-fit options undocumented, so the label objects below are built
 // untyped and passed through to `createChart` unchecked; `setupMockConsole` fails on any "property is unknown".
@@ -40,12 +47,8 @@ describe('series label fit', () => {
     // The text each label actually renders: `label.text` is the unfitted source, `label.fittedText` the text the
     // placement engine fitted to the candidate it chose, and a label the engine dropped renders nothing at all.
     const labelTexts = (seriesIndex = 0): unknown[] => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            contextNodeData?: {
-                labelData?: { label?: { text?: unknown; fittedText?: unknown; hidden?: boolean } }[];
-            };
-        };
-        return (series.contextNodeData?.labelData ?? []).map((d) =>
+        const { labelData } = getSeriesContextNodeData<unknown, FittedLabelDatum>(chart, seriesIndex);
+        return labelData.map((d) =>
             d.label == null || d.label.hidden === true ? '' : (d.label.fittedText ?? d.label.text)
         );
     };
@@ -246,56 +249,36 @@ describe('series label fit', () => {
     // Donut fits the sector text into the rendered label node at draw time (not the datum), so read the visible
     // label nodes rather than getNodeData(), which still holds the original unfitted text.
     const sectorTexts = (seriesIndex = 0): unknown[] => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            labelSelection?: { nodes: () => { visible: boolean; text?: unknown }[] };
-        };
-        return (series.labelSelection?.nodes() ?? []).filter((node) => node.visible).map((node) => node.text);
+        return getVisibleLabelTextNodes(chart, seriesIndex).map((node) => node.text);
     };
 
-    type SectorLabelNode = { visible: boolean; text: string; fontSize: number };
-    const sectorNodes = (seriesIndex = 0): SectorLabelNode[] => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            labelSelection?: { nodes: () => SectorLabelNode[] };
-        };
-        return (series.labelSelection?.nodes() ?? []).filter((node) => node.visible && node.text !== '');
-    };
+    const sectorNodes = (seriesIndex = 0): Text[] =>
+        getVisibleLabelTextNodes(chart, seriesIndex).filter((node) => node.text !== '');
 
     // A sector label the wedge rejected: the fit wrote text onto the node, and the visibility gate then
     // hid it whole. Text fitted to nothing renders nothing and is hidden by design, so it does not count.
-    const hiddenSectorNodes = (seriesIndex = 0): SectorLabelNode[] => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            labelSelection?: { nodes: () => SectorLabelNode[] };
-        };
-        return (series.labelSelection?.nodes() ?? []).filter((node) => !node.visible && node.text !== '');
-    };
+    const hiddenSectorNodes = (seriesIndex = 0): Text[] =>
+        getSeriesSelectionNodes<Text>(chart, 'labelSelection', seriesIndex).filter(
+            (node) => !node.visible && node.text !== ''
+        );
 
     // Wide enough for a bounded label to read as a wrap rather than a column of single words.
     const SECTOR_MAX_WIDTH = 90;
 
     const sectorLineWidths = (seriesIndex = 0): number[] => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            labelSelection?: { nodes: () => (SectorLabelNode & { getLineBoxes: () => { width: number }[] })[] };
-        };
-        return (series.labelSelection?.nodes() ?? [])
-            .filter((node) => node.visible)
-            .flatMap((node) => node.getLineBoxes().map((box) => box.width));
+        return getVisibleLabelTextNodes(chart, seriesIndex).flatMap((node) =>
+            node.getLineBoxes().map((box) => box.width)
+        );
     };
 
-    const calloutNodes = (seriesIndex = 0): SectorLabelNode[] => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            calloutLabelSelection: { selectByTag: (tag: number) => SectorLabelNode[] };
-        };
-        return series.calloutLabelSelection
-            .selectByTag(DonutNodeTag.CalloutLabel)
-            .filter((node) => node.visible && node.text !== '');
-    };
+    const calloutNodes = (seriesIndex = 0): Text[] =>
+        getSeriesCalloutNodes<Text>(chart, DonutNodeTag.CalloutLabel, seriesIndex).filter(
+            (node) => node.visible && node.text !== ''
+        );
 
     // Collision avoidance shrinks the pie to fit the callout labels it measured, so a smaller label leaves a larger pie.
     const sectorRadius = (seriesIndex = 0): number => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            getNodeData: () => { outerRadius: number }[] | undefined;
-        };
-        return series.getNodeData()?.[0]?.outerRadius ?? 0;
+        return getSeriesNodeData<{ outerRadius: number }>(chart, seriesIndex)[0]?.outerRadius ?? 0;
     };
 
     // Enough sectors that their callout labels crowd each other, so collision avoidance has to hide some.

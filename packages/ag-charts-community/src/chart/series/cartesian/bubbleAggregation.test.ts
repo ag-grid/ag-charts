@@ -1108,8 +1108,8 @@ describe('computeBubbleAggregation node contents', () => {
     it('collapses datums that are all equal into one leaf in datum order', () => {
         // Zero-width domain: every datum is equidistant from the middle, so the first is the primary.
         const xValues = Array.from({ length: 12 }, () => 5);
-        const yValues = Array.from({ length: 12 }, () => 5);
-        yValues[3] = null as any;
+        const yValues: Array<number | null> = Array.from({ length: 12 }, () => 5);
+        yValues[3] = null;
 
         const aggregation = aggregate(xValues, yValues, undefined, [5, 5]);
         const root = aggregation.filters[0].node!;
