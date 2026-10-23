@@ -2,11 +2,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
 import {
+    type Chart,
+    type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     compareImageSnapshot,
     deproxy,
     extractImageData,
+    getAxisLabelNodes,
+    getAxisLayoutState,
+    getAxisTickLayouts,
+    getSeriesRect,
     scrollAction,
     setupMockCanvas,
     setupMockConsole,
@@ -23,6 +29,12 @@ import {
 } from 'ag-charts-test';
 import type { AgCartesianAxisPosition, AgCartesianChartOptions } from 'ag-charts-types';
 
+import {
+    getAxisGrantedLabelWidth,
+    getAxisLabelThickness,
+    getScrollbarState,
+    setScrollbarHovered,
+} from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const DATA = Array.from({ length: 12 }, (_, index) => ({
@@ -39,13 +51,19 @@ const SCROLLBAR_PLACEMENT_BASE = {
     visible: 'always' as const,
 };
 
+function getZoomManager(chart: ChartOrProxy<any>) {
+    const { zoomManager } = deproxy(chart).ctx;
+    expect(zoomManager).toBeDefined();
+    return zoomManager!;
+}
+
 type SnapshotResult = {
     imageData: Buffer;
     snapshot: ImageData;
 };
 
 type ChartRef = {
-    current?: any;
+    current?: ChartOrProxy<any>;
 };
 
 type AxisCase = {
@@ -364,11 +382,11 @@ describe('Scrollbar preserves zoom across chart.update', () => {
     }
 
     function getZoomY() {
-        return (deproxy(proxy!) as any).ctx.chartState.getValue('zoom')?.y;
+        return deproxy(proxy!).ctx.chartState.getValue('zoom')?.y;
     }
 
     function getVerticalLayoutRect() {
-        return (deproxy(proxy!) as any).modulesManager.getModule('scrollbar').state.vertical.layoutRect;
+        return getScrollbarState(proxy!, 'vertical').layoutRect;
     }
 
     it('keeps the vertical scrollbar when switching position from right to left', async () => {
@@ -417,7 +435,7 @@ describe('Scrollbar visibility on barWidth change', () => {
     // getState().zoom is only populated when navigator/zoom modules are enabled, not for scrollbar-only
     // charts. Use deproxy() for zoom assertions (internal state reads for assertions are level 3 per testing guide).
     function getZoomX() {
-        return (deproxy(proxy!) as any).ctx.chartState.getValue('zoom')?.x;
+        return deproxy(proxy!).ctx.chartState.getValue('zoom')?.x;
     }
 
     function createOptions(seriesOverrides?: Record<string, unknown>): AgCartesianChartOptions {
@@ -513,8 +531,7 @@ describe('Scrollbar visibility on barWidth change', () => {
         const cy = CANVAS_HEIGHT / 2;
         await clickAction(cx, cy)(proxy);
 
-        const zoomManager = (deproxy(proxy) as any).ctx.zoomManager;
-        const updateZoomSpy = vi.spyOn(zoomManager, 'updateZoom');
+        const updateZoomSpy = vi.spyOn(getZoomManager(proxy), 'updateZoom');
 
         // Sustained horizontal scroll in one direction, then partially back — the reported gesture.
         await scrollAction(cx, cy, 0, 50, WheelDeltaMode.Pixels, 30)(proxy);
@@ -578,7 +595,7 @@ describe('Scrollbar visibility after deferred (detached -> attached) resize', ()
 
     // Horizontal bars → the category axis is the cross (Y) axis; the scrollbar is shown when its zoom span < 1.
     function spanY() {
-        const zoom = (deproxy(proxy!) as any).ctx.chartState.getValue('zoom')?.y;
+        const zoom = deproxy(proxy!).ctx.chartState.getValue('zoom')?.y;
         return zoom ? zoom.max - zoom.min : 1;
     }
 
@@ -598,7 +615,7 @@ describe('Scrollbar visibility after deferred (detached -> attached) resize', ()
         await new Promise((resolve) => setTimeout(resolve, 50));
         await proxy.waitForUpdate();
 
-        const chart = deproxy(proxy) as any;
+        const chart = deproxy(proxy);
         expect([chart.ctx.scene.width, chart.ctx.scene.height]).toEqual([500, 200]);
         expect(spanY()).toBeLessThan(1);
     });
@@ -624,15 +641,14 @@ describe('Scrollbar thumb hoverStyle.strokeWidth', () => {
                 initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
             })
         );
-        const scrollbar = chartRef.current.modulesManager.getModule('scrollbar');
-        const { thumb } = scrollbar.state.horizontal;
+        const { thumb } = getScrollbarState(chartRef.current, 'horizontal');
 
         expect(thumb.strokeWidth).toBe(1);
 
-        scrollbar.handleHoverChange('horizontal', true);
+        setScrollbarHovered(chartRef.current, 'horizontal', true);
         expect(thumb.strokeWidth).toBe(3);
 
-        scrollbar.handleHoverChange('horizontal', false);
+        setScrollbarHovered(chartRef.current, 'horizontal', false);
         expect(thumb.strokeWidth).toBe(1);
     });
 });
@@ -765,41 +781,43 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         });
     }
 
-    function getScrollbarState(chart: any, position: AgCartesianAxisPosition) {
-        const orientation = isVerticalPosition(position) ? 'vertical' : 'horizontal';
-        return chart.modulesManager.getModule('scrollbar').state[orientation];
+    function getPositionScrollbarState(chart: Chart, position: AgCartesianAxisPosition) {
+        return getScrollbarState(chart, isVerticalPosition(position) ? 'vertical' : 'horizontal');
     }
 
-    function getScrollbarAxis(chart: any, position: AgCartesianAxisPosition) {
-        const { axisId } = getScrollbarState(chart, position);
-        return chart.axes.find((axis: any) => axis.id === axisId);
+    // The id of the axis the scrollbar at `position` scrolls: the stacked axis shares its position, so it is the id
+    // that tells the two apart.
+    function getScrollbarAxisId(chart: Chart, position: AgCartesianAxisPosition) {
+        const { axisId } = getPositionScrollbarState(chart, position);
+        expect(axisId).toBeDefined();
+        return axisId!;
     }
 
-    async function scrollLongLabelIntoView(chart: any, position: AgCartesianAxisPosition) {
+    async function scrollLongLabelIntoView(chart: Chart, position: AgCartesianAxisPosition) {
         const vertical = isVerticalPosition(position);
-        const zoom = chart.ctx.chartState.getValue('zoom');
-        const { min, max } = vertical ? zoom.y : zoom.x;
+        const zoom = chart.ctx.chartState.getValue('zoom')!;
+        const { min, max } = vertical ? zoom.y! : zoom.x!;
         const span = max - min;
         // The vertical category axis runs top to bottom, so its first category sits at ratio 1.
         const ratio = (LONG_LABEL_INDEX + 0.5) / LONG_LABEL_DATA.length;
         const centre = vertical ? 1 - ratio : ratio;
         const window = { min: centre - span / 2, max: centre + span / 2 };
-        chart.ctx.zoomManager.updateZoom(
+        getZoomManager(chart).updateZoom(
             { source: 'user-interaction', sourceDetail: 'scrollbar' },
             vertical ? { y: window } : { x: window }
         );
         await waitForChartStability(chart);
     }
 
-    function expectLongLabelDrawn(chart: any) {
-        const labels = chart.axes.flatMap((axis: any) => axis.tickLayout?.labels?.map((l: any) => l.text) ?? []);
+    function expectLongLabelDrawn(chart: Chart) {
+        const labels = getAxisTickLayouts(chart).flatMap((layout) => layout.labels.map(({ text }) => text));
         expect(labels).toContain(LONG_LABEL);
     }
 
     /** Distance from the series edge to the near and far sides of the track. */
-    function getTrackExtent(chart: any, position: AgCartesianAxisPosition) {
-        const { layoutRect } = getScrollbarState(chart, position);
-        const { seriesRect } = chart;
+    function getTrackExtent(chart: Chart, position: AgCartesianAxisPosition) {
+        const layoutRect = getPositionScrollbarState(chart, position).layoutRect!;
+        const seriesRect = getSeriesRect(chart);
         switch (position) {
             case 'left':
                 return { near: seriesRect.x - layoutRect.x - layoutRect.width, far: seriesRect.x - layoutRect.x };
@@ -819,9 +837,9 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
     }
 
     /** Distance from the series edge to the chart's padding edge on the axis side. */
-    function getRoomToPaddingEdge(chart: any, position: AgCartesianAxisPosition) {
+    function getRoomToPaddingEdge(chart: Chart, position: AgCartesianAxisPosition) {
         const padding = chart.ctx.chartState.getValue('options', 'padding');
-        const { seriesRect } = chart;
+        const seriesRect = getSeriesRect(chart);
         switch (position) {
             case 'left':
                 return seriesRect.x - padding.left;
@@ -834,8 +852,8 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         }
     }
 
-    function expectTrackBetweenSeriesAndPaddingEdge(chart: any, position: AgCartesianAxisPosition) {
-        const { group } = getScrollbarState(chart, position);
+    function expectTrackBetweenSeriesAndPaddingEdge(chart: Chart, position: AgCartesianAxisPosition) {
+        const { group } = getPositionScrollbarState(chart, position);
         const { near, far } = getTrackExtent(chart, position);
         expect(group.visible).toBe(true);
         expect(near).toBeGreaterThanOrEqual(0);
@@ -846,11 +864,11 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         'keeps a %s scrollbar between the series area and the padding edge once a long label scrolls into view',
         async (position) => {
             const chart = await createLongLabelChart({ position });
-            const { spacing } = getScrollbarState(chart, position).properties;
+            const { spacing } = getPositionScrollbarState(chart, position).properties;
 
             // Short labels: the track sits just past the labels, as it did before the clamp.
             expect(getTrackExtent(chart, position).near).toBeCloseTo(
-                getScrollbarAxis(chart, position).layout.labelThickness + spacing,
+                getAxisLabelThickness(chart, getScrollbarAxisId(chart, position)) + spacing,
                 0
             );
 
@@ -858,7 +876,7 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
 
             expectLongLabelDrawn(chart);
             // The labels alone need more room than the axis was granted, so the clamp is what keeps the track in.
-            expect(getScrollbarAxis(chart, position).layout.labelThickness).toBeGreaterThan(
+            expect(getAxisLabelThickness(chart, getScrollbarAxisId(chart, position))).toBeGreaterThan(
                 getRoomToPaddingEdge(chart, position)
             );
             expectTrackBetweenSeriesAndPaddingEdge(chart, position);
@@ -871,14 +889,13 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         }
     );
 
-    function getFittedLongLabelExtent(chart: any, position: AgCartesianAxisPosition) {
-        const axis = getScrollbarAxis(chart, position);
-        const node = axis.tickLabelGroupSelection
-            .nodes()
-            .find((n: any) => n.datum.textUntruncated === LONG_LABEL || n.text?.startsWith('test50'));
+    function getFittedLongLabelExtent(chart: Chart, position: AgCartesianAxisPosition) {
+        const node = getAxisLabelNodes(chart, getScrollbarAxisId(chart, position), { visibleOnly: false }).find(
+            (n) => n.datum.textUntruncated === LONG_LABEL || (typeof n.text === 'string' && n.text.startsWith('test50'))
+        );
         expect(node).toBeDefined();
-        const { x, y, width, height } = Transformable.toCanvas(node);
-        const { seriesRect } = chart;
+        const { x, y, width, height } = Transformable.toCanvas(node!);
+        const seriesRect = getSeriesRect(chart);
         switch (position) {
             case 'left':
                 return { near: seriesRect.x - x - width, far: seriesRect.x - x };
@@ -942,8 +959,8 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
             legend: { enabled: false },
         });
 
-        const { spacing, thickness } = getScrollbarState(chart, 'left').properties;
-        expect(getScrollbarAxis(chart, 'left').layout.labelThickness + spacing + thickness).toBeGreaterThan(
+        const { spacing, thickness } = getPositionScrollbarState(chart, 'left').properties;
+        expect(getAxisLabelThickness(chart, getScrollbarAxisId(chart, 'left')) + spacing + thickness).toBeGreaterThan(
             axisThickness
         );
         const { near, far } = getTrackExtent(chart, 'left');
@@ -984,12 +1001,13 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
 
         expectLongLabelDrawn(chart);
         // The room to the padding edge spans both axes, so measure the track against the scrollbar axis's own width.
-        const axis = getScrollbarAxis(chart, 'left');
-        const grantedWidth = axis.chartLayout.sizeLimit + axis.options.label.spacing;
-        expect(axis.layout.labelThickness).toBeGreaterThan(grantedWidth);
+        const axisId = getScrollbarAxisId(chart, 'left');
+        const grantedWidth = getAxisGrantedLabelWidth(chart, axisId);
+        expect(getAxisLabelThickness(chart, axisId)).toBeGreaterThan(grantedWidth);
 
-        const { group, layoutRect } = getScrollbarState(chart, 'left');
-        const axisLine = axis.translation.x;
+        const { group } = getPositionScrollbarState(chart, 'left');
+        const layoutRect = getPositionScrollbarState(chart, 'left').layoutRect!;
+        const axisLine = getAxisLayoutState(chart, axisId).translation.x;
         expect(group.visible).toBe(true);
         expect(axisLine - layoutRect.x - layoutRect.width).toBeGreaterThanOrEqual(0);
         expect(axisLine - layoutRect.x).toBeLessThanOrEqual(grantedWidth);
@@ -1003,7 +1021,7 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
 
         expectLongLabelDrawn(chart);
         expect(getTrackExtent(chart, 'left')).toEqual(before);
-        expect(before.near).toBeCloseTo(getScrollbarState(chart, 'left').properties.spacing);
+        expect(before.near).toBeCloseTo(getPositionScrollbarState(chart, 'left').properties.spacing);
     });
 
     it('keeps the scrollbar within an explicit axis thickness', async () => {
@@ -1024,7 +1042,7 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         await scrollLongLabelIntoView(chart, 'left');
         expectLongLabelDrawn(chart);
 
-        const { thickness } = getScrollbarState(chart, 'left').properties;
+        const { thickness } = getPositionScrollbarState(chart, 'left').properties;
         expect(thickness).toBeGreaterThan(4);
         expect(getTrackExtent(chart, 'left')).toEqual({ near: 0, far: thickness });
     });
@@ -1046,9 +1064,8 @@ describe('Scrollbar border theme params', () => {
     });
 
     const create = async (params: object) => {
-        chartRef.current = deproxy(await createEnterpriseChart(chartOptions(params)));
-        const scrollbar = chartRef.current.modulesManager.getModule('scrollbar');
-        return { scrollbar, ...scrollbar.state.horizontal };
+        chartRef.current = await createEnterpriseChart(chartOptions(params));
+        return getScrollbarState(chartRef.current, 'horizontal');
     };
 
     const BASE = { borderColor: '#112233', borderWidth: 2 };
@@ -1099,20 +1116,20 @@ describe('Scrollbar border theme params', () => {
     });
 
     it('takes the hover border from scrollbarThumbHoverBorder', async () => {
-        const { scrollbar, thumb } = await create({ scrollbarThumbHoverBorder: { color: '#aabbcc', width: 5 } });
+        const { thumb } = await create({ scrollbarThumbHoverBorder: { color: '#aabbcc', width: 5 } });
 
-        scrollbar.handleHoverChange('horizontal', true);
+        setScrollbarHovered(chartRef.current!, 'horizontal', true);
         expect([thumb.stroke, thumb.strokeWidth]).toEqual(['#aabbcc', 5]);
     });
 
     it('hides the hover border for a false scrollbarThumbHoverBorder, and keeps the thumb width for a true one', async () => {
         const hidden = await create({ scrollbarThumbHoverBorder: false });
-        hidden.scrollbar.handleHoverChange('horizontal', true);
+        setScrollbarHovered(chartRef.current!, 'horizontal', true);
         expect(hidden.thumb.strokeWidth).toBe(0);
         destroyChartRef(chartRef);
 
         const shown = await create({ ...BASE, scrollbarThumbBorder: true, scrollbarThumbHoverBorder: true });
-        shown.scrollbar.handleHoverChange('horizontal', true);
+        setScrollbarHovered(chartRef.current!, 'horizontal', true);
         expect(shown.thumb.strokeWidth).toBe(2);
     });
 });

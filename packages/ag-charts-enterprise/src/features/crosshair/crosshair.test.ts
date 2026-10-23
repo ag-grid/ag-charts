@@ -7,11 +7,13 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
+    AgLineSeriesOptions,
 } from 'ag-charts-community';
 import {
     applyAxesFlip,
     compareImageSnapshot,
-    deproxy,
+    findAxis,
+    getAxisLayoutState,
     getSeriesRect,
     hoverAction,
     mouseDownAction,
@@ -21,8 +23,14 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { mapValues } from 'ag-charts-core';
+import type { AgAnnotation } from 'ag-charts-types';
 
+import { getCrosshairLine } from '../../test/featureAccessors';
 import { createEnterpriseChart } from '../../test/utils';
+
+// JS callers can return null from a label renderer even though the type forbids it, so this is the one value the
+// options type cannot express.
+const RENDERS_NULL = (() => null) as unknown as () => undefined;
 
 function applyCrosshairSnap<T extends AgCartesianChartOptions>(opts: T, snap: boolean): T {
     return {
@@ -386,19 +394,19 @@ describe('Crosshair', () => {
     });
 
     it('AG-16613 should handle null category values with crosshair', async () => {
+        // `allowNullKeys` is undocumented, so the series options type does not know it.
+        const series: AgLineSeriesOptions & { allowNullKeys: boolean } = {
+            type: 'line',
+            yKey: 'population',
+            xKey: 'year',
+            allowNullKeys: true,
+        };
         const options: AgCartesianChartOptions = {
             data: [
                 { year: null, population: 5315511894 },
                 { year: '2000', population: 6132455985 },
             ],
-            series: [
-                {
-                    type: 'line',
-                    yKey: 'population',
-                    xKey: 'year',
-                    allowNullKeys: true,
-                } as any,
-            ],
+            series: [series],
             axes: {
                 y: {
                     type: 'number',
@@ -516,9 +524,8 @@ describe('Crosshair', () => {
                     crosshair: {
                         ...CROSSHAIR_OPTIONS,
                         snap: true,
-                        // JS callers can return null even though the type forbids it; this should
-                        // fall through to the default formatted value rather than throwing.
-                        label: { renderer: (() => null) as any },
+                        // This should fall through to the default formatted value rather than throwing.
+                        label: { renderer: RENDERS_NULL },
                     },
                 },
                 x: {
@@ -527,7 +534,7 @@ describe('Crosshair', () => {
                     crosshair: {
                         ...CROSSHAIR_OPTIONS,
                         snap: true,
-                        label: { renderer: (() => null) as any },
+                        label: { renderer: RENDERS_NULL },
                     },
                 },
             },
@@ -719,9 +726,14 @@ describe('Crosshair', () => {
         // A dragged cross-line's own axis label already reports the value, so the crosshair label on that axis
         // would only cover it. Every other annotation drag, and plain hovering, keeps the crosshair labels.
         // `moved` reads the annotation back after the drag: a negative case only counts if the drag really took it.
-        type Case = { annotation: object; hidden: string[]; shown: string[]; moved: (state: any) => boolean };
+        type Case = {
+            annotation: AgAnnotation;
+            hidden: string[];
+            shown: string[];
+            moved: (state: AgAnnotation) => boolean;
+        };
 
-        const withAnnotation = (annotation: object, snap: boolean): AgCartesianChartOptions => ({
+        const withAnnotation = (annotation: AgAnnotation, snap: boolean): AgCartesianChartOptions => ({
             data: [
                 { x: 0, y: 0 },
                 { x: 5, y: 5 },
@@ -733,7 +745,7 @@ describe('Crosshair', () => {
                 y: { type: 'number', position: 'left', crosshair: { enabled: true, snap } },
             },
             annotations: { enabled: true, toolbar: { enabled: false } },
-            initialState: { annotations: [annotation as any] },
+            initialState: { annotations: [annotation] },
         });
 
         const visibleLabels = (axisId: string) =>
@@ -748,12 +760,11 @@ describe('Crosshair', () => {
 
         // Canvas position of a data point, read from the axes so the test does not encode layout sizes.
         const toCanvas = (x: number, y: number) => {
-            const axes = (deproxy(chart) as any).axes;
-            const xAxis = axes.find((axis: any) => axis.direction === 'x');
-            const yAxis = axes.find((axis: any) => axis.direction === 'y');
+            const xAxis = findAxis(chart, 'bottom');
+            const yAxis = findAxis(chart, 'left');
             return {
-                x: xAxis.translation.x + xAxis.scale.convert(x),
-                y: yAxis.translation.y + yAxis.scale.convert(y),
+                x: getAxisLayoutState(chart, 'bottom').translation.x + xAxis.scale.convert(x),
+                y: getAxisLayoutState(chart, 'left').translation.y + yAxis.scale.convert(y),
             };
         };
 
@@ -775,25 +786,25 @@ describe('Crosshair', () => {
                 annotation: { type: 'vertical-line', value: 5 },
                 hidden: ['x'],
                 shown: ['y'],
-                moved: (state) => state.value > 5,
+                moved: (state) => (state as { value: number }).value > 5,
             },
             'horizontal line yields the y-axis label': {
                 annotation: { type: 'horizontal-line', value: 5 },
                 hidden: ['y'],
                 shown: ['x'],
-                moved: (state) => state.value > 5,
+                moved: (state) => (state as { value: number }).value > 5,
             },
             'cross-line without an axis label keeps both labels': {
                 annotation: { type: 'vertical-line', value: 5, axisLabel: { enabled: false } },
                 hidden: [],
                 shown: ['x', 'y'],
-                moved: (state) => state.value > 5,
+                moved: (state) => (state as { value: number }).value > 5,
             },
             'trend line keeps both labels': {
                 annotation: { type: 'line', start: { x: 2, y: 2 }, end: { x: 8, y: 8 } },
                 hidden: [],
                 shown: ['x', 'y'],
-                moved: (state) => state.start.x > 2,
+                moved: (state) => (state as { start: { x: number } }).start.x > 2,
             },
         };
 
@@ -826,10 +837,8 @@ describe('Crosshair', () => {
             // While a drag holds the pointer, it keeps reporting positions outside the series area; a crosshair
             // must hide on the axis the pointer has left rather than follow it into the chart padding.
             const crosshairLine = (direction: 'x' | 'y') => {
-                const axis = (deproxy(chart) as any).axes.find((a: any) => a.direction === direction);
-                const crosshair = axis.getModuleMap().getModule('crosshair');
-                const [line] = crosshair.lineGroupSelection.nodes();
-                return { visible: crosshair.crosshairGroup.visible && line.visible, y: line.y1 };
+                const { visible, y1 } = getCrosshairLine(chart, direction === 'x' ? 'bottom' : 'left');
+                return { visible, y: y1 };
             };
 
             const dragTo = async (x: number, y: number) => {
@@ -843,7 +852,7 @@ describe('Crosshair', () => {
                 await dragTo(x + dx, y + dy);
             };
 
-            const startDrag = async (annotation: object) => {
+            const startDrag = async (annotation: AgAnnotation) => {
                 chart = await createEnterpriseChart(withAnnotation(annotation, false));
                 const from = toCanvas(5, 5);
                 await hoverAction(from.x, from.y)(chart);
@@ -852,7 +861,7 @@ describe('Crosshair', () => {
                 return from;
             };
 
-            it.each([
+            it.each<[string, AgAnnotation]>([
                 ['horizontal line', { type: 'horizontal-line', value: 5 }],
                 ['vertical line', { type: 'vertical-line', value: 5 }],
             ])('hides the y crosshair while a %s is dragged above or below the series area', async (_n, annotation) => {

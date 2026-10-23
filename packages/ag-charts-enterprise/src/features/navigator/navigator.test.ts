@@ -1,19 +1,27 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgChartInstance, AgLineSeriesOptions } from 'ag-charts-community';
 import {
     CROSSLINE_EXAMPLES,
     type CartesianTestCase,
     cartesianChartAssertions,
     compareImageSnapshot,
-    deproxy,
     expectWarningsCalls,
+    getSeriesAt,
     repeat,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { ChartAxisDirection } from 'ag-charts-core';
 
+import {
+    getMiniChart,
+    getMiniChartSeriesNodeData,
+    getMiniChartSeriesOptions,
+    getNavigator,
+    getSeriesPlacedLabels,
+} from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const xyData = (ys: number[], key = 'y') => ys.map((y, x) => ({ x, [key]: y }));
@@ -461,21 +469,21 @@ describe('Navigator', () => {
                 navigator: { enabled: true, miniChart: { enabled: true } },
             };
             chart = await createEnterpriseChart(base);
-            const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
-            expect(navigator.miniChart.axes.length).toBeGreaterThan(0);
+            const miniChart = getMiniChart(chart);
+            expect(miniChart.axes.length).toBeGreaterThan(0);
 
             await chart.update(
                 prepareEnterpriseTestOptions({ ...base, navigator: { enabled: true, miniChart: { enabled: false } } })
             );
             await waitForChartStability(chart);
-            expect(navigator.miniChart.axes.length).toBe(0);
-            expect(navigator.miniChart.series.length).toBe(0);
+            expect(miniChart.axes.length).toBe(0);
+            expect(miniChart.series.length).toBe(0);
 
             await chart.update(
                 prepareEnterpriseTestOptions({ ...base, navigator: { enabled: true, miniChart: { enabled: true } } })
             );
             await waitForChartStability(chart);
-            expect(navigator.miniChart.axes.length).toBeGreaterThan(0);
+            expect(miniChart.axes.length).toBeGreaterThan(0);
             expectWarningsCalls().toEqual([]);
         });
 
@@ -489,8 +497,7 @@ describe('Navigator', () => {
             await chart.updateDelta({ navigator: { enabled: true, miniChart: { enabled: true } } });
             await waitForChartStability(chart);
 
-            const { miniChart } = deproxy(chart).modulesManager.getModule<any>('navigator');
-            expect(miniChart.series[0].getNodeData()).toHaveLength(10);
+            expect(getMiniChartSeriesNodeData(chart)).toHaveLength(10);
         });
 
         it('keeps the main axis labels as label obstacles while the mini chart shares their axis ids', async () => {
@@ -506,6 +513,7 @@ describe('Navigator', () => {
                     x: { position: 'bottom', type: 'number', crossAt: { value: 0 }, interval: { step: 2 } },
                     y: { position: 'left', type: 'number' },
                 },
+                // `collideWith` is not in the public label collision options, hence the cast.
                 series: [
                     {
                         type: 'line',
@@ -513,19 +521,19 @@ describe('Navigator', () => {
                         yKey: 'y',
                         label: {
                             enabled: true,
-                            formatter: ({ datum }: any) => `x${datum.x}`,
+                            formatter: ({ datum }: { datum: { x: number } }) => `x${datum.x}`,
                             placement: ['bottom', 'top'],
                             collision: { alwaysShow: false, collideWith: { axisLabels: true } },
                             truncate: false,
                         },
-                    } as any,
+                    } as AgLineSeriesOptions,
                 ],
                 navigator: { enabled: true, miniChart: { enabled: miniChartEnabled } },
             });
             const placementsOnAxis = () =>
-                (deproxy(chart).series[0] as any).placedLabelData
-                    .filter((label: any) => label.datum.datum.y === 0)
-                    .map((label: any) => label.placement);
+                getSeriesPlacedLabels<{ datum: { y: number } }>(chart)
+                    .filter((label) => label.datum.datum.y === 0)
+                    .map((label) => label.placement);
 
             const base = options(true);
             chart = await createEnterpriseChart(base);
@@ -544,8 +552,7 @@ describe('Navigator', () => {
                 navigator: { enabled: true, miniChart: { enabled: true, label: { enabled: true, lineHeight: 60 } } },
             };
             chart = await createEnterpriseChart(options);
-            const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
-            expect(navigator.miniChart.computeAxisPadding().bottom).toBeGreaterThanOrEqual(60);
+            expect(getMiniChart(chart).computeAxisPadding().bottom).toBeGreaterThanOrEqual(60);
         });
     });
 
@@ -553,7 +560,8 @@ describe('Navigator', () => {
         it('validates an untyped mini chart series against the type the theme fills in', async () => {
             const options: AgCartesianChartOptions = {
                 ...NAVIGATOR_MINICHART_EXAMPLES.MINI_CHART_SERIES_OVERRIDE.options,
-                navigator: { miniChart: { series: [{ strokeWidth: 'thick' } as any] } },
+                // The invalid value is the point of the test, so the options type has to be bypassed.
+                navigator: { miniChart: { series: [{ strokeWidth: 'thick' } as unknown as AgLineSeriesOptions] } },
             };
             chart = await createEnterpriseChart(options);
 
@@ -568,8 +576,7 @@ describe('Navigator', () => {
             chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toEqual([]);
-            const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
-            expect(navigator.miniChart.series[0].options.strokeWidth).toBe(1);
+            expect(getMiniChartSeriesOptions<AgLineSeriesOptions>(chart).strokeWidth).toBe(1);
         });
     });
 
@@ -680,7 +687,7 @@ describe('Navigator', () => {
                 navigator: { enabled: true, ...navigator },
             };
             chart = await createEnterpriseChart(options);
-            return deproxy(chart).modulesManager.getModule<any>('navigator').track;
+            return getNavigator(chart).track;
         };
 
         it('styles the track from `track`', async () => {
@@ -711,7 +718,9 @@ describe('Navigator', () => {
 
         it('includes the thumb fill in the SVG export', async () => {
             const track = await create({ thumb: { fill: 'green', fillOpacity: 0.3 } });
-            const paths = track.toSVG().elements;
+            const svg = track.toSVG();
+            expect(svg).toBeDefined();
+            const paths = svg!.elements;
             expect(paths).toHaveLength(2);
             expect([paths[1].getAttribute('fill'), paths[1].getAttribute('fill-opacity')]).toEqual(['green', '0.3']);
         });
@@ -768,7 +777,7 @@ describe('Navigator', () => {
 
         const create = async (options: AgCartesianChartOptions) => {
             chart = await createEnterpriseChart(options);
-            return deproxy(chart).modulesManager.getModule<any>('navigator').miniChart;
+            return getMiniChart(chart);
         };
 
         const seriesCases: [string, object][] = [
@@ -829,8 +838,7 @@ describe('Navigator', () => {
                 navigator: { enabled: true, miniChart: { enabled: true } },
             } as AgCartesianChartOptions);
 
-            const mainSeries = deproxy(chart).series[0] as any;
-            expect(shadowedNodes(mainSeries.contentGroup).length).toBeGreaterThan(0);
+            expect(shadowedNodes(getSeriesAt(chart).contentGroup).length).toBeGreaterThan(0);
         });
 
         it('honours an explicit navigator.miniChart.series shadow', async () => {
@@ -845,9 +853,15 @@ describe('Navigator', () => {
     });
 
     describe('AG-17456 mini-chart axis nice', () => {
-        const getMiniChartAxes = (c: any) => {
-            const miniChart = deproxy(c).modulesManager.getModule<any>('navigator').miniChart;
-            const findByDirection = (d: 'x' | 'y') => miniChart.axes.find((axis: any) => axis.direction === d);
+        const getMiniChartAxes = (c: AgChartInstance) => {
+            const miniChart = getMiniChart(c);
+            const findByDirection = (d: 'x' | 'y') => {
+                const axis = miniChart.axes.find(
+                    (candidate) => candidate.direction === (d === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y)
+                );
+                expect(axis, `mini chart ${d} axis`).toBeDefined();
+                return axis!;
+            };
             return { x: findByDirection('x'), y: findByDirection('y') };
         };
 
@@ -863,7 +877,6 @@ describe('Navigator', () => {
             chart = await createEnterpriseChart(options);
 
             const { x: miniX } = getMiniChartAxes(chart);
-            expect(miniX).toBeDefined();
             expect(miniX.nice).toBe(true);
         });
 
@@ -879,7 +892,6 @@ describe('Navigator', () => {
             chart = await createEnterpriseChart(options);
 
             const { x: miniX } = getMiniChartAxes(chart);
-            expect(miniX).toBeDefined();
             expect(miniX.nice).toBe(false);
         });
 
@@ -895,7 +907,6 @@ describe('Navigator', () => {
             chart = await createEnterpriseChart(options);
 
             const { y: miniY } = getMiniChartAxes(chart);
-            expect(miniY).toBeDefined();
             expect(miniY.nice).toBe(false);
         });
 
@@ -913,9 +924,7 @@ describe('Navigator', () => {
             chart = await createEnterpriseChart(options);
 
             const { x: miniX, y: miniY } = getMiniChartAxes(chart);
-            expect(miniY).toBeDefined();
             expect(miniY.nice).toBe(true);
-            expect(miniX).toBeDefined();
             expect(miniX.nice).toBe(false);
         });
     });

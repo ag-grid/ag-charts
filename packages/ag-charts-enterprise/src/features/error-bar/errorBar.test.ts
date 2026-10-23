@@ -19,15 +19,17 @@ import {
     computeLegendBBox,
     deproxy,
     getCursor,
+    getSeriesAt,
+    getSeriesContextNodeData,
     hoverAction,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Transformable } from 'ag-charts-core';
 import type { AgChartInstance } from 'ag-charts-types';
 
+import { getSeriesPlacedLabels } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const SERIES_CANADA = {
@@ -155,6 +157,19 @@ const SERIES_BOYLESLAW: AgScatterSeriesOptions = {
     },
 };
 
+/** The parts of a bar or line datum the error bar label placement tests read. */
+interface WhiskerNodeDatum {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    midPoint: { x: number; y: number };
+    label: { x: number; y: number; placement?: string };
+    overlayBounds: { x: number; y: number; width: number; height: number };
+    overlayBoxes: { width: number }[];
+    yBar: { lowerPoint: { y: number }; upperPoint: { y: number } };
+}
+
 describe('ErrorBars', () => {
     setupMockConsole();
 
@@ -170,13 +185,8 @@ describe('ErrorBars', () => {
     };
 
     const getItemCoords = (itemIndex: number): { x: number; y: number } => {
-        const series = deproxy(chart)['series'][0] as any;
-        const item = series['contextNodeData'].nodeData[itemIndex];
-        const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
-            series.contentGroup,
-            item.midPoint.x,
-            item.midPoint.y
-        );
+        const item = getSeriesContextNodeData(chart).nodeData[itemIndex];
+        const { canvasX: x, canvasY: y } = getSeriesAt(chart).toCanvasFromMidPoint(item);
         return { x, y };
     };
 
@@ -976,7 +986,7 @@ describe('ErrorBars', () => {
             chart = await createEnterpriseChart(options);
         });
 
-        test('itemStyler', () => {
+        it('itemStyler', () => {
             expect(Object.isFrozen(seriesContext)).toBe(false);
             itemStyler.expect().toHaveBeenCalledTimes(4).withContext(seriesContext);
         });
@@ -1000,8 +1010,8 @@ describe('ErrorBars', () => {
         });
 
         const nodeDataOf = (seriesIndex: number) =>
-            (deproxy(chart)['series'][seriesIndex] as any).contextNodeData.nodeData;
-        const placedLabelsOf = (seriesIndex: number) => (deproxy(chart)['series'][seriesIndex] as any).placedLabelData;
+            getSeriesContextNodeData<WhiskerNodeDatum>(chart, seriesIndex).nodeData;
+        const placedLabelsOf = (seriesIndex: number) => getSeriesPlacedLabels<WhiskerNodeDatum>(chart, seriesIndex);
 
         // The anchor sits `spacing` past the drawn whisker span along the value axis, on the side `inside` names.
         const expectAnchoredPastWhisker = (seriesIndex: number, inside: boolean, horizontal: boolean) => {
@@ -1038,7 +1048,7 @@ describe('ErrorBars', () => {
                 axes: {
                     x: { type: 'number', position: 'bottom', reverse: true },
                     y: { type: 'category', position: 'left' },
-                } as any,
+                },
             });
             expectAnchoredPastWhisker(0, false, true);
             expectAnchoredPastWhisker(1, true, true);
@@ -1131,7 +1141,7 @@ describe('ErrorBars', () => {
                 axes: {
                     x: { type: 'number', position: 'bottom', min: 0, max: 3 },
                     y: { type: 'number', position: 'left' },
-                } as any,
+                },
             });
             const placed = placedLabelsOf(0);
             expect(placed.length).toBe(2);
@@ -1174,7 +1184,7 @@ describe('ErrorBars', () => {
                 axes: {
                     x: { type: 'number', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
-                } as any,
+                },
             });
             const lineNodes = nodeDataOf(0);
             const lineLabels = placedLabelsOf(0);
@@ -1213,7 +1223,7 @@ describe('ErrorBars', () => {
                 axes: {
                     x: { type: 'number', position: 'bottom', min: 0, max: 3 },
                     y: { type: 'number', position: 'left', min: 0, max: 10 },
-                } as any,
+                },
             });
             const placed = placedLabelsOf(0);
             expect(placed.length).toBe(2);
@@ -1290,9 +1300,7 @@ describe('ErrorBars', () => {
                 errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', ...errorBar },
             });
             const anchoredPastWhiskers = () =>
-                nodeDataOf(0).map(
-                    (node: any) => node.label.y < Math.min(node.yBar.lowerPoint.y, node.yBar.upperPoint.y)
-                );
+                nodeDataOf(0).map((node) => node.label.y < Math.min(node.yBar.lowerPoint.y, node.yBar.upperPoint.y));
 
             it('anchors bar labels to the bar and keeps the whiskers as obstacles', async () => {
                 chart = await createEnterpriseChart({ data: POSITIVE_DATA, series: [outsideEndBar()] });
@@ -1356,9 +1364,9 @@ describe('ErrorBars', () => {
                     axes: {
                         x: { type: 'number', position: 'bottom', min: 0, max: 3 },
                         y: { type: 'number', position: 'left', min: 0, max: 10 },
-                    } as any,
+                    },
                 });
-                const placements = placedLabelsOf(0).map((placed: any) => placed.placement);
+                const placements = placedLabelsOf(0).map((placed) => placed.placement);
                 expect(placements).toEqual(expected == null ? [] : [expected, expected]);
             });
 
