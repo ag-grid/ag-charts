@@ -4,7 +4,7 @@ import type { AgDonutSeriesOptions } from 'ag-charts-types';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
-import { PolarChartModule } from '../../polarChartModule';
+import { StandaloneChartModule } from '../../standaloneChartModule';
 import { DonutSeries } from './donutSeries';
 import { donutSeriesOptionsDef, donutSeriesThemeableOptionsDef } from './donutSeriesOptionsDef';
 import { donutTheme } from './donutTheme';
@@ -12,9 +12,9 @@ import { donutTheme } from './donutTheme';
 export const DonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'donut',
-    chartType: 'polar',
+    chartType: 'standalone',
     version: VERSION,
-    dependencies: [PolarChartModule],
+    dependencies: [StandaloneChartModule],
 
     options: donutSeriesOptionsDef,
 

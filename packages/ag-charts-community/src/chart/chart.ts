@@ -49,7 +49,6 @@ import type {
     AgCoordinates,
     AgDataTransaction,
     AgInitialStateLegendOptions,
-    AgMiniChartSeriesOptions,
     AgSelectionItem,
     AgSelectionItemIds,
     SeriesOptionsTypes,
@@ -114,28 +113,15 @@ const SIZE_OPTIONS = [
 const LAYOUT_ONLY_DELTA_KEYS = new Set(['title', 'subtitle', 'footnote', 'padding', 'background']);
 
 /** A chart-like owner of series and axes: the chart itself or the navigator's mini chart. */
-interface SeriesAxesHost {
+export interface SeriesAxesHost {
     series: UnknownSeries[];
     axes: ChartAxes;
     setSeries(series: UnknownSeries[]): void;
     setAxes(axes: ChartAxes): void;
 }
 
-type SeriesChangeType =
+export type SeriesChangeType =
     'no-op' | 'no-change' | 'replaced' | 'data-change' | 'series-grouping-change' | 'series-count-changed' | 'updated';
-
-const MINI_CHART_LABEL_EXCLUDED: ReadonlySet<string> = new Set([
-    'interval',
-    'autoRotate',
-    'autoRotateAngle',
-    'itemStyler',
-    'minSpacing',
-    'rotation',
-]);
-
-const HORIZONTAL_AXIS_POSITIONS = new Set(['top', 'bottom']);
-
-const TIME_LIKE_AXIS_TYPES = new Set(['time', 'unit-time', 'ordinal-time']);
 
 /**
  * Mirrors `axis.context` on top of the latest options reference. The base
@@ -151,106 +137,6 @@ function syncAxisContext(axis: ChartAxis, opts: AgBaseAxisOptions): void {
     } else if ('context' in axis) {
         delete (axis as { context?: unknown }).context;
     }
-}
-
-const MINI_CHART_AXIS_STRIPPED_KEYS = new Set(['thickness', 'title', 'crosshair', 'depthOptions']);
-
-// Mini-chart axes never inherit main-axis tick-density controls; these keys come solely from
-// `navigator.miniChart.label.interval`, while other interval keys still fall through.
-const MINI_CHART_INTERVAL_DENSITY_KEYS = ['step', 'values', 'minSpacing', 'maxSpacing'] as const;
-
-function deriveMiniChartInterval(
-    intervalOverride: Record<string, unknown> | undefined,
-    sourceInterval: object | undefined
-): Record<string, unknown> {
-    const merged: Record<string, unknown> = { ...(sourceInterval as object), ...intervalOverride };
-    for (const key of MINI_CHART_INTERVAL_DENSITY_KEYS) {
-        merged[key] = intervalOverride?.[key];
-    }
-    return merged;
-}
-
-function stripAxisOptionsForMiniChart(axisOptions: AgBaseAxisOptions): AgBaseAxisOptions {
-    const source = axisOptions as Record<string, unknown>;
-    const result: Record<string, unknown> = {};
-    for (const key of Object.keys(source)) {
-        if (MINI_CHART_AXIS_STRIPPED_KEYS.has(key)) continue;
-        result[key] = source[key];
-    }
-    return result as AgBaseAxisOptions;
-}
-
-/**
- * Mini-chart grouped-category axes show only the leaf-level depth labels.
- * Returns a derived `depthOptions` array (or `[{ label: { enabled: true } }]`
- * if the source omitted the field) with non-leaf labels disabled.
- */
-function deriveMiniChartGroupedCategoryDepth(sourceDepth: unknown[] | undefined) {
-    if (!Array.isArray(sourceDepth) || sourceDepth.length === 0) {
-        return [{ label: { enabled: true } }];
-    }
-    return sourceDepth.map((entry, i) => {
-        if (i === 0) return entry;
-        return mergeDefaults({ label: { enabled: false } }, entry as { label?: { enabled?: boolean } } | undefined);
-    });
-}
-
-function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions {
-    const sourceAxes = (completeOptions as { axes?: Record<string, AgBaseAxisOptions> }).axes;
-    if (sourceAxes == null) return completeOptions;
-
-    const miniChartLabel = completeOptions.navigator?.miniChart?.label as Record<string, unknown> | undefined;
-    const horizontalLabelOverride: Record<string, unknown> = {};
-    for (const key of Object.keys(miniChartLabel ?? {})) {
-        if (MINI_CHART_LABEL_EXCLUDED.has(key)) continue;
-        horizontalLabelOverride[key] = miniChartLabel![key];
-    }
-    const horizontalIntervalOverride = miniChartLabel?.interval as object | undefined;
-
-    const derivedAxes: Record<string, AgBaseAxisOptions> = {};
-    for (const [id, axisOptions] of entries(sourceAxes)) {
-        const isHorizontal = HORIZONTAL_AXIS_POSITIONS.has((axisOptions as { position?: string }).position ?? '');
-        const isGroupedCategoryHorizontal = isHorizontal && axisOptions.type === 'grouped-category';
-        const baseLabel = isHorizontal ? horizontalLabelOverride : {};
-        const visibilityOverride = isHorizontal
-            ? { enabled: !isGroupedCategoryHorizontal, ...(isGroupedCategoryHorizontal ? { rotation: 0 } : {}) }
-            : { enabled: false };
-        // Mini-chart strips axis chrome: gridLines and ticks always off; line off
-        // on the horizontal axis only (vertical axes keep their line as a frame).
-        const lineOverride = isHorizontal ? { enabled: false } : undefined;
-        const parentLevelOverride =
-            isHorizontal && TIME_LIKE_AXIS_TYPES.has(axisOptions.type ?? '') ? { enabled: false } : undefined;
-        // Mini-chart axes never inherit thickness, title, crosshair or grouped-category depth styling.
-        const sourceDepth = (axisOptions as { depthOptions?: unknown[] }).depthOptions;
-        const groupedCategoryDepth = isGroupedCategoryHorizontal
-            ? deriveMiniChartGroupedCategoryDepth(sourceDepth)
-            : undefined;
-        const restAxisOptions = stripAxisOptionsForMiniChart(axisOptions);
-        const derived: Record<string, unknown> = {
-            ...restAxisOptions,
-            label: mergeDefaults(visibilityOverride, baseLabel, axisOptions.label),
-            gridLine: mergeDefaults({ enabled: false }, axisOptions.gridLine),
-            tick: mergeDefaults({ enabled: false }, axisOptions.tick),
-            line: mergeDefaults(lineOverride, axisOptions.line),
-            interval: isHorizontal
-                ? deriveMiniChartInterval(
-                      horizontalIntervalOverride as Record<string, unknown> | undefined,
-                      axisOptions.interval
-                  )
-                : axisOptions.interval,
-            title: { enabled: false },
-        };
-        if (parentLevelOverride != null) {
-            const sourceParentLevel = (axisOptions as { parentLevel?: object }).parentLevel;
-            derived.parentLevel = mergeDefaults(parentLevelOverride, sourceParentLevel);
-        }
-        if (groupedCategoryDepth != null) {
-            derived.depthOptions = groupedCategoryDepth;
-        }
-        derivedAxes[id] = derived as AgBaseAxisOptions;
-    }
-
-    return { ...completeOptions, axes: derivedAxes } as AgChartOptions;
 }
 
 export abstract class Chart implements ModuleInstance, ChartService {
@@ -347,9 +233,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private _firstAutoSize = true;
     private readonly _autoSizeNotify = new AsyncAwaitQueue();
 
-    private _requiredRange = 0;
-    private _requiredRangeDirection = ChartAxisDirection.X;
-
     download(fileName?: string, fileFormat?: string) {
         this.ctx.scene.download(fileName, fileFormat);
     }
@@ -416,7 +299,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     isDataTransactionSupported() {
         // A transaction mutates the chart's data in place, which rows derived from it wouldn't follow.
-        return this.getPresetDef()?.transformSeriesData == null;
+        if (this.getPresetDef()?.transformSeriesData != null) return false;
+        return this.series.every((series) => series.supportsDataTransactions);
     }
 
     private getPresetDef() {
@@ -425,9 +309,16 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return moduleRegistry.getPresetModule(optionMetadata.presetType);
     }
 
-    protected createDataSet(data: unknown[]): DataSet {
+    private createDataSet(data: unknown[]): DataSet {
+        const { dataSelectionService, logger } = this.ctx;
         const dataIdKey: string | undefined = this.ctx.chartState.getValue('options', 'dataIdKey');
-        return replaceDataSet(this.ctx.dataSelectionService, this.data, data, dataIdKey, this.ctx.logger);
+        for (const series of this.series) {
+            const dataSet = series.createChartDataSet(data, dataIdKey);
+            if (dataSet == null) continue;
+            if (this.data != null) dataSelectionService?.transferDataSet(dataSet, this.data);
+            return dataSet;
+        }
+        return replaceDataSet(dataSelectionService, this.data, data, dataIdKey, logger);
     }
 
     private resolveDataRetain() {
@@ -652,7 +543,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
         const { ctx, tooltip, overlays, seriesRoot } = this;
-        const chartType = this.getChartType();
         const hasViewportSupport: () => boolean = () => this.hasViewportSupport();
         const hasPgUpPgDownSupport: () => boolean = () => this.hasPgUpPgDownSupport();
         const getUpdateType = () => this.performUpdateType;
@@ -668,7 +558,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             hasPgUpPgDownSupport,
             getUpdateType,
             getTooltipContent,
-            chartType,
             ctx,
             tooltip,
             overlays,
@@ -725,6 +614,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     protected getAriaLabel(): string {
+        return this.series[0]?.getChartAriaLabel(this.getCaptionText(), this.series) ?? this.getDefaultAriaLabel();
+    }
+
+    protected getDefaultAriaLabel(): string {
         return this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: this.series.length });
     }
 
@@ -1486,43 +1379,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
     }
 
-    processRanges() {
-        const seriesRanges: Record<string, number[]> = {};
-        const chartRanges: Record<string, number> = {};
-        const seriesTypes = new Map();
-
-        this._requiredRangeDirection = ChartAxisDirection.X;
-
-        // First apply the minimum range from each series by type.
-        for (const series of this.series) {
-            if (!series.visible) continue;
-            seriesRanges[series.type] ??= [];
-            series.getMinimumRangeSeries(seriesRanges[series.type]);
-            if (series.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y) {
-                this._requiredRangeDirection = ChartAxisDirection.Y;
-            }
-            if (!seriesTypes.has(series.type)) {
-                seriesTypes.set(series.type, series);
-            }
-        }
-
-        // Then apply the minimum range required by a group of series by type. For example, bar series have padding
-        // between each series which should only be applied once and is calculated from the width of the bars.
-        for (const [type, firstSeries] of seriesTypes) {
-            chartRanges[type] = firstSeries.getMinimumRangeChart(seriesRanges[type]);
-        }
-
-        if (Object.keys(chartRanges).length === 0) {
-            this._requiredRange = 0;
-        } else {
-            // Set only during PROCESS_RANGE: zoomManager's oscillation guard needs this stable across
-            // re-layouts to tell option changes from layout-triggered dimension changes.
-            this._requiredRange = Math.ceil(Math.max(...Object.values(chartRanges)));
-        }
-
-        for (const axis of this.axes) {
-            axis.requiredRange = this._requiredRange;
-        }
+    /** Applies the minimum axis ranges the series need, before layout. */
+    protected processRanges(): void {
+        // Only charts with ranged axes implement this.
     }
 
     private updateLegends(initialStateLegend?: AgInitialStateLegendOptions[]) {
@@ -1629,18 +1488,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     protected preSeriesUpdate() {
-        const { _requiredRange, seriesRect } = this;
-        if (seriesRect == null) return;
-
-        const dimension = this._requiredRangeDirection === ChartAxisDirection.X ? seriesRect.width : seriesRect.height;
-        const rangeRatio = _requiredRange / dimension;
-        const requiredRangeRatio = Number.isNaN(rangeRatio) ? 0 : rangeRatio; // In case it's NaN, return 0.
+        if (this.seriesRect == null) return;
 
         // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
         this.ctx.eventsHub.emit('update:pre-series', {
-            requiredRangeRatio,
-            requiredRangeDirection: this._requiredRangeDirection,
-            requiredRange: _requiredRange,
+            requiredRangeRatio: 0,
+            requiredRangeDirection: ChartAxisDirection.X,
+            requiredRange: 0,
         });
     }
 
@@ -1734,12 +1588,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 await pause(50);
             }
         }
-    }
-
-    // Mini-chart series never carry the user id, so they cannot collide with the main chart's series.
-    private filterMiniChartSeries(series: AgChartOptions['series'] | undefined): AgChartOptions['series'] | undefined;
-    private filterMiniChartSeries(series: any[] | undefined): any[] | undefined {
-        return series?.filter((s) => s.showInMiniChart !== false).map(({ id: _id, ...s }) => s);
     }
 
     applyOptions(newChartOptions: ChartOptions) {
@@ -1837,10 +1685,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         this.chartOptions = newChartOptions;
 
-        const navigatorModule = this.modulesManager.getModule<{ miniChart?: SeriesAxesHost & { enabled?: boolean } }>(
-            'navigator'
-        );
-
         if (!this.hasViewportSupport()) {
             // reset zoom to initial state
             this.ctx.zoomManager?.updateZoom(
@@ -1849,15 +1693,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             );
         }
 
-        const miniChart = navigatorModule?.miniChart;
-        const miniChartSeries =
-            (newOpts.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? newOpts.series;
-        if (miniChart?.enabled === true && miniChartSeries != null) {
-            this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
-        } else if (miniChart?.enabled === false) {
-            miniChart.setSeries([]);
-            miniChart.setAxes(new ChartAxes());
-        }
+        this.applyChartTypeOptions(newOpts, oldOpts);
 
         this.ctx.annotationManager?.setAnnotationStyles(newChartOptions.annotationThemes);
 
@@ -1987,36 +1823,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return seriesChanged || legendRemoved;
     }
 
-    private applyMiniChartOptions(
-        miniChart: any,
-        miniChartSeries: NonNullable<AgChartOptions['series']>,
-        completeOptions: AgChartOptions,
-        oldOpts: AgChartOptions & { type?: SeriesType }
-    ) {
-        const oldSeries =
-            (oldOpts?.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? oldOpts?.series;
-        const miniChartSeriesStatus = this.applySeries(
-            miniChart,
-            this.filterMiniChartSeries(miniChartSeries),
-            this.filterMiniChartSeries(oldSeries)
-        );
-        const derivedOptions = deriveMiniChartOptions(completeOptions);
-        this.applyAxes(miniChart, derivedOptions, this.chartOptions, miniChartSeriesStatus);
-
-        const axes = miniChart.axes as ChartAxis[];
-
-        // The navigator overlay derives from the main domain-direction axis after `nice` rounding, so the
-        // matching mini-chart axis must inherit `nice` or the handles drift; cross axes keep `nice = false`.
-        const domainDirection = this.series.some(
-            (s) => s.visible && s.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y
-        )
-            ? ChartAxisDirection.Y
-            : ChartAxisDirection.X;
-        const mainDomainAxis = this.axes.find((axis) => axis.direction === domainDirection);
-        for (const axis of axes) {
-            axis.nice = axis.direction === domainDirection ? (mainDomainAxis?.nice ?? true) : false;
-            axis.interactionEnabled = false;
-        }
+    /** Applies options only this chart type consumes, once the series and axes are applied. */
+    protected applyChartTypeOptions(_newOpts: AgChartOptions, _oldOpts: AgChartOptions & { type?: SeriesType }): void {
+        // Charts without chart-type options do nothing.
     }
 
     private applyModules() {
@@ -2050,7 +1859,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
     }
 
-    private applySeries(
+    protected applySeries(
         chart: SeriesAxesHost,
         optSeries: AgChartOptions['series'],
         oldOptSeries?: AgChartOptions['series']
@@ -2128,7 +1937,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return isUpdated ? 'updated' : 'no-op';
     }
 
-    private applyAxes(
+    protected applyAxes(
         chart: SeriesAxesHost,
         options: AgChartOptions,
         chartOptions: ChartOptions,

@@ -1,7 +1,6 @@
-import { type AgOrganizationSeriesOptions, VERSION } from 'ag-charts-community';
+import { type AgOrganizationSeriesOptions, StandaloneChartModule, VERSION } from 'ag-charts-community';
 import { type SeriesModuleDefinition } from 'ag-charts-core';
 
-import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { ZoomModule } from '../../features/zoom/zoomModule';
 import { OrganizationSeries } from './organizationSeries';
 import { organizationSeriesOptionsDef, organizationSeriesThemeableOptionsDef } from './organizationSeriesOptionsDef';

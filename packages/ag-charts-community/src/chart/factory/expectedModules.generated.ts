@@ -19,8 +19,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     {
         type: 'chart',
         name: 'standalone',
-        moduleId: 'AllGaugeModule',
-        enterprise: true,
+        moduleId: 'StandaloneChartModule',
     },
     {
         type: 'chart',
@@ -149,7 +148,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'series',
         name: 'donut',
         moduleId: 'DonutSeriesModule',
-        chartType: 'polar',
+        chartType: 'standalone',
     },
     {
         type: 'series',
@@ -251,7 +250,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'series',
         name: 'pie',
         moduleId: 'PieSeriesModule',
-        chartType: 'polar',
+        chartType: 'standalone',
     },
     {
         type: 'series',

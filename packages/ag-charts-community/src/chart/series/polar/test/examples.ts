@@ -302,6 +302,11 @@ export const GROUPED_DONUT_SERIES: AgPolarChartOptions = {
     ],
 };
 
+export const GROUPED_DONUT_SERIES_FIRST_HIDDEN: AgPolarChartOptions = {
+    ...GROUPED_DONUT_SERIES,
+    series: GROUPED_DONUT_SERIES.series?.map((series, index) => (index === 0 ? { ...series, visible: false } : series)),
+};
+
 export const DONUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
     title: {
         text: 'Market Share',

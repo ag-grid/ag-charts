@@ -38,6 +38,7 @@ import {
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
+import { DonutSeries } from './donutSeries';
 import { PieSeries } from './pieSeries';
 import { DATA_MARKET_SHARE } from './test/data';
 
@@ -671,6 +672,70 @@ describe('PieSeries', () => {
   ],
 ]
 `);
+        });
+    });
+
+    describe('cross lines', () => {
+        it('ignores cross-line listeners, which pie charts do not support', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [{ cat: 'a', dog: 10 }],
+                    series: [{ type: 'pie', calloutLabelKey: 'cat', angleKey: 'dog' }],
+                    listeners: { crossLineClick: () => {} },
+                })
+            );
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`listeners.crossLineClick\` is not supported by \`pie\` series, ignoring.",
+                ],
+              ]
+            `);
+        });
+    });
+
+    describe('layout', () => {
+        it('centres the circle on a fractional series area without rounding', async () => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    padding: { top: 20.5, left: 20.5 },
+                    legend: { enabled: false },
+                    data: [{ dog: 10 }],
+                    series: [{ type: 'donut', angleKey: 'dog' }],
+                })
+            );
+
+            const { seriesRect, seriesRoot } = chart;
+            const donut = classCast(chart.series[0], DonutSeries);
+            expect(seriesRect?.y).toBe(20.5);
+            expect(seriesRoot.translationX + donut.centerX).toBe(seriesRect!.x + seriesRect!.width / 2);
+            expect(seriesRoot.translationY + donut.centerY).toBe(seriesRect!.y + seriesRect!.height / 2);
+        });
+    });
+
+    describe('tooltip mode', () => {
+        it.each([
+            [1, 'single'],
+            [2, 'shared'],
+            [3, 'shared'],
+            [4, 'single'],
+        ])('defaults to the right mode for %i donut series', async (count, mode) => {
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [{ cat: 'a', dog: 10 }],
+                    series: Array.from({ length: count }, () => ({
+                        type: 'donut' as const,
+                        calloutLabelKey: 'cat',
+                        angleKey: 'dog',
+                    })),
+                })
+            );
+
+            expect(chart.chartOptions.processedOptions.tooltip?.mode).toBe(mode);
         });
     });
 

@@ -39,6 +39,7 @@ import {
 import type { AgLinearGaugeLabelPlacement, AgNumericValue } from 'ag-charts-types';
 
 import { formatWithContext } from '../../utils/formatter';
+import { gaugeChartAriaLabel } from '../gauge-util/ariaLabel';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
@@ -159,6 +160,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 > {
     static override readonly className = 'LinearGaugeSeries';
     static readonly type = 'linear-gauge' as const;
+
+    override readonly navigatesWithinSeries = true;
 
     private seriesRect = BBox.NaN;
     private gaugeRect = BBox.NaN;
@@ -1423,6 +1426,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
         return pickGaugeFocus(this, opts);
+    }
+
+    override getChartAriaLabel(caption: string, series: readonly _ModuleSupport.UnknownSeries[]) {
+        return gaugeChartAriaLabel(this.ctx.localeManager, caption, series);
     }
 
     getCaptionText(): string {

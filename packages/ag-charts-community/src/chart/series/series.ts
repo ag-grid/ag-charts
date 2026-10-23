@@ -235,6 +235,8 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
 
 export type UnknownSeries = Series<SeriesNodeDatum, object>;
 
+export type SeriesAreaLayout = (series: UnknownSeries[], seriesRect: BBox) => Promise<void>;
+
 export abstract class Series<
     TDatum extends SeriesNodeDatum,
     TOpts extends object,
@@ -252,6 +254,13 @@ export abstract class Series<
     readonly alwaysClip: boolean = false;
     /** Opts into StandaloneChart zoom (axis registration + scale/translate viewport). */
     readonly supportsStandaloneZoom: boolean = false;
+    /** Reuses the focused series index for its own navigation (depth, datum type) instead of moving between series. */
+    readonly navigatesWithinSeries: boolean = false;
+    readonly supportsDataTransactions: boolean = true;
+    /** Lets the standalone chart round the series area origin down to whole pixels. */
+    readonly snapsSeriesAreaOrigin: boolean = true;
+    /** Lays out every series sharing this function, before the chart updates them. */
+    readonly seriesAreaLayout?: SeriesAreaLayout;
 
     protected hasChangesOnHighlight: boolean = false;
     protected hasChangesOnSelection: boolean = false;
@@ -719,6 +728,16 @@ export abstract class Series<
 
     getMinimumRangeChart(_ranges: number[]): number {
         return 0;
+    }
+
+    /** The chart's data set when this series needs more than a flat one. */
+    createChartDataSet(_data: unknown[], _dataIdKey: string | undefined): DataSet | undefined {
+        return undefined;
+    }
+
+    /** The chart's accessible name when this series type announces it differently from its chart. */
+    getChartAriaLabel(_caption: string, _series: readonly UnknownSeries[]): string | undefined {
+        return undefined;
     }
 
     getZoomRangeFittingItems(

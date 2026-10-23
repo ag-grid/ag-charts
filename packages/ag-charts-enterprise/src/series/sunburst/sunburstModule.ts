@@ -1,4 +1,4 @@
-import { type AgSunburstSeriesOptions, VERSION } from 'ag-charts-community';
+import { type AgSunburstSeriesOptions, StandaloneChartModule, VERSION } from 'ag-charts-community';
 import {
     AUTO_SIZED_LABEL_TRUNCATE,
     BASE_FONT_SIZE,
@@ -16,7 +16,6 @@ import {
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
-import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SunburstSeries } from './sunburstSeries';
 import { sunburstSeriesOptionsDef, sunburstSeriesThemeableOptionsDef } from './sunburstSeriesOptionsDef';
 

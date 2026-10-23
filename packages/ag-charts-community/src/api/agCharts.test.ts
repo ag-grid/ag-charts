@@ -668,7 +668,7 @@ describe('AgCharts', () => {
             expect(axisTypesByDirection()).toEqual({ x: 'category', y: 'number' });
         });
 
-        it('creates a polar chart when only a polar series type is registered and no series are provided', async () => {
+        it('creates a standalone chart when only a standalone series type is registered and no series are provided', async () => {
             await withOnlyRegistered([PieSeriesModule], async () => {
                 expect(() => (chart = AgCharts.create({ container, series: [] } as AgChartOptions))).not.toThrow();
                 await chart.waitForUpdate();
@@ -676,7 +676,7 @@ describe('AgCharts', () => {
 
             expect(console.error).not.toHaveBeenCalled();
             expect(console.warn).not.toHaveBeenCalled();
-            expect(deproxy(chart).getChartType()).toBe('polar');
+            expect(deproxy(chart).getChartType()).toBe('standalone');
         });
 
         it('reports the implicit `line` default when no series type is registered', async () => {

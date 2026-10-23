@@ -51,7 +51,6 @@ import type {
     ZoomChangeCompleteEvent,
 } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { ChartType } from '../chartType';
 import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -125,7 +124,6 @@ export interface SeriesAreaChartDependencies {
         removeThisDatum: SeriesNodeDatum,
         purpose: 'aria-label' | 'tooltip'
     ) => TooltipContent[];
-    chartType: ChartType;
     seriesRoot: TranslatableGroup;
     ctx: DynamicContext<ChartRegistry>;
     tooltip: Tooltip;
@@ -1088,10 +1086,9 @@ export class SeriesAreaManager extends BaseManager {
         const oldDatumIndex = this.focus.datumIndex;
         const oldOtherIndex = this.focus.seriesIndex;
 
-        if (this.chart.chartType === 'standalone') {
-            // Single-series chart types (treemap, sunburst, gauges) repurpose focus.seriesIndex for
-            // depth / datum type, so they can reuse the base keyboard handling.
-            this.focus.series = this.focus.sortedSeries[0];
+        const [firstSeries] = this.focus.sortedSeries;
+        if (firstSeries?.navigatesWithinSeries) {
+            this.focus.series = firstSeries;
             return {
                 datumIndex,
                 datumIndexDelta,
