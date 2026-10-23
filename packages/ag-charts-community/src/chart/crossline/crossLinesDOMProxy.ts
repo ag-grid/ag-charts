@@ -1,18 +1,27 @@
-import type { BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget } from 'ag-charts-core';
+import type { AxisID, BBox, BoxBounds, ButtonWidget, CrossLine, DynamicContext, ListWidget } from 'ag-charts-core';
 import { CleanupRegistry, Path, Transformable, createSvgElement } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { ChartAxis } from '../chartAxis';
-import type { CrossLine } from './crossLine';
-import type { CrossLineFocusState, CrossLineFocusStateGetter, CrossLinesPlugin } from './crossLinesPlugin';
-import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 
 const DOM_MANAGER_ID = 'cross-lines';
 const FOCUS_PATH_CLASS = 'ag-charts-proxy-cross-line-focus-path';
 
-interface ProxyEntry {
-    readonly plugin: CrossLinesPlugin;
+/** An axis's cross lines, as the keyboard proxies see them. */
+export interface CrossLinesProxySource {
+    readonly axisId: AxisID;
+    isVisible(): boolean;
+    getInstances(): readonly CrossLine[];
+    isKeyboardClickable(crossLine: CrossLine): boolean;
+    keyboardClick(crossLine: CrossLine, sourceEvent: Event): void;
+}
+
+/** The cross line whose proxy has keyboard focus, and the plugin of its axis. */
+export interface CrossLineFocusState {
+    readonly plugin: CrossLinesProxySource;
     readonly crossLine: CrossLine;
+}
+
+interface ProxyEntry extends CrossLineFocusState {
     readonly bounds: BoxBounds;
     readonly focusPath?: string;
 }
@@ -43,20 +52,18 @@ function getAccessibleText({ type, value, range, label }: CrossLine): string {
  * button bounding its cross line and label. The buttons ignore the pointer, so pointer clicks still reach the
  * series area, which hit-tests cross lines itself.
  */
-export class CrossLinesDOMProxy implements CrossLineFocusStateGetter {
+export class CrossLinesDOMProxy {
     private readonly cleanup = new CleanupRegistry();
     private readonly list: ListWidget;
     private readonly buttons: ButtonWidget[] = [];
     /** Drawn beside the button they outline, as a button's text content would replace them. */
     private readonly focusPaths: (SVGSVGElement | undefined)[] = [];
+    private readonly plugins = new Set<CrossLinesProxySource>();
     private entries: ProxyEntry[] = [];
     private dirty = true;
     private focusedIndex: number | undefined;
 
-    constructor(
-        private readonly ctx: DynamicContext<ChartRegistry>,
-        private readonly getAxes: () => Iterable<ChartAxis>
-    ) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         this.list = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
             domManagerId: DOM_MANAGER_ID,
@@ -77,12 +84,29 @@ export class CrossLinesDOMProxy implements CrossLineFocusStateGetter {
         );
     }
 
+    attach(plugin: CrossLinesProxySource) {
+        this.plugins.add(plugin);
+        this.dirty = true;
+    }
+
+    detach(plugin: CrossLinesProxySource) {
+        this.plugins.delete(plugin);
+        this.dirty = true;
+    }
+
     destroy() {
         this.cleanup.flush();
     }
 
     getFocusState(): CrossLineFocusState | undefined {
-        return this.focusedIndex == null ? undefined : this.entries[this.focusedIndex];
+        return this.focusedIndex == null ? undefined : this.liveEntry(this.focusedIndex);
+    }
+
+    /** Entries are rebuilt only before the scene renders, so one may name a cross line its plugin has since replaced. */
+    private liveEntry(index: number): ProxyEntry | undefined {
+        const entry = this.entries[index];
+        if (entry == null || !this.plugins.has(entry.plugin)) return;
+        return entry.plugin.getInstances().includes(entry.crossLine) ? entry : undefined;
     }
 
     private update() {
@@ -90,18 +114,17 @@ export class CrossLinesDOMProxy implements CrossLineFocusStateGetter {
         this.dirty = false;
 
         const entries: ProxyEntry[] = [];
-        for (const axis of this.getAxes()) {
-            const plugin = getCrossLinesPlugin(axis);
-            if (!plugin?.isVisible()) continue;
+        // Plugins attach as their axes gain cross lines, so the chart's axis order is applied here.
+        for (const { axisId } of this.ctx.axisManager.getAxisContexts()) {
+            for (const plugin of this.plugins) {
+                if (plugin.axisId !== axisId || !plugin.isVisible()) continue;
 
-            // Every visible axis reads the focused cross line from this proxy.
-            plugin.setFocusStateGetter(this);
+                for (const crossLine of plugin.getInstances()) {
+                    if (!plugin.isKeyboardClickable(crossLine)) continue;
 
-            for (const crossLine of plugin.getInstances()) {
-                if (!plugin.isKeyboardClickable(crossLine)) continue;
-
-                const focus = crossLine.computeFocusBounds?.();
-                if (focus != null) entries.push({ plugin, crossLine, ...toCanvasFocus(focus) });
+                    const focus = crossLine.computeFocusBounds?.();
+                    if (focus != null) entries.push({ plugin, crossLine, ...toCanvasFocus(focus) });
+                }
             }
         }
         this.entries = entries;
@@ -162,7 +185,7 @@ export class CrossLinesDOMProxy implements CrossLineFocusStateGetter {
         });
         // Fires for Enter and Space only: the buttons have `pointer-events: none`.
         button.addListener('click', (event) => {
-            const entry = this.entries[index];
+            const entry = this.liveEntry(index);
             entry?.plugin.keyboardClick(entry.crossLine, event.sourceEvent);
         });
 

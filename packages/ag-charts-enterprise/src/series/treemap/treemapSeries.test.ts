@@ -26,6 +26,7 @@ import {
     expectNoAnimation,
     expectSceneSamplesMatch,
     expectSceneTrajectory,
+    expectWarningMessages,
     expectWarningsCalls,
     getSeriesAt,
     getSeriesOptions,
@@ -101,6 +102,18 @@ describe('TreemapSeries', () => {
     const compare = async () => {
         await compareImageSnapshot(chart, ctx);
     };
+
+    it('ignores cross-line listeners, which hierarchy charts do not support', async () => {
+        // @ts-expect-error hierarchy chart options do not declare cross-line listeners
+        chart = await createEnterpriseChart({
+            ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
+            listeners: { crossLineClick: () => {} },
+        });
+
+        expectWarningMessages([
+            'AG Charts - Option `listeners.crossLineClick` is not supported by `treemap` series, ignoring.',
+        ]);
+    });
 
     describe('Series Highlighting', () => {
         const SIMPLIFIED_EXAMPLE = {

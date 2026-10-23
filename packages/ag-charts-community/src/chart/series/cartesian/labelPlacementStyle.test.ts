@@ -1,8 +1,15 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartInstance } from 'ag-charts-types';
+import type {
+    AgBarSeriesLabelPlacement,
+    AgBarSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartInstance,
+} from 'ag-charts-types';
 
-import { compareImageSnapshot, createChart, deproxy, setupMockCanvas, setupMockConsole } from '../../test/utils';
+import { getLabelBoxCornerRadius, getVisibleLabelTextNodes } from '../../test/communitySeriesAccessors';
+import { getSeriesContextNodeData } from '../../test/seriesAccessors';
+import { compareImageSnapshot, createChart, setupMockCanvas, setupMockConsole } from '../../test/utils';
 
 // Bar represents the authored (`inside-*`/`outside-*`) placement family, bubble the resolved
 // (`inside` vs directional) marker family, so between them they cover both ways placement is decided.
@@ -24,51 +31,26 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
     // Reads the first visible label's text colour and background (boxing) fill off the live scene
     // graph, so assertions check what was actually rendered rather than re-deriving the resolved style.
     const firstVisibleLabelStyle = (seriesIndex = 0) => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            labelSelection: {
-                nodes(): {
-                    visible: boolean;
-                    fill?: string;
-                    // `boxing` is the label's box Rect; `Rect.cornerRadius` is write-only, so read the
-                    // resolved value back off `topLeftCornerRadius`.
-                    boxing?: { topLeftCornerRadius: number };
-                    getBoxingProperties(): {
-                        fill?: string;
-                        padding?: number;
-                        border: { stroke?: string; strokeWidth?: number };
-                    };
-                }[];
-            };
-        };
-        const label = series.labelSelection.nodes().find((node) => node.visible);
+        const [label] = getVisibleLabelTextNodes(chart, seriesIndex);
         expect(label).toBeDefined();
-        const boxing = label!.getBoxingProperties();
+        const boxing = label.getBoxingProperties();
         return {
-            color: label!.fill,
+            color: label.fill,
             boxFill: boxing.fill,
-            cornerRadius: label!.boxing?.topLeftCornerRadius,
+            cornerRadius: getLabelBoxCornerRadius(label),
             padding: boxing.padding,
-            boxStroke: boxing.border.stroke,
+            boxStroke: boxing.border?.stroke,
         };
     };
 
     // Border readout keyed by datum, so a chart mixing resolved placements within one series can
     // assert each label's own stroke and a cross-wired one cannot pass unnoticed.
     const visibleLabelBoxStrokesByCat = (seriesIndex = 0) => {
-        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            labelSelection: {
-                nodes(): {
-                    visible: boolean;
-                    datum: { xValue: string };
-                    getBoxingProperties(): { border: { stroke?: string } };
-                }[];
-            };
-        };
         return Object.fromEntries(
-            series.labelSelection
-                .nodes()
-                .filter((node) => node.visible)
-                .map((node) => [node.datum.xValue, node.getBoxingProperties().border.stroke])
+            getVisibleLabelTextNodes<{ xValue: string }>(chart, seriesIndex).map((node) => [
+                node.datum?.xValue,
+                node.getBoxingProperties().border?.stroke,
+            ])
         );
     };
 
@@ -78,7 +60,7 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             { cat: 'B', value: 60 },
             { cat: 'C', value: 90 },
         ];
-        const barOptions = (labelOptions: object) => ({
+        const barOptions = (labelOptions: NonNullable<AgBarSeriesOptions['label']>): AgCartesianChartOptions => ({
             data: barData,
             legend: { enabled: false },
             axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
@@ -151,14 +133,14 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
 
         // A colour reaching `label.color` via `theme.overrides` must beat the per-placement default just
         // as a series-level `label.color` does — the default applies only when no colour was supplied.
-        it.each(['inside-center', 'outside-end'])(
+        it.each<AgBarSeriesLabelPlacement>(['inside-center', 'outside-end'])(
             'applies a theme-override label colour for a %s placement',
             async (placement) => {
-                const options = {
+                const options: AgCartesianChartOptions = {
                     ...barOptions({ placement }),
                     theme: { overrides: { bar: { series: { label: { color: 'rgb(190, 55, 55)' } } } } },
                 };
-                chart = await createChart(options as any);
+                chart = await createChart(options);
                 expect(firstVisibleLabelStyle().color).toBe('rgb(190, 55, 55)');
             }
         );
@@ -423,15 +405,12 @@ describe('resolved placement/orientation in itemStyler params', () => {
      * The styler's params cannot answer this on their own: it is invoked once per candidate the cascade
      * probes, and the render pass reuses the cached result rather than calling it again for the winner.
      */
-    const drawnBarPlacements = () => {
-        const series = deproxy(chart as any).series[0] as unknown as {
-            contextNodeData?: { labelData: { label?: { placement?: string; hidden?: boolean } }[] };
-        };
-        return (series.contextNodeData?.labelData ?? [])
-            .map((node) => node.label)
+    type DrawnBarLabel = { label?: { placement?: string; hidden?: boolean } };
+    const drawnBarPlacements = () =>
+        getSeriesContextNodeData<unknown, DrawnBarLabel>(chart)
+            .labelData.map((node) => node.label)
             .filter((label) => label != null && label.hidden !== true)
             .map((label) => label!.placement);
-    };
 
     const barChart = (labelOptions: object) => ({
         data: [

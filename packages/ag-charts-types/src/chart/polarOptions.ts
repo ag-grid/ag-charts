@@ -6,6 +6,7 @@ import type { AgRadarLineSeriesOptions } from '../series/polar/radarLineOptions'
 import type { AgRadialBarSeriesOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesOptions } from '../series/polar/radialColumnOptions';
 import type { AgBaseThemeableChartOptions } from './chartOptions';
+import type { AgAxesChartListeners } from './eventOptions';
 import type {
     AgAngleAxesCrossLineThemeOptions,
     AgAngleCategoryAxisOptions,
@@ -75,4 +76,6 @@ export interface AgBasePolarThemeOptions<
 > extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** Axis configurations. */
     axes?: AgPolarAxesTheme<TContext>;
+    /** A map of event names to event listeners. */
+    listeners?: AgAxesChartListeners<TDatum, TContext>;
 }

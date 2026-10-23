@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgChartInstance, AgFlashOnUpdateOptions } from 'ag-charts-community';
 import {
     clickAction,
     compareImageSnapshot,
@@ -11,8 +11,10 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { type Node, Rect } from 'ag-charts-core';
 import { expectWarningsCalls } from 'ag-charts-test';
 
+import { findSceneNodes } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import type { BandFlashDatum } from './flashOnUpdate';
 import { mergeBands, shouldMergeBands } from './flashOnUpdate';
@@ -115,14 +117,26 @@ const PHASE_RATIOS = [0.05, 0.31, 0.68];
 // Flash uses the 'update' phase (delay 0.25, duration 0.5), so fillOpacity is non-zero only between
 // ~25%-75% of the timeline; these helpers assert timing-independent structure instead.
 
-function getFlashModule(chartInstance: AgChartInstance) {
-    return deproxy(chartInstance).modulesManager.getModule<any>('flashOnUpdate');
+const isFlashRect =
+    (name: string) =>
+    (node: Node): node is Rect =>
+        node instanceof Rect && node.name === name;
+
+/** The rect that flashes the whole chart. */
+function getChartFlashRect(chartInstance: AgChartInstance): Rect {
+    const rects = findSceneNodes(chartInstance, isFlashRect('chart-flash-on-update'));
+    expect(rects).toHaveLength(1);
+    return rects[0];
+}
+
+/** The rects that flash the category bands. */
+function getBandFlashRects(chartInstance: AgChartInstance): Rect[] {
+    return findSceneNodes(chartInstance, isFlashRect('flash-on-update-band'));
 }
 
 /** Assert the chart flash rect was configured: correct fill colour and non-zero area. */
 function assertChartFlashActive(chartInstance: AgChartInstance, opts?: { fill?: string }) {
-    const mod = getFlashModule(chartInstance);
-    const rect = mod.chartFlashRect;
+    const rect = getChartFlashRect(chartInstance);
     expect(rect.fill).toBe(opts?.fill ?? '#cfeeff');
     expect(rect.width).toBeGreaterThan(0);
     expect(rect.height).toBeGreaterThan(0);
@@ -130,8 +144,7 @@ function assertChartFlashActive(chartInstance: AgChartInstance, opts?: { fill?: 
 
 /** Assert band flash rects were created with correct fill and non-zero area. */
 function assertBandFlashActive(chartInstance: AgChartInstance, opts?: { fill?: string; minBands?: number }) {
-    const mod = getFlashModule(chartInstance);
-    const rects: any[] = mod.bandSelection.nodes();
+    const rects = getBandFlashRects(chartInstance);
     expect(rects.length).toBeGreaterThan(0);
     if (opts?.minBands != null) {
         expect(rects.length).toBeGreaterThanOrEqual(opts.minBands);
@@ -144,10 +157,8 @@ function assertBandFlashActive(chartInstance: AgChartInstance, opts?: { fill?: s
 
 /** Assert no flash is visible — fillOpacity must be 0 on all flash rects. */
 function assertFlashInactive(chartInstance: AgChartInstance) {
-    const mod = getFlashModule(chartInstance);
-    expect(mod.chartFlashRect.fillOpacity).toBe(0);
-    const bandRects: any[] = mod.bandSelection.nodes();
-    for (const rect of bandRects) {
+    expect(getChartFlashRect(chartInstance).fillOpacity).toBe(0);
+    for (const rect of getBandFlashRects(chartInstance)) {
         expect(rect.fillOpacity).toBe(0);
     }
 }
@@ -162,18 +173,8 @@ function generateData(count: number, seed = 1) {
     }));
 }
 
-function withFlash(
-    options: AgCartesianChartOptions,
-    flashOptions: {
-        enabled?: boolean;
-        item?: 'chart' | 'category';
-        fill?: string;
-        fillOpacity?: number;
-        flashDuration?: number;
-        fadeOutDuration?: number;
-    }
-): AgCartesianChartOptions {
-    return { ...options, flashOnUpdate: flashOptions } as any;
+function withFlash(options: AgCartesianChartOptions, flashOptions: AgFlashOnUpdateOptions): AgCartesianChartOptions {
+    return { ...options, flashOnUpdate: flashOptions };
 }
 
 // --- Tests ---
@@ -187,7 +188,7 @@ describe('FlashOnUpdate', () => {
 
     afterEach(() => {
         chart?.destroy();
-        (chart as any) = undefined;
+        (chart as unknown) = undefined;
     });
 
     const compareSnapshot = async () => {
@@ -970,8 +971,7 @@ describe('FlashOnUpdate', () => {
             await chart.updateDelta({ data: UPDATED_VALUES_DATA });
             await waitForChartStability(chart);
 
-            const mod = getFlashModule(chart);
-            const rect = mod.chartFlashRect;
+            const rect = getChartFlashRect(chart);
             expect(rect.fillOpacity).toBeGreaterThan(0);
             expect(rect.fill).toBe('#cfeeff');
             expect(rect.width).toBeGreaterThan(0);
@@ -988,9 +988,7 @@ describe('FlashOnUpdate', () => {
             await chart.updateDelta({ data: UPDATED_VALUES_DATA });
             await waitForChartStability(chart);
 
-            const mod = getFlashModule(chart);
-            const rects: any[] = mod.bandSelection.nodes();
-            const activeRects = rects.filter((r: any) => r.fillOpacity > 0);
+            const activeRects = getBandFlashRects(chart).filter((r) => r.fillOpacity > 0);
             expect(activeRects.length).toBeGreaterThan(0);
             for (const rect of activeRects) {
                 expect(rect.fill).toBe('#cfeeff');
@@ -1008,8 +1006,7 @@ describe('FlashOnUpdate', () => {
             await chart.updateDelta({ data: UPDATED_VALUES_DATA });
             await waitForChartStability(chart);
 
-            const mod = getFlashModule(chart);
-            expect(mod.chartFlashRect.fillOpacity).toBe(0);
+            expect(getChartFlashRect(chart).fillOpacity).toBe(0);
         });
     });
 

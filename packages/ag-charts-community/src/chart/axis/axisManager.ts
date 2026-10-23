@@ -23,17 +23,18 @@ interface Axis {
 
 export class AxisManager {
     private readonly axes: Map<ChartAxisDirection, AxisContext[]> = new Map();
+    private orderedAxes: AxisContext[] = [];
 
     readonly axisGridGroup = new Group({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID });
     readonly axisGroup = new Group({ name: 'Axes', zIndex: ZIndexMap.AXIS });
     readonly axisLabelGroup = new Group({ name: 'Axes-Labels', zIndex: ZIndexMap.SERIES_LABEL });
     readonly axisOverlayLowGroup = new Group({
         name: 'Axes-Overlay-Low',
-        zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE,
+        zIndex: ZIndexMap.SERIES_AXIS_OVERLAY_LOW,
     });
     readonly axisOverlayMidGroup = new Group({
         name: 'Axes-Overlay-Mid',
-        zIndex: ZIndexMap.SERIES_CROSSLINE_LINE,
+        zIndex: ZIndexMap.SERIES_AXIS_OVERLAY_MID,
     });
     readonly axisOverlayHighGroup = new Group({
         name: 'Axes-Overlay-High',
@@ -76,8 +77,10 @@ export class AxisManager {
         }
 
         this.axes.clear();
+        this.orderedAxes = [];
         for (const axis of newAxes) {
             const ctx = axis.createAxisContext();
+            this.orderedAxes.push(ctx);
             if (this.axes.has(ctx.direction)) {
                 this.axes.get(ctx.direction)?.push(ctx);
             } else {
@@ -96,6 +99,11 @@ export class AxisManager {
         }
     }
 
+    /** Every axis, in the chart's axis order. */
+    getAxisContexts(): readonly AxisContext[] {
+        return this.orderedAxes;
+    }
+
     getAxisContext(direction: ChartAxisDirection) {
         return this.axes.get(direction) ?? [];
     }
@@ -110,6 +118,7 @@ export class AxisManager {
 
     destroy() {
         this.axes.clear();
+        this.orderedAxes = [];
         this.axisGroup.remove();
         this.axisGridGroup.remove();
     }

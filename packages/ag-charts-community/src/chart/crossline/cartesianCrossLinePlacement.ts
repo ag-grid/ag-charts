@@ -1,6 +1,5 @@
+import type { CrossLineType } from 'ag-charts-core';
 import type { AgCartesianCrossLineLabelPlacement, AgCrossLineLabelPosition } from 'ag-charts-types';
-
-import type { CrossLineType } from './crossLine';
 
 export type AnchorDirection = 1 | 0 | -1;
 

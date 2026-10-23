@@ -1,40 +1,28 @@
 import type {
+    AxisID,
     AxisPluginModuleInstance,
     BBox,
     CallbackParamRules,
     CanvasPoint,
+    ChartSidePadding,
+    CrossLine,
     DynamicContext,
     Forbid,
     NormalisedAxisCrossLineOptions,
     PlacedLabel,
     PointLabelDatum,
+    PolarCrossLine,
 } from 'ag-charts-core';
 import { AbstractModuleInstance, Group, jsonDiff } from 'ag-charts-core';
 import type { AgCrossLineClickEvent } from 'ag-charts-types';
 
 import type { SeriesAreaCanvasClickEvent, SeriesAreaContextMenuEvent } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
-import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import type { PlacedLabelSource } from '../layout/labelManager';
-import {
-    type CrossLine,
-    type CrossLineValuePick,
-    type PendingCrossLineCallbackParam,
-    type PendingCrossLineCallbacks,
-    type PolarCrossLine,
-    fireAllPendingCrossLineCallbacks,
-} from './crossLine';
-
-export type CrossLineFocusState = {
-    readonly plugin: CrossLinesPlugin;
-    readonly crossLine: CrossLine;
-};
-
-export interface CrossLineFocusStateGetter {
-    getFocusState(): CrossLineFocusState | undefined;
-}
+import { type CrossLineValuePick, type PendingCrossLineCallbackParam, PendingCrossLineCallbacks } from './crossLine';
+import type { CrossLinesRegistry } from './crossLinesRegistry';
 
 /** One solve group of an axis's cross line labels: kept labels resolve before series labels, droppable ones after. */
 class CrossLineLabelSource implements PlacedLabelSource {
@@ -83,6 +71,10 @@ class CrossLineLabelSource implements PlacedLabelSource {
     }
 }
 
+// Workaround until pointer interactions treat overlapping hits as first-class: every axis's cross lines
+// add to one claim per click, so each chart and axis listener fires once.
+const claimsByClick = new WeakMap<SeriesAreaCanvasClickEvent, PendingCrossLineCallbacks>();
+
 /**
  * Axis plugin that owns a per-axis runtime list of {@link CrossLine} instances along with the
  * scene-graph groups they render into.
@@ -115,7 +107,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     /** Bumped whenever the label inputs change, so placement can skip an unchanged solve. */
     nodeDataVersion = 0;
 
-    private readonly ctx: DynamicContext<ChartAxisRegistry<AxisContext>>;
+    private readonly ctx: DynamicContext<CrossLinesRegistry>;
     private readonly axisCtx: AxisContext;
     private readonly rangeGroup = new Group({ name: 'CrossLines-Range' });
     private readonly lineGroup = new Group({ name: 'CrossLines-Line' });
@@ -124,10 +116,9 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private visible = true;
     private lastOptions: NormalisedAxisCrossLineOptions[] | undefined;
     private readonly removePointerListeners: (() => void)[];
-    private focusStateGetter: CrossLineFocusStateGetter = { getFocusState: () => undefined };
     readonly labelSources: readonly CrossLineLabelSource[];
 
-    constructor(ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) {
+    constructor(ctx: DynamicContext<CrossLinesRegistry>) {
         super();
         this.ctx = ctx;
         this.axisCtx = ctx.parent;
@@ -142,6 +133,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         this.axisCtx.attachAxisOverlay(this.rangeGroup, 'low');
         this.axisCtx.attachAxisOverlay(this.lineGroup, 'mid');
         this.axisCtx.attachAxisOverlay(this.labelGroup, 'high');
+        this.ctx.crossLinesDOMProxy?.attach(this);
 
         // Both hit-test this axis's cross lines, then diverge: the context-menu one annotates the
         // series-area handoff, the pointer-click one runs the cross-line listeners directly.
@@ -156,7 +148,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         // bounds. However, the center of the HTML element's bound could hit-miss the cross line itself. This can happen
         // on radius polar cross lines for examples, which can be donut-shaped and hollow at the center. Therefore, if a
         // cross line is focused, then report that focused cross line as the only hit regardless of where `point` is.
-        const focusEntry = this.focusStateGetter.getFocusState();
+        const focusEntry = this.ctx.crossLinesDOMProxy?.getFocusState();
         if (focusEntry) {
             if (focusEntry.plugin === this) {
                 return [focusEntry.crossLine];
@@ -191,18 +183,34 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
 
     private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
         const picks = this.pickCrosslines(event);
-        this.toParamsArray(picks, event.crossLine, 'crossLineContextMenuAction');
+        if (picks.length === 0) return;
+        event.regions['cross-line'] ??= [];
+        this.toParamsArray(picks, event.regions['cross-line'], 'crossLineContextMenuAction');
+        if (!event.primaryRegions.includes('cross-line')) event.primaryRegions.push('cross-line');
     }
 
     private onSeriesAreaCanvasClick(event: SeriesAreaCanvasClickEvent): void {
         const picks = this.pickCrosslines(event);
         if (picks.length > 0) {
-            this.collectClickCallbacks(picks, event.type, event.sourceEvent, event.pendingCrossLineCallbacks);
+            this.collectClickCallbacks(picks, event.type, event.sourceEvent, this.claimFor(event));
         }
+    }
+
+    private claimFor(event: SeriesAreaCanvasClickEvent): PendingCrossLineCallbacks {
+        let claim = claimsByClick.get(event);
+        if (claim == null) {
+            const { listeners } = this.ctx.chartService;
+            const chartListener = event.type === 'click' ? listeners.crossLineClick : listeners.crossLineDoubleClick;
+            claim = new PendingCrossLineCallbacks(chartListener != null);
+            claimsByClick.set(event, claim);
+            event.claims.push(claim);
+        }
+        return claim;
     }
 
     /** Whether activating `crossLine` from the keyboard would reach a `click` listener at any level. */
     isKeyboardClickable(crossLine: CrossLine): boolean {
+        if (!this.axisCtx.interactionEnabled) return false;
         return (
             crossLine.listeners?.click != null ||
             this.axisCtx.listeners?.crossLineClick != null ||
@@ -210,15 +218,11 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         );
     }
 
-    setFocusStateGetter(getter: CrossLineFocusStateGetter) {
-        this.focusStateGetter = getter;
-    }
-
     /** Fires the `click` listeners of `crossLine` alone, as no pointer position picks overlapping elements. */
     keyboardClick(crossLine: CrossLine, sourceEvent: Event): void {
-        const callbacks: PendingCrossLineCallbacks = { allMatchedParams: [], axes: new Map(), crossLines: new Map() };
+        const callbacks = new PendingCrossLineCallbacks(false);
         this.collectClickCallbacks([crossLine], 'click', sourceEvent, callbacks);
-        fireAllPendingCrossLineCallbacks(callbacks, []);
+        callbacks.fire(callbacks.matchedParams);
     }
 
     private collectClickCallbacks(
@@ -230,7 +234,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         const isClick = type === 'click';
 
         const allParamsOnThisAxis = this.toParamsArray(picks, [], isClick ? 'crossLineClick' : 'crossLineDoubleClick');
-        callbacks.allMatchedParams.push(...allParamsOnThisAxis);
+        callbacks.matchedParams.push(...allParamsOnThisAxis);
 
         // `Forbid` stops rootLevelParams silently overriding a key spread from allMatchedParams; `type` is
         // exempt, as each entry carries the root's event type.
@@ -294,6 +298,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     onAxisUpdate(): void {
+        this.setVisible(this.axisCtx.seriesAreaVisible);
         const visible = this.axisCtx.hasDefinedDomain() || this.axisCtx.hasVisibleSeries();
         const { gridPadding } = this.axisCtx;
         const { width, height } = this.ctx.scene;
@@ -329,6 +334,12 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         }
     }
 
+    collectChartPadding(padding: ChartSidePadding): void {
+        for (const crossLine of this.instances) {
+            crossLine.calculatePadding?.(padding);
+        }
+    }
+
     onScaleChange(): void {
         const [r0, r1] = this.axisCtx.range;
         for (const crossLine of this.instances) {
@@ -342,7 +353,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         }
     }
 
-    setVisible(visible: boolean): void {
+    private setVisible(visible: boolean): void {
         // Layout has already bumped the version by now, so a flip has to invalidate the solve itself.
         if (visible !== this.visible) this.nodeDataVersion++;
         this.visible = visible;
@@ -355,11 +366,16 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         return this.instances;
     }
 
+    get axisId(): AxisID {
+        return this.axisCtx.axisId;
+    }
+
     isVisible(): boolean {
         return this.visible;
     }
 
     override destroy(): void {
+        this.ctx.crossLinesDOMProxy?.detach(this);
         for (const source of this.labelSources) {
             this.ctx.labelManager.unregisterSource(source.id, source);
         }

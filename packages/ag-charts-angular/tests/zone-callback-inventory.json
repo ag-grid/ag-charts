@@ -135,11 +135,11 @@
         "classification": "zone-wrap",
         "reason": "Axis listener on cartesian and polar axes; re-entered into the zone by patchChartOptions via patchListeners(axes[<key>].listeners)."
     },
-    "AgBaseChartListeners.crossLineClick": {
+    "AgAxesChartListeners.crossLineClick": {
         "classification": "zone-wrap",
         "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
     },
-    "AgBaseChartListeners.crossLineDoubleClick": {
+    "AgAxesChartListeners.crossLineDoubleClick": {
         "classification": "zone-wrap",
         "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
     },

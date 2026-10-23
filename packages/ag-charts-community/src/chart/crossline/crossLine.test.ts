@@ -2,8 +2,10 @@ import { type Mock, afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     BBox,
+    CROSS_LINE_TYPES,
     ChartUpdateType,
     type CrossLineLabelOverflow,
+    type CrossLineType,
     type DynamicContext,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
@@ -27,7 +29,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import type { ChartRegistry } from '../../module/moduleContext';
 import type { Chart } from '../chart';
 import { getSeriesRect } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
@@ -51,10 +52,8 @@ import {
     waitForChartStability,
 } from '../test/utils';
 import { CartesianCrossLine } from './cartesianCrossLine';
-import type { CrossLineType } from './crossLine';
-import { CROSS_LINE_TYPES } from './crossLinesModule';
-import { getCrossLinesPlugin } from './getCrossLinesPlugin';
-import { getCrossLineFittedLabel } from './test/crossLineAccessors';
+import type { CrossLinesRegistry } from './crossLinesRegistry';
+import { getCrossLineFittedLabel, getCrossLinesPlugin } from './test/crossLineAccessors';
 import * as examples from './test/examples';
 
 type ViFn = ReturnType<typeof vi.fn>;
@@ -615,6 +614,55 @@ describe('CrossLine', () => {
                     range: FULL_RANGE,
                 }) satisfies AgCrossLineClickEvent
             );
+        });
+
+        it.each(['common', 'line'] as const)(
+            'fires an axis `crossLineClick` set through a positional %s theme override',
+            async (namespace) => {
+                const crossLineClick = vi.fn();
+                chart = deproxy(
+                    await createChart(
+                        fullRangeOptions({
+                            axes: {
+                                x: { type: 'category' },
+                                y: {
+                                    type: 'number',
+                                    min: FULL_RANGE[0],
+                                    max: FULL_RANGE[1],
+                                    crossLines: [rangeCrossLine()],
+                                },
+                            },
+                            theme: {
+                                overrides: {
+                                    [namespace]: { axes: { number: { left: { listeners: { crossLineClick } } } } },
+                                },
+                            },
+                        })
+                    )
+                );
+
+                await clickAction(CENTRE_X, CENTRE_Y)(chart);
+
+                expect(crossLineClick).toHaveBeenCalledTimes(1);
+            }
+        );
+
+        it('leaves the plugin off for an axis with listeners but no cross lines', async () => {
+            chart = deproxy(
+                await createChart(
+                    fullRangeOptions({
+                        axes: {
+                            x: { type: 'category' },
+                            y: {
+                                type: 'number',
+                                listeners: { crossLineClick: vi.fn(), crossLineDoubleClick: vi.fn() },
+                            },
+                        },
+                    })
+                )
+            );
+
+            expect(chart.axes.map((axis) => getCrossLinesPlugin(axis))).toEqual([undefined, undefined]);
         });
 
         it('AC2: double-clicking a cross line fires `doubleClick`', async () => {
@@ -1511,9 +1559,13 @@ describe('CrossLine', () => {
         }
 
         function unitCrossLine() {
-            const chartCtx = { domManager: { isRtl: false }, logger: { warnOnce() {}, deprecationOnce() {} } };
-            // A stub of the two context members the unit under test reads, not a full chart context.
-            return new CartesianCrossLine(chartCtx as unknown as DynamicContext<ChartRegistry>);
+            const axisCtx = {
+                domManager: { isRtl: false },
+                logger: { warnOnce() {}, deprecationOnce() {} },
+                parent: { position: 'bottom' },
+            };
+            // A stub of the context members the unit under test reads, not a full axis context.
+            return new CartesianCrossLine(axisCtx as unknown as DynamicContext<CrossLinesRegistry>);
         }
 
         function crossLineWith(
@@ -1523,7 +1575,6 @@ describe('CrossLine', () => {
         ) {
             const crossLine = unitCrossLine();
             crossLine.applyOptions(crossLineOptions(type, { overflow, position }));
-            crossLine.position = 'bottom';
             return crossLine;
         }
 
@@ -1549,7 +1600,6 @@ describe('CrossLine', () => {
         it('an unset overflow pads as pad-chart does', () => {
             const crossLine = unitCrossLine();
             crossLine.applyOptions(crossLineOptions('line', { position: 'top' }));
-            crossLine.position = 'bottom';
 
             const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
             crossLine.calculatePadding(into);
@@ -2459,8 +2509,14 @@ describe('CrossLine', () => {
             expect(plugin.labelSources[0].getLabelData(BBox.zero)).toMatchObject([{ obstacle: true }]);
 
             const version = plugin.nodeDataVersion;
-            plugin.setVisible(false);
+            await chart.publicApi!.update({
+                ...prepareTestOptions(reservationChart({ text: 'CROSSLINE LABEL', fontSize: 40 }, true)),
+                width: 20,
+                height: 20,
+            });
+            await waitForChartStability(chart);
 
+            expect(axis.seriesAreaVisible).toBe(false);
             expect(plugin.labelSources[0].getLabelData(BBox.zero)).toHaveLength(0);
             expect(plugin.nodeDataVersion).toBeGreaterThan(version);
         });

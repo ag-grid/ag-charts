@@ -27,6 +27,7 @@ import {
     type ChartOrProxy,
     compareImageSnapshot,
     expectWarningsCalls,
+    getSeriesAt,
     getSeriesContextNodeData,
     getSeriesOptions,
     getSeriesSelectionNodes,
@@ -35,6 +36,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { type Group, Selection, type Shape, Text, Transformable } from 'ag-charts-core';
+import { classCast } from 'ag-charts-test';
 
 import {
     type HierarchyNodeLabel,
@@ -45,6 +47,8 @@ import {
 } from '../test/enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
+import { HeatmapCellBatch } from './heatmap/heatmapCellBatch';
+import { HeatmapSeries } from './heatmap/heatmapSeries';
 import ukTopology from './map-test/ukTopology.json';
 import { usData } from './map-test/usData';
 import usTopology from './map-test/usTopology.json';
@@ -1507,8 +1511,22 @@ describe('series label fit', () => {
                 { width: 460, height: 340 }
             );
             const cells = new Map<number, BBox>();
-            for (const rect of getSeriesSelectionNodes<Shape<{ datumIndex: number }>>(chart, 'datumSelection')) {
-                cells.set(rect.datum!.datumIndex, Transformable.toCanvas(rect));
+            // A plain heatmap paints its cells from one batched node, which holds them in node data order.
+            const series = classCast(getSeriesAt(chart), HeatmapSeries);
+            const batch = Array.from(series.contentGroup.descendants()).find(
+                (node): node is HeatmapCellBatch => node instanceof HeatmapCellBatch && node.visible
+            );
+            if (batch == null) {
+                for (const rect of getSeriesSelectionNodes<Shape<{ datumIndex: number }>>(chart, 'datumSelection')) {
+                    cells.set(rect.datum!.datumIndex, Transformable.toCanvas(rect));
+                }
+            } else {
+                const nodeData = series.getNodeData()!;
+                for (let index = 0; index < batch.size; index++) {
+                    const { x, y, width, height } = batch.readCell(index);
+                    const { canvasX, canvasY } = Transformable.toCanvasPoint(batch, x, y);
+                    cells.set(nodeData[index].datumIndex, { x: canvasX, y: canvasY, width, height });
+                }
             }
             const labels = getSeriesSelectionNodes<Text<{ datumIndex: number }> & { datum: { datumIndex: number } }>(
                 chart,

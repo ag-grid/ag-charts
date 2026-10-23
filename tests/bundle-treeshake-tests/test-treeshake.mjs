@@ -65,11 +65,7 @@ async function runScenario(scenario) {
         mkdirSync(entryDir, { recursive: true });
 
         const entryFile = join(entryDir, 'entry.mjs');
-        const importStatement =
-            scenario.import === '*'
-                ? `export * from '${scenario.package}';`
-                : `export ${scenario.import} from '${scenario.package}';`;
-        writeFileSync(entryFile, importStatement);
+        writeFileSync(entryFile, entrySource(scenario));
 
         const outFile = join(entryDir, 'output.mjs');
 
@@ -85,6 +81,21 @@ async function runScenario(scenario) {
     }
 
     return scenarioResults;
+}
+
+// Exporting only `AgCharts` measures what a chart with just the registered modules actually ships.
+function entrySource(scenario) {
+    if (scenario.register) {
+        const modules = scenario.register.join(', ');
+        const lines = [
+            `import { AgCharts, ModuleRegistry${modules ? `, ${modules}` : ''} } from '${scenario.package}';`,
+        ];
+        if (modules) lines.push(`ModuleRegistry.registerModules([${modules}]);`);
+        lines.push('export { AgCharts };');
+        return lines.join('\n');
+    }
+    if (scenario.import === '*') return `export * from '${scenario.package}';`;
+    return `export ${scenario.import} from '${scenario.package}';`;
 }
 
 async function runWithConcurrency(items, limit, fn) {

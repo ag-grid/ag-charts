@@ -8,6 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    BBox,
     type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
@@ -48,10 +49,11 @@ import {
     upsertNodeDatum,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
-import type { BBox, PlainObject, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
+import type { PlainObject, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
 import type { PaddingOptions } from 'ag-charts-types';
 
 import { autoSizedLabelFit } from '../util/autoSizedLabelFit';
+import { HeatmapCellBatch } from './heatmapCellBatch';
 
 const {
     HighlightState,
@@ -72,13 +74,15 @@ const {
     updateLabelNode,
 } = _ModuleSupport;
 
+type HeatmapCellStyle = NormalisedHeatmapSeriesStyle & { opacity?: number };
+
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
     midPoint: Readonly<Point>;
     readonly width: number;
     readonly height: number;
     readonly colorValue: any;
-    style: NormalisedHeatmapSeriesStyle;
+    style: HeatmapCellStyle;
 }
 
 interface HeatmapLabelDatum extends Point {
@@ -210,6 +214,11 @@ interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
 
 const NO_OVERRIDES: PlainObject = Object.freeze({});
 
+/** Whether `HeatmapCellBatch` paints a cell with this style as a plain `Rect` would: one string fill and no stroke. */
+function isBatchableStyle({ fill, strokeWidth }: HeatmapCellStyle) {
+    return typeof fill === 'string' && ((strokeWidth ?? 0) <= 0 || Number.isNaN(strokeWidth));
+}
+
 function itemStylerCacheKey(datumIndex: number, isHighlight: boolean) {
     return datumIndex * 2 + (isHighlight ? 1 : 0);
 }
@@ -243,6 +252,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     /** Whether `createNodeData` styled the cells this update, so a restyle would only repeat it. */
     private styledByNodeData = false;
 
+    private readonly cellBatch = new HeatmapCellBatch();
+
+    /** Whether the cells are painted by `cellBatch`, which leaves the datum selection empty. */
+    private batched = false;
+
+    /** How many cells hold a style `cellBatch` can't paint, kept by every pass that styles cells. */
+    private unbatchableCells = 0;
+
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
@@ -258,6 +275,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: [],
         });
+        this.cellBatch.visible = false;
+        this.dataNodeGroup.appendChild(this.cellBatch);
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
@@ -401,6 +420,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         if (touched == null) this.cellsStyledByHighlight = ctx.itemStyleContext.highlightActive;
         this.touchedDatumIndices = touched;
         this.buildSignature = signature;
+        if (touched == null) this.unbatchableCells = 0;
 
         this.resetStaleCallbackResults(previous, signature, touched);
 
@@ -666,7 +686,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const x = xScale.convert(xDatum) + xOffset;
         const y = yScale.convert(yDatum) + yOffset;
 
-        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+        const incremental = this.touchedDatumIndices != null;
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            // The cell keeps its style, which a full pass has not counted yet.
+            if (!incremental && !isBatchableStyle(node.style)) this.unbatchableCells++;
+            return;
+        }
 
         const colorValue = colorValues?.[datumIndex];
 
@@ -689,7 +714,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         mutableNode.midPoint.x = x;
         mutableNode.midPoint.y = y;
 
-        mutableNode.style = this.getItemStyle({ datumIndex, datum, colorValue }, false, ctx.itemStyleContext);
+        // An incremental pass replaces a style that was already counted.
+        if (incremental && !isBatchableStyle(node.style)) this.unbatchableCells--;
+        const style = this.getItemStyle({ datumIndex, datum, colorValue }, false, ctx.itemStyleContext);
+        mutableNode.style = style;
+        if (!isBatchableStyle(style)) this.unbatchableCells++;
     }
 
     /**
@@ -798,10 +827,40 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         datumSelection: Selection<HeatmapNodeDatum, Rect<HeatmapNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
+        // The highlight layer's selection is always made of `Rect`s.
+        if (nodeData !== this.contextNodeData?.nodeData) return datumSelection.update(nodeData ?? []);
+
+        this.setBatched(this.canBatchCells());
+        if (this.batched) return datumSelection.update([]);
         // OPTIMIZATION: an in-place update leaves every datum bound to its scene node.
         if (this.touchedDatumIndices != null) return datumSelection;
         const data = nodeData ?? [];
         return datumSelection.update(data);
+    }
+
+    /** Whether every cell can be painted by `cellBatch` exactly as its own `Rect` would be. */
+    private canBatchCells() {
+        const { cornerRadius, shadow, highlight } = this.options;
+        return (
+            this.unbatchableCells === 0 &&
+            ((cornerRadius ?? 0) <= 0 || Number.isNaN(cornerRadius)) &&
+            shadow?.enabled !== true &&
+            highlight?.highlightedItem?.shadow == null
+        );
+    }
+
+    /** Moving the cells between scene representations leaves none of them up to date. */
+    private setBatched(batched: boolean) {
+        if (batched === this.batched) return;
+        this.batched = batched;
+        this.cellBatch.visible = batched;
+        if (!batched) {
+            // A hidden batch must not keep the node data of a dataset the series has since replaced.
+            this.cellBatch.datums = [];
+            this.cellBatch.resize(0);
+        }
+        this.touchedDatumIndices = undefined;
+        this.restyledEveryCell = true;
     }
 
     protected getItemStyle(
@@ -899,26 +958,42 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         isHighlight: boolean;
     }) {
         const itemStyleContext = this.createItemStyleContext();
-        const { selectionEnabled, highlightActive } = itemStyleContext;
 
-        if (!isHighlight) {
-            // OPTIMIZATION: createNodeData styled every cell; only a highlight, selection or styler needs a restyle.
-            // A styler needs none straight after createNodeData either, which restyled every cell or the updated ones.
-            if (
-                !selectionEnabled &&
-                !highlightActive &&
-                !this.cellsStyledByHighlight &&
-                (this.options.itemStyler == null || this.styledByNodeData)
-            ) {
-                return;
-            }
-            this.cellsStyledByHighlight = highlightActive;
-            this.restyledEveryCell = true;
+        if (isHighlight) {
+            datumSelection.each((_, nodeDatum) => {
+                nodeDatum.style = this.getItemStyle(nodeDatum, true, itemStyleContext);
+            });
+            return;
         }
 
-        datumSelection.each((_, nodeDatum) => {
-            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, itemStyleContext);
-        });
+        const { selectionEnabled, highlightActive } = itemStyleContext;
+        // OPTIMIZATION: createNodeData styled every cell; only a highlight, selection or styler needs a restyle.
+        // A styler needs none straight after createNodeData either, which restyled every cell or the updated ones.
+        if (
+            !selectionEnabled &&
+            !highlightActive &&
+            !this.cellsStyledByHighlight &&
+            (this.options.itemStyler == null || this.styledByNodeData)
+        ) {
+            return;
+        }
+        this.cellsStyledByHighlight = highlightActive;
+        this.restyledEveryCell = true;
+
+        // OPTIMIZATION: this loop also finds whether a restyle moved a cell out of what `cellBatch` can paint.
+        const nodeData = this.contextNodeData?.nodeData ?? [];
+        let unbatchableCells = 0;
+        for (const nodeDatum of nodeData) {
+            const style = this.getItemStyle(nodeDatum, false, itemStyleContext);
+            nodeDatum.style = style;
+            if (!isBatchableStyle(style)) unbatchableCells++;
+        }
+        this.unbatchableCells = unbatchableCells;
+
+        const batched = this.canBatchCells();
+        if (batched === this.batched) return;
+        this.setBatched(batched);
+        datumSelection.update(batched ? [] : nodeData);
     }
 
     protected override updateDatumNodes({
@@ -932,6 +1007,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const [visibleMin, visibleMax] = xAxis?.visibleRange ?? [];
         const isZoomed = visibleMin !== 0 || visibleMax !== 1;
         const crisp = !isZoomed;
+
+        if (this.batched && !isHighlight) {
+            this.updateCellBatch(crisp);
+            return;
+        }
 
         const { cornerRadius, shadow } = this.options;
 
@@ -960,6 +1040,37 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
 
         datumSelection.each(updateNode);
+    }
+
+    private updateCellBatch(crisp: boolean) {
+        const { cellBatch, touchedDatumIndices } = this;
+        const nodeData = this.contextNodeData?.nodeData ?? [];
+        const writeCell = (index: number) => {
+            const { point, width, height, style } = nodeData[index];
+            const opacity = style.opacity ?? 1;
+            cellBatch.set(
+                index,
+                point.x - width / 2,
+                point.y - height / 2,
+                width,
+                height,
+                style.fill as string,
+                (style.fillOpacity ?? 1) * opacity,
+                (style.strokeOpacity ?? 1) * opacity,
+                typeof style.stroke === 'string' ? style.stroke : undefined
+            );
+        };
+
+        cellBatch.crisp = crisp;
+        cellBatch.datums = nodeData;
+        if (touchedDatumIndices != null && !this.restyledEveryCell && cellBatch.size === nodeData.length) {
+            // OPTIMIZATION: only the updated cells differ from what the batch already holds.
+            for (const datumIndex of touchedDatumIndices) writeCell(datumIndex);
+        } else {
+            cellBatch.resize(nodeData.length);
+            for (let index = 0; index < nodeData.length; index++) writeCell(index);
+        }
+        cellBatch.commit();
     }
 
     protected override updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {
@@ -1309,6 +1420,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<HeatmapNodeDatum>) {
+        if (this.batched) {
+            for (const datum of this.contextNodeData?.nodeData ?? []) {
+                if (datum.missing === true) continue;
+                const { point, width, height, midPoint } = datum;
+                const cell = new BBox(point.x - width / 2, point.y - height / 2, width, height);
+                quadtree.addValue({ midPoint, distanceSquared: (x, y) => cell.distanceSquared(x, y) }, datum);
+            }
+            return;
+        }
         addHitTestersToQuadtree(quadtree, this.datumNodesIter(), this.ctx.logger);
     }
 

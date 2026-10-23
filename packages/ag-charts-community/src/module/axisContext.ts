@@ -7,6 +7,7 @@ import type {
     Node,
     NormalisedTextOrSegments,
     Point,
+    PolarAxisLayout,
     Scale,
 } from 'ag-charts-core';
 import type {
@@ -54,23 +55,6 @@ export interface AxisBandDatum extends AxisBandMeasurement {
     readonly position: number;
 }
 
-/**
- * Polar-axis layout snapshot. Defined only on polar axes (`AngleAxis` / `RadiusAxis`) via
- * {@link AxisContext.getPolarLayout}; cartesian axes leave it undefined. Describes the polar
- * axis's own layout — generic axis state, not specific to any one plugin. `ticks` is populated
- * for angle axes; `gridAngles` for radius axes.
- */
-export interface PolarAxisLayout {
-    rotation: number;
-    parallelFlipRotation: number;
-    regularFlipRotation: number;
-    shape: 'polygon' | 'circle';
-    axisOuterRadius: number;
-    axisInnerRadius: number;
-    ticks?: unknown[];
-    gridAngles?: number[];
-}
-
 export interface AxisContext {
     /**
      * Context provider for user callbacks scoped to this axis. Carries `axes[].context` only when
@@ -86,13 +70,17 @@ export interface AxisContext {
     readonly axisType: string;
     continuous: boolean;
     direction: ChartAxisDirection;
-    position?: AgCartesianAxisPosition;
+    readonly position?: AgCartesianAxisPosition;
     scale: Scale<any, any, any>;
     readonly mirrored: boolean;
     readonly reverse: boolean;
     readonly gridLength: number;
     readonly gridPadding: number;
     readonly range: readonly [number, number];
+    /** False while the chart hides its series area because the axes overflow it. */
+    readonly seriesAreaVisible: boolean;
+    /** False on axes the user cannot interact with, such as those of the navigator mini chart. */
+    readonly interactionEnabled: boolean;
     hasDefinedDomain(): boolean;
     hasVisibleSeries(): boolean;
     getCanvasBounds(): BoxBounds | undefined;

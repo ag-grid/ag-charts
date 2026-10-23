@@ -97,6 +97,17 @@ export interface SerializedRectProps extends SerializedPathProps {
     clipY1?: number;
 }
 
+/** One cell of a node that paints many rects in a single pass, in the form its own rect would serialise to. */
+export interface SerializedRectBatchCell {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    /** The painted rect, aligned to the pixel grid when the batch is crisp. */
+    svgPath: string;
+    datumId?: string;
+}
+
 export interface SerializedSectorProps extends SerializedPathProps {
     startAngle: number;
     endAngle: number;
@@ -129,6 +140,7 @@ export type SerializedNodeState =
     | { type: 'path'; props: SerializedPathProps; svgPath?: string }
     | { type: 'marker'; props: SerializedPathProps; svgPath?: string }
     | { type: 'rect'; props: SerializedRectProps; svgPath?: string }
+    | { type: 'rect-batch'; props: SerializedNodeProps; cells: SerializedRectBatchCell[] }
     | { type: 'sector'; props: SerializedSectorProps; svgPath?: string }
     | { type: 'line'; props: SerializedLineProps }
     | { type: 'range'; props: SerializedLineProps }

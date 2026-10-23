@@ -5,7 +5,8 @@ import { getItemId } from './pickManager';
 
 function mockNode(overrides: Partial<PickedNode> & { datum?: unknown; datumIndex?: any }): PickedNode {
     return {
-        series: {} as any,
+        // The helper under test never reads the series, so an empty stand-in is enough.
+        series: {} as PickedNode['series'],
         datum: overrides.datum ?? {},
         datumIndex: overrides.datumIndex ?? 0,
         ...overrides,

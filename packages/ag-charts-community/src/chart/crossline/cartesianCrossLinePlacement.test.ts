@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import type { CrossLineType } from 'ag-charts-core';
 import type { AgCrossLineLabelPosition } from 'ag-charts-types';
 
 import { type CrossLinePlacementContext, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';
-import type { CrossLineType } from './crossLine';
 
 function resolve(
     placement: string | string[] | undefined,

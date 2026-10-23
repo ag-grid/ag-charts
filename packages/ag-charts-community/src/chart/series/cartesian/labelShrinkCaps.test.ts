@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import { createChart, deproxy, setupMockCanvas, setupMockConsole } from '../../test/utils';
+import { createChart, getVisibleLabelNodes, setupMockCanvas, setupMockConsole } from '../../test/utils';
 
 // `truncate: false` with `collision.alwaysShow: false` is what the engine reads as `overflowStrategy: 'hide'`.
 describe('label shrink pass overflow caps', () => {
@@ -46,16 +46,7 @@ describe('label shrink pass overflow caps', () => {
     };
 
     // Rendered label text has no public accessor, so the label selection is the only channel for it.
-    const renderedLabelTexts = (): string[] => {
-        const series = deproxy(chart as any).series[0] as unknown as {
-            labelSelection: { nodes(): { visible: boolean; text?: unknown }[] };
-        };
-        expect(series).toHaveProperty('labelSelection');
-        return series.labelSelection
-            .nodes()
-            .filter((node) => node.visible)
-            .map((node) => String(node.text ?? ''));
-    };
+    const renderedLabelTexts = (): string[] => getVisibleLabelNodes(chart).map((node) => node.text);
 
     // A dropped line is lost text, which 'hide' erases the whole label on.
     it('hides a multi-line hide label whose line the room an obstacle leaves cannot hold', async () => {

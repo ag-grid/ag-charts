@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
+import { getSeriesAreaFocus } from '../test/seriesAccessors';
 import {
     type Chart,
     createChart,
@@ -85,8 +86,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     function getFocus() {
-        const { datumIndex, seriesIndex } = (chart as any).seriesAreaManager.focus;
-        return { datumIndex, seriesIndex };
+        return getSeriesAreaFocus(chart);
     }
 
     async function pressEscape() {

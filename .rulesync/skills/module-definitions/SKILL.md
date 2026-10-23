@@ -111,8 +111,7 @@ The test fails until the files are regenerated. Do not edit the generated files.
 only through a bundle is named after the smallest exported bundle that carries it.
 
 `libraries/ag-charts-eslint-rules/rules/module-mappings.mjs` keeps only what definitions do not carry
-(default axes per series, intrinsic defaults, the cross-line listener owners) and merges it with the
-generated tables.
+(default axes per series, intrinsic defaults) and re-exports the generated tables.
 
 ## Checklist for a new module
 

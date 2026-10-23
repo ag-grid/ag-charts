@@ -200,6 +200,7 @@ function buildGeometry(state: SerializedNodeState): SceneNodeGeometry | null {
         case 'node':
         case 'group':
         case 'range':
+        case 'rect-batch':
             return null;
         case 'sector': {
             const { startAngle, endAngle, innerRadius, outerRadius, opacity } = state.props;
@@ -259,7 +260,7 @@ function readNodeGeometry(state: SerializedNodeState): { label: string; props: S
     }
     // Cutout compositing (destination-out) punches holes through siblings — a marker left in cutout
     // mode while translucent erases the series stroke underneath it, which no geometry check can see.
-    if (state.type !== 'node' && state.type !== 'group') {
+    if (state.type !== 'node' && state.type !== 'group' && state.type !== 'rect-batch') {
         props['cutout'] = state.props.drawingMode === 'cutout' ? 1 : 0;
     }
     props['visible'] = state.props.visible ? 1 : 0;
@@ -308,23 +309,65 @@ export function createSceneWalk<N extends object>(accessor: SceneNodeAccessor<N>
     const nodeKeys = new WeakMap<N, string>();
     const keyCounts = new Map<string, number>();
 
-    const assignKey = (node: N, baseKey: string): string => {
-        let key = nodeKeys.get(node);
-        if (key != null) return key;
+    const uniqueKey = (baseKey: string): string => {
         const count = keyCounts.get(baseKey) ?? 0;
         keyCounts.set(baseKey, count + 1);
         // Disambiguate inside the trailing bracket so `label[*]` globs still match: `text[A#2]`.
-        key = count === 0 ? baseKey : baseKey.replace(/\]$/, `#${count + 1}]`);
-        if (key === baseKey && count > 0) key = `${baseKey}#${count + 1}`;
+        const key = count === 0 ? baseKey : baseKey.replace(/\]$/, `#${count + 1}]`);
+        return key === baseKey && count > 0 ? `${baseKey}#${count + 1}` : key;
+    };
+
+    const assignKey = (node: N, baseKey: string): string => {
+        let key = nodeKeys.get(node);
+        if (key != null) return key;
+        key = uniqueKey(baseKey);
         nodeKeys.set(node, key);
         return key;
+    };
+
+    // A batch node holds many rects, so it pins one key per cell.
+    const cellKeys = new WeakMap<N, string[]>();
+    const assignCellKey = (node: N, index: number, baseKey: string): string => {
+        let keys = cellKeys.get(node);
+        if (keys == null) {
+            keys = [];
+            cellKeys.set(node, keys);
+        }
+        keys[index] ??= uniqueKey(baseKey);
+        return keys[index];
     };
 
     const sampleInto = (sample: SceneGeometrySample, rootPath: string, root: N) => {
         const visit = (node: N) => {
             const state = accessor.state(node);
             const geometry = readNodeGeometry(state);
-            if (geometry != null) {
+            if (state.type === 'rect-batch') {
+                // Each cell samples as the rect it stands in for.
+                for (const [index, cell] of state.cells.entries()) {
+                    const { x, y, width, height, svgPath, datumId } = cell;
+                    const rect = readNodeGeometry({
+                        type: 'rect',
+                        props: {
+                            ...state.props,
+                            x,
+                            y,
+                            width,
+                            height,
+                            opacity: 1,
+                            drawingMode: 'overlay',
+                            hasFill: true,
+                            hasStroke: false,
+                            clip: false,
+                            clipX: Number.NaN,
+                            clipY: Number.NaN,
+                        },
+                        svgPath,
+                    });
+                    if (rect != null) {
+                        sample.set(assignCellKey(node, index, `${rootPath}/rect[${datumId ?? ''}]`), rect.props);
+                    }
+                }
+            } else if (geometry != null) {
                 const identity = datumKeyOf(accessor.datumId(node), state);
                 const baseKey = `${rootPath}/${geometry.label}[${identity ?? ''}]`;
                 sample.set(assignKey(node, baseKey), geometry.props);

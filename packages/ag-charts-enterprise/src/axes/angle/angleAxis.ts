@@ -10,6 +10,7 @@ import {
     type NormalisedBaseAngleAxisOptions,
     type NormalisedTextOrSegments,
     Path,
+    type PolarAxisLayout,
     RotatableText,
     type Scale,
     type ScaleTickParams,
@@ -505,7 +506,7 @@ export abstract class AngleAxis<
         return { textAlign, textBaseline };
     }
 
-    protected override computePolarLayout(): _ModuleSupport.PolarAxisLayout {
+    protected override computePolarLayout(): PolarAxisLayout {
         const radius = this.gridLength;
         return {
             ...this.calculateRotations(),
