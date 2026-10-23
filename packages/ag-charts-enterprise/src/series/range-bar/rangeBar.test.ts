@@ -2,6 +2,7 @@ import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vite
 
 import {
     type AgCartesianChartOptions,
+    type AgChartInstance,
     type AgChartOptions,
     AgCharts,
     type AgRangeBarSeriesItemStylerParams,
@@ -59,6 +60,7 @@ import { Caster } from 'ag-charts-test';
 import {
     DEFAULT_DISABLED_SHADOW,
     createEnterpriseChart,
+    itemNodes,
     mockCssVarColorSupport,
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
@@ -2451,6 +2453,57 @@ describe('RangeBarSeries aggregated device-pixel snap', () => {
             expect(offGrid.slice(0, 5).map(([key, { x, width }]) => `${key} x=${x} width=${width}`)).toEqual([]);
         });
     }
+});
+
+describe('RangeBarSeries horizontal aggregation', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    it('draws aggregated bars that cover every category row without overlapping', async () => {
+        const count = HIGH_VOLUME_COUNT;
+        chart = await createEnterpriseChart({
+            data: Array.from({ length: count }, (_, i) => ({
+                category: 100 + ((i * 7919) % count),
+                low: i % 50,
+                high: 60 + (i % 40),
+            })),
+            series: [
+                { type: 'range-bar', direction: 'horizontal', xKey: 'category', yLowKey: 'low', yHighKey: 'high' },
+            ],
+            axes: { x: { type: 'number' }, y: { type: 'category' } },
+        });
+
+        const { height: seriesHeight } = deproxy(chart).seriesRect!;
+        const bars = itemNodes(chart)
+            .filter((node) => node.visible)
+            .map((node) => node.getBBox())
+            .toSorted((a, b) => a.y - b.y);
+
+        expect(bars.length).toBeGreaterThan(0);
+        expect(bars.length).toBeLessThan(count);
+
+        const overlapping = bars.filter((bar, i) => i > 0 && bar.y < bars[i - 1].y + bars[i - 1].height - 0.01);
+        expect(overlapping.slice(0, 5).map(({ y, height }) => `y=${y} height=${height}`)).toEqual([]);
+
+        // Unique keys put row i in band i; a bar covers the rows whose band centre it reaches.
+        const step = seriesHeight / count;
+        const tolerance = step * 0.3;
+        const drawnRows = new Set<number>();
+        for (const { y, height } of bars) {
+            const first = Math.ceil((y - tolerance) / step - 0.5);
+            const last = Math.floor((y + height + tolerance) / step - 0.5);
+            for (let row = first; row <= last; row++) drawnRows.add(row);
+        }
+        const missingRows = Array.from({ length: count }, (_, row) => row).filter((row) => !drawnRows.has(row));
+        expect(missingRows.slice(0, 5)).toEqual([]);
+    });
 });
 
 describe('RangeBarSeries redraw with identical data', () => {

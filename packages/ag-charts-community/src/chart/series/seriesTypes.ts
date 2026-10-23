@@ -153,6 +153,8 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
      */
     getHighlightPart(target: Node<unknown> | undefined): string | undefined;
     hasData: boolean;
+    /** Whether the series moves its own viewport transform on zoom, so a zoom needs a re-render and no layout. */
+    readonly supportsStandaloneZoom: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
     fireNodeClickEvent(opts: FireNodeEventParams): boolean;

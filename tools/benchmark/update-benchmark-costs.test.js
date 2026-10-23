@@ -34,6 +34,11 @@ test('sumCosts ignores reports without examples and zero-duration examples', () 
     assert.deepEqual(costs, { real: 1 });
 });
 
+test('sumCosts never rounds a measured example down to a zero cost, which loadCosts would reject', () => {
+    const { costs } = sumCosts([run({ quick: ['success', 300] })]);
+    assert.deepEqual(costs, { quick: 1 });
+});
+
 test('mergeCosts prefers fresh costs, keeps previous ones for uncovered examples and drops removed examples', () => {
     const merged = mergeCosts({ fresh: 1, uncovered: 7, removed: 9 }, { fresh: 5, brandNew: 3 }, [
         'brandNew',

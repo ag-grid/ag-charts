@@ -49,7 +49,7 @@ function sumCosts(reports) {
     const costs = {};
     for (const [name, seconds] of totals) {
         if (!failed.has(name) && seconds > 0) {
-            costs[name] = Math.round(seconds);
+            costs[name] = Math.max(1, Math.round(seconds));
         }
     }
     return { costs, failed: [...failed].sort() };
