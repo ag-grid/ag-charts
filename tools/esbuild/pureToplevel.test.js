@@ -50,3 +50,9 @@ for (const [name, input, expected] of INITIALISERS) {
         assert.equal(annotatePureToplevel(input), expected);
     });
 }
+
+test('annotatePureToplevel: keeps the inferred name of a wrapped anonymous class', () => {
+    const code = annotatePureToplevel('var Foo = class extends A.B {};');
+    assert.match(code, /__PURE__/);
+    assert.equal(new Function('A', `${code} return Foo.name;`)({ B: class {} }), 'Foo');
+});

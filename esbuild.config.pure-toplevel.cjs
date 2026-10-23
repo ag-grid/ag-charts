@@ -28,9 +28,8 @@ function containsEager(node, matches) {
 }
 
 const isCallOrSpread = (node) => CALL_LIKE.has(node.type) || node.type === 'SpreadElement';
-// esbuild keeps spreads and property reads, since either may invoke a getter; it drops a pure call's callee.
+// esbuild keeps spreads and property reads, since either may invoke a getter.
 const hasSideEffect = (node) => containsEager(node, (n) => isCallOrSpread(n) || n.type === 'MemberExpression');
-const hasCalleeSideEffect = (node) => containsEager(node, isCallOrSpread);
 
 /**
  * Rename every reference to `from` inside `node` to `to`, using identifier positions from
@@ -75,19 +74,24 @@ function renameReferences(code, node, from, to) {
 }
 
 /**
- * Marks a top-level initialiser as droppable. Bundlers drop an annotated call but still evaluate the calls,
- * spreads and property reads in its arguments, so only a call whose arguments are free of those is annotated in place.
+ * Marks a top-level initialiser as droppable: a call is annotated in place when only its arguments are side-effect
+ * free, as bundlers still evaluate those; anything else is wrapped in an annotated IIFE.
  */
-function annotateInitialiser(code, init, edits) {
+function annotateInitialiser(code, init, edits, name) {
     if (!hasSideEffect(init)) return;
     const [callee, args] =
         init.type === 'TaggedTemplateExpression' ? [init.tag, [init.quasi]] : [init.callee, init.arguments ?? []];
-    if (CALL_LIKE.has(init.type) && !hasCalleeSideEffect(callee) && !args.some(hasSideEffect)) {
+    if (CALL_LIKE.has(init.type) && !containsEager(callee, isCallOrSpread) && !args.some(hasSideEffect)) {
         edits.push({ pos: init.start, text: '/*#__PURE__*/ ' });
         return;
     }
     const initCode = code.slice(init.start, init.end);
-    edits.push({ pos: init.start, end: init.end, replace: `/*#__PURE__*/ (() => (${initCode}))()` });
+    // An anonymous class takes its name from the binding, which `createId` falls back to.
+    const replace =
+        init.type === 'ClassExpression' && !init.id && name
+            ? `/*#__PURE__*/ (() => { const ${name} = ${initCode}; return ${name}; })()`
+            : `/*#__PURE__*/ (() => (${initCode}))()`;
+    edits.push({ pos: init.start, end: init.end, replace });
 }
 
 // Bare side-effect imports from AG Charts packages are artefacts of esbuild bundling
@@ -188,12 +192,12 @@ function annotatePureToplevel(code) {
                 }
 
                 // No trailing exprs — just annotate the initialiser if it has side effects.
-                annotateInitialiser(code, decl.init, edits);
+                annotateInitialiser(code, decl.init, edits, varName);
             }
         } else if (node.type === 'VariableDeclaration') {
             // Multi-declarator — annotate each initialiser individually.
             for (const decl of node.declarations) {
-                if (decl.init) annotateInitialiser(code, decl.init, edits);
+                if (decl.init) annotateInitialiser(code, decl.init, edits, decl.id.name);
             }
         }
 
