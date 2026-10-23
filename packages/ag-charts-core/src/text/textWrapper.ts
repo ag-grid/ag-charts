@@ -891,7 +891,7 @@ function fittingGraphemeCount(
     graphemes: readonly string[],
     measurer: ITextMeasurer,
     maxWidth: number,
-    draw: (prefix: string) => string = (prefix) => prefix
+    draw?: (prefix: string) => string
 ): number {
     // OPTIMIZATION: cached grapheme widths land the guess within a step or two of the measured answer.
     let count = 0;
@@ -901,7 +901,10 @@ function fittingGraphemeCount(
         if (estimate > maxWidth) break;
         count += 1;
     }
-    const fits = (n: number) => measurer.textWidth(draw(graphemes.slice(0, n).join(''))) <= maxWidth;
+    const fits = (n: number) => {
+        const prefix = graphemes.slice(0, n).join('');
+        return measurer.textWidth(draw ? draw(prefix) : prefix) <= maxWidth;
+    };
     while (count < graphemes.length && fits(count + 1)) count += 1;
     while (count > 0 && !fits(count)) count -= 1;
     return count;
