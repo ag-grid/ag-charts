@@ -222,7 +222,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
             },
         ],
         config: {
-            updatesPerTest: 5,
+            updatesPerTest: 3,
             maxCollectionTimeMs: 60000,
             warmupUpdates: 1,
         },
