@@ -41,7 +41,9 @@ This ensures the browser does not reload until all build outputs needed by the d
 
 ### Target priority in `*Watch.config.js`
 
-`build:umd` is listed **before** `build` in each project's target list. Because `buildBuffer` is processed in order and same-target tasks are batched together, the reloadable `build:umd` target runs first, triggering the browser reload as early as possible. The `build` catch-all (types + package) runs after.
+Within a project's target list, reloadable targets come **before** non-reloadable ones. `buildBuffer` is processed in order and same-kind tasks are batched together, so the reloadable batch runs first and the browser reloads as early as possible; the slower non-reloadable targets (such as `build:types`) follow without delaying it.
+
+Every output the dev server serves must be built by a reloadable target, or the reload fires while that output is still stale. In `chartsWatch.config.js`, the community, enterprise and locale cases queue the changed package's own `build:umd` and `build:package` (vanilla examples read `dist/umd`; islands, TypeScript and framework examples read `dist/package`) before `build:types`. A core edit queues those two targets for community and enterprise, which rebuild core's `dist/package` as a dependency (core has no `build:umd`). They queue those targets rather than the composite `build`, which is not reloadable.
 
 ## Configuration (`*Watch.config.js`)
 
@@ -76,3 +78,11 @@ This ensures the browser does not reload until all build outputs needed by the d
 | `chartsWatch.config.js` | Charts-specific project → target mapping |
 | `gridWatch.config.js` | Grid-specific project → target mapping |
 | `studioWatch.config.js` | Studio-specific project → target mapping |
+
+## Manual check (charts reload gating)
+
+1. Run `yarn nx dev` and open a page with an island (`/charts/javascript/license-install/`) and a docs page with TypeScript examples in two tabs.
+2. Add a visible change to a community file (for example a `console.log` in `packages/ag-charts-community/src/chart/legend/legend.ts`) and save once.
+3. The watch output shows `Reloading dev server...` once, after the `build:umd` and `build:package` batch and before the `build:types` batch. Both tabs reload once and log the new message, with no manual refresh.
+4. `build:types` still completes afterwards. Repeat with an enterprise file and an `ag-charts-core` file.
+5. Save a file under `packages/ag-charts-locale/src` and open a vanilla locale example (`/charts/javascript/localisation/`, the `installing-locale` example): after one reload it shows the change, because locale's `dist/umd` is rebuilt before the reload.
