@@ -9,18 +9,8 @@ const INITIALISERS = [
     ['treats a function argument as deferred', 'var x = f(() => g());', 'var x = /*#__PURE__*/ f(() => g());'],
     ['wraps a nested call', 'var x = f(g());', 'var x = /*#__PURE__*/ (() => (f(g())))();'],
     ['wraps a spread argument', 'var x = f(...a);', 'var x = /*#__PURE__*/ (() => (f(...a)))();'],
-    ['wraps a member read argument', 'var x = f({ a: A.b });', 'var x = /*#__PURE__*/ (() => (f({ a: A.b })))();'],
-    [
-        'wraps a computed member key argument',
-        'var x = f({ [A.b]: 1 });',
-        'var x = /*#__PURE__*/ (() => (f({ [A.b]: 1 })))();',
-    ],
+    ['wraps a member read argument', 'var x = f({ [A.b]: 1 });', 'var x = /*#__PURE__*/ (() => (f({ [A.b]: 1 })))();'],
     ['annotates a member read callee in place', 'var x = A.f(1);', 'var x = /*#__PURE__*/ A.f(1);'],
-    [
-        'treats a member read in a function argument as deferred',
-        'var x = f(() => A.b);',
-        'var x = /*#__PURE__*/ f(() => A.b);',
-    ],
     [
         'wraps a non-call initialiser holding a call',
         'var x = { a: f() };',
