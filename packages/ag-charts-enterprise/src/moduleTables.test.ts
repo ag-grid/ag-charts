@@ -268,22 +268,46 @@ function sortedPlaceholders(catalogue: ModuleCatalogue) {
                 axisTypes: definition.axisTypes,
                 seriesTypes: definition.seriesTypes,
                 apiName: definition.apiName,
-                contributes: placeholderContributions(definition)?.map((contribution) => {
-                    const options = placeholderValidator(contribution.options);
-                    const themeOptions = placeholderValidator(contribution.themeOptions);
-                    return compact({
-                        path: contribution.path,
-                        options,
-                        themeOptions: themeOptions === options ? undefined : themeOptions,
-                        chartTypes: inheritedChartTypes(definition, contribution) ? undefined : contribution.chartTypes,
-                        axisTypes: contribution.axisTypes,
-                        seriesTypes: contribution.seriesTypes,
-                        requested: contribution.requested,
-                        apiName: contribution.apiName,
-                    });
-                }),
+                contributes: mergeAxisTypes(
+                    placeholderContributions(definition)?.map((contribution) => {
+                        const options = placeholderValidator(contribution.options);
+                        const themeOptions = placeholderValidator(contribution.themeOptions);
+                        return compact({
+                            path: contribution.path,
+                            options,
+                            themeOptions: themeOptions === options ? undefined : themeOptions,
+                            chartTypes: inheritedChartTypes(definition, contribution)
+                                ? undefined
+                                : contribution.chartTypes,
+                            axisTypes: contribution.axisTypes,
+                            seriesTypes: contribution.seriesTypes,
+                            requested: contribution.requested,
+                            apiName: contribution.apiName,
+                        });
+                    })
+                ),
             })
         );
+}
+
+/** Placeholder validators are coarser than the real ones, so per-axis-type contributions often collapse to one. */
+function mergeAxisTypes<T extends { axisTypes?: readonly string[] }>(contributions: T[] | undefined) {
+    if (contributions == null) return;
+    const merged: T[] = [];
+    const indexByShape = new Map<string, number>();
+    for (const contribution of contributions) {
+        const { axisTypes, ...shape } = contribution;
+        const key = JSON.stringify(shape);
+        const index = indexByShape.get(key);
+        const previousAxisTypes = index == null ? undefined : merged[index].axisTypes;
+        if (axisTypes == null || index == null || previousAxisTypes == null) {
+            if (axisTypes != null) indexByShape.set(key, merged.length);
+            merged.push(contribution);
+        } else {
+            merged[index] = { ...merged[index], axisTypes: [...previousAxisTypes, ...axisTypes] };
+        }
+    }
+    return merged;
 }
 
 type Placeholder = ReturnType<typeof sortedPlaceholders>[number];

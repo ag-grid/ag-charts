@@ -658,19 +658,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
                 path: 'axes[].crossLines',
                 options: defined,
                 themeOptions: object,
-                axisTypes: ['category', 'grouped-category'],
-            },
-            {
-                path: 'axes[].crossLines',
-                options: defined,
-                themeOptions: object,
-                axisTypes: ['number', 'log'],
-            },
-            {
-                path: 'axes[].crossLines',
-                options: defined,
-                themeOptions: object,
-                axisTypes: ['time', 'unit-time', 'ordinal-time'],
+                axisTypes: ['category', 'grouped-category', 'number', 'log', 'time', 'unit-time', 'ordinal-time'],
             },
             {
                 path: 'axes[].listeners.crossLineClick',
@@ -703,25 +691,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
                 path: 'axes[].crossLines',
                 options: defined,
                 themeOptions: object,
-                axisTypes: ['angle-category'],
-            },
-            {
-                path: 'axes[].crossLines',
-                options: defined,
-                themeOptions: object,
-                axisTypes: ['angle-number'],
-            },
-            {
-                path: 'axes[].crossLines',
-                options: defined,
-                themeOptions: object,
-                axisTypes: ['radius-category'],
-            },
-            {
-                path: 'axes[].crossLines',
-                options: defined,
-                themeOptions: object,
-                axisTypes: ['radius-number'],
+                axisTypes: ['angle-category', 'angle-number', 'radius-category', 'radius-number'],
             },
             {
                 path: 'axes[].listeners.crossLineClick',
