@@ -3,7 +3,7 @@ import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgPieSeriesOptions,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
 } from 'ag-charts-community';
 
 import { NEUTRAL, THEME } from '../chartTheme';
@@ -108,7 +108,7 @@ interface Slice {
  * here: the row already names the count in words, and a supplier's identity colour cannot double as a
  * severity signal without one meaning undermining the other.
  */
-function splitOptions(row: SlipDistribution, lateCount: number, color: string): AgPolarChartOptions<Slice> {
+function splitOptions(row: SlipDistribution, lateCount: number, color: string): AgStandaloneChartOptions<Slice> {
     const series: AgPieSeriesOptions<Slice> = {
         type: 'pie',
         angleKey: 'deliveries',

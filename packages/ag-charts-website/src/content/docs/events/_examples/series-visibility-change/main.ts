@@ -1,9 +1,9 @@
-import { AgCharts, AgPolarChartOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
+import { AgCharts, AgSeriesVisibilityChange, AgStandaloneChartOptions } from 'ag-charts-community';
 import { LegendModule, ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 
 ModuleRegistry.registerModules([LegendModule, PieSeriesModule]);
 
-let options: AgPolarChartOptions = {
+let options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Business Expense Distribution' },
     data: [

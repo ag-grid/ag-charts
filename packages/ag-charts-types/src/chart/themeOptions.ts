@@ -240,7 +240,7 @@ export interface AgRangeAreaSeriesThemeOverrides<
 export interface AgDonutSeriesThemeOverrides<
     TDatum = DatumDefault,
     TContext = ContextDefault,
-> extends AgBaseThemeableChartOptions<TDatum, TContext> {
+> extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
     /** Themeable options for donut series. */
     series?: AgDonutSeriesThemeableOptions<TDatum, TContext>;
 }
@@ -248,7 +248,7 @@ export interface AgDonutSeriesThemeOverrides<
 export interface AgPieSeriesThemeOverrides<
     TDatum = DatumDefault,
     TContext = ContextDefault,
-> extends AgBaseThemeableChartOptions<TDatum, TContext> {
+> extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
     /** Themeable options for pie series. */
     series?: AgPieSeriesThemeableOptions<TDatum, TContext>;
 }

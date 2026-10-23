@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgPolarChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance, AgStandaloneChartOptions } from 'ag-charts-types';
 
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -154,7 +154,7 @@ describe('Format Manager', () => {
     });
 
     it('should format pie series legend items', async () => {
-        const options: AgPolarChartOptions = {
+        const options: AgStandaloneChartOptions = {
             data: [
                 { product: 'iPhone', value: 140 },
                 { product: 'Mac', value: 20 },
@@ -573,7 +573,7 @@ describe('Format Manager', () => {
 
             describe('null category key', () => {
                 it('should reject null category key with warning', async () => {
-                    const options: AgPolarChartOptions = {
+                    const options: AgStandaloneChartOptions = {
                         data: [
                             { [legendItemKey]: null, [angleKey]: 140 },
                             { [legendItemKey]: 'Mac', [angleKey]: 20 },
@@ -597,7 +597,7 @@ describe('Format Manager', () => {
                 });
 
                 it('should accept null category key when allowNullKeys is true', async () => {
-                    const options: AgPolarChartOptions = {
+                    const options: AgStandaloneChartOptions = {
                         data: [
                             { [legendItemKey]: null, [angleKey]: 140 },
                             { [legendItemKey]: 'Mac', [angleKey]: 20 },
@@ -613,7 +613,7 @@ describe('Format Manager', () => {
 
             describe('undefined category key', () => {
                 it('should reject undefined category key with warning', async () => {
-                    const options: AgPolarChartOptions = {
+                    const options: AgStandaloneChartOptions = {
                         data: [
                             { [legendItemKey]: undefined, [angleKey]: 140 },
                             { [legendItemKey]: 'Mac', [angleKey]: 20 },
@@ -637,7 +637,7 @@ describe('Format Manager', () => {
                 });
 
                 it('should accept undefined category key when allowNullKeys is true', async () => {
-                    const options: AgPolarChartOptions = {
+                    const options: AgStandaloneChartOptions = {
                         data: [
                             { [legendItemKey]: undefined, [angleKey]: 140 },
                             { [legendItemKey]: 'Mac', [angleKey]: 20 },

@@ -1,4 +1,4 @@
-import type { AgPolarChartOptions } from 'ag-charts-community';
+import type { AgStandaloneChartOptions } from 'ag-charts-community';
 
 import { type DataChart, createDataChart } from '../agChart';
 import { THEME } from '../chartTheme';
@@ -6,7 +6,7 @@ import { fmtInt } from '../format';
 import type { DeviceDatum } from '../types';
 
 export function createDeviceBreakdownChart(data: DeviceDatum[]): DataChart<DeviceDatum[]> {
-    return createDataChart(data, (data): AgPolarChartOptions => {
+    return createDataChart(data, (data): AgStandaloneChartOptions => {
         // Collapse the new/returning split into a single total per device.
         const totals = data.map((d) => ({ device: d.device, sessions: d.new + d.returning }));
         return {

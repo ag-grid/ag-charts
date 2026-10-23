@@ -2,7 +2,7 @@ import type {
     AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgPieSeriesOptions,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
 } from 'ag-charts-community';
 
 import { type ChartHost, chartHost } from '../chart';
@@ -123,7 +123,7 @@ interface Slice {
  * here: the row already names the count in words, and a supplier's identity colour cannot double as a
  * severity signal without one meaning undermining the other.
  */
-function splitOptions(row: SlipDistribution, lateCount: number, color: string): AgPolarChartOptions<Slice> {
+function splitOptions(row: SlipDistribution, lateCount: number, color: string): AgStandaloneChartOptions<Slice> {
     const series: AgPieSeriesOptions<Slice> = {
         type: 'pie',
         angleKey: 'deliveries',
@@ -168,7 +168,7 @@ function splitOptions(row: SlipDistribution, lateCount: number, color: string): 
 interface Facet {
     row: SlipDistribution;
     options: AgCartesianChartOptions<Bar>;
-    split: AgPolarChartOptions<Slice>;
+    split: AgStandaloneChartOptions<Slice>;
     isLast: boolean;
     lateCount: number;
 }
@@ -179,7 +179,7 @@ interface FacetView {
     el: HTMLDivElement;
     name: HTMLSpanElement;
     note: HTMLSpanElement;
-    pie: ChartHost<AgPolarChartOptions<Slice>>;
+    pie: ChartHost<AgStandaloneChartOptions<Slice>>;
     chart: ChartHost<AgCartesianChartOptions<Bar>>;
 }
 
@@ -190,7 +190,7 @@ const facetNote = ({ row, lateCount }: Facet) =>
 function createFacetView(facet: Facet): FacetView {
     const name = h('span', { class: 'pc-facet-name' }, facet.row.supplier);
     const note = h('span', { class: 'pc-facet-note' }, facetNote(facet));
-    const pie = chartHost<AgPolarChartOptions<Slice>>();
+    const pie = chartHost<AgStandaloneChartOptions<Slice>>();
     const chart = chartHost<AgCartesianChartOptions<Bar>>();
     // The bottom facet is taller by its axis-label band, so every series area keeps the same height.
     const el = h(

@@ -1,6 +1,6 @@
 import {
     AgCharts,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
@@ -12,7 +12,7 @@ import {
 import { getData } from './data';
 
 ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, PieSeriesModule, ContextMenuModule]);
-const options: AgPolarChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [

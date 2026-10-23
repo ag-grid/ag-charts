@@ -2,7 +2,7 @@ import {
     AgCartesianChartOptions,
     AgChartOptions,
     AgCharts,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     AnimationModule,
     AreaSeriesModule,
     BarSeriesModule,
@@ -181,7 +181,7 @@ const areaOptions: AgCartesianChartOptions = {
     },
 };
 
-const donutOptions: AgPolarChartOptions = {
+const donutOptions: AgStandaloneChartOptions = {
     series: [
         {
             type: 'pie',
@@ -206,14 +206,14 @@ const donutOptions: AgPolarChartOptions = {
     ],
 };
 
-let options: AgCartesianChartOptions | AgPolarChartOptions = {
+const sharedOptions = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
     },
-    data: getGeneratedData(),
-    ...barOptions,
 };
+
+let options: AgChartOptions = { ...sharedOptions, data: getGeneratedData(), ...barOptions };
 
 // Create chart
 const chart = AgCharts.create(options as AgChartOptions);
@@ -228,26 +228,22 @@ function seriesTypeChange(event: Event) {
         case 'bar':
             variance = 20;
             length = 8;
-            options.series = barOptions.series;
-            options.axes = barOptions.axes;
+            options = { ...sharedOptions, ...barOptions };
             break;
         case 'line':
             variance = 4;
             length = 30;
-            options.series = lineOptions.series;
-            options.axes = lineOptions.axes;
+            options = { ...sharedOptions, ...lineOptions };
             break;
         case 'area':
             variance = 20;
             length = 30;
-            options.series = areaOptions.series;
-            options.axes = areaOptions.axes;
+            options = { ...sharedOptions, ...areaOptions };
             break;
         case 'donut':
             variance = 30;
             length = 6;
-            options.series = donutOptions.series;
-            options.axes = donutOptions.axes;
+            options = { ...sharedOptions, ...donutOptions };
             break;
     }
 

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartUpdateType, type Point, Sector, Selection, Transformable } from 'ag-charts-core';
-import type { AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
+import type { AgStandaloneChartOptions, InteractionRange } from 'ag-charts-types';
 
 import { toggleSeriesLegendItem } from '../../test/communitySeriesAccessors';
 import { getSeriesNodeData } from '../../test/seriesAccessors';
-import type { ChartOrProxy, PolarTestCase } from '../../test/utils';
+import type { ChartOrProxy, StandaloneTestCase } from '../../test/utils';
 import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
@@ -22,7 +22,7 @@ import {
 } from '../../test/utils';
 import * as examples from './test/examples';
 
-const EXAMPLES: Record<string, PolarTestCase> = {
+const EXAMPLES: Record<string, StandaloneTestCase> = {
     PIE_SERIES: {
         options: examples.PIE_SERIES,
         assertions: standaloneChartAssertions({ seriesTypes: ['pie'] }),
@@ -132,7 +132,7 @@ describe('PolarSeries', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
-                const options: AgPolarChartOptions = { ...example.options };
+                const options: AgStandaloneChartOptions = { ...example.options };
 
                 chart = deproxy(await createChart(options));
                 await example.assertions(chart);
@@ -142,7 +142,7 @@ describe('PolarSeries', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
-                const options: AgPolarChartOptions = { ...example.options };
+                const options: AgStandaloneChartOptions = { ...example.options };
 
                 chart = deproxy(await createChart(options));
                 await compare();
@@ -166,7 +166,7 @@ describe('PolarSeries', () => {
                 return ctx.snapshot();
             };
 
-            const options: AgPolarChartOptions = { ...examples.PIE_SERIES };
+            const options: AgStandaloneChartOptions = { ...examples.PIE_SERIES };
             options.legend = { enabled: true };
 
             chart = await createChart(options);
@@ -197,7 +197,7 @@ describe('PolarSeries', () => {
 
     describe('highlighting', () => {
         it('should render highlight correctly', async () => {
-            const options: AgPolarChartOptions = {
+            const options: AgStandaloneChartOptions = {
                 theme: {
                     overrides: {
                         pie: {
@@ -243,7 +243,7 @@ describe('PolarSeries', () => {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): AgPolarChartOptions => {
+        }): AgStandaloneChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
                       renderer(rParams: any) {

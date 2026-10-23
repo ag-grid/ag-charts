@@ -1,7 +1,7 @@
 import {
     AgCharts,
-    AgPolarChartOptions,
-    AgPolarSeriesOptions,
+    AgStandaloneChartOptions,
+    AgStandaloneSeriesOptions,
     ContextMenuModule,
     DonutSeriesModule,
     LegendModule,
@@ -12,7 +12,7 @@ import {
 import { getData2020, getData2022 } from './data';
 
 ModuleRegistry.registerModules([DonutSeriesModule, LegendModule, PieSeriesModule]);
-const sharedSeriesOptions: AgPolarSeriesOptions = {
+const sharedSeriesOptions: AgStandaloneSeriesOptions = {
     type: 'pie' as const,
     sectorLabelKey: 'share',
     angleKey: 'share',
@@ -26,7 +26,7 @@ const sharedSeriesOptions: AgPolarSeriesOptions = {
     },
 };
 
-const options: AgPolarChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Desktop Browser Market Share Evolution',

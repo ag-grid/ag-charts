@@ -3,7 +3,7 @@ import {
     AgCartesianSeriesTooltipRendererParams,
     AgChartOptions,
     AgCharts,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     AgTooltipRendererResult,
     AnimationModule,
     AreaSeriesModule,
@@ -201,7 +201,7 @@ const areaOptions: AgCartesianChartOptions<DataType> = {
     },
 };
 
-const donutOptions: AgPolarChartOptions<DataType> = {
+const donutOptions: AgStandaloneChartOptions<DataType> = {
     series: [
         {
             type: 'pie',
@@ -226,15 +226,16 @@ const donutOptions: AgPolarChartOptions<DataType> = {
     ],
 };
 
-let options: AgCartesianChartOptions<DataType> | AgPolarChartOptions<DataType> = {
+const sharedOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     animation: {
         enabled: true,
         duration: 500,
     },
-    ...barOptions,
 };
+
+let options: AgChartOptions<DataType> = { ...sharedOptions, ...barOptions };
 
 const chart = AgCharts.create(options as AgChartOptions);
 
@@ -242,20 +243,16 @@ function seriesTypeChange(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     switch (value) {
         case 'bar':
-            options.series = barOptions.series;
-            options.axes = barOptions.axes;
+            options = { ...sharedOptions, ...barOptions };
             break;
         case 'line':
-            options.series = lineOptions.series;
-            options.axes = lineOptions.axes;
+            options = { ...sharedOptions, ...lineOptions };
             break;
         case 'area':
-            options.series = areaOptions.series;
-            options.axes = areaOptions.axes;
+            options = { ...sharedOptions, ...areaOptions };
             break;
         case 'donut':
-            options.series = donutOptions.series;
-            options.axes = donutOptions.axes;
+            options = { ...sharedOptions, ...donutOptions };
             break;
     }
     chart.update(options);
@@ -263,6 +260,7 @@ function seriesTypeChange(event: Event) {
 
 function durationChange(event: Event) {
     const duration = Number((event.target as HTMLInputElement).value);
-    options.animation = { enabled: true, duration };
+    sharedOptions.animation = { enabled: true, duration };
+    options.animation = sharedOptions.animation;
     chart.update(options);
 }

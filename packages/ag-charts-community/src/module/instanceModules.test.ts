@@ -7,6 +7,7 @@ import type {
     AgChartInstance,
     AgPolarChartOptions,
     AgSparklineOptions,
+    AgStandaloneChartOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
@@ -43,14 +44,14 @@ const BAR_CHART: AgCartesianChartOptions = {
     series: [{ type: 'bar', xKey: 'quarter', yKey: 'revenue' }],
 };
 
-const PIE_CHART: AgPolarChartOptions = {
+const PIE_CHART: AgStandaloneChartOptions = {
     data: LINE_CHART.data,
     series: [{ type: 'pie', angleKey: 'revenue', legendItemKey: 'quarter' }],
 };
 
 const LINE_MODULES = [LineSeriesModule, CategoryAxisModule, NumberAxisModule];
 
-function processOptions<T extends AgCartesianChartOptions | AgPolarChartOptions>(
+function processOptions<T extends AgCartesianChartOptions | AgPolarChartOptions | AgStandaloneChartOptions>(
     userOptions: T,
     modules?: ModuleDefinition[]
 ) {
