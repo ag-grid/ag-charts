@@ -1,24 +1,21 @@
+import { getBitfieldBuffer } from '../test/coreAccessors';
 import { Bitfield } from './bitfield';
 import type { Bit } from './bitfield';
 
-function getBuffer(bf: Bitfield): Uint32Array {
-    // FIXME: should use `new Caster(bf).accessProperty('buffer').cast(Uint32Array).value`
-    // However, ag-charts-test depends on ag-charts-core.
-    return (bf as any).buffer;
-}
+const getBuffer = getBitfieldBuffer;
 
 describe('Bitfield (larger scale tests)', () => {
-    test('length', () => {
+    it('length', () => {
         const bf = new Bitfield(2048);
         expect(bf.length).toBe(2048);
     });
 
-    test('unaligned length', () => {
+    it('unaligned length', () => {
         const bf = new Bitfield(100);
         expect(bf.length).toBe(100);
     });
 
-    test('initial state is all zeros', () => {
+    it('initial state is all zeros', () => {
         const bf = new Bitfield(2048);
 
         for (let i = 0; i < bf.length; i++) {
@@ -26,7 +23,7 @@ describe('Bitfield (larger scale tests)', () => {
         }
     });
 
-    test('setBit / getBit across full range', () => {
+    it('setBit / getBit across full range', () => {
         const bf = new Bitfield(2048);
 
         for (let i = 0; i < bf.length; i += 3) {
@@ -39,7 +36,7 @@ describe('Bitfield (larger scale tests)', () => {
         }
     });
 
-    test('unsetBit clears correctly across words', () => {
+    it('unsetBit clears correctly across words', () => {
         const bf = new Bitfield(2024);
 
         // set everything
@@ -58,7 +55,7 @@ describe('Bitfield (larger scale tests)', () => {
         }
     });
 
-    test('toggleBit behaves consistently over large range', () => {
+    it('toggleBit behaves consistently over large range', () => {
         const bf = new Bitfield(2048);
 
         for (let i = 0; i < bf.length; i++) {
@@ -80,7 +77,7 @@ describe('Bitfield (larger scale tests)', () => {
         }
     });
 
-    test('fill (aligned large range)', () => {
+    it('fill (aligned large range)', () => {
         const bf = new Bitfield(2048);
 
         bf.fill(1, 64, 1024); // aligned on word boundaries
@@ -91,7 +88,7 @@ describe('Bitfield (larger scale tests)', () => {
         }
     });
 
-    test('fill (unaligned large range across many words)', () => {
+    it('fill (unaligned large range across many words)', () => {
         const bf = new Bitfield(2048);
 
         bf.fill(1, 13, 1900);
@@ -102,7 +99,7 @@ describe('Bitfield (larger scale tests)', () => {
         }
     });
 
-    test('fill clear large region inside set region', () => {
+    it('fill clear large region inside set region', () => {
         const bf = new Bitfield(2048);
 
         bf.fill(1, 0, bf.length);
@@ -114,7 +111,7 @@ describe('Bitfield (larger scale tests)', () => {
         }
     });
 
-    test('fill full-width word', () => {
+    it('fill full-width word', () => {
         const bf = new Bitfield(32 * 3);
 
         bf.fill(1, 32, 64); // fill exactly 1 word
@@ -126,7 +123,7 @@ describe('Bitfield (larger scale tests)', () => {
         expect(buffer[2]).toBe(0);
     });
 
-    test('fill full-width word (ignore out-of-range endIndex)', () => {
+    it('fill full-width word (ignore out-of-range endIndex)', () => {
         const bf = new Bitfield(32 * 3);
 
         bf.fill(1, 64, 2000); // fill exactly 1 word (the last one)
@@ -137,7 +134,7 @@ describe('Bitfield (larger scale tests)', () => {
         expect(buffer[2]).toBe(0xffffffff);
     });
 
-    test('multiple overlapping fills', () => {
+    it('multiple overlapping fills', () => {
         const bf = new Bitfield(2048);
 
         bf.fill(1, 100, 1500);
@@ -159,7 +156,7 @@ describe('Bitfield (larger scale tests)', () => {
         }
     });
 
-    test('boundary stress: crossing many word boundaries', () => {
+    it('boundary stress: crossing many word boundaries', () => {
         const SIZE = 2048;
         const bf = new Bitfield(2048);
 

@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ChartAxisDirection, OrdinalTimeScale, TimeScale } from 'ag-charts-core';
+import type { DynamicContext } from 'ag-charts-core';
 import type { AgZoomEventSource } from 'ag-charts-types';
 
+import type { ChartRegistry } from '../../module/moduleContext';
 import { DataWindowProcessor } from './dataWindowProcessor';
+import type { ChartLike } from './processor';
 
 describe('DataWindowProcessor', () => {
     const day = 1000 * 60 * 60 * 24;
@@ -30,13 +33,14 @@ describe('DataWindowProcessor', () => {
         const axis = { id: 'x', type: 'axis', scale, direction: ChartAxisDirection.X };
 
         const processor = new DataWindowProcessor(
-            { axes: [axis] } as any,
+            // Partial fixtures: the processor only reads the members stubbed here.
+            { axes: [axis] } as unknown as ChartLike,
             {
                 eventsHub,
                 dataService: { isLazy: () => true, load },
                 chartState: { getValue: () => ({ x: zoom }) },
                 animationManager: { skip: () => {} },
-            } as any
+            } as unknown as DynamicContext<ChartRegistry>
         );
 
         const zoomTo = (max: number, source: AgZoomEventSource) => {

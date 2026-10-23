@@ -20,6 +20,9 @@ import {
     sectorLabelRoom,
 } from './labelUtil';
 
+type BarLabelArgs = Parameters<typeof buildBarLabelCandidates<unknown>>[0];
+type BarLabel = BarLabelArgs['label'];
+
 const ELLIPSIS = '…';
 const FONT = { fontFamily: 'Verdana', fontSize: 15 };
 const LONG_TEXT = 'A very long label that will not fit';
@@ -243,9 +246,15 @@ describe('buildBarLabelCandidates', () => {
     const rect = { x: 0, y: 0, width: 100, height: 40 };
     // A styled label stub; the box extent is resolved per placement from insideStyle/outsideStyle. A
     // boxless label (no fill/border) yields a zero extent, so the footprint equals the raw text size.
-    const makeLabel = (insideStyle: any = {}, outsideStyle: any = {}) =>
-        ({ padding: undefined, fill: undefined, border: undefined, insideStyle, outsideStyle }) as any;
-    const build = (placements: any[], orientations: any[], label: any = makeLabel(), overrides: object = {}) =>
+    // Only the box-related fields are set, so the stub is a narrow cast of the full label options.
+    const makeLabel = (insideStyle: object = {}, outsideStyle: object = {}) =>
+        ({ padding: undefined, fill: undefined, border: undefined, insideStyle, outsideStyle }) as unknown as BarLabel;
+    const build = (
+        placements: BarLabelArgs['placements'],
+        orientations: BarLabelArgs['orientations'],
+        label: BarLabel = makeLabel(),
+        overrides: Partial<BarLabelArgs> = {}
+    ) =>
         buildBarLabelCandidates({
             isUpward: true,
             isVertical: false,

@@ -24,6 +24,9 @@ import {
     deproxy,
     dragAction,
     getSeriesAggregationInternals,
+    getSeriesAt,
+    getSeriesContextNodeData,
+    getSeriesSelectionNodes,
     isTooltipVisible,
     keyDownAction,
     mouseDownAction,
@@ -37,8 +40,9 @@ import {
     waitForChartStability,
     withPreventDefault,
 } from 'ag-charts-community-test';
-import type { CanvasPoint } from 'ag-charts-core';
+import type { CanvasPoint, Shape } from 'ag-charts-core';
 
+import { getErrorBarGroupOpacity, getSelectionDragRect } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 async function waitForUnhighlight() {
@@ -1008,13 +1012,13 @@ describe('DataSelection', () => {
             });
         });
         describe('initial', () => {
-            test('screenshot', async () => {
+            it('screenshot', async () => {
                 await compareExact('ag-17577-pie-series-selection-are-not-shown-in-legend-initial');
             });
-            test('getSelection', () => {
+            it('getSelection', () => {
                 expect(getChartSelectionArray()).toEqual([]);
             });
-            test('selectionChange', () => {
+            it('selectionChange', () => {
                 expect(selectionChange.popEvents()).toEqual([]);
             });
         });
@@ -1022,13 +1026,13 @@ describe('DataSelection', () => {
             beforeEach(async () => {
                 await mouseClick({ canvasX: 477, canvasY: 380 });
             });
-            test('screenshot', async () => {
+            it('screenshot', async () => {
                 await compareExact('ag-17577-pie-series-selection-are-not-shown-in-legend-clicked-nitrogen');
             });
-            test('getSelection', () => {
+            it('getSelection', () => {
                 expect(getChartSelectionArray()).toEqual([NITROGEN_ITEM]);
             });
-            test('selectionChange', () => {
+            it('selectionChange', () => {
                 expect(selectionChange.popEvents()).toEqual([NITROGEN_EVENT]);
             });
         });
@@ -1173,8 +1177,7 @@ describe('DataSelection', () => {
             expect(renderedMarkerCount).toBeLessThan(aggregatedData.length);
 
             // Inset the drag within the series area so it doesn't clip axes.
-            const seriesRect = (deproxy(chart) as any).seriesAreaManager?.seriesRect;
-            expect(seriesRect).toBeDefined();
+            const seriesRect = deproxy(chart).seriesAreaBoundingBox;
             const x0 = Math.ceil(seriesRect.x) + 2;
             const y0 = Math.ceil(seriesRect.y) + 2;
             const x1 = Math.floor(seriesRect.x + seriesRect.width) - 2;
@@ -1366,18 +1369,10 @@ describe('DataSelection', () => {
                 selection: { enabled: true, selectedItem: { stroke: 'steelblue', strokeWidth: 3 } },
             });
 
-            function getErrorBarGroupOpacity(seriesIndex = 0) {
-                const series = deproxy(chart).series[seriesIndex] as any;
-                const errorBars = series.moduleMap.getModule('errorBar');
-                expect(errorBars).toBeDefined();
-                return errorBars.groupNode.opacity;
-            }
-
             async function setHighlight(datumIndex: number | undefined) {
-                const chartInstance = deproxy(chart) as any;
-                const series = chartInstance.series[0];
-                const nodeData = series.contextNodeData?.nodeData;
-                expect(nodeData?.length).toBeGreaterThan(0);
+                const chartInstance = deproxy(chart);
+                const { nodeData } = getSeriesContextNodeData(chart);
+                expect(nodeData.length).toBeGreaterThan(0);
                 chartInstance.ctx.highlightManager.updateHighlight(
                     chartInstance.id,
                     datumIndex === undefined ? undefined : nodeData[datumIndex]
@@ -1391,19 +1386,19 @@ describe('DataSelection', () => {
             ] as const) {
                 it(`dims and restores error bars on a ${seriesType} series without an intervening highlight`, async () => {
                     chart = await createEnterpriseChart(buildOptions([seriesFactory(monthsData)]));
-                    expect(getErrorBarGroupOpacity()).toBe(1);
+                    expect(getErrorBarGroupOpacity(chart)).toBe(1);
 
                     const series = deproxy(chart).series[0];
                     chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
                     await waitForChartStability(chart);
 
                     // Selecting must dim on its own — no hover required.
-                    expect(getErrorBarGroupOpacity()).toBe(DIMMED_OPACITY);
+                    expect(getErrorBarGroupOpacity(chart)).toBe(DIMMED_OPACITY);
 
                     chart.clearSelection();
                     await waitForChartStability(chart);
 
-                    expect(getErrorBarGroupOpacity()).toBe(1);
+                    expect(getErrorBarGroupOpacity(chart)).toBe(1);
                 });
 
                 it(`restores error bars on a ${seriesType} series when deselecting after the highlight has cleared`, async () => {
@@ -1417,12 +1412,12 @@ describe('DataSelection', () => {
                     // highlight change wrote the dimmed opacity; deselecting must restore it unprompted.
                     await setHighlight(2);
                     await setHighlight(undefined);
-                    expect(getErrorBarGroupOpacity()).toBe(DIMMED_OPACITY);
+                    expect(getErrorBarGroupOpacity(chart)).toBe(DIMMED_OPACITY);
 
                     chart.clearSelection();
                     await waitForChartStability(chart);
 
-                    expect(getErrorBarGroupOpacity()).toBe(1);
+                    expect(getErrorBarGroupOpacity(chart)).toBe(1);
                 });
             }
         });
@@ -1528,13 +1523,13 @@ describe('DataSelection', () => {
                         await mouseClick(POINT_S4E, { ctrlKey });
                     });
                     describe('initial', () => {
-                        test('screenshot', async () => {
+                        it('screenshot', async () => {
                             await compareExact('stack-mix-highlighted-s4e-selected-s2a-s3c-s4e');
                         });
-                        test('getSelection', () => {
+                        it('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                         });
-                        test('selectionChange', () => {
+                        it('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual([ADDED_S2A, ADDED_S3C, ADDED_S4E]);
                         });
                     });
@@ -1543,188 +1538,188 @@ describe('DataSelection', () => {
                             selectionChange.popEvents(); // pop event of initial selection.
                         });
                         describe('miss1', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MISS1);
                                 await compareExact('stack-mix-highlighted-none-selected-none');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MISS1);
                                 expect(getChartSelectionArray()).toEqual([]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1);
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe.skip('miss2', () => {
                             // Skipped: it's unclear what the required are when clicking outside series-area
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MISS2);
                                 await compareExact('stack-mix-highlighted-none-selected-none');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MISS2);
                                 expect(getChartSelectionArray()).toEqual([]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MISS2);
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe('ctrl-miss1', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
                                 await waitForUnhighlight();
                                 await compareExact('stack-mix-highlighted-none-selected-s2a-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
                         describe('meta-miss1', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
                                 await waitForUnhighlight();
                                 await compareExact('stack-mix-highlighted-none-selected-s2a-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
                         describe('click selection-disabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S6B);
                                 await compareExact('stack-mix-highlighted-s6b-selected-none');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S6B);
                                 expect(getChartSelectionArray()).toEqual([]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S6B);
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe('ctrl-click selection-disabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseMove(POINT_S6C);
                                 await mouseClick(POINT_S6C, { ctrlKey });
                                 await compareExact('stack-mix-highlighted-s6c-selected-s2a-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
                         describe('meta-click selection-disabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseMove(POINT_S6B);
                                 await mouseClick(POINT_S6B, { metaKey });
                                 await compareExact('stack-mix-highlighted-s6b-selected-s2a-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S6B, { metaKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S6B, { metaKey });
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
                         describe('click selection-enabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S1D);
                                 await compareExact('stack-mix-highlighted-s1d-selected-s1d');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S1D);
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S1D);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S1D);
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S1D_REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe('ctrl-click selection-enabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
                                 await compareExact('stack-mix-highlighted-s1d-selected-s2a-s3c-s1d-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S1D]);
                             });
                         });
                         describe('meta-click selection-enabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
                                 await compareExact('stack-mix-highlighted-s5d-selected-s2a-s3c-s4e-s5d');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S5D_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S5D]);
                             });
                         });
                         describe('click selected', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S2A);
                                 await compareExact('stack-mix-highlighted-s2a-selected-s2a');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S2A);
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S2A);
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S4E_S3C]);
                             });
                         });
                         describe('ctrl-click selected', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
                                 await compareExact('stack-mix-highlighted-s2a-selected-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
                             });
                         });
                         describe('meta-click selected', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S2A, { metaKey });
                                 await compareExact('stack-mix-highlighted-s2a-selected-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S2A, { metaKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S2A, { metaKey });
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
                             });
@@ -1758,13 +1753,13 @@ describe('DataSelection', () => {
                         await mouseClick(POINT_S4E);
                     });
                     describe('initial', () => {
-                        test('screenshot', async () => {
+                        it('screenshot', async () => {
                             await compareExact('stack-mix-highlighted-s4e-selected-s2a-s3c-s4e');
                         });
-                        test('getSelection', () => {
+                        it('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                         });
-                        test('selectionChange', () => {
+                        it('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual([ADDED_S2A, ADDED_S3C, ADDED_S4E]);
                         });
                     });
@@ -1773,158 +1768,158 @@ describe('DataSelection', () => {
                             selectionChange.popEvents(); // pop event of initial selection.
                         });
                         describe('miss1', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MISS1);
                                 await compareExact('stack-mix-highlighted-none-selected-none');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MISS1);
                                 expect(getChartSelectionArray()).toEqual([]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1);
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe('ctrl-miss1', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
                                 await waitForUnhighlight();
                                 await compareExact('stack-mix-highlighted-none-selected-s2a-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
                         describe('meta-miss1', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
                                 await waitForUnhighlight();
                                 await compareExact('stack-mix-highlighted-none-selected-s2a-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
                         describe('click selection-disabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S6B);
                                 await compareExact('stack-mix-highlighted-s6b-selected-none');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S6B);
                                 expect(getChartSelectionArray()).toEqual([]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S6B);
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe('ctrl-click selection-disabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseMove(POINT_S6C);
                                 await mouseClick(POINT_S6C, { ctrlKey });
                                 await compareExact('stack-mix-highlighted-s6c-selected-s2a-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
                         describe('click selection-enabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
                                 await compareExact('stack-mix-highlighted-s1d-selected-s2a-s3c-s1d-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S1D]);
                             });
                         });
                         describe('ctrl-click selection-enabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
                                 await compareExact('stack-mix-highlighted-s1d-selected-s2a-s3c-s1d-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S1D]);
                             });
                         });
                         describe('meta-click selection-enabled series', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
                                 await compareExact('stack-mix-highlighted-s5d-selected-s2a-s3c-s4e-s5d');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S5D_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S5D]);
                             });
                         });
                         describe('click selected', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
                                 await compareExact('stack-mix-highlighted-s2a-selected-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
                             });
                         });
                         describe('ctrl-click selected', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
                                 await compareExact('stack-mix-highlighted-s2a-selected-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
                             });
                         });
                         describe('meta-click selected', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_S2A, { metaKey });
                                 await compareExact('stack-mix-highlighted-s2a-selected-s3c-s4e');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_S2A, { metaKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S4E_S3C);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_S2A, { metaKey });
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
                             });
@@ -1971,16 +1966,16 @@ describe('DataSelection', () => {
                     });
 
                     describe('click', () => {
-                        test('getSelection', async () => {
+                        it('getSelection', async () => {
                             await mouseClick(POINT_S2A);
                             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
                             expect(getChartSelectionArray()).toEqual([]);
                         });
-                        test('selectionChange', async () => {
+                        it('selectionChange', async () => {
                             await mouseClick(POINT_S2A);
                             expect(selectionChange.popEvents()).toEqual([]);
                         });
-                        test('leaves an existing selection untouched', async () => {
+                        it('leaves an existing selection untouched', async () => {
                             await setChartSelectionArray(SELECTION_S3C);
                             selectionChange.popEvents(); // pop & ignore the api-call event.
                             await mouseClick(POINT_S2A);
@@ -1990,12 +1985,12 @@ describe('DataSelection', () => {
                     });
 
                     describe('keyboard', () => {
-                        test('getSelection', async () => {
+                        it('getSelection', async () => {
                             await keyboardActivateNode();
                             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
                             expect(getChartSelectionArray()).toEqual([]);
                         });
-                        test('selectionChange', async () => {
+                        it('selectionChange', async () => {
                             await keyboardActivateNode();
                             expect(selectionChange.popEvents()).toEqual([]);
                         });
@@ -2008,24 +2003,24 @@ describe('DataSelection', () => {
                     });
 
                     describe('click', () => {
-                        test('getSelection', async () => {
+                        it('getSelection', async () => {
                             await mouseClick(POINT_S2A);
                             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
                             expect(getChartSelectionArray()).toEqual(SELECTION_S2A);
                         });
-                        test('selectionChange', async () => {
+                        it('selectionChange', async () => {
                             await mouseClick(POINT_S2A);
                             expect(selectionChange.popEvents()).toEqual([ADDED_S2A]);
                         });
                     });
 
                     describe('keyboard', () => {
-                        test('getSelection', async () => {
+                        it('getSelection', async () => {
                             await keyboardActivateNode();
                             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
                             expect(getChartSelectionArray()).toHaveLength(1);
                         });
-                        test('selectionChange', async () => {
+                        it('selectionChange', async () => {
                             await keyboardActivateNode();
                             expect(selectionChange.popEvents()).toHaveLength(1);
                         });
@@ -2091,13 +2086,13 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                     });
                     describe('initial', () => {
-                        test('screenshot', async () => {
+                        it('screenshot', async () => {
                             await compareExact('diskusage-treemap-highlighted-none-selected-movie-mnt-vid2');
                         });
-                        test('getSelection', () => {
+                        it('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual([ITEM_MOVIE, ITEM_MNT, ITEM_VID2]);
                         });
-                        test('selectionChange', () => {
+                        it('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual([ADDED_MOVIE, ADDED_VID2, ADDED_MNT]);
                         });
                     });
@@ -2106,68 +2101,68 @@ describe('DataSelection', () => {
                             selectionChange.popEvents(); // pop event of initial selection.
                         });
                         describe('click on selected node sets that node to the sole selection', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MOVIE);
                                 await mouseMove(POINT_MISS);
                                 await compareExact('diskusage-treemap-highlighted-none-selected-movie');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MOVIE);
                                 await mouseMove(POINT_MISS);
                                 expect(getChartSelectionArray()).toEqual([ITEM_MOVIE]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MOVIE);
                                 await mouseMove(POINT_MISS);
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_MNT_VID2]);
                             });
                         });
                         describe('ctrl-click on selected node removes that node only', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
                                 await mouseMove(POINT_MISS);
                                 await compareExact('diskusage-treemap-highlighted-none-selected-vid2-mnt');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
                                 await mouseMove(POINT_MISS);
                                 expect(getChartSelectionArray()).toEqual([ITEM_MNT, ITEM_VID2]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
                                 await mouseMove(POINT_MISS);
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_MOVIE]);
                             });
                         });
                         describe('click on unselected node sets that node to the sole selection', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_IMG1);
                                 await mouseMove(POINT_MISS);
                                 await compareExact('diskusage-treemap-highlighted-none-selected-img1');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_IMG1);
                                 await mouseMove(POINT_MISS);
                                 expect(getChartSelectionArray()).toEqual([ITEM_IMG1]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_IMG1);
                                 await mouseMove(POINT_MISS);
                                 expect(selectionChange.popEvents()).toEqual([ADDED_IMG1_REMOVED_MOVIE_MNT_VID2]);
                             });
                         });
                         describe('ctrl-click on unselected node adds that node only', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 await mouseMove(POINT_MISS);
                                 await compareExact('diskusage-treemap-highlighted-none-selected-img1-movie-mnt-vid2');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 await mouseMove(POINT_MISS);
                                 expect(getChartSelectionArray()).toEqual([ITEM_IMG1, ITEM_MOVIE, ITEM_MNT, ITEM_VID2]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 await mouseMove(POINT_MISS);
                                 expect(selectionChange.popEvents()).toEqual([ADDED_IMG1]);
@@ -2232,13 +2227,13 @@ describe('DataSelection', () => {
                         await mouseClick(POINT_MNT, { ctrlKey });
                     });
                     describe('initial', () => {
-                        test('screenshot', async () => {
+                        it('screenshot', async () => {
                             await compareExact('diskusage-treemap-highlighted-none-selected-movie-mnt-vid2');
                         });
-                        test('getSelection', () => {
+                        it('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual([ITEM_MOVIE, ITEM_VID2]);
                         });
-                        test('selectionChange', () => {
+                        it('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual([ADDED_MOVIE, ADDED_VID2]);
                         });
                     });
@@ -2247,57 +2242,57 @@ describe('DataSelection', () => {
                             selectionChange.popEvents(); // pop event of initial selection.
                         });
                         describe('click on selected node sets that node to the sole selection', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MOVIE);
                                 await compareExact('diskusage-treemap-highlighted-none-selected-movie');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MOVIE);
                                 expect(getChartSelectionArray()).toEqual([ITEM_MOVIE]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MOVIE);
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_MNT_VID2]);
                             });
                         });
                         describe('ctrl-click on selected node removes that node only', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
                                 await compareExact('diskusage-treemap-highlighted-none-selected-vid2');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual([ITEM_VID2]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_MOVIE]);
                             });
                         });
                         describe('click on unselected node sets that node to the sole selection', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_IMG1);
                                 await compareExact('diskusage-treemap-highlighted-none-selected-img1');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_IMG1);
                                 expect(getChartSelectionArray()).toEqual([ITEM_IMG1]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_IMG1);
                                 expect(selectionChange.popEvents()).toEqual([ADDED_IMG1_REMOVED_MOVIE_MNT_VID2]);
                             });
                         });
                         describe('ctrl-click on unselected node adds that node only', () => {
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 await compareExact('diskusage-treemap-highlighted-none-selected-img1-movie-vid2');
                             });
-                            test('getSelection', async () => {
+                            it('getSelection', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual([ITEM_IMG1, ITEM_MOVIE, ITEM_VID2]);
                             });
-                            test('selectionChange', async () => {
+                            it('selectionChange', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([ADDED_IMG1]);
                             });
@@ -2372,7 +2367,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('no-modifier clears and selects', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         await compareExact('drag-modifiers-bubble-region-AB-selection-in-progress');
@@ -2387,7 +2382,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D);
                         await compareExact('drag-modifiers-bubble-region-CD-selected-only');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         expect(getChartSelectionArray()).toEqual([]);
@@ -2402,7 +2397,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D);
                         expect(getChartSelectionArray()).toEqual(SELECTION_CD);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -2420,7 +2415,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('ctrl-modifier adds to selection', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         await compareExact('drag-modifiers-bubble-region-AB-selection-in-progress');
@@ -2435,7 +2430,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { ctrlKey });
                         await compareExact('drag-modifiers-bubble-regions-ABCD-selected');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         expect(getChartSelectionArray()).toEqual([]);
@@ -2450,7 +2445,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { ctrlKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_ABCD);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -2468,7 +2463,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('meta-modifier adds to selection', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         await compareExact('drag-modifiers-bubble-region-AB-selection-in-progress');
@@ -2483,7 +2478,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { metaKey });
                         await compareExact('drag-modifiers-bubble-regions-ABCD-selected');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         expect(getChartSelectionArray()).toEqual([]);
@@ -2498,7 +2493,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { metaKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_ABCD);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -2516,7 +2511,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('alt-modifier ignored', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         await compareExact('drag-modifiers-bubble-no-selection');
@@ -2531,7 +2526,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { altKey });
                         await compareExact('drag-modifiers-bubble-no-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         expect(getChartSelectionArray()).toEqual([]);
@@ -2546,7 +2541,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { altKey });
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -2564,7 +2559,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('shift-modifier ignored', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { shiftKey });
                         await mouseMove(POINT_B, { shiftKey });
                         await compareExact('drag-modifiers-bubble-no-selection');
@@ -2579,7 +2574,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { shiftKey });
                         await compareExact('drag-modifiers-bubble-no-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { shiftKey });
                         await mouseMove(POINT_B, { shiftKey });
                         expect(getChartSelectionArray()).toEqual([]);
@@ -2594,7 +2589,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { shiftKey });
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { shiftKey });
                         await mouseMove(POINT_B, { shiftKey });
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -2612,7 +2607,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('pressing Escape aborts selection', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         await compareExact('drag-modifiers-bubble-region-AB-selection-in-progress');
@@ -2623,7 +2618,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_B);
                         await compareExact('drag-modifiers-bubble-no-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { shiftKey });
                         await mouseMove(POINT_B, { shiftKey });
                         expect(getChartSelectionArray()).toEqual([]);
@@ -2634,7 +2629,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_B);
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { shiftKey });
                         await mouseMove(POINT_B, { shiftKey });
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -2748,7 +2743,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('no-modifier clears and selects', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         await compareExact('drag-modifiers-bubble-with-zoom-panning-region-AB-selection-in-progress');
@@ -2763,7 +2758,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D);
                         await compareExact('drag-modifiers-bubble-with-zoom-panning-region-CD-selected-only');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         expect(getChartSelectionArray()).toEqual([]);
@@ -2778,7 +2773,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D);
                         expect(getChartSelectionArray()).toEqual(SELECTION_CD);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -2793,7 +2788,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D);
                         expect(selectionChange.popEvents()).toEqual([AB_REMOVED_CD_ADDED]);
                     });
-                    test('zoomState', async () => {
+                    it('zoomState', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
@@ -2811,7 +2806,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('ctrl-modifier adds to selection', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         await compareExact('drag-modifiers-bubble-with-zoom-panning-region-AB-selection-in-progress');
@@ -2826,7 +2821,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { ctrlKey });
                         await compareExact('drag-modifiers-bubble-with-zoom-panning-regions-ABCD-selected');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         expect(getChartSelectionArray()).toEqual([]);
@@ -2841,7 +2836,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { ctrlKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_ABCD);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -2856,7 +2851,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { ctrlKey });
                         expect(selectionChange.popEvents()).toEqual([CD_ADDED]);
                     });
-                    test('zoomState', async () => {
+                    it('zoomState', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
@@ -2874,7 +2869,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('meta-modifier adds to selection', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         await compareExact('drag-modifiers-bubble-with-zoom-panning-region-AB-selection-in-progress');
@@ -2889,7 +2884,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { metaKey });
                         await compareExact('drag-modifiers-bubble-with-zoom-panning-regions-ABCD-selected');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         expect(getChartSelectionArray()).toEqual([]);
@@ -2904,7 +2899,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { metaKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_ABCD);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -2919,7 +2914,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { metaKey });
                         expect(selectionChange.popEvents()).toEqual([CD_ADDED]);
                     });
-                    test('zoomState', async () => {
+                    it('zoomState', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
@@ -2937,7 +2932,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('alt-modifier pans viewport', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         await compareExact('drag-modifiers-bubble-with-zoom-panning-pan-AB');
@@ -2952,7 +2947,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { altKey });
                         await compareExact('drag-modifiers-bubble-with-zoom-panning-pan-CD');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         expect(getChartSelectionArray()).toEqual([]);
@@ -2967,7 +2962,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { altKey });
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -2982,7 +2977,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { altKey });
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
-                    test('zoomState', async () => {
+                    it('zoomState', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         expect(getChartZoomState()).toEqual(AB_ZOOM);
@@ -3000,7 +2995,7 @@ describe('DataSelection', () => {
                 });
 
                 describe('shift-modifier ignored', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { shiftKey });
                         await mouseMove(POINT_B, { shiftKey });
                         await compareExact('drag-modifiers-bubble-with-zoom-panning-no-selection');
@@ -3015,7 +3010,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { shiftKey });
                         await compareExact('drag-modifiers-bubble-with-zoom-panning-no-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { shiftKey });
                         await mouseMove(POINT_B, { shiftKey });
                         expect(getChartSelectionArray()).toEqual([]);
@@ -3030,7 +3025,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { shiftKey });
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { shiftKey });
                         await mouseMove(POINT_B, { shiftKey });
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -3045,7 +3040,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_D, { shiftKey });
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
-                    test('zoomState', async () => {
+                    it('zoomState', async () => {
                         await mouseDown(POINT_A, { shiftKey });
                         await mouseMove(POINT_B, { shiftKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
@@ -3115,7 +3110,7 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('no-modifier two drags', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         await mouseUp(POINT_B);
@@ -3126,7 +3121,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_C);
                         await compareExact('drag-modifiers-line-highlighted-none-selected-a0a1a2n1');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         await mouseUp(POINT_B);
@@ -3137,7 +3132,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_C);
                         expect(getChartSelectionArray()).toEqual(SELECTION_a0a1a2n1);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         await mouseUp(POINT_B);
@@ -3150,7 +3145,7 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('alt-modifier two drags', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         await mouseUp(POINT_B, { altKey });
@@ -3161,7 +3156,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_C, { altKey });
                         await compareExact('drag-modifiers-line-highlighted-none-selected-none');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         await mouseUp(POINT_B, { altKey });
@@ -3172,7 +3167,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_C, { altKey });
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
                         await mouseUp(POINT_B, { altKey });
@@ -3185,7 +3180,7 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('ctrl-modifier two drags', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         await mouseUp(POINT_B, { ctrlKey });
@@ -3196,7 +3191,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_C, { ctrlKey });
                         await compareExact('drag-modifiers-line-highlighted-none-selected-a0a1a2l1l2n1n2');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         await mouseUp(POINT_B, { ctrlKey });
@@ -3207,7 +3202,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_C, { ctrlKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_a0a1a2l1l2n1n2);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         await mouseUp(POINT_B, { ctrlKey });
@@ -3220,7 +3215,7 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('meta-modifier two drags', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         await mouseUp(POINT_B, { metaKey });
@@ -3231,7 +3226,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_C, { metaKey });
                         await compareExact('drag-modifiers-line-highlighted-none-selected-a0a1a2l1l2n1n2');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         await mouseUp(POINT_B, { metaKey });
@@ -3242,7 +3237,7 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_C, { metaKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_a0a1a2l1l2n1n2);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         await mouseUp(POINT_B, { metaKey });
@@ -3323,7 +3318,7 @@ describe('DataSelection', () => {
                 // Drag candidacy is modifier-independent — the modifier only changes what mouse-up commits —
                 // so the in-progress and first-commit snapshots are shared; only the second commit differs.
                 describe('no-modifier two drags', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
                         await compareExact('drag-modifiers-line-labelstyler-candidacy-a1a2l1l2n1n2');
@@ -3338,7 +3333,7 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('alt-modifier two drags', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         // alt is an unknown modifier: the drag is skipped entirely, so every phase renders
                         // the base chart.
                         await mouseDown(POINT_A, { altKey });
@@ -3355,7 +3350,7 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('ctrl-modifier two drags', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
                         await compareExact('drag-modifiers-line-labelstyler-candidacy-a1a2l1l2n1n2');
@@ -3372,7 +3367,7 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('meta-modifier two drags', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
                         await compareExact('drag-modifiers-line-labelstyler-candidacy-a1a2l1l2n1n2');
@@ -3695,13 +3690,13 @@ describe('DataSelection', () => {
                 describe('initial', () => {
                     // The dense line is drawn, but every marker is hidden (size 0): hideWithSize0
                     // is active and no datum is selected yet.
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('drag-modifiers-line-hidewithsize0-initial');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
@@ -3712,13 +3707,13 @@ describe('DataSelection', () => {
                     });
                     // Markers under the drag box render as selection candidates even though
                     // hideWithSize0 hides every other marker. Nothing is committed yet.
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('drag-modifiers-line-hidewithsize0-candidacy');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
 
@@ -3727,13 +3722,13 @@ describe('DataSelection', () => {
                             await mouseUp(DRAG_TO);
                         });
                         // The candidate markers commit to the selection on mouseup.
-                        test('screenshot', async () => {
+                        it('screenshot', async () => {
                             await compareExact('drag-modifiers-line-hidewithsize0-selected');
                         });
-                        test('getSelection', () => {
+                        it('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(SELECTION);
                         });
-                        test('selectionChange', () => {
+                        it('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual(SELECTIONCHANGE);
                         });
                     });
@@ -4047,13 +4042,13 @@ describe('DataSelection', () => {
                 describe('initial', () => {
                     // The dense area is drawn, but every marker is hidden (size 0): hideWithSize0
                     // is active and no datum is selected yet.
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('drag-modifiers-area-hidewithsize0-initial');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
@@ -4064,13 +4059,13 @@ describe('DataSelection', () => {
                     });
                     // Markers under the drag box render as selection candidates even though
                     // hideWithSize0 hides every other marker. Nothing is committed yet.
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('drag-modifiers-area-hidewithsize0-candidacy');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
 
@@ -4079,13 +4074,13 @@ describe('DataSelection', () => {
                             await mouseUp(DRAG_TO);
                         });
                         // The candidate markers commit to the selection on mouseup.
-                        test('screenshot', async () => {
+                        it('screenshot', async () => {
                             await compareExact('drag-modifiers-area-hidewithsize0-selected');
                         });
-                        test('getSelection', () => {
+                        it('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(SELECTION);
                         });
-                        test('selectionChange', () => {
+                        it('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual(SELECTIONCHANGE);
                         });
                     });
@@ -4639,13 +4634,13 @@ describe('DataSelection', () => {
                 describe('initial', () => {
                     // The dense range-area is drawn, but every marker is hidden (size 0): hideWithSize0
                     // is active and no datum is selected yet.
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('drag-modifiers-range-area-hidewithsize0-initial');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
@@ -4656,13 +4651,13 @@ describe('DataSelection', () => {
                     });
                     // Markers under the drag box render as selection candidates even though
                     // hideWithSize0 hides every other marker. Nothing is committed yet.
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('drag-modifiers-range-area-hidewithsize0-candidacy');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
 
@@ -4671,13 +4666,13 @@ describe('DataSelection', () => {
                             await mouseUp(DRAG_TO);
                         });
                         // The candidate markers commit to the selection on mouseup.
-                        test('screenshot', async () => {
+                        it('screenshot', async () => {
                             await compareExact('drag-modifiers-range-area-hidewithsize0-selected');
                         });
-                        test('getSelection', () => {
+                        it('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(SELECTION);
                         });
-                        test('selectionChange', () => {
+                        it('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual(SELECTIONCHANGE);
                         });
                     });
@@ -4740,13 +4735,13 @@ describe('DataSelection', () => {
                 describe('initial', () => {
                     // Both radar paths are drawn, but every marker is hidden (size 0):
                     // hideWithSize0 is active and no datum is selected yet.
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('drag-modifiers-radars-hidewithsize0-initial');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
@@ -4758,15 +4753,15 @@ describe('DataSelection', () => {
                     });
                     // Markers under the drag box render as selection candidates even though
                     // hideWithSize0 hides every other marker. Nothing is committed yet.
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         // Add some leniency, the radar-line stroke opacity blending renders slightly different colours
                         // locally and on CI.
                         await compareLenient('drag-modifiers-radars-hidewithsize0-candidacy', 0.0038);
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
 
@@ -4775,15 +4770,15 @@ describe('DataSelection', () => {
                             await mouseUp(DRAG_TO);
                         });
                         // The candidate markers commit to the selection on mouseup.
-                        test('screenshot', async () => {
+                        it('screenshot', async () => {
                             // Add some leniency, the radar-line stroke opacity blending renders slightly different
                             // colours locally and on CI.
                             await compareLenient('drag-modifiers-radars-hidewithsize0-selected', 0.0495);
                         });
-                        test('getSelection', () => {
+                        it('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(SELECTION);
                         });
-                        test('selectionChange', () => {
+                        it('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual(SELECTIONCHANGE);
                         });
 
@@ -4802,13 +4797,13 @@ describe('DataSelection', () => {
                                 });
                                 await waitForChartStability(chart);
                             });
-                            test('screenshot', async () => {
+                            it('screenshot', async () => {
                                 await compareExact('drag-modifiers-radars-hidewithsize0-area-hidden');
                             });
-                            test('getSelection', () => {
+                            it('getSelection', () => {
                                 expect(getChartSelectionArray()).toEqual(SELECTION);
                             });
-                            test('selectionChange', () => {
+                            it('selectionChange', () => {
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
@@ -4846,13 +4841,13 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('initial', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('diskusage-sunburst-highlighted-none-selected-none');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
@@ -4861,7 +4856,7 @@ describe('DataSelection', () => {
                     const end: CanvasPoint = { canvasX: 231.5, canvasY: 275 };
                     const added: I[] = [{ itemId: 20, seriesId, datum: findName(data, 'videos/') }];
 
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         await compareExact('diskusage-sunburst-any-box-in-sector-candidacy');
@@ -4870,7 +4865,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         await compareExact('diskusage-sunburst-any-box-in-sector-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(getChartSelectionArray()).toEqual([]);
@@ -4879,7 +4874,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         expect(getChartSelectionArray()).toEqual(added);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -4913,7 +4908,7 @@ describe('DataSelection', () => {
                         { seriesId, itemId: 25, datum: findName(data, 'photo2.jpg') },
                     ];
 
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         await compareExact('diskusage-sunburst-any-squarish-box-candidacy');
@@ -4922,7 +4917,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         await compareExact('diskusage-sunburst-any-squarish-box-sector-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(getChartSelectionArray()).toEqual([]);
@@ -4931,7 +4926,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         expect(getChartSelectionArray()).toEqual(added);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -4955,7 +4950,7 @@ describe('DataSelection', () => {
                         { seriesId, itemId: 14, datum: findName(data, 'clip.mov') },
                     ];
 
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         await compareExact('diskusage-sunburst-any-tall-box-candidacy');
@@ -4964,7 +4959,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         await compareExact('diskusage-sunburst-any-tall-box-sector-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(getChartSelectionArray()).toEqual([]);
@@ -4973,7 +4968,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         expect(getChartSelectionArray()).toEqual(added);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -4997,7 +4992,7 @@ describe('DataSelection', () => {
                         { seriesId, itemId: 21, datum: findName(data, 'vid1.mp4') },
                     ];
 
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         await compareExact('diskusage-sunburst-any-wide-box-candidacy');
@@ -5006,7 +5001,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         await compareExact('diskusage-sunburst-any-wide-box-sector-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(getChartSelectionArray()).toEqual([]);
@@ -5015,7 +5010,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         expect(getChartSelectionArray()).toEqual(added);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -5045,13 +5040,13 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('initial', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('diskusage-sunburst-highlighted-none-selected-none');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
@@ -5071,7 +5066,7 @@ describe('DataSelection', () => {
                         { seriesId, itemId: 10, datum: findName(data, 'img1.jpg') },
                     ];
 
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         await compareExact('diskusage-sunburst-all-northeast-box-candidacy');
@@ -5080,7 +5075,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         await compareExact('diskusage-sunburst-all-northeast-box-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(getChartSelectionArray()).toEqual([]);
@@ -5089,7 +5084,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         expect(getChartSelectionArray()).toEqual(added);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -5129,13 +5124,13 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('initial', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('piedonut-highlighted-none-selected-none');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
@@ -5155,7 +5150,7 @@ describe('DataSelection', () => {
                         { datum: { sector: 'O-NW', value: 1 }, itemId: 3, seriesId: 'donut2id' },
                     ];
 
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         await compareExact('piedonut-any-northeast-box-candidacy');
@@ -5164,7 +5159,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         await compareExact('piedonut-any-northeast-box-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(getChartSelectionArray()).toEqual([]);
@@ -5173,7 +5168,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         expect(getChartSelectionArray()).toEqual(added);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -5202,13 +5197,13 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('initial', () => {
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('piedonut-highlighted-none-selected-none');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
@@ -5221,7 +5216,7 @@ describe('DataSelection', () => {
                         { datum: { sector: 'O-NE', value: 1 }, itemId: 0, seriesId: 'donut2id' },
                     ];
 
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         await compareExact('piedonut-all-northeast-box-candidacy');
@@ -5230,7 +5225,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         await compareExact('piedonut-all-northeast-box-selection');
                     });
-                    test('getSelection', async () => {
+                    it('getSelection', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(getChartSelectionArray()).toEqual([]);
@@ -5239,7 +5234,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         expect(getChartSelectionArray()).toEqual(added);
                     });
-                    test('selectionChange', async () => {
+                    it('selectionChange', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
                         expect(selectionChange.popEvents()).toEqual([]);
@@ -5297,13 +5292,13 @@ describe('DataSelection', () => {
                     await mouseClick({ canvasX: 605, canvasY: 96 }, { ctrlKey }); // "mnt/"
                     await mouseMove({ canvasX: 20, canvasY: 20 }); // miss
                 });
-                test('screenshot', async () => {
+                it('screenshot', async () => {
                     await compareExact('diskusage-treemap-highlighted-none-selected-movie-mnt-vid2');
                 });
-                test('getSelection', () => {
+                it('getSelection', () => {
                     expect(getChartSelectionArray()).toEqual(ITEMS);
                 });
-                test('selectionChange', () => {
+                it('selectionChange', () => {
                     expect(selectionChange.popEvents()).toEqual(UI_ADDED_EVENTS);
                 });
                 describe('save and clear', () => {
@@ -5317,13 +5312,13 @@ describe('DataSelection', () => {
                     });
                     // FIXME: mouseMove(20,20) ("miss") does not correctly unhighlight the chart. This only
                     // happens in node.js, browser-base implementation render the unhighlighted chart correctly.
-                    test.skip('screenshot', async () => {
+                    it.skip('screenshot', async () => {
                         await compareExact('diskusage-treemap-highlighted-none-selected-none');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([API_REMOVED]);
                     });
                     describe('restore', () => {
@@ -5332,13 +5327,13 @@ describe('DataSelection', () => {
                             expect(state).toBeDefined();
                             await setChartSelectionArray(state!);
                         });
-                        test('screenshot', async () => {
+                        it('screenshot', async () => {
                             await compareExact('diskusage-treemap-highlighted-none-selected-movie-mnt-vid2');
                         });
-                        test('getSelection', () => {
+                        it('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(ITEMS);
                         });
-                        test('selectionChange', () => {
+                        it('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual([API_ADDED]);
                         });
                     });
@@ -5388,13 +5383,13 @@ describe('DataSelection', () => {
                     await mouseClick({ canvasX: 496, canvasY: 223 }, { ctrlKey }); // "vid2.mp4"
                     await mouseClick({ canvasX: 605, canvasY: 96 }, { ctrlKey }); // "mnt/"
                 });
-                test('screenshot', async () => {
+                it('screenshot', async () => {
                     await compareExact('diskusage-treemap-highlighted-none-selected-movie-vid2');
                 });
-                test('getSelection', () => {
+                it('getSelection', () => {
                     expect(getChartSelectionArray()).toEqual(ITEMS);
                 });
-                test('selectionChange', () => {
+                it('selectionChange', () => {
                     expect(selectionChange.popEvents()).toEqual(UI_ADDED_EVENTS);
                 });
                 describe('save and clear', () => {
@@ -5406,13 +5401,13 @@ describe('DataSelection', () => {
                     afterEach(() => {
                         state = undefined;
                     });
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('diskusage-treemap-highlighted-none-selected-none');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([API_REMOVED]);
                     });
                     describe('restore', () => {
@@ -5421,13 +5416,13 @@ describe('DataSelection', () => {
                             expect(state).toBeDefined();
                             await setChartSelectionArray(state!);
                         });
-                        test('screenshot', async () => {
+                        it('screenshot', async () => {
                             await compareExact('diskusage-treemap-highlighted-none-selected-movie-vid2');
                         });
-                        test('getSelection', () => {
+                        it('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(ITEMS);
                         });
-                        test('selectionChange', () => {
+                        it('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual([API_ADDED]);
                         });
                     });
@@ -5482,7 +5477,7 @@ describe('DataSelection', () => {
                 await mouseMove(hoverPoint);
             });
 
-            test('selectionChange reports `added` in datum order', async () => {
+            it('selectionChange reports `added` in datum order', async () => {
                 await mouseDown(start);
                 await mouseMove(end);
                 await mouseUp(end);
@@ -5497,7 +5492,7 @@ describe('DataSelection', () => {
             // `selectionChange` can't show a duplicate: an item that is already selected is never re-added. So check
             // the picked nodes directly, with the hovered item's highlight node alive. Treemap groups are picked too
             // (the selection filters them out later), so every non-root datum is expected here.
-            test('pickNodesInBBox yields each item once, in datum order, while an item is highlighted', () => {
+            it('pickNodesInBBox yields each item once, in datum order, while an item is highlighted', () => {
                 const highlighted = deproxy(chart).ctx.highlightManager.getActiveHighlight();
                 expect(highlighted?.datumIndex).toBeDefined();
 
@@ -5553,13 +5548,13 @@ describe('DataSelection', () => {
             });
 
             describe('initial', () => {
-                test('screenshot', async () => {
+                it('screenshot', async () => {
                     await compareExact('line-datum-removal-initial');
                 });
-                test('getSelection', () => {
+                it('getSelection', () => {
                     expect(getChartSelectionArray()).toEqual(SELECTION);
                 });
-                test('selectionChange', () => {
+                it('selectionChange', () => {
                     expect(selectionChange.popEvents()).toEqual([API_ADDED]);
                 });
             });
@@ -5577,13 +5572,13 @@ describe('DataSelection', () => {
                     );
                     await waitForChartStability(chart);
                 });
-                test('screenshot', async () => {
+                it('screenshot', async () => {
                     await compareExact('line-datum-removal-empty');
                 });
-                test('getSelection', () => {
+                it('getSelection', () => {
                     expect(getChartSelectionArray()).toEqual([]);
                 });
-                test('selectionChange', () => {
+                it('selectionChange', () => {
                     expect(selectionChange.popEvents()).toEqual([]);
                 });
             });
@@ -5594,13 +5589,13 @@ describe('DataSelection', () => {
                     await chart.applyTransaction({ remove: REMOVED_IDS.map((id) => ({ id })) });
                     await waitForChartStability(chart);
                 });
-                test('screenshot', async () => {
+                it('screenshot', async () => {
                     await compareExact('line-datum-removal-empty');
                 });
-                test('getSelection', () => {
+                it('getSelection', () => {
                     expect(getChartSelectionArray()).toEqual([]);
                 });
-                test('selectionChange', () => {
+                it('selectionChange', () => {
                     expect(selectionChange.popEvents()).toEqual([]);
                 });
             });
@@ -5608,14 +5603,15 @@ describe('DataSelection', () => {
     });
 
     describe('series styling', () => {
-        test('treemap tiles', async () => {
-            const { data, series, theme, legend, title } = createDiskUsageOptions('treemap');
+        it('treemap tiles', async () => {
+            const { data, theme, legend, title } = createDiskUsageOptions('treemap');
             chart = await createEnterpriseChart({
                 data,
                 series: [
                     {
-                        ...(series as any[])[0],
                         type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
                         tile: {
                             selection: {
                                 selectedItem: {
@@ -5649,7 +5645,7 @@ describe('DataSelection', () => {
 
         describe('AG-18614 selection style takes priority over highlight style', () => {
             for (const seriesType of ['bar', 'line'] as const) {
-                test(`${seriesType} series keeps the selected stroke while the selected item is highlighted`, async () => {
+                it(`${seriesType} series keeps the selected stroke while the selected item is highlighted`, async () => {
                     const options: AgCartesianChartOptions = {
                         data: [
                             { quarter: 'Q1', revenue: 184 },
@@ -5665,24 +5661,27 @@ describe('DataSelection', () => {
                                 yKey: 'revenue',
                                 selection: { enabled: true, selectedItem: { stroke: 'green' } },
                                 highlight: { enabled: true, highlightedItem: { fill: 'red', stroke: 'red' } },
-                            } as any,
+                            },
                         ],
                         axes: { x: { type: 'category' }, y: { type: 'number' } },
                     };
                     chart = await createEnterpriseChart(options);
 
-                    const chartInstance = deproxy(chart) as any;
-                    const series = chartInstance.series[0];
+                    const chartInstance = deproxy(chart);
+                    const series = getSeriesAt(chart);
                     chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
                     await waitForChartStability(chart);
 
                     chartInstance.ctx.highlightManager.updateHighlight(
                         chartInstance.id,
-                        series.contextNodeData.nodeData[2]
+                        getSeriesContextNodeData(chart).nodeData[2]
                     );
                     await waitForChartStability(chart);
 
-                    const [node] = series.highlightSelection.nodes();
+                    const [node] = getSeriesSelectionNodes<Shape & { datum: { datumIndex: number } }>(
+                        chart,
+                        'highlightSelection'
+                    );
                     expect(node.datum.datumIndex).toBe(2);
                     // The highlight style applies where it does not conflict with the selection style...
                     expect(node.fill).toBe('red');
@@ -5699,6 +5698,8 @@ describe('DataSelection', () => {
             type C = unknown;
             let selectionChange: SelectionChangeRecorder<D, C>;
             let opts: AgChartOptions<D, C>;
+            // Shared with `opts`, so a test can flip the second series' `selection.enabled` before the next update.
+            let secondSeriesSelection: { enabled: boolean };
             const data: D[] = [
                 { id: 'r2018', year: '2018', assets: 100, liabilities: -70, cash: 30 },
                 { id: 'r2019', year: '2019', assets: 120, liabilities: -80, cash: 40 },
@@ -5710,6 +5711,7 @@ describe('DataSelection', () => {
 
             beforeEach(async () => {
                 selectionChange = createSelectionChangeRecorder<D, C>();
+                secondSeriesSelection = { enabled: true };
                 opts = {
                     data,
                     dataIdKey: 'id',
@@ -5729,7 +5731,7 @@ describe('DataSelection', () => {
                             type: 'line',
                             xKey: 'year',
                             yKey: 'liabilities',
-                            selection: { enabled: true },
+                            selection: secondSeriesSelection,
                         },
                         {
                             id: 's3id',
@@ -5746,36 +5748,36 @@ describe('DataSelection', () => {
                 await setChartSelectionArray([SELECTION]);
             });
             describe('initial', () => {
-                test('getSelection', () => {
+                it('getSelection', () => {
                     expect(getChartSelectionArray()).toEqual([SELECTION]);
                 });
-                test('selectionChange', () => {
+                it('selectionChange', () => {
                     expect(selectionChange.popEvents()).toEqual([ADDED_EVENT]);
                 });
             });
             describe('update - disable', () => {
                 beforeEach(async () => {
                     selectionChange.popEvents(); // pop & ignore initial event.
-                    (opts.series![1] as any).selection.enabled = false;
+                    secondSeriesSelection.enabled = false;
                     await chart.update(opts);
                     await waitForChartStability(chart);
                 });
-                test('getSelection', () => {
+                it('getSelection', () => {
                     expect(getChartSelectionArray()).toEqual([]);
                 });
-                test('selectionChange', () => {
+                it('selectionChange', () => {
                     expect(selectionChange.popEvents()).toEqual([]);
                 });
                 describe('update - enable', () => {
                     beforeEach(async () => {
-                        (opts.series![1] as any).selection.enabled = true;
+                        secondSeriesSelection.enabled = true;
                         await chart.update(opts);
                         await waitForChartStability(chart);
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([SELECTION]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
@@ -5795,10 +5797,10 @@ describe('DataSelection', () => {
                     await chart.updateDelta(deltaOptionsWith({ selection: { enabled: false } }));
                     await waitForChartStability(chart);
                 });
-                test('getSelection', () => {
+                it('getSelection', () => {
                     expect(getChartSelectionArray()).toEqual([]);
                 });
-                test('selectionChange', () => {
+                it('selectionChange', () => {
                     expect(selectionChange.popEvents()).toEqual([]);
                 });
                 describe('updateDelta - enable', () => {
@@ -5806,10 +5808,10 @@ describe('DataSelection', () => {
                         await chart.updateDelta(deltaOptionsWith({ selection: { enabled: true } }));
                         await waitForChartStability(chart);
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([SELECTION]);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
@@ -5833,11 +5835,7 @@ describe('DataSelection', () => {
                 zoom: { enabled: false },
             });
 
-            const chartInternals = deproxy(chart) as any;
-            const seriesRect = chartInternals.seriesAreaManager?.seriesRect;
-            expect(seriesRect).toBeDefined();
-            const selectionModule = chartInternals.modulesManager.getModule('selection');
-            expect(selectionModule).toBeDefined();
+            const seriesRect = deproxy(chart).seriesAreaBoundingBox;
 
             // The move target must stay within the canvas for the event to reach the chart, so drag
             // into the axis/padding band beyond the series area rather than off-canvas.
@@ -5852,7 +5850,7 @@ describe('DataSelection', () => {
 
             // Read mid-drag: only drag-move clips to the series area, so an assertion made after
             // drag-end would hold whether or not the clamp is applied.
-            const { dragRect } = selectionModule;
+            const dragRect = getSelectionDragRect(chart);
             expect(dragRect.x).toBe(start.canvasX);
             expect(dragRect.y).toBe(start.canvasY);
             expect(dragRect.x + dragRect.width).toBeCloseTo(seriesRect.x + seriesRect.width, 6);
@@ -5950,13 +5948,13 @@ describe('DataSelection', () => {
                         await mouseClick(POINT_S2A);
                     });
 
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('stack-mix-highlighted-s2a-selected-s2a');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual(SELECTION_S2A);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([ADDED_S2A]);
                     });
                 });
@@ -5972,13 +5970,13 @@ describe('DataSelection', () => {
 
                     // Same snapshot as the succeeding callback above: the click is still
                     // redrawn even though the callback threw.
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('stack-mix-highlighted-s2a-selected-s2a');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual(SELECTION_S2A);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([ADDED_S2A]);
                     });
                 });
@@ -5993,13 +5991,13 @@ describe('DataSelection', () => {
                         await mouseUp(POINT_S3A);
                     });
 
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('stack-mix-highlighted-s3a-selected-s1a-s2a-s3a');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual(SELECTION_S1A_S2A_S3A);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([ADDED_S1A_S2A_S3A]);
                     });
                 });
@@ -6020,13 +6018,13 @@ describe('DataSelection', () => {
 
                     // Same snapshot as the succeeding callback above: `endDrag()` still runs,
                     // so the drag rectangle is hidden and the selection is drawn.
-                    test('screenshot', async () => {
+                    it('screenshot', async () => {
                         await compareExact('stack-mix-highlighted-s3a-selected-s1a-s2a-s3a');
                     });
-                    test('getSelection', () => {
+                    it('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual(SELECTION_S1A_S2A_S3A);
                     });
-                    test('selectionChange', () => {
+                    it('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([ADDED_S1A_S2A_S3A]);
                     });
                 });

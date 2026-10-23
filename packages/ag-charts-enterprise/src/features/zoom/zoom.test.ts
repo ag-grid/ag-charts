@@ -6,6 +6,7 @@ import {
     type AgChartOptions,
     type AgChartState,
     type AgInitialStateZoomOptions,
+    type AgZoomOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -624,10 +625,11 @@ describe('Zoom', () => {
             it('should allow independent axis zooming', async () => {
                 await prepareChart(undefined, undefined, {
                     ...twoAxesOptions,
+                    // `enableIndependentAxes` is set by the price-volume preset and is not a public zoom option.
                     zoom: {
                         ...twoAxesOptions.zoom,
                         enableIndependentAxes: true,
-                    } as any,
+                    } as AgZoomOptions,
                 });
 
                 const from = { x: 30, y: cy };
@@ -804,32 +806,32 @@ describe('Zoom', () => {
             await twoFingerEnd(1, cx - 150, cy - 150, 2, cx + 150, cy + 150)(chart);
         });
 
-        test('init zoomed in', async () => {
+        it('init zoomed in', async () => {
             await compare('two-fingers-init');
         });
 
-        test('zoom back out', async () => {
+        it('zoom back out', async () => {
             await twoFingerStart(3, cx - 100, cy - 100, 4, cx + 100, cy + 100)(chart);
             await twoFingerMove(3, cx - 50, cy - 50, 4, cx + 50, cy + 50)(chart);
             await twoFingerEnd(3, cx - 50, cy - 50, 4, cx + 50, cy + 50)(chart);
             await compare();
         });
 
-        test('zoom out clipped', async () => {
+        it('zoom out clipped', async () => {
             await twoFingerStart(3, cx - 250, cy - 250, 4, cx + 250, cy + 250)(chart);
             await twoFingerMove(3, cx - 10, cy - 10, 4, cx + 10, cy + 10)(chart);
             await twoFingerEnd(3, cx - 10, cy - 10, 4, cx + 10, cy + 10)(chart);
             await compare('reset');
         });
 
-        test('zoom and pan', async () => {
+        it('zoom and pan', async () => {
             await twoFingerStart(3, cx - 50, cy - 50, 4, cx + 50, cy + 50)(chart);
             await twoFingerMove(3, cx - 150, cy - 80, 4, cx, cy + 80)(chart);
             await twoFingerEnd(3, cx - 150, cy - 80, 4, cx, cy + 80)(chart);
             await compare();
         });
 
-        test('x overlap', async () => {
+        it('x overlap', async () => {
             await twoFingerStart(3, cx - 5, cy - 50, 4, cx + 5, cy + 50)(chart);
 
             await twoFingerMove(3, cx - 100, cy - 50, 4, cx + 100, cy + 50)(chart);
@@ -842,7 +844,7 @@ describe('Zoom', () => {
             await compare(); // zoompans y axis
         });
 
-        test('y overlap', async () => {
+        it('y overlap', async () => {
             await twoFingerStart(3, cx - 50, cy - 5, 4, cx + 50, cy + 5)(chart);
             await twoFingerMove(3, cx - 50, cy - 100, 4, cx + 50, cy + 100)(chart);
             await compare('two-fingers-init'); // no change (clientY average unchanged)
@@ -1236,7 +1238,7 @@ describe('Zoom', () => {
             await prepareChart(undefined, initialState, baseOptions);
         });
 
-        test('dblclick', async () => {
+        it('dblclick', async () => {
             let state: AgChartState;
 
             state = chart.getState();
@@ -1771,7 +1773,7 @@ describe('Zoom', () => {
 
             // A real series-area drag: mouse down inside the series area, then two moves without a
             // mouse up, which is what leaves the chart mid-drag.
-            const { x, y, width, height } = (instance as any).seriesRect;
+            const { x, y, width, height } = getSeriesRect(chart);
             const from = { x: x + width * 0.25, y: y + height * 0.5 };
             const to = { x: x + width * 0.75, y: y + height * 0.5 };
             await mouseDownAction(from.x, from.y)(chart);

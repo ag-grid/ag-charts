@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { fake } from '../test/coreAccessors';
+import type { AgDocument } from './agDocument';
 import type { ElementSize } from './sizeMonitor';
 import { SizeMonitor } from './sizeMonitor';
 
@@ -8,7 +10,7 @@ import { SizeMonitor } from './sizeMonitor';
 let resizeObserverCallback: ResizeObserverCallback | undefined;
 
 function createMockAgDocument({ ready = true } = {}) {
-    return {
+    return fake<AgDocument>({
         isReady: () => ready,
         attachListener: () => () => {},
         createResizeObserver(callback: ResizeObserverCallback) {
@@ -18,11 +20,14 @@ function createMockAgDocument({ ready = true } = {}) {
         createIntersectionObserver: () => undefined,
         devicePixelRatio: 1,
         matchMedia: () => ({ addEventListener: () => {}, removeEventListener: () => {} }),
-    } as any;
+    });
 }
 
 function fireResizeObserver(element: HTMLElement, width: number, height: number) {
-    resizeObserverCallback?.([{ target: element, contentRect: { width, height } } as any], {} as any);
+    resizeObserverCallback?.(
+        [fake<ResizeObserverEntry>({ target: element, contentRect: { width, height } })],
+        fake<ResizeObserver>({})
+    );
 }
 
 function mockElement(opts: {
@@ -43,7 +48,7 @@ function mockElement(opts: {
         paddingTop: opts.paddingTop ?? '0px',
         paddingBottom: opts.paddingBottom ?? '0px',
     };
-    vi.spyOn(element.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(style as any);
+    vi.spyOn(element.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(fake<CSSStyleDeclaration>(style));
 
     return element;
 }
@@ -174,12 +179,14 @@ describe('SizeMonitor', () => {
             const element = document.createElement('div');
             Object.defineProperty(element, 'clientWidth', { get: () => measured.width });
             Object.defineProperty(element, 'clientHeight', { get: () => measured.height });
-            vi.spyOn(element.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
-                paddingLeft: '0px',
-                paddingRight: '0px',
-                paddingTop: '0px',
-                paddingBottom: '0px',
-            } as any);
+            vi.spyOn(element.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(
+                fake<CSSStyleDeclaration>({
+                    paddingLeft: '0px',
+                    paddingRight: '0px',
+                    paddingTop: '0px',
+                    paddingBottom: '0px',
+                })
+            );
 
             const sizes: ElementSize[] = [];
             sizeMonitor.observe(element, (size) => sizes.push({ ...size }));

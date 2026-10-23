@@ -2,6 +2,7 @@ import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
+    type AgChartInstance,
     type AgChartOptions,
     AgCharts,
     type AgDataSourceRequestSource,
@@ -25,6 +26,7 @@ import {
 import { isDate } from 'ag-charts-core';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from 'ag-charts-test';
 
+import { dragNavigatorHandle, getNavigatorRange } from '../../test/featureAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 // Crosshair and exact-range tooltip are disabled so highlight styling — which races with the
@@ -119,7 +121,7 @@ const GROUPED_CATEGORY_OPTIONS: AgCartesianChartOptions = {
 describe('DataSource', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: AgChartInstance<any>;
     const ctx = setupMockCanvas();
 
     let cx: number = 0;
@@ -145,7 +147,7 @@ describe('DataSource', () => {
     }
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -389,7 +391,7 @@ describe('DataSource', () => {
                 await zoomIn(3);
                 const [{ start, end }] = requests.slice(-1);
 
-                const { _min: min, _max: max } = deproxy(chart).modulesManager.getModule<any>('navigator').domProxy;
+                const { min, max } = getNavigatorRange(chart);
 
                 expect(max - min).toBeCloseTo((end - start) / (dataEnd - dataStart), 1);
             });
@@ -397,11 +399,10 @@ describe('DataSource', () => {
             it('requests the time the navigator minimum handle is dragged to', async () => {
                 await prepareZoomableChart();
                 await zoomIn(3);
-                const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
                 const target = 0.1;
 
                 const issued = await settleAfter(() => {
-                    navigator.onDrag('min', { offsetX: navigator.x + navigator.width * target });
+                    dragNavigatorHandle(chart, 'min', target);
                     return Promise.resolve();
                 });
                 const [{ start }] = issued.slice(-1);
@@ -745,7 +746,8 @@ describe('DataSource', () => {
         // Every array (empty, primitives, all-null rows, or rows whose keys do not match the series) is
         // structurally valid and retained silently; only a non-array is a developer error worth warning about.
         it.each([
-            ['a non-array response', undefined as any, true],
+            // A non-array response is what the callback's `Promise<any[]>` return type forbids, so it is cast.
+            ['a non-array response', undefined as unknown as unknown[], true],
             ['an empty array', [], false],
             ['an array of primitives (wrong shape)', [1, 2, 3], false],
             ['an array of all-null-value objects (null fields)', [{ time: null, price: null }], false],
@@ -814,7 +816,7 @@ describe('DataSource', () => {
                 // renderable data — not the blank comparison — is the load-bearing check.
                 const postError = extractImageData(ctx);
                 expect(postError.equals(blank)).toBe(false);
-                expect(chart.chart.series.every((series: { hasData: boolean }) => series.hasData)).toBe(true);
+                expect(deproxy(chart).series.every((series) => series.hasData)).toBe(true);
 
                 const warnCalls = (console.warn as Mock).mock.calls;
                 const invalidValueWarnings = warnCalls.filter(
@@ -918,9 +920,9 @@ describe('DataSource', () => {
             const zoomAfter = chart.getState().zoom!.ratioX!;
             expect(Number.isFinite(zoomAfter.start)).toBe(true);
             expect(Number.isFinite(zoomAfter.end)).toBe(true);
-            expect(zoomAfter.start).toBeGreaterThanOrEqual(zoomBefore.start);
+            expect(zoomAfter.start).toBeGreaterThanOrEqual(zoomBefore.start!);
             // Retained, not committed: the previous render survives.
-            expect(chart.chart.series.every((series: { hasData: boolean }) => series.hasData)).toBe(true);
+            expect(deproxy(chart).series.every((series) => series.hasData)).toBe(true);
 
             expectWarningsCalls(); // drain value-validation warnings
         });
@@ -943,12 +945,12 @@ describe('DataSource', () => {
             prepareEnterpriseTestOptions(pieOptions);
             // Bespoke: waits for the loaded data rather than `waitForChartStability`.
             chart = AgCharts.create(pieOptions);
-            await waitForChartStabilityUntil(chart, () => chart.chart.data.data.length === 2, 'the initial load');
+            await waitForChartStabilityUntil(chart, () => deproxy(chart).data.data.length === 2, 'the initial load');
 
             await chart.applyTransaction({ add: [{ category: 'C', value: 30 }] });
             await waitForChartStability(chart);
 
-            expect(chart.chart.data.data).toEqual([
+            expect(deproxy(chart).data.data).toEqual([
                 { category: 'A', value: 10 },
                 { category: 'B', value: 20 },
                 { category: 'C', value: 30 },

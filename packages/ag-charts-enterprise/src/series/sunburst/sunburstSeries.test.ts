@@ -8,12 +8,13 @@ import type {
     AgChartOptions,
     AgPolarChartOptions,
     AgSelectionChangeEvent,
+    AgSunburstSeriesOptions,
     InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
     BIG,
-    type Chart,
+    type ChartOrProxy,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
@@ -33,6 +34,10 @@ import {
     expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesAt,
+    getSeriesOptions,
+    getSeriesRect,
+    getSeriesSelectionNodes,
     hierarchyChartAssertions,
     hoverAction,
     setupMockCanvas,
@@ -42,8 +47,11 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { PointerEvents, Selection, Transformable, TransformableText } from 'ag-charts-core';
-import type { Sector } from 'ag-charts-core';
+import type { Group, Sector } from 'ag-charts-core';
+import { classCast } from 'ag-charts-test';
 
+import { getEnterpriseSelectionNodes, getSeriesGroup } from '../../test/enterpriseSeriesAccessors';
+import { getHierarchyRootNode } from '../../test/seriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     HIERARCHY_SHADOW_DATA,
@@ -51,7 +59,8 @@ import {
     prepareEnterpriseTestOptions,
     shadowedShapes,
 } from '../../test/utils';
-import type { SunburstSeries } from './sunburstSeries';
+import type { HierarchyNode } from '../hierarchy/hierarchySeries';
+import { SunburstSeries } from './sunburstSeries';
 
 describe('SunburstSeries', () => {
     setupMockConsole();
@@ -86,15 +95,14 @@ describe('SunburstSeries', () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
             chart = deproxy(await createEnterpriseChart(options));
 
-            const seriesImpl = chart.series[0] as SunburstSeries;
-            let node = seriesImpl.rootNode;
+            let node = getHierarchyRootNode(chart);
             const childIndexes = [...childAtDepth];
             while (depth > 0 && node) {
                 node = node.children[childIndexes.shift() ?? 0];
                 depth--;
             }
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
+            const highlightManager = deproxy(chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
@@ -130,28 +138,25 @@ describe('SunburstSeries', () => {
             return chart;
         };
 
-        const highlightLeafFill = async (series: SunburstSeries): Promise<string | undefined> => {
-            const leaf = (series as any).rootNode.children[0].children[0];
-            (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, leaf);
+        const highlightLeafFill = async (): Promise<unknown> => {
+            const leaf = getHierarchyRootNode(chart)!.children[0].children[0];
+            deproxy(chart).ctx.highlightManager.updateHighlight(chart.id, leaf);
             await waitForChartStability(chart);
-            const node = Array.from((series as any).highlightSelection.nodes())[0] as any;
-            return node?.fill;
+            return getSeriesSelectionNodes<Sector>(chart, 'highlightSelection')[0]?.fill;
         };
 
         it('highlights a node on hover by default (control)', async () => {
             await renderWithHighlight({});
-            const series = chart.series[0] as SunburstSeries;
-            expect(await highlightLeafFill(series)).toEqual('lime');
+            expect(await highlightLeafFill()).toEqual('lime');
         });
 
         it('suppresses all highlighting when highlight.enabled is false', async () => {
             await renderWithHighlight({ enabled: false });
-            const series = chart.series[0] as SunburstSeries;
-            expect(await highlightLeafFill(series)).not.toEqual('lime');
+            expect(await highlightLeafFill()).not.toEqual('lime');
         });
 
-        const seriesHighlightEnabled = (series: SunburstSeries) =>
-            (series as unknown as { options: { highlight: { enabled: boolean } } }).options.highlight.enabled;
+        const seriesHighlightEnabled = (c: ChartOrProxy<any>) =>
+            getSeriesOptions<{ highlight: { enabled: boolean } }>(c).highlight.enabled;
 
         it('cascades chart-level highlight.enabled = false to the series', async () => {
             const options: AgChartOptions = {
@@ -161,7 +166,7 @@ describe('SunburstSeries', () => {
                 animation: { enabled: false },
             };
             chart = deproxy(await createEnterpriseChart(options));
-            expect(seriesHighlightEnabled(chart.series[0] as SunburstSeries)).toBe(false);
+            expect(seriesHighlightEnabled(chart)).toBe(false);
         });
 
         it('lets a series re-enable highlighting over a disabled chart-level default', async () => {
@@ -180,7 +185,7 @@ describe('SunburstSeries', () => {
                 animation: { enabled: false },
             };
             chart = deproxy(await createEnterpriseChart(options));
-            expect(seriesHighlightEnabled(chart.series[0] as SunburstSeries)).toBe(true);
+            expect(seriesHighlightEnabled(chart)).toBe(true);
         });
 
         it('still shows tooltips when highlighting is disabled', async () => {
@@ -200,15 +205,14 @@ describe('SunburstSeries', () => {
             };
             chart = deproxy(await createEnterpriseChart(options));
 
-            const series = chart.series[0] as SunburstSeries;
-            const sectors = Array.from((series as any).sectorGroup.children());
-            const leaf = sectors.find((s: any) => (s.datum?.depth ?? -1) === 1) as any;
+            const sectors = getSeriesSelectionNodes<Sector<{ depth?: number }>>(chart, 'datumSelection');
+            const leaf = sectors.find((s) => (s.datum?.depth ?? -1) === 1);
             expect(leaf).toBeDefined();
-            const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = leaf;
+            const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = leaf!;
             const r = (innerRadius + outerRadius) / 2;
             const theta = (startAngle + endAngle) / 2;
             const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
-                (series as any).contentGroup,
+                getSeriesAt(chart).contentGroup,
                 centerX + r * Math.cos(theta),
                 centerY + r * Math.sin(theta)
             );
@@ -279,11 +283,11 @@ describe('SunburstSeries', () => {
     const testPointerEvents = (testParams: {
         seriesOptions: any;
         chartOptions?: any;
-        getNodeData: (series: any) => any[];
+        getNodeData: (chart: ChartOrProxy<any>, seriesIndex: number) => any[];
         getNodePoint: (nodeItem: any) => [number, number];
-        getDatumValues: (datum: any, series: any) => any[];
+        getDatumValues: (datum: any) => any[];
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
-        getHighlightNode: (chart: any, series: any) => any;
+        getHighlightNode: (chart: ChartOrProxy<any>, seriesIndex: number) => Sector | undefined;
     }) => {
         const format = (...values: any[]) => values.join(' ');
 
@@ -324,36 +328,36 @@ describe('SunburstSeries', () => {
         };
 
         const hoverChartNodes = async (
-            chartInstance: any,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
+            chartInstance: ChartOrProxy<any>,
+            iterator: (params: { seriesIndex: number; item: any; x: number; y: number }) => Promise<void> | void
         ) => {
-            for (const series of chartInstance.series) {
-                const nodeData = testParams.getNodeData(series);
+            for (const seriesIndex of deproxy(chartInstance).series.keys()) {
+                const nodeData = testParams.getNodeData(chartInstance, seriesIndex);
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
                     const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
-                        series.contentGroup,
+                        getSeriesAt(chartInstance, seriesIndex).contentGroup,
                         itemPoint[0],
                         itemPoint[1]
                     );
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
-                    await iterator({ series, item, x, y });
+                    await iterator({ seriesIndex, item, x, y });
                 }
             }
         };
 
-        const checkHighlight = async (chartInstance: any) => {
-            await hoverChartNodes(chartInstance, ({ series }) => {
-                const highlightNode = testParams.getHighlightNode(chartInstance, series);
+        const checkHighlight = async (chartInstance: ChartOrProxy<any>) => {
+            await hoverChartNodes(chartInstance, ({ seriesIndex }) => {
+                const highlightNode = testParams.getHighlightNode(chartInstance, seriesIndex);
                 expect(highlightNode).toBeDefined();
-                expect(highlightNode.fill).toEqual('lime');
+                expect(highlightNode?.fill).toEqual('lime');
             });
         };
 
         const checkNodeClick = async (
-            chartInstance: Chart,
+            chartInstance: ChartOrProxy<any>,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {
@@ -362,8 +366,8 @@ describe('SunburstSeries', () => {
                 await waitForChartStability(chartInstance);
             });
 
-            const nodeCount = chartInstance.series.reduce(
-                (sum, series) => sum + testParams.getNodeData(series).length,
+            const nodeCount = deproxy(chartInstance).series.reduce(
+                (sum, _series, seriesIndex) => sum + testParams.getNodeData(chartInstance, seriesIndex).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
@@ -371,12 +375,12 @@ describe('SunburstSeries', () => {
 
         it(`should render tooltip correctly`, async () => {
             chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
-            await hoverChartNodes(chart, ({ series, item }) => {
+            await hoverChartNodes(chart, ({ item }) => {
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                const values = testParams.getDatumValues(item, series);
+                const values = testParams.getDatumValues(item);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
@@ -444,14 +448,7 @@ describe('SunburstSeries', () => {
             labelKey: 'name',
         };
 
-        const cartesianTestParams = {
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
-            getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
-            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
-        } as Parameters<typeof testPointerEvents>[0];
-
         testPointerEvents({
-            ...cartesianTestParams,
             seriesOptions: {
                 type: 'sunburst',
                 labelKey: datasets.labelKey,
@@ -461,10 +458,14 @@ describe('SunburstSeries', () => {
             chartOptions: {
                 data: datasets.data,
             },
-            getNodeData: (series) => {
-                const nodes = Array.from(series.sectorGroup.children());
-                const maxDepth = Math.max(...nodes.map((n: any) => n.datum.depth ?? -1));
-                return nodes.filter((node: any) => node.datum.depth === maxDepth);
+            getNodeData: (chartInstance, seriesIndex) => {
+                const nodes = getSeriesSelectionNodes<Sector<HierarchyNode>>(
+                    chartInstance,
+                    'datumSelection',
+                    seriesIndex
+                );
+                const maxDepth = Math.max(...nodes.map((n) => n.datum?.depth ?? -1));
+                return nodes.filter((node) => node.datum?.depth === maxDepth);
             },
             getNodePoint: (item) => {
                 const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = item;
@@ -472,16 +473,16 @@ describe('SunburstSeries', () => {
                 const theta = (startAngle + endAngle) / 2;
                 return [centerX + r * Math.cos(theta), centerY + r * Math.sin(theta)];
             },
-            getDatumValues: (item, series) => {
+            getDatumValues: (item) => {
                 const { datum } = item.datum;
-                return [datum[series.options.labelKey], datum[series.options.sizeKey]];
+                return [datum[datasets.labelKey], datum[datasets.valueKey]];
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;
                 return [datum[params.labelKey], datum[params.sizeKey]];
             },
-            getHighlightNode: (_chartInstance, series) => {
-                return Array.from(series.highlightSelection.nodes())[0];
+            getHighlightNode: (chartInstance, seriesIndex) => {
+                return getSeriesSelectionNodes<Sector>(chartInstance, 'highlightSelection', seriesIndex)[0];
             },
         });
     });
@@ -813,10 +814,9 @@ describe('SunburstSeries', () => {
             chart = deproxy(await createEnterpriseChart(options));
             await compare();
 
-            const seriesImpl = chart.series[0] as SunburstSeries;
             const americas = data.findIndex((d) => d.name === 'Americas');
             assertTooltipPresentForAll(
-                seriesImpl,
+                { getTooltipContent: (index: number) => getSeriesAt(chart).getTooltipContent(index, undefined) },
                 data[americas].children,
                 (c: { change?: number | null }) => c.change == null,
                 (i) => 1 + americas * 4 + i
@@ -1016,7 +1016,7 @@ describe('SunburstSeries', () => {
             },
         ];
 
-        test('static label styles', async () => {
+        it('static label styles', async () => {
             chart = await createEnterpriseChart({
                 data,
                 series: [
@@ -1033,7 +1033,7 @@ describe('SunburstSeries', () => {
             await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
         });
 
-        test('dynamic label styles', async () => {
+        it('dynamic label styles', async () => {
             chart = await createEnterpriseChart({
                 data,
                 series: [
@@ -1166,7 +1166,7 @@ describe('SunburstSeries', () => {
         const renderSeries = async (seriesShadow?: typeof shadow) => {
             proxy = await createEnterpriseChart(shadowOptions(seriesShadow));
             chart = deproxy(proxy);
-            return chart.series[0] as SunburstSeries;
+            return classCast(getSeriesAt(chart), SunburstSeries);
         };
         const sectors = (series: SunburstSeries) => {
             const nodes: Sector[] = [];
@@ -1176,9 +1176,9 @@ describe('SunburstSeries', () => {
         };
 
         it('defaults to a disabled shadow', async () => {
-            const series = await renderSeries();
+            await renderSeries();
 
-            expect(series['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(getSeriesOptions<{ shadow: unknown }>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
@@ -1207,8 +1207,8 @@ describe('SunburstSeries', () => {
         it('renders a hovered sector with a single shadow', async () => {
             const series = await renderSeries(shadow);
 
-            const leaf = (series as any).rootNode.children[0].children[0];
-            (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, leaf);
+            const leaf = series.rootNode!.children[0].children[0];
+            deproxy(chart).ctx.highlightManager.updateHighlight(chart.id, leaf);
             await compare();
         });
 
@@ -1262,7 +1262,7 @@ describe('SunburstSeries', () => {
             await proxy.updateDelta({ data: [{ ...data[0], children: children.slice(1) }] });
             await waitForChartStability(chart);
 
-            const { x, y, width, height } = chart.seriesAreaManager.seriesRect;
+            const { x, y, width, height } = getSeriesRect(chart);
             await dragAction(
                 { x: Math.ceil(x) + 2, y: Math.ceil(y) + 2 },
                 { x: Math.floor(x + width) - 2, y: Math.floor(y + height) - 2 }
@@ -1418,44 +1418,43 @@ describe('SunburstSeries', () => {
                 series: [{ type: 'sunburst', labelKey: 'name', highlight: { highlightedItem: { fill: 'lime' } } }],
                 animation: { enabled: true },
             }) as AgChartOptions;
-        const findSectorNode = (series: SunburstSeries, name: string): any => {
+        const findSectorNode = (name: string): any => {
             const dfs = (node: any): any =>
                 node?.datum?.name === name ? node : (node?.children ?? []).map(dfs).find(Boolean);
-            return dfs((series as any).rootNode);
+            return dfs(getHierarchyRootNode(chart));
         };
-        const highlightSector = (series: SunburstSeries): any =>
-            Array.from((series as any).highlightSelection.nodes())[0];
-        const baseSectorFor = (series: SunburstSeries, node: any): any =>
-            Array.from((series as any).datumSelection.nodes()).find((s: any) => s.datum === node);
+        // The highlighted and drawn sectors of the chart `renderSeries` created last.
+        const highlightSector = (): any => getSeriesSelectionNodes(chart, 'highlightSelection')[0];
+        const baseSectorFor = (node: any): any =>
+            getSeriesSelectionNodes(chart, 'datumSelection').find((s: any) => s.datum === node);
 
         it('highlight through reshuffle: re-highlighting resolves the pointed node, not a stale sector', async () => {
             const proxy = await createEnterpriseChart(withHighlight(ORG_DATA));
             chart = deproxy(proxy);
             await waitForChartStability(chart);
-            const series = chart.series[0] as SunburstSeries;
-            const highlightManager = (chart as Chart).ctx.highlightManager;
+            const highlightManager = deproxy(chart).ctx.highlightManager;
 
-            highlightManager.updateHighlight(chart.id, findSectorNode(series, 'A2'));
+            highlightManager.updateHighlight(chart.id, findSectorNode('A2'));
             await waitForChartStability(chart);
-            expect(highlightSector(series)?.datum?.datum?.name).toBe('A2');
+            expect(highlightSector()?.datum?.datum?.name).toBe('A2');
 
             await proxy.update(prepareEnterpriseTestOptions(withHighlight(reversed(ORG_DATA))));
             await waitForChartStability(chart);
 
-            const b1 = findSectorNode(series, 'B1');
+            const b1 = findSectorNode('B1');
             highlightManager.updateHighlight(chart.id, b1);
             await waitForChartStability(chart);
-            const highlighted = highlightSector(series);
+            const highlighted = highlightSector();
             expect(highlighted?.datum).toBe(b1);
             expect(highlighted?.fill).toBe('lime');
-            const base = baseSectorFor(series, b1);
+            const base = baseSectorFor(b1);
             expect(highlighted?.startAngle).toBeCloseTo(base.startAngle, 5);
             expect(highlighted?.endAngle).toBeCloseTo(base.endAngle, 5);
             expect(highlighted?.outerRadius).toBeCloseTo(base.outerRadius, 5);
 
             highlightManager.updateHighlight(chart.id);
             await waitForChartStability(chart);
-            expect(Array.from((series as any).highlightSelection.nodes())).toHaveLength(0);
+            expect(getSeriesSelectionNodes(chart, 'highlightSelection')).toHaveLength(0);
         });
 
         it('sanity: reshuffle endpoints match static renders', async () => {
@@ -1528,7 +1527,7 @@ describe('SunburstSeries', () => {
             // `lastOptions` keeps the prepared options, since the tests replay them through `proxy.update`.
             lastOptions = prepareEnterpriseTestOptions(options);
             chart = deproxy(proxy);
-            return chart.series[0] as SunburstSeries;
+            return classCast(getSeriesAt(chart), SunburstSeries);
         };
 
         const replaceChart = async (...args: Parameters<typeof renderSeries>) => {
@@ -1536,11 +1535,11 @@ describe('SunburstSeries', () => {
             return renderSeries(...args);
         };
 
-        const seriesRadius = () => Math.min(chart.seriesRect.width, chart.seriesRect.height) / 2;
-        const maxDepthOf = (series: SunburstSeries) => (series as any).maxDepth as number;
-        const sectorsOf = (series: SunburstSeries) => Array.from<any>((series as any).sectorGroup.children());
-        const atDepth = (series: SunburstSeries, depth: number) =>
-            sectorsOf(series).filter((sector) => sector.datum?.depth === depth);
+        const seriesRadius = () => Math.min(getSeriesRect(chart).width, getSeriesRect(chart).height) / 2;
+        const maxDepthOf = (series: SunburstSeries) => series.maxDepth;
+        // The sector nodes, circle and rings of the chart `renderSeries` created last.
+        const sectorsOf = () => Array.from<any>(getSeriesGroup(chart, 'sectorGroup').children());
+        const atDepth = (depth: number) => sectorsOf().filter((sector) => sector.datum?.depth === depth);
 
         const descendants = (node: any, out: any[] = []) => {
             if (typeof node?.children === 'function') {
@@ -1553,8 +1552,8 @@ describe('SunburstSeries', () => {
         };
         // The painted centre: a full-sweep disc whose datum carries a radius and no depth, which
         // distinguishes it from a sole root node's depth-0 disc.
-        const circleNodes = (series: SunburstSeries) =>
-            descendants((series as any).scalingGroup).filter(
+        const circleNodes = () =>
+            descendants(getSeriesGroup(chart, 'scalingGroup')).filter(
                 (node: any) =>
                     node.outerRadius != null &&
                     node.innerRadius === 0 &&
@@ -1566,7 +1565,7 @@ describe('SunburstSeries', () => {
         const nameTooltip = { renderer: ({ datum }: any) => datum.name };
         const hoverAt = async (series: SunburstSeries, radius: number, theta: number, settleDelay?: number) => {
             const { canvasX, canvasY } = Transformable.toCanvasPoint(
-                (series as any).contentGroup,
+                series.contentGroup,
                 radius * Math.cos(theta),
                 radius * Math.sin(theta)
             );
@@ -1577,10 +1576,10 @@ describe('SunburstSeries', () => {
         const tooltipShown = () => tooltip()?.hasAttribute('data-presented-as-popover') === true;
 
         it('creates no inner-circle node when the options are unset', async () => {
-            const series = await renderSeries();
+            await renderSeries();
 
-            expect(circleNodes(series)).toHaveLength(0);
-            expect(atDepth(series, 0)[0].innerRadius).toBe(0);
+            expect(circleNodes()).toHaveLength(0);
+            expect(atDepth(0)[0].innerRadius).toBe(0);
             expectWarningsCalls().toEqual([]);
         });
 
@@ -1592,9 +1591,9 @@ describe('SunburstSeries', () => {
             const maxDepth = maxDepthOf(series);
             const radiusScale = (radius - hole) / (maxDepth + 1);
 
-            expect(atDepth(series, 0)[0].innerRadius).toBeCloseTo(hole, 5);
+            expect(atDepth(0)[0].innerRadius).toBeCloseTo(hole, 5);
             for (let depth = 0; depth <= maxDepth; depth += 1) {
-                const ring = atDepth(series, depth);
+                const ring = atDepth(depth);
                 expect(ring.length).toBeGreaterThan(0);
                 for (const sector of ring) {
                     expect(sector.innerRadius).toBeCloseTo(hole + depth * radiusScale, 5);
@@ -1607,12 +1606,12 @@ describe('SunburstSeries', () => {
         it('keeps the hole independent of maxDepth', async () => {
             const shallow = await renderSeries({ innerRadiusRatio: 0.25 });
             expect(maxDepthOf(shallow)).toBe(1);
-            const shallowInnerRadius = atDepth(shallow, 0)[0].innerRadius;
+            const shallowInnerRadius = atDepth(0)[0].innerRadius;
             expect(shallowInnerRadius).toBeCloseTo(seriesRadius() * 0.25, 5);
 
             const deep = await replaceChart({ innerRadiusRatio: 0.25 }, DEEP_DATA);
             expect(maxDepthOf(deep)).toBe(3);
-            expect(atDepth(deep, 0)[0].innerRadius).toBeCloseTo(shallowInnerRadius, 5);
+            expect(atDepth(0)[0].innerRadius).toBeCloseTo(shallowInnerRadius, 5);
             expectWarningsCalls().toEqual([]);
         });
 
@@ -1624,29 +1623,29 @@ describe('SunburstSeries', () => {
                 hole: (radius: number): number => radius * 0.2 + 30,
             },
         ])('carves the hole from $label', async ({ options, hole }) => {
-            const series = await renderSeries(options);
+            await renderSeries(options);
 
-            expect(atDepth(series, 0)[0].innerRadius).toBeCloseTo(hole(seriesRadius()), 5);
+            expect(atDepth(0)[0].innerRadius).toBeCloseTo(hole(seriesRadius()), 5);
             expectWarningsCalls().toEqual([]);
         });
 
         it('leaves the geometry untouched when innerCircle is set without a radius option', async () => {
-            const series = await renderSeries({ innerCircle: { fill: 'red' } });
+            await renderSeries({ innerCircle: { fill: 'red' } });
 
-            expect(atDepth(series, 0)[0].innerRadius).toBe(0);
-            expect(circleNodes(series)).toHaveLength(0);
+            expect(atDepth(0)[0].innerRadius).toBe(0);
+            expect(circleNodes()).toHaveLength(0);
             expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
         });
 
         it('paints the circle with innerCircle.fill rather than a scale-derived colour', async () => {
-            const series = await renderSeries({
+            await renderSeries({
                 colorKey: 'change',
                 colorScale: { fills: [{ color: 'blue' }, { color: 'yellow' }], missingDataFill: '#cccccc' },
                 innerRadiusRatio: 0.35,
                 innerCircle: { fill: 'red' },
             });
 
-            const [circle] = circleNodes(series);
+            const [circle] = circleNodes();
             expect(circle).toBeDefined();
             expect(circle.fill).toBe('red');
             expect(circle.outerRadius).toBeCloseTo(seriesRadius() * 0.35, 5);
@@ -1693,19 +1692,19 @@ describe('SunburstSeries', () => {
         });
 
         it('never invokes itemStyler for the inner circle', async () => {
-            const itemStyler = vi.fn(() => ({}));
-            const series = await renderSeries({
+            const itemStyler = vi.fn((_params: { datum?: unknown }) => ({}));
+            await renderSeries({
                 innerRadiusRatio: 0.4,
                 innerCircle: { fill: 'red' },
                 itemStyler,
             });
 
-            expect(circleNodes(series)).toHaveLength(1);
+            expect(circleNodes()).toHaveLength(1);
             // The set of datums the styler saw is exactly the sector datums - the circle's
             // `{ radius }` datum never reaches it.
-            const styledData = new Set((itemStyler.mock.calls as any[]).map(([params]) => params.datum));
+            const styledData = new Set(itemStyler.mock.calls.map(([params]) => params.datum));
             const sectorData = new Set(
-                sectorsOf(series)
+                sectorsOf()
                     .map((sector) => sector.datum?.datum)
                     .filter((datum) => datum != null)
             );
@@ -1715,27 +1714,28 @@ describe('SunburstSeries', () => {
         });
 
         it('parents the inner circle inside the scaling group with pointer events disabled', async () => {
-            const series = await renderSeries({ innerRadiusRatio: 0.3, innerCircle: { fill: 'red' } });
+            await renderSeries({ innerRadiusRatio: 0.3, innerCircle: { fill: 'red' } });
 
-            const [circle] = circleNodes(series);
+            const [circle] = circleNodes();
             expect(circle).toBeDefined();
             expect(circle.parentNode.pointerEvents).toBe(PointerEvents.None);
 
             let ancestor = circle.parentNode;
-            while (ancestor != null && ancestor !== (series as any).scalingGroup) {
+            const scalingGroup = getSeriesGroup(chart, 'scalingGroup');
+            while (ancestor != null && ancestor !== scalingGroup) {
                 ancestor = ancestor.parentNode;
             }
-            expect(ancestor).toBe((series as any).scalingGroup);
+            expect(ancestor).toBe(scalingGroup);
             expectWarningsCalls().toEqual([]);
         });
 
         // AG-18283: a sole 100% root node is not a centre. Without an inner-radius option the series
         // renders exactly as it did before innerCircle/innerLabels existed, and the options warn.
         it('leaves a sole 100% root node exactly as it renders without the centre options', async () => {
-            const itemStyler = vi.fn(() => ({}));
+            const itemStyler = vi.fn((_params: { datum?: unknown }) => ({}));
             const control = await renderSeries({ itemStyler, tooltip: nameTooltip }, SOLE_ROOT_DATA);
             const radiusScale = seriesRadius() / (maxDepthOf(control) + 1);
-            const controlRoot = atDepth(control, 0)[0];
+            const controlRoot = atDepth(0)[0];
             const controlGeometry = { inner: controlRoot.innerRadius, outer: controlRoot.outerRadius };
             // The first hover after a chart is created never tooltips, so both charts get the same
             // warm-up hover on an outer sector before the root sector is compared.
@@ -1758,10 +1758,10 @@ describe('SunburstSeries', () => {
             );
 
             expect(series.resolveCentreCircle()).toBeNull();
-            expect(circleNodes(series)).toHaveLength(0);
+            expect(circleNodes()).toHaveLength(0);
             expect(series.innerLabelsSelection.nodes()).toHaveLength(0);
 
-            const root = atDepth(series, 0)[0];
+            const root = atDepth(0)[0];
             expect(root.innerRadius).toBe(controlGeometry.inner);
             expect(root.outerRadius).toBeCloseTo(controlGeometry.outer, 5);
             expect(root.outerRadius).toBeCloseTo(radiusScale, 5);
@@ -1771,7 +1771,7 @@ describe('SunburstSeries', () => {
             await hoverAt(series, radiusScale * 0.5, 0);
             expect(tooltipShown()).toBe(rootTooltipWithoutCircle);
 
-            const styledData = new Set((itemStyler.mock.calls as any[]).map(([params]) => params.datum));
+            const styledData = new Set(itemStyler.mock.calls.map(([params]) => params.datum));
             expect(styledData.has(SOLE_ROOT_DATA[0])).toBe(true);
             expect([...styledData].some((datum: any) => datum?.radius != null)).toBe(false);
             expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
@@ -1791,7 +1791,8 @@ describe('SunburstSeries', () => {
             // options share one message, so the chart has warned exactly once across its lifetime.
             await proxy.update({
                 ...lastOptions,
-                series: [{ ...(lastOptions.series![0] as any), innerLabels: [{ text: 'Total' }] }],
+                // `series` is a union of every series options type; narrow it to spread sunburst options.
+                series: [{ ...(lastOptions.series![0] as AgSunburstSeriesOptions), innerLabels: [{ text: 'Total' }] }],
             });
             await waitForChartStability(chart);
             expectWarningsCalls().toEqual([]);
@@ -1802,7 +1803,7 @@ describe('SunburstSeries', () => {
         it('stays silent when an inner-radius option is set but carves no hole', async () => {
             const zeroRatio = await renderSeries({ innerRadiusRatio: 0, innerCircle: { fill: 'red' } });
             expect(zeroRatio.resolveCentreCircle()).toBeNull();
-            expect((zeroRatio as any).innerCircleSelection.nodes()).toHaveLength(0);
+            expect(getEnterpriseSelectionNodes(chart, 'innerCircleSelection')).toHaveLength(0);
             expectWarningsCalls().toEqual([]);
         });
 
@@ -1818,10 +1819,10 @@ describe('SunburstSeries', () => {
             });
 
             expect(oversized.resolveCentreCircle()).toBeNull();
-            expect((oversized as any).innerCircleSelection.nodes()).toHaveLength(0);
+            expect(getEnterpriseSelectionNodes(chart, 'innerCircleSelection')).toHaveLength(0);
             const maxDepth = maxDepthOf(oversized);
             for (let depth = 0; depth <= maxDepth; depth += 1) {
-                const ring = atDepth(oversized, depth);
+                const ring = atDepth(depth);
                 expect(ring.length).toBeGreaterThan(0);
                 for (const sector of ring) {
                     expect(sector.outerRadius).toBeLessThanOrEqual(sector.innerRadius);
@@ -1845,7 +1846,7 @@ describe('SunburstSeries', () => {
             const hole = radius * 0.4;
             const radiusScale = (radius - hole) / (maxDepthOf(series) + 1);
 
-            const rootLabel = (series as any).rootNode.children[0].label;
+            const rootLabel = series.rootNode!.children[0].label!;
             expect(rootLabel).toBeDefined();
             expect(rootLabel.radius).toBeGreaterThanOrEqual(hole);
             expect(rootLabel.radius).toBeLessThanOrEqual(hole + radiusScale);
@@ -1886,11 +1887,11 @@ describe('SunburstSeries', () => {
                     return { y: node.y, visible: node.visible, width: bbox.width, height: bbox.height };
                 });
 
-            const rootPrimaryLabelText = (series: SunburstSeries): TransformableText | undefined => {
-                let group: any;
-                (series as any).labelSelection.each((candidate: any, datum: any) => {
-                    if (datum.depth === 0) group = candidate;
-                });
+            const rootPrimaryLabelText = (): TransformableText | undefined => {
+                let group: Group<{ depth: number }> | undefined;
+                for (const candidate of getSeriesSelectionNodes<Group<{ depth: number }>>(chart, 'labelSelection')) {
+                    if (candidate.datum?.depth === 0) group = candidate;
+                }
                 if (group == null) return undefined;
                 return Selection.selectByClass(group, TransformableText).find((text) => text.tag === 0);
             };
@@ -1920,7 +1921,8 @@ describe('SunburstSeries', () => {
                     ...lastOptions,
                     series: [
                         {
-                            ...(lastOptions.series![0] as any),
+                            // `series` is a union of every series options type; narrow it to spread sunburst options.
+                            ...(lastOptions.series![0] as AgSunburstSeriesOptions),
                             innerLabels: [
                                 { text: 'Total', fontSize: 16, spacing: spacing0 },
                                 { text: '100', fontSize: 12, spacing: spacing1 },
@@ -2020,15 +2022,15 @@ describe('SunburstSeries', () => {
             // centre because innerLabels never render without a hole; with a hole carved, depth 0 is
             // an annulus whose label sits outside the hole, so the two can never collide.
             it('never displaces the sole-root centre label, and coexists with it once a hole is carved', async () => {
-                const withoutInnerLabels = await renderSeries({ secondaryLabelKey: 'change' }, SOLE_ROOT_DATA);
-                expect(rootPrimaryLabelText(withoutInnerLabels)?.visible).toBe(true);
+                await renderSeries({ secondaryLabelKey: 'change' }, SOLE_ROOT_DATA);
+                expect(rootPrimaryLabelText()?.visible).toBe(true);
                 expectWarningsCalls().toEqual([]);
 
                 const withInnerLabels = await replaceChart(
                     { secondaryLabelKey: 'change', innerLabels: [{ text: 'Total', fontSize: 14 }] },
                     SOLE_ROOT_DATA
                 );
-                expect(rootPrimaryLabelText(withInnerLabels)?.visible).toBe(true);
+                expect(rootPrimaryLabelText()?.visible).toBe(true);
                 expect(withInnerLabels.innerLabelsSelection.nodes()).toHaveLength(0);
                 expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
 
@@ -2040,7 +2042,7 @@ describe('SunburstSeries', () => {
                     },
                     SOLE_ROOT_DATA
                 );
-                const holedRootLabel = rootPrimaryLabelText(holed);
+                const holedRootLabel = rootPrimaryLabelText();
                 expect(holedRootLabel?.visible).toBe(true);
                 expect(holed.innerLabelsSelection.nodes()[0].visible).toBe(true);
                 // The root label is laid out in its annulus, never at dead centre with the stack.
@@ -2055,7 +2057,7 @@ describe('SunburstSeries', () => {
                     innerLabels: [{ text: 'Total', fontSize: 16 }],
                 });
 
-                expect((series as any).innerLabelsGroup.pointerEvents).toBe(PointerEvents.None);
+                expect(getSeriesGroup(chart, 'innerLabelsGroup').pointerEvents).toBe(PointerEvents.None);
                 for (const node of series.innerLabelsSelection.nodes()) {
                     expect(node.pointerEvents).toBe(PointerEvents.None);
                 }
@@ -2063,16 +2065,16 @@ describe('SunburstSeries', () => {
             });
 
             it('never invokes itemStyler for an inner label', async () => {
-                const itemStyler = vi.fn(() => ({}));
-                const series = await renderSeries({
+                const itemStyler = vi.fn((_params: { datum?: unknown }) => ({}));
+                await renderSeries({
                     innerRadiusRatio: 0.4,
                     innerLabels: [{ text: 'Total', fontSize: 16 }],
                     itemStyler,
                 });
 
-                const styledData = new Set((itemStyler.mock.calls as any[]).map(([params]) => params.datum));
+                const styledData = new Set(itemStyler.mock.calls.map(([params]) => params.datum));
                 const sectorData = new Set(
-                    sectorsOf(series)
+                    sectorsOf()
                         .map((sector) => sector.datum?.datum)
                         .filter((datum) => datum != null)
                 );
@@ -2151,8 +2153,10 @@ describe('SunburstSeries', () => {
                     ...lastOptions,
                     series: [
                         {
-                            ...(lastOptions.series![0] as any),
-                            innerLabels: [{ text: [{ type: 'image', width: 10, height: 10 } as any] }],
+                            // `series` is a union of every series options type; narrow it to spread sunburst options.
+                            ...(lastOptions.series![0] as AgSunburstSeriesOptions),
+                            // A segment the series cannot render, to check it is ignored with a warning.
+                            innerLabels: [{ text: [{ type: 'image', width: 10, height: 10 } as never] }],
                         },
                     ],
                 });
@@ -2170,12 +2174,12 @@ describe('SunburstSeries', () => {
             it('leaves the inner-labels selection and group empty when innerLabels is unset or an explicit empty array', async () => {
                 const unset = await renderSeries({ innerRadiusRatio: 0.4 });
                 expect(unset.innerLabelsSelection.nodes()).toHaveLength(0);
-                expect(Array.from((unset as any).innerLabelsGroup.children())).toHaveLength(0);
+                expect(Array.from(getSeriesGroup(chart, 'innerLabelsGroup').children())).toHaveLength(0);
                 expectWarningsCalls().toEqual([]);
 
                 const empty = await replaceChart({ innerRadiusRatio: 0.4, innerLabels: [] });
                 expect(empty.innerLabelsSelection.nodes()).toHaveLength(0);
-                expect(Array.from((empty as any).innerLabelsGroup.children())).toHaveLength(0);
+                expect(Array.from(getSeriesGroup(chart, 'innerLabelsGroup').children())).toHaveLength(0);
                 expectWarningsCalls().toEqual([]);
             });
 
@@ -2194,8 +2198,7 @@ describe('SunburstSeries', () => {
 
             it('leaves innerLabels absent so no theme default can populate it', async () => {
                 const series = await renderSeries();
-                const { options } = series as unknown as { options: { innerLabels?: unknown[] } };
-                expect(options.innerLabels).toBeUndefined();
+                expect(getSeriesOptions<{ innerLabels?: unknown[] }>(chart).innerLabels).toBeUndefined();
                 expect(series.innerLabelsSelection.nodes()).toHaveLength(0);
                 expectWarningsCalls().toEqual([]);
             });

@@ -15,6 +15,7 @@ import { LegendModule } from '../chart/legend/legendModule';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import { PieSeriesModule } from '../chart/series/polar/pieSeriesModule';
+import { setAgChartsDebug } from '../chart/test/seriesAccessors';
 import {
     createChart,
     prepareTestOptions,
@@ -25,6 +26,7 @@ import {
 import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
 import { NumberAxisModule } from './axis-modules/numberAxisModule';
 import { ChartOptions } from './optionsModule';
+import { invalidOption } from './test/moduleAccessors';
 
 const LINE_CHART: AgCartesianChartOptions = {
     data: [
@@ -130,7 +132,7 @@ describe('instance modules', () => {
         });
 
         it('reports an unknown series type unchanged', () => {
-            processOptions({ ...LINE_CHART, series: [{ type: 'nonsense' } as any] }, LINE_MODULES);
+            processOptions(invalidOption({ ...LINE_CHART, series: [{ type: 'nonsense' }] }), LINE_MODULES);
 
             const [message] = takeConsoleMessages('warn');
             expect(message).toContain('Unknown type `nonsense` at `series[0].type`');
@@ -303,7 +305,7 @@ describe('instance modules', () => {
 
             it('reports the licence before any option warning on create', async () => {
                 ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
-                chart = AgCharts.create({ ...lineChart(), unknownOption: true } as any);
+                chart = AgCharts.create(invalidOption({ ...lineChart(), unknownOption: true }));
                 await waitForChartStability(chart);
 
                 const [warnOrder] = (console.warn as Mock).mock.invocationCallOrder;
@@ -326,7 +328,7 @@ describe('instance modules', () => {
 
             it('skips the licence check for a chart hosted within Studio', async () => {
                 ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
-                chart = AgCharts.create({ ...lineChart(), withinStudio: true } as any);
+                chart = AgCharts.create(invalidOption({ ...lineChart(), withinStudio: true }));
                 await waitForChartStability(chart);
                 expect(validateLicense).not.toHaveBeenCalled();
                 expect(injectWatermark).not.toHaveBeenCalled();
@@ -343,10 +345,11 @@ describe('instance modules', () => {
                 chart = AgCharts.create(lineChart());
                 await waitForChartStability(chart);
                 expect(injectWatermark).toHaveBeenCalledTimes(1);
-                expect((chart as any).withinStudio).toBeUndefined();
+                // The flag belongs to the options the chart was created with; the chart itself never carries it.
+                expect(chart).not.toHaveProperty('withinStudio');
 
                 validateLicense.mockClear();
-                await chart.update({ ...lineChart(), withinStudio: true } as any);
+                await chart.update(invalidOption({ ...lineChart(), withinStudio: true }));
                 await waitForChartStability(chart);
                 expect(validateLicense).toHaveBeenCalled();
             });
@@ -410,13 +413,15 @@ describe('instance modules', () => {
             const scopedPool = `Pool[name=sparkline|category@${version},line@${version},number@${version},sparkline@${version}]`;
             let log: Mock;
 
+            let restoreDebug: () => void;
+
             beforeEach(() => {
-                (globalThis as any).agChartsDebug = ['pool'];
+                restoreDebug = setAgChartsDebug(['pool']);
                 log = vi.spyOn(console, 'log').mockImplementation(() => {}) as Mock;
             });
 
             afterEach(() => {
-                delete (globalThis as any).agChartsDebug;
+                restoreDebug();
                 log.mockRestore();
             });
 
@@ -532,7 +537,7 @@ describe('instance modules', () => {
         it('rejects instance modules that are not module definitions', () => {
             expect(() =>
                 AgCharts.create(prepareTestOptions({ ...LINE_CHART }), {
-                    modules: [...LINE_MODULES, { name: 'not-a-module' } as any],
+                    modules: [...LINE_MODULES, invalidOption({ name: 'not-a-module' })],
                 })
             ).toThrow(/`modules` must contain modules exported by ag-charts-community or ag-charts-enterprise/);
         });

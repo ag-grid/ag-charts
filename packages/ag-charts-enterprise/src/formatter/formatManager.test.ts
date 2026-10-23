@@ -5,6 +5,9 @@ import { expectWarningsCalls, setupMockCanvas, setupMockConsole } from 'ag-chart
 
 import { createEnterpriseChart } from '../test/utils';
 
+// `allowNullKeys` is an internal series option that the public series option types do not declare.
+const withAllowNullKeys = <T extends object>(series: T, allowNullKeys: boolean): T => ({ ...series, allowNullKeys });
+
 describe('Format Manager (Enterprise)', () => {
     setupMockConsole();
 
@@ -44,7 +47,7 @@ describe('Format Manager (Enterprise)', () => {
                         { category: nullValue, value: 100 },
                         { category: 'Mac', value: 50 },
                     ],
-                    series: [{ type: 'waterfall', xKey: 'category', yKey: 'value', allowNullKeys } as any],
+                    series: [withAllowNullKeys({ type: 'waterfall', xKey: 'category', yKey: 'value' }, allowNullKeys)],
                 };
 
                 chart = await createEnterpriseChart(options);
@@ -78,7 +81,10 @@ describe('Format Manager (Enterprise)', () => {
                         { category: 'Mac', low: 20, high: 60 },
                     ],
                     series: [
-                        { type: 'range-bar', xKey: 'category', yLowKey: 'low', yHighKey: 'high', allowNullKeys } as any,
+                        withAllowNullKeys(
+                            { type: 'range-bar', xKey: 'category', yLowKey: 'low', yHighKey: 'high' },
+                            allowNullKeys
+                        ),
                     ],
                 };
 
@@ -113,13 +119,15 @@ describe('Format Manager (Enterprise)', () => {
                         { category: 'Mac', low: 20, high: 60 },
                     ],
                     series: [
-                        {
-                            type: 'range-area',
-                            xKey: 'category',
-                            yLowKey: 'low',
-                            yHighKey: 'high',
-                            allowNullKeys,
-                        } as any,
+                        withAllowNullKeys(
+                            {
+                                type: 'range-area',
+                                xKey: 'category',
+                                yLowKey: 'low',
+                                yHighKey: 'high',
+                            },
+                            allowNullKeys
+                        ),
                     ],
                 };
 
@@ -154,16 +162,18 @@ describe('Format Manager (Enterprise)', () => {
                         { category: 'Mac', min: 10, q1: 15, median: 20, q3: 25, max: 30 },
                     ],
                     series: [
-                        {
-                            type: 'box-plot',
-                            xKey: 'category',
-                            minKey: 'min',
-                            q1Key: 'q1',
-                            medianKey: 'median',
-                            q3Key: 'q3',
-                            maxKey: 'max',
-                            allowNullKeys,
-                        } as any,
+                        withAllowNullKeys(
+                            {
+                                type: 'box-plot',
+                                xKey: 'category',
+                                minKey: 'min',
+                                q1Key: 'q1',
+                                medianKey: 'median',
+                                q3Key: 'q3',
+                                maxKey: 'max',
+                            },
+                            allowNullKeys
+                        ),
                     ],
                 };
 
@@ -204,15 +214,17 @@ describe('Format Manager (Enterprise)', () => {
                         y: { type: 'number', position: 'left' },
                     },
                     series: [
-                        {
-                            type: 'candlestick',
-                            xKey: 'year',
-                            openKey: 'open',
-                            highKey: 'high',
-                            lowKey: 'low',
-                            closeKey: 'close',
-                            allowNullKeys,
-                        } as any,
+                        withAllowNullKeys(
+                            {
+                                type: 'candlestick',
+                                xKey: 'year',
+                                openKey: 'open',
+                                highKey: 'high',
+                                lowKey: 'low',
+                                closeKey: 'close',
+                            },
+                            allowNullKeys
+                        ),
                     ],
                 };
 
@@ -253,15 +265,17 @@ describe('Format Manager (Enterprise)', () => {
                         y: { type: 'number', position: 'left' },
                     },
                     series: [
-                        {
-                            type: 'ohlc',
-                            xKey: 'year',
-                            openKey: 'open',
-                            highKey: 'high',
-                            lowKey: 'low',
-                            closeKey: 'close',
-                            allowNullKeys,
-                        } as any,
+                        withAllowNullKeys(
+                            {
+                                type: 'ohlc',
+                                xKey: 'year',
+                                openKey: 'open',
+                                highKey: 'high',
+                                lowKey: 'low',
+                                closeKey: 'close',
+                            },
+                            allowNullKeys
+                        ),
                     ],
                 };
 
@@ -301,14 +315,16 @@ describe('Format Manager (Enterprise)', () => {
                         y: { type: 'number', position: 'left' },
                     },
                     series: [
-                        {
-                            type: 'hlc',
-                            xKey: 'year',
-                            highKey: 'high',
-                            lowKey: 'low',
-                            closeKey: 'close',
-                            allowNullKeys,
-                        } as any,
+                        withAllowNullKeys(
+                            {
+                                type: 'hlc',
+                                xKey: 'year',
+                                highKey: 'high',
+                                lowKey: 'low',
+                                closeKey: 'close',
+                            },
+                            allowNullKeys
+                        ),
                     ],
                 };
 
@@ -343,7 +359,12 @@ describe('Format Manager (Enterprise)', () => {
                         { category: nullValue, value: 10 },
                         { category: 'Mac', value: 20 },
                     ],
-                    series: [{ type: 'radial-bar', radiusKey: 'category', angleKey: 'value', allowNullKeys } as any],
+                    series: [
+                        withAllowNullKeys(
+                            { type: 'radial-bar', radiusKey: 'category', angleKey: 'value' },
+                            allowNullKeys
+                        ),
+                    ],
                 };
 
                 chart = await createEnterpriseChart(options);
@@ -377,7 +398,12 @@ describe('Format Manager (Enterprise)', () => {
                         { category: 'Mac', value: 20 },
                     ],
                     // Note: radial-column uses angleKey for categories, radiusKey for values
-                    series: [{ type: 'radial-column', angleKey: 'category', radiusKey: 'value', allowNullKeys } as any],
+                    series: [
+                        withAllowNullKeys(
+                            { type: 'radial-column', angleKey: 'category', radiusKey: 'value' },
+                            allowNullKeys
+                        ),
+                    ],
                 };
 
                 chart = await createEnterpriseChart(options);
@@ -410,7 +436,12 @@ describe('Format Manager (Enterprise)', () => {
                         { category: nullValue, value: 10 },
                         { category: 'Mac', value: 20 },
                     ],
-                    series: [{ type: 'nightingale', angleKey: 'category', radiusKey: 'value', allowNullKeys } as any],
+                    series: [
+                        withAllowNullKeys(
+                            { type: 'nightingale', angleKey: 'category', radiusKey: 'value' },
+                            allowNullKeys
+                        ),
+                    ],
                 };
 
                 chart = await createEnterpriseChart(options);
@@ -443,7 +474,9 @@ describe('Format Manager (Enterprise)', () => {
                         { x: nullValue, y: 'A', color: 10 },
                         { x: 'Mac', y: 'B', color: 20 },
                     ],
-                    series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'color', allowNullKeys } as any],
+                    series: [
+                        withAllowNullKeys({ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'color' }, allowNullKeys),
+                    ],
                 };
 
                 chart = await createEnterpriseChart(options);
@@ -476,7 +509,9 @@ describe('Format Manager (Enterprise)', () => {
                         { group: nullValue, value: 100 },
                         { group: 'Mac', value: 50 },
                     ],
-                    series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value', allowNullKeys } as any],
+                    series: [
+                        withAllowNullKeys({ type: 'pyramid', stageKey: 'group', valueKey: 'value' }, allowNullKeys),
+                    ],
                 };
 
                 chart = await createEnterpriseChart(options);

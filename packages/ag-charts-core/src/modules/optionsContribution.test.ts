@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { boolean, callback, number, object } from '../options/validation';
+import { type Validator, boolean, callback, number, object } from '../options/validation';
 import { type ModuleDefinition, ModuleType } from './moduleDefinition';
 import { createModuleScope } from './moduleScope';
 import {
@@ -331,9 +331,12 @@ describe('isContributionRequested', () => {
     });
 });
 
+// The defs of these tests are keyed by arbitrary option names, which no concrete options type declares.
+type Defs = { [key: string]: Validator | Defs };
+
 describe('composeContributedDefs', () => {
     it('installs contributed defs at their paths without mutating the base defs', () => {
-        const defs = { title: { text: number }, listeners: { click: callback } } as any;
+        const defs: Defs = { title: { text: number }, listeners: { click: callback } };
         const zoomDefs = { enabled: boolean };
         const composed = composeContributedDefs(
             defs,
@@ -341,31 +344,31 @@ describe('composeContributedDefs', () => {
                 plugin('zoom', { options: zoomDefs }),
                 plugin('axis-interaction', { contributes: [{ path: 'listeners.axisClick', options: callback }] }),
             ])
-        ) as any;
+        ) as Defs;
 
         expect(composed.zoom).toBe(zoomDefs);
         expect(composed.listeners).toEqual({ click: callback, axisClick: callback });
         expect(composed.title).toBe(defs.title);
         expect(defs.zoom).toBeUndefined();
-        expect(defs.listeners.axisClick).toBeUndefined();
+        expect(defs.listeners).toEqual({ click: callback });
     });
 
     it('keeps an existing def and otherwise falls back to `object` when the contribution has no options', () => {
-        const defs = { statusBar: boolean } as any;
+        const defs: Defs = { statusBar: boolean };
         const composed = composeContributedDefs(
             defs,
             resolveContributions([
                 plugin('statusBar', { options: undefined, themeTemplate: {} }),
                 plugin('navigator', { options: undefined, themeTemplate: {} }),
             ])
-        ) as any;
+        ) as Defs;
 
         expect(composed.statusBar).toBe(boolean);
         expect(composed.navigator).toBe(object);
     });
 
     it('ignores axis and series host paths and returns the base defs untouched when nothing applies', () => {
-        const defs = { title: { text: number } } as any;
+        const defs: Defs = { title: { text: number } };
         expect(
             composeContributedDefs(
                 defs,

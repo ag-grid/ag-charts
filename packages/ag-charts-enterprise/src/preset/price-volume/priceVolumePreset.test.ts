@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _Theme } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -30,6 +30,8 @@ import { getStockData } from '../test/stockData';
 import { totalSegmentBlocks, totalSegmentLabels } from '../test/totalSegment';
 import { getIrregularVolumeProfile, getRegularVolumeProfile } from '../test/volumeProfileData';
 import { priceVolume } from './priceVolumePreset';
+
+type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
     minimal: { data: getStockData() },
@@ -745,8 +747,8 @@ describe('priceVolumePreset', () => {
         ];
 
         const presetButtons = (overrides?: AgThemeOverrides) =>
-            priceVolume({ data: getStockData() }, undefined, () => ({}) as any, overrides, testLogger).annotations
-                ?.toolbar?.buttons;
+            priceVolume({ data: getStockData() }, undefined, () => ({}) as ChartTheme, overrides, testLogger)
+                .annotations?.toolbar?.buttons;
 
         it('prefers the user-specified buttons from the theme overrides', () => {
             const buttons = presetButtons({

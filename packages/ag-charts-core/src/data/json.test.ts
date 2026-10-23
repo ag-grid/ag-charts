@@ -478,8 +478,10 @@ describe('json module', () => {
         it('should return false with mismatching property values', () => {
             const source = { a: 1, b: true, c: 'three' };
 
+            const changed: typeof source = { a: 2, b: false, c: 'four' };
+
             for (const key of Object.keys(source) as (keyof typeof source)[]) {
-                const target = { ...source, [key]: (source[key] as any) + 1 };
+                const target = { ...source, [key]: changed[key] };
                 expect(jsonPropertyCompare(source, target)).toEqual(false);
             }
         });
@@ -497,7 +499,7 @@ describe('json module', () => {
         it('should return false for undefined target', () => {
             const source = { a: 1, b: true, c: 'three' };
 
-            expect(jsonPropertyCompare(source, undefined as any)).toEqual(false);
+            expect(jsonPropertyCompare<typeof source | undefined>(source, undefined)).toEqual(false);
         });
     });
 });

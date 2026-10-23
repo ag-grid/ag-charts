@@ -17,7 +17,7 @@ afterEach(() => {
     if (realFontsDescriptor) {
         Object.defineProperty(document, 'fonts', realFontsDescriptor);
     } else {
-        delete (document as any).fonts;
+        Reflect.deleteProperty(document, 'fonts');
     }
 });
 
@@ -34,7 +34,7 @@ class MockResizeObserver {
 }
 
 // Install mock before importing fontManager (getResizeObserver reads globalThis)
-(globalThis as any).ResizeObserver = MockResizeObserver;
+globalThis.ResizeObserver = MockResizeObserver;
 
 function createMockAnimationManager(active = false) {
     const listeners = new Set<() => void>();
