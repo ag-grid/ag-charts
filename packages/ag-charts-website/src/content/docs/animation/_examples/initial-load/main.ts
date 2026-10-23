@@ -247,21 +247,21 @@ const donutOptions: AgStandaloneChartOptions<DataType> = {
     ],
 };
 
-const sharedOptions = {
+let options: AgCartesianChartOptions<DataType> | (AgStandaloneChartOptions<DataType> & { axes?: undefined }) = {
     container: document.getElementById('myChart'),
     data: getData(),
     animation: {
         enabled: true,
     },
+    ...barOptions,
 };
-
-let options: AgChartOptions<DataType> = { ...sharedOptions, ...barOptions };
 
 const chart = AgCharts.create(options as AgChartOptions);
 
 function seriesTypeChange(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     const seriesOptions = { bar: barOptions, line: lineOptions, area: areaOptions, donut: donutOptions }[value]!;
-    options = { ...sharedOptions, ...seriesOptions };
+    options.series = seriesOptions.series;
+    options.axes = 'axes' in seriesOptions ? seriesOptions.axes : undefined;
     chart.update(options);
 }

@@ -206,14 +206,14 @@ const donutOptions: AgStandaloneChartOptions = {
     ],
 };
 
-const sharedOptions = {
+let options: AgCartesianChartOptions | (AgStandaloneChartOptions & { axes?: undefined }) = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
     },
+    data: getGeneratedData(),
+    ...barOptions,
 };
-
-let options: AgChartOptions = { ...sharedOptions, data: getGeneratedData(), ...barOptions };
 
 // Create chart
 const chart = AgCharts.create(options as AgChartOptions);
@@ -228,22 +228,26 @@ function seriesTypeChange(event: Event) {
         case 'bar':
             variance = 20;
             length = 8;
-            options = { ...sharedOptions, ...barOptions };
+            options.series = barOptions.series;
+            options.axes = barOptions.axes;
             break;
         case 'line':
             variance = 4;
             length = 30;
-            options = { ...sharedOptions, ...lineOptions };
+            options.series = lineOptions.series;
+            options.axes = lineOptions.axes;
             break;
         case 'area':
             variance = 20;
             length = 30;
-            options = { ...sharedOptions, ...areaOptions };
+            options.series = areaOptions.series;
+            options.axes = areaOptions.axes;
             break;
         case 'donut':
             variance = 30;
             length = 6;
-            options = { ...sharedOptions, ...donutOptions };
+            options.series = donutOptions.series;
+            options.axes = undefined;
             break;
     }
 

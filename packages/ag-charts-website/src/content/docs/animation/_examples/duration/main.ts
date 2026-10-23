@@ -226,16 +226,15 @@ const donutOptions: AgStandaloneChartOptions<DataType> = {
     ],
 };
 
-const sharedOptions = {
+let options: AgCartesianChartOptions<DataType> | (AgStandaloneChartOptions<DataType> & { axes?: undefined }) = {
     container: document.getElementById('myChart'),
     data: getData(),
     animation: {
         enabled: true,
         duration: 500,
     },
+    ...barOptions,
 };
-
-let options: AgChartOptions<DataType> = { ...sharedOptions, ...barOptions };
 
 const chart = AgCharts.create(options as AgChartOptions);
 
@@ -243,16 +242,20 @@ function seriesTypeChange(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     switch (value) {
         case 'bar':
-            options = { ...sharedOptions, ...barOptions };
+            options.series = barOptions.series;
+            options.axes = barOptions.axes;
             break;
         case 'line':
-            options = { ...sharedOptions, ...lineOptions };
+            options.series = lineOptions.series;
+            options.axes = lineOptions.axes;
             break;
         case 'area':
-            options = { ...sharedOptions, ...areaOptions };
+            options.series = areaOptions.series;
+            options.axes = areaOptions.axes;
             break;
         case 'donut':
-            options = { ...sharedOptions, ...donutOptions };
+            options.series = donutOptions.series;
+            options.axes = undefined;
             break;
     }
     chart.update(options);
@@ -260,7 +263,6 @@ function seriesTypeChange(event: Event) {
 
 function durationChange(event: Event) {
     const duration = Number((event.target as HTMLInputElement).value);
-    sharedOptions.animation = { enabled: true, duration };
-    options.animation = sharedOptions.animation;
+    options.animation = { enabled: true, duration };
     chart.update(options);
 }
