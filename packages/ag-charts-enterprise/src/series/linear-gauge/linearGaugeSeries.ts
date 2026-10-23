@@ -159,8 +159,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     LinearGaugeNodeDataContext
 > {
     static override readonly className = 'LinearGaugeSeries';
-    override readonly navigatesWithinSeries = true;
     static readonly type = 'linear-gauge' as const;
+
+    override readonly navigatesWithinSeries = true;
 
     private seriesRect = BBox.NaN;
     private gaugeRect = BBox.NaN;
