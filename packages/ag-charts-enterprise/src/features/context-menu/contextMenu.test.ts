@@ -630,7 +630,7 @@ describe('Context Menu', () => {
             );
         });
 
-        test('orders every matched scope when a marker sits on a crossing axis and a cross line', async () => {
+        it('orders every matched scope when a marker sits on a crossing axis and a cross line', async () => {
             chart = await createEnterpriseChart(
                 chartOptions(
                     { enabled: true, getItems },

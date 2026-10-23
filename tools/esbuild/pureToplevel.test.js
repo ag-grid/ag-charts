@@ -3,8 +3,6 @@ const test = require('node:test');
 
 const { annotatePureToplevel } = require('../../esbuild.config.pure-toplevel.cjs');
 
-// Run with: node --test tools/esbuild/
-
 const INITIALISERS = [
     ['annotates a call with side-effect-free operands in place', 'var x = f(a, 1);', 'var x = /*#__PURE__*/ f(a, 1);'],
     ['annotates a new expression in place', 'var x = new Foo({ a: 1 });', 'var x = /*#__PURE__*/ new Foo({ a: 1 });'],
@@ -21,6 +19,11 @@ const INITIALISERS = [
         'annotates each declarator independently',
         'var a = f(), b = g(h());',
         'var a = /*#__PURE__*/ f(), b = /*#__PURE__*/ (() => (g(h())))();',
+    ],
+    [
+        'merges trailing class statements, renaming references but not literals',
+        'var _Foo = class {};\n_Foo.className = "_Foo";\n_Foo.registry = { _Foo };',
+        'var _Foo = /*#__PURE__*/ (() => { var _c$0 = class {}; _c$0.className = "_Foo"; _c$0.registry = { _Foo: _c$0 }; return _c$0; })()',
     ],
 ];
 
