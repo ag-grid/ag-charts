@@ -122,6 +122,20 @@ if [[ -n "$hook_log" ]]; then
 else
     note "no hook breadcrumb in ${AG_CLOUD_CACHE_DIR}, /opt/ag-cloud, \$HOME/.cache/ag-cloud or /tmp — the SessionStart hook did not run"
 fi
+# Why the fast path did not run, when it did not. Written only for causes that
+# are configuration rather than an ordinary cache miss, so its presence is itself
+# the signal: a missing or mismatched AG_CLOUD_CACHE_KEY leaves exactly the same
+# unscripted tree as "no bake for this lockfile", and without this line the two
+# are indistinguishable from inside a session.
+if [[ -f "$AG_CLOUD_CACHE_DIR/prebuilt-skipped" ]]; then
+    bad "prebuilt cache skipped for a configuration reason: $(head -1 "$AG_CLOUD_CACHE_DIR/prebuilt-skipped" 2>/dev/null)"
+fi
+# Presence only, never the value.
+if [[ -n "${AG_CLOUD_CACHE_KEY:-}" ]]; then
+    ok "AG_CLOUD_CACHE_KEY is set in this session"
+else
+    note "AG_CLOUD_CACHE_KEY is not set in this session — expected, since only the environment build needs it; a session never decrypts anything"
+fi
 if [[ -d "$AG_CLOUD_CACHE_DIR/node_modules" ]]; then
     if [[ -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
         note "cloud cache seeded but unscripted ($AG_CLOUD_CACHE_DIR)"
