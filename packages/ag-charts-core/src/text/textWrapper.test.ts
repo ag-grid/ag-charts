@@ -299,6 +299,16 @@ describe('truncateLine', () => {
             expect(truncateLine('abcdefghij', createMockMeasurer(10, -3), 60)).toBe(`abcdefg${E}`);
         });
 
+        it('measures logarithmically often however far the character sum misses the drawn width', () => {
+            // Each extra 'a' draws 5px but sums 10px, so the sum guesses about half the fitting prefix.
+            const halved = createMockMeasurer(10, -5);
+            const text = 'a'.repeat(200);
+            const expected = longestFittingPrefix(text, halved, 600, false);
+            const textWidth = vi.spyOn(halved, 'textWidth');
+            expect(truncateLine(text, halved, 600)).toBe(expected);
+            expect(textWidth.mock.calls.filter(([measured]) => measured.length > 1).length).toBeLessThan(20);
+        });
+
         it('truncates text whose characters sum within the width but whose drawn width does not', () => {
             expect(truncateLine('Hello', spread, 52)).toBe(`Hel${E}`);
         });
@@ -1565,12 +1575,31 @@ describe('wrapping fits each line as drawn, not by the sum of its characters', (
                     const maxWidth = 30 + Math.floor(random() * 90);
                     const lines = wrapLines(words, { font, maxWidth, textWrap });
                     const context = `${JSON.stringify(words)} in ${maxWidth}px, ${textWrap}, join ${join}`;
-                    if (measurer.textWidth(words) <= maxWidth) expect(lines, context).toEqual([words]);
+                    expect(lines, context).toEqual(measurer.textWidth(words) <= maxWidth ? [words] : lines);
                     for (const line of lines) {
                         expect(measurer.textWidth(line), `${context}: ${JSON.stringify(line)}`).toBeLessThanOrEqual(
                             maxWidth
                         );
                     }
+                }
+            }
+        }
+    });
+
+    it('keeps every character, once, when breaking words, for generated text and widths', () => {
+        const random = seededRandom(18633);
+        const letters = (wrapped: string) => wrapped.replaceAll(' ', '');
+        for (const join of [-3, -1, 1, 3]) {
+            withJoin(join);
+            for (const textWrap of ['always', 'hyphenate'] as const) {
+                for (let n = 0; n < 100; n++) {
+                    const words = generateWords(random);
+                    const maxWidth = 30 + Math.floor(random() * 90);
+                    const lines = wrapLines(words, { font, maxWidth, textWrap });
+                    const rejoined = lines.map((line) => line.replace(/-$/, '')).join('');
+                    expect(letters(rejoined), `${JSON.stringify(words)} in ${maxWidth}px, ${textWrap}`).toBe(
+                        letters(words)
+                    );
                 }
             }
         }

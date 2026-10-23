@@ -902,12 +902,46 @@ function fittingGraphemeCount(
         count += 1;
     }
     const fits = (n: number) => {
+        if (n === 0) return true;
         const prefix = graphemes.slice(0, n).join('');
         return measurer.textWidth(draw ? draw(prefix) : prefix) <= maxWidth;
     };
-    while (count < graphemes.length && fits(count + 1)) count += 1;
-    while (count > 0 && !fits(count)) count -= 1;
-    return count;
+    return largestFitting(count, graphemes.length, fits);
+}
+
+/**
+ * The largest count up to `max` that `fits`, which must hold for 0 and stop holding past some count. Searching
+ * away from `guess` in doubling strides, then bisecting, costs O(log n) probes however far off the guess is.
+ */
+function largestFitting(guess: number, max: number, fits: (count: number) => boolean): number {
+    let fit = guess;
+    let miss = guess;
+    let step = 1;
+    if (guess < max && fits(guess + 1)) {
+        fit = guess + 1;
+        miss = max + 1;
+        while (fit < max) {
+            const probe = Math.min(fit + step, max);
+            if (!fits(probe)) {
+                miss = probe;
+                break;
+            }
+            fit = probe;
+            step *= 2;
+        }
+    } else {
+        while (!fits(fit)) {
+            miss = fit;
+            fit = Math.max(fit - step, 0);
+            step *= 2;
+        }
+    }
+    while (miss - fit > 1) {
+        const mid = (fit + miss) >> 1;
+        if (fits(mid)) fit = mid;
+        else miss = mid;
+    }
+    return fit;
 }
 
 export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
