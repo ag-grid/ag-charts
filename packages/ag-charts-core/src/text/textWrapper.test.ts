@@ -1588,6 +1588,15 @@ describe('wrapping fits each line as drawn, not by the sum of its characters', (
         }
     });
 
+    it('measures a long label in time linear in its length, however many lines it breaks into', () => {
+        const label = 'abcdefghij'.repeat(40);
+        const textWidth = vi.spyOn(cachedTextMeasurer(font), 'textWidth');
+        expect(wrapLines(label, { font, maxWidth: 50, textWrap: 'always' })).toHaveLength(80);
+        const measured = textWidth.mock.calls.reduce((sum, [measuredText]) => sum + measuredText.length, 0);
+        // Measuring each remaining suffix whole costs about 18 000 characters here.
+        expect(measured).toBeLessThan(8 * label.length);
+    });
+
     it('keeps every character, once, when breaking words, for generated text and widths', () => {
         const random = seededRandom(18633);
         const letters = (wrapped: string) => wrapped.replaceAll(' ', '');

@@ -999,10 +999,10 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             line = line.slice(breakIndex).trimStart();
         };
 
-        while (line !== '') {
+        // Only the whole line is measured: what remains after a break is fitted by prefix, never measured whole.
+        const fitsWhole = measurer.textWidth(line) <= maxWidth() - (result.length === 0 ? widthOffset : 0);
+        while (line !== '' && !fitsWhole) {
             const offset = result.length === 0 ? widthOffset : 0;
-            if (measurer.textWidth(line) <= maxWidth() - offset) break;
-
             const graphemes = graphemeSegments(line);
             const fitted = fittingGraphemeCount(graphemes, measurer, maxWidth() - offset);
             if (fitted === graphemes.length) break;
