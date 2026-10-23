@@ -616,6 +616,37 @@ describe('CrossLine', () => {
             );
         });
 
+        it.each(['common', 'line'] as const)(
+            'fires an axis `crossLineClick` set through a positional %s theme override',
+            async (namespace) => {
+                const crossLineClick = vi.fn();
+                chart = deproxy(
+                    await createChart(
+                        fullRangeOptions({
+                            axes: {
+                                x: { type: 'category' },
+                                y: {
+                                    type: 'number',
+                                    min: FULL_RANGE[0],
+                                    max: FULL_RANGE[1],
+                                    crossLines: [rangeCrossLine()],
+                                },
+                            },
+                            theme: {
+                                overrides: {
+                                    [namespace]: { axes: { number: { left: { listeners: { crossLineClick } } } } },
+                                },
+                            },
+                        })
+                    )
+                );
+
+                await clickAction(CENTRE_X, CENTRE_Y)(chart);
+
+                expect(crossLineClick).toHaveBeenCalledTimes(1);
+            }
+        );
+
         it('leaves the plugin off for an axis with listeners but no cross lines', async () => {
             chart = deproxy(
                 await createChart(

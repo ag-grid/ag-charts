@@ -568,16 +568,16 @@ export function crossLineThemeOptionsDefs(label: OptionsDefs<any>): OptionsDefs<
     return { ...range, line: { ...crossLineCommonStyleOptionsDefs, label }, range };
 }
 
+export const cartesianAxisThemePositions = ['top', 'right', 'bottom', 'left'] as const;
+
 /** Theme overrides for a cartesian axis type: its options plus per-position overrides. */
 export function cartesianAxisThemeOptionsDefs(axisDefs: OptionsDefs<any>): OptionsDefs<any> {
+    const defs: OptionsDefs<any> = without(axisDefs, ['type']);
     const positioned = without(axisDefs, ['type', 'position']);
-    return {
-        ...without(axisDefs, ['type']),
-        top: positioned,
-        right: positioned,
-        bottom: positioned,
-        left: positioned,
-    };
+    for (const position of cartesianAxisThemePositions) {
+        defs[position] = positioned;
+    }
+    return defs;
 }
 
 /** Theme overrides for a polar axis type. */

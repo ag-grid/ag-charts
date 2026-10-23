@@ -1,9 +1,11 @@
 import {
     type ModuleScope,
     ModuleType,
+    type OptionsContribution,
     type OptionsDefs,
     type ResolvedContribution,
     boolean,
+    cartesianAxisThemePositions,
     commonThemeOverridesOptionsDefs,
     composeHostContributedDefs,
     contributionMatchesAxisType,
@@ -44,15 +46,19 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
         const axes: OptionsDefs<any> = {};
         for (const axis of axisModules) {
             if (chartType != null && axis.chartType !== chartType) continue;
-            axes[axis.name] = composeHostContributedDefs(
-                axis.themeOptions,
-                contributionsFor(axis.chartType),
-                'axis',
-                (contribution) =>
-                    contributionMatchesChartType(contribution, axis.chartType) &&
-                    contributionMatchesAxisType(contribution, axis.name),
-                true
-            );
+            const contributions = contributionsFor(axis.chartType);
+            const applies = (contribution: OptionsContribution) =>
+                contributionMatchesChartType(contribution, axis.chartType) &&
+                contributionMatchesAxisType(contribution, axis.name);
+            const defs = composeHostContributedDefs<any>(axis.themeOptions, contributions, 'axis', applies, true);
+            for (const position of cartesianAxisThemePositions) {
+                const positioned = axis.themeOptions[position];
+                if (positioned == null) continue;
+                // A positional override only extends the option groups it declares, such as `listeners`.
+                const nested = contributions.filter(({ relative }) => relative.segments[0].key in positioned);
+                defs[position] = composeHostContributedDefs(positioned, nested, 'axis', applies, true);
+            }
+            axes[axis.name] = defs;
         }
         for (const placeholder of ExpectedModules.values()) {
             if (placeholder.type !== ModuleType.Axis || moduleRegistry.hasModule(placeholder.name)) continue;
