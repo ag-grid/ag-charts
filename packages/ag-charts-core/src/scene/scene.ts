@@ -267,6 +267,7 @@ export class Scene extends EventEmitter<EventMap> {
         if (Debug.check(DebugSelectors.SCENE_STATS_VERBOSE)) {
             renderCtx.stats = {
                 layersRendered: 0,
+                layersPartiallyRendered: 0,
                 layersSkipped: 0,
                 nodesRendered: 0,
                 nodesSkipped: 0,

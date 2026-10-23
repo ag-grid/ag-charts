@@ -31,6 +31,14 @@ interface OffscreenImageBitmap {
 
 let sharedOffscreenCanvas: HdpiOffscreenCanvas | undefined;
 
+/** Past this share of a layer's area, a clipped partial repaint costs more than repainting the layer whole. */
+const PARTIAL_REPAINT_MAX_AREA_SHARE = 0.5;
+
+/** How far the layer's transform may be from `scale(pixelRatio)` plus a translation before it counts as different. */
+const TRANSFORM_EPSILON = 1e-9;
+
+type Dirtiness = 'clean' | 'partial' | 'full';
+
 export class Group<TDatum = unknown> extends Node<TDatum> {
     static override readonly className: string = 'Group';
 
@@ -50,6 +58,15 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     private readonly childNodes = new Set<Node>();
 
     public dirty = false;
+    /** Whether the group changed in a way {@link regionSources} don't bound. */
+    private fullDirty = true;
+    /** The descendants that marked only a region dirty since the layer was last painted, if this group owns a layer. */
+    private regionSources: Set<Node> | undefined = undefined;
+    /** Whether the layer's bitmap holds exactly what a full repaint of the last frame produced. */
+    private layerValid = false;
+    private layerRenderFailed = false;
+    /** The transform the layer was last painted with. */
+    private layerTransform: DOMMatrix | undefined = undefined;
     private dirtyZIndex: boolean = false;
     private clipRect: BBox | undefined = undefined;
 
@@ -166,6 +183,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         if (this.layer && previousScene && previousScene !== scene) {
             previousScene.layersManager.removeLayer(this.layer);
             this.layer = undefined;
+            this.layerValid = false;
         }
 
         for (const child of this.children()) {
@@ -197,9 +215,45 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     override markDirty(property?: string): void {
         this.dirty = true;
+        this.fullDirty = true;
         this._childFontDirty = true;
         this.shadowCasterCount = -1;
         super.markDirty(property);
+    }
+
+    /** Only the nearest layer owner records the source; anything that can't repaint in part takes an ordinary mark. */
+    override markDirtyRegionOf(source: Node): void {
+        if (this.batchLevel > 0) {
+            super.markDirtyRegionOf(source);
+            return;
+        }
+
+        if (!this.renderToOffscreenCanvas) {
+            this.dirty = true;
+            this.cachedBBox = undefined;
+            this.parentNode?.markDirtyRegionOf(source);
+            return;
+        }
+
+        if (this.layer == null || this.optimizeForInfrequentRedraws) {
+            this.markDirty();
+            return;
+        }
+
+        this.regionSources ??= new Set();
+        this.regionSources.add(source);
+        this.dirty = true;
+        this.cachedBBox = undefined;
+        this.parentNode?.markDirty();
+    }
+
+    protected override invalidateLayerOnRenderError(): void {
+        if (this.layer == null) {
+            super.invalidateLayerOnRenderError();
+            return;
+        }
+        this.layerValid = false;
+        this.layerRenderFailed = true;
     }
 
     override markDirtyChildrenOrder(): void {
@@ -304,15 +358,71 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     private _lastWidth = Number.NaN;
     private _lastHeight = Number.NaN;
     private _lastDevicePixelRatio = Number.NaN;
-    private isDirty(renderCtx: RenderContext) {
+    private resolveDirtiness(renderCtx: RenderContext): Dirtiness {
         const { width, height, devicePixelRatio } = renderCtx;
-        const { dirty, layer } = this;
+        const { dirty, fullDirty, layer } = this;
         const layerResized = layer != null && (this._lastWidth !== width || this._lastHeight !== height);
         const pixelRatioChanged = this._lastDevicePixelRatio !== devicePixelRatio;
         this._lastWidth = width;
         this._lastHeight = height;
         this._lastDevicePixelRatio = devicePixelRatio;
-        return dirty || layerResized || pixelRatioChanged;
+
+        if (fullDirty || layerResized || pixelRatioChanged) return 'full';
+        if (!dirty) return 'clean';
+        return layer != null && this.layerValid && (this.regionSources?.size ?? 0) > 0 ? 'partial' : 'full';
+    }
+
+    /** The device-pixel region to repaint when the sources bound everything that changed, else `undefined`. */
+    private resolveDirtyRegion(renderCtx: RenderContext, transform: DOMMatrix): BBox | undefined {
+        const { layerTransform: last, regionSources } = this;
+        const { width, height, devicePixelRatio: pixelRatio } = renderCtx;
+        if (last == null || regionSources == null) return;
+
+        // The region is found in canvas space and scaled, so the layer has to be placed in it by that scale alone.
+        const { a, b, c, d, e, f } = transform;
+        if (
+            Math.abs(a - pixelRatio) > TRANSFORM_EPSILON ||
+            Math.abs(d - pixelRatio) > TRANSFORM_EPSILON ||
+            Math.abs(b) > TRANSFORM_EPSILON ||
+            Math.abs(c) > TRANSFORM_EPSILON ||
+            Math.abs(e - last.e) > TRANSFORM_EPSILON ||
+            Math.abs(f - last.f) > TRANSFORM_EPSILON ||
+            Math.abs(a - last.a) > TRANSFORM_EPSILON ||
+            Math.abs(d - last.d) > TRANSFORM_EPSILON ||
+            Math.abs(b - last.b) > TRANSFORM_EPSILON ||
+            Math.abs(c - last.c) > TRANSFORM_EPSILON
+        ) {
+            return;
+        }
+        const { canvasX: originX, canvasY: originY } = Transformable.toCanvasPoint(this, 0, 0);
+        if (Math.abs(e - originX * pixelRatio) > 1e-6 || Math.abs(f - originY * pixelRatio) > 1e-6) return;
+
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        for (const source of regionSources) {
+            const local = source.getDirtyRegion();
+            if (local?.isFinite() !== true || local.width <= 0 || local.height <= 0) return;
+            const canvas = Transformable.toCanvas(source, local);
+            if (!canvas.isFinite()) return;
+            minX = Math.min(minX, canvas.x);
+            minY = Math.min(minY, canvas.y);
+            maxX = Math.max(maxX, canvas.x + canvas.width);
+            maxY = Math.max(maxY, canvas.y + canvas.height);
+        }
+
+        // Grow by a device pixel for anti-aliasing at the edges, then round outwards to whole device pixels.
+        const layerWidth = Math.ceil(width * pixelRatio);
+        const layerHeight = Math.ceil(height * pixelRatio);
+        const x0 = Math.max(0, Math.floor(minX * pixelRatio) - 1);
+        const y0 = Math.max(0, Math.floor(minY * pixelRatio) - 1);
+        const x1 = Math.min(layerWidth, Math.ceil(maxX * pixelRatio) + 1);
+        const y1 = Math.min(layerHeight, Math.ceil(maxY * pixelRatio) + 1);
+        if (x1 <= x0 || y1 <= y0) return;
+        if ((x1 - x0) * (y1 - y0) > layerWidth * layerHeight * PARTIAL_REPAINT_MAX_AREA_SHARE) return;
+
+        return new BBox(x0, y0, x1 - x0, y1 - y0);
     }
 
     override preRender(renderCtx: RenderContext): ChildNodeCounts {
@@ -352,11 +462,16 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 this.layer = this.layerManager?.addLayer({ name: this.name });
                 // Detaching from the scene destroys the layer, so a clean group can arrive here with
                 // a fresh, empty one - it has to be rendered into before it is composited.
-                this.dirty ||= this.layer != null;
+                if (this.layer != null) {
+                    this.dirty = true;
+                    this.fullDirty = true;
+                    this.layerValid = false;
+                }
             }
         } else if (this.layer != null) {
             this.layerManager?.removeLayer(this.layer);
             this.layer = undefined;
+            this.layerValid = false;
         }
 
         return counts;
@@ -366,8 +481,20 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         const { layer, useOffscreenCanvas } = this;
         const childRenderCtx: RenderContext = { ...renderCtx };
 
-        const dirty = this.isDirty(renderCtx);
+        let dirtiness = this.resolveDirtiness(renderCtx);
+        const { ctx, stats, devicePixelRatio: pixelRatio } = renderCtx;
+        let layerTransform: DOMMatrix | undefined;
+        let dirtyRegion: BBox | undefined;
+        if (useOffscreenCanvas && layer && dirtiness !== 'clean') {
+            layerTransform = ctx.getTransform();
+            if (dirtiness === 'partial') {
+                dirtyRegion = this.resolveDirtyRegion(renderCtx, layerTransform);
+                if (dirtyRegion == null) dirtiness = 'full';
+            }
+        }
         this.dirty = false;
+        this.fullDirty = false;
+        this.regionSources?.clear();
 
         if (!useOffscreenCanvas) {
             this.renderInContext(childRenderCtx);
@@ -375,10 +502,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             return;
         }
 
-        const { ctx, stats, devicePixelRatio: pixelRatio } = renderCtx;
-
         let { image } = this;
-        if (dirty) {
+        if (dirtiness !== 'clean') {
             image?.bitmap.close();
             image = undefined;
 
@@ -386,6 +511,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
             const renderOffscreen = (
                 offscreenCanvas: HdpiOffscreenCanvas,
+                region: BBox | undefined,
                 ...transform: [DOMMatrix] | [number, number, number, number, number, number]
             ) => {
                 const offscreenCtx = offscreenCanvas.context;
@@ -393,10 +519,21 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 childRenderCtx.ctx = offscreenCtx;
                 // Offscreen canvas has its own font state — clear tracker.
                 childRenderCtx.currentFont = undefined;
+                // The region is of this canvas alone, so it doesn't carry over to a layer nested inside.
+                childRenderCtx.dirtyRegion = region;
 
-                offscreenCanvas.clear();
+                if (region == null) offscreenCanvas.clear();
                 offscreenCtx.save();
                 try {
+                    if (region != null) {
+                        // Only the region is cleared, and then painted: the clip keeps the rest of the layer as it was.
+                        const { x, y, width, height } = region;
+                        offscreenCtx.resetTransform();
+                        offscreenCtx.beginPath();
+                        offscreenCtx.rect(x, y, width, height);
+                        offscreenCtx.clip();
+                        offscreenCtx.clearRect(x, y, width, height);
+                    }
                     offscreenCtx.setTransform(...(transform as any[]));
                     offscreenCtx.globalAlpha = 1;
                     this.renderInContext(childRenderCtx);
@@ -407,7 +544,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             };
 
             if (layer) {
-                renderOffscreen(layer, ctx.getTransform());
+                this.layerValid = false;
+                this.layerRenderFailed = false;
+                renderOffscreen(layer, dirtyRegion, layerTransform!);
+                this.layerValid = !this.layerRenderFailed;
+                this.layerTransform = layerTransform;
             } else if (bbox) {
                 const { x, y, width, height } = bbox;
 
@@ -417,7 +558,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
                 if (scaledWidth > 0 && scaledHeight > 0) {
                     const canvas = this.prepareSharedCanvas(width, height, pixelRatio);
-                    renderOffscreen(canvas, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
+                    renderOffscreen(canvas, undefined, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
 
                     image = { bitmap: canvas.transferToImageBitmap(), x, y, width, height };
                 }
@@ -425,7 +566,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
             this.image = image;
 
-            if (stats) stats.layersRendered++;
+            if (stats) {
+                stats.layersRendered++;
+                if (dirtyRegion) stats.layersPartiallyRendered++;
+            }
         } else if (stats) {
             stats.layersSkipped++;
         }
