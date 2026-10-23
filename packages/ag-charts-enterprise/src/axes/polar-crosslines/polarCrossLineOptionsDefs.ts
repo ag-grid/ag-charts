@@ -3,12 +3,10 @@ import {
     type OptionsDefs,
     type Validator,
     commonCrossLineLabelOptionsDefs,
-    crossLineThemeOptionsDefs,
-    crossLinesArrayOptionsDefs,
-    crossLinesThemeTemplate,
+    crossLinesContribution,
     number,
 } from 'ag-charts-core';
-import type { AgBaseCrossLineLabelOptions, AgRadiusCrossLineLabelOptions } from 'ag-charts-types';
+import type { AgRadiusCrossLineLabelOptions } from 'ag-charts-types';
 
 const radiusCrossLineLabelOptionsDefs: OptionsDefs<AgRadiusCrossLineLabelOptions> = {
     ...commonCrossLineLabelOptionsDefs,
@@ -16,23 +14,9 @@ const radiusCrossLineLabelOptionsDefs: OptionsDefs<AgRadiusCrossLineLabelOptions
 };
 
 export function angleCrossLines(axisType: string, value: Validator): OptionsContribution {
-    return polarCrossLines(axisType, value, commonCrossLineLabelOptionsDefs);
+    return crossLinesContribution([axisType], value, commonCrossLineLabelOptionsDefs);
 }
 
 export function radiusCrossLines(axisType: string, value: Validator): OptionsContribution {
-    return polarCrossLines(axisType, value, radiusCrossLineLabelOptionsDefs);
-}
-
-function polarCrossLines(
-    axisType: string,
-    value: Validator,
-    labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>
-): OptionsContribution {
-    return {
-        path: 'axes[].crossLines',
-        axisTypes: [axisType],
-        options: crossLinesArrayOptionsDefs(value, labelDefs),
-        themeOptions: crossLineThemeOptionsDefs(labelDefs),
-        themeTemplate: crossLinesThemeTemplate,
-    };
+    return crossLinesContribution([axisType], value, radiusCrossLineLabelOptionsDefs);
 }

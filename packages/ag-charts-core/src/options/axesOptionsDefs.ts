@@ -39,6 +39,7 @@ import type {
 
 import { without } from '../data/object';
 import type { OptionsContribution } from '../modules/optionsContribution';
+import { crossLinesThemeTemplate } from './axisThemeTemplate';
 import { numberFormatValidator, textOrSegments, timeInterval, timeIntervalUnit } from './chartDefaults';
 import {
     borderOptionsDef,
@@ -150,6 +151,21 @@ export function crossLineOptionsDefs(
 
 export function crossLinesArrayOptionsDefs(value: Validator, labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>) {
     return arrayOfDefs(crossLineOptionsDefs(value, labelDefs), 'a cross-line options array');
+}
+
+/** The `axes[].crossLines` option and theme contribution for the given axis types. */
+export function crossLinesContribution(
+    axisTypes: string[],
+    value: Validator,
+    labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>
+): OptionsContribution {
+    return {
+        path: 'axes[].crossLines',
+        axisTypes,
+        options: crossLinesArrayOptionsDefs(value, labelDefs),
+        themeOptions: crossLineThemeOptionsDefs(labelDefs),
+        themeTemplate: crossLinesThemeTemplate,
+    };
 }
 
 export const crossLineListenerContributions: OptionsContribution[] = [

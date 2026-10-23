@@ -1,12 +1,8 @@
 import {
     type AxisPluginModuleDefinition,
     type DynamicContext,
-    type OptionsContribution,
-    type Validator,
     crossLineListenerContributions,
-    crossLineThemeOptionsDefs,
-    crossLinesArrayOptionsDefs,
-    crossLinesThemeTemplate,
+    crossLinesContribution,
     date,
     defined,
     numericValue,
@@ -22,16 +18,6 @@ import { CrossLinesDOMProxyModule } from './crossLinesDOMProxyModule';
 import { CrossLinesPlugin } from './crossLinesPlugin';
 import type { CrossLinesRegistry } from './crossLinesRegistry';
 
-function cartesianCrossLines(axisTypes: string[], value: Validator): OptionsContribution {
-    return {
-        path: 'axes[].crossLines',
-        axisTypes,
-        options: crossLinesArrayOptionsDefs(value, cartesianCrossLineLabelOptionsDefs),
-        themeOptions: crossLineThemeOptionsDefs(cartesianCrossLineLabelOptionsDefs),
-        themeTemplate: crossLinesThemeTemplate,
-    };
-}
-
 export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions[]> = /* #__PURE__ */ communityModule({
     type: 'axis:plugin',
     name: 'crossLines',
@@ -41,11 +27,16 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
     dependencies: [CrossLinesDOMProxyModule],
 
     contributes: [
-        /* #__PURE__ */ cartesianCrossLines(['category', 'grouped-category'], defined),
-        /* #__PURE__ */ cartesianCrossLines(['number', 'log'], numericValue),
-        /* #__PURE__ */ cartesianCrossLines(
+        /* #__PURE__ */ crossLinesContribution(
+            ['category', 'grouped-category'],
+            defined,
+            cartesianCrossLineLabelOptionsDefs
+        ),
+        /* #__PURE__ */ crossLinesContribution(['number', 'log'], numericValue, cartesianCrossLineLabelOptionsDefs),
+        /* #__PURE__ */ crossLinesContribution(
             ['time', 'unit-time', 'ordinal-time'],
-            /* #__PURE__ */ or(numericValue, date)
+            /* #__PURE__ */ or(numericValue, date),
+            cartesianCrossLineLabelOptionsDefs
         ),
         ...crossLineListenerContributions,
     ],
