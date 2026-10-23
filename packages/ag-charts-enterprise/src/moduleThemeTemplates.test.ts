@@ -16,7 +16,7 @@ import {
     validate,
 } from 'ag-charts-core';
 
-import { AllEnterpriseModule } from './main';
+import { AllEnterpriseModule, RadiusNumberAxisModule } from './main';
 
 type Placement = [label: string, overrides: object];
 
@@ -149,5 +149,19 @@ describe('module theme templates', () => {
 
         expect(checked).toContain('plugin:background-regions@seriesArea.backgroundRegions[line]');
         expect(errors).toEqual([]);
+    });
+
+    it("accept an axis's placeholder shape when its owner is registered only for another chart type", () => {
+        const scope = new ModuleScope();
+        scope.registerModules([AllCommunityModule, RadiusNumberAxisModule]);
+        const overrides = {
+            common: {
+                axes: { 'radius-number': { crossLines: { enabled: true }, listeners: { crossLineClick: () => {} } } },
+            },
+        };
+
+        const { invalid } = validate({ overrides }, themeOptionsDefFor(scope), 'theme', { logger: new Logger() });
+
+        expect(invalid.map(String)).toEqual([]);
     });
 });

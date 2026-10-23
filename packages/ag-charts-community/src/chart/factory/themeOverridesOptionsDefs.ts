@@ -38,7 +38,6 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
         }
         return contributions;
     }
-    const contributions = contributionsFor(undefined);
     const axisModules = [...moduleRegistry.listModulesByType(ModuleType.Axis)];
 
     function axesDefs(chartType: string | undefined) {
@@ -47,7 +46,7 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
             if (chartType != null && axis.chartType !== chartType) continue;
             axes[axis.name] = composeHostContributedDefs(
                 axis.themeOptions,
-                contributions,
+                contributionsFor(axis.chartType),
                 'axis',
                 (contribution) =>
                     contributionMatchesChartType(contribution, axis.chartType) &&
@@ -67,7 +66,7 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
     const entries: Record<string, unknown> = {
         common: composeHostContributedDefs<any>(
             { ...commonThemeOverridesOptionsDefs, axes: axesDefs(undefined) },
-            contributions,
+            contributionsFor(undefined),
             'chart',
             () => true,
             true
@@ -85,7 +84,7 @@ export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsD
         );
         const seriesDefs = composeHostContributedDefs(
             series.themeOptions,
-            contributions,
+            contributionsFor(chartType),
             'series',
             (contribution) =>
                 contributionMatchesChartType(contribution, chartType) &&
