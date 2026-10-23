@@ -2,7 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgCartesianCrossLineOptions, AgChartInstance } from 'ag-charts-types';
 
-import { createChart, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
+import {
+    createChart,
+    getTabStopGroups,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 
 const X_CROSS_LINES: AgCartesianCrossLineOptions[] = [{ type: 'line', value: 'Feb', label: { text: 'X1' } }];
 
@@ -28,12 +34,6 @@ function crossLineOptions(crossLineClick = vi.fn()): AgCartesianChartOptions {
             },
         },
     };
-}
-
-function proxyContainerClasses() {
-    const canvasProxy = document.querySelector('.ag-charts-canvas-proxy');
-    expect(canvasProxy).not.toBeNull();
-    return Array.from(canvasProxy!.children, (child) => child.classList[0]);
 }
 
 function crossLineButtons() {
@@ -62,11 +62,10 @@ describe('CrossLinesDOMProxy', () => {
     it('places the cross-line list after the series area and before the legend in the tab order', async () => {
         chart = await createChart(crossLineOptions());
 
-        expect(proxyContainerClasses()).toEqual([
-            'ag-charts-series-area-bounds',
+        expect(getTabStopGroups()).toEqual([
+            'ag-charts-series-area',
             'ag-charts-proxy-cross-lines',
             'ag-charts-proxy-legend-toolbar',
-            'ag-charts-proxy-legend-pagination',
         ]);
     });
 
