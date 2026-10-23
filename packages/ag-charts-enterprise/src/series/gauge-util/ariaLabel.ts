@@ -11,12 +11,7 @@ export function gaugeChartAriaLabel(
     caption: string,
     series: readonly _ModuleSupport.UnknownSeries[]
 ) {
-    const captions: string[] = [];
-    if (caption.length !== 0) {
-        captions.push(caption);
-    }
-    for (const s of series) {
-        if (hasCaptionText(s)) captions.push(s.getCaptionText());
-    }
+    const captions = series.filter(hasCaptionText).map((s) => s.getCaptionText());
+    if (caption.length !== 0) captions.unshift(caption);
     return localeManager.t('ariaAnnounceGaugeChart', { caption: captions.join('. ') });
 }
