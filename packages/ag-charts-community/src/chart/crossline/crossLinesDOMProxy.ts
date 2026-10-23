@@ -100,7 +100,14 @@ export class CrossLinesDOMProxy {
     }
 
     getFocusState(): CrossLineFocusState | undefined {
-        return this.focusedIndex == null ? undefined : this.entries[this.focusedIndex];
+        return this.focusedIndex == null ? undefined : this.liveEntry(this.focusedIndex);
+    }
+
+    /** Entries are rebuilt only before the scene renders, so one may name a cross line its plugin has since replaced. */
+    private liveEntry(index: number): ProxyEntry | undefined {
+        const entry = this.entries[index];
+        if (entry == null || !this.plugins.has(entry.plugin)) return;
+        return entry.plugin.getInstances().includes(entry.crossLine) ? entry : undefined;
     }
 
     private update() {
@@ -179,7 +186,7 @@ export class CrossLinesDOMProxy {
         });
         // Fires for Enter and Space only: the buttons have `pointer-events: none`.
         button.addListener('click', (event) => {
-            const entry = this.entries[index];
+            const entry = this.liveEntry(index);
             entry?.plugin.keyboardClick(entry.crossLine, event.sourceEvent);
         });
 

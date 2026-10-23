@@ -2,7 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgCartesianCrossLineOptions, AgChartInstance } from 'ag-charts-types';
 
-import { createChart, getTabStopGroups, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
+import {
+    createChart,
+    deproxy,
+    getTabStopGroups,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
+import { getCrossLinesPlugin } from './test/crossLineAccessors';
 
 const X_CROSS_LINES: AgCartesianCrossLineOptions[] = [{ type: 'line', value: 'Feb', label: { text: 'X1' } }];
 
@@ -126,6 +134,25 @@ describe('CrossLinesDOMProxy', () => {
         expect(crossLineClick).toHaveBeenCalledWith(
             expect.objectContaining({ type: 'crossLineClick', axisId: 'y', crossLineType: 'range', range: [5, 6] })
         );
+    });
+
+    it('ignores a focused proxy whose cross line was replaced before the proxies are rebuilt', async () => {
+        const crossLineClick = vi.fn();
+        const options = crossLineOptions(crossLineClick);
+        chart = await createChart(options);
+        const yPlugin = getCrossLinesPlugin(deproxy(chart).axes.findById('y')!)!;
+        const focused = crossLineButtons()[1];
+        focused.focus();
+
+        // Proxies rebuild just before the scene renders, so the button outlives its cross line until then.
+        const applyOptions = yPlugin.applyOptions.bind(yPlugin);
+        vi.spyOn(yPlugin, 'applyOptions').mockImplementation((crossLines) => {
+            applyOptions(crossLines);
+            focused.click();
+        });
+        await chart.update({ ...options, axes: { ...options.axes, y: { ...options.axes!.y, crossLines: [] } } });
+
+        expect(crossLineClick).not.toHaveBeenCalled();
     });
 
     it('omits cross lines that are not clickable', async () => {
