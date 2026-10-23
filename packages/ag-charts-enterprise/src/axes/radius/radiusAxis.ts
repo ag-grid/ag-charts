@@ -8,6 +8,7 @@ import {
     Line,
     type NormalisedBaseRadiusAxisOptions,
     Path,
+    type PolarAxisLayout,
     type Scale,
     Selection,
     TransformableGroup,
@@ -297,7 +298,7 @@ export abstract class RadiusAxis<
         titleNode.visible = titleVisible;
     }
 
-    protected override computePolarLayout(): _ModuleSupport.PolarAxisLayout {
+    protected override computePolarLayout(): PolarAxisLayout {
         const radius = this.range[0];
         return {
             ...this.calculateRotations(),

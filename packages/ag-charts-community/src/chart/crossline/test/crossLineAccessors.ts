@@ -1,5 +1,6 @@
+import type { CrossLine } from 'ag-charts-core';
+
 import type { ChartAxis } from '../../chartAxis';
-import type { CrossLine } from '../crossLine';
 import type { CrossLinesPlugin } from '../crossLinesPlugin';
 
 // `CartesianCrossLine.fitted` is the private cache (other cross line kinds have none) of the label as fitted to its `maxWidth`/`maxHeight`.

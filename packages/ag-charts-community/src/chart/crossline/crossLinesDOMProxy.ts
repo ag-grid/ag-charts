@@ -1,8 +1,7 @@
-import type { AxisID, BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget } from 'ag-charts-core';
+import type { AxisID, BBox, BoxBounds, ButtonWidget, CrossLine, DynamicContext, ListWidget } from 'ag-charts-core';
 import { CleanupRegistry, Path, Transformable, createSvgElement } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { CrossLine } from './crossLine';
 
 const DOM_MANAGER_ID = 'cross-lines';
 const FOCUS_PATH_CLASS = 'ag-charts-proxy-cross-line-focus-path';

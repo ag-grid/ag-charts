@@ -5,6 +5,7 @@ import {
     CROSS_LINE_TYPES,
     ChartUpdateType,
     type CrossLineLabelOverflow,
+    type CrossLineType,
     type DynamicContext,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
@@ -51,7 +52,6 @@ import {
     waitForChartStability,
 } from '../test/utils';
 import { CartesianCrossLine } from './cartesianCrossLine';
-import type { CrossLineType } from './crossLine';
 import type { CrossLinesRegistry } from './crossLinesRegistry';
 import { getCrossLineFittedLabel, getCrossLinesPlugin } from './test/crossLineAccessors';
 import * as examples from './test/examples';

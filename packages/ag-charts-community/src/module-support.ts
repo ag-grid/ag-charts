@@ -15,7 +15,6 @@ export {
     predictCartesianNonPrimitiveAxis,
 } from './chart/series/cartesian/util';
 export { stackCartesianSeries } from './chart/cartesianUtil';
-export { crossLineHitTolerance } from './chart/crossline/cartesianCrossLine';
 export type {
     ActiveLoadMementoEvent,
     AxisLayout,
@@ -54,13 +53,7 @@ export type {
     ZoomSaveMementoEvent,
 } from './core/eventsHub';
 export { ChartOptions } from './module/optionsModule';
-export type {
-    AxisBandDatum,
-    AxisContext,
-    AxisFormattableLabel,
-    AxisValuePick,
-    PolarAxisLayout,
-} from './module/axisContext';
+export type { AxisBandDatum, AxisContext, AxisFormattableLabel, AxisValuePick } from './module/axisContext';
 export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
 export type { SelectionModuleFns } from './chart/modulesManager';
 export { Background } from './chart/background/background';
@@ -250,9 +243,6 @@ export { CartesianAxis } from './chart/axis/cartesianAxis';
 export { DiscreteTimeAxis } from './chart/axis/discreteTimeAxis';
 export { minimumTimeAxisDatumGranularity } from './chart/axis/timeAxis';
 export type { ChartAxis, FormatDatumParams } from './chart/chartAxis';
-export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/crossLine';
-export type { CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
-export { bandRangeExpansion, isValidScaleValue } from './chart/scaleValue';
 export {
     buildColorCategoryLegendData,
     buildGradientLegendDatum,

@@ -1,6 +1,7 @@
+import type { CrossLine } from 'ag-charts-core';
+
 import type { AxisContext } from '../../module/axisContext';
 import type { ChartAxisRegistry } from '../../module/moduleContext';
-import type { CrossLine } from './crossLine';
 import type { CrossLinesDOMProxy } from './crossLinesDOMProxy';
 
 /** An axis's module context as the cross-lines modules see it. */

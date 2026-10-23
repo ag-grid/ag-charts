@@ -5,11 +5,13 @@ import type {
     CallbackParamRules,
     CanvasPoint,
     ChartSidePadding,
+    CrossLine,
     DynamicContext,
     Forbid,
     NormalisedAxisCrossLineOptions,
     PlacedLabel,
     PointLabelDatum,
+    PolarCrossLine,
 } from 'ag-charts-core';
 import { AbstractModuleInstance, Group, jsonDiff } from 'ag-charts-core';
 import type { AgCrossLineClickEvent } from 'ag-charts-types';
@@ -19,13 +21,7 @@ import type { AxisContext } from '../../module/axisContext';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import type { PlacedLabelSource } from '../layout/labelManager';
-import {
-    type CrossLine,
-    type CrossLineValuePick,
-    type PendingCrossLineCallbackParam,
-    PendingCrossLineCallbacks,
-    type PolarCrossLine,
-} from './crossLine';
+import { type CrossLineValuePick, type PendingCrossLineCallbackParam, PendingCrossLineCallbacks } from './crossLine';
 import type { CrossLinesRegistry } from './crossLinesRegistry';
 
 /** One solve group of an axis's cross line labels: kept labels resolve before series labels, droppable ones after. */
