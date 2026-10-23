@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { AllCommunityModule } from 'ag-charts-community';
+import { AllCommunityModule, CartesianChartModule, NumberAxisModule, PolarChartModule } from 'ag-charts-community';
 import { isPresetOverridesType, themeOptionsDefFor } from 'ag-charts-community-test';
 import {
     Logger,
@@ -16,7 +16,7 @@ import {
     validate,
 } from 'ag-charts-core';
 
-import { AllEnterpriseModule, RadiusNumberAxisModule } from './main';
+import { AllEnterpriseModule, PolarCrossLinesModule, RadiusNumberAxisModule } from './main';
 
 type Placement = [label: string, overrides: object];
 
@@ -158,6 +158,18 @@ describe('module theme templates', () => {
             common: {
                 axes: { 'radius-number': { crossLines: { enabled: true }, listeners: { crossLineClick: () => {} } } },
             },
+        };
+
+        const { invalid } = validate({ overrides }, themeOptionsDefFor(scope), 'theme', { logger: new Logger() });
+
+        expect(invalid.map(String)).toEqual([]);
+    });
+
+    it("accept an axis's placeholder shape when only another chart type's owner is registered", () => {
+        const scope = new ModuleScope();
+        scope.registerModules([CartesianChartModule, PolarChartModule, NumberAxisModule, PolarCrossLinesModule]);
+        const overrides = {
+            common: { axes: { number: { crossLines: { enabled: true }, listeners: { crossLineClick: () => {} } } } },
         };
 
         const { invalid } = validate({ overrides }, themeOptionsDefFor(scope), 'theme', { logger: new Logger() });
