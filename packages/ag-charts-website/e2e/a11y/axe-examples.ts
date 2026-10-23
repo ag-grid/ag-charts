@@ -40,6 +40,9 @@ const POC_EXAMPLES: ReadonlyArray<[pageName: string, example: string]> = [
     ['zoom', 'zoom-buttons'],
     ['context-menu', 'context-menu'],
     ['tooltips', 'default-tooltip'],
+    ['financial-charts', 'financial-charts-showcase'],
+    ['accessibility-e2e', 'axe-kitchen-sink'],
+    ['sync', 'basic-sync'],
 ];
 
 const GENERATED_EXAMPLES_ROOT = resolve(__dirname, '../../../../dist/generated-examples/ag-charts-website');

@@ -100,6 +100,29 @@ describe('AggregationManager', () => {
             expect(manager.filters).toBeUndefined();
         });
 
+        it('discards filters and notifies subscribers when data drops to an unaggregated size (1001 -> 999)', () => {
+            const manager = new AggregationManager<MockFilter>();
+            seedFilters(manager, 1001);
+            let notified = 0;
+            manager.events.on('filtersChanged', () => notified++);
+
+            manager.markStale(999);
+
+            expect(manager.filters).toBeUndefined();
+            expect(manager.getFilterForRange(500)).toBeUndefined();
+            expect(notified).toBe(1);
+        });
+
+        it('does not notify subscribers when there are no filters to discard', () => {
+            const manager = new AggregationManager<MockFilter>();
+            let notified = 0;
+            manager.events.on('filtersChanged', () => notified++);
+
+            manager.markStale(999);
+
+            expect(notified).toBe(0);
+        });
+
         it('should mark existing filters as stale on small change', () => {
             const manager = new AggregationManager<MockFilter>();
             seedFilters(manager, 1000);

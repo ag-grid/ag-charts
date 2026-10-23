@@ -22,6 +22,7 @@ export const PresetPreview = memo(({ preset }: Props) => {
     const options = useMemo<AgChartOptions>(
         () => ({
             ...THUMBNAIL_OPTIONS,
+            loadGoogleFonts: true,
             theme: toChartTheme({ baseTheme: preset.baseTheme, params: preset.params, palette: preset.palette }),
         }),
         [preset]

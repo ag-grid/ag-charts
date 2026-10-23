@@ -820,7 +820,7 @@ export abstract class AbstractNetworkSeries<
         this.zoomedPaddedBounds = this.getPaddedContentBounds();
 
         this.applyViewportTransform();
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PRE_SCENE_RENDER });
     }
 
     /**

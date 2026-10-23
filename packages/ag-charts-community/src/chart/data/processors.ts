@@ -34,8 +34,7 @@ import {
     UNDEFINED_KEY_STRING,
     datumKeys,
 } from './dataModel';
-
-export const MAX_ANIMATABLE_NODES = 1000;
+import { MAX_ANIMATABLE_NODES } from './maxAnimatableNodes';
 
 function combineIntervalBandResults(
     bandResults: unknown[],
