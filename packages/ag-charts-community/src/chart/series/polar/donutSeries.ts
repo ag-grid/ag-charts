@@ -2782,9 +2782,9 @@ export class DonutSeries extends PolarSeries<
     }
 }
 
-/** Fits every donut to one circle around the labels and nests each ring inside the next. */
 const donutSeriesAreaLayout: SeriesAreaLayout<DonutSeries> = { layoutSeries: layoutDonutSeries };
 
+/** Fits every donut to one circle around the labels and nests each ring inside the next. */
 async function layoutDonutSeries(donuts: DonutSeries[], seriesRect: BBox) {
     await fitCircleToLabels(seriesRect, donuts, (centerX, centerY, radius) => {
         for (const donut of donuts) {
