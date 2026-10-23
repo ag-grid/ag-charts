@@ -65,6 +65,7 @@ if (args.includes('--all')) {
 
 const POLL_MS = 25;
 const WAIT_MS = 20_000;
+const STOP_TIMEOUT_MS = 5_000;
 
 function isAlive(pid) {
     try {
@@ -156,14 +157,21 @@ function startWatch(library, { typesMs = 1500, fastMs = 100, env = {} } = {}) {
         },
         async stop() {
             clearInterval(reloadTimer);
-            child.kill('SIGTERM');
+            // The watch writes its status file until it exits, so wait for that before removing the directory.
+            const exited = new Promise((resolve) => child.once('exit', resolve));
+            const killTimer = setTimeout(() => child.kill('SIGKILL'), STOP_TIMEOUT_MS);
+            if (child.exitCode === null && child.signalCode === null) {
+                child.kill('SIGTERM');
+                await exited;
+            }
+            clearTimeout(killTimer);
             // Whatever the watch left behind must not outlive the test.
             for (const run of sandbox.runs()) {
                 for (const pid of [run.pid, run.executor]) {
                     if (pid && isAlive(pid)) process.kill(pid, 'SIGKILL');
                 }
             }
-            fs.rmSync(dir, { recursive: true, force: true });
+            fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
         },
         async idle() {
             await until('the watch to go idle', () => sandbox.status()?.status === 'IDLE');
@@ -326,25 +334,27 @@ describe('watch background lane', () => {
 
 describe('watch without backgroundTargets (grid)', () => {
     it('does not pre-empt build:types, and a second save waits behind it', async () => {
-        const watch = await startWatch('grid', { typesMs: 1500 });
+        const watch = await startWatch('grid', { typesMs: 2500 });
 
         const first = await saveAndAwaitTypes(watch, 'ag-grid-community');
-        const startsBefore = watch.runs().filter((run) => run.event === 'start').length;
-
         watch.save('ag-grid-community');
         await watch.idle();
 
         const events = watch.runs();
         expect(events.some((run) => run.event === 'sigterm')).toBe(false);
 
-        // Nothing else starts until the running build:types has ended.
+        // A batch spawns its config groups together, so build:types starts beside the docs references,
+        // and the order of their start entries is not fixed. A save's batch always opens with build:umd:watch,
+        // so the first save's one is the only one that may start before the running build:types ends.
         const firstEnd = events.findIndex((run) => run.event === 'end' && run.pid === first.pid);
         expect(firstEnd).toBeGreaterThan(-1);
-        const startedMeanwhile = events
-            .slice(0, firstEnd)
-            .filter((run) => run.event === 'start' && run.pid !== first.pid).length;
-        expect(startedMeanwhile).toBe(startsBefore - 1);
-        expect(events.filter((run) => run.event === 'start').length).toBeGreaterThan(startsBefore);
+        const opensBatch = (run) => run.event === 'start' && run.args.includes('build:umd:watch');
+        expect(events.slice(0, firstEnd).filter(opensBatch)).toHaveLength(1);
+
+        // The second save's batch ran, but only after the running build:types had ended.
+        const batchStarts = events.filter(opensBatch);
+        expect(batchStarts).toHaveLength(2);
+        expect(batchStarts[1].t).toBeGreaterThanOrEqual(events[firstEnd].t);
 
         // The second save only reloads after the running build:types has ended, as before.
         const reloads = watch.reloads();
