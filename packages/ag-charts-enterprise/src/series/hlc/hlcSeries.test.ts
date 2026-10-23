@@ -468,7 +468,11 @@ describe('HlcSeries', () => {
 
             await dragAction({ x: 600, y: 300 }, { x: 100, y: 300 })(chart);
             await waitForChartStability(chart);
-            const nodeIndices = () => new Set(series.getNodeData()?.map((d) => d.datumIndex));
+            const nodeIndices = () => {
+                const nodeData = series.getNodeData();
+                expect(nodeData, 'node data').toBeDefined();
+                return new Set(nodeData!.map((d) => d.datumIndex));
+            };
             expect(nodeIndices().has(2), 'datum 2 is outside the node data').toBe(false);
 
             await pressKey(chart, 'ArrowRight');

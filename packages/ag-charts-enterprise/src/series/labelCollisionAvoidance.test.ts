@@ -709,7 +709,7 @@ describe('label collision avoidance', () => {
             const barLabel: CollisionLabel<AgRangeBarSeriesOptions['label']> = {
                 enabled: true,
                 // Range-bar labels default to white (usually drawn inside the bar); force a dark
-                // colour so the outside labels are legible against the plot background too.
+                // colour so the outside labels are legible against the series area background too.
                 color: 'black',
                 formatter: ({ datum }: { datum: { x: string } }) =>
                     datum.x === 'C' ? 'WWWWWWWWWWWWWWWWWWWW' : undefined,
