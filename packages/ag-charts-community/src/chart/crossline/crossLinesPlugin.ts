@@ -1,4 +1,5 @@
 import type {
+    AxisID,
     AxisPluginModuleInstance,
     BBox,
     CallbackParamRules,
@@ -353,6 +354,10 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
 
     getInstances(): readonly CrossLine[] {
         return this.instances;
+    }
+
+    get axisId(): AxisID {
+        return this.axisCtx.axisId;
     }
 
     isVisible(): boolean {

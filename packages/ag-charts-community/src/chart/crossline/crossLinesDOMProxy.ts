@@ -1,4 +1,4 @@
-import type { BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget } from 'ag-charts-core';
+import type { AxisID, BBox, BoxBounds, ButtonWidget, DynamicContext, ListWidget } from 'ag-charts-core';
 import { CleanupRegistry, Path, Transformable, createSvgElement } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -9,6 +9,7 @@ const FOCUS_PATH_CLASS = 'ag-charts-proxy-cross-line-focus-path';
 
 /** An axis's cross lines, as the keyboard proxies see them. */
 export interface CrossLinesProxySource {
+    readonly axisId: AxisID;
     isVisible(): boolean;
     getInstances(): readonly CrossLine[];
     isKeyboardClickable(crossLine: CrossLine): boolean;
@@ -98,14 +99,17 @@ export class CrossLinesDOMProxy {
         this.dirty = false;
 
         const entries: ProxyEntry[] = [];
-        for (const plugin of this.plugins) {
-            if (!plugin.isVisible()) continue;
+        // Plugins attach as their axes gain cross lines, so the chart's axis order is applied here.
+        for (const { axisId } of this.ctx.axisManager.getAxisContexts()) {
+            for (const plugin of this.plugins) {
+                if (plugin.axisId !== axisId || !plugin.isVisible()) continue;
 
-            for (const crossLine of plugin.getInstances()) {
-                if (!plugin.isKeyboardClickable(crossLine)) continue;
+                for (const crossLine of plugin.getInstances()) {
+                    if (!plugin.isKeyboardClickable(crossLine)) continue;
 
-                const focus = crossLine.computeFocusBounds?.();
-                if (focus != null) entries.push({ plugin, crossLine, ...toCanvasFocus(focus) });
+                    const focus = crossLine.computeFocusBounds?.();
+                    if (focus != null) entries.push({ plugin, crossLine, ...toCanvasFocus(focus) });
+                }
             }
         }
         this.entries = entries;
