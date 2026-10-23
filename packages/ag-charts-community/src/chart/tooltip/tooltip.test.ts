@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { type AgChartOptions } from 'ag-charts-types';
+import type { AgChartOptions, AgTooltipAnchorTo, AgTooltipPositionOptions } from 'ag-charts-types';
 
 import type { AgChartProxy, Chart } from '../test/utils';
 import {
@@ -18,6 +18,9 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
+
+// `allowNullKeys` is an internal series option, absent from the public types; spreading it keeps the series typed.
+const ALLOW_NULL_KEYS = { allowNullKeys: true };
 
 describe('Tooltip', () => {
     setupMockConsole();
@@ -45,7 +48,8 @@ describe('Tooltip', () => {
                 ],
                 series: [{ type: 'line', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
                 tooltip: {
-                    position: '2' as any,
+                    // Deliberately invalid: a string where an options object is expected.
+                    position: '2' as unknown as AgTooltipPositionOptions,
                 },
             });
 
@@ -67,7 +71,8 @@ describe('Tooltip', () => {
                 ],
                 series: [{ type: 'line', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
                 tooltip: {
-                    position: { anchorTo: 'ponter' as any, xOffset: 80, yOffset: 80 },
+                    // Deliberately invalid: a misspelt `anchorTo` keyword.
+                    position: { anchorTo: 'ponter' as unknown as AgTooltipAnchorTo, xOffset: 80, yOffset: 80 },
                 },
             });
 
@@ -488,8 +493,8 @@ describe('Tooltip', () => {
                             yName: 'Value',
                             sizeKey: 'y',
                             sizeName: 'Size',
-                            allowNullKeys: true,
-                        } as any,
+                            ...ALLOW_NULL_KEYS,
+                        },
                     ],
                 })
             );
@@ -522,7 +527,7 @@ describe('Tooltip', () => {
                     },
                     y: { type: 'number', position: 'left' },
                 },
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', ...ALLOW_NULL_KEYS }],
             });
 
             // Verify formatter was called with actual null value (not string "null")

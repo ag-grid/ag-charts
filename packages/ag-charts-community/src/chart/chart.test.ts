@@ -14,9 +14,12 @@ import {
 import type { Node } from 'ag-charts-core';
 import { Caster, classCast } from 'ag-charts-test';
 import type {
+    AgBarSeriesOptions,
     AgCartesianChartOptions,
+    AgCartesianSeriesOptions,
     AgChartInstance,
     AgChartValidationsOptions,
+    AgDataTransaction,
     AgLineSeriesOptions,
     AgPolarChartOptions,
     InteractionRange,
@@ -29,7 +32,9 @@ import { DataSet } from './data/dataSet';
 import { Marker } from './marker/marker';
 import { BarSeries } from './series/cartesian/barSeries';
 import { LineSeries } from './series/cartesian/lineSeries';
-import { getSeriesRect } from './test/axisAccessors';
+import { findAxis, getAxisLayoutState, getSeriesRect } from './test/axisAccessors';
+import { firePreSeriesUpdate, waitForUpdateQueueDrain } from './test/chartAccessors';
+import { getSeriesAt, getSeriesContextNodeData } from './test/seriesAccessors';
 import {
     MIN_TOOLTIP_HIDE_DELAY,
     captureUncaught,
@@ -44,6 +49,9 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
+
+// Deliberately invalid: these tests check what the chart does when `strokeWidth` is not a number.
+const INVALID_STROKE_WIDTH = 'thick' as unknown as number;
 
 describe('Chart', () => {
     setupMockConsole();
@@ -359,10 +367,9 @@ describe('Chart', () => {
             }) as AgCartesianChartOptions;
 
         const nodeCanvasPoint = (chartInstance: Chart, datumIndex: number) => {
-            const series = chartInstance.series[0] as any;
-            const item = series.contextNodeData.nodeData[datumIndex];
+            const item = getSeriesContextNodeData(chartInstance).nodeData[datumIndex];
             expect(item).toBeDefined();
-            return Transformable.toCanvasPoint(series.contentGroup, item.point.x, item.point.y);
+            return Transformable.toCanvasPoint(getSeriesAt(chartInstance).contentGroup, item.point!.x, item.point!.y);
         };
 
         it(`should handle nodeClick event at a datum's notional marker position`, async () => {
@@ -634,11 +641,11 @@ describe('Chart', () => {
         describe('updateDelta() node data refresh', () => {
             const rows = (count: number) =>
                 Array.from({ length: count }, (_, i) => ({ year: `${2000 + i}`, gdp: i + 1, tax: i * 2 }));
-            const barSeries = [{ type: 'bar', xKey: 'year', yKey: 'gdp' }];
+            const barSeries: AgBarSeriesOptions[] = [{ type: 'bar', xKey: 'year', yKey: 'gdp' }];
             const axes = {
                 x: { type: 'category', position: 'bottom' },
                 y: { type: 'number', position: 'left' },
-            };
+            } satisfies AgCartesianChartOptions['axes'];
             const barStyles = (c: Chart, index: number) =>
                 classCast(c.series[index], BarSeries).contextNodeData?.styles;
             const barData = (c: Chart, index = 0) =>
@@ -652,15 +659,17 @@ describe('Chart', () => {
                 processData?.mockRestore();
             });
 
-            it.each([
+            const titleCases: { name: string; options: Partial<AgCartesianChartOptions> }[] = [
                 { name: 'a title on a bar series', options: { series: barSeries } },
                 {
                     name: 'a title on a line series',
                     options: { series: [{ type: 'line', xKey: 'year', yKey: 'gdp' }] },
                 },
                 { name: 'a title on a chart with explicit axes', options: { series: barSeries, axes } },
-            ])('does not refresh node data for $name', async ({ options }) => {
-                const chartProxy = await createChart({ data: rows(8), title: { text: 'Before' }, ...options } as any);
+            ];
+
+            it.each(titleCases)('does not refresh node data for $name', async ({ options }) => {
+                const chartProxy = await createChart({ data: rows(8), title: { text: 'Before' }, ...options });
                 chart = deproxy(chartProxy);
                 const dataBefore = chart.data.data;
 
@@ -688,7 +697,7 @@ describe('Chart', () => {
                     series: barSeries,
                     axes,
                     ...(withTitle && { title: { text: 'Before' }, subtitle: { text: 'Before' } }),
-                } as any);
+                });
                 chart = deproxy(chartProxy);
 
                 spyOnProcessData(chart);
@@ -699,7 +708,7 @@ describe('Chart', () => {
             });
 
             it('does not refresh node data for a title after a growing data delta', async () => {
-                const chartProxy = await createChart({ data: rows(5), series: barSeries } as any);
+                const chartProxy = await createChart({ data: rows(5), series: barSeries });
                 chart = deproxy(chartProxy);
                 await chartProxy.updateDelta({ data: rows(6) });
                 await waitForChartStability(chart);
@@ -718,7 +727,7 @@ describe('Chart', () => {
                     delta: { title: { text: 'After' }, axes: { x: { reverse: true } } },
                 },
             ])('refreshes node data for $name, as a fresh chart does', async ({ delta }) => {
-                const chartProxy = await createChart({ data: rows(4), series: barSeries, axes } as any);
+                const chartProxy = await createChart({ data: rows(4), series: barSeries, axes });
                 chart = deproxy(chartProxy);
                 const xBefore = barData(chart).map((d) => d.x);
 
@@ -732,7 +741,7 @@ describe('Chart', () => {
                         data: rows(4),
                         series: barSeries,
                         axes: { ...axes, x: { ...axes.x, reverse: true } },
-                    } as any)
+                    })
                 );
                 try {
                     const xAfter = barData(chart).map((d) => d.x);
@@ -744,18 +753,18 @@ describe('Chart', () => {
             });
 
             it('shows the extra row after a growing updateDelta({ data }) with the colours of a fresh chart', async () => {
-                const series = [
+                const series: AgCartesianSeriesOptions[] = [
                     { type: 'bar', xKey: 'year', yKey: 'gdp' },
                     { type: 'bar', xKey: 'year', yKey: 'tax' },
                     { type: 'line', xKey: 'year', yKey: 'gdp', stroke: 'purple' },
                 ];
-                const chartProxy = await createChart({ data: rows(5), series } as any);
+                const chartProxy = await createChart({ data: rows(5), series });
                 chart = deproxy(chartProxy);
 
                 await chartProxy.updateDelta({ data: rows(6) });
                 await waitForChartStability(chart);
 
-                const fresh = deproxy(await createChart({ data: rows(6), series } as any));
+                const fresh = deproxy(await createChart({ data: rows(6), series }));
                 try {
                     expect(chart.data.data).toHaveLength(6);
                     for (const index of [0, 1]) {
@@ -771,23 +780,21 @@ describe('Chart', () => {
             });
 
             it('rebuilds the labels after a context delta, as a fresh chart does', async () => {
-                const options = (p: string) =>
-                    ({
-                        data: rows(3),
-                        context: { p },
-                        series: [
-                            {
-                                type: 'bar',
-                                xKey: 'year',
-                                yKey: 'gdp',
-                                label: {
-                                    enabled: true,
-                                    formatter: ({ value, context }: { value: number; context: { p: string } }) =>
-                                        `${context.p}${value}`,
-                                },
+                const options = (p: string): AgCartesianChartOptions<unknown, { p: string }> => ({
+                    data: rows(3),
+                    context: { p },
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'year',
+                            yKey: 'gdp',
+                            label: {
+                                enabled: true,
+                                formatter: ({ value, context }) => `${context?.p}${value}`,
                             },
-                        ],
-                    }) as any;
+                        },
+                    ],
+                });
                 const chartProxy = await createChart(options('A'));
                 chart = deproxy(chartProxy);
 
@@ -805,14 +812,14 @@ describe('Chart', () => {
             });
 
             describe('axes predicted from a grown data set', () => {
-                const series = [{ type: 'line', xKey: 'when', yKey: 'gdp' }];
+                const series: AgCartesianSeriesOptions[] = [{ type: 'line', xKey: 'when', yKey: 'gdp' }];
                 const numbers = (count: number) => Array.from({ length: count }, (_, i) => ({ when: i, gdp: i }));
                 const dates = (count: number) =>
                     Array.from({ length: count }, (_, i) => ({ when: new Date(2020, i, 1), gdp: i }));
                 const axisTypes = (c: Chart) => c.axes.map((axis) => axis.type);
 
                 it('takes on the axes of a grown data set after a same-length type change', async () => {
-                    const chartProxy = await createChart({ data: numbers(5), series } as any);
+                    const chartProxy = await createChart({ data: numbers(5), series });
                     chart = deproxy(chartProxy);
 
                     await chartProxy.updateDelta({ data: dates(5) });
@@ -820,7 +827,7 @@ describe('Chart', () => {
                     await chartProxy.updateDelta({ data: dates(6) });
                     await waitForChartStability(chart);
 
-                    const fresh = deproxy(await createChart({ data: dates(6), series } as any));
+                    const fresh = deproxy(await createChart({ data: dates(6), series }));
                     try {
                         expect(axisTypes(chart)).toEqual(axisTypes(fresh));
                     } finally {
@@ -829,13 +836,13 @@ describe('Chart', () => {
                 });
 
                 it('takes on the axes a grown data set predicts, as a fresh chart does', async () => {
-                    const chartProxy = await createChart({ data: [{ when: 'a', gdp: 1 }], series } as any);
+                    const chartProxy = await createChart({ data: [{ when: 'a', gdp: 1 }], series });
                     chart = deproxy(chartProxy);
 
                     await chartProxy.updateDelta({ data: dates(8) });
                     await waitForChartStability(chart);
 
-                    const fresh = deproxy(await createChart({ data: dates(8), series } as any));
+                    const fresh = deproxy(await createChart({ data: dates(8), series }));
                     try {
                         expect(axisTypes(chart)).toEqual(axisTypes(fresh));
                     } finally {
@@ -999,18 +1006,12 @@ describe('Chart', () => {
 
         it('dispatches required range ratio based on seriesRect and direction', async () => {
             chart = deproxy(await createChart(baseOptions));
-            const chartAny = chart as any;
-            let capturedEvent: { requiredRangeRatio: number; requiredRangeDirection: ChartAxisDirection } | undefined;
 
-            chartAny.ctx.eventsHub.on('update:pre-series', (event: any) => {
-                capturedEvent = event;
+            const capturedEvent = firePreSeriesUpdate(chart, {
+                seriesRect: new BBox(0, 0, 200, 100),
+                requiredRange: 50,
+                requiredRangeDirection: ChartAxisDirection.Y,
             });
-
-            chartAny.seriesRect = new BBox(0, 0, 200, 100);
-            chartAny._requiredRange = 50;
-            chartAny._requiredRangeDirection = ChartAxisDirection.Y;
-
-            chartAny.preSeriesUpdate();
 
             expect(capturedEvent).toBeDefined();
             expect(capturedEvent?.requiredRangeDirection).toBe(ChartAxisDirection.Y);
@@ -1019,18 +1020,12 @@ describe('Chart', () => {
 
         it('falls back to 0 when the ratio is NaN', async () => {
             chart = deproxy(await createChart(baseOptions));
-            const chartAny = chart as any;
-            let capturedEvent: { requiredRangeRatio: number } | undefined;
 
-            chartAny.ctx.eventsHub.on('update:pre-series', (event: any) => {
-                capturedEvent = event;
+            const capturedEvent = firePreSeriesUpdate(chart, {
+                seriesRect: new BBox(0, 0, 0, 0),
+                requiredRange: 0,
+                requiredRangeDirection: ChartAxisDirection.X,
             });
-
-            chartAny.seriesRect = new BBox(0, 0, 0, 0);
-            chartAny._requiredRange = 0;
-            chartAny._requiredRangeDirection = ChartAxisDirection.X;
-
-            chartAny.preSeriesUpdate();
 
             expect(capturedEvent?.requiredRangeRatio).toBe(0);
         });
@@ -1053,10 +1048,6 @@ describe('Chart', () => {
             };
             agChartInstance = await createChart(options);
             chart = deproxy(agChartInstance);
-        });
-
-        afterEach(() => {
-            agChartInstance = undefined as any;
         });
 
         it('should setup DOM on create', () => {
@@ -1437,10 +1428,10 @@ describe('Chart', () => {
          * reports back can be compared against the fraction that was aimed at.
          */
         async function clickAtBandFraction(value: string, fraction: number) {
-            const xAxis = (chart as any).axes.find((axis: any) => axis.direction === ChartAxisDirection.X);
-            const { scale } = xAxis;
-            const bandWidth = scale.bandwidth === 0 ? scale.step : scale.bandwidth;
-            const canvasX = xAxis.getLayoutTranslation().x + scale.convert(value) + bandWidth * fraction;
+            const { scale } = findAxis(chart, 'bottom');
+            const bandWidth = (scale.bandwidth === 0 ? scale.step : scale.bandwidth) ?? 0;
+            const canvasX =
+                getAxisLayoutState(chart, 'bottom').translation.x + scale.convert(value) + bandWidth * fraction;
             await clickAtEmptyPlot(canvasX);
         }
 
@@ -1892,7 +1883,8 @@ describe('Chart', () => {
             it('should throw synchronously for addIndex with null add array', () => {
                 expect(() =>
                     chartProxy.applyTransaction({
-                        add: null as any,
+                        // Deliberately invalid: the transaction is validated at runtime, not by its type.
+                        add: null as unknown as AgDataTransaction['add'],
                         addIndex: 5,
                     })
                 ).toThrow('requires a non-empty "add" array');
@@ -1974,9 +1966,10 @@ describe('Chart', () => {
             });
         });
 
+        // Every cast below passes deliberately invalid input: the transaction is validated at runtime, not by its type.
         describe('other transaction validation', () => {
             it('should throw synchronously for non-object transaction', () => {
-                expect(() => chartProxy.applyTransaction(null as any)).toThrow(
+                expect(() => chartProxy.applyTransaction(null as unknown as AgDataTransaction)).toThrow(
                     'applyTransaction expects a transaction object'
                 );
             });
@@ -1984,7 +1977,7 @@ describe('Chart', () => {
             it('should throw synchronously for non-array add', () => {
                 expect(() =>
                     chartProxy.applyTransaction({
-                        add: { x: 4, y: 40 } as any,
+                        add: { x: 4, y: 40 } as unknown as AgDataTransaction['add'],
                     })
                 ).toThrow('"add" must be an array');
             });
@@ -1992,7 +1985,7 @@ describe('Chart', () => {
             it('should throw synchronously for non-array remove', () => {
                 expect(() =>
                     chartProxy.applyTransaction({
-                        remove: { x: 1, y: 10 } as any,
+                        remove: { x: 1, y: 10 } as unknown as AgDataTransaction['remove'],
                     })
                 ).toThrow('"remove" must be an array');
             });
@@ -2000,7 +1993,7 @@ describe('Chart', () => {
             it('should throw synchronously for non-array update', () => {
                 expect(() =>
                     chartProxy.applyTransaction({
-                        update: { x: 1, y: 10 } as any,
+                        update: { x: 1, y: 10 } as unknown as AgDataTransaction['update'],
                     })
                 ).toThrow('"update" must be an array');
             });
@@ -2265,8 +2258,9 @@ describe('Chart', () => {
                     { x: 'a', y: 2 },
                 ],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                // `displayNullData` is an internal option, absent from the public types.
                 displayNullData: true,
-            } as any;
+            } as AgCartesianChartOptions;
 
             chart = deproxy(await createChart(options));
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -2309,7 +2303,7 @@ describe('Chart destroy() / performUpdate() race condition', () => {
         // waitForChartStability returns as soon as `destroyed` is true; the deferred
         // performTeardown (queued behind the mutex by destroy()) still needs to drain.
         await waitForChartStability(innerChart);
-        await (innerChart as any).updateMutex.waitForClearAcquireQueue();
+        await waitForUpdateQueueDrain(innerChart);
 
         // Implicit assertion: a TypeError from a cleared series would reach Logger.error, and
         // setupMockConsole's afterEach fails on any unexpected console.error.
@@ -2555,7 +2549,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         const proxy = create({
             container: document.body,
             data: [{ x: 'A', y: 10 }],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: INVALID_STROKE_WIDTH }],
             validations: { throwOn: ['warning'], issueRaised },
         });
         expect(capture.uncaught).toHaveLength(0);
@@ -2613,7 +2607,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         await expect(
             proxy.update({
                 ...options,
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: INVALID_STROKE_WIDTH }],
             })
         ).resolves.toBeUndefined();
         await capture.settle();
@@ -2634,7 +2628,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         const proxy = create({
             container: document.body,
             data: [{ x: 'A', y: 10 }],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: INVALID_STROKE_WIDTH }],
             validations: { throwOn: ['warning'], issueRaised },
         });
         await proxy.waitForUpdate();
@@ -2656,7 +2650,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
             create({
                 container: document.body,
                 data: [{ x: 'A', y: 10 }],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: INVALID_STROKE_WIDTH }],
                 validations: { throwOn: ['warning'], issueRaised: innerListener },
             });
         });
@@ -2664,7 +2658,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         const proxy = create({
             container: document.body,
             data: [{ x: 'A', y: 10 }],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: INVALID_STROKE_WIDTH }],
             validations: { throwOn: ['warning'], issueRaised: outerListener },
         });
         await proxy.waitForUpdate();
@@ -2685,7 +2679,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         const failingOptions = (): AgCartesianChartOptions => ({
             container: document.body,
             data: [{ x: 'A', y: 10 }],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: INVALID_STROKE_WIDTH }],
             validations: { throwOn: ['warning'], issueRaised },
         });
         const issueRaised = vi.fn(() => {
@@ -2709,7 +2703,7 @@ describe('AG-17830 QA — validations.issueRaised', () => {
             create({
                 container: document.body,
                 data: [{ x: 'A', y: 10 }],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: INVALID_STROKE_WIDTH }],
                 validations: {
                     throwOn: ['warning'],
                     issueRaised: (event) => {

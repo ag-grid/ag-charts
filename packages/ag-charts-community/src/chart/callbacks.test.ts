@@ -30,6 +30,9 @@ import {
     waitForChartStability,
 } from './test/utils';
 
+// `allowNullKeys` is an internal series option, absent from the public types; spreading it keeps the series typed.
+const ALLOW_NULL_KEYS = { allowNullKeys: true };
+
 describe('AG-13024 API context', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -157,7 +160,7 @@ describe('AG-13024 API context', () => {
         beforeEach(async () => {
             chart = await createChart(options);
         });
-        test('itemStyler', () => {
+        it('itemStyler', () => {
             itemStyler.expect().toHaveBeenCalledTimes(12);
             itemStyler.expect().nthCalledWithContext(0, seriesContext0);
             itemStyler.expect().nthCalledWithContext(1, seriesContext0);
@@ -172,7 +175,7 @@ describe('AG-13024 API context', () => {
             itemStyler.expect().nthCalledWithContext(10, seriesContext2);
             itemStyler.expect().nthCalledWithContext(11, seriesContext2);
         });
-        test('seriesLabelFormatter', () => {
+        it('seriesLabelFormatter', () => {
             seriesLabelFormatter.expect().toHaveBeenCalledTimes(12);
             seriesLabelFormatter.expect().nthCalledWithContext(0, seriesContext0);
             seriesLabelFormatter.expect().nthCalledWithContext(1, seriesContext0);
@@ -187,10 +190,10 @@ describe('AG-13024 API context', () => {
             seriesLabelFormatter.expect().nthCalledWithContext(10, seriesContext2);
             seriesLabelFormatter.expect().nthCalledWithContext(11, seriesContext2);
         });
-        test('axisLabelFormatter', () => {
+        it('axisLabelFormatter', () => {
             axisLabelFormatter.expect().toHaveBeenCalledTimes(8).withContext(axisContext);
         });
-        test('tooltipRenderer', async () => {
+        it('tooltipRenderer', async () => {
             tooltipRenderer.expect().toHaveBeenCalledTimes(0);
             await threeTooltipCallback();
             tooltipRenderer.expect().toHaveBeenCalledTimes(9);
@@ -210,7 +213,7 @@ describe('AG-13024 API context', () => {
         beforeEach(() => {
             options.context = rootContext;
         });
-        test('no pass-through', async () => {
+        it('no pass-through', async () => {
             chart = await createChart(options);
             itemStyler.expect().toHaveBeenCalledTimes(12);
             itemStyler.expect().nthCalledWithContext(0, seriesContext0);
@@ -243,7 +246,7 @@ describe('AG-13024 API context', () => {
             tooltipRenderer.expect().toHaveBeenCalledTimes(3);
             tooltipRenderer.expect().nthCalledWithContext(0, seriesContext0);
         });
-        test('with pass-through', async () => {
+        it('with pass-through', async () => {
             delete options.series![0].context;
             delete options.series![1].context;
             delete options.series![2].context;
@@ -262,7 +265,7 @@ describe('AG-13024 API context', () => {
             beforeEach(() => {
                 delete options.context;
             });
-            test('undefined', async () => {
+            it('undefined', async () => {
                 delete options.series![0].context;
                 delete options.series![1].context;
                 delete options.series![2].context;
@@ -274,7 +277,7 @@ describe('AG-13024 API context', () => {
                 await oneTooltipCallback();
                 tooltipRenderer.expect().toHaveBeenCalledTimes(3).withoutContext();
             });
-            test('defined to undefined', async () => {
+            it('defined to undefined', async () => {
                 options.series![0].context = undefined;
                 options.series![1].context = undefined;
                 options.series![2].context = undefined;
@@ -286,7 +289,7 @@ describe('AG-13024 API context', () => {
                 await oneTooltipCallback();
                 tooltipRenderer.expect().toHaveBeenCalledTimes(3).withoutContext();
             });
-            test('defined to null', async () => {
+            it('defined to null', async () => {
                 options.series![0].context = null as unknown as TContext;
                 options.series![1].context = null as unknown as TContext;
                 options.series![2].context = null as unknown as TContext;
@@ -303,7 +306,7 @@ describe('AG-13024 API context', () => {
             beforeEach(() => {
                 options.context = rootContext;
             });
-            test('defined to undefined', async () => {
+            it('defined to undefined', async () => {
                 options.series![0].context = undefined;
                 options.series![1].context = undefined;
                 options.series![2].context = undefined;
@@ -315,7 +318,7 @@ describe('AG-13024 API context', () => {
                 await oneTooltipCallback();
                 tooltipRenderer.expect().toHaveBeenCalledTimes(3).withContext(rootContext);
             });
-            test('defined to null', async () => {
+            it('defined to null', async () => {
                 options.series![0].context = null as unknown as TContext;
                 options.series![1].context = null as unknown as TContext;
                 options.series![2].context = null as unknown as TContext;
@@ -356,7 +359,7 @@ describe('AG-13024 API context - overlays', () => {
         expect(Object.isFrozen(context)).toBe(false);
     });
 
-    test('with context', async () => {
+    it('with context', async () => {
         await createChart({
             context,
             overlays: { noData: { renderer: overlayRenderer.frozen } },
@@ -364,7 +367,7 @@ describe('AG-13024 API context - overlays', () => {
         overlayRenderer.expect().toHaveBeenCalledTimes(1).withContext(context);
     });
 
-    test('without context', async () => {
+    it('without context', async () => {
         await createChart({
             overlays: { noData: { renderer: overlayRenderer.frozen } },
         });
@@ -377,7 +380,7 @@ describe('AG-13024 API context validation', () => {
     setupMockConsole();
     setupMockCanvas();
     afterEach(() => chart?.destroy());
-    test('tooltip.context error', async () => {
+    it('tooltip.context error', async () => {
         const opts: AgCartesianChartOptions & { tooltip: { context: unknown } } = {
             data: [{ x: 0, y: 0 }],
             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -386,7 +389,7 @@ describe('AG-13024 API context validation', () => {
         chart = await createChart(opts);
         expectWarningsCalls().toMatchSnapshot();
     });
-    test('legend.context error', async () => {
+    it('legend.context error', async () => {
         const opts: AgCartesianChartOptions & { legend: { context: unknown } } = {
             data: [{ x: 0, y: 0 }],
             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -402,7 +405,7 @@ describe('AG-15283 context precedence', () => {
     setupMockCanvas();
     afterEach(() => chart?.destroy());
 
-    test('context precedence', async () => {
+    it('context precedence', async () => {
         const opts: AgCartesianChartOptions = {
             data: [
                 { quarter: "Q1'18", iphone: 140, mac: 16 },
@@ -445,7 +448,7 @@ describe('AG-15283 context precedence', () => {
                 source: 'root',
             },
             formatter: (params) => {
-                return (params.context as any)?.source;
+                return (params.context as { source?: string } | undefined)?.source;
             },
         };
 
@@ -487,7 +490,7 @@ describe('AG-16613 null category callbacks', () => {
         { quarter: 'q3', Toyota: 170000 },
     ];
 
-    test('tooltipRenderer receives null xValue', async () => {
+    it('tooltipRenderer receives null xValue', async () => {
         const tooltipRenderer = vi.fn(() => '');
         chart = await createChart({
             data: nullCategoryData,
@@ -496,9 +499,9 @@ describe('AG-16613 null category callbacks', () => {
                     type: 'bar',
                     xKey: 'quarter',
                     yKey: 'Toyota',
-                    allowNullKeys: true,
+                    ...ALLOW_NULL_KEYS,
                     tooltip: { renderer: tooltipRenderer },
-                } as any,
+                },
             ],
             axes: {
                 x: { type: 'category', position: 'bottom' },
@@ -515,7 +518,7 @@ describe('AG-16613 null category callbacks', () => {
         expect(callWithNullDatum).toBeDefined();
     });
 
-    test('itemStyler receives null datum', async () => {
+    it('itemStyler receives null datum', async () => {
         const itemStyler = vi.fn(() => undefined);
         chart = await createChart({
             data: nullCategoryData,
@@ -524,9 +527,9 @@ describe('AG-16613 null category callbacks', () => {
                     type: 'bar',
                     xKey: 'quarter',
                     yKey: 'Toyota',
-                    allowNullKeys: true,
+                    ...ALLOW_NULL_KEYS,
                     itemStyler,
-                } as any,
+                },
             ],
             axes: {
                 x: { type: 'category', position: 'bottom' },
@@ -539,7 +542,7 @@ describe('AG-16613 null category callbacks', () => {
         expect(callWithNullDatum).toBeDefined();
     });
 
-    test('axisLabelFormatter called with value: null', async () => {
+    it('axisLabelFormatter called with value: null', async () => {
         const axisLabelFormatter = vi.fn();
         chart = await createChart({
             data: nullCategoryData,
@@ -548,8 +551,8 @@ describe('AG-16613 null category callbacks', () => {
                     type: 'bar',
                     xKey: 'quarter',
                     yKey: 'Toyota',
-                    allowNullKeys: true,
-                } as any,
+                    ...ALLOW_NULL_KEYS,
+                },
             ],
             axes: {
                 x: {
@@ -581,7 +584,7 @@ describe('callback cache', () => {
     }
 
     afterEach(() => chart?.destroy());
-    test('AG-10112 re-evaluate callbacks on update', async () => {
+    it('AG-10112 re-evaluate callbacks on update', async () => {
         let selectedCountry: string;
 
         const opts: AgCartesianChartOptions = {

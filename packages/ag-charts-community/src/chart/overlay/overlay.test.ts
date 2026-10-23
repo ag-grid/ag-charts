@@ -27,7 +27,7 @@ describe('Overlay', () => {
     });
 
     describe('#validation', () => {
-        test('invalid objects', async () => {
+        it('invalid objects', async () => {
             const invalidObj = 0 as unknown as object;
             chart = deproxy(await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } }));
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -43,7 +43,7 @@ describe('Overlay', () => {
         });
 
         // Skip until we normalize text segment validation
-        test.skip('invalid text', async () => {
+        it.skip('invalid text', async () => {
             const invalidObj = { text: 0 as unknown as string };
             chart = deproxy(await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } }));
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -58,7 +58,7 @@ describe('Overlay', () => {
 `);
         });
 
-        test('invalid renderer', async () => {
+        it('invalid renderer', async () => {
             const invalidObj = { renderer: 0 as unknown as () => string };
             chart = deproxy(await createChart({ overlays: { noData: invalidObj, noVisibleSeries: invalidObj } }));
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -75,7 +75,7 @@ describe('Overlay', () => {
     });
 
     describe('#create', () => {
-        test('no data', async () => {
+        it('no data', async () => {
             chart = deproxy(
                 await createChart({
                     data: [],
@@ -89,7 +89,7 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
-        test('invalid data', async () => {
+        it('invalid data', async () => {
             chart = deproxy(
                 await createChart({
                     data: [{ invalid: 'invalid' }],
@@ -123,7 +123,7 @@ describe('Overlay', () => {
 `);
         });
 
-        test('primitive data - string', async () => {
+        it('primitive data - string', async () => {
             chart = deproxy(
                 await createChart({
                     data: ['f'],
@@ -134,7 +134,7 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
-        test('primitive data - number', async () => {
+        it('primitive data - number', async () => {
             chart = deproxy(
                 await createChart({
                     data: [123, 456],
@@ -145,7 +145,7 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
-        test('primitive data - mixed types', async () => {
+        it('primitive data - mixed types', async () => {
             chart = deproxy(
                 await createChart({
                     data: ['string', 123, true, null],
@@ -156,7 +156,7 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
-        test('mixed valid objects and primitives', async () => {
+        it('mixed valid objects and primitives', async () => {
             chart = deproxy(
                 await createChart({
                     data: [{ x: 'a', y: 1 }, 'invalid', { x: 'b', y: 2 }],
@@ -168,7 +168,7 @@ describe('Overlay', () => {
             expect(overlayEl).toBeFalsy();
         });
 
-        test('no visible series', async () => {
+        it('no visible series', async () => {
             chart = deproxy(
                 await createChart({
                     data: [
@@ -186,7 +186,7 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('No visible series');
         });
 
-        test('neither data nor visible series', async () => {
+        it('neither data nor visible series', async () => {
             chart = deproxy(
                 await createChart({
                     data: [],
@@ -200,7 +200,7 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
-        test('custom no data text', async () => {
+        it('custom no data text', async () => {
             chart = deproxy(
                 await createChart({
                     data: [],
@@ -217,7 +217,7 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO DATA TEXT');
         });
 
-        test('reverts to the default overlay when the custom renderer is removed', async () => {
+        it('reverts to the default overlay when the custom renderer is removed', async () => {
             const options: AgChartOptions = {
                 data: [],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
@@ -234,7 +234,7 @@ describe('Overlay', () => {
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
-        test('custom no data text with html', async () => {
+        it('custom no data text with html', async () => {
             chart = deproxy(
                 await createChart({
                     data: [],
@@ -254,7 +254,7 @@ HTMLCollection [
 `);
         });
 
-        test('renderer returning undefined falls through to default no data overlay', async () => {
+        it('renderer returning undefined falls through to default no data overlay', async () => {
             chart = deproxy(
                 await createChart({
                     data: [],
@@ -268,7 +268,7 @@ HTMLCollection [
             expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
-        test('renderer returning a number is coerced to string content', async () => {
+        it('renderer returning a number is coerced to string content', async () => {
             chart = deproxy(
                 await createChart({
                     data: [],
@@ -284,7 +284,7 @@ HTMLCollection [
             expect(overlayEl?.textContent).toEqual('42');
         });
 
-        test('renderer returning a Date is coerced to string content', async () => {
+        it('renderer returning a Date is coerced to string content', async () => {
             chart = deproxy(
                 await createChart({
                     data: [],
@@ -300,7 +300,7 @@ HTMLCollection [
             expect(overlayEl?.textContent).toContain('Jun');
         });
 
-        test('custom no data text with multiple html elements', async () => {
+        it('custom no data text with multiple html elements', async () => {
             chart = deproxy(
                 await createChart({
                     data: [],
@@ -327,7 +327,7 @@ HTMLCollection [
 `);
         });
 
-        test('custom no visible series text', async () => {
+        it('custom no visible series text', async () => {
             chart = deproxy(
                 await createChart({
                     data: [
@@ -351,7 +351,7 @@ HTMLCollection [
         describe.each<'bar' | 'line' | 'area'>(['bar', 'line', 'area'])(
             'AG-16074 for %s series',
             (seriesType: 'bar' | 'line' | 'area') => {
-                test('should not show no data overlay when first series has null y-value but other series have data', async () => {
+                it('should not show no data overlay when first series has null y-value but other series have data', async () => {
                     chart = deproxy(
                         await createChart({
                             data: [
@@ -372,7 +372,7 @@ HTMLCollection [
                     expect(overlayEl).toBe(null);
                 });
 
-                test('should show no data overlay when all series have null values', async () => {
+                it('should show no data overlay when all series have null values', async () => {
                     chart = deproxy(
                         await createChart({
                             data: [
@@ -393,7 +393,7 @@ HTMLCollection [
                     expect(overlayEl).not.toBe(null);
                 });
 
-                test('should show no data overlay when all series have missing values', async () => {
+                it('should show no data overlay when all series have missing values', async () => {
                     chart = deproxy(
                         await createChart({
                             data: [
@@ -422,7 +422,7 @@ HTMLCollection [
                     expect(overlayEl).not.toBe(null);
                 });
 
-                test('should not show no data overlay when first series has empty data but other series have data', async () => {
+                it('should not show no data overlay when first series has empty data but other series have data', async () => {
                     chart = deproxy(
                         await createChart({
                             series: [
@@ -446,7 +446,7 @@ HTMLCollection [
                     expect(overlayEl).toBe(null);
                 });
 
-                test('should not show no data overlay when first series has some invalid data', async () => {
+                it('should not show no data overlay when first series has some invalid data', async () => {
                     chart = deproxy(
                         await createChart({
                             data: [
@@ -464,7 +464,7 @@ HTMLCollection [
         );
 
         describe('CRT-1016', () => {
-            test('custom renderer text should be available for accessibility (screenreader)', async () => {
+            it('custom renderer text should be available for accessibility (screenreader)', async () => {
                 const customMessage = 'Custom message for missing data';
                 chart = deproxy(
                     await createChart({
@@ -479,12 +479,11 @@ HTMLCollection [
                 const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
                 expect(overlayEl?.textContent?.trim()).toEqual(customMessage);
 
-                const chartInstance = chart as any;
-                const focusInfo = chartInstance.overlays?.getFocusInfo(chartInstance.ctx?.localeManager);
+                const focusInfo = chart.overlays.getFocusInfo(chart.ctx.localeManager);
                 expect(focusInfo?.text).toEqual(customMessage);
             });
 
-            test('custom renderer with nested HTML should extract text for accessibility', async () => {
+            it('custom renderer with nested HTML should extract text for accessibility', async () => {
                 const customMessage = 'Nested custom text';
                 chart = deproxy(
                     await createChart({
@@ -499,8 +498,7 @@ HTMLCollection [
                 const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
                 expect(overlayEl?.textContent?.trim()).toEqual(customMessage);
 
-                const chartInstance = chart as any;
-                const focusInfo = chartInstance.overlays?.getFocusInfo(chartInstance.ctx?.localeManager);
+                const focusInfo = chart.overlays.getFocusInfo(chart.ctx.localeManager);
                 expect(focusInfo?.text).toEqual(customMessage);
             });
         });
@@ -526,7 +524,7 @@ HTMLCollection [
 
         const overlayContainer = () => chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
 
-        test('leaves the content element as the only child of the overlay container', async () => {
+        it('leaves the content element as the only child of the overlay container', async () => {
             chart = deproxy(await createChart(seriesOptions(false)));
             const { publicApi } = chart;
             if (!publicApi) throw new Error('chart has no public API');
@@ -555,7 +553,7 @@ HTMLCollection [
         const spinnerStyleElement = () =>
             chart.ctx.agDocument.body.querySelector<HTMLStyleElement>('.ag-charts-overlay--loading style');
 
-        test('carries the configured style nonce on the spinner keyframes', async () => {
+        it('carries the configured style nonce on the spinner keyframes', async () => {
             chart = deproxy(
                 await createChart({
                     loading: true,
@@ -568,7 +566,7 @@ HTMLCollection [
             expect(spinnerStyleElement()?.getAttribute('nonce')).toBe('416d1177');
         });
 
-        test('omits the nonce attribute when none is configured', async () => {
+        it('omits the nonce attribute when none is configured', async () => {
             chart = deproxy(
                 await createChart({
                     loading: true,
@@ -587,7 +585,7 @@ HTMLCollection [
 describe('imageSegmentStyle', () => {
     const base = { type: 'image', url: 'icon.svg', width: 20, height: 20 } as const;
 
-    test('maps box dimensions and contain-fit defaults', () => {
+    it('maps box dimensions and contain-fit defaults', () => {
         const style = imageSegmentStyle({ ...base });
         expect(style.width).toEqual('20px');
         expect(style.height).toEqual('20px');
@@ -600,7 +598,7 @@ describe('imageSegmentStyle', () => {
         expect(style.padding).toEqual('0px 0px 0px 0px');
     });
 
-    test('maps padding, background and corner radius decoration', () => {
+    it('maps padding, background and corner radius decoration', () => {
         const style = imageSegmentStyle({
             ...base,
             padding: 2,
@@ -612,7 +610,7 @@ describe('imageSegmentStyle', () => {
         expect(style.borderRadius).toEqual('4px');
     });
 
-    test('maps each verticalAlign to a CSS equivalent', () => {
+    it('maps each verticalAlign to a CSS equivalent', () => {
         expect(imageSegmentStyle({ ...base, verticalAlign: 'top' }).verticalAlign).toEqual('top');
         expect(imageSegmentStyle({ ...base, verticalAlign: 'bottom' }).verticalAlign).toEqual('bottom');
         expect(imageSegmentStyle({ ...base, verticalAlign: 'baseline' }).verticalAlign).toEqual('baseline');
