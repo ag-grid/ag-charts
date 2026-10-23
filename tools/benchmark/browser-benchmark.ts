@@ -19,6 +19,7 @@ import { hideBin } from 'yargs/helpers';
 import { sumSamplingProfileBytes } from './allocation';
 import { parseExamplesArg, resolveExamples } from './benchmark-examples';
 import { type Contention, type HostInfo, diffContention, readCpuSample, readHostInfo } from './contention';
+import { type TimeoutProgress, formatTimeoutProgress, readTimeoutProgress } from './timeout-progress';
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '../..');
 
@@ -29,6 +30,8 @@ interface BenchmarkExampleResult {
     durationMs: number;
     /** Whole-VM CPU contention sampled across this example's window; null on non-Linux hosts. */
     contention?: Contention | null;
+    /** Present only on a timeout: how far the example had got. */
+    progress?: TimeoutProgress;
 }
 
 interface BenchmarkReport {
@@ -263,6 +266,9 @@ async function main() {
                 error: String(error),
                 durationMs: Date.now() - exampleStart,
             };
+            if (isTimeout) {
+                result.progress = await readTimeoutProgress(page);
+            }
         }
 
         result.contention = contention;
@@ -284,6 +290,9 @@ async function main() {
 
         if (result.status !== 'success') {
             console.error(`[${name}] ${result.error}`);
+        }
+        if (result.progress) {
+            console.error(`[${name}] ${formatTimeoutProgress(result.progress)}`);
         }
 
         await page.close();
