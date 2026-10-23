@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { ChartUpdateType, Color, Sector, Transformable } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
-import type { AgChartInstance, AgChartOptions, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgPieSeriesOptions, AgStandaloneChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import type { Chart } from '../../chart';
@@ -79,7 +79,7 @@ describe('PieSeries', () => {
 
     let chart: Chart;
     const ctx = setupMockCanvas();
-    const options: AgPolarChartOptions = prepareTestOptions({});
+    const options: AgStandaloneChartOptions = prepareTestOptions({});
 
     // The public animation data actions, each asserted over the whole trajectory (see the
     // animation-trajectory-tests rule).
@@ -88,12 +88,12 @@ describe('PieSeries', () => {
 
         type MarketRow = { os: string; share: number };
 
-        const pieOptions = (data: MarketRow[] = DATA_MARKET_SHARE): AgPolarChartOptions => ({
+        const pieOptions = (data: MarketRow[] = DATA_MARKET_SHARE): AgStandaloneChartOptions => ({
             data: [...data],
             series: [{ type: 'pie', angleKey: 'share', calloutLabelKey: 'os' }],
             legend: { enabled: true },
         });
-        const donutOptions = (data: MarketRow[] = DATA_MARKET_SHARE): AgPolarChartOptions => ({
+        const donutOptions = (data: MarketRow[] = DATA_MARKET_SHARE): AgStandaloneChartOptions => ({
             data: [...data],
             series: [{ type: 'donut', angleKey: 'share', calloutLabelKey: 'os', innerRadiusRatio: 0.6 }],
             legend: { enabled: true },
@@ -170,7 +170,7 @@ describe('PieSeries', () => {
         // Callout labels snap to opacity 0 at frame 0, which trips captureUpdate's whole-scene start
         // anchor, so only the end anchor is kept. `setup` establishes an extra settled pre-state.
         const captureFrom = async (
-            create: AgPolarChartOptions,
+            create: AgStandaloneChartOptions,
             action: (proxy: AgChartInstance) => void | Promise<void>,
             setup?: (proxy: AgChartInstance) => void | Promise<void>
         ) => {
@@ -678,6 +678,7 @@ describe('PieSeries', () => {
     describe('cross lines', () => {
         it('ignores cross-line listeners, which pie charts do not support', async () => {
             chart = deproxy(
+                // @ts-expect-error pie and donut chart options do not declare cross-line listeners
                 await createChart({
                     ...options,
                     data: [{ cat: 'a', dog: 10 }],
@@ -1395,7 +1396,7 @@ describe('PieSeries', () => {
         const doubleClicks: string[] = [];
         const legendClicks: (string | number)[] = [];
 
-        const nodeClickOptions: AgPolarChartOptions = {
+        const nodeClickOptions: AgStandaloneChartOptions = {
             data: [
                 { asset: 'Stocks', amount: 5 },
                 { asset: 'Cash', amount: 5 },
@@ -1553,7 +1554,7 @@ describe('PieSeries', () => {
         let chartProxy: AgChartProxy;
 
         beforeEach(async () => {
-            const testOptions: AgPolarChartOptions = {
+            const testOptions: AgStandaloneChartOptions = {
                 data: [
                     { name: 'A (deselected)', value: 10 },
                     { name: 'B', value: 20 },
@@ -1726,7 +1727,7 @@ describe('PieSeries', () => {
     // An invalid value shouldn't affect other segments or the legend.
     describe('with invalid values', () => {
         it('should render correctly', async () => {
-            const invalidDataOptions: AgPolarChartOptions = {
+            const invalidDataOptions: AgStandaloneChartOptions = {
                 data: [
                     { asset: 'Stocks', amount: 60000 },
                     { asset: 'Bonds', amount: 40000 },

@@ -3,7 +3,12 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { cycledValue } from 'ag-charts-core';
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
-import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgBarSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartTheme,
+    AgStandaloneChartOptions,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import { CartesianChart } from '../cartesianChart';
@@ -253,7 +258,7 @@ describe('ChartTheme', () => {
                 },
             },
         };
-        const polarChartOptions: AgPolarChartOptions = {
+        const pieChartOptions: AgStandaloneChartOptions = {
             theme,
             title: {
                 enabled: true,
@@ -273,15 +278,15 @@ describe('ChartTheme', () => {
             ],
         };
 
-        const serializedOptions = JSON.stringify(polarChartOptions);
+        const serializedOptions = JSON.stringify(pieChartOptions);
 
         // The chart is also inspected synchronously, before it has settled.
         beforeEach(() => {
-            chart = deproxy(AgCharts.create(polarChartOptions));
+            chart = deproxy(AgCharts.create(pieChartOptions));
         });
 
         it('Options are not mutated after AgCharts.create', () => {
-            expect(JSON.stringify(polarChartOptions)).toBe(serializedOptions);
+            expect(JSON.stringify(pieChartOptions)).toBe(serializedOptions);
         });
 
         it('Pie chart instance properties', () => {
@@ -411,7 +416,7 @@ describe('ChartTheme', () => {
             ],
         };
 
-        const polarChartOptions: AgPolarChartOptions = {
+        const pieChartOptions: AgStandaloneChartOptions = {
             theme,
             title: {
                 enabled: true,
@@ -459,7 +464,7 @@ describe('ChartTheme', () => {
         });
 
         it('Pie chart instance properties', async () => {
-            chart = deproxy(AgCharts.create(polarChartOptions));
+            chart = deproxy(AgCharts.create(pieChartOptions));
             if (!(chart instanceof StandaloneChart)) fail();
 
             await waitForChartStability(chart);

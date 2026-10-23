@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import type { AgPolarChartOptions } from 'ag-charts-community';
+import type { AgStandaloneChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-vue3';
 
 import { THEME } from '../chartTheme';
@@ -13,7 +13,7 @@ const props = defineProps<{ data: DeviceDatum[] }>();
 // Collapse the new/returning split into a single total per device.
 const totals = computed(() => props.data.map((d) => ({ device: d.device, sessions: d.new + d.returning })));
 
-const options = computed<AgPolarChartOptions>(() => ({
+const options = computed<AgStandaloneChartOptions>(() => ({
     theme: THEME,
     data: totals.value,
     series: [

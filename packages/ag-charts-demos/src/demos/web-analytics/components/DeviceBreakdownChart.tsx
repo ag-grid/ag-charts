@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import type { AgPolarChartOptions } from 'ag-charts-community';
+import type { AgStandaloneChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { THEME } from '../chartTheme';
@@ -15,7 +15,7 @@ export function DeviceBreakdownChart({ data }: DeviceBreakdownChartProps) {
     // Collapse the new/returning split into a single total per device.
     const totals = useMemo(() => data.map((d) => ({ device: d.device, sessions: d.new + d.returning })), [data]);
 
-    const options = useMemo<AgPolarChartOptions>(
+    const options = useMemo<AgStandaloneChartOptions>(
         () => ({
             theme: THEME,
             data: totals,

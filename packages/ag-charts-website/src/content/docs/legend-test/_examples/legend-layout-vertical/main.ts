@@ -1,6 +1,6 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-community';
+import { AgCharts, AgStandaloneChartOptions } from 'ag-charts-community';
 
-const options: AgPolarChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     height: 300,
     data: [

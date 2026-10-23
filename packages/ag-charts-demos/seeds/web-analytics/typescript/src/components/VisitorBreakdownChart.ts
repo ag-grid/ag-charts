@@ -1,4 +1,4 @@
-import type { AgPolarChartOptions } from 'ag-charts-community';
+import type { AgStandaloneChartOptions } from 'ag-charts-community';
 
 import { type DataChart, createDataChart } from '../agChart';
 import { THEME } from '../chartTheme';
@@ -6,7 +6,7 @@ import { fmtInt } from '../format';
 import type { VisitorDatum } from '../types';
 
 export function createVisitorBreakdownChart(data: VisitorDatum[]): DataChart<VisitorDatum[]> {
-    return createDataChart(data, (data): AgPolarChartOptions => ({
+    return createDataChart(data, (data): AgStandaloneChartOptions => ({
         theme: THEME,
         data,
         series: [

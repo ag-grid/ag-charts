@@ -235,7 +235,9 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
 
 export type UnknownSeries = Series<SeriesNodeDatum, object>;
 
-export type SeriesAreaLayout = (series: UnknownSeries[], seriesRect: BBox) => Promise<void>;
+export interface SeriesAreaLayout<T = UnknownSeries> {
+    layoutSeries(series: T[], seriesRect: BBox): Promise<void>;
+}
 
 export abstract class Series<
     TDatum extends SeriesNodeDatum,
@@ -259,8 +261,8 @@ export abstract class Series<
     readonly supportsDataTransactions: boolean = true;
     /** Lets the standalone chart round the series area origin down to whole pixels. */
     readonly snapsSeriesAreaOrigin: boolean = true;
-    /** Lays out every series sharing this function, before the chart updates them. */
-    readonly seriesAreaLayout?: SeriesAreaLayout;
+    /** Lays out every series sharing this layout, before the chart updates them. */
+    readonly seriesAreaLayout?: SeriesAreaLayout<this>;
 
     protected hasChangesOnHighlight: boolean = false;
     protected hasChangesOnSelection: boolean = false;

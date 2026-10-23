@@ -22,6 +22,7 @@ import type {
     AgDataTransaction,
     AgLineSeriesOptions,
     AgPolarChartOptions,
+    AgStandaloneChartOptions,
     InteractionRange,
 } from 'ag-charts-types';
 
@@ -1070,7 +1071,7 @@ describe('Chart', () => {
         });
 
         it('should cleanup DOM on chart-type switch', async () => {
-            const options: AgCartesianChartOptions | AgPolarChartOptions = prepareTestOptions({
+            const options: AgCartesianChartOptions | AgStandaloneChartOptions = prepareTestOptions({
                 container: document.body,
                 series: [
                     {
@@ -1116,7 +1117,7 @@ describe('Chart', () => {
             chart = deproxy(agChartInstance);
             await waitForChartStability(chart);
 
-            const pieOptions: AgPolarChartOptions = prepareTestOptions(
+            const pieOptions: AgStandaloneChartOptions = prepareTestOptions(
                 {
                     series: [
                         {

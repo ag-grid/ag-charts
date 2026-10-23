@@ -1,4 +1,4 @@
-import type { AgPolarChartOptions } from 'ag-charts-types';
+import type { AgStandaloneChartOptions } from 'ag-charts-types';
 
 import {
     DATA_MANY_LONG_LABELS,
@@ -7,7 +7,7 @@ import {
     DATA_VARIABLE_RADIUS_REVENUE,
 } from './data';
 
-export const PIE_SERIES: AgPolarChartOptions = {
+export const PIE_SERIES: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -21,7 +21,7 @@ export const PIE_SERIES: AgPolarChartOptions = {
     ],
 };
 
-export const PIE_SERIES_NEGATIVE_VALUES: AgPolarChartOptions = {
+export const PIE_SERIES_NEGATIVE_VALUES: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -35,7 +35,7 @@ export const PIE_SERIES_NEGATIVE_VALUES: AgPolarChartOptions = {
     ],
 };
 
-export const PIE_SECTORS_DIFFERENT_RADII: AgPolarChartOptions = {
+export const PIE_SECTORS_DIFFERENT_RADII: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -53,7 +53,7 @@ export const PIE_SECTORS_DIFFERENT_RADII: AgPolarChartOptions = {
 const minRadius = Math.min(...DATA_MARKET_SHARE.map((d) => d.satisfaction));
 const maxRadius = Math.max(...DATA_MARKET_SHARE.map((d) => d.satisfaction));
 
-export const PIE_SECTORS_DIFFERENT_RADII_SMALL_RADIUS_MIN: AgPolarChartOptions = {
+export const PIE_SECTORS_DIFFERENT_RADII_SMALL_RADIUS_MIN: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -69,7 +69,7 @@ export const PIE_SECTORS_DIFFERENT_RADII_SMALL_RADIUS_MIN: AgPolarChartOptions =
     ],
 };
 
-export const PIE_SECTORS_DIFFERENT_RADII_LARGE_RADIUS_MIN: AgPolarChartOptions = {
+export const PIE_SECTORS_DIFFERENT_RADII_LARGE_RADIUS_MIN: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -85,7 +85,7 @@ export const PIE_SECTORS_DIFFERENT_RADII_LARGE_RADIUS_MIN: AgPolarChartOptions =
     ],
 };
 
-export const PIE_SECTORS_DIFFERENT_RADII_SMALL_RADIUS_MAX: AgPolarChartOptions = {
+export const PIE_SECTORS_DIFFERENT_RADII_SMALL_RADIUS_MAX: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -101,7 +101,7 @@ export const PIE_SECTORS_DIFFERENT_RADII_SMALL_RADIUS_MAX: AgPolarChartOptions =
     ],
 };
 
-export const PIE_SECTORS_DIFFERENT_RADII_LARGE_RADIUS_MAX: AgPolarChartOptions = {
+export const PIE_SECTORS_DIFFERENT_RADII_LARGE_RADIUS_MAX: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -117,7 +117,7 @@ export const PIE_SECTORS_DIFFERENT_RADII_LARGE_RADIUS_MAX: AgPolarChartOptions =
     ],
 };
 
-export const PIE_SECTORS_LABELS: AgPolarChartOptions = {
+export const PIE_SECTORS_LABELS: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -135,7 +135,7 @@ export const PIE_SECTORS_LABELS: AgPolarChartOptions = {
     ],
 };
 
-export const DONUT_SERIES: AgPolarChartOptions = {
+export const DONUT_SERIES: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -150,7 +150,7 @@ export const DONUT_SERIES: AgPolarChartOptions = {
     ],
 };
 
-export const DONUT_SERIES_INNER_TEXT: AgPolarChartOptions = {
+export const DONUT_SERIES_INNER_TEXT: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -172,7 +172,7 @@ export const DONUT_SERIES_INNER_TEXT: AgPolarChartOptions = {
     ],
 };
 
-export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS: AgPolarChartOptions = {
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -193,7 +193,7 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS: AgPolarChartOptions = {
 
 // Wide spacing over a deep ring: the filled band has to cover the spacing strips too, or they read
 // as slots cut into it.
-export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgPolarChartOptions = {
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -214,7 +214,7 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgPolarChartOptions
 
 // A wide `sectorSpacing` insets each sector's painted edges, so the band has to stop where the
 // sectors' own outer edge does rather than at the requested corner radius.
-export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING: AgPolarChartOptions = {
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -235,7 +235,7 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING: AgPolarChartO
 
 // Translucent sector fills composite over whatever sits behind them, so the band under the sectors
 // must be erased - anywhere it survives it tints the slice.
-export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT: AgPolarChartOptions = {
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -255,7 +255,7 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT: AgPolarChartOp
     ],
 };
 
-export const DONUT_SERIES_RATIO: AgPolarChartOptions = {
+export const DONUT_SERIES_RATIO: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -274,7 +274,7 @@ export const DONUT_SERIES_RATIO: AgPolarChartOptions = {
     ],
 };
 
-export const GROUPED_DONUT_SERIES: AgPolarChartOptions = {
+export const GROUPED_DONUT_SERIES: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -302,12 +302,12 @@ export const GROUPED_DONUT_SERIES: AgPolarChartOptions = {
     ],
 };
 
-export const GROUPED_DONUT_SERIES_FIRST_HIDDEN: AgPolarChartOptions = {
+export const GROUPED_DONUT_SERIES_FIRST_HIDDEN: AgStandaloneChartOptions = {
     ...GROUPED_DONUT_SERIES,
     series: GROUPED_DONUT_SERIES.series?.map((series, index) => (index === 0 ? { ...series, visible: false } : series)),
 };
 
-export const DONUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
+export const DONUT_SERIES_DIFFERENT_RADII: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -326,7 +326,7 @@ export const DONUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
     ],
 };
 
-export const GROUPED_DONUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
+export const GROUPED_DONUT_SERIES_DIFFERENT_RADII: AgStandaloneChartOptions = {
     title: {
         text: 'Market Share',
     },
@@ -356,7 +356,7 @@ export const GROUPED_DONUT_SERIES_DIFFERENT_RADII: AgPolarChartOptions = {
     ],
 };
 
-export const PIE_CALLOUT_LABELS_COLLISIONS: AgPolarChartOptions = {
+export const PIE_CALLOUT_LABELS_COLLISIONS: AgStandaloneChartOptions = {
     title: {
         text: 'Many Long Labels',
     },
@@ -373,7 +373,7 @@ export const PIE_CALLOUT_LABELS_COLLISIONS: AgPolarChartOptions = {
     ],
 };
 
-export const DONUT_VARIABLE_RADIUS_CALLOUT_COLLISIONS: AgPolarChartOptions = {
+export const DONUT_VARIABLE_RADIUS_CALLOUT_COLLISIONS: AgStandaloneChartOptions = {
     title: {
         text: 'Revenue Distribution vs. Profit Margin',
     },

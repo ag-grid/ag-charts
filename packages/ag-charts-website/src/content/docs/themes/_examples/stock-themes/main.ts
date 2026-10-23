@@ -1,10 +1,10 @@
-import { AgCharts, AgPolarChartOptions, LegendModule } from 'ag-charts-community';
+import { AgCharts, AgStandaloneChartOptions, LegendModule } from 'ag-charts-community';
 import { ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([LegendModule, PieSeriesModule]);
-const options: AgPolarChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     theme: 'ag-default',
     title: {
@@ -23,7 +23,7 @@ const options: AgPolarChartOptions = {
 const chart = AgCharts.create(options);
 
 function themeChange(event: Event) {
-    options.theme = (event.target as HTMLInputElement).value as AgPolarChartOptions['theme'];
+    options.theme = (event.target as HTMLInputElement).value as AgStandaloneChartOptions['theme'];
 
     chart.update(options);
 }

@@ -1,4 +1,10 @@
-import type { AgCartesianChartOptions, AgChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgChartTheme,
+    AgPolarChartOptions,
+    AgStandaloneChartOptions,
+} from 'ag-charts-types';
 
 const BASE_THEME: AgChartTheme = {
     baseTheme: {
@@ -825,7 +831,7 @@ const COMMON_POLAR = {
     ],
 };
 
-const PIE_BASIC: AgPolarChartOptions = {
+const PIE_BASIC: AgStandaloneChartOptions = {
     ...COMMON_POLAR,
     series: [
         {
@@ -839,7 +845,7 @@ const PIE_BASIC: AgPolarChartOptions = {
     ],
 };
 
-const PIE_DUPLICATE_VALUES: AgPolarChartOptions = {
+const PIE_DUPLICATE_VALUES: AgStandaloneChartOptions = {
     ...COMMON_POLAR,
     data: COMMON_POLAR.data.slice(0, 4).concat({
         age: 21,
@@ -859,7 +865,7 @@ const PIE_DUPLICATE_VALUES: AgPolarChartOptions = {
     ],
 };
 
-const PIE_OBJECT_VALUES: AgPolarChartOptions = {
+const PIE_OBJECT_VALUES: AgStandaloneChartOptions = {
     ...COMMON_POLAR,
     data: [
         { asset: { id: 0, name: 'Stocks', value: { x: '15%' } }, amount: 60000 },
@@ -887,7 +893,7 @@ const PIE_OBJECT_VALUES: AgPolarChartOptions = {
     },
 };
 
-const DONUT_BASIC: AgPolarChartOptions = {
+const DONUT_BASIC: AgStandaloneChartOptions = {
     ...COMMON_POLAR,
     series: [
         {
@@ -1551,7 +1557,7 @@ const CROSSFILTER_COLUMN: AgCartesianChartOptions = {
     ],
 };
 
-const CROSSFILTER_PIE_FILTERED: AgPolarChartOptions = {
+const CROSSFILTER_PIE_FILTERED: AgStandaloneChartOptions = {
     ...CROSSFILTER_COMMON,
     theme: {
         baseTheme: {

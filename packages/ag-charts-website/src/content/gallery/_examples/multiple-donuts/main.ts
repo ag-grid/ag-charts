@@ -1,7 +1,7 @@
 import {
     AgCharts,
     AgDonutSeriesOptions,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     AnimationModule,
     ContextMenuModule,
     DonutSeriesModule,
@@ -13,7 +13,7 @@ import { getData } from './data';
 ModuleRegistry.registerModules([AnimationModule, DonutSeriesModule]);
 const data = getData();
 
-const options: AgPolarChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Water Usage Comparison',

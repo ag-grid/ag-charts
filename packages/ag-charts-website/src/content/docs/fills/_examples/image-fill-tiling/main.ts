@@ -3,7 +3,7 @@ import {
     AgColorRepeat,
     AgDonutSeriesOptions,
     AgImageFill,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     LegendModule,
 } from 'ag-charts-community';
 import { DonutSeriesModule, ModuleRegistry } from 'ag-charts-community';
@@ -13,7 +13,7 @@ import { getData } from './data';
 ModuleRegistry.registerModules([DonutSeriesModule, LegendModule]);
 const data = getData();
 
-const options: AgPolarChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     data,
     title: {
