@@ -39,6 +39,7 @@ import type {
 
 import { without } from '../data/object';
 import type { OptionsContribution } from '../modules/optionsContribution';
+import type { CARTESIAN_AXIS_TYPE, POLAR_AXIS_TYPE } from '../types/themeConstants';
 import { crossLinesThemeTemplate } from './axisThemeTemplate';
 import { numberFormatValidator, textOrSegments, timeInterval, timeIntervalUnit } from './chartDefaults';
 import {
@@ -153,9 +154,11 @@ export function crossLinesArrayOptionsDefs(value: Validator, labelDefs: OptionsD
     return arrayOfDefs(crossLineOptionsDefs(value, labelDefs), 'a cross-line options array');
 }
 
+export type CrossLinesAxisType = `${CARTESIAN_AXIS_TYPE}` | `${POLAR_AXIS_TYPE}`;
+
 /** The `axes[].crossLines` option and theme contribution for the given axis types. */
 export function crossLinesContribution(
-    axisTypes: string[],
+    axisTypes: CrossLinesAxisType[],
     value: Validator,
     labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>
 ): OptionsContribution {

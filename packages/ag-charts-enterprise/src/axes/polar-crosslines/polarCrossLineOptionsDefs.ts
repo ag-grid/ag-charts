@@ -1,4 +1,5 @@
 import {
+    type CrossLinesAxisType,
     type OptionsContribution,
     type OptionsDefs,
     type Validator,
@@ -13,10 +14,10 @@ const radiusCrossLineLabelOptionsDefs: OptionsDefs<AgRadiusCrossLineLabelOptions
     positionAngle: number,
 };
 
-export function angleCrossLines(axisType: string, value: Validator): OptionsContribution {
+export function angleCrossLines(axisType: CrossLinesAxisType, value: Validator): OptionsContribution {
     return crossLinesContribution([axisType], value, commonCrossLineLabelOptionsDefs);
 }
 
-export function radiusCrossLines(axisType: string, value: Validator): OptionsContribution {
+export function radiusCrossLines(axisType: CrossLinesAxisType, value: Validator): OptionsContribution {
     return crossLinesContribution([axisType], value, radiusCrossLineLabelOptionsDefs);
 }
