@@ -147,6 +147,19 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     private pickCrosslines(point: CanvasPoint): CrossLine[] {
+        // AG-18961 Context Menus opened with the keyboard are typically centered on the focused HTML element's
+        // bounds. However, the center of the HTML element's bound could hit-miss the cross line itself. This can happen
+        // on radius polar cross lines for examples, which can be donut-shaped and hollow at the center. Therefore, if a
+        // cross line is focused, then report that focused cross line as the only hit regardless of where `point` is.
+        const focusEntry = this.ctx.crossLinesDOMProxy?.getFocusState();
+        if (focusEntry) {
+            if (focusEntry.plugin === this) {
+                return [focusEntry.crossLine];
+            } else {
+                return []; // some other axis is in focus: ignore cross lines on this axis
+            }
+        }
+
         const result: CrossLine[] = [];
         for (const crossLine of this.instances) {
             if (crossLine.containsPoint?.(point)) {

@@ -16,9 +16,13 @@ export interface CrossLinesProxySource {
     keyboardClick(crossLine: CrossLine, sourceEvent: Event): void;
 }
 
-interface ProxyEntry {
+/** The cross line whose proxy has keyboard focus, and the plugin of its axis. */
+export interface CrossLineFocusState {
     readonly plugin: CrossLinesProxySource;
     readonly crossLine: CrossLine;
+}
+
+interface ProxyEntry extends CrossLineFocusState {
     readonly bounds: BoxBounds;
     readonly focusPath?: string;
 }
@@ -58,6 +62,7 @@ export class CrossLinesDOMProxy {
     private readonly plugins = new Set<CrossLinesProxySource>();
     private entries: ProxyEntry[] = [];
     private dirty = true;
+    private focusedIndex: number | undefined;
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         this.list = ctx.proxyInteractionService.createProxyContainer({
@@ -94,6 +99,10 @@ export class CrossLinesDOMProxy {
         this.cleanup.flush();
     }
 
+    getFocusState(): CrossLineFocusState | undefined {
+        return this.focusedIndex == null ? undefined : this.entries[this.focusedIndex];
+    }
+
     private update() {
         if (!this.dirty) return;
         this.dirty = false;
@@ -113,6 +122,9 @@ export class CrossLinesDOMProxy {
             }
         }
         this.entries = entries;
+        if (this.focusedIndex != null && this.focusedIndex >= entries.length) {
+            this.focusedIndex = undefined;
+        }
 
         // Buttons are reused by index, so a focused proxy keeps focus across re-layouts.
         const { buttons } = this;
@@ -169,6 +181,13 @@ export class CrossLinesDOMProxy {
         button.addListener('click', (event) => {
             const entry = this.entries[index];
             entry?.plugin.keyboardClick(entry.crossLine, event.sourceEvent);
+        });
+
+        button.addListener('focus', () => {
+            this.focusedIndex = index;
+        });
+        button.addListener('blur', () => {
+            this.focusedIndex = undefined;
         });
         return button;
     }
