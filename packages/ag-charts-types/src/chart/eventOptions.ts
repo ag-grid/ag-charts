@@ -382,14 +382,21 @@ export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     click?: Listener<AgChartClickEvent<TContext>>;
     /** The listener to call when the chart is double-clicked. */
     doubleClick?: Listener<AgChartDoubleClickEvent<TContext>>;
-    /** The listener to call when a Cross Line on any axis is clicked. */
-    crossLineClick?: Listener<AgCrossLineClickEvent<TContext>>;
-    /** The listener to call when a Cross Line on any axis is double-clicked. */
-    crossLineDoubleClick?: Listener<AgCrossLineDoubleClickEvent<TContext>>;
     /** The listener to call when the annotations are changed. */
     annotations?: Listener<AgAnnotationsEvent<TContext>>;
     /** The listener to call when the zoom is changed. */
     zoom?: Listener<AgZoomEvent<TContext>>;
+}
+
+/** Chart listeners for charts with axes that can hold Cross Lines. */
+export interface AgAxesChartListeners<TDatum, TContext = ContextDefault> extends AgBaseChartListeners<
+    TDatum,
+    TContext
+> {
+    /** The listener to call when a Cross Line on any axis is clicked. */
+    crossLineClick?: Listener<AgCrossLineClickEvent<TContext>>;
+    /** The listener to call when a Cross Line on any axis is double-clicked. */
+    crossLineDoubleClick?: Listener<AgCrossLineDoubleClickEvent<TContext>>;
 }
 
 export interface AgSeriesListeners<TDatum, TContext = ContextDefault> {

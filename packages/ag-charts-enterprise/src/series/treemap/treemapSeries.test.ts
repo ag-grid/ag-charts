@@ -104,6 +104,7 @@ describe('TreemapSeries', () => {
     };
 
     it('ignores cross-line listeners, which hierarchy charts do not support', async () => {
+        // @ts-expect-error hierarchy chart options do not declare cross-line listeners
         chart = await createEnterpriseChart({
             ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
             listeners: { crossLineClick: () => {} },
