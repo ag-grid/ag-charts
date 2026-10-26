@@ -2034,8 +2034,7 @@ describe('CrossLine', () => {
         it('lays a hidden label out once when it keeps its verdict', async () => {
             async function updateLabelsCallsOnLayout(options: AgCartesianChartOptions) {
                 chart = deproxy(await createChart(options));
-                expect(chart.ctx.labelManager).toBeDefined();
-                const updateLabels = vi.spyOn(chart.ctx.labelManager!, 'updateLabels');
+                const updateLabels = vi.spyOn(chart.ctx.labelManager, 'updateLabels');
                 chart.update(ChartUpdateType.PERFORM_LAYOUT);
                 await waitForChartStability(chart);
                 return { calls: updateLabels.mock.calls.length, shown: labelsShown() };

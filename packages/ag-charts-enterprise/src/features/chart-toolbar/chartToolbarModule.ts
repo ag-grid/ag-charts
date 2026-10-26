@@ -21,5 +21,8 @@ export const ChartToolbarModule: PluginModuleDefinition<AgChartToolbarThemeableO
         themeTemplate: { enabled: false },
 
         create: (ctx) => new ChartToolbar(ctx),
-        services: { sharedToolbar: (c) => new SharedToolbar(c) },
+        register: (ctx) => {
+            if (ctx.has('sharedToolbar')) return;
+            ctx.service('sharedToolbar', (c) => new SharedToolbar(c));
+        },
     };

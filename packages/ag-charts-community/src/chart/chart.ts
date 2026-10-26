@@ -7,7 +7,6 @@ import type {
     DynamicContext,
     ModuleInstance,
     NormalisedTextOrSegments,
-    RegistryRevision,
     Scene,
 } from 'ag-charts-core';
 import {
@@ -271,7 +270,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
-    private servicesRevision: RegistryRevision = -1;
     public readonly ctx: DynamicContext<ChartRegistry>;
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly seriesAreaManager: SeriesAreaManager;
@@ -1509,7 +1507,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         await Promise.all(seriesToUpdate.map(seriesUpdate).filter((p): p is Promise<void> => p != null));
 
-        const relayout = this.ctx.labelManager?.updateLabels(
+        const relayout = this.ctx.labelManager.updateLabels(
             this.series.filter((s) => s.visible),
             this.ctx.chartState.getValue('options', 'padding'),
             this.seriesRect
@@ -1832,15 +1830,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     private applyModules() {
         const { type: chartType } = this.constructor as any;
-        const { moduleRegistry } = this.ctx;
-
-        // Modules registered after `createChartContext()` would otherwise miss its one-shot service install.
-        this.servicesRevision = moduleRegistry.ifRegistryChanged(this.servicesRevision, () =>
-            moduleRegistry.installServices(this.ctx, chartType)
-        );
 
         let modulesChanged = false;
-        for (const module of moduleRegistry.listModulesByType(ModuleType.Plugin)) {
+        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
             const shouldBeEnabled = moduleMatchesChartType(module, chartType);
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 

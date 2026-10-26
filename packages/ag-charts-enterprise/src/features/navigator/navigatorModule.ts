@@ -20,5 +20,8 @@ export const NavigatorModule: PluginModuleDefinition<AgNavigatorOptions, _Module
     themeTemplate: NAVIGATOR_THEME,
 
     create: (ctx) => new Navigator(ctx),
-    services: { zoomManager: (c) => new _ModuleSupport.ZoomManager(c) },
+    register: (ctx) => {
+        if (ctx.has('zoomManager')) return;
+        ctx.service('zoomManager', (c) => new _ModuleSupport.ZoomManager(c));
+    },
 };

@@ -46,26 +46,10 @@ const heatmapData = [
 ];
 
 const rangeAreaData = [
-    { category: 'Jan', low: 5, high: 15 },
-    { category: 'Feb', low: 10, high: 30 },
-    { category: 'Mar', low: 8, high: 20 },
-    { category: 'Apr', low: 12, high: 35 },
-    { category: 'May', low: 6, high: 18 },
-    { category: 'Jun', low: 11, high: 28 },
-    { category: 'Jul', low: 9, high: 24 },
-    { category: 'Aug', low: 14, high: 33 },
-];
-
-// Label-dense so that labels missing from a partial bundle exceed the comparison tolerance.
-const barLabelData = [
-    { category: 'Jan', value: 10 },
-    { category: 'Feb', value: 25 },
-    { category: 'Mar', value: 15 },
-    { category: 'Apr', value: 30 },
-    { category: 'May', value: 20 },
-    { category: 'Jun', value: 35 },
-    { category: 'Jul', value: 18 },
-    { category: 'Aug', value: 28 },
+    { category: 'Q1', low: 5, high: 15 },
+    { category: 'Q2', low: 10, high: 30 },
+    { category: 'Q3', low: 8, high: 20 },
+    { category: 'Q4', low: 12, high: 35 },
 ];
 
 export const scenarios = [
@@ -84,15 +68,8 @@ export const scenarios = [
         package: 'ag-charts-community',
         modules: ['CartesianChartModule', 'BarSeriesModule', 'NumberAxisModule', 'CategoryAxisModule'],
         chartOptions: {
-            data: barLabelData,
-            series: [
-                {
-                    type: 'bar',
-                    xKey: 'category',
-                    yKey: 'value',
-                    label: { enabled: true, fontSize: 30, placement: ['inside-center', 'outside-end'] },
-                },
-            ],
+            data: barData,
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
         },
     },
     {
@@ -219,15 +196,7 @@ export const scenarios = [
         ],
         chartOptions: {
             data: rangeAreaData,
-            series: [
-                {
-                    type: 'range-area',
-                    xKey: 'category',
-                    yLowKey: 'low',
-                    yHighKey: 'high',
-                    label: { enabled: true, fontSize: 24 },
-                },
-            ],
+            series: [{ type: 'range-area', xKey: 'category', yLowKey: 'low', yHighKey: 'high' }],
         },
     },
 ];

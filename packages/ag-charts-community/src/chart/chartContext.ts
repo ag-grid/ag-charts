@@ -39,9 +39,9 @@ import type { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { WidgetSet } from './interaction/widgetSet';
 import { ZoomManager } from './interaction/zoomManager';
+import { LabelManager } from './layout/labelManager';
 import { LayoutManager } from './layout/layoutManager';
 import { OptionsGraphService } from './optionsGraphService';
-import { SeriesArea } from './series-area/seriesArea';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { ChartValidations } from './validation/chartValidations';
@@ -123,6 +123,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('formatManager', () => new FormatManager())
         .service('seriesStateManager', () => new SeriesStateManager())
         .service('stateManager', (c) => new StateManager(c.logger))
+        .service('labelManager', () => new LabelManager())
         .service('interactionManager', () => new InteractionManager())
         .service('optionsGraphService', (c) => new OptionsGraphService(c.logger))
         .service('chartTypeOriginator', (c) => new ChartTypeOriginator(chart, c.logger))
@@ -144,14 +145,11 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager, c.logger))
         .service('zoomManager', (c) => new ZoomManager(c));
 
-    // Built eagerly: it attaches its scene nodes and listeners on construction.
-    ctx.constant('seriesArea', new SeriesArea(ctx));
-
     // A scene transferred from a previous chart still points at that chart's logger.
     if (vars.scene) scene.setLogger(vars.logger);
 
-    // Module services and registrations follow the core registry but precede any consumer reading the context.
-    vars.moduleRegistry.installServices(ctx, vars.chartType);
+    // Plugin modules register their own services (e.g. sharedToolbar) after the
+    // core registry is complete but before any consumer reads from the context.
     for (const module of vars.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
         if (moduleMatchesChartType(module, vars.chartType)) {
             module.register?.(ctx);

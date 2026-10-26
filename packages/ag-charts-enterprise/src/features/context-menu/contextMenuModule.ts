@@ -22,8 +22,11 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, _Mo
         allowBrowserMenuWithModifierKey: false,
     },
 
-    services: { contextMenuRegistry: (c) => new _ModuleSupport.ContextMenuRegistry(c) },
-    // `services` are installed first and guarantee `contextMenuRegistry` is present, so we
+    // `register()` runs first and guarantees `contextMenuRegistry` is present, so we
     // narrow the ctx type to ContextMenuCtx at the boundary and avoid `!` assertions.
     create: (ctx) => new ContextMenu(ctx as ContextMenuCtx),
+    register: (ctx) => {
+        if (ctx.has('contextMenuRegistry')) return;
+        ctx.service('contextMenuRegistry', (c) => new _ModuleSupport.ContextMenuRegistry(c));
+    },
 };

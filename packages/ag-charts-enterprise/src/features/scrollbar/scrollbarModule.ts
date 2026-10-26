@@ -17,5 +17,8 @@ export const ScrollbarModule: PluginModuleDefinition<AgScrollbarOptions, _Module
     options: scrollbarOptionsDef,
     themeTemplate: SCROLLBAR_THEME,
     create: (ctx) => new Scrollbar(ctx),
-    services: { zoomManager: (c) => new _ModuleSupport.ZoomManager(c) },
+    register: (ctx) => {
+        if (ctx.has('zoomManager')) return;
+        ctx.service('zoomManager', (c) => new _ModuleSupport.ZoomManager(c));
+    },
 };
