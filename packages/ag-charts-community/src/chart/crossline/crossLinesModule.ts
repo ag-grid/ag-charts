@@ -1,6 +1,7 @@
 import {
     type AxisPluginModuleDefinition,
     type DynamicContext,
+    LABEL_MANAGER_SERVICES,
     crossLineListenerContributions,
     crossLinesContribution,
     date,
@@ -25,6 +26,7 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
     enterprise: false,
     version: VERSION,
     dependencies: [CrossLinesDOMProxyModule],
+    services: LABEL_MANAGER_SERVICES,
 
     contributes: [
         /* #__PURE__ */ crossLinesContribution(

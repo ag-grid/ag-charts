@@ -2,6 +2,7 @@ import {
     AgDocument,
     type CallbackCache,
     type Group,
+    type LabelManager,
     type Logger,
     type ModuleScope,
     type ReactiveState,
@@ -29,7 +30,6 @@ import type { SyncManager } from '../chart/interaction/syncManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { WidgetSet } from '../chart/interaction/widgetSet';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
-import type { LabelManager } from '../chart/layout/labelManager';
 import type { LayoutManager } from '../chart/layout/layoutManager';
 import type { LegendManager } from '../chart/legend/legendManager';
 import type { OptionsGraphService } from '../chart/optionsGraphService';
@@ -94,7 +94,7 @@ export interface ChartRegistry {
     readonly localeManager: LocaleManager;
     readonly proxyInteractionService: ProxyInteractionService;
     readonly seriesStateManager: SeriesStateManager;
-    readonly labelManager: LabelManager;
+    readonly labelManager?: LabelManager;
     readonly stateManager: StateManager;
     readonly syncManager: SyncManager;
     readonly tooltipManager: TooltipManager;

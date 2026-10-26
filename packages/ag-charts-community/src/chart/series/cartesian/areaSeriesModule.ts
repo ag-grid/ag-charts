@@ -8,6 +8,7 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+    LABEL_MANAGER_SERVICES,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
@@ -95,6 +96,7 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = /* 
     stackable: true,
     version: VERSION,
     dependencies: [CartesianChartModule],
+    services: LABEL_MANAGER_SERVICES,
 
     options: areaSeriesOptionsDef,
 

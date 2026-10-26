@@ -5,6 +5,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    LABEL_MANAGER_SERVICES,
     LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
     SERIES_SELECTION_THEME,
@@ -27,6 +28,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
     solo: true,
     version: VERSION,
     dependencies: [StandaloneChartModule],
+    services: LABEL_MANAGER_SERVICES,
 
     options: sankeySeriesOptionsDef,
 

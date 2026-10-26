@@ -4,6 +4,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
+    LABEL_MANAGER_SERVICES,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
@@ -28,6 +29,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
     solo: true,
     version: VERSION,
     dependencies: [StandaloneChartModule],
+    services: LABEL_MANAGER_SERVICES,
 
     options: treemapSeriesOptionsDef,
 
