@@ -32,7 +32,6 @@ export class PolarChart extends Chart {
         super.onAxisChange(newValue, oldValue);
         if (this.ctx == null) return;
 
-        // Registered here rather than by the axis, matching the cartesian chart.
         const { labelManager } = this.ctx;
         for (const axis of oldValue ?? []) {
             labelManager.unregisterSource(axis.labelSource.id, axis.labelSource);
