@@ -4,7 +4,15 @@ import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import type { NormalisedChartLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
 import { type TextMeasurer, cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
-import { appendEllipsis, graphemeSegments, lineHeightAtSize, toFontString, toTextString } from '../text/textUtil';
+import {
+    appendEllipsis,
+    graphemeSegments,
+    lineHeightAtSize,
+    splitAtBreakSpaces,
+    toFontString,
+    toTextString,
+    trimBreakSpacesEnd,
+} from '../text/textUtil';
 import {
     type LabelFit,
     type RegionAlign,
@@ -1850,7 +1858,7 @@ function widestWordWidth(lines: string[], wrapping: FitWrapping): number {
     const measurer = cascadeMeasurer!;
     let widest = 0;
     for (const line of lines) {
-        for (const unit of wrapping === 'never' ? [line.trimEnd()] : line.split(' ')) {
+        for (const unit of wrapping === 'never' ? [trimBreakSpacesEnd(line)] : splitAtBreakSpaces(line)) {
             if (unit !== '') {
                 widest = Math.max(widest, measurer.textWidth(unit));
             }
@@ -1868,7 +1876,9 @@ function narrowestLeadWidth(lines: string[], wrapping: FitWrapping): number {
     let narrowest = Infinity;
     for (const line of lines) {
         // Only the line's leading word can survive a truncation, so the rest of the line is moot.
-        const lead = (wrapping === 'never' ? [line.trimEnd()] : line.split(' ')).find((unit) => unit !== '');
+        const lead = (wrapping === 'never' ? [trimBreakSpacesEnd(line)] : splitAtBreakSpaces(line)).find(
+            (unit) => unit !== ''
+        );
         if (lead == null) continue;
         const first = measurer.textWidth(appendEllipsis(graphemeSegments(lead)[0]));
         narrowest = Math.min(narrowest, measurer.textWidth(lead), first);

@@ -91,6 +91,31 @@ describe('series label fit', () => {
             expect(someTruncated(texts)).toBe(true);
         });
 
+        it('breaks labels at zero-width spaces and tabs but never at no-break spaces', async () => {
+            const breakData = [
+                { cat: 'TotalRevenue', value: 90, label: 'Total\u200BRevenue\u200BPer\u200BRegion' },
+                { cat: 'NetProfitMargin', value: 80, label: 'Tab\tSeparated\tWords\tAcross\tLines' },
+                { cat: 'GrossSales', value: 70, label: '100\u00A0km 200\u00A0km 300\u00A0km' },
+                { cat: 'UnitCount', value: 60, label: 'Plain words label' },
+            ];
+            const camelCaseBreaks = (p: any) => String(p.value).replaceAll(/(?<=[a-z])(?=[A-Z])/g, '\u200B');
+            await renderAndSnapshot({
+                ...barChart({ wrapping: 'on-space', truncate: true }, breakData),
+                axes: {
+                    x: {
+                        ...cartesianAxes.x,
+                        label: { maxWidth: 50, wrapping: 'on-space', formatter: camelCaseBreaks },
+                    },
+                    y: cartesianAxes.y,
+                },
+            });
+            const [zeroWidth, tabs, noBreak] = labelTexts().map(String);
+            expect(zeroWidth).toContain('\n');
+            expect(tabs).toContain('\n');
+            expect(noBreak).toContain('\n');
+            expect(noBreak).not.toMatch(/\d\n|\nkm/);
+        });
+
         it('honours an explicit maxWidth tighter than the bar rect, and defers to the rect when looser', async () => {
             // Whichever of maxWidth and the (halved) grouped-bar width is tighter governs the fit.
             const data = [
