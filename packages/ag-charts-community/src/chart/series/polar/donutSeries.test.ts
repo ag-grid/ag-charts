@@ -9,7 +9,7 @@ import type {
     AgChartTheme,
     AgColorType,
     AgDonutSeriesOptions,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -155,7 +155,7 @@ function calloutLinesMissingTheirBorder(myChart: Chart, borderWidth: number) {
 }
 
 // Bespoke: width/height are applied after `prepareTestOptions`, which `createChart` would overwrite with the defaults.
-async function createSizedChart(options: AgPolarChartOptions, width: number, height: number) {
+async function createSizedChart(options: AgStandaloneChartOptions, width: number, height: number) {
     const prepared = prepareTestOptions({ ...options });
     prepared.width = width;
     prepared.height = height;
@@ -165,7 +165,7 @@ async function createSizedChart(options: AgPolarChartOptions, width: number, hei
 }
 
 /** Short sectors between tall ones, in a chart too narrow for their labels to be pushed clear. */
-const NARROW_SHORT_BETWEEN_TALL: AgPolarChartOptions = {
+const NARROW_SHORT_BETWEEN_TALL: AgStandaloneChartOptions = {
     data: [
         { name: 'Tall A', value: 30, radius: 100 },
         { name: 'Short 1', value: 5, radius: 30 },
@@ -179,7 +179,7 @@ const NARROW_SHORT_BETWEEN_TALL: AgPolarChartOptions = {
 };
 
 /** A short sector at the top, whose clearing push would run into the series title. */
-const SHORT_TOP_UNDER_SERIES_TITLE: AgPolarChartOptions = {
+const SHORT_TOP_UNDER_SERIES_TITLE: AgStandaloneChartOptions = {
     title: { text: 'Chart title' },
     data: [
         { name: 'Top short', value: 6, radius: 10 },
@@ -204,7 +204,7 @@ const SHORT_TOP_UNDER_SERIES_TITLE: AgPolarChartOptions = {
     legend: { enabled: false },
 };
 
-const boxedCalloutLabels = (borderWidth: number): AgPolarChartOptions => ({
+const boxedCalloutLabels = (borderWidth: number): AgStandaloneChartOptions => ({
     data: [
         { asset: 'Stocks', amount: 60000 },
         { asset: 'Bonds', amount: 40000 },
@@ -229,7 +229,7 @@ const boxedCalloutLabels = (borderWidth: number): AgPolarChartOptions => ({
 });
 
 /** The `legend-e2e/legend-item-key` docs example: two concentric donuts, four tiny slices at the top. */
-const UNIFORM_RADIUS_CROWDED_TOP: AgPolarChartOptions = {
+const UNIFORM_RADIUS_CROWDED_TOP: AgStandaloneChartOptions = {
     data: [
         { os: 'Android', 2020: 56.9, 2023: 63.9 },
         { os: 'iOS', 2020: 22.5, 2023: 16.5 },
@@ -271,7 +271,7 @@ describe('DonutSeries', () => {
 
     let chart: Chart;
     const ctx = setupMockCanvas();
-    const options: AgPolarChartOptions = prepareTestOptions({});
+    const options: AgStandaloneChartOptions = prepareTestOptions({});
 
     describe('#create', () => {
         test('multiple donuts', async () => {
@@ -1189,7 +1189,7 @@ describe('DonutSeries', () => {
     // An invalid value shouldn't affect other segments or the legend.
     describe('with invalid values', () => {
         it('should render correctly', async () => {
-            const invalidDataOptions: AgPolarChartOptions = {
+            const invalidDataOptions: AgStandaloneChartOptions = {
                 data: [
                     { asset: 'Stocks', amount: 60000 },
                     { asset: 'Bonds', amount: 40000 },
@@ -1230,7 +1230,7 @@ describe('DonutSeries', () => {
         });
     });
 
-    const labelBoxingOptions = (calloutOffset?: number): AgPolarChartOptions => ({
+    const labelBoxingOptions = (calloutOffset?: number): AgStandaloneChartOptions => ({
         data: [
             { asset: 'Stocks', amount: 60000 },
             { asset: 'Bonds', amount: 40000 },
@@ -1525,7 +1525,7 @@ describe('DonutSeries', () => {
     });
 
     describe('inner label text segments', () => {
-        const segmentsOptions = (innerLabels: AgDonutSeriesOptions['innerLabels']): AgPolarChartOptions => ({
+        const segmentsOptions = (innerLabels: AgDonutSeriesOptions['innerLabels']): AgStandaloneChartOptions => ({
             ...options,
             data: [
                 { label: 'A', value: 60 },
@@ -1649,7 +1649,7 @@ describe('DonutSeries', () => {
     });
 
     describe('AG-18485 inner label centring', () => {
-        const centredOptions = (innerLabels: AgDonutSeriesOptions['innerLabels']): AgPolarChartOptions => ({
+        const centredOptions = (innerLabels: AgDonutSeriesOptions['innerLabels']): AgStandaloneChartOptions => ({
             ...options,
             data: [
                 { label: 'A', value: 60 },
@@ -1709,7 +1709,7 @@ describe('DonutSeries', () => {
                         innerLabels: [{ text: '10', fontSize: 80 }],
                     },
                 ],
-            } as AgPolarChartOptions);
+            } as AgStandaloneChartOptions);
             // Bespoke: prepareTestOptions fixes the canvas size, so the repro's height is applied after it.
             reproOptions.height = 200;
             chart = deproxy(AgCharts.create(reproOptions) as AgChartProxy);
@@ -1719,7 +1719,7 @@ describe('DonutSeries', () => {
     });
 
     describe('AG-18500 removing inner labels on update', () => {
-        const donutOptions = (innerLabels?: AgDonutSeriesOptions['innerLabels']): AgPolarChartOptions => ({
+        const donutOptions = (innerLabels?: AgDonutSeriesOptions['innerLabels']): AgStandaloneChartOptions => ({
             ...options,
             data: [
                 { asset: 'Stocks', amount: 60000 },

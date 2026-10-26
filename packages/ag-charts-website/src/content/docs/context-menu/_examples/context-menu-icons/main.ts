@@ -1,6 +1,6 @@
 import {
     AgCharts,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
@@ -19,7 +19,7 @@ const JSON_URL =
 const CSV_URL =
     'data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJhZy1pY29uIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMS41IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxzdHlsZT4qIHsgdmVjdG9yLWVmZmVjdDogbm9uLXNjYWxpbmctc3Ryb2tlOyB9PC9zdHlsZT48cGF0aCBkPSJNOSAzSDVhMiAyIDAgMCAwLTIgMnY0bTYtNmgxMGEyIDIgMCAwIDEgMiAydjRNOSAzdjE4bTAgMGgxMGEyIDIgMCAwIDAgMi0yVjlNOSAyMUg1YTIgMiAwIDAgMS0yLTJWOW0wIDBoMTgiLz48L3N2Zz4=';
 
-const options: AgPolarChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'My Wealth Portfolio' },
     data: [

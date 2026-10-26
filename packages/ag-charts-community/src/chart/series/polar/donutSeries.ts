@@ -115,7 +115,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { type SeriesNodePickMatch, SeriesNodePickMode } from '../pickTypes';
-import type { UnknownSeries } from '../series';
+import type { SeriesAreaLayout, UnknownSeries } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import { isUnselected } from '../seriesProperties';
 import type { HighlightState } from '../seriesTypes';
@@ -472,7 +472,7 @@ export class DonutSeries extends PolarSeries<
 
     override readonly supportsDataTransactions = false;
     override readonly snapsSeriesAreaOrigin = false;
-    override readonly seriesAreaLayout = layoutDonutSeries;
+    override readonly seriesAreaLayout = donutSeriesAreaLayout;
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
@@ -2782,12 +2782,10 @@ export class DonutSeries extends PolarSeries<
     }
 }
 
+const donutSeriesAreaLayout: SeriesAreaLayout<DonutSeries> = { layoutSeries: layoutDonutSeries };
+
 /** Fits every donut to one circle around the labels and nests each ring inside the next. */
-async function layoutDonutSeries(series: UnknownSeries[], seriesRect: BBox) {
-    const donuts: DonutSeries[] = [];
-    for (const s of series) {
-        if (s instanceof DonutSeries) donuts.push(s);
-    }
+async function layoutDonutSeries(donuts: DonutSeries[], seriesRect: BBox) {
     await fitCircleToLabels(seriesRect, donuts, (centerX, centerY, radius) => {
         for (const donut of donuts) {
             donut.centerX = centerX;

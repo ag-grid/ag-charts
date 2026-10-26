@@ -1,6 +1,6 @@
 import {
     AgCharts,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     ContextMenuModule,
     DonutSeriesModule,
     LegendModule,
@@ -23,7 +23,7 @@ const currencyFormatter = new Intl.NumberFormat('en-GB', {
 const totalValue = data.categories.reduce((sum, item) => sum + item.value, 0);
 const formattedTotal = currencyFormatter.format(totalValue);
 
-const options: AgPolarChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Oxford Street Department Store',

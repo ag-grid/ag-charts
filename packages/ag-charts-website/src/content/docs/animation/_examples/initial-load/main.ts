@@ -3,7 +3,7 @@ import {
     AgCartesianSeriesTooltipRendererParams,
     AgChartOptions,
     AgCharts,
-    AgPolarChartOptions,
+    AgStandaloneChartOptions,
     AgTooltipRendererResult,
     AnimationModule,
     AreaSeriesModule,
@@ -222,7 +222,7 @@ const areaOptions: AgCartesianChartOptions<DataType> = {
     },
 };
 
-const donutOptions: AgPolarChartOptions<DataType> = {
+const donutOptions: AgStandaloneChartOptions<DataType> = {
     series: [
         {
             type: 'pie',
@@ -247,7 +247,7 @@ const donutOptions: AgPolarChartOptions<DataType> = {
     ],
 };
 
-let options: AgCartesianChartOptions<DataType> | AgPolarChartOptions<DataType> = {
+let options: AgCartesianChartOptions<DataType> | (AgStandaloneChartOptions<DataType> & { axes?: undefined }) = {
     container: document.getElementById('myChart'),
     data: getData(),
     animation: {
@@ -262,6 +262,6 @@ function seriesTypeChange(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     const seriesOptions = { bar: barOptions, line: lineOptions, area: areaOptions, donut: donutOptions }[value]!;
     options.series = seriesOptions.series;
-    options.axes = seriesOptions.axes;
+    options.axes = 'axes' in seriesOptions ? seriesOptions.axes : undefined;
     chart.update(options);
 }
