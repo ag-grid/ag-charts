@@ -1,7 +1,7 @@
 import { partialAssign } from '../data/object';
 import { attachListener } from '../dom/domEvents';
 import type { AnyFn } from '../types/global';
-import type { CanvasPoint, CurrentPoint, OffsetPoint, PagePoint } from '../types/scene';
+import type { CurrentPoint, OffsetPoint, PagePoint } from '../types/scene';
 import type { DragWidgetEvent, WidgetEventMap_Internal, WidgetTarget } from './widgetEvents';
 import { WidgetEventUtil } from './widgetEvents';
 
@@ -10,8 +10,13 @@ type EventType = keyof WidgetEventMap_Internal;
 type EventHandler<T, K extends EventType = EventType> = (event: EventMap[K], current: T) => unknown;
 
 type DragEvents = 'drag-start' | 'drag-move' | 'drag-end';
-type DragOrigin = CurrentPoint & CanvasPoint & OffsetPoint & PagePoint;
-function makeDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: PointerEvent): DragWidgetEvent<K> {
+type DragOrigin = CurrentPoint & OffsetPoint & PagePoint;
+function makeDrag<K extends DragEvents>(
+    type: K,
+    target: WidgetTarget,
+    origin: DragOrigin,
+    sourceEvent: PointerEvent
+): DragWidgetEvent<K> {
     // sourceEvent's [offsetX, offsetY] is relative to its own target (which may be e.g. a legend
     // button), so re-base it on the element that fired the 'mousedown'.
     const originDeltaX = sourceEvent.pageX - origin.pageX;
@@ -21,6 +26,8 @@ function makeDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent
     // twitch. Measure against the pre-resize origin instead of the live element bounds.
     const currentX = origin.currentX + originDeltaX;
     const currentY = origin.currentY + originDeltaY;
+    // originDelta is in screen pixels, so it would skew canvas coordinates under an ancestor CSS scale.
+    const { canvasX, canvasY } = WidgetEventUtil.calcCanvasXY(target, sourceEvent);
 
     // https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent/pointerType
     type PointerType = 'mouse' | 'touch' | 'pen';
@@ -33,8 +40,8 @@ function makeDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent
         clientY: sourceEvent.clientY,
         currentX,
         currentY,
-        canvasX: origin.canvasX + originDeltaX,
-        canvasY: origin.canvasY + originDeltaY,
+        canvasX,
+        canvasY,
         originDeltaX,
         originDeltaY,
         sourceEvent,
@@ -101,7 +108,6 @@ export class WidgetListenerInternal {
         const elem = target.getElement();
 
         const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(target, downEvent);
-        const { canvasX, canvasY } = WidgetEventUtil.calcCanvasXY(target, downEvent);
         const origin: DragOrigin = {
             pageX: Number.NaN,
             pageY: Number.NaN,
@@ -109,8 +115,6 @@ export class WidgetListenerInternal {
             offsetY: Number.NaN,
             currentX,
             currentY,
-            canvasX,
-            canvasY,
         };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, downEvent);
 
@@ -118,7 +122,7 @@ export class WidgetListenerInternal {
         const onPointerMove = (moveEvent: PointerEvent) => {
             if (moveEvent.pointerId !== downEvent.pointerId) return;
             if (downEvent.pointerType === 'touch' && !this.dragTouchEnabled) return;
-            const dragMoveEvent = makeDrag('drag-move', origin, moveEvent);
+            const dragMoveEvent = makeDrag('drag-move', target, origin, moveEvent);
             this.dispatch('drag-move', target, dragMoveEvent);
         };
         const onPointerUp = (upEvent: PointerEvent) => {
@@ -127,7 +131,7 @@ export class WidgetListenerInternal {
             elem.removeEventListener('pointermove', onPointerMove);
             elem.removeEventListener('pointerup', onPointerUp);
             elem.removeEventListener('lostpointercapture', onPointerUp);
-            const dragEndEvent = makeDrag('drag-end', origin, upEvent);
+            const dragEndEvent = makeDrag('drag-end', target, origin, upEvent);
             this.dispatch('drag-end', target, dragEndEvent);
             elem.releasePointerCapture(upEvent.pointerId);
         };
@@ -135,7 +139,7 @@ export class WidgetListenerInternal {
         elem.addEventListener('pointerup', onPointerUp);
         elem.addEventListener('lostpointercapture', onPointerUp);
 
-        const dragStartEvent = makeDrag('drag-start', origin, downEvent);
+        const dragStartEvent = makeDrag('drag-start', target, origin, downEvent);
         this.dispatch('drag-start', target, dragStartEvent);
     }
 
