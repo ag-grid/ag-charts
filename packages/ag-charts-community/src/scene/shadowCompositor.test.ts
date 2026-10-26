@@ -2080,6 +2080,49 @@ describe('Group shadow compositor', () => {
         });
 
         describe('what it holds', () => {
+            describe('in a scene', () => {
+                const newScene = () => new Scene({ canvasElement: document.createElement('canvas'), pixelRatio: 1 });
+
+                // Two groups, each with a cast that repeats, so that each holds a kept cache beside the scene's one scratch canvas.
+                const keptInScene = () => {
+                    const before = offscreenCanvases();
+                    const chart = newScene();
+                    const first = createGroup([caster(20), caster(120)]);
+                    const second = createGroup([caster(20), caster(120)]);
+                    const root = new Group({ name: 'root' });
+                    root.appendChild(first);
+                    root.appendChild(second);
+                    chart.setRoot(root);
+                    chart.render();
+                    first.markDirty();
+                    second.markDirty();
+                    chart.render();
+
+                    const held = inUse(createdSince(before));
+                    // The scratch canvas, and a cache for each group.
+                    expect(held).toHaveLength(3);
+                    return { chart, first, second, held };
+                };
+
+                it('should free the shadows that a group kept when it leaves the scene, and no others', () => {
+                    const { chart, first, held } = keptInScene();
+
+                    first.remove();
+
+                    // The scratch canvas, which the other group still uses, and the cache of the other group.
+                    expect(inUse(held)).toHaveLength(2);
+                    chart.destroy();
+                });
+
+                it('should free the shadows that the groups of a scene kept when the scene is destroyed', () => {
+                    const { chart, held } = keptInScene();
+
+                    chart.destroy();
+
+                    expect(inUse(held)).toHaveLength(0);
+                });
+            });
+
             it('should free the shadows that it kept when the group is hidden, and keep them again once it is shown', () => {
                 const before = offscreenCanvases();
                 const group = kept();
