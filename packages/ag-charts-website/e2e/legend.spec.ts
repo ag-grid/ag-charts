@@ -253,6 +253,7 @@ test.describe('legend', () => {
                 background: rgb(255, 0, 0);
                 border: 3px solid rgb(0, 0, 255);
                 color: rgb(0, 0, 0);
+                padding: 8px 16px;
                 text-shadow: 1px 1px rgb(0, 0, 0);
             }
         `;
@@ -268,6 +269,7 @@ test.describe('legend', () => {
                     backgroundColor: computed.backgroundColor,
                     borderTopStyle: computed.borderTopStyle,
                     color: computed.color,
+                    padding: computed.padding,
                     textShadow: computed.textShadow,
                 };
             });
@@ -276,6 +278,7 @@ test.describe('legend', () => {
             backgroundColor: 'rgba(0, 0, 0, 0)',
             borderTopStyle: 'none',
             color: 'rgba(0, 0, 0, 0)',
+            padding: '0px',
             textShadow: 'none',
         });
     });
