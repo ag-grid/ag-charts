@@ -5,6 +5,7 @@ import {
     type AgChartOptions,
     AgCharts,
     type AgRangeAreaSeriesLabelPlacement,
+    type AgRangeAreaSeriesOptions,
     type AgRangeAreaSeriesStyle,
     type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
@@ -32,6 +33,7 @@ import {
     expectWarningsCalls,
     getSeriesAt,
     getSeriesNodeData,
+    getSeriesOptions,
     hoverAction,
     isoEpochPair,
     magnitudePair,
@@ -180,6 +182,27 @@ describe('RangeAreaSeries', () => {
         const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
         chart = await createEnterpriseChart(options);
         await compare();
+    });
+
+    it.each([
+        ['ag-default', '#00000080'],
+        ['ag-default-dark', '#000'],
+    ])('should default the series and marker shadow colour for %s', async (theme, expected) => {
+        chart = await createEnterpriseChart({
+            ...RANGE_AREA_OPTIONS,
+            theme,
+            series: [
+                {
+                    ...RANGE_AREA_OPTIONS.series?.[0],
+                    shadow: { enabled: true },
+                    marker: { shadow: { enabled: true } },
+                },
+            ],
+        } as AgCartesianChartOptions);
+
+        const series = getSeriesOptions<AgRangeAreaSeriesOptions>(chart);
+        expect(series.shadow?.color).toBe(expected);
+        expect(series.marker?.shadow?.color).toBe(expected);
     });
 
     describe('node interactions with markers disabled (AG-10226)', () => {
