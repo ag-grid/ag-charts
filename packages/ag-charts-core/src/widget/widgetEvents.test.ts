@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { ClientPoint } from '../types/scene';
 import { NativeWidget } from './nativeWidget';
-import type { CanvasOrigin, MouseWidgetEvent, WidgetTarget } from './widgetEvents';
+import type { CanvasOrigin, DragWidgetEvent, MouseWidgetEvent, WidgetTarget } from './widgetEvents';
 import { WidgetEventUtil } from './widgetEvents';
 
 interface RectStub {
@@ -124,5 +124,48 @@ describe('MouseWidgetEvent canvasX / canvasY', () => {
         const event = dispatchMouseMove(widget, widget, 30, 40);
         expect(event?.canvasX).toBeNaN();
         expect(event?.canvasY).toBeNaN();
+    });
+});
+
+describe('DragWidgetEvent canvasX / canvasY', () => {
+    // Mimics an ancestor `scale(0.5)`: one screen pixel is two canvas pixels.
+    const scaledOrigin = {
+        toCanvasPoint: ({ clientX, clientY }: ClientPoint) => ({
+            canvasX: (clientX - 10) / 0.5,
+            canvasY: (clientY - 20) / 0.5,
+        }),
+    };
+
+    function pointer(type: string, clientX: number, clientY: number) {
+        const event = new MouseEvent(type, { bubbles: true, button: 0, clientX, clientY });
+        Object.defineProperties(event, {
+            pointerId: { value: 1 },
+            pointerType: { value: 'mouse' },
+            pageX: { value: clientX },
+            pageY: { value: clientY },
+        });
+        return event;
+    }
+
+    it('converts drag movement into canvas units under an ancestor scale', () => {
+        const widget = new NativeWidget(document.createElement('div'));
+        widget.setCanvasOrigin(scaledOrigin);
+        const element = widget.getElement();
+        Object.assign(element, { setPointerCapture() {}, releasePointerCapture() {} });
+
+        const received: DragWidgetEvent[] = [];
+        widget.addListener('drag-start', (event) => received.push(event));
+        widget.addListener('drag-move', (event) => received.push(event));
+        widget.addListener('drag-end', (event) => received.push(event));
+
+        element.dispatchEvent(pointer('pointerdown', 60, 45));
+        element.dispatchEvent(pointer('pointermove', 70, 55));
+        element.dispatchEvent(pointer('pointerup', 70, 55));
+
+        expect(received.map(({ type, canvasX, canvasY }) => ({ type, canvasX, canvasY }))).toEqual([
+            { type: 'drag-start', canvasX: 100, canvasY: 50 },
+            { type: 'drag-move', canvasX: 120, canvasY: 70 },
+            { type: 'drag-end', canvasX: 120, canvasY: 70 },
+        ]);
     });
 });
