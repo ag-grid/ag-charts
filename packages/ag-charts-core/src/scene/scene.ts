@@ -20,7 +20,7 @@ import {
     prepareSceneNodeHighlight,
     registerDebugStatsConsumer,
 } from './sceneDebug';
-import { destroyShadowScratch } from './shadowCompositor';
+import { destroyShadowScratch } from './shadowEngine';
 
 type EventMap = {
     'scene-changed': object;

@@ -8,7 +8,8 @@ import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { ChildNodeCounts, IScene, RenderContext } from './node';
 import { Node, PointerEvents } from './node';
-import { getBatchedShadow, releaseShadowScratch, renderChildrenWithShadowBatches } from './shadowCompositor';
+import { renderChildrenWithShadowBatches } from './shadowCompositor';
+import { getBatchedShadow, releaseShadowScratch } from './shadowEngine';
 import { type CanvasContext, Shape } from './shape/shape';
 import {
     Rotatable,
@@ -648,7 +649,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 this.scene,
                 this,
                 childRenderCtx,
-                this.batchShadows === 'by-layer'
+                this.batchShadows === 'by-layer' ? 'layer' : 'run'
             );
             return;
         }

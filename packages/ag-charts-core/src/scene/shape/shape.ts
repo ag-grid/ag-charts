@@ -419,7 +419,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     private cachedDefaultGradientFillBBox?: BBox;
 
+    /** Counts the changes marked on the shape, so that a cache of what it drew can tell when to draw it again. */
+    revision = 0;
+
     override markDirty(property?: string): void {
+        this.revision++;
         super.markDirty(property);
         this.cachedDefaultGradientFillBBox = undefined;
     }
