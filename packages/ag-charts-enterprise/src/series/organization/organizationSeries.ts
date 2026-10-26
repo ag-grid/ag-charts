@@ -64,7 +64,7 @@ const { keyProperty, valueProperty } = _ModuleSupport;
 /** Highlight part naming the expander pill, as distinct from the card behind it. */
 const EXPANDER_HIGHLIGHT_PART = 'expander';
 
-// Below this on-screen card height, in pixels, card detail is unreadable and is hidden along with the connectors.
+// Below this on-screen card height, in pixels, the card's text and image are unreadable and become bars.
 const MIN_DETAIL_CARD_HEIGHT = 20;
 
 // Shared so a series with no label tiers allocates nothing per node.
