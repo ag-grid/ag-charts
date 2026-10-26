@@ -64,6 +64,9 @@ const { keyProperty, valueProperty } = _ModuleSupport;
 /** Highlight part naming the expander pill, as distinct from the card behind it. */
 const EXPANDER_HIGHLIGHT_PART = 'expander';
 
+// Below this on-screen card height, in pixels, card detail is unreadable and is hidden along with the connectors.
+const MIN_DETAIL_CARD_HEIGHT = 20;
+
 // Shared so a series with no label tiers allocates nothing per node.
 const NO_LABEL_TIERS: NormalisedOrganizationSeriesNodeTextOptions[] = [];
 
@@ -98,6 +101,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private hoveredExpanderDatumIndex?: number;
 
     private hasAnyKeyedValue = false;
+
+    private detailHidden = false;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx);
@@ -303,7 +308,21 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 this.ctx.domManager.isRtl,
                 this.getNetworkTreeLayoutDirection()
             );
+            node.setDetailVisible(!this.detailHidden);
         });
+    }
+
+    protected override onViewportScaleChange(scaling: number) {
+        // Cards share one size, so any laid-out node stands for them all.
+        const cardHeight = this.datumSelection.at(0)?.getShapeBBox().height;
+        if (cardHeight == null) return;
+
+        const detailHidden = cardHeight * scaling < MIN_DETAIL_CARD_HEIGHT;
+        if (detailHidden === this.detailHidden) return;
+
+        this.detailHidden = detailHidden;
+        this.linkGroup.visible = !detailHidden;
+        this.datumSelection.each((node) => node.setDetailVisible(!detailHidden));
     }
 
     updateLinkNodes(linkSelection: Selection<OrganizationLinkDatum, NetworkLinkNode<OrganizationLinkDatum>>) {

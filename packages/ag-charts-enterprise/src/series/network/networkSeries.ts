@@ -417,7 +417,12 @@ export abstract class AbstractNetworkSeries<
         this.viewportGroup.scalingY = scaling;
         this.viewportGroup.translationX = translation.x;
         this.viewportGroup.translationY = translation.y;
+
+        this.onViewportScaleChange(scaling);
     }
+
+    /** Called with the scale the viewport is drawn at, whenever the viewport transform is applied. */
+    protected onViewportScaleChange(_scaling: number) {}
 
     private centreItem(itemId: NetworkSeriesVertexID | undefined) {
         if (itemId == null) return;

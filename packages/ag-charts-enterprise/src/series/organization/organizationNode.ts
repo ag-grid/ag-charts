@@ -222,6 +222,7 @@ export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
     private labelNodes?: (Text | undefined)[];
 
     private expanderNode?: OrganizationExpanderNode;
+    private expanderExclusion?: BBox;
 
     private appliedStyles?: NormalisedOrganizationNodeStyle;
     private intrinsicCardSize?: { width: number; height: number };
@@ -320,6 +321,24 @@ export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
         this.intrinsicCardSize = { width: bbox.width, height: bbox.height };
     }
 
+    // Hides the card's text, image and expander without changing any measured size: the card and layout read the
+    // tier and expander nodes directly, not through their parents.
+    setDetailVisible(visible: boolean) {
+        this.contentGroup.visible = visible;
+        if (this.expanderNode) this.expanderNode.visible = visible;
+        this.applyStrokeExclusion();
+    }
+
+    // The border is only cut away for an expander that is drawn.
+    private applyStrokeExclusion() {
+        const { expanderNode, expanderExclusion } = this;
+        if (expanderNode?.visible && expanderExclusion) {
+            this.shapeNode.setStrokeExclusion(expanderExclusion, expanderNode.cornerRadius);
+        } else {
+            this.shapeNode.setStrokeExclusion(undefined, 0);
+        }
+    }
+
     updateBBox(bbox: BBox, direction: AgNetworkSeriesTreeLayoutDirection) {
         this.shapeNode.width = bbox.width;
         this.shapeNode.height = bbox.height;
@@ -349,18 +368,16 @@ export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
                 }
             }
 
-            this.shapeNode.setStrokeExclusion(
-                new BBox(
-                    this.expanderNode.translationX,
-                    this.expanderNode.translationY,
-                    expanderBBox.width,
-                    expanderBBox.height
-                ),
-                this.expanderNode.cornerRadius
+            this.expanderExclusion = new BBox(
+                this.expanderNode.translationX,
+                this.expanderNode.translationY,
+                expanderBBox.width,
+                expanderBBox.height
             );
         } else {
-            this.shapeNode.setStrokeExclusion(undefined, 0);
+            this.expanderExclusion = undefined;
         }
+        this.applyStrokeExclusion();
 
         // OPTIMIZATION: clip only on overflow, so the common case pays no per-frame save/clip/restore.
         const intrinsic = this.intrinsicCardSize;
