@@ -2026,6 +2026,19 @@ describe('placeLabels sole positioned candidate', () => {
         expect(place()).toMatchObject({ x: 120, y: 120 });
         expect(place(false)).toMatchObject({ x: fixedBox.x, y: fixedBox.y });
     });
+
+    it('keeps an unbounded box that the shared bounds do not contain', () => {
+        const place = (unbounded?: boolean) => {
+            const label: PointLabelDatum = {
+                ...movableLabel(),
+                positionedCandidates: [{ box: { x: 190, y: -5, width: 20, height: 10 }, unbounded }],
+            };
+            return placeLabels(new Map([['s', seriesLabels([label], { alwaysShow: false })]]), bounds, 5).get('s');
+        };
+
+        expect(place()).toEqual([]);
+        expect(place(true)).toMatchObject([{ x: 190, y: -5 }]);
+    });
 });
 
 describe('placeLabels shape-fitted rotated labels', () => {

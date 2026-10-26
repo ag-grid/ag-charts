@@ -140,6 +140,24 @@ export class LabelManager {
         return hold;
     }
 
+    /**
+     * Solves `source`'s labels on their own, for a layout that must reserve room for them before the
+     * chart-wide solve runs. Leaves the cached placement untouched.
+     */
+    measureLabels(source: PlacedLabelSource, seriesRect: BBox): PlacedLabel[] {
+        const labelData = source.getLabelData(seriesRect);
+        if (labelData.length === 0 || !labelData.every(isPointLabelDatum)) return [];
+        const labels: SeriesLabels = {
+            datums: labelData,
+            defaults: source.getLabelDefaults?.(),
+            resolveCandidateStyle: source.getLabelCandidateStyler?.(),
+            resolveCandidate: source.getLabelCandidateResolver?.(),
+        };
+        const bounds = { x: 0, y: 0, width: seriesRect.width, height: seriesRect.height };
+        const obstacles = () => source.getLabelObstacles?.(seriesRect) ?? [];
+        return placeLabels(new Map([[source.id, labels]]), bounds, 5, obstacles).get(source.id) ?? [];
+    }
+
     private computePlacement(
         placedLabelSources: PlacedLabelSource[],
         allSources: LabelSource[],

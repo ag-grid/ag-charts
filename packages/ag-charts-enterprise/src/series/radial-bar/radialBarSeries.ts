@@ -7,7 +7,6 @@ import {
     type FillStrokeMorph,
     type Normalised,
     type NormalisedRadialBarSeriesOwnOptions,
-    type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
     Sector,
@@ -19,12 +18,19 @@ import {
     minValue,
     zeroLike,
 } from 'ag-charts-core';
-import type { BBox, GradientParams, Selection } from 'ag-charts-core';
+import type { BBox, GradientParams, PlacedLabel, Selection } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
+import {
+    type PolarLabelDatum,
+    placedPolarLabel,
+    polarLabelData,
+    polarSectorObstacles,
+    writePlacedPolarLabels,
+} from '../util/polarLabels';
 import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
 import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } from './radialBarUtil';
 
@@ -45,21 +51,14 @@ const {
     createDatumId,
     motion,
     updateLabelNode,
+    expandLabelBoxExtent,
     getItemStyles,
 } = _ModuleSupport;
 
 type NormalisedRadialSeriesStyle = Normalised<AgRadialSeriesStyle, never, FillStrokeMorph>;
 
-interface RadialBarLabelNodeDatum {
-    text: NormalisedTextOrSegments;
-    x: number;
-    y: number;
-    textAlign: CanvasTextAlign;
-    textBaseline: CanvasTextBaseline;
-}
-
 interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
-    readonly label?: RadialBarLabelNodeDatum;
+    readonly label?: PolarLabelDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
     readonly innerRadius: number;
@@ -108,6 +107,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             propertyKeys: DEFAULT_POLAR_DIRECTION_KEYS,
             propertyNames: DEFAULT_POLAR_DIRECTION_NAMES,
             canHaveAxes: true,
+            usesPlacedLabels: true,
             animationResetFns: {
                 item: resetRadialBarSelectionsFn,
                 label: resetLabelFn,
@@ -221,6 +221,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     protected maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
+        // Labels anchor on the circle, so a new circle invalidates their placement as well.
+        this.nodeDataRefresh = true;
         this.contextNodeData = this.createNodeData();
         this.nodeData = this.contextNodeData?.nodeData ?? [];
         this.nodeDataRefresh = false;
@@ -281,7 +283,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             angleDatum: AgNumericValue,
             x: number,
             y: number
-        ): RadialBarLabelNodeDatum | undefined => {
+        ): PolarLabelDatum | undefined => {
             const labelText = this.getLabelText<AgRadialSeriesLabelFormatterParams>(
                 angleDatum,
                 datum,
@@ -504,7 +506,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             const isHighlight = false;
-            updateLabelNode(this, node, params, label, datum.label, { isHighlight, activeHighlight });
+            updateLabelNode(this, node, params, label, placedPolarLabel(datum.label), {
+                isHighlight,
+                activeHighlight,
+            });
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
         });
 
@@ -512,9 +517,29 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             .update(highlightData, undefined, (datum) => this.getDatumId(datum))
             .each((node, datum) => {
                 const isHighlight = true;
-                updateLabelNode(this, node, params, label, datum.label, { isHighlight, activeHighlight });
+                updateLabelNode(this, node, params, label, placedPolarLabel(datum.label), {
+                    isHighlight,
+                    activeHighlight,
+                });
                 node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             });
+    }
+
+    override getLabelData() {
+        const { label } = this.options;
+        if (!label.enabled) return [];
+        const style = { font: label, boxPadding: expandLabelBoxExtent(label) };
+        return polarLabelData(this.nodeData, style, this.centerX, this.centerY);
+    }
+
+    getLabelObstacles() {
+        const sectors = this.nodeData.map(({ clipSector }) => clipSector);
+        return polarSectorObstacles(sectors, this.centerX, this.centerY);
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
+        writePlacedPolarLabels(this.nodeData, placed);
+        this.updateLabels();
     }
 
     private getBarTransitionFunctions() {

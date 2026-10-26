@@ -181,6 +181,8 @@ export interface PositionedLabelCandidate {
      * fallback that only overflows its {@link region}; when unset, all overflow ranks alike.
      */
     readonly visibleRegion?: BoxBounds;
+    /** Neither {@link region} nor the shared `bounds` contain the box: a label the series fixes in place wherever it lands. */
+    readonly unbounded?: boolean;
     /**
      * Axis the box may move a few pixels along to clear an obstacle without leaving the placement it names;
      * across any other axis it stays on its anchor. Unset moves along neither.
@@ -2594,7 +2596,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
             const grow = 2 * threshold;
             writeOrientedRect(candidateRect, x + cw / 2, y + ch / 2, width + grow, height + grow, rotation);
         }
-        const contained = boxContains(region, x, y, cw, ch);
+        const contained = c.unbounded === true || boxContains(region, x, y, cw, ch);
         // An overflowing stack ranks with the overflowing candidates, below any that fit truncated.
         const placeable = contained && !overflowing;
         let clear = placeable && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
