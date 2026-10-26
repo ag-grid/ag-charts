@@ -1,6 +1,10 @@
 import type { AgVolumeProfileSelectionOptions, AgVolumeProfileTotalSegmentOptions } from './priceVolumeOptions';
 
 export interface AgVolumeProfileChartPreset {
+    /** The key holding the price of each level in the data.
+     *
+     * Default: `'price'`
+     */
     priceKey?: string;
     /** The key used to retrieve the up volume of each level from the data.
      *
@@ -12,6 +16,10 @@ export interface AgVolumeProfileChartPreset {
      * The series has the fixed id `'volumeProfileDown'`, for use in callbacks and the Selection API.
      */
     downKey: string;
+    /** The height of each price level, in price units.
+     *
+     * If not set, the smallest gap between the prices in the data is used.
+     */
     tickSize?: number;
     /** A fixed-width column showing each level's total volume, set between the price axis and the up and down bars. */
     totalSegment?: AgVolumeProfileTotalSegmentOptions;

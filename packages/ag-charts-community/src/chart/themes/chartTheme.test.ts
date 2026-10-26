@@ -3,7 +3,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { cycledValue } from 'ag-charts-core';
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
-import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgBarSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartTheme,
+    AgLineSeriesOptions,
+    AgPolarChartOptions,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import { CartesianChart } from '../cartesianChart';
@@ -531,6 +537,52 @@ describe('ChartTheme', () => {
                 expect(chart.chartOptions.processedOptions.title).toMatchObject({ layoutStyle, textAlign });
             }
         );
+    });
+
+    describe('default shadow colour', () => {
+        const create = async (theme: AgChartTheme | string, series: Partial<AgBarSeriesOptions> = {}) => {
+            chart = deproxy(
+                AgCharts.create({
+                    width: 600,
+                    height: 400,
+                    data,
+                    series: [
+                        { type: 'bar', xKey: 'label', yKey: 'v1', shadow: { enabled: true }, ...series },
+                        { type: 'line', xKey: 'label', yKey: 'v2', marker: { shadow: { enabled: true } } },
+                    ],
+                    theme,
+                } as AgCartesianChartOptions)
+            );
+            await waitForChartStability(chart);
+            const [bar, line] = (chart.chartOptions.processedOptions as AgCartesianChartOptions).series ?? [];
+            return { bar: bar as AgBarSeriesOptions, line: line as AgLineSeriesOptions };
+        };
+
+        it.each([
+            ['ag-default', '#00000080'],
+            ['ag-default-dark', '#000'],
+            ['ag-polychroma-dark', '#000'],
+            ['ag-financial', '#00000080'],
+            ['ag-financial-dark', '#000'],
+        ])('resolves the series and marker shadow colour for %s', async (theme, expected) => {
+            const { bar, line } = await create(theme);
+
+            expect(bar.shadow?.color).toBe(expected);
+            expect(line.marker?.shadow?.color).toBe(expected);
+        });
+
+        it('keeps a shadow colour set on the series or by a theme override on a dark theme', async () => {
+            const { bar, line } = await create(
+                {
+                    baseTheme: 'ag-default-dark',
+                    overrides: { line: { series: { marker: { shadow: { color: 'red' } } } } },
+                },
+                { shadow: { enabled: true, color: 'blue' } }
+            );
+
+            expect(bar.shadow?.color).toBe('blue');
+            expect(line.marker?.shadow?.color).toBe('red');
+        });
     });
 
     describe('border theme params', () => {

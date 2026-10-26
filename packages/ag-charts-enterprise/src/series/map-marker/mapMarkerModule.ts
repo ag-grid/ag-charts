@@ -3,6 +3,7 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    LABEL_MANAGER_SERVICES,
     LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
@@ -29,6 +30,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
     enterprise: true,
     version: VERSION,
     dependencies: [TopologyChartModule],
+    services: LABEL_MANAGER_SERVICES,
 
     options: mapMarkerSeriesOptionsDef,
 

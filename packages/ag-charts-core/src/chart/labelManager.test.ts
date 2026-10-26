@@ -1,13 +1,9 @@
 import { vi } from 'vitest';
 
-import type { LabelObstacle, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
-import { BBox } from 'ag-charts-core';
-
-import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
+import type { LabelObstacle, PlacedLabel, PointLabelDatum } from '../geometry/labelPlacement';
+import { BBox } from '../scene/bbox';
 import { AxisLabelSource } from './axisLabelSource';
-import { LabelManager } from './labelManager';
-
-type AnySeries = ISeries<SeriesNodeDatum, ISeriesOptions, unknown>;
+import { LabelManager, type PlacedLabelSource } from './labelManager';
 
 const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
 const RECT = new BBox(0, 0, 200, 200);
@@ -48,7 +44,7 @@ function fakeSeries({
         updatePlacedLabelData: vi.fn((_labels: PlacedLabel[]) => invalidatesLayout),
         holdLabelPlacements: vi.fn((_hold: boolean) => {}),
     };
-    return series as typeof series & AnySeries;
+    return series satisfies PlacedLabelSource;
 }
 
 function placedTexts(series: ReturnType<typeof fakeSeries>, call = -1): string[] {

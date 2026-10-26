@@ -1,6 +1,7 @@
 import { expect, vi } from 'vitest';
 
 import {
+    type AxisLabelSource,
     type BBox,
     ChartAxisDirection,
     type Group,
@@ -15,7 +16,6 @@ import type { TickInterval } from '../axis/axisTick';
 import { CartesianAxis } from '../axis/cartesianAxis';
 import type { GenerateTicksOptions } from '../axis/generateTicksUtils';
 import type { ChartAxisLabel, ChartLayout } from '../chartAxis';
-import type { AxisLabelSource } from '../layout/axisLabelSource';
 import { type ChartOrProxy, createSceneGeometrySampler, deproxy } from './utils';
 
 /** A tick-label node as drawn by an axis, with the datum the axis layout wrote onto it. */

@@ -315,6 +315,23 @@ describe('volumeProfilePreset', () => {
             expectWarningsCalls().toEqual([["AG Charts - the key 'nope' was not found in any data element."]]);
         });
 
+        it('should show no data, and no axes, when neither volume key is found', async () => {
+            chart = AgCharts.createVolumeProfileChart(
+                prepareFinancialTestOptions({ ...volumeProfile, upKey: 'nope', downKey: 'alsoNope' })
+            );
+            await waitForChartStability(chart);
+
+            expect(deproxy(chart).series.some((series) => series.hasData)).toBe(false);
+            await compareToSnapshot();
+        });
+
+        it('should still draw the other volume when only one key is found', async () => {
+            chart = AgCharts.createVolumeProfileChart(
+                prepareFinancialTestOptions({ ...volumeProfile, downKey: 'nope' })
+            );
+            await compareToSnapshot();
+        });
+
         it('should not warn when there is no data to hold the keys', async () => {
             chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile, data: [] }));
             await waitForChartStability(chart);

@@ -11,6 +11,7 @@ import type {
     ZoomMinMax,
 } from 'ag-charts-core';
 import {
+    AxisLabelSource,
     BBox,
     ChartAxisDirection,
     ContinuousScale,
@@ -51,7 +52,6 @@ import { Caption } from '../caption';
 import type { ChartLayout } from '../chartAxis';
 import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
-import { AxisLabelSource } from '../layout/axisLabelSource';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import { Axis, AxisGroupZIndexMap, type AxisPickDatum, type LabelNodeDatum } from './axis';
 import {
@@ -274,7 +274,7 @@ export abstract class CartesianAxis<
                 previousSize = size;
             }),
             this.caption.registerInteraction(this.moduleCtx, this.id),
-            () => moduleCtx.labelManager.unregisterSource(this.labelSource.id, this.labelSource)
+            () => moduleCtx.labelManager?.unregisterSource(this.labelSource.id, this.labelSource)
         );
     }
 

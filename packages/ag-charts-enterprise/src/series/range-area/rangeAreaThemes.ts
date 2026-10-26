@@ -168,7 +168,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         interpolation: interpolationThemeTemplate(),
         shadow: {
             enabled: false,
-            color: 'rgba(0, 0, 0, 0.5)',
+            color: { $ref: 'shadowColor' },
             xOffset: 0,
             yOffset: 0,
             blur: 5,

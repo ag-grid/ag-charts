@@ -12,14 +12,12 @@ import type { ChartOptions } from '../module/optionsModule';
 import { VERSION } from '../version';
 import type { TransferableResources } from './chart';
 import { PolarChart } from './polarChart';
-import { SeriesAreaModule } from './series-area/seriesAreaModule';
 
 export const PolarChartModule: ChartModuleDefinition<WithoutModuleOwnedOptions<AgPolarChartOptions>> =
     /* #__PURE__ */ communityModule({
         type: 'chart',
         name: 'polar',
         version: VERSION,
-        dependencies: [SeriesAreaModule],
 
         options: polarChartOptionsDefs,
 
