@@ -225,12 +225,14 @@ async function main() {
         const cpuBefore = readCpuSample();
         let result: BenchmarkExampleResult;
         let contention: Contention | null = null;
+        let loaded = false;
 
         try {
             const response = await page.goto(url, { waitUntil: 'load', timeout: 30_000 });
             if (!response || response.status() >= 400) {
                 throw new Error(`HTTP ${response?.status() ?? 'no response'} for ${url}`);
             }
+            loaded = true;
 
             // Wait for benchmark completion
             await page.waitForFunction(() => (window as any).__benchmarkComplete === true, undefined, {
@@ -266,7 +268,8 @@ async function main() {
                 error: String(error),
                 durationMs: Date.now() - exampleStart,
             };
-            if (isTimeout) {
+            // A navigation timeout never reached the harness, so there is no progress to read.
+            if (isTimeout && loaded) {
                 result.progress = await readTimeoutProgress(page);
             }
         }

@@ -29,7 +29,7 @@ export type TimeoutProgress =
           iterationsCompleted: number;
           /** Null when no iteration of the variant had completed. */
           msSinceLastIteration: number | null;
-          msSinceVariantStart: number;
+          msSincePhaseStart: number;
       }
     /** The benchmark never started on the page. */
     | { kind: 'none' }
@@ -65,7 +65,7 @@ export async function readTimeoutProgress(page: Page, timeoutMs = READ_TIMEOUT_M
             warmupCompleted: progress.warmupCompleted,
             iterationsCompleted: progress.iterationsCompleted,
             msSinceLastIteration: progress.lastIterationAt === null ? null : now - progress.lastIterationAt,
-            msSinceVariantStart: now - progress.startedAt,
+            msSincePhaseStart: now - progress.startedAt,
         };
     } catch {
         return { kind: 'unreadable' };
@@ -90,12 +90,12 @@ export function formatTimeoutProgress(progress: TimeoutProgress): string {
     const where = `test case "${testCase}"${variant ? ` (${variant})` : ''}`;
 
     if (phase === 'setup' || phase === 'teardown') {
-        return `stuck in ${phase} of ${where}, ${seconds(progress.msSinceVariantStart)} after it began`;
+        return `stuck in ${phase} of ${where}, ${seconds(progress.msSincePhaseStart)} after it began`;
     }
 
     const last =
         msSinceLastIteration === null
-            ? `none completed in the ${seconds(progress.msSinceVariantStart)} since the variant started`
+            ? `none completed in the ${seconds(progress.msSincePhaseStart)} since the variant started`
             : `last completed ${seconds(msSinceLastIteration)} ago`;
     return `in ${phase} of ${where}: ${warmupCompleted} warmup and ${iterationsCompleted} measured iterations completed, ${last}`;
 }

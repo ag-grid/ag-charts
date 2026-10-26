@@ -167,7 +167,7 @@ test('an example that completes has no progress in its result or its log', async
     assert.equal(result.status, 'success');
     assert.equal(report.summary.success, 1);
     assert.equal('progress' in result, false);
-    assert.doesNotMatch(log, /progress|warmup and/);
+    assert.doesNotMatch(log, /measured iterations completed|no progress recorded|progress could not be read/);
 });
 
 test('formatTimeoutProgress words each outcome', () => {
@@ -179,7 +179,7 @@ test('formatTimeoutProgress words each outcome', () => {
         warmupCompleted: 1,
         iterationsCompleted: 0,
         msSinceLastIteration: 212_400,
-        msSinceVariantStart: 300_000,
+        msSincePhaseStart: 300_000,
     } as const;
     assert.equal(
         formatTimeoutProgress(recorded),
@@ -190,7 +190,7 @@ test('formatTimeoutProgress words each outcome', () => {
         /none completed in the 300\.0s since the variant started/
     );
     assert.equal(
-        formatTimeoutProgress({ ...recorded, phase: 'setup', params: {}, msSinceVariantStart: 90_000 }),
+        formatTimeoutProgress({ ...recorded, phase: 'setup', params: {}, msSincePhaseStart: 90_000 }),
         'stuck in setup of test case "pie", 90.0s after it began'
     );
     assert.equal(
