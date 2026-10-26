@@ -11,6 +11,7 @@ import {
     type NormalisedRadialColumnSeriesBaseOwnOptions,
     type PlacedLabel,
     type Point,
+    type PolarLabelDatum,
     type RadialColumnShape,
     type RequireOptional,
     type Sector,
@@ -20,12 +21,14 @@ import {
     maxValue,
     minValue,
     normalizeAngle360,
+    placedPolarLabel,
+    polarLabelData,
+    writePlacedPolarLabels,
     zeroLike,
 } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
-import { type PolarLabelDatum, placedPolarLabel, polarLabelData, writePlacedPolarLabels } from '../util/polarLabels';
 import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
 
 const {

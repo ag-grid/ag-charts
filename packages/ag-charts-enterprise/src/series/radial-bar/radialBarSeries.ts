@@ -8,6 +8,7 @@ import {
     type Normalised,
     type NormalisedRadialBarSeriesOwnOptions,
     type Point,
+    type PolarLabelDatum,
     type RequireOptional,
     Sector,
     SectorBox,
@@ -16,6 +17,10 @@ import {
     isGradientFill,
     maxValue,
     minValue,
+    placedPolarLabel,
+    polarLabelData,
+    polarSectorObstacles,
+    writePlacedPolarLabels,
     zeroLike,
 } from 'ag-charts-core';
 import type { BBox, GradientParams, PlacedLabel, Selection } from 'ag-charts-core';
@@ -24,13 +29,6 @@ import type { AgNumericValue, CssColor } from 'ag-charts-types';
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
-import {
-    type PolarLabelDatum,
-    placedPolarLabel,
-    polarLabelData,
-    polarSectorObstacles,
-    writePlacedPolarLabels,
-} from '../util/polarLabels';
 import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
 import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } from './radialBarUtil';
 

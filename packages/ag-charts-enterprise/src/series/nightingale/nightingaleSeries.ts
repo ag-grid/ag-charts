@@ -5,11 +5,11 @@ import {
     PolarZIndexMap,
     Sector,
     SectorBox,
+    polarSectorObstacles,
 } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
-import { polarSectorObstacles } from '../util/polarLabels';
 import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
 export class NightingaleSeries extends RadialColumnSeriesBase<

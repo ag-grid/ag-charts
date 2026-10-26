@@ -21,6 +21,7 @@ import {
     Path,
     type PlacedLabel,
     type Point,
+    type PolarLabelDatum,
     type RequireOptional,
     Selection,
     type SizedPoint,
@@ -29,16 +30,13 @@ import {
     isNumberEqual,
     markerRebuildNeeded,
     mergeDefaults,
-    resolveLabelFitDescriptors,
-} from 'ag-charts-core';
-
-import {
-    type PolarLabelDatum,
     placedPolarLabel,
     polarLabelData,
     polarLabelsBBox,
+    resolveLabelFitDescriptors,
     writePlacedPolarLabels,
-} from '../util/polarLabels';
+} from 'ag-charts-core';
+
 import { radarMarkerDrawMode } from './radarUtil';
 
 const {

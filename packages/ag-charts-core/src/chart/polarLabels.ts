@@ -1,20 +1,19 @@
+import type { PaddingOptions } from 'ag-charts-types';
+
 import {
-    BBox,
     type CollideWith,
-    type FontOptions,
     type LabelFitDescriptor,
     type LabelObstacle,
-    type NormalisedTextOrSegments,
     type PlacedLabel,
     type PointLabelDatum,
-    type SectorBoundaries,
-    type SizedPoint,
-    Text,
-    boxOverlapsSector,
     isPointLabelDatum,
-    sectorBox,
-} from 'ag-charts-core';
-import type { PaddingOptions } from 'ag-charts-types';
+} from '../geometry/labelPlacement';
+import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
+import { BBox } from '../scene/bbox';
+import { Text } from '../scene/shape/text';
+import { type SectorBoundaries, boxOverlapsSector, sectorBox } from '../scene/util/sector';
+import type { SizedPoint } from '../types/scene';
+import type { FontOptions } from '../types/text';
 
 /** A polar series label, anchored relative to the series centre. The label solve writes back what it drew. */
 export interface PolarLabelDatum {
