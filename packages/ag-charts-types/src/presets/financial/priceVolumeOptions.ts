@@ -131,7 +131,7 @@ export interface AgVolumeProfileSelectionOptions extends Toggleable {
      * Default: `'single'`
      */
     clickMode?: AgSelectionClickMode;
-    /** Whether dragging a rectangle across the chart selects every price level it covers. Holding the Ctrl key while dragging adds to the selection instead of replacing it.
+    /** Whether dragging a rectangle across the chart selects every price level it covers. Holding Control (or Command) while dragging adds to the selection instead of replacing it.
      *
      * Default: `false`
      */
