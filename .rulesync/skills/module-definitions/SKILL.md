@@ -84,8 +84,8 @@ changes wholesale; the generated placeholder then names the enterprise variant.
 A feature that lives under another module's option key is its own module, not an override of the
 host. `BackgroundRegionsModule` declares `contributes: [{ path: 'seriesArea.backgroundRegions', ... }]`
 and reaches the host through the `seriesArea` chart-context service, which every chart installs, so
-`ctx.seriesArea` is never optional. The feature implements `SeriesAreaContent` and calls `ctx.seriesArea.attach(this)` to render inside the series
-area. The host reads the keys other modules contribute below its path through `contributedKeysUnder`
+`ctx.seriesArea` is never optional. The feature implements `SeriesAreaContent` and calls
+`ctx.seriesArea.attach(this)` to render inside the series area. The host reads the keys other modules contribute below its path through `contributedKeysUnder`
 and leaves them alone, so it validates only its own options.
 
 Presets that users reach through an API entry point declare `apiName: 'AgCharts.createGauge'` so the
@@ -97,7 +97,7 @@ A module of any type provides chart-context services through `services`, a map f
 to factory: `services: { zoomManager: (c) => new ZoomManager(c) }`. The chart installs the services
 of every registered module that applies to its chart type before anything reads the context; the
 first provider of a name wins, so several modules may share one interchangeable provider (such as
-`LABEL_MANAGER_SERVICES` for every module whose labels take part in a label solve).
+`sharedToolbar`, which both the chart toolbar and annotations provide).
 
 The context is the integration point between modules: consumers read the service from `ctx` and,
 unless every chart module guarantees it, treat it as optional. Never add a `dependencies` edge or

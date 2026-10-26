@@ -4,7 +4,6 @@ import {
     FONT_SIZE_RATIO,
     FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
-    LABEL_MANAGER_SERVICES,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
@@ -26,7 +25,6 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
     chartType: 'standalone',
     enterprise: true,
     dependencies: [GaugePresetModule],
-    services: LABEL_MANAGER_SERVICES,
     version: VERSION,
 
     options: radialGaugeSeriesOptionsDef,

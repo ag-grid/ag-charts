@@ -1509,7 +1509,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         await Promise.all(seriesToUpdate.map(seriesUpdate).filter((p): p is Promise<void> => p != null));
 
-        const relayout = this.ctx.labelManager?.updateLabels(
+        const relayout = this.ctx.labelManager.updateLabels(
             this.series.filter((s) => s.visible),
             this.ctx.chartState.getValue('options', 'padding'),
             this.seriesRect

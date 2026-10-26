@@ -1,5 +1,4 @@
 import { type AgPyramidSeriesOptions, StandaloneChartModule, VERSION } from 'ag-charts-community';
-import { LABEL_MANAGER_SERVICES } from 'ag-charts-core';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { PyramidSeries } from './pyramidSeries';
@@ -14,7 +13,6 @@ export const PyramidSeriesModule: SeriesModuleDefinition<AgPyramidSeriesOptions>
     solo: true,
     version: VERSION,
     dependencies: [StandaloneChartModule],
-    services: LABEL_MANAGER_SERVICES,
 
     options: pyramidSeriesOptionsDef,
 
