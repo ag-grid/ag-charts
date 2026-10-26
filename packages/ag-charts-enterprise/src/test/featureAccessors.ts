@@ -100,6 +100,7 @@ interface AnnotationsHost {
     optionsToolbar: {
         enabled?: boolean;
         updateButtons(annotation: object | undefined): void;
+        show(): void;
         toolbar: { getElement(): HTMLElement };
     };
     annotationData?: object[];
@@ -149,10 +150,15 @@ export function getAnnotationOptionsToolbarButtons(chartOrProxy: ChartOrProxy<an
     return Array.from(optionsToolbar.toolbar.getElement().querySelectorAll('.ag-charts-toolbar__button'));
 }
 
+/** The drag handle the annotation options toolbar renders beside its buttons. Shows the toolbar, as selecting does. */
 export function getAnnotationOptionsToolbarDragHandle(chartOrProxy: ChartOrProxy<any>): HTMLElement {
     const { optionsToolbar } = getAnnotations(chartOrProxy);
-    const toolbar = optionsToolbar.toolbar as unknown as { dragHandle: { getElement(): HTMLElement } };
-    return toolbar.dragHandle.getElement();
+    optionsToolbar.show();
+    const dragHandle = optionsToolbar.toolbar
+        .getElement()
+        .parentElement?.querySelector<HTMLElement>('.ag-charts-floating-toolbar__drag-handle');
+    assertPresent(dragHandle, 'options toolbar drag handle');
+    return dragHandle;
 }
 
 /** The element of the button that adds an annotation at the pointer on the `axis` axis. */
