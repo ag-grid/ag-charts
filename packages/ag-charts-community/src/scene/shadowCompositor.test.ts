@@ -80,7 +80,7 @@ describe('Group shadow compositor', () => {
     const createdSince = (before: Set<OffscreenCanvas>) =>
         canvasCtx.getActiveOffscreenCanvasInstances().filter((canvas) => !before.has(canvas));
 
-    const createGroup = (children: readonly Shape[], batchShadows = true) => {
+    const createGroup = (children: readonly Shape[], batchShadows: Group['batchShadows'] = true) => {
         const group = new Group({ name: 'shadow-group' });
         group.batchShadows = batchShadows;
         for (const child of children) group.appendChild(child);
@@ -122,7 +122,7 @@ describe('Group shadow compositor', () => {
         drawGroup(group, layer.getContext('2d')! as unknown as CanvasRenderingContext2D, layer.width, layer.height);
 
     // Nodes draw in the order they were created, so the children must be created in the order they should draw.
-    const renderNodes = (children: readonly Shape[], batchShadows = true) => {
+    const renderNodes = (children: readonly Shape[], batchShadows: Group['batchShadows'] = true) => {
         const group = createGroup(children, batchShadows);
         renderGroup(group);
         return group;
@@ -1765,6 +1765,74 @@ describe('Group shadow compositor', () => {
             expect(pixels()).not.toEqual(baseline);
         });
 
+        it('should cast the shadows again when a caster is removed from the group', () => {
+            const { group, baseline } = kept();
+
+            [...group.children()][0].remove();
+            renderGroup(group);
+
+            expect(masks).toBeGreaterThan(0);
+            expect(pixels()).not.toEqual(baseline);
+        });
+
+        it('should cast the shadows again when the group is drawn at another pixel ratio', () => {
+            const { group, baseline } = kept();
+
+            renderGroup(group, 2);
+
+            expect(masks).toBeGreaterThan(0);
+            expect(pixels()).not.toEqual(baseline);
+        });
+
+        describe('a group by layer', () => {
+            // Each layer casts its own shadow onto the layer beneath it, so each has a cache of its own.
+            const layers = (count: number) =>
+                createGroup(
+                    Array.from({ length: count }, (_, i) => caster(20 + i * 50, { y: 40 + i * 10, zIndex: i })),
+                    'by-layer'
+                );
+
+            it('should blit the shadows of every layer again when a redraw changed none of them', () => {
+                const group = layers(3);
+                renderGroup(group);
+                renderGroup(group);
+                const baseline = pixels();
+                masks = 0;
+
+                renderGroup(group);
+
+                expect(masks).toBe(0);
+                expectSamePixels(pixels(), baseline);
+            });
+
+            // A user keeps only so many casts, so those beyond them are cast every frame, and must still draw the same.
+            it('should draw the same shadows of more layers than it keeps as it drew at first', () => {
+                const group = layers(6);
+                renderGroup(group);
+                const first = pixels();
+
+                renderGroup(group);
+                renderGroup(group);
+
+                expect(paintedPixels()).toBeGreaterThan(0);
+                expectSamePixels(pixels(), first);
+            });
+
+            it('should cast again only the layers beyond the one that changed, and draw them as new', () => {
+                const group = layers(3);
+                renderGroup(group);
+                renderGroup(group);
+                const baseline = pixels();
+                masks = 0;
+
+                [...group.children()][1].visible = false;
+                renderGroup(group);
+
+                expect(masks).toBeGreaterThan(0);
+                expect(pixels()).not.toEqual(baseline);
+            });
+        });
+
         it('should free the shadows that it kept when the group has no casters', () => {
             const before = offscreenCanvases();
             const { group } = kept();
@@ -1811,6 +1879,74 @@ describe('Group shadow compositor', () => {
 
             expect(castShadows({ scene: undefined, user, keys: keys(0), index: 0 }, renderContext())).toBe(true);
             expect(paintedPixels()).toBeGreaterThan(0);
+        });
+
+        // A group casts each run of children that share a shadow in a call of its own, so a run that can't be cast falls back
+        // alone. The runs that the group did cast stay cast once, and the one that fell back is drawn once, by its shapes.
+        describe('a group with a run whose shadow can not be cast', () => {
+            const UNCASTABLE = { ...RED_HALF, blur: Number.NaN };
+            const nodes = (second: NonNullable<Shape['fillShadow']> = UNCASTABLE) => [
+                box(20, 40, 40, 40, { fillShadow: BLUE }),
+                box(20, 130, 40, 40, { fillShadow: second }),
+            ];
+
+            const aloneAfter = (second: NonNullable<Shape['fillShadow']> = UNCASTABLE) => {
+                renderNodes(nodes(second), false);
+                return pixels();
+            };
+
+            it.each([true, 'by-layer'] as const)(
+                'should draw each shadow once when a later run can not be cast, in a group that batches %s',
+                (batchShadows) => {
+                    const alone = aloneAfter();
+                    expect(paintedPixels()).toBeGreaterThan(0);
+
+                    const blits = vi.spyOn(ctx(), 'drawImage');
+                    try {
+                        renderNodes(nodes(), batchShadows);
+                        // The first run's mask, and not a second blit for the run that fell back.
+                        expect(blits).toHaveBeenCalledTimes(1);
+                    } finally {
+                        blits.mockRestore();
+                    }
+
+                    expect(pixels()).toEqual(alone);
+                }
+            );
+
+            it('should not blit the shadows that a run kept when it stops being castable', () => {
+                const [first, second] = nodes(RED_HALF);
+                const group = createGroup([first, second]);
+                renderGroup(group);
+                renderGroup(group);
+                renderGroup(group);
+
+                second.fillShadow = UNCASTABLE;
+                const blits = vi.spyOn(ctx(), 'drawImage');
+                try {
+                    renderGroup(group);
+                    expect(blits).toHaveBeenCalledTimes(1);
+                } finally {
+                    blits.mockRestore();
+                }
+
+                expect(pixels()).toEqual(aloneAfter());
+            });
+
+            it('should cast the run through the mask again once it can be cast', () => {
+                const [first, second] = nodes();
+                const group = createGroup([first, second]);
+                renderGroup(group);
+
+                second.fillShadow = RED_HALF;
+                const blits = vi.spyOn(ctx(), 'drawImage');
+                try {
+                    renderGroup(group);
+                    expect(blits).toHaveBeenCalledTimes(2);
+                } finally {
+                    blits.mockRestore();
+                }
+            });
         });
 
         it('should end a cast at a change of zIndex only in a scope by layer', () => {
