@@ -1,10 +1,5 @@
 import { type AgWaterfallSeriesOptions, CartesianChartModule, VERSION } from 'ag-charts-community';
-import {
-    ChartAxisDirection,
-    DIRECTION_SWAP_AXES,
-    LABEL_MANAGER_SERVICES,
-    type SeriesModuleDefinition,
-} from 'ag-charts-core';
+import { ChartAxisDirection, DIRECTION_SWAP_AXES, type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { WaterfallSeries } from './waterfallSeries';
@@ -19,7 +14,6 @@ export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOpti
     solo: true,
     version: VERSION,
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
-    services: LABEL_MANAGER_SERVICES,
 
     options: waterfallSeriesOptionsDef,
 

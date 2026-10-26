@@ -1,5 +1,4 @@
 import { type AgFunnelSeriesOptions, CartesianChartModule, VERSION } from 'ag-charts-community';
-import { LABEL_MANAGER_SERVICES } from 'ag-charts-core';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
@@ -15,7 +14,6 @@ export const FunnelSeriesModule: SeriesModuleDefinition<AgFunnelSeriesOptions> =
     solo: true,
     version: VERSION,
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
-    services: LABEL_MANAGER_SERVICES,
 
     options: funnelSeriesOptionsDef,
 

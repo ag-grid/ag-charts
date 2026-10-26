@@ -93,10 +93,10 @@ export class CartesianChart extends Chart {
             // Registered here rather than by the axis, so mini-chart axes sharing these ids never replace them.
             const { labelManager } = this.ctx;
             for (const axis of oldValue ?? []) {
-                labelManager?.unregisterSource(axis.labelSource.id, axis.labelSource);
+                labelManager.unregisterSource(axis.labelSource.id, axis.labelSource);
             }
             for (const axis of newValue) {
-                labelManager?.registerSource(axis.labelSource);
+                labelManager.registerSource(axis.labelSource);
             }
 
             this.ctx.zoomManager?.setAxes(
