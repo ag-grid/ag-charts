@@ -1,11 +1,11 @@
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 
 import type { ContentSegment, ImageSegment, TextSegment, TextWrap } from 'ag-charts-types';
 
 import type { FitRegion } from '../geometry/fitRegion';
-import { measureTextSegments } from '../rendering/textMeasurer';
+import { cachedTextMeasurer, measureTextSegments } from '../rendering/textMeasurer';
 import type { ITextMeasurer, MeasuredSegment } from '../types/text';
-import { EllipsisChar } from './textUtil';
+import { EllipsisChar, appendEllipsis } from './textUtil';
 import type { FontOptions } from './textUtil';
 import {
     clipLines,
@@ -18,7 +18,12 @@ import {
 
 // Mock only the canvas leaf so the real cachedTextMeasurer, measureTextSegments and wrapTextSegments run
 // against deterministic metrics: every grapheme cluster is CHAR_WIDTH px wide, every line LINE_HEIGHT px tall.
-const { CHAR_WIDTH, LINE_HEIGHT } = vi.hoisted(() => ({ CHAR_WIDTH: 10, LINE_HEIGHT: 20 }));
+const { CHAR_WIDTH, LINE_HEIGHT, canvasMetrics } = vi.hoisted(() => ({
+    CHAR_WIDTH: 10,
+    LINE_HEIGHT: 20,
+    // Pixels a string gains (negative: loses) at each join between its characters, as kerning and shaping do.
+    canvasMetrics: { join: 0 },
+}));
 
 vi.mock('../rendering/canvasUtil', () => ({
     // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in only needs
@@ -26,7 +31,7 @@ vi.mock('../rendering/canvasUtil', () => ({
     createCanvasContext: () => ({
         font: '',
         measureText: (text: string) => ({
-            width: [...text].length * CHAR_WIDTH,
+            width: joinedWidth(text, CHAR_WIDTH, canvasMetrics.join),
             fontBoundingBoxAscent: 16,
             fontBoundingBoxDescent: 4,
             emHeightAscent: 16,
@@ -35,10 +40,16 @@ vi.mock('../rendering/canvasUtil', () => ({
     }),
 }));
 
-// Fixed-width mock: each grapheme cluster costs `charWidth` pixels.
+// Zero-width joiners and spaces draw nothing; every other codepoint counts as one character.
+function joinedWidth(text: string, charWidth: number, join: number) {
+    const length = [...text.replaceAll(/[\u200B\u200D]/g, '')].length;
+    return length * charWidth + Math.max(length - 1, 0) * join;
+}
+
+// Fixed-width mock: each grapheme cluster costs `charWidth` pixels, plus `join` between adjacent ones.
 // Uses codepoint count ([...text]) so surrogate pairs count as 1 unit.
-function createMockMeasurer(charWidth = 10): ITextMeasurer {
-    const width = (text: string) => [...text].length * charWidth;
+function createMockMeasurer(charWidth = 10, join = 0): ITextMeasurer {
+    const width = (text: string) => joinedWidth(text, charWidth, join);
     return {
         textWidth: width,
         measureText(text: string) {
@@ -117,6 +128,28 @@ function seededRandom(seed: number) {
 }
 
 const E = EllipsisChar; // shorthand for assertions
+
+// Words of 1-8 lowercase letters joined by single spaces, to probe fits at many break positions.
+function generateWords(random: () => number) {
+    const words: string[] = [];
+    const count = 1 + Math.floor(random() * 4);
+    for (let w = 0; w < count; w++) {
+        const length = 1 + Math.floor(random() * 8);
+        words.push(Array.from({ length }, () => String.fromCodePoint(97 + Math.floor(random() * 26))).join(''));
+    }
+    return words.join(' ');
+}
+
+// Brute-force oracle: the text when it fits as drawn, else the longest prefix whose drawn ellipsised form fits.
+function longestFittingPrefix(text: string, measurer: ITextMeasurer, maxWidth: number, force: boolean) {
+    if (!force && measurer.textWidth(text) <= maxWidth) return text;
+    const chars = [...text];
+    for (let n = chars.length; n > 0; n--) {
+        const candidate = appendEllipsis(chars.slice(0, n).join('').trimEnd());
+        if (measurer.textWidth(candidate) <= maxWidth) return candidate;
+    }
+    return E;
+}
 const ZWJ = '\u200D'; // zero-width joiner
 
 describe('truncateLine', () => {
@@ -246,6 +279,54 @@ describe('truncateLine', () => {
             const text = `A ${family} B`;
             const result = truncateLine(text, measurer, 35);
             expect(hasLoneSurrogates(result)).toBe(false);
+        });
+    });
+    describe('fits the string as drawn, not the sum of its characters', () => {
+        // Kerning draws 'Hello' at 42px though its characters sum to 50px; shaping can draw it at 58px.
+        const kerned = createMockMeasurer(10, -2);
+        const spread = createMockMeasurer(10, 2);
+
+        it('keeps text whose drawn width fits although its characters sum wider', () => {
+            expect(truncateLine('Hello', kerned, 45)).toBe('Hello');
+        });
+
+        it('keeps a forced ellipsis whose drawn width fits although its characters sum wider', () => {
+            expect(truncateLine('Hello', kerned, 52, true)).toBe(`Hello${E}`);
+        });
+
+        it('keeps every character the drawn width has room for', () => {
+            // 'abcdefg…' draws at 59px, where the character sum stops at six characters.
+            expect(truncateLine('abcdefghij', createMockMeasurer(10, -3), 60)).toBe(`abcdefg${E}`);
+        });
+
+        it('bounds measurements logarithmically however far the character sum misses the drawn width', () => {
+            // Each extra 'a' draws 5px but sums 10px, so the sum guesses about half the fitting prefix.
+            const halved = createMockMeasurer(10, -5);
+            const text = 'a'.repeat(200);
+            const expected = longestFittingPrefix(text, halved, 600, false);
+            const textWidth = vi.spyOn(halved, 'textWidth');
+            expect(truncateLine(text, halved, 600)).toBe(expected);
+            expect(textWidth.mock.calls.filter(([measured]) => measured.length > 1).length).toBeLessThan(20);
+        });
+
+        it('truncates text whose characters sum within the width but whose drawn width does not', () => {
+            expect(truncateLine('Hello', spread, 52)).toBe(`Hel${E}`);
+        });
+
+        it('returns the longest prefix whose drawn width fits, for generated text and widths', () => {
+            const random = seededRandom(18631);
+            for (const join of [-3, -1, 1, 3]) {
+                const joined = createMockMeasurer(10, join);
+                for (let n = 0; n < 200; n++) {
+                    const words = generateWords(random);
+                    const maxWidth = Math.floor(random() * 120);
+                    const force = random() < 0.5;
+                    const result = truncateLine(words, joined, maxWidth, force);
+                    expect(result, `${JSON.stringify(words)} in ${maxWidth}px, join ${join}`).toBe(
+                        longestFittingPrefix(words, joined, maxWidth, force)
+                    );
+                }
+            }
         });
     });
 });
@@ -1144,8 +1225,8 @@ describe('measureTextSegments — lineHeight', () => {
         it('truncates a segment that overflows an empty row without adding a blank row', () => {
             const fitted = fit([text('Spotify'), text('\n$21B')], 30, 3 * LINE_HEIGHT);
             expect(fitted.map((segment) => (segment.type === 'image' ? '' : segment.text))).toEqual([
-                `S${EllipsisChar}\n`,
-                `$${EllipsisChar}`,
+                `Sp${EllipsisChar}\n`,
+                `$2${EllipsisChar}`,
             ]);
         });
     });
@@ -1450,5 +1531,88 @@ describe('fitLabelText bounded by a shape', () => {
         };
         const fitted = fitLabelText('AAAA BBBB', { region, wrapping: 'on-space' }, font);
         expect(fitted).toBe('AAAA\nBBBB');
+    });
+});
+
+describe('wrapping fits each line as drawn, not by the sum of its characters', () => {
+    const font: FontOptions = { fontSize: 10, fontFamily: 'joined-metrics' };
+
+    const withJoin = (join: number) => {
+        canvasMetrics.join = join;
+        cachedTextMeasurer.clear();
+        return createMockMeasurer(CHAR_WIDTH, join);
+    };
+
+    afterEach(() => withJoin(0));
+
+    it('keeps a label whose drawn width fits although its characters sum wider', () => {
+        withJoin(-1);
+        // '305.9M' draws at 55px; its characters sum to 60px.
+        expect(fitLabelText('305.9M', { maxWidth: 58, wrapping: 'never', overflowStrategy: 'ellipsis' }, font)).toBe(
+            '305.9M'
+        );
+    });
+
+    it('wraps a line whose characters sum within the width but whose drawn width does not', () => {
+        withJoin(2);
+        // 'Hi there' sums to 80px but draws at 94px.
+        expect(wrapLines('Hi there', { font, maxWidth: 85 })).toEqual(['Hi', 'there']);
+    });
+
+    it('breaks a word where its drawn width stops fitting', () => {
+        withJoin(2);
+        // 'abcdef' sums to 60px but draws at 70px; 'abcde' draws at 58px.
+        expect(wrapLines('abcdef', { font, maxWidth: 65, textWrap: 'always' })).toEqual(['abcde', 'f']);
+    });
+
+    it('never draws a line wider than the width, for generated text and widths', () => {
+        const random = seededRandom(18632);
+        for (const join of [-3, -1, 1, 3]) {
+            const measurer = withJoin(join);
+            for (const textWrap of ['never', 'on-space', 'always', 'hyphenate'] as const) {
+                for (let n = 0; n < 100; n++) {
+                    const words = generateWords(random);
+                    const maxWidth = 30 + Math.floor(random() * 90);
+                    const lines = wrapLines(words, { font, maxWidth, textWrap });
+                    const context = `${JSON.stringify(words)} in ${maxWidth}px, ${textWrap}, join ${join}`;
+                    expect(lines.length === 1 && lines[0] === words, context).toBe(
+                        measurer.textWidth(words) <= maxWidth
+                    );
+                    for (const line of lines) {
+                        expect(measurer.textWidth(line), `${context}: ${JSON.stringify(line)}`).toBeLessThanOrEqual(
+                            maxWidth
+                        );
+                    }
+                }
+            }
+        }
+    });
+
+    it('measures a long label in time linear in its length, however many lines it breaks into', () => {
+        const label = 'abcdefghij'.repeat(40);
+        const textWidth = vi.spyOn(cachedTextMeasurer(font), 'textWidth');
+        expect(wrapLines(label, { font, maxWidth: 50, textWrap: 'always' })).toHaveLength(80);
+        const measured = textWidth.mock.calls.reduce((sum, [measuredText]) => sum + measuredText.length, 0);
+        // Measuring each remaining suffix whole costs about 18 000 characters here.
+        expect(measured).toBeLessThan(8 * label.length);
+    });
+
+    it('keeps every character, once, when breaking words, for generated text and widths', () => {
+        const random = seededRandom(18633);
+        const letters = (wrapped: string) => wrapped.replaceAll(' ', '');
+        for (const join of [-3, -1, 1, 3]) {
+            withJoin(join);
+            for (const textWrap of ['always', 'hyphenate'] as const) {
+                for (let n = 0; n < 100; n++) {
+                    const words = generateWords(random);
+                    const maxWidth = 30 + Math.floor(random() * 90);
+                    const lines = wrapLines(words, { font, maxWidth, textWrap });
+                    const rejoined = lines.map((line) => line.replace(/-$/, '')).join('');
+                    expect(letters(rejoined), `${JSON.stringify(words)} in ${maxWidth}px, ${textWrap}`).toBe(
+                        letters(words)
+                    );
+                }
+            }
+        }
     });
 });
