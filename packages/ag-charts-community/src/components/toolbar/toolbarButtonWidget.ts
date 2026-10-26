@@ -41,6 +41,18 @@ export interface ToolbarButtonWidgetOptions {
 export interface ToolbarButtonInteractionOptions {
     isRtl: boolean;
     buttonSize?: number;
+    /** The toolbar's unsized button size, at which icons are drawn at their natural size. */
+    defaultButtonSize?: number;
+}
+
+const DEFAULT_BUTTON_SIZE = 34;
+const ICON_SIZE = 20;
+
+export function getToolbarIconSize(buttonSize: number, defaultButtonSize: number = DEFAULT_BUTTON_SIZE): number {
+    const size = Math.round(buttonSize);
+    // A whole-pixel inset keeps the icon centred on the pixel grid at any button size.
+    const inset = Math.round((size * (1 - ICON_SIZE / defaultButtonSize)) / 2);
+    return Math.max(0, size - 2 * inset);
 }
 
 type ButtonValueHasPopupRule = { readonly [K in Extract<ButtonValue, string>]: BaseAttributeTypeMap['aria-haspopup'] };
@@ -110,6 +122,7 @@ export class ToolbarButtonWidget extends ButtonWidget {
     private lastInnerHTML?: string;
     private lastTooltip?: string;
     private lastButtonSize?: number;
+    private lastIconSize?: number;
     private arrowKeyPredicate: KeyboardClickBindingPredicate = falsePredicate;
 
     constructor(
@@ -165,10 +178,18 @@ export class ToolbarButtonWidget extends ButtonWidget {
             this.lastInnerHTML = innerHTML;
         }
 
-        this.updateButtonSize(options.buttonSize ?? interactionOptions.buttonSize, options);
+        this.updateButtonSize(
+            options.buttonSize ?? interactionOptions.buttonSize,
+            interactionOptions.defaultButtonSize,
+            options
+        );
     }
 
-    private updateButtonSize(buttonSize: number | undefined, options: ToolbarButtonWidgetOptions) {
+    private updateButtonSize(
+        buttonSize: number | undefined,
+        defaultButtonSize: number | undefined,
+        options: ToolbarButtonWidgetOptions
+    ) {
         const sized = buttonSize != null;
         this.toggleClass('ag-charts-toolbar__button--sized', sized);
         this.toggleClass(
@@ -176,16 +197,31 @@ export class ToolbarButtonWidget extends ButtonWidget {
             sized && options.icon != null && options.label == null
         );
 
-        if (buttonSize === this.lastButtonSize) return;
+        const iconSize = sized ? getToolbarIconSize(buttonSize, defaultButtonSize) : undefined;
+        if (buttonSize === this.lastButtonSize && iconSize === this.lastIconSize) return;
         this.lastButtonSize = buttonSize;
-        if (sized) {
-            this.elem.style.setProperty('--toolbar-button-size', `${buttonSize}px`);
-        } else {
-            this.elem.style.removeProperty('--toolbar-button-size');
-        }
+        this.lastIconSize = iconSize;
+        setToolbarSizeProperties(this.elem, buttonSize, iconSize);
     }
 
     public setChecked(checked: boolean) {
         setAttribute(this.elem, 'aria-checked', checked);
+    }
+}
+
+export function setToolbarSizeProperties(
+    elem: HTMLElement,
+    buttonSize: number | undefined,
+    iconSize: number | undefined
+) {
+    if (buttonSize == null) {
+        elem.style.removeProperty('--toolbar-button-size');
+    } else {
+        elem.style.setProperty('--toolbar-button-size', `${buttonSize}px`);
+    }
+    if (iconSize == null) {
+        elem.style.removeProperty('--toolbar-icon-size');
+    } else {
+        elem.style.setProperty('--toolbar-icon-size', `${iconSize}px`);
     }
 }

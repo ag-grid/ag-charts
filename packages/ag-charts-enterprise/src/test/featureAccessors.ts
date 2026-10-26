@@ -149,6 +149,12 @@ export function getAnnotationOptionsToolbarButtons(chartOrProxy: ChartOrProxy<an
     return Array.from(optionsToolbar.toolbar.getElement().querySelectorAll('.ag-charts-toolbar__button'));
 }
 
+export function getAnnotationOptionsToolbarDragHandle(chartOrProxy: ChartOrProxy<any>): HTMLElement {
+    const { optionsToolbar } = getAnnotations(chartOrProxy);
+    const toolbar = optionsToolbar.toolbar as unknown as { dragHandle: { getElement(): HTMLElement } };
+    return toolbar.dragHandle.getElement();
+}
+
 /** The element of the button that adds an annotation at the pointer on the `axis` axis. */
 export function getAnnotationAxisButtonElement(chartOrProxy: ChartOrProxy<any>, axis: 'x' | 'y'): HTMLElement {
     const annotations = getAnnotations(chartOrProxy);
