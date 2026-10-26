@@ -10,7 +10,7 @@ import {
 } from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
-import { ChartRef, performInitialLoad, scroll } from './benchmarkUtils';
+import { ChartRef, hover, performInitialLoad, scroll } from './benchmarkUtils';
 import { type OrgDatum, generateOrg } from './data';
 
 ModuleRegistry.registerModules([OrganizationSeriesModule, ZoomModule]);
@@ -23,6 +23,9 @@ const PAN_REPS = 20;
 const PAN_ZOOM_STEPS = 12;
 const PAN_DRAG_STEPS = 12;
 const STACK_FROM_DEPTH = 4;
+const HOVER_STEPS = 12;
+// Fraction of the chart kept in view, sized so a few columns of cards are large enough to hover.
+const HOVER_WINDOW: Record<number, number> = { 1_000: 0.3, 10_000: 0.1 };
 
 const baseOptions: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
@@ -188,6 +191,68 @@ async function performPan(nodes: number): Promise<number> {
     return performance.now() - start;
 }
 
+// Reads the hover targets from the painted canvas, so they are cards whatever the layout and library version.
+/** inScope */
+function findCardPoints(count: number): { x: number; y: number }[] {
+    const canvas = container.querySelector('canvas')!;
+    const area = container.querySelector('.ag-charts-series-area')!.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+    const scale = canvas.width / canvasRect.width;
+    const context = canvas.getContext('2d')!;
+    const left = Math.round((area.left - canvasRect.left) * scale);
+    const top = (area.top - canvasRect.top) * scale;
+    const width = Math.round(area.width * scale);
+    const background = context.getImageData(0, 0, 1, 1).data;
+    const minRun = 12 * scale;
+    const maxRun = (area.width / 3) * scale;
+
+    let best: { x: number; y: number }[] = [];
+    for (let fraction = 0.3; fraction <= 0.7; fraction += 0.05) {
+        const row = Math.round(top + area.height * scale * fraction);
+        const { data } = context.getImageData(left, row, width, 1);
+        const points: { x: number; y: number }[] = [];
+        let runStart = -1;
+        for (let i = 0; i <= width; i++) {
+            const painted =
+                i < width &&
+                (data[i * 4] !== background[0] ||
+                    data[i * 4 + 1] !== background[1] ||
+                    data[i * 4 + 2] !== background[2] ||
+                    data[i * 4 + 3] !== background[3]);
+            if (painted && runStart < 0) runStart = i;
+            if (!painted && runStart >= 0) {
+                const length = i - runStart;
+                if (length >= minRun && length <= maxRun) {
+                    points.push({ x: (runStart + length / 2) / scale, y: (row - top) / scale });
+                }
+                runStart = -1;
+            }
+        }
+        if (points.length > best.length) best = points;
+    }
+
+    if (best.length < count) throw new Error(`Found ${best.length} cards to hover, expected ${count}`);
+    return best.slice(0, count);
+}
+
+/** inScope */
+async function performHover(nodes: number): Promise<number> {
+    await ensureChart(nodes);
+    const half = HOVER_WINDOW[nodes] / 2;
+    await setZoom({ start: 0.5 - half, end: 0.5 + half });
+    const points = findCardPoints(HOVER_STEPS);
+
+    const chart = chartRef.current!;
+    const start = performance.now();
+    for (const { x, y } of points) {
+        hover(container, x, y);
+        // The chart handles a hover on the next animation frame, so wait for that before the update it causes.
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await chart.waitForUpdate();
+    }
+    return performance.now() - start;
+}
+
 /** inScope */
 function nodeLabel(nodes: number): string {
     return nodes.toLocaleString('en-GB');
@@ -220,6 +285,11 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 label: 'Pan',
                 variants: variants(performPan, { Repetitions: String(PAN_REPS) }),
             },
+            {
+                id: 'hover',
+                label: 'Hover',
+                variants: variants(performHover, { Hovers: String(HOVER_STEPS) }),
+            },
         ],
         config: {
             updatesPerTest: 5,
@@ -231,6 +301,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
             nodeCounts: NODE_COUNTS,
             zoomSteps: ZOOM_STEPS,
             panReps: PAN_REPS,
+            hoverSteps: HOVER_STEPS,
             version: VERSION,
             minVersion: SERIES_MIN_VERSION,
         },
