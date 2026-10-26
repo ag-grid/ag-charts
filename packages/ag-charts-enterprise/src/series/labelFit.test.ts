@@ -983,8 +983,9 @@ describe('series label fit', () => {
 
         it('resolves the other fit options once one is set', async () => {
             await renderNarrow(sankeyChart({}));
-            const { wrapping, truncate } = getSeriesOptions<AgSankeySeriesOptions>(chart).label ?? {};
-            expect([wrapping, truncate]).toEqual([undefined, undefined]);
+            const { label } = getSeriesOptions<AgSankeySeriesOptions>(chart);
+            expect(label).toBeDefined();
+            expect([label?.wrapping, label?.truncate]).toEqual([undefined, undefined]);
 
             chart.destroy();
             await renderNarrow(sankeyChart({ minimumFontSize: 6 }));

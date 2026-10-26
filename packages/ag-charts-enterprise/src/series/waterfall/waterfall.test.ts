@@ -275,7 +275,9 @@ describe('WaterfallSeries', () => {
 
             const series = seriesOf(chart);
             const captured = new Map<string, unknown>();
-            for (const node of series.getNodeData() ?? []) {
+            const nodeData = series.getNodeData();
+            expect(nodeData?.length).toBeGreaterThan(0);
+            for (const node of nodeData ?? []) {
                 renderer.mockClear();
                 series.getTooltipContent(node.datumIndex);
                 captured.set(node.itemType, renderer.mock.calls[0][0].totalValue);
@@ -1345,7 +1347,7 @@ describe('WaterfallSeries', () => {
             return getSeriesInstance(chart, WaterfallSeries);
         };
 
-        const getNodeData = (_series: WaterfallSeries) => getSeriesContextNodeData<WaterfallNodeDatum>(chart).nodeData;
+        const getNodeData = () => getSeriesContextNodeData<WaterfallNodeDatum>(chart).nodeData;
 
         it('AC1/AC3: tooltip.renderer receives datum=undefined for total/subtotal and the original datum for real bars', async () => {
             const params: Partial<Record<AgWaterfallSeriesItemType, AgWaterfallSeriesTooltipRendererParams>> = {};
@@ -1357,7 +1359,7 @@ describe('WaterfallSeries', () => {
                     total: { tooltip: { renderer: (p) => ((params[p.itemType] = p), 'T') } },
                 },
             });
-            const nodeData = getNodeData(series);
+            const nodeData = getNodeData();
 
             const indexOfType = (itemType: string) => nodeData.findIndex((n) => n.itemType === itemType);
             const positiveIndex = indexOfType('positive');
@@ -1387,7 +1389,7 @@ describe('WaterfallSeries', () => {
                 calls.push({ itemType: p.itemType, datum: p.datum, itemId: p.itemId }),
                 {}
             );
-            const series = await createWaterfall({
+            await createWaterfall({
                 ...TOTALS_SERIES,
                 item: {
                     positive: { itemStyler: styler },
@@ -1395,7 +1397,6 @@ describe('WaterfallSeries', () => {
                     total: { itemStyler: styler },
                 },
             });
-            getNodeData(series);
 
             const syntheticCalls = calls.filter((c) => c.itemType === 'total' || c.itemType === 'subtotal');
             const realCalls = calls.filter((c) => c.itemType === 'positive' || c.itemType === 'negative');
@@ -1411,8 +1412,8 @@ describe('WaterfallSeries', () => {
         });
 
         it('AC2: node datum is undefined for synthetic bars and the original object for real bars', async () => {
-            const series = await createWaterfall(TOTALS_SERIES);
-            const nodeData = getNodeData(series);
+            await createWaterfall(TOTALS_SERIES);
+            const nodeData = getNodeData();
 
             // Covers nodeClick/nodeDoubleClick/activeChange, whose payload is built directly from `node.datum`.
             const byType = (itemType: string) => nodeData.filter((n) => n.itemType === itemType);
@@ -1423,7 +1424,7 @@ describe('WaterfallSeries', () => {
 
         it('real-bar itemId is unset so it resolves via dataIdKey, then datumIndex', async () => {
             const series = await createWaterfall(TOTALS_SERIES);
-            const nodeData = getNodeData(series);
+            const nodeData = getNodeData();
 
             // Real bars carry no positional itemId, so getItemId falls back to datumIndex.
             const real = nodeData.find((n) => n.itemType === 'positive')!;
@@ -1454,7 +1455,7 @@ describe('WaterfallSeries', () => {
             };
             chart = await createEnterpriseChart(options);
             const series = getSeriesInstance(chart, WaterfallSeries);
-            const nodeData = getNodeData(series);
+            const nodeData = getNodeData();
 
             // Real bar's itemId is unset, so the event/active itemId resolves via dataIdKey (`year`) and round-trips through findNodeDatum.
             const real = nodeData.find((n) => n.datumIndex === 0)!;
@@ -1489,7 +1490,7 @@ describe('WaterfallSeries', () => {
             };
             chart = await createEnterpriseChart(options);
             const series = getSeriesInstance(chart, WaterfallSeries);
-            const nodeData = getNodeData(series);
+            const nodeData = getNodeData();
 
             // Distinct itemIds keep both 'Total'-labelled bars separate rather than collapsing onto one band.
             const first = nodeData.find((n) => n.itemId === 'first')!;
@@ -1577,7 +1578,7 @@ describe('WaterfallSeries', () => {
                 calls.push({ itemType: p.itemType, highlightState: p.highlightState }),
                 {}
             );
-            const series = await createWaterfall({
+            await createWaterfall({
                 ...TOTALS_SERIES,
                 item: {
                     positive: { itemStyler: styler },
@@ -1585,7 +1586,7 @@ describe('WaterfallSeries', () => {
                     total: { itemStyler: styler },
                 },
             });
-            const total = getNodeData(series).find((n) => n.itemType === 'total')!;
+            const total = getNodeData().find((n) => n.itemType === 'total')!;
 
             calls.length = 0;
             const { ctx: chartCtx, id } = deproxy(chart);

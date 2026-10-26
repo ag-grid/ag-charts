@@ -313,11 +313,12 @@ export interface StageNodeDatum {
     datum: Record<string, unknown>;
 }
 
-/** The highlight-layer copy of the highlighted stage, matched by `datumIndex`; asserts that something is highlighted. */
+/** The highlight-layer copy of the highlighted stage, matched by `datumIndex`; asserts that a datum with an index is highlighted. */
 export function getStageHighlightNode(chartOrProxy: ChartOrProxy<any>, index = 0): Shape | undefined {
     const highlighted = defined(deproxy(chartOrProxy).ctx.highlightManager.getActiveHighlight());
+    const highlightedIndex = defined(highlighted.datumIndex);
     return [...getSeriesAt(chartOrProxy, index).highlightNodeGroup.children()].find(
-        (child): child is Shape => child instanceof Shape && datumIndexOf(child.datum) === highlighted.datumIndex
+        (child): child is Shape => child instanceof Shape && datumIndexOf(child.datum) === highlightedIndex
     );
 }
 
@@ -327,12 +328,15 @@ export function getFunnelConnectorNodes(chartOrProxy: ChartOrProxy<any>, index =
     return selection.value.nodes().map((node) => new Caster(node).cast(FunnelConnector).value);
 }
 
-/** `true` for a legend item whose datum suppresses the highlight, else `undefined`. */
+/** The `suppressHighlight` of a legend item's datum, as read; asserts it is `true` or absent, as its type says. */
 export function getLegendItemSuppressHighlight(item: LegendTestItemNode): true | undefined {
     const suppressHighlight = new Caster(item.datum)
         .assertNonNullish()
         .accessNullableProperty('suppressHighlight').value;
-    return suppressHighlight === true ? true : undefined;
+    if (suppressHighlight !== true && suppressHighlight !== undefined) {
+        throw new Error(`Expected suppressHighlight to be true or undefined, got ${String(suppressHighlight)}`);
+    }
+    return suppressHighlight;
 }
 
 /** The heatmap per-cell methods that tests count to tell an incremental update from a rebuild. */

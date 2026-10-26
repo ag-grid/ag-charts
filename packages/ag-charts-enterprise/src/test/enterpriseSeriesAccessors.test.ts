@@ -760,6 +760,18 @@ describe('funnel, pyramid and heatmap test accessors', () => {
             expect(getStageHighlightNode(chart)?.datum).toMatchObject({ datumIndex: nodeData[2].datumIndex });
         });
 
+        it('fails when the highlighted datum has no datumIndex to match on', async () => {
+            chart = await createEnterpriseChart(stageOptions.funnel);
+            const { ctx, id } = deproxy(chart);
+            // `datumIndex` is required by the type; the cast builds the datum a series that omits it would highlight.
+            const unindexed = { ...getSeriesContextNodeData(chart).nodeData[0], datumIndex: undefined as never };
+
+            ctx.highlightManager.updateHighlight(id, unindexed);
+            await waitForChartStability(chart);
+
+            expect(errorFrom(() => getStageHighlightNode(chart!))?.name).toBe('AssertionError');
+        });
+
         it('returns undefined while the series has drawn no copy of the highlight', async () => {
             chart = await createEnterpriseChart(stageOptions.funnel);
             const { ctx, id } = deproxy(chart);
@@ -824,6 +836,12 @@ describe('funnel, pyramid and heatmap test accessors', () => {
 
             expect(items.length).toBeGreaterThan(0);
             expect(items.map(getLegendItemSuppressHighlight)).toEqual(items.map(() => true));
+        });
+
+        it('fails for a datum whose suppressHighlight is neither true nor absent', () => {
+            const item = { datum: { id: 'item', suppressHighlight: false }, label: {}, symbolsGroup: {} };
+
+            expect(() => getLegendItemSuppressHighlight(item)).toThrow('got false');
         });
 
         it('is undefined for an item that highlights its series', async () => {
