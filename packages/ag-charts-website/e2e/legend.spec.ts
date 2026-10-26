@@ -279,4 +279,21 @@ test.describe('legend', () => {
             textShadow: 'none',
         });
     });
+
+    test('scrollbar thumb keeps its focus border under the proxy style reset', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('scrollbar', 'scrollbar-visibility', 'vanilla').url);
+
+        const slider = page.locator('.ag-charts-proxy-scrollbar-horizontal .ag-charts-proxy-scrollbar-slider');
+        const thumbFocus = page.locator('.ag-charts-proxy-scrollbar-horizontal .ag-charts-proxy-scrollbar-thumb-focus');
+
+        await slider.focus();
+        await expect(thumbFocus).toHaveCSS('opacity', '1');
+
+        const border = await thumbFocus.evaluate((el) => {
+            const computed = getComputedStyle(el);
+            return { style: computed.borderTopStyle, width: computed.borderTopWidth };
+        });
+        expect(border.style).toBe('solid');
+        expect(parseFloat(border.width)).toBeGreaterThan(0);
+    });
 });
