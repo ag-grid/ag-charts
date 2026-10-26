@@ -24,7 +24,6 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
     background: defined,
     contextMenu: defined,
     context: () => true,
-    enableShadowDom: boolean,
     listeners: defined,
     locale: defined,
     width: defined,

@@ -6,6 +6,7 @@ import {
     SELECTORS,
     gotoExample,
     setupIntrinsicAssertions,
+    toExamplePageUrl,
     toExamplePageUrls,
     waitForAllChartUpdates,
     waitForChartUpdate,
@@ -244,4 +245,38 @@ test.describe('legend', () => {
             });
         });
     }
+
+    test('proxy buttons stay invisible under host button styles', async ({ page }) => {
+        // `:not()` with an ID argument outranks every proxy selector.
+        const hostButtonCss = `
+            button:not(#host-toolbar button) {
+                background: rgb(255, 0, 0);
+                border: 3px solid rgb(0, 0, 255);
+                color: rgb(0, 0, 0);
+                text-shadow: 1px 1px rgb(0, 0, 0);
+            }
+        `;
+        await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
+        await page.addStyleTag({ content: hostButtonCss });
+
+        const style = await page
+            .locator(SELECTORS.legendItems)
+            .first()
+            .evaluate((el) => {
+                const computed = getComputedStyle(el);
+                return {
+                    backgroundColor: computed.backgroundColor,
+                    borderTopStyle: computed.borderTopStyle,
+                    color: computed.color,
+                    textShadow: computed.textShadow,
+                };
+            });
+
+        expect(style).toEqual({
+            backgroundColor: 'rgba(0, 0, 0, 0)',
+            borderTopStyle: 'none',
+            color: 'rgba(0, 0, 0, 0)',
+            textShadow: 'none',
+        });
+    });
 });
