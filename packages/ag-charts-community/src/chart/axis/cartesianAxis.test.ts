@@ -8,7 +8,6 @@ import type {
     AgCategoryAxisOptions,
     AgChartInstance,
     AgGroupedCategoryDepthOptions,
-    AgTimeAxisParentLevel,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-types';
@@ -1126,6 +1125,20 @@ describe('CartesianAxis', () => {
             series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
         });
 
+        // `AgTimeAxisParentLevel.label` omits the fitting options, so the validation tests pass them through a
+        // `Record<string, unknown>` to assert the warning without casting.
+        const timeOptionsWithParentLevelLabel = (
+            parentLevelLabel: Record<string, unknown>,
+            label?: Record<string, unknown>
+        ): AgCartesianChartOptions => ({
+            data: TIME_DATA,
+            axes: {
+                x: { type: 'time', position: 'bottom', label, parentLevel: { enabled: true, label: parentLevelLabel } },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+        });
+
         const bottomCategoryOptions = (label: Record<string, unknown>, labels: string[]): AgCartesianChartOptions => ({
             data: labels.map((category, i) => ({ category, value: i + 1 })),
             axes: {
@@ -1216,16 +1229,7 @@ describe('CartesianAxis', () => {
             );
 
             it('warns for maxWidth on a time axis parentLevel label', async () => {
-                // The type omits `maxWidth` from the parent level label; the test passes it to see the warning.
-                const parentLevel = { enabled: true, label: { maxWidth: 50 } } as unknown as AgTimeAxisParentLevel;
-                await renderChart({
-                    data: TIME_DATA,
-                    axes: {
-                        x: { type: 'time', position: 'bottom', label: { maxWidth: 50 }, parentLevel },
-                        y: { type: 'number', position: 'left' },
-                    },
-                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
-                });
+                await renderChart(timeOptionsWithParentLevelLabel({ maxWidth: 50 }, { maxWidth: 50 }));
                 expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.maxWidth')]]);
             });
 
@@ -1575,19 +1579,7 @@ describe('CartesianAxis', () => {
             });
 
             it('warns for minimumFontSize on a time axis parentLevel label', async () => {
-                // The type omits `minimumFontSize` from the parent level label; the test passes it to see the warning.
-                const parentLevel = {
-                    enabled: true,
-                    label: { minimumFontSize: 8 },
-                } as unknown as AgTimeAxisParentLevel;
-                await renderChart({
-                    data: TIME_DATA,
-                    axes: {
-                        x: { type: 'time', position: 'bottom', parentLevel },
-                        y: { type: 'number', position: 'left' },
-                    },
-                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
-                });
+                await renderChart(timeOptionsWithParentLevelLabel({ minimumFontSize: 8 }));
                 expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.minimumFontSize')]]);
             });
         });
