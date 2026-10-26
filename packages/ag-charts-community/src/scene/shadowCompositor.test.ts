@@ -1837,7 +1837,7 @@ describe('Group shadow compositor', () => {
             expectSamePixels(third.pixels, expected);
         });
 
-        it('should keep its canvas when the shadows changed, rather than allocate another', () => {
+        it('should free its canvas when the shadows changed, and keep the shadows again once the cast repeats', () => {
             const before = offscreenCanvases();
             const group = kept();
             const held = inUse(createdSince(before));
@@ -1851,14 +1851,39 @@ describe('Group shadow compositor', () => {
 
             change(group);
             redraw(group);
+            // Only the scratch canvas of the scene remains.
+            expect(inUse(held)).toHaveLength(1);
+
             redraw(group);
             const { pixels: actual, masked: casts } = redraw(group);
-
-            const after = inUse(createdSince(before));
-            expect(after).toHaveLength(held.length);
-            expect(held.every((canvas) => after.includes(canvas))).toBe(true);
             expect(casts).toEqual([]);
             expectSamePixels(actual, direct(sceneGroup, change));
+        });
+
+        it('should keep every pixel of shadows that reach far past casters with a stroke, a spread and a long blur', () => {
+            const reaching = () =>
+                createGroup([
+                    caster(20, {
+                        stroke: 'blue',
+                        strokeWidth: 8,
+                        lineJoin: 'miter',
+                        fillShadow: { ...RED_HALF, blur: 16, spread: 6, xOffset: 30, yOffset: -20 },
+                    }),
+                    caster(150, {
+                        stroke: 'blue',
+                        strokeWidth: 8,
+                        lineJoin: 'miter',
+                        fillShadow: { ...RED_HALF, blur: 16, spread: 6, xOffset: 30, yOffset: -20 },
+                    }),
+                ]);
+
+            const group = reaching();
+            for (let i = 0; i < 2; i++) redraw(group, 2);
+            const { pixels: actual, masked: casts } = redraw(group, 2);
+
+            expect(paintedPixels()).toBeGreaterThan(0);
+            expect(casts).toEqual([]);
+            expectSamePixels(actual, direct(reaching, nothing, 2));
         });
 
         // A transform moves the casters without marking any of them changed, so the transform is part of what is compared.
@@ -2085,13 +2110,18 @@ describe('Group shadow compositor', () => {
                 expect(inUse(held)).toHaveLength(0);
             });
 
-            // A kept cast holds a canvas the size of the layer, and a scene holds no more pixels in them than a mask has.
+            // A kept cast holds a canvas as large as its shadows reach, and a scene holds no more pixels in them than its budget.
             describe.each([
-                [3000, 3000, 1],
-                [4200, 4100, 0],
-            ])('a layer of %i x %i', (width, height, expectedKept) => {
+                ['small casters', 3000, 3000, {}, 2],
+                ['casters as large as the layer', 2000, 2000, { width: 2000, height: 2000 }, 1],
+                ['small casters', 4200, 4100, {}, 0],
+            ])('%s on a layer of %i x %i', (_name, width, height, size, expectedKept) => {
                 it(`should keep the shadows of ${expectedKept} of its 2 casts, and draw the same either way`, () => {
-                    const make = () => createGroup([caster(20, { zIndex: 0 }), caster(220, { zIndex: 1 })], 'by-layer');
+                    const make = () =>
+                        createGroup(
+                            [caster(20, { ...size, zIndex: 0 }), caster(220, { ...size, zIndex: 1 })],
+                            'by-layer'
+                        );
                     const alphasOf = (layer: OffscreenCanvas) => {
                         const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
                         return [140, 340].map((x) => layerCtx.getImageData(x, 60, 1, 1).data[3]);
@@ -2107,14 +2137,17 @@ describe('Group shadow compositor', () => {
                     const layer = new OffscreenCanvas(width, height);
                     const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
                     for (let i = 0; i < 3; i++) {
+                        masked = [];
                         layerCtx.clearRect(0, 0, width, height);
                         drawOnLayer(group, layer);
                     }
 
+                    // The third draw blits what the second kept, so it blurs only the casts that were not kept.
+                    expect(masked).toHaveLength(2 - expectedKept);
                     const layerSized = createdSince(before).filter(
                         (canvas) => canvas !== layer && canvas.width === width && canvas.height === height
                     );
-                    expect(inUse(layerSized)).toHaveLength(expectedKept);
+                    expect(inUse(layerSized)).toHaveLength(0);
                     expect(alphasOf(layer)).toEqual(expected);
                 });
             });
