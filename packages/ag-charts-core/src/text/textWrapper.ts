@@ -1005,7 +1005,6 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             continue;
         }
 
-        // End a line at the break spaces around `breakIndex`, which a break consumes.
         const breakAtSpace = (breakIndex: number) => {
             const head = line.slice(0, breakIndex);
             const tail = line.slice(breakIndex);
