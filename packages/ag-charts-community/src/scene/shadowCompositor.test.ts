@@ -8,6 +8,7 @@ import {
     Scene,
     SegmentedGroup,
     SegmentedPath,
+    TransformableGroup,
     Translatable,
     castShadows,
     joinsShadowKey,
@@ -27,6 +28,8 @@ const BLUE = { enabled: true, color: 'rgba(0, 0, 255, 1)', xOffset: 100, yOffset
 const IN_PLACE = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
 const BLACK = [0, 0, 0, 255];
+
+const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
 
 const maxAlphaOf = (data: number[]) => data.reduce((max, value, i) => (i % 4 === 3 ? Math.max(max, value) : max), 0);
 const BLUE_PIXEL = [0, 0, 255, 255];
@@ -1468,8 +1471,6 @@ describe('Group shadow compositor', () => {
             scene.setRoot(root);
         };
 
-        const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
-
         it('should keep the mask within what a browser can allocate, with a blur wider than the layer at 2x', () => {
             const before = offscreenCanvases();
             const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, blur: 3000 };
@@ -1717,8 +1718,6 @@ describe('Group shadow compositor', () => {
                 'by-layer'
             );
 
-        const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
-
         const expectSamePixels = (actual: number[], expected: number[]) => {
             expect(actual).toHaveLength(expected.length);
             expect(actual.every((value, i) => Math.abs(value - expected[i]) <= 1)).toBe(true);
@@ -1860,6 +1859,154 @@ describe('Group shadow compositor', () => {
             expect(held.every((canvas) => after.includes(canvas))).toBe(true);
             expect(casts).toEqual([]);
             expectSamePixels(actual, direct(sceneGroup, change));
+        });
+
+        // A transform moves the casters without marking any of them changed, so the transform is part of what is compared.
+        it.each([
+            ['translated across', (group: TransformableGroup) => (group.translationX = 30)],
+            ['translated down', (group: TransformableGroup) => (group.translationY = 30)],
+            [
+                'rotated',
+                // About the origin, so that only the linear part of the transform changes.
+                (group: TransformableGroup) => {
+                    group.rotation = 0.4;
+                },
+            ],
+        ])('should cast the shadows again when the group is %s, with no caster changed', (_name, transform) => {
+            const make = () => {
+                const group = new TransformableGroup({ name: 'shadow-group' });
+                group.batchShadows = true;
+                for (const child of scene()) group.appendChild(child);
+                groups.push(group);
+                return group;
+            };
+            const group = kept(make);
+            const move = (target: Group) => transform(target as TransformableGroup);
+            const expected = direct(make, move);
+
+            move(group);
+            const first = redraw(group);
+            const second = redraw(group);
+            const third = redraw(group);
+
+            expect(first.masked).toEqual([20, 120]);
+            expectSamePixels(first.pixels, expected);
+            expect(second.masked).toEqual([20, 120]);
+            expect(third.masked).toEqual([]);
+            expectSamePixels(third.pixels, expected);
+        });
+
+        // The shadows that were kept for a layer are no use on another size, where they would be cut off or misplaced.
+        it.each([
+            ['wider', 600, HEIGHT],
+            ['taller', WIDTH, 400],
+        ])('should cast the shadows again when the layer is %s', (_name, width, height) => {
+            const make = () => createGroup([caster(20), caster(420), caster(20, { y: 300 })]);
+            const draw = (group: Group, layer: OffscreenCanvas) => {
+                const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                layerCtx.clearRect(0, 0, layer.width, layer.height);
+                drawOnLayer(group, layer);
+                const alphas = [
+                    [140, 60],
+                    [540, 60],
+                    [140, 320],
+                ].map(([x, y]) => layerCtx.getImageData(x, y, 1, 1).data[3]);
+                const result = { alphas, masked };
+                masked = [];
+                return result;
+            };
+            const small = new OffscreenCanvas(WIDTH, HEIGHT);
+            const large = new OffscreenCanvas(width, height);
+
+            const group = make();
+            draw(group, small);
+            draw(group, small);
+            const expected = draw(make(), large).alphas;
+            expect(expected.some((alpha) => alpha > 0)).toBe(true);
+
+            const first = draw(group, large);
+            const second = draw(group, large);
+            const third = draw(group, large);
+
+            expect(first.masked).toEqual([20, 420, 20]);
+            expect(first.alphas).toEqual(expected);
+            expect(second.masked).toEqual([20, 420, 20]);
+            expect(third.masked).toEqual([]);
+            expect(third.alphas).toEqual(expected);
+        });
+
+        describe('a clipped path', () => {
+            let casts: number[] = [];
+
+            class TestPath extends Path {
+                marker = 0;
+
+                override isolatedRender(renderCtx: RenderContext) {
+                    if (shadowPass.state === 'mask') casts.push(this.marker);
+                    return super.isolatedRender(renderCtx);
+                }
+            }
+
+            const clipped = (tag: number, y: number, clipX: number) => {
+                const node = new TestPath();
+                Object.assign(node, { marker: tag, fill: 'black', fillShadow: { ...SHADOW, xOffset: 30 }, clip: true });
+                node.path.rect(20, y, 60, 50);
+                node.clipX = clipX;
+                node.clipY = HEIGHT;
+                return node;
+            };
+            const makeClipped = () => createGroup([clipped(1, 20, 90), clipped(2, 100, 90)]);
+
+            it('should cast the shadows again when the clip changed, with the same casters', () => {
+                const group = kept(makeClipped);
+                casts = [];
+                const change = (target: Group) => {
+                    for (const child of target.children()) (child as Path).clipX = 70;
+                };
+                const expected = direct(makeClipped, change);
+                casts = [];
+
+                change(group);
+                const first = redraw(group);
+                const firstCasts = casts;
+                casts = [];
+                redraw(group);
+                casts = [];
+                const third = redraw(group);
+
+                expect(firstCasts).toEqual([1, 2]);
+                expectSamePixels(first.pixels, expected);
+                expect(casts).toEqual([]);
+                expectSamePixels(third.pixels, expected);
+            });
+        });
+
+        describe('the casts of a frame', () => {
+            // Two runs, because their shadow options differ, so two casts and a cache for each.
+            const twoRuns = () => [caster(20), caster(120, { fillShadow: { ...SHADOW, xOffset: 60 } })];
+
+            it('should free the shadows that a cast kept when the group makes fewer casts', () => {
+                const before = offscreenCanvases();
+                const group = kept(() => createGroup(twoRuns()));
+                const held = inUse(createdSince(before));
+                // The scratch canvas, and a cache for each cast.
+                expect(held).toHaveLength(3);
+
+                [...group.children()][1].remove();
+                const { pixels: actual, masked: casts } = redraw(group);
+
+                const after = inUse(held);
+                expect(after).toHaveLength(2);
+                // The first cast still blits what it kept.
+                expect(casts).toEqual([]);
+                expectSamePixels(
+                    actual,
+                    direct(
+                        () => createGroup(twoRuns()),
+                        (target) => [...target.children()][1].remove()
+                    )
+                );
+            });
         });
 
         describe('a group by layer', () => {
