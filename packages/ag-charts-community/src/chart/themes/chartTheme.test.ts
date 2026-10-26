@@ -560,10 +560,10 @@ describe('ChartTheme', () => {
 
         it.each([
             ['ag-default', '#00000080'],
-            ['ag-default-dark', 'rgba(0, 0, 0, 1)'],
-            ['ag-polychroma-dark', 'rgba(0, 0, 0, 1)'],
+            ['ag-default-dark', '#000'],
+            ['ag-polychroma-dark', '#000'],
             ['ag-financial', '#00000080'],
-            ['ag-financial-dark', 'rgba(0, 0, 0, 1)'],
+            ['ag-financial-dark', '#000'],
         ])('resolves the series and marker shadow colour for %s', async (theme, expected) => {
             const { bar, line } = await create(theme);
 

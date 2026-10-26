@@ -184,7 +184,7 @@ describe('RangeAreaSeries', () => {
 
     it.each([
         ['ag-default', '#00000080'],
-        ['ag-default-dark', 'rgba(0, 0, 0, 1)'],
+        ['ag-default-dark', '#000'],
     ])('should default the series and marker shadow colour for %s', async (theme, expected) => {
         chart = deproxy(
             await createEnterpriseChart({
