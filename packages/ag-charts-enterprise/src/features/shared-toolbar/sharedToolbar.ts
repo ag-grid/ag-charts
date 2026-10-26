@@ -37,6 +37,8 @@ export class SharedToolbar extends AbstractModuleInstance {
         chartToolbar: undefined,
     };
     private firstLayoutSection?: SharedToolbarSection;
+    // A later section can change its buttons in its own layout listener, after the column was measured.
+    private columnLayout?: { layoutBox: BBox; left: number; right: number; y: number; width: number };
 
     // OPTIMIZATION: `getBounds().width` has no inline width, so it forces a sync reflow every
     // layout. The width depends on the rendered button content (the signature below), on text
@@ -93,17 +95,22 @@ export class SharedToolbar extends AbstractModuleInstance {
                     this.firstLayoutSection !== section &&
                     this.activeSections.has(this.firstLayoutSection)
                 ) {
+                    this.correctLayoutWidth(sharedToolbar, layoutBox);
                     return;
                 }
                 this.firstLayoutSection = section;
 
                 const width = this.measureWidth(sharedToolbar);
                 const { isRtl } = this.ctx.domManager;
-                sharedToolbar.setBounds({
-                    x: isRtl ? layoutBox.x + layoutBox.width - width : layoutBox.x,
+                const columnLayout = {
+                    layoutBox,
+                    left: layoutBox.x,
+                    right: layoutBox.x + layoutBox.width,
                     y: layoutBox.y,
-                    width: width,
-                });
+                    width,
+                };
+                this.columnLayout = columnLayout;
+                this.setColumnBounds(sharedToolbar, columnLayout);
 
                 layoutBox.shrink(width + sharedToolbar.horizontalSpacing + padding, isRtl ? 'right' : 'left');
             },
@@ -191,6 +198,30 @@ export class SharedToolbar extends AbstractModuleInstance {
     ): ButtonOptions {
         const buttonSize = this.sectionButtonSize[section];
         return buttonSize == null ? button : { ...button, buttonSize };
+    }
+
+    private correctLayoutWidth(
+        sharedToolbar: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>,
+        layoutBox: BBox
+    ) {
+        const { columnLayout } = this;
+        // Only correct the column placed earlier in this same pass (each pass has a new layout box).
+        if (columnLayout?.layoutBox !== layoutBox) return;
+
+        const width = this.measureWidth(sharedToolbar);
+        const delta = width - columnLayout.width;
+        if (delta === 0) return;
+
+        columnLayout.width = width;
+        this.setColumnBounds(sharedToolbar, columnLayout);
+        layoutBox.shrink(delta, this.ctx.domManager.isRtl ? 'right' : 'left');
+    }
+
+    private setColumnBounds(
+        sharedToolbar: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>,
+        { left, right, y, width }: { left: number; right: number; y: number; width: number }
+    ) {
+        sharedToolbar.setBounds({ x: this.ctx.domManager.isRtl ? right - width : left, y, width });
     }
 
     private invalidateWidthCache() {
