@@ -11,7 +11,7 @@
     "ag-charts-generate-example-files": "14.2.0-beta.20261028",
     "ag-charts-test": "14.2.0-beta.20261028",
     "ag-shared": "0.0.1",
-    "glob": "8.0.3",
+    "glob": "8.1.0",
     "jsdom": "~26.1.0",
     "process": "0.11.10",
     "sharp": "0.33.5",

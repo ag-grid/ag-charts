@@ -9,9 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@radix-ui/react-label": "^2.1.12",
-    "@radix-ui/react-select": "^2.0.0",
-    "@radix-ui/react-toggle-group": "^1.1.0",
+    "@radix-ui/react-label": "^2.1.17",
+    "@radix-ui/react-select": "^2.3.7",
+    "@radix-ui/react-toggle-group": "^1.2.1",
     "ag-charts-community": "latest",
     "ag-charts-enterprise": "latest",
     "ag-charts-react": "latest",

@@ -7,7 +7,7 @@
     "@swc/helpers": "0.5.23",
     "ag-shared": "0.0.1",
     "diff": "^9.0.0",
-    "glob": "8.0.3",
+    "glob": "8.1.0",
     "typescript": "~5.8.3"
   },
   "type": "commonjs",
