@@ -188,9 +188,16 @@ const BreakSpacesRegex = /[\t \u1680\u2000-\u2006\u2008-\u200A\u200B\u205F\u3000
 
 export function isBreakSpace(grapheme: string | undefined) {
     if (grapheme?.length !== 1) return false;
-    // OPTIMIZATION: runs per grapheme while wrapping; only the rare spaces past U+1680 reach the regex.
-    const code = grapheme.codePointAt(0)!;
-    return code === 0x20 || code === 0x09 || (code >= 0x1680 && BreakSpacesRegex.test(grapheme));
+    // OPTIMIZATION: runs per grapheme while wrapping, so compares char codes rather than testing BreakSpacesRegex.
+    const code = grapheme.charCodeAt(0);
+    return (
+        code === 0x20 ||
+        code === 0x09 ||
+        (code >= 0x2000 && code <= 0x200b && code !== 0x2007) ||
+        code === 0x1680 ||
+        code === 0x205f ||
+        code === 0x3000
+    );
 }
 
 export function splitAtBreakSpaces(text: string) {

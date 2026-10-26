@@ -596,6 +596,12 @@ describe('wrapLines', () => {
             expect(wrapLines('A  B', { font, maxWidth: 100 })).toEqual(['A  B']);
         });
 
+        it('cuts a word that starts after a break space without repeating a character', () => {
+            const text = '\u200Babcdefghij';
+            expect(wrapLines(text, { font, maxWidth: 50, textWrap: 'hyphenate' })).toEqual(['abcd-', 'efgh-', 'ij']);
+            expect(wrapLines(text, { font, maxWidth: 50, textWrap: 'always' })).toEqual(['abcde', 'fghij']);
+        });
+
         it('rejoins an orphan with the break space it was separated by', () => {
             const result = wrapLines('AAA\u200BBBB\u200BCCC\u200BD', { font, maxWidth: 90 });
             expect(result).toEqual(['AAA\u200BBBB', 'CCC\u200BD']);

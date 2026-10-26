@@ -1076,7 +1076,9 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             }
 
             const postfix = wrapHyphenate ? '-' : '';
-            const head = graphemeSegments(trimBreakSpacesStart(trimBreakSpacesEnd(line.slice(0, charOffset))));
+            const fittedText = trimBreakSpacesEnd(line.slice(0, charOffset));
+            const headText = trimBreakSpacesStart(fittedText);
+            const head = graphemeSegments(headText);
             const drawBroken = (prefix: string) => preserveArabicJoining(trimBreakSpacesEnd(prefix)) + postfix;
             const kept = fittingGraphemeCount(head, measurer, maxWidth() - offset, drawBroken);
             const newLine = trimBreakSpacesEnd(head.slice(0, kept).join(''));
@@ -1090,7 +1092,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
                 break;
             }
 
-            line = trimBreakSpacesStart(line.slice(newLine.length));
+            line = trimBreakSpacesStart(line.slice(fittedText.length - headText.length + newLine.length));
         }
 
         if (line !== '') {
