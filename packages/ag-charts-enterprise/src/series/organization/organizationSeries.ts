@@ -59,7 +59,7 @@ import type {
     OrganizationVertexID,
 } from './organizationTypes';
 
-const { keyProperty, valueProperty } = _ModuleSupport;
+const { hasStateStyle, keyProperty, valueProperty } = _ModuleSupport;
 
 /** Highlight part naming the expander pill, as distinct from the card behind it. */
 const EXPANDER_HIGHLIGHT_PART = 'expander';
@@ -103,6 +103,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private hasAnyKeyedValue = false;
 
     private detailHidden = false;
+
+    // Source-data indices of the nodes whose highlight changed since the last update.
+    private readonly changedHighlightDatumIndices = new Set<number>();
+    private highlightChangeNeedsFullUpdate = false;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx);
@@ -246,70 +250,130 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     updateDatumNodes(datumSelection: Selection<OrganizationDatum, OrganizationNode>) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        datumSelection.each((node, datum) => {
-            const { collapsedByAncestor } = datum;
-            node.visible = !collapsedByAncestor;
-            if (collapsedByAncestor) return;
+        datumSelection.each((node, datum) => this.updateDatumNode(node, datum, highlightedDatum));
+    }
 
-            const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
-            const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
-            const allChildren = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
-            const directChildren = this.graph.neighboursWithEdgeValue(datum.vertex, 'child')?.length ?? 0;
+    private updateDatumNode(
+        node: OrganizationNode,
+        datum: OrganizationDatum,
+        highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined
+    ) {
+        const { collapsedByAncestor } = datum;
+        node.visible = !collapsedByAncestor;
+        if (collapsedByAncestor) return;
 
-            const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
-            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            // A leaf id present in `collapsedManager` hides nothing, so reporting it as collapsed
-            // would mislead styler consumers about the rendered tree state.
-            const isCollapsed =
-                allChildren > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
+        const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
+        const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
+        const allChildren = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
+        const directChildren = this.graph.neighboursWithEdgeValue(datum.vertex, 'child')?.length ?? 0;
 
-            const datumState: DatumCallbackState = {
-                depth,
-                allChildren,
-                directChildren,
-                isCollapsed,
-            };
+        const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
+        const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+        // A leaf id present in `collapsedManager` hides nothing, so reporting it as collapsed
+        // would mislead styler consumers about the rendered tree state.
+        const isCollapsed =
+            allChildren > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
 
-            const isExpanderHovered = this.hoveredExpanderDatumIndex === datumIndex;
+        const datumState: DatumCallbackState = {
+            depth,
+            allChildren,
+            directChildren,
+            isCollapsed,
+        };
 
-            const styles = this.getNodeStyle(datumIndex, isHighlight, highlightState, datumState, isExpanderHovered);
-            node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
+        const isExpanderHovered = this.hoveredExpanderDatumIndex === datumIndex;
 
-            const fields = this.resolveVertexFields(datum.vertex);
-            const title = this.formatText(fields.title, this.options.node.title.formatter, datumIndex, datumState);
-            const subtitle = this.formatText(
-                fields.subtitle,
-                this.options.node.subtitle.formatter,
-                datumIndex,
-                datumState
-            );
-            const labels = fields.labels?.map((label, index) =>
-                this.formatText(label, this.options.node.labels?.[index]?.formatter, datumIndex, datumState)
-            );
+        const styles = this.getNodeStyle(datumIndex, isHighlight, highlightState, datumState, isExpanderHovered);
+        node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
 
-            let defaultExpanderText = '';
-            if (styles.expander.text.showAllChildren && styles.expander.text.showDirectChildren) {
-                defaultExpanderText = `${directChildren} / ${allChildren}`;
-            } else if (styles.expander.text.showAllChildren) {
-                defaultExpanderText = `${allChildren}`;
-            } else if (styles.expander.text.showDirectChildren) {
-                defaultExpanderText = `${directChildren}`;
-            }
-            const expanderText =
-                this.formatText(defaultExpanderText, this.options.expander.text.formatter, datumIndex, datumState) ??
-                defaultExpanderText;
+        const fields = this.resolveVertexFields(datum.vertex);
+        const title = this.formatText(fields.title, this.options.node.title.formatter, datumIndex, datumState);
+        const subtitle = this.formatText(fields.subtitle, this.options.node.subtitle.formatter, datumIndex, datumState);
+        const labels = fields.labels?.map((label, index) =>
+            this.formatText(label, this.options.node.labels?.[index]?.formatter, datumIndex, datumState)
+        );
 
-            node.update(
-                { image: fields.image, title, subtitle, labels },
-                expanderText,
-                allChildren,
-                styles,
-                isCollapsed,
-                this.ctx.domManager.isRtl,
-                this.getNetworkTreeLayoutDirection()
-            );
-            node.setDetailVisible(!this.detailHidden);
-        });
+        let defaultExpanderText = '';
+        if (styles.expander.text.showAllChildren && styles.expander.text.showDirectChildren) {
+            defaultExpanderText = `${directChildren} / ${allChildren}`;
+        } else if (styles.expander.text.showAllChildren) {
+            defaultExpanderText = `${allChildren}`;
+        } else if (styles.expander.text.showDirectChildren) {
+            defaultExpanderText = `${directChildren}`;
+        }
+        const expanderText =
+            this.formatText(defaultExpanderText, this.options.expander.text.formatter, datumIndex, datumState) ??
+            defaultExpanderText;
+
+        node.update(
+            { image: fields.image, title, subtitle, labels },
+            expanderText,
+            allChildren,
+            styles,
+            isCollapsed,
+            this.ctx.domManager.isRtl,
+            this.getNetworkTreeLayoutDirection()
+        );
+        node.setDetailVisible(!this.detailHidden);
+    }
+
+    protected override onChangeHighlight(event: _ModuleSupport.HighlightChangeEvent) {
+        super.onChangeHighlight(event);
+        this.trackHighlightChange(event.previousHighlight);
+        this.trackHighlightChange(event.currentHighlight);
+    }
+
+    private trackHighlightChange(highlight: _ModuleSupport.HighlightNodeDatum | undefined) {
+        if (highlight == null) return;
+
+        if (highlight.series === this && typeof highlight.datumIndex === 'number') {
+            this.changedHighlightDatumIndices.add(highlight.datumIndex);
+        } else {
+            this.highlightChangeNeedsFullUpdate = true;
+        }
+    }
+
+    // Highlight only restyles the nodes entering and leaving it, so every other node, the links and the layout
+    // are left as they were. Anything that can restyle other nodes takes the full update.
+    protected override updateHighlightOnly(): boolean {
+        const { changedHighlightDatumIndices } = this;
+        const needsFullUpdate = this.highlightChangeNeedsFullUpdate;
+        const datumIndices = Array.from(changedHighlightDatumIndices);
+        this.highlightChangeNeedsFullUpdate = false;
+        changedHighlightDatumIndices.clear();
+
+        if (
+            needsFullUpdate ||
+            datumIndices.length === 0 ||
+            this.nodeDataRefresh ||
+            !this.isLayoutCurrent() ||
+            this.hasHighlightDependentStyles()
+        ) {
+            return false;
+        }
+
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        const regularBBox = this.layout.getRegularBBox();
+        for (const datumIndex of datumIndices) {
+            const nodeDatumIndex = this.convertDatumIndexToNodeDatumIndex(datumIndex);
+            const node = nodeDatumIndex == null ? undefined : this.datumSelection.at(nodeDatumIndex);
+            if (node?.datum == null) continue;
+
+            this.updateDatumNode(node, node.datum, highlightedDatum);
+            // Updating the node resets the card to its intrinsic size, which the layout pass would clamp.
+            this.positionDatumNode(node, new BBox(node.translationX, node.translationY, 0, 0), regularBBox);
+        }
+        return true;
+    }
+
+    private hasHighlightDependentStyles() {
+        const { highlight } = this.options;
+        return (
+            this.hasItemStylers() ||
+            hasStateStyle(highlight?.highlightedSeries) ||
+            hasStateStyle(highlight?.unhighlightedItem) ||
+            hasStateStyle(highlight?.unhighlightedSeries)
+        );
     }
 
     protected override onViewportScaleChange(scaling: number) {
