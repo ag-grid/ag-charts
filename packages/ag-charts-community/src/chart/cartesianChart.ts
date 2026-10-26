@@ -20,7 +20,6 @@ import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import { CartesianAxis } from './axis/cartesianAxis';
 import { CategoryAxis } from './axis/categoryAxis';
-import { NumberAxis } from './axis/numberAxis';
 import { stackCartesianSeries } from './cartesianUtil';
 import type { SeriesAxesHost, TransferableResources } from './chart';
 import { Chart } from './chart';
@@ -109,8 +108,8 @@ export class CartesianChart extends Chart {
 
             this.ctx.zoomManager?.setAxes(
                 newValue.filter((axis) => {
-                    const { ignoreZoom, linkZoom } = axis.options as { ignoreZoom?: boolean; linkZoom?: string };
-                    return !ignoreZoom && linkZoom == null;
+                    const { linkZoom } = axis.options as { linkZoom?: string };
+                    return axis.zoomable && linkZoom == null;
                 })
             );
         }
@@ -262,7 +261,7 @@ export class CartesianChart extends Chart {
     private updateSeriesBands(seriesRect: BBox, seriesPaddedRect: BBox, enableClip: boolean) {
         const bands = new Map<object, BBox>();
         for (const axis of enableClip ? this.axes : []) {
-            if (axis.options.lengthRatio == null || axis.lineRange == null) continue;
+            if (axis.lengthRatio == null || axis.lineRange == null) continue;
 
             const isHorizontal = axis.position === 'top' || axis.position === 'bottom';
             const [rectStart, rectLength, paddedStart, paddedLength] = isHorizontal
@@ -772,7 +771,7 @@ export class CartesianChart extends Chart {
     }
 
     private sizeAxis(axis: CartesianAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
-        const isNumberAxis = axis instanceof NumberAxis; // Number, log axis
+        const isNumberAxis = axis.scale.type === 'number' || axis.scale.type === 'log';
         const isLeftRight = position === 'left' || position === 'right';
 
         const { width, height } = seriesRect;
@@ -814,19 +813,11 @@ export class CartesianChart extends Chart {
 
     /** The part of the series area length the axis is laid out in, as `[start, length]`. */
     private axisBand(axis: CartesianAxis, fullLength: number, minAtEnd: boolean): [number, number] {
-        const { lengthRatio, reverse } = axis.options;
+        const { lengthRatio } = axis;
         if (lengthRatio == null) return [0, fullLength];
 
         const bandLength = fullLength * lengthRatio;
-        const { width, unit } = axis.layoutConstraints;
-        if (unit === 'px' && width > bandLength) {
-            this.ctx.logger.warnOnce(
-                `\`axes.${axis.userKey}.lengthRatio\` is ignored because the fixed-width bars need more room than it allows.`
-            );
-            return [0, fullLength];
-        }
-
-        const anchoredAtEnd = minAtEnd !== reverse;
+        const anchoredAtEnd = minAtEnd !== axis.options.reverse;
         return [anchoredAtEnd ? fullLength - bandLength : 0, bandLength];
     }
 

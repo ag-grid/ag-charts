@@ -1,5 +1,10 @@
 import type { AxisID, DomainWithMetadata, DynamicContext, LogScale, NormalisedNumberAxisOptions } from 'ag-charts-core';
-import { LinearScale, normalisedExtentWithMetadata } from 'ag-charts-core';
+import {
+    LinearScale,
+    normaliseNumberAxisDomain,
+    numberAxisDatumFormatParams,
+    numberAxisVisibleDomain,
+} from 'ag-charts-core';
 import type { AgNumericValue, FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -36,18 +41,7 @@ export class NumberAxis<
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<AgNumericValue>) {
-        const { min, max, preferredMin, preferredMax } = this.options;
-        const { extent, clipped } = normalisedExtentWithMetadata(
-            d.domain,
-            min,
-            max,
-            preferredMin,
-            preferredMax,
-            undefined,
-            d.sortMetadata?.sortOrder
-        );
-
-        return { domain: extent, clipped };
+        return normaliseNumberAxisDomain(d, this.options);
     }
 
     override getDomainExtentsNice(): [boolean, boolean] {
@@ -55,13 +49,7 @@ export class NumberAxis<
     }
 
     protected getVisibleDomain(domain: AgNumericValue[]): [number, number] {
-        // Narrow to Number: a bigint domain reaches here as formatter-context metadata only — the tick
-        // label itself carries the exact bigint value, so this range context can narrow safely.
-        const d0 = Number(domain[0]);
-        const d1 = Number(domain[1]);
-        const [r0, r1] = this.visibleRange;
-        const length = d1 - d0;
-        return [d0 + r0 * length, d1 - (1 - r1) * length];
+        return numberAxisVisibleDomain(domain, this.visibleRange);
     }
 
     override tickFormatParams(
@@ -73,21 +61,6 @@ export class NumberAxis<
     }
 
     override datumFormatParams(value: any, params: FormatDatumParams, fractionDigits?: number): FormatterParams<any> {
-        const { datum, seriesId, legendItemName, key, source, property, domain, boundSeries } = params;
-        const visibleDomain = this.getVisibleDomain(domain);
-        return {
-            type: 'number',
-            value,
-            datum,
-            seriesId,
-            legendItemName,
-            key,
-            source,
-            property,
-            domain,
-            visibleDomain,
-            boundSeries,
-            fractionDigits,
-        };
+        return numberAxisDatumFormatParams(value, params, this.getVisibleDomain(params.domain), fractionDigits);
     }
 }

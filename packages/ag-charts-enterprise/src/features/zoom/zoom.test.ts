@@ -308,29 +308,37 @@ describe('Zoom', () => {
         });
     });
 
-    describe('lengthRatio', () => {
-        it('should zoom a ratio-sized axis within its length', async () => {
+    describe('inset axes', () => {
+        it('should keep the whole domain of an inset axis in view when zoomed', async () => {
             const baseOptions: AgCartesianChartOptions = {
                 ...EXAMPLE_OPTIONS,
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y' },
+                    { type: 'line', xKey: 'x', yKey: 'y', yName: 'Inset', yKeyAxis: 'yInset' },
+                ],
                 axes: {
-                    x: { type: 'number', position: 'bottom', nice: false, lengthRatio: 0.5 },
+                    x: { type: 'number', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
+                    yInset: { type: 'inset-number', position: 'right', lengthRatio: 0.5 },
                 },
             };
 
-            await prepareChart(undefined, { ratioX: { start: 0.25, end: 0.75 } }, baseOptions, false);
-            await waitForChartStability(chart);
+            await prepareChart(
+                undefined,
+                { ratioX: { start: 0.25, end: 0.75 }, ratioY: { start: 0.25, end: 0.75 } },
+                baseOptions,
+                false
+            );
 
             const { axes, seriesRect } = deproxy(chart);
-            const xAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
-            expect(xAxis).toBeDefined();
+            const insetAxis = axes.find((axis) => axis.userKey === 'yInset');
+            expect(insetAxis).toBeDefined();
             expect(seriesRect).toBeDefined();
-            const { scale } = xAxis!;
+            const { scale } = insetAxis!;
             const [min, max] = scale.domain as number[];
-            const length = max - min;
 
-            expect(scale.convert(min + 0.25 * length)).toBeCloseTo(0);
-            expect(scale.convert(min + 0.75 * length)).toBeCloseTo(seriesRect!.width * 0.5);
+            expect(scale.convert(min)).toBeCloseTo(seriesRect!.height);
+            expect(scale.convert(max)).toBeCloseTo(seriesRect!.height * 0.5);
         });
     });
 

@@ -8,6 +8,7 @@ import {
     TimeAxisModule,
     UnitTimeAxisModule,
 } from '../axes/cartesian/cartesianAxisModules';
+import { InsetNumberAxisModule } from '../axes/inset-number/insetNumberAxisModule';
 import { OrdinalTimeAxisModule } from '../axes/ordinal/ordinalTimeAxisModule';
 
 export const AllCartesianAxesModule: ModuleDefinition[] = [
@@ -18,4 +19,5 @@ export const AllCartesianAxesModule: ModuleDefinition[] = [
     GroupedCategoryAxisModule,
     UnitTimeAxisModule,
     OrdinalTimeAxisModule,
+    InsetNumberAxisModule,
 ];

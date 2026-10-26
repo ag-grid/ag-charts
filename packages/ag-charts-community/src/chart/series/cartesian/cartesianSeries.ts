@@ -41,8 +41,6 @@ import type { AgDrawingMode, AgNumericValue } from 'ag-charts-types';
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
-import { NumberAxis } from '../../axis/numberAxis';
-import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { processedDataIsAnimatable } from '../../data/processors';
 import { getPickedFocusBBox } from '../../keyboardUtil';
@@ -1713,8 +1711,8 @@ function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined
     let min: number | Date | undefined;
     let max: number | Date | undefined;
 
-    if (axis instanceof NumberAxis || axis instanceof TimeAxis) {
-        ({ min, max } = axis.options);
+    if (ContinuousScale.is(axis.scale)) {
+        ({ min, max } = axis.options as { min?: number | Date; max?: number | Date });
     }
 
     if (min == null && max == null) return;

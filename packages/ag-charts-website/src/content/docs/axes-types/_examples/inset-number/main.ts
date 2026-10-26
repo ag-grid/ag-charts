@@ -2,16 +2,24 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     BarSeriesModule,
+    InsetNumberAxisModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
     TimeAxisModule,
-} from 'ag-charts-community';
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, LegendModule, LineSeriesModule, NumberAxisModule, TimeAxisModule]);
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    InsetNumberAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    TimeAxisModule,
+]);
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
@@ -30,11 +38,9 @@ const options: AgCartesianChartOptions<DataType> = {
             title: { text: 'Price ($)' },
         },
         yVolume: {
-            type: 'number',
+            type: 'inset-number',
             position: 'left',
             lengthRatio: 0.2,
-            title: { text: 'Volume (M)' },
-            gridLine: { enabled: false },
         },
     },
     series: [

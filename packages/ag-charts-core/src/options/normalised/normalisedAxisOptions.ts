@@ -27,6 +27,7 @@ import type {
     AgCrosshairOptions,
     AgGroupedCategoryAxisLabelOptions,
     AgGroupedCategoryAxisOptions,
+    AgInsetNumberAxisOptions,
     AgLineCrossLineOptions,
     AgLogAxisOptions,
     AgNumberAxisOptions,
@@ -266,6 +267,12 @@ export type NormalisedBaseRadiusAxisOptions<
 
 export type NormalisedNumberAxisOptions<TContext = ContextDefault> = Normalised<
     AgNumberAxisOptions<TContext>,
+    CartesianAxisRequiredKeys,
+    AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
+>;
+
+export type NormalisedInsetNumberAxisOptions<TContext = ContextDefault> = Normalised<
+    AgInsetNumberAxisOptions<TContext>,
     CartesianAxisRequiredKeys,
     AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
 >;

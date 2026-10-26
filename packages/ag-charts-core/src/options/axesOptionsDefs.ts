@@ -293,7 +293,6 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
             unit: required(union('percent', 'px')),
             width: required(positiveNumber),
         },
-        ignoreZoom: boolean,
         linkZoom: string,
     }),
 };
@@ -331,7 +330,6 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     position: union('top', 'right', 'bottom', 'left'),
     thickness: positiveNumber,
     maxThicknessRatio: ratio,
-    lengthRatio: ratio,
     listeners: {
         click: callback,
         doubleClick: callback,
