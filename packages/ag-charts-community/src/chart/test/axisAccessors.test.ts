@@ -16,6 +16,7 @@ import {
     getAxisLabelTexts,
     getAxisLayoutState,
     getAxisLinePosition,
+    getAxisSizeLimit,
     getAxisTitleText,
     getLabelSegmentAlignments,
     getLabelText,
@@ -268,6 +269,27 @@ describe('axis test accessors', () => {
             expect(layout.position).toBe('bottom');
             expect(layout.rect.width).toBeGreaterThan(0);
             expect(getAxisLayoutState(chart, 'left').position).toBe('left');
+        });
+    });
+
+    describe('getAxisSizeLimit', () => {
+        it('returns the thickness the chart gave the axis, less its label spacing', async () => {
+            chart = await createChart({
+                ...options,
+                axes: {
+                    x: { type: 'category', position: 'bottom', thickness: 60, label: { spacing: 10 } },
+                    y: { type: 'number', position: 'left', thickness: 90, label: { spacing: 5 } },
+                },
+            });
+
+            expect(getAxisSizeLimit(chart, 'bottom')).toBe(50);
+            expect(getAxisSizeLimit(chart, 'left')).toBe(85);
+        });
+
+        it('fails for an axis the chart does not have', async () => {
+            chart = await createChart(options);
+
+            expect(errorFrom(() => getAxisSizeLimit(chart, 'top'))?.name).toBe('AssertionError');
         });
     });
 
