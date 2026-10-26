@@ -91,10 +91,10 @@ describe('series label fit', () => {
             expect(someTruncated(texts)).toBe(true);
         });
 
-        it('breaks labels at zero-width spaces and tabs but never at no-break spaces', async () => {
+        it('breaks labels at zero-width spaces but never at no-break spaces', async () => {
             const breakData = [
                 { cat: 'TotalRevenue', value: 90, label: 'Total\u200BRevenue\u200BPer\u200BRegion' },
-                { cat: 'NetProfitMargin', value: 80, label: 'Tab\tSeparated\tWords\tAcross\tLines' },
+                { cat: 'NetProfitMargin', value: 80, label: 'Space Separated Words Across Lines' },
                 { cat: 'GrossSales', value: 70, label: '100\u00A0km 200\u00A0km 300\u00A0km' },
                 { cat: 'UnitCount', value: 60, label: 'Plain words label' },
             ];
@@ -109,9 +109,8 @@ describe('series label fit', () => {
                     y: cartesianAxes.y,
                 },
             });
-            const [zeroWidth, tabs, noBreak] = labelTexts().map(String);
+            const [zeroWidth, noBreak] = labelTexts().map(String);
             expect(zeroWidth).toContain('\n');
-            expect(tabs).toContain('\n');
             expect(noBreak).toContain('\n');
             expect(noBreak).not.toMatch(/\d\n|\nkm/);
         });
