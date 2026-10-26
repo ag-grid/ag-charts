@@ -171,16 +171,14 @@ test('a completed run exports the same timings and no progress, and the record e
         await openHarness(page, `[{ id: 'line', variants: [{ params: { series: '3' }, run: async () => 5 }] }]`);
         await page.waitForFunction('window.__benchmarkComplete === true', undefined, { timeout: 15_000 });
 
-        const exported = await page.evaluate<{ results: Array<{ timings?: number[]; sampleCount: number }> }>(
+        const exported = await page.evaluate<{ results: Array<{ timings: number[]; sampleCount: number }> }>(
             'window.__benchmarkResults'
         );
         assert.equal(exported.results.length, 1);
         assert.equal(exported.results[0].sampleCount, UPDATES_PER_TEST);
+        assert.deepEqual(exported.results[0].timings, Array(UPDATES_PER_TEST).fill(5));
         assert.equal('progress' in exported, false);
         assert.equal(JSON.stringify(exported).includes('lastIterationAt'), false);
-
-        const full = await page.evaluate<Array<{ timings: number[] }>>('window.__benchmarkRunner.results');
-        assert.deepEqual(full[0].timings, Array(UPDATES_PER_TEST).fill(5));
 
         const progress = await page.evaluate<Progress>('window.__benchmarkProgress');
         assert.equal(progress.iterationsCompleted, UPDATES_PER_TEST);
