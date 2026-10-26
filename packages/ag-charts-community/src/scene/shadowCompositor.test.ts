@@ -1678,7 +1678,7 @@ describe('Group shadow compositor', () => {
         class MaskCountingRect extends Rect {
             override isolatedRender(renderCtx: RenderContext) {
                 if (shadowPass.state === 'mask') masks++;
-                super.isolatedRender(renderCtx);
+                return super.isolatedRender(renderCtx);
             }
         }
 

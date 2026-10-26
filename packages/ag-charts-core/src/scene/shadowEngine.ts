@@ -10,28 +10,6 @@ import { Shape } from './shape/shape';
 import type { TranslatableType } from './transformable';
 import { compareZIndex } from './zIndex';
 
-/**
- * Shadow engine.
- *
- * A shadow that every shape casts for itself is one Gaussian blur per shape, which dominates the frame time of a large
- * series. The engine instead casts the shadows of a set of shapes that share their shadow options and clips, a key, with one
- * blur:
- *
- * 1. Every caster draws its silhouette, with its real paint, into a scratch canvas the size of the layer. With a `spread`
- *    its silhouette is drawn solid, and as strong as its fill, as it is for a shape that casts for itself.
- * 2. That mask is blurred once, as it is blitted beneath where the casters are about to draw. It is blitted from
- *    off-canvas, shifted back by the shadow offset, so that only its shadow lands on the layer.
- *
- * The caller then draws the casters without a shadow, with {@link renderShadowless}. All the shadows of a cast therefore sit
- * beneath all of its items, so a later item's shadow no longer lands on an earlier item.
- *
- * A cast is all or nothing. It checks that every key can be cast before it draws any of them, and returns false, having
- * drawn nothing, if one can't, so that the caller can have the shapes cast for themselves without any shadow drawn twice.
- *
- * Casting the same shadows from the same shapes again, as a redraw that changed none of them does, blits the shadows that
- * the first redraw kept instead of blurring them again. See {@link ShadowCache}.
- */
-
 /** How far a canvas shadow reaches past its source, in blurs: its Gaussian has a deviation of half the blur. */
 const SHADOW_BLUR_REACH = 1.5;
 
@@ -46,6 +24,9 @@ const MAX_MASK_AREA = 4096 * 4096;
 
 /** How many casts of one user keep their shadows between redraws. Further casts of it blur every time. */
 const MAX_CACHED_CASTS = 4;
+
+/** The most pixels that the kept shadows of a scene hold between them, so that they cost no more than a scratch canvas. */
+const MAX_CACHED_AREA = MAX_MASK_AREA;
 
 type Ctx = RenderContext['ctx'];
 
@@ -151,6 +132,8 @@ interface ShadowScratch {
 interface ScratchPool {
     readonly users: Set<object>;
     scratch: ShadowScratch | undefined;
+    /** The pixels of the canvases that the scene's caches hold. */
+    cachedArea: number;
 }
 
 /** The scratch canvases of scenes, so that the groups of one chart share one. Groups outside a scene share another. */
@@ -161,10 +144,23 @@ function getPool(scene: object | undefined): ScratchPool {
     const key = scene ?? DETACHED;
     let pool = pools.get(key);
     if (pool == null) {
-        pool = { users: new Set(), scratch: undefined };
+        pool = { users: new Set(), scratch: undefined, cachedArea: 0 };
         pools.set(key, pool);
     }
     return pool;
+}
+
+/** A canvas and its context, or undefined if the browser can't allocate them. */
+function createShadowCanvas(width: number, height: number): ShadowScratch | undefined {
+    const OffscreenCanvasCtor = getOffscreenCanvas();
+    const canvas = new OffscreenCanvasCtor(width, height);
+    const context = canvas.getContext('2d');
+    if (context == null) {
+        canvas.width = 0;
+        canvas.height = 0;
+        return;
+    }
+    return { canvas, context };
 }
 
 function freeScratch(pool: ScratchPool) {
@@ -178,11 +174,7 @@ function freeScratch(pool: ScratchPool) {
     pool.scratch = undefined;
 }
 
-/**
- * The scratch canvas that the casts of a scene's groups draw their masks into, one per scene. Render passes run one after
- * another, so they share it. It only grows, because layers differ in size, and each pass clears the part it uses. `user` is
- * the group, which keeps the canvas alive until it calls {@link releaseShadowScratch}.
- */
+/** The scene's one scratch canvas for masks, shared because render passes run one after another. It only grows. */
 function acquireShadowScratch(
     scene: object | undefined,
     user: object,
@@ -206,46 +198,43 @@ function acquireShadowScratch(
             canvasWidth = width;
             canvasHeight = height;
         }
-        const OffscreenCanvasCtor = getOffscreenCanvas();
-        const canvas = new OffscreenCanvasCtor(canvasWidth, canvasHeight);
-        // A browser that can't allocate the canvas gives no context.
-        const context = canvas.getContext('2d');
-        if (context == null) {
-            canvas.width = 0;
-            canvas.height = 0;
-            return;
-        }
-        scratch = { canvas, context };
+        scratch = createShadowCanvas(canvasWidth, canvasHeight);
         pool.scratch = scratch;
     }
     return scratch;
 }
 
-/**
- * The shadows that a cast kept the last time it cast them, to blit again if it casts the same ones. There is one for each
- * cast of a user, in the order that the user makes them.
- *
- * It keeps them only once a cast repeats, so that a layer that animates, and so changes every frame, pays nothing for it.
- */
+/** The shadows that a cast of a user kept, kept only once the cast repeats so that an animating layer pays nothing. */
 interface ShadowCache {
-    /** What the last cast cast its shadows from, which the next cast overwrites as it compares itself with it. */
+    /** Everything the cast read, overwritten in place by the next cast as it compares itself with it. */
     readonly signature: (number | string)[];
+    cursor: number;
+    changed: boolean;
     canvas: OffscreenCanvas | undefined;
     context: OffscreenCanvasRenderingContext2D | undefined;
+    pool: ScratchPool | undefined;
     /** Whether the canvas holds the shadows that the signature describes. */
     valid: boolean;
 }
 
 const caches = new WeakMap<object, ShadowCache[]>();
 
-function freeCache(cache: ShadowCache) {
+function freeCanvas(cache: ShadowCache) {
     cache.valid = false;
-    if (cache.canvas == null) return;
+    const { canvas, pool } = cache;
+    if (canvas == null) return;
 
-    cache.canvas.width = 0;
-    cache.canvas.height = 0;
+    if (pool != null) pool.cachedArea -= canvas.width * canvas.height;
+    canvas.width = 0;
+    canvas.height = 0;
     cache.canvas = undefined;
     cache.context = undefined;
+    cache.pool = undefined;
+}
+
+function freeCache(cache: ShadowCache) {
+    freeCanvas(cache);
+    cache.signature.length = 0;
 }
 
 function getCache(user: object, cast: number): ShadowCache | undefined {
@@ -258,87 +247,96 @@ function getCache(user: object, cast: number): ShadowCache | undefined {
     }
     let cache = userCaches[cast];
     if (cache == null) {
-        cache = { signature: [], canvas: undefined, context: undefined, valid: false };
+        cache = {
+            signature: [],
+            cursor: 0,
+            changed: false,
+            canvas: undefined,
+            context: undefined,
+            pool: undefined,
+            valid: false,
+        };
         userCaches[cast] = cache;
     }
     return cache;
 }
 
-/**
- * Overwrites the cache's signature with what a cast would cast, and returns whether that is what it held already. The
- * signature is the shadow options and clips, the casters and the changes marked on them, and where and how they draw: the
- * layer's size and pixel ratio, and the transform and opacity of the group. Nothing else changes what the shadows look like.
- */
+function putSignature(cache: ShadowCache, value: number | string) {
+    const { signature, cursor } = cache;
+    if (signature[cursor] !== value) {
+        signature[cursor] = value;
+        cache.changed = true;
+    }
+    cache.cursor = cursor + 1;
+}
+
+/** Overwrites the signature with what the cast reads, and returns whether it held that already. */
 function matchSignature(
     cache: ShadowCache,
     keys: readonly ShadowKey[],
     renderCtx: RenderContext,
+    transform: DOMMatrix,
     width: number,
     height: number
 ) {
-    const { ctx, devicePixelRatio } = renderCtx;
-    const { signature } = cache;
-    let length = 0;
-    let same = true;
-    const write = (value: number | string) => {
-        if (signature[length] !== value) {
-            signature[length] = value;
-            same = false;
-        }
-        length++;
-    };
-
-    const { a, b, c, d, e, f } = ctx.getTransform();
-    write(width);
-    write(height);
-    write(devicePixelRatio);
-    write(ctx.globalAlpha);
-    write(a);
-    write(b);
-    write(c);
-    write(d);
-    write(e);
-    write(f);
+    cache.cursor = 0;
+    cache.changed = false;
+    putSignature(cache, width);
+    putSignature(cache, height);
+    putSignature(cache, renderCtx.devicePixelRatio);
+    putSignature(cache, renderCtx.direction);
+    putSignature(cache, renderCtx.ctx.globalAlpha);
+    putSignature(cache, transform.a);
+    putSignature(cache, transform.b);
+    putSignature(cache, transform.c);
+    putSignature(cache, transform.d);
+    putSignature(cache, transform.e);
+    putSignature(cache, transform.f);
     for (const { shadow, clip, casters } of keys) {
-        write(shadow.color);
-        write(shadow.xOffset);
-        write(shadow.yOffset);
-        write(shadow.blur);
-        write(shadow.spread ?? 0);
-        write(clip?.length ?? -1);
-        for (const corner of clip ?? []) write(corner);
-        write(casters.length);
+        putSignature(cache, shadow.color);
+        putSignature(cache, shadow.xOffset);
+        putSignature(cache, shadow.yOffset);
+        putSignature(cache, shadow.blur);
+        putSignature(cache, shadow.spread ?? 0);
+        putSignature(cache, clip?.length ?? -1);
+        if (clip != null) {
+            for (const corner of clip) putSignature(cache, corner);
+        }
+        putSignature(cache, casters.length);
         for (const caster of casters) {
-            write(caster.serialNumber);
-            write(caster.revision);
+            putSignature(cache, caster.serialNumber);
+            putSignature(cache, caster.revision);
         }
     }
 
-    if (signature.length !== length) {
-        signature.length = length;
-        same = false;
+    if (cache.signature.length !== cache.cursor) {
+        cache.signature.length = cache.cursor;
+        cache.changed = true;
     }
-    return same;
+    return !cache.changed;
 }
 
-/** The cache's canvas, cleared and the size of the layer, or undefined if the browser can't allocate one. */
-function acquireCacheCanvas(cache: ShadowCache, width: number, height: number) {
-    if (cache.canvas == null) {
-        const OffscreenCanvasCtor = getOffscreenCanvas();
-        const canvas = new OffscreenCanvasCtor(width, height);
-        const context = canvas.getContext('2d');
-        if (context == null) {
-            canvas.width = 0;
-            canvas.height = 0;
-            return;
-        }
-        cache.canvas = canvas;
-        cache.context = context;
+/** The cache's canvas, the size of the layer, or undefined if the scene's kept shadows would hold too many pixels. */
+function acquireCacheCanvas(cache: ShadowCache, scene: object | undefined, width: number, height: number) {
+    if (cache.canvas?.width !== width || cache.canvas.height !== height) {
+        freeCanvas(cache);
+
+        const pool = getPool(scene);
+        const area = width * height;
+        if (area > MAX_CACHED_AREA || pool.cachedArea + area > MAX_CACHED_AREA) return;
+
+        const created = createShadowCanvas(width, height);
+        if (created == null) return;
+
+        cache.canvas = created.canvas;
+        cache.context = created.context;
+        cache.pool = pool;
+        pool.cachedArea += area;
     }
     return cache.canvas != null && cache.context != null ? { canvas: cache.canvas, context: cache.context } : undefined;
 }
 
-/** Frees the shadows that the casts of a user kept past its last cast of the frame, which were its `used` casts. */
+/** Frees the shadows kept by the casts of a user past the `used` that it made this frame. */
 export function endShadowCasts(user: object, used: number) {
     const userCaches = caches.get(user);
     if (userCaches == null) return;
@@ -346,7 +344,7 @@ export function endShadowCasts(user: object, used: number) {
     for (let i = used; i < userCaches.length; i++) freeCache(userCaches[i]);
 }
 
-/** Stops a group using the scene's scratch canvas, which is freed once no group does, and frees what its casts kept. */
+/** Stops a group using the scene's scratch canvas, freed once no group does, and frees what its casts kept. */
 export function releaseShadowScratch(scene: object | undefined, user: object) {
     endShadowCasts(user, 0);
 
@@ -371,7 +369,8 @@ function renderPass(
     state: 'mask' | 'suppress',
     opaque: boolean = false,
     resolution: { x: number; y: number } = { x: 1, y: 1 }
-) {
+): boolean {
+    let rendered = true;
     const previousState = shadowPass.state;
     const previousOpaque = shadowPass.opaque;
     const previousResolution = shadowPass.resolution;
@@ -380,13 +379,14 @@ function renderPass(
     shadowPass.resolution = resolution;
     try {
         for (const caster of casters) {
-            caster.isolatedRender(renderCtx);
+            rendered = caster.isolatedRender(renderCtx) && rendered;
         }
     } finally {
         shadowPass.state = previousState;
         shadowPass.opaque = previousOpaque;
         shadowPass.resolution = previousResolution;
     }
+    return rendered;
 }
 
 /** Draws the casters as usual, without the shadows that {@link castShadows} cast beneath them. */
@@ -511,16 +511,17 @@ function planKey(
 
 /**
  * Casts a planned key onto `target`: its casters draw their silhouettes into `scratch`, and that mask is blurred once as
- * it is blitted. `transform` is the transform of the group, which a clip of the key is in, if `target` doesn't have it.
+ * it is blitted. `transform` is the group's, which the clip of the key is in. Returns whether every caster drew.
  */
 function castPlan(
     plan: KeyPlan,
     scratch: ShadowScratch,
     target: Ctx,
-    transform: DOMMatrix | undefined,
+    transform: DOMMatrix,
     renderCtx: RenderContext
-) {
+): boolean {
     const { ctx } = renderCtx;
+    let rendered: boolean;
     const { key, blur, offsetX, offsetY, padLeft, padTop, maskWidth, maskHeight, canvasWidth, canvasHeight } = plan;
     const { scaleX, scaleY, colour, opaque } = plan;
     const { canvas, context } = scratch;
@@ -529,7 +530,7 @@ function castPlan(
     try {
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.clearRect(0, 0, canvasWidth, canvasHeight);
-        const { a, b, c, d, e, f } = ctx.getTransform();
+        const { a, b, c, d, e, f } = transform;
         context.setTransform(
             a * scaleX,
             b * scaleY,
@@ -541,8 +542,8 @@ function castPlan(
         context.globalAlpha = opaque ? 1 : ctx.globalAlpha;
         context.direction = ctx.direction;
 
-        // The casters draw their silhouettes again, so the mask pass must not count them, or debug them, twice.
-        renderPass(
+        // The casters draw again afterwards, so the mask pass must not count them, or debug them, twice.
+        rendered = renderPass(
             key.casters,
             {
                 ...renderCtx,
@@ -564,7 +565,7 @@ function castPlan(
     const distance = maskWidth;
     target.save();
     try {
-        if (transform != null) target.setTransform(transform);
+        target.setTransform(transform);
         // A path clips its shadow as well as its silhouette, so the shadow is clipped to what the path was drawn into.
         const { clip } = key;
         if (clip != null) {
@@ -584,6 +585,7 @@ function castPlan(
     } finally {
         target.restore();
     }
+    return rendered;
 }
 
 function blitCache(ctx: Ctx, canvas: OffscreenCanvas) {
@@ -599,11 +601,11 @@ function blitCache(ctx: Ctx, canvas: OffscreenCanvas) {
 
 export interface ShadowCast {
     readonly scene: object | undefined;
-    /** The group that casts, which keeps the scene's scratch canvas, and what its casts keep, until it releases them. */
+    /** The group that casts, which holds the scratch canvas and its kept shadows until it releases them. */
     readonly user: object;
     /** The keys whose shadows to cast, in the order of their first caster. */
     readonly keys: readonly ShadowKey[];
-    /** Which of the user's casts of this frame this is, counting from 0, to match it with what the last frame cast. */
+    /** Which of the user's casts of this frame this is, to match it with the same cast of the last frame. */
     readonly index: number;
 }
 
@@ -615,14 +617,15 @@ export function castShadows({ scene, user, keys, index }: ShadowCast, renderCtx:
     const { ctx } = renderCtx;
     const width = Math.ceil(ctx.canvas.width);
     const height = Math.ceil(ctx.canvas.height);
+    const transform = ctx.getTransform();
 
     const cache = getCache(user, index);
-    const repeated = cache != null && matchSignature(cache, keys, renderCtx, width, height);
+    const repeated = cache != null && matchSignature(cache, keys, renderCtx, transform, width, height);
     if (cache?.valid === true && repeated && cache.canvas != null) {
         blitCache(ctx, cache.canvas);
         return true;
     }
-    if (cache != null && !repeated) freeCache(cache);
+    if (cache != null) cache.valid = false;
 
     // Every key is planned before any is drawn, so that a cast that can't be made is not half made.
     const plans: KeyPlan[] = [];
@@ -643,15 +646,16 @@ export function castShadows({ scene, user, keys, index }: ShadowCast, renderCtx:
     const scratch = acquireShadowScratch(scene, user, scratchWidth, scratchHeight);
     if (scratch == null) return false;
 
-    const kept = cache != null && repeated ? acquireCacheCanvas(cache, width, height) : undefined;
+    const kept = cache != null && repeated ? acquireCacheCanvas(cache, scene, width, height) : undefined;
     if (cache != null && kept != null) {
         kept.context.clearRect(0, 0, width, height);
-        const transform = ctx.getTransform();
-        for (const plan of plans) castPlan(plan, scratch, kept.context, transform, renderCtx);
-        cache.valid = true;
+        let rendered = true;
+        for (const plan of plans) rendered = castPlan(plan, scratch, kept.context, transform, renderCtx) && rendered;
+        // A caster that failed to draw is drawn again by the next cast, rather than left out of the shadows for good.
+        cache.valid = rendered;
         blitCache(ctx, kept.canvas);
     } else {
-        for (const plan of plans) castPlan(plan, scratch, ctx, undefined, renderCtx);
+        for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx);
     }
     return true;
 }

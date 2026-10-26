@@ -12,16 +12,6 @@ import {
 } from './shadowEngine';
 
 /**
- * Layer shadow compositor.
- *
- * Draws the children of a group as the shadow engine needs them: each run of consecutive children that share their shadow
- * options is cast as one key, beneath all of the run's items, and then drawn without a shadow. Runs end at a node that
- * casts no batched shadow, at a `cutout` node, and at a change of shadow options, of the clip of a path and, in a group
- * that batches by layer, of `zIndex`. A series gives its items a `zIndex` where one layer paints over another, like the
- * depths of a treemap, so the shadow of an upper layer still lands on the lower one.
- */
-
-/**
  * Renders the children of a group, casting the shadows of each run of children that share a shadow with one blur.
  */
 export function renderChildrenWithShadowBatches(
