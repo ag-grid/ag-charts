@@ -63,3 +63,37 @@ export function renderChildrenWithShadowBatches(
     flush();
     endShadowCasts(user, casts);
 }
+
+/** Renders the children of a group whose casters cast through a shadow root, each without a shadow of its own. */
+export function renderChildrenWithSuppressedShadows(
+    children: Iterable<Node>,
+    renderCtx: RenderContext,
+    casts: (node: Node) => boolean
+): void {
+    const { stats } = renderCtx;
+    let run: Node[] = [];
+
+    const flush = () => {
+        if (run.length === 0) return;
+        renderShadowless(run, renderCtx);
+        run = [];
+    };
+
+    for (const child of children) {
+        if (!child.visible) {
+            if (stats) {
+                stats.nodesSkipped += child.childNodeCounts.nonGroups + child.childNodeCounts.groups;
+                stats.opsSkipped += child.childNodeCounts.complexity;
+            }
+            continue;
+        }
+
+        if (casts(child)) {
+            run.push(child);
+            continue;
+        }
+        flush();
+        child.isolatedRender(renderCtx);
+    }
+    flush();
+}

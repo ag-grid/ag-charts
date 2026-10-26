@@ -8,8 +8,10 @@ import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { ChildNodeCounts, IScene, RenderContext } from './node';
 import { Node, PointerEvents } from './node';
-import { renderChildrenWithShadowBatches } from './shadowCompositor';
+import { type CollectedFrame, ShadowCollector } from './shadowCollector';
+import { renderChildrenWithShadowBatches, renderChildrenWithSuppressedShadows } from './shadowCompositor';
 import { getBatchedShadow, releaseShadowScratch } from './shadowEngine';
+import { castRootShadows, releaseShadowRoot } from './shadowRoot';
 import { type CanvasContext, Shape } from './shape/shape';
 import {
     Rotatable,
@@ -39,6 +41,8 @@ const PARTIAL_REPAINT_MAX_AREA_SHARE = 0.5;
 const TRANSFORM_EPSILON = 1e-9;
 
 type Dirtiness = 'clean' | 'partial' | 'full';
+
+const NO_GROUPS: readonly Group[] = [];
 
 export class Group<TDatum = unknown> extends Node<TDatum> {
     static override readonly className: string = 'Group';
@@ -82,12 +86,30 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      * `'by-layer'` also ends a batch at a change of the children's `zIndex`, so that the shadow of a child on an upper
      * layer still lands on the lower one, as the depths of a treemap do. A group whose children's `zIndex` only orders
      * them, as the markers of an aggregated scatter do, uses `true`, so that they stay one batch.
+     *
+     * `'shared'` casts the shadows through the nearest {@link shadowRoot} above the group, beneath the items of every group
+     * that does, and batches them itself only if the root can't cast.
      */
     @SceneChangeDetection()
-    batchShadows: boolean | 'by-layer' = false;
+    batchShadows: boolean | 'by-layer' | 'shared' = false;
+
+    /** Whether the group casts the shadows of the groups below it that share them, before any of them draws. */
+    readonly shadowRoot: boolean;
+
+    /** On a shadow root, the groups whose shadows its last cast drew, which draw without them. */
+    private sharedShadowCover: ReadonlySet<object> | undefined = undefined;
 
     /** The children that cast a batched shadow, counted by {@link preRender}, or -1 until then. */
     private shadowCasterCount = -1;
+
+    /** The children that are groups, or undefined until they are listed, which is until the group is next marked dirty. */
+    private childGroups: readonly Group[] | undefined = undefined;
+
+    /** The children that cast through a shadow root in this group and the visible groups below it, or -1 until counted. */
+    private sharedCasterCount = -1;
+
+    /** Counts the times that the group, or anything below it, was marked dirty, so that a cache can tell it is unchanged. */
+    private shadowVersion = 0;
 
     override serialize(): SerializedNodeState {
         return { type: 'group', props: this.serializeProps() };
@@ -117,13 +139,15 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         readonly zIndex?: ZIndex;
         readonly renderToOffscreenCanvas?: boolean;
         readonly optimizeForInfrequentRedraws?: boolean;
-        readonly batchShadows?: boolean | 'by-layer';
+        readonly batchShadows?: boolean | 'by-layer' | 'shared';
+        readonly shadowRoot?: boolean;
     }) {
         super(opts);
         this.isContainerNode = true;
         this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
         this.optimizeForInfrequentRedraws = opts?.optimizeForInfrequentRedraws === true;
         this.batchShadows = opts?.batchShadows ?? false;
+        this.shadowRoot = opts?.shadowRoot === true;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.
@@ -179,6 +203,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
         if (previousScene !== scene) {
             releaseShadowScratch(previousScene, this);
+            if (this.shadowRoot) this.sharedShadowCover = undefined;
         }
 
         if (this.layer && previousScene && previousScene !== scene) {
@@ -219,6 +244,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         this.fullDirty = true;
         this._childFontDirty = true;
         this.shadowCasterCount = -1;
+        this.childGroups = undefined;
+        this.sharedCasterCount = -1;
+        this.shadowVersion++;
         super.markDirty(property);
     }
 
@@ -441,7 +469,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 if (countCasters && child.visible && getBatchedShadow(child) != null) casters++;
             }
             this.shadowCasterCount = casters;
-            if (casters === 0) {
+            if (casters === 0 && !this.shadowRoot) {
                 // Nothing to batch, so the group gives up the scene's scratch canvas and the shadows its casts kept.
                 releaseShadowScratch(this.scene, this);
             }
@@ -454,7 +482,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         }
 
         // A group that isn't drawn holds no shadows, as a hidden series would otherwise keep them until it is shown.
-        if (this.batchShadows !== false && !this.getVisibility()) releaseShadowScratch(this.scene, this);
+        if ((this.batchShadows !== false || this.shadowRoot) && !this.getVisibility()) {
+            releaseShadowRoot(this.scene, this);
+        }
 
         if (
             this.useOffscreenCanvas &&
@@ -636,15 +666,123 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 childRenderCtx.clipBBox = Transformable.toCanvas(this, this.clipRect);
             }
 
+            if (this.shadowRoot) this.coverSharedShadows(this.castSharedShadows(childRenderCtx));
+
             this.renderChildren(childRenderCtx);
         } finally {
             ctx.restore();
         }
     }
 
+    /** Fails open: if the root can't cast, nothing of it is drawn and every group casts its own shadows. */
+    private castSharedShadows(renderCtx: RenderContext): ReadonlySet<object> | undefined {
+        const { ctx } = renderCtx;
+        try {
+            let frames: readonly CollectedFrame[] = [];
+            // With nothing that casts through the root, there is nothing to gather, whatever the number of groups.
+            if (this.getSharedCasterCount() > 0) {
+                const collector = new ShadowCollector(ctx, ctx.globalAlpha);
+                this.gatherShadowChildren(collector);
+                frames = collector.frames;
+            }
+            return castRootShadows(frames, this.scene, this, renderCtx);
+        } catch (e) {
+            renderCtx.logger.warnOnce('Error during the shadow root pass', e);
+            return;
+        }
+    }
+
+    /** Records the cover of the root's cast, and repaints the groups, and the layers of them, that it changed for. */
+    private coverSharedShadows(cover: ReadonlySet<object> | undefined) {
+        const previous = this.sharedShadowCover;
+        this.sharedShadowCover = cover;
+        if (cover === previous) return;
+
+        for (const group of cover ?? []) {
+            if (previous?.has(group) !== true) (group as Group).invalidateUpTo(this);
+        }
+        for (const group of previous ?? []) {
+            if (cover?.has(group) !== true) (group as Group).invalidateUpTo(this);
+        }
+    }
+
+    private invalidateUpTo(root: Group) {
+        for (let node: Node | undefined = this; node != null && node !== root; node = node.parentNode) {
+            if (node instanceof Group) {
+                node.dirty = true;
+                node.fullDirty = true;
+            }
+        }
+    }
+
+    /** Whether the group casts its shadows through the nearest shadow root, rather than through batches of its own. */
+    private sharesShadows(): boolean {
+        return this.batchShadows === 'shared';
+    }
+
+    /** Pushes the clips that the group draws its children into, in device pixels. A group that clips them overrides it. */
+    protected gatherShadowClips(_collector: ShadowCollector): void {
+        // Nothing to push by default.
+    }
+
+    /** Records the groups at or below this one that cast through the root, without rendering. */
+    override gatherShadows(collector: ShadowCollector): void {
+        const { alpha } = collector;
+        const clipCount = collector.clips.length;
+        // A layer applies the opacity of its group to what it draws, and again as it is composited.
+        const layered = this.layer != null && this.useOffscreenCanvas;
+        collector.alpha = alpha * this.opacity * (layered ? this.opacity : 1);
+        try {
+            if (this.clipRect != null) {
+                const { x, y, width, height } = this.clipRect;
+                collector.pushRect(x, y, width, height);
+            }
+            this.gatherShadowClips(collector);
+            this.gatherShadowChildren(collector);
+        } finally {
+            collector.alpha = alpha;
+            collector.clips.length = clipCount;
+        }
+    }
+
+    gatherShadowChildren(collector: ShadowCollector): void {
+        if (this.dirtyZIndex) {
+            this.sortChildren(Group.compareChildren);
+            this.dirtyZIndex = false;
+        }
+
+        // A group with no caster has no frame, and one with none below it is not visited, so the root costs the groups that
+        // cast through it, and not the groups or the items that do not.
+        if (this.sharesShadows() && this.countShadowCasters() > 0) collector.addFrame(this, this.shadowVersion);
+
+        for (const child of this.getChildGroups()) {
+            if (child.visible && child.getSharedCasterCount() > 0) child.gatherShadows(collector);
+        }
+    }
+
+    private isCoveredBySharedShadows(): boolean {
+        if (!this.sharesShadows()) return false;
+
+        for (const node of this.traverseUp()) {
+            if (node instanceof Group && node.shadowRoot) return node.sharedShadowCover?.has(this) === true;
+        }
+        return false;
+    }
+
     /** Renders the children in order, with each run that shares a shadow batched if {@link batchShadows} is on. */
     protected renderChildren(childRenderCtx: RenderContext) {
         const { stats } = childRenderCtx;
+
+        if (this.isCoveredBySharedShadows()) {
+            // The root casts for the group, so what its own casts kept would only hold canvases that nothing blits.
+            releaseShadowScratch(this.scene, this);
+            renderChildrenWithSuppressedShadows(
+                this.children(),
+                childRenderCtx,
+                (node) => getBatchedShadow(node) != null
+            );
+            return;
+        }
 
         if (this.hasBatchedShadows()) {
             renderChildrenWithShadowBatches(
@@ -689,9 +827,34 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         return this.shadowCasterCount;
     }
 
+    /** The children that are groups, in the order that they are drawn, which is cached until the group is next marked dirty. */
+    private getChildGroups(): readonly Group[] {
+        if (this.childGroups == null) {
+            const groups: Group[] = [];
+            for (const child of this.children()) {
+                if (child instanceof Group) groups.push(child);
+            }
+            this.childGroups = groups.length > 0 ? groups : NO_GROUPS;
+        }
+        return this.childGroups;
+    }
+
+    /** The children that cast through a shadow root, in this group and the visible groups below it. Cached like the others. */
+    protected getSharedCasterCount(): number {
+        if (this.sharedCasterCount < 0) {
+            let count = this.sharesShadows() ? this.countShadowCasters() : 0;
+            for (const child of this.getChildGroups()) {
+                if (child.visible) count += child.getSharedCasterCount();
+            }
+            this.sharedCasterCount = count;
+        }
+        return this.sharedCasterCount;
+    }
+
     private sortChildren(compareFn?: (a: Node, b: Node) => number) {
         // Sort children, and re-add in new order (Set preserves insertion order).
         const sortedChildren = [...this.childNodes].sort(compareFn);
+        this.childGroups = undefined;
         this.childNodes.clear();
         for (const child of sortedChildren) {
             this.childNodes.add(child);

@@ -2,7 +2,9 @@ import { isFiniteNumber } from '../data/typeGuards';
 import { Color } from '../format/color';
 import type { NormalisedDropShadowOptions } from '../options/normalised/normalisedCommonOptions';
 import { type SpreadCanvas, allocateCanvas, disposeCanvas, releaseSpreadCanvas } from './canvas/spreadCanvas';
+import type { MatrixFrame } from './matrix';
 import type { Node, RenderContext } from './node';
+import type { ShadowClip, ShadowFrame, ShadowRegion } from './shadowCollector';
 import { shadowPass } from './shadowPass';
 import { Path } from './shape/path';
 import { Shape, type SilhouetteBounds } from './shape/shape';
@@ -40,19 +42,31 @@ const FULL_RESOLUTION = Object.freeze({ x: 1, y: 1 });
 
 type Ctx = RenderContext['ctx'];
 
+export type { ShadowClip, ShadowFrame, ShadowRegion } from './shadowCollector';
+
 export type ShadowCaster = Shape & { __fillShadow: NormalisedDropShadowOptions };
 
-/** How far a cast reaches: `run` ends it where adjacent casters stop sharing shadow and clip, `layer` also at a `zIndex`. */
-export type ShadowScope = 'run' | 'layer';
-
-/** The corners, in the coordinates of the group, of the rectangle that a path clips its drawing and its shadow to. */
-export type ShadowClip = readonly number[];
+/**
+ * How far a cast reaches. Casters are cast together where they are adjacent and share their shadow options and clip.
+ *
+ * - `run`: a cast ends only where the next node doesn't cast, or casts another shadow or to another clip.
+ * - `layer`: a cast also ends at a change of `zIndex`, so that the shadow of an upper layer still lands on the lower one,
+ *   as the depths of a treemap do.
+ * - `root`: a cast gathers the casters of every group below a shadow root, whatever lies between them, so that the shadows of
+ *   all of them sit beneath all of their items. Each caster then has a {@link ShadowFrame} of its own.
+ */
+export type ShadowScope = 'run' | 'layer' | 'root';
 
 /** The casters that share their shadow options and clip, and so one mask and one blur. */
 export interface ShadowKey {
     readonly shadow: NormalisedDropShadowOptions;
+    /** The clip of a local key, in the coordinates of the group. A `root` key has {@link clips} instead. */
     readonly clip: ShadowClip | undefined;
     readonly casters: ShadowCaster[];
+    /** The frame of each caster, in the order of {@link casters}, for a `root` key: the casters of one group share one. */
+    readonly frames?: ShadowFrame[];
+    /** All that clips every caster of a `root` key, in device pixels: the clips of its frames, and of a path. */
+    readonly clips?: readonly ShadowRegion[];
 }
 
 /** The shadow options that a node casts through the engine, or undefined if it casts none. */
@@ -88,7 +102,16 @@ export function getShadowClip(node: Node): ShadowClip | undefined {
 function sameClip(a: ShadowClip | undefined, b: ShadowClip | undefined) {
     if (a === b) return true;
     if (a == null || b == null) return false;
-    return a.every((value, i) => value === b[i]);
+    return a.length === b.length && a.every((value, i) => value === b[i]);
+}
+
+function sameRegions(a: readonly ShadowRegion[] | undefined, b: readonly ShadowRegion[] | undefined) {
+    if (a === b) return true;
+    if (a == null || a.length !== b?.length) return false;
+    return a.every(
+        (region, i) =>
+            region === b[i] || (region.length === b[i].length && region.every((c, j) => sameClip(c, b[i][j])))
+    );
 }
 
 function sameLayer(a: Node, b: Node) {
@@ -108,19 +131,21 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
     );
 }
 
-/** Whether `next`, which casts `shadow` to `clip`, is cast with the casters of `key` rather than starting another key. */
+/**
+ * Whether `next`, which casts `shadow` to `clip`, is cast with the casters of `key` rather than starting another key. A
+ * `root` key is clipped by `clips` in device pixels, instead of `clip`, and is joined by any caster that is, whatever its place.
+ */
 export function joinsShadowKey(
     key: ShadowKey,
     next: Node,
     shadow: NormalisedDropShadowOptions,
     clip: ShadowClip | undefined,
-    scope: ShadowScope
+    scope: ShadowScope,
+    clips?: readonly ShadowRegion[]
 ) {
-    return (
-        sameShadow(key.shadow, shadow) &&
-        sameClip(key.clip, clip) &&
-        (scope !== 'layer' || sameLayer(key.casters[0], next))
-    );
+    if (!sameShadow(key.shadow, shadow)) return false;
+    if (scope === 'root') return sameRegions(key.clips, clips);
+    return sameClip(key.clip, clip) && (scope !== 'layer' || sameLayer(key.casters[0], next));
 }
 
 /** The resolution that keeps a mask canvas within {@link MAX_MASK_AREA}. A shadow is blurred anyway, so it loses little. */
@@ -260,14 +285,18 @@ function putSignature(cache: ShadowCache, value: number | string) {
     cache.cursor = cursor + 1;
 }
 
-/** Overwrites the signature with what the cast reads, and returns whether it held that already. */
+/**
+ * Overwrites the signature with what the cast reads, and returns whether it held that already. With `unchanged`, the keys
+ * are those that the signature was last made from, so only what of the layer it holds is read, and not every caster.
+ */
 function matchSignature(
     cache: ShadowCache,
     keys: readonly ShadowKey[],
     renderCtx: RenderContext,
     transform: DOMMatrix,
     width: number,
-    height: number
+    height: number,
+    unchanged: boolean
 ) {
     cache.cursor = 0;
     cache.changed = false;
@@ -282,7 +311,9 @@ function matchSignature(
     putSignature(cache, transform.d);
     putSignature(cache, transform.e);
     putSignature(cache, transform.f);
-    for (const { shadow, clip, casters } of keys) {
+    if (unchanged && cache.signature.length > cache.cursor) return !cache.changed;
+
+    for (const { shadow, clip, clips, casters, frames } of keys) {
         putSignature(cache, shadow.color);
         putSignature(cache, shadow.xOffset);
         putSignature(cache, shadow.yOffset);
@@ -292,10 +323,29 @@ function matchSignature(
         if (clip != null) {
             for (const corner of clip) putSignature(cache, corner);
         }
+        if (clips != null) {
+            putSignature(cache, clips.length);
+            for (const region of clips) {
+                putSignature(cache, region.length);
+                for (const contour of region) {
+                    putSignature(cache, contour.length);
+                    for (const corner of contour) putSignature(cache, corner);
+                }
+            }
+        }
         putSignature(cache, casters.length);
-        for (const caster of casters) {
+        let frame: ShadowFrame | undefined;
+        for (let i = 0; i < casters.length; i++) {
+            const caster = casters[i];
             putSignature(cache, caster.serialNumber);
             putSignature(cache, caster.revision);
+            // The casters of a frame follow one another, so it is read when it changes.
+            const next = frames?.[i];
+            if (next != null && next !== frame) {
+                frame = next;
+                putSignature(cache, next.alpha);
+                for (const element of next.matrix) putSignature(cache, element);
+            }
         }
     }
 
@@ -326,18 +376,30 @@ function getShadowExtent(
     width: number,
     height: number
 ): Extent {
+    const layer = { x: 0, y: 0, width, height };
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
 
-    for (const { shadow, casters } of keys) {
+    for (const { shadow, casters, frames } of keys) {
         const spread = shadow.spread ?? 0;
         const offsetX = shadow.xOffset * devicePixelRatio;
         const offsetY = shadow.yOffset * devicePixelRatio;
         const blurReach = getBlurReach(shadow.blur * devicePixelRatio) + CACHED_EXTENT_MARGIN;
-        for (const caster of casters) {
-            if (!caster.getShadowSilhouetteBounds(transform, spread, silhouette)) return { x: 0, y: 0, width, height };
+        // A `root` key has a matrix for each caster's group, and a local key has the one transform. The casters of a frame
+        // follow one another.
+        let frame: ShadowFrame | undefined;
+        let frameTransform: MatrixFrame = transform;
+        for (let i = 0; i < casters.length; i++) {
+            const caster = casters[i];
+            const next = frames?.[i];
+            if (next != null && next !== frame) {
+                frame = next;
+                const [a, b, c, d, e, f] = next.matrix;
+                frameTransform = { a, b, c, d, e, f };
+            }
+            if (!caster.getShadowSilhouetteBounds(frameTransform, spread, silhouette)) return layer;
 
             minX = Math.min(minX, silhouette.minX + offsetX - blurReach);
             maxX = Math.max(maxX, silhouette.maxX + offsetX + blurReach);
@@ -426,7 +488,8 @@ function renderPass(
     renderCtx: RenderContext,
     state: 'mask' | 'suppress',
     opaque: boolean = false,
-    resolution: { x: number; y: number } = FULL_RESOLUTION
+    resolution: { x: number; y: number } = FULL_RESOLUTION,
+    before?: (index: number) => void
 ): boolean {
     let rendered = true;
     const previousState = shadowPass.state;
@@ -436,8 +499,9 @@ function renderPass(
     shadowPass.opaque = opaque;
     shadowPass.resolution = resolution;
     try {
-        for (const caster of casters) {
-            rendered = caster.isolatedRender(renderCtx) && rendered;
+        for (let i = 0; i < casters.length; i++) {
+            before?.(i);
+            rendered = casters[i].isolatedRender(renderCtx) && rendered;
         }
     } finally {
         shadowPass.state = previousState;
@@ -452,12 +516,17 @@ export function renderShadowless(casters: readonly Node[], renderCtx: RenderCont
     renderPass(casters, renderCtx, 'suppress');
 }
 
-/** The strength all casters of a `spread` key cast at (0 if none), or undefined if they differ or one draws another way. */
-function getUniformSpreadStrength(casters: readonly ShadowCaster[]): number | undefined {
+/**
+ * The strength that every caster of a `spread` key casts at, 0 if none of them casts, or undefined if they differ or one
+ * draws its silhouette another way. The key then draws the silhouettes solid and casts its one shadow at that strength,
+ * which avoids a pass over the layer per translucent shape.
+ */
+function getUniformSpreadStrength({ casters, frames }: ShadowKey): number | undefined {
     let uniform = 0;
-    for (const caster of casters) {
-        const strength = caster.getSpreadMaskStrength();
-        if (strength == null) return;
+    for (let i = 0; i < casters.length; i++) {
+        const base = casters[i].getSpreadMaskStrength();
+        if (base == null) return;
+        const strength = base * (frames?.[i].alpha ?? 1);
         if (strength <= 0) continue;
         if (uniform === 0) {
             uniform = strength;
@@ -504,11 +573,11 @@ function planKey(
     height: number
 ): KeyPlan | 'empty' | 'unusable' {
     const { ctx, devicePixelRatio } = renderCtx;
-    const { shadow, casters } = key;
+    const { shadow } = key;
 
     // A key whose casters all cast nothing, such as one fading in from zero opacity, has no mask or blur to draw.
     const spread = shadow.spread ?? 0;
-    const strength = spread > 0 ? getUniformSpreadStrength(casters) : undefined;
+    const strength = spread > 0 ? getUniformSpreadStrength(key) : undefined;
     if (strength === 0) return 'empty';
 
     const blur = shadow.blur * devicePixelRatio;
@@ -534,11 +603,13 @@ function planKey(
     const canvasWidth = Math.max(1, Math.floor(maskWidth * resolution));
     const canvasHeight = Math.max(1, Math.floor(maskHeight * resolution));
 
-    // A key of casters at one translucent strength draws them solid, and casts the shadow at that strength.
+    // A key of casters at one translucent strength draws them solid, and casts the shadow at that strength. The frames of a
+    // `root` key hold the alpha of the layer already.
+    const layerAlpha = key.frames == null ? ctx.globalAlpha : 1;
     let colour = shadow.color;
     let opaque = false;
-    if (strength != null && strength * ctx.globalAlpha < 1) {
-        const scaled = scaleColourAlpha(shadow.color, strength * ctx.globalAlpha);
+    if (strength != null && strength * layerAlpha < 1) {
+        const scaled = scaleColourAlpha(shadow.color, strength * layerAlpha);
         if (scaled != null) {
             colour = scaled;
             opaque = true;
@@ -563,7 +634,29 @@ function planKey(
     };
 }
 
-/** Casts a planned key onto `target`, whose top left is `origin` on the layer. Returns whether every caster drew. */
+/** Clips `target` to what is inside every region, which are in device pixels. */
+function clipToRegions(target: RenderContext['ctx'], regions: readonly ShadowRegion[]) {
+    for (const region of regions) {
+        target.beginPath();
+        for (const contour of region) {
+            for (let i = 0; i < contour.length; i += 2) {
+                if (i === 0) {
+                    target.moveTo(contour[i], contour[i + 1]);
+                } else {
+                    target.lineTo(contour[i], contour[i + 1]);
+                }
+            }
+            target.closePath();
+        }
+        target.clip('evenodd');
+    }
+}
+
+/**
+ * Casts a planned key onto `target`, whose top left is `origin` on the layer: its casters draw their silhouettes into
+ * `scratch`, and that mask is blurred once as it is blitted. `transform` is the group's, which the clip of the key is in,
+ * unless the key has a frame for each caster. Returns whether every caster drew.
+ */
 function castPlan(
     plan: KeyPlan,
     scratch: SpreadCanvas,
@@ -583,16 +676,33 @@ function castPlan(
     try {
         context.setTransform(1, 0, 0, 1, 0, 0);
         context.clearRect(0, 0, canvasWidth, canvasHeight);
-        const { a, b, c, d, e, f } = transform;
-        context.setTransform(
-            a * scaleX,
-            b * scaleY,
-            c * scaleX,
-            d * scaleY,
-            (e + padLeft) * scaleX,
-            (f + padTop) * scaleY
-        );
-        context.globalAlpha = opaque ? 1 : ctx.globalAlpha;
+        const place = ([a, b, c, d, e, f]: readonly number[]) =>
+            context.setTransform(
+                a * scaleX,
+                b * scaleY,
+                c * scaleX,
+                d * scaleY,
+                (e + padLeft) * scaleX,
+                (f + padTop) * scaleY
+            );
+        const { frames } = key;
+        let placed: ShadowFrame | undefined;
+        const before =
+            frames == null
+                ? undefined
+                : (i: number) => {
+                      const frame = frames[i];
+                      if (frame === placed) return;
+                      placed = frame;
+                      place(frame.matrix);
+                      // A group that is fully transparent casts nothing, whatever the key draws solid.
+                      context.globalAlpha = opaque && frame.alpha > 0 ? 1 : frame.alpha;
+                  };
+        if (frames == null) {
+            const { a, b, c, d, e, f } = transform;
+            place([a, b, c, d, e, f]);
+            context.globalAlpha = opaque ? 1 : ctx.globalAlpha;
+        }
         context.direction = ctx.direction;
 
         // The casters draw again afterwards, so the mask pass must not count them, or debug them, twice.
@@ -608,7 +718,8 @@ function castPlan(
             },
             'mask',
             opaque,
-            { x: scaleX, y: scaleY }
+            { x: scaleX, y: scaleY },
+            before
         );
     } finally {
         context.restore();
@@ -618,17 +729,20 @@ function castPlan(
     const distance = maskWidth;
     target.save();
     try {
-        target.setTransform(
-            transform.a,
-            transform.b,
-            transform.c,
-            transform.d,
-            transform.e - originX,
-            transform.f - originY
-        );
         // A path clips its shadow as well as its silhouette, so the shadow is clipped to what the path was drawn into.
-        const { clip } = key;
-        if (clip != null) {
+        const { clip, clips } = key;
+        if (clips != null) {
+            target.setTransform(1, 0, 0, 1, -originX, -originY);
+            clipToRegions(target, clips);
+        } else if (clip != null) {
+            target.setTransform(
+                transform.a,
+                transform.b,
+                transform.c,
+                transform.d,
+                transform.e - originX,
+                transform.f - originY
+            );
             target.beginPath();
             target.moveTo(clip[0], clip[1]);
             for (let i = 2; i < clip.length; i += 2) target.lineTo(clip[i], clip[i + 1]);
@@ -670,10 +784,18 @@ export interface ShadowCast {
     readonly keys: readonly ShadowKey[];
     /** Which of the user's casts of this frame this is, to match it with the same cast of the last frame. */
     readonly index: number;
+    /**
+     * Whether the keys are those of this user's last cast of this index, as they were then: no caster, shadow or clip of
+     * them has changed. The cast then skips reading every caster to tell whether it can blit what it kept.
+     */
+    readonly unchanged?: boolean;
 }
 
-/** Casts the shadows of the keys now. Returns false, having drawn nothing, if they can't be cast, so casters cast their own. */
-export function castShadows({ scene, user, keys, index }: ShadowCast, renderCtx: RenderContext): boolean {
+/**
+ * Casts the shadows of the keys onto `renderCtx.ctx`, now. Returns false, having drawn nothing, if the layer or a shadow is
+ * unusable, or the browser can't allocate the scratch canvas, in which case the casters cast for themselves.
+ */
+export function castShadows({ scene, user, keys, index, unchanged }: ShadowCast, renderCtx: RenderContext): boolean {
     const { ctx } = renderCtx;
     const width = Math.ceil(ctx.canvas.width);
     const height = Math.ceil(ctx.canvas.height);
@@ -684,7 +806,8 @@ export function castShadows({ scene, user, keys, index }: ShadowCast, renderCtx:
         freeCache(cache);
         cache = undefined;
     }
-    const repeated = cache != null && matchSignature(cache, keys, renderCtx, transform, width, height);
+    const repeated =
+        cache != null && matchSignature(cache, keys, renderCtx, transform, width, height, unchanged === true);
     if (cache?.valid === true && repeated && cache.kept != null) {
         blitCache(ctx, cache);
         return true;

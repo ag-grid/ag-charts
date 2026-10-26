@@ -263,6 +263,8 @@ export abstract class BaseFunnelSeries<
         });
 
         this.connectorNodeGroup.pointerEvents = PointerEvents.None;
+        // The connectors batch their own shadows, beneath the stages of this series alone, so the stages do the same.
+        this.dataNodeGroup.batchShadows = true;
     }
 
     override setZIndex(zIndex: number): boolean {
