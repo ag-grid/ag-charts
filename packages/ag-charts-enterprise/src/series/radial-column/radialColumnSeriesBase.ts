@@ -236,7 +236,7 @@ export abstract class RadialColumnSeriesBase<
     maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
-        // Labels anchor on the circle, so a new circle invalidates their placement as well.
+        // Bumps nodeDataVersion: labels anchor on the circle, so a new circle must re-solve them.
         this.nodeDataRefresh = true;
         this.contextNodeData = this.createNodeData();
         this.nodeData = this.contextNodeData?.nodeData ?? [];

@@ -52,6 +52,15 @@ function placesLabels(source: LabelSource): source is PlacedLabelSource {
     return source.usesPlacedLabels;
 }
 
+function seriesLabels(source: PlacedLabelSource, datums: PointLabelDatum[]): SeriesLabels {
+    return {
+        datums,
+        defaults: source.getLabelDefaults?.(),
+        resolveCandidateStyle: source.getLabelCandidateStyler?.(),
+        resolveCandidate: source.getLabelCandidateResolver?.(),
+    };
+}
+
 /**
  * Identity of the placement inputs: each source's node-data version (label data and obstacles both
  * derive from node data) and the layout bounds. Unchanged between two updates means placement would
@@ -147,12 +156,7 @@ export class LabelManager {
     measureLabels(source: PlacedLabelSource, seriesRect: BBox): PlacedLabel[] {
         const labelData = source.getLabelData(seriesRect);
         if (labelData.length === 0 || !labelData.every(isPointLabelDatum)) return [];
-        const labels: SeriesLabels = {
-            datums: labelData,
-            defaults: source.getLabelDefaults?.(),
-            resolveCandidateStyle: source.getLabelCandidateStyler?.(),
-            resolveCandidate: source.getLabelCandidateResolver?.(),
-        };
+        const labels = seriesLabels(source, labelData);
         const bounds = { x: 0, y: 0, width: seriesRect.width, height: seriesRect.height };
         const obstacles = () => source.getLabelObstacles?.(seriesRect) ?? [];
         return placeLabels(new Map([[source.id, labels]]), bounds, 5, obstacles).get(source.id) ?? [];
@@ -171,12 +175,7 @@ export class LabelManager {
         for (const source of placedLabelSources) {
             const labelData = source.getLabelData(seriesRect);
             if (labelData.every(isPointLabelDatum)) {
-                this.labelData.set(source.id, {
-                    datums: labelData,
-                    defaults: source.getLabelDefaults?.(),
-                    resolveCandidateStyle: source.getLabelCandidateStyler?.(),
-                    resolveCandidate: source.getLabelCandidateResolver?.(),
-                });
+                this.labelData.set(source.id, seriesLabels(source, labelData));
             } else {
                 const carried = previous.get(source.id);
                 if (carried != null) {
