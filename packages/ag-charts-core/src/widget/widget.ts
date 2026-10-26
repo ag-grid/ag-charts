@@ -4,7 +4,7 @@ import { getElementBBox, setElementBBox } from '../dom/domUtil';
 import { isNode } from '../dom/globalsProxy';
 import type { BoxBounds } from '../geometry/boxBounds';
 import type { ElementID } from '../identity/idBranding';
-import type { WidgetEvent, WidgetEventMap, WidgetEventMap_Internal } from './widgetEvents';
+import type { CanvasOrigin, WidgetEvent, WidgetEventMap, WidgetEventMap_Internal } from './widgetEvents';
 import { WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
 import { WidgetListenerInternal } from './widgetListenerInternal';
@@ -60,6 +60,7 @@ export abstract class Widget<
     protected readonly children: TChildWidget[] = [];
     protected htmlListener?: WidgetListenerHTML;
     protected internalListener?: WidgetListenerInternal;
+    private canvasOrigin?: CanvasOrigin;
     public destroyListener?: () => void; // Temporary fix for RTI-2977
 
     protected abstract destructor(): void;
@@ -74,6 +75,19 @@ export abstract class Widget<
 
     getElement(): TElement {
         return this.elem;
+    }
+
+    setCanvasOrigin(origin: CanvasOrigin | undefined): void {
+        this.canvasOrigin = origin;
+    }
+
+    getCanvasOrigin(): CanvasOrigin | undefined {
+        let widget: Widget | undefined = this;
+        while (widget != null) {
+            if (widget.canvasOrigin != null) return widget.canvasOrigin;
+            widget = widget.parent;
+        }
+        return undefined;
     }
 
     getBoundingClientRect(): DOMRect {
@@ -315,7 +329,7 @@ export abstract class Widget<
         while (parent != null) {
             const { internalListener } = parent;
             if (internalListener != null) {
-                const parentEvent = { ...event, ...WidgetEventUtil.calcCurrentXY(parent.getElement(), event) };
+                const parentEvent = { ...event, ...WidgetEventUtil.calcCurrentXY(parent, event) };
                 internalListener.dispatch(type, parent, parentEvent);
             }
             parent = parent.parent;

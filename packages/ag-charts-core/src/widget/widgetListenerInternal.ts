@@ -1,17 +1,16 @@
 import { partialAssign } from '../data/object';
 import { attachListener } from '../dom/domEvents';
 import type { AnyFn } from '../types/global';
-import type { CurrentPoint, OffsetPoint, PagePoint } from '../types/scene';
-import type { DragWidgetEvent, WidgetEventMap_Internal } from './widgetEvents';
+import type { CanvasPoint, CurrentPoint, OffsetPoint, PagePoint } from '../types/scene';
+import type { DragWidgetEvent, WidgetEventMap_Internal, WidgetTarget } from './widgetEvents';
 import { WidgetEventUtil } from './widgetEvents';
 
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;
 type EventHandler<T, K extends EventType = EventType> = (event: EventMap[K], current: T) => unknown;
-type Targetable = { getElement(): HTMLElement };
 
 type DragEvents = 'drag-start' | 'drag-move' | 'drag-end';
-type DragOrigin = CurrentPoint & OffsetPoint & PagePoint;
+type DragOrigin = CurrentPoint & CanvasPoint & OffsetPoint & PagePoint;
 function makeDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: PointerEvent): DragWidgetEvent<K> {
     // sourceEvent's [offsetX, offsetY] is relative to its own target (which may be e.g. a legend
     // button), so re-base it on the element that fired the 'mousedown'.
@@ -34,6 +33,8 @@ function makeDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent
         clientY: sourceEvent.clientY,
         currentX,
         currentY,
+        canvasX: origin.canvasX + originDeltaX,
+        canvasY: origin.canvasY + originDeltaY,
         originDeltaX,
         originDeltaY,
         sourceEvent,
@@ -53,7 +54,7 @@ export class WidgetListenerInternal {
         this.listeners?.clear();
     }
 
-    private getListenerSet<T extends Targetable, K extends EventType>(type: K): Set<EventHandler<T, K>> {
+    private getListenerSet<T extends WidgetTarget, K extends EventType>(type: K): Set<EventHandler<T, K>> {
         this.listeners ??= new Map();
         let result: Set<EventHandler<T, K>> | undefined = this.listeners.get(type);
         if (result === undefined) {
@@ -63,8 +64,8 @@ export class WidgetListenerInternal {
         return result;
     }
 
-    add<T extends Targetable, K extends EventType>(type: K, target: T, handler: EventHandler<T, K>): void;
-    add<T extends Targetable, K extends EventType>(type: K, target: T, handler: EventHandler<unknown>): void {
+    add<T extends WidgetTarget, K extends EventType>(type: K, target: T, handler: EventHandler<T, K>): void;
+    add<T extends WidgetTarget, K extends EventType>(type: K, target: T, handler: EventHandler<unknown>): void {
         this.getListenerSet(type).add(handler);
         switch (type) {
             case 'drag-start':
@@ -76,12 +77,12 @@ export class WidgetListenerInternal {
         }
     }
 
-    remove<T extends Targetable, K extends EventType>(type: K, _target: T, handler: EventHandler<T, K>): void;
-    remove<T extends Targetable, K extends EventType>(type: K, _target: T, handler: EventHandler<unknown>): void {
+    remove<T extends WidgetTarget, K extends EventType>(type: K, _target: T, handler: EventHandler<T, K>): void;
+    remove<T extends WidgetTarget, K extends EventType>(type: K, _target: T, handler: EventHandler<unknown>): void {
         this.getListenerSet(type).delete(handler);
     }
 
-    private registerDragTrigger<T extends Targetable>(target: T) {
+    private registerDragTrigger<T extends WidgetTarget>(target: T) {
         if (this.dragTriggerRemover == null) {
             const element = target.getElement();
             this.dragTriggerRemover = attachListener(element, 'pointerdown', (event: PointerEvent) =>
@@ -90,16 +91,17 @@ export class WidgetListenerInternal {
         }
     }
 
-    private onPointerDown<T extends Targetable>(current: T, downEvent: PointerEvent) {
+    private onPointerDown<T extends WidgetTarget>(target: T, downEvent: PointerEvent) {
         if (downEvent.button === 0 || downEvent.pointerType !== 'mouse') {
-            this.startPointerDrag(current, downEvent);
+            this.startPointerDrag(target, downEvent);
         }
     }
 
-    private startPointerDrag<T extends Targetable>(current: T, downEvent: PointerEvent) {
-        const elem = current.getElement();
+    private startPointerDrag<T extends WidgetTarget>(target: T, downEvent: PointerEvent) {
+        const elem = target.getElement();
 
-        const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), downEvent);
+        const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(target, downEvent);
+        const { canvasX, canvasY } = WidgetEventUtil.calcCanvasXY(target, downEvent);
         const origin: DragOrigin = {
             pageX: Number.NaN,
             pageY: Number.NaN,
@@ -107,6 +109,8 @@ export class WidgetListenerInternal {
             offsetY: Number.NaN,
             currentX,
             currentY,
+            canvasX,
+            canvasY,
         };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, downEvent);
 
@@ -115,7 +119,7 @@ export class WidgetListenerInternal {
             if (moveEvent.pointerId !== downEvent.pointerId) return;
             if (downEvent.pointerType === 'touch' && !this.dragTouchEnabled) return;
             const dragMoveEvent = makeDrag('drag-move', origin, moveEvent);
-            this.dispatch('drag-move', current, dragMoveEvent);
+            this.dispatch('drag-move', target, dragMoveEvent);
         };
         const onPointerUp = (upEvent: PointerEvent) => {
             if (upEvent.pointerId !== downEvent.pointerId) return;
@@ -124,7 +128,7 @@ export class WidgetListenerInternal {
             elem.removeEventListener('pointerup', onPointerUp);
             elem.removeEventListener('lostpointercapture', onPointerUp);
             const dragEndEvent = makeDrag('drag-end', origin, upEvent);
-            this.dispatch('drag-end', current, dragEndEvent);
+            this.dispatch('drag-end', target, dragEndEvent);
             elem.releasePointerCapture(upEvent.pointerId);
         };
         elem.addEventListener('pointermove', onPointerMove);
@@ -132,10 +136,10 @@ export class WidgetListenerInternal {
         elem.addEventListener('lostpointercapture', onPointerUp);
 
         const dragStartEvent = makeDrag('drag-start', origin, downEvent);
-        this.dispatch('drag-start', current, dragStartEvent);
+        this.dispatch('drag-start', target, dragStartEvent);
     }
 
-    public dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
+    public dispatch<T extends WidgetTarget, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
         for (const handler of this.getListenerSet(type)) {
             handler(event, current);
         }

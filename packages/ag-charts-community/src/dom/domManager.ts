@@ -2,6 +2,9 @@ import {
     AgDocument,
     BBox,
     BaseManager,
+    type CanvasOrigin,
+    type CanvasPoint,
+    type ClientPoint,
     type ElementSize,
     GuardedElement,
     type PerWindowEntry,
@@ -150,7 +153,7 @@ const globalListenerRegistry = createPerWindowRegistry<GlobalListenerSubscriber,
     'DOMManager.globalListeners'
 );
 
-export class DOMManager extends BaseManager {
+export class DOMManager extends BaseManager implements CanvasOrigin {
     static readonly className = 'DOMManager';
     private static readonly batchedUpdateContainer: DOMManager[] = [];
     // Head styles are shared per document: a chart in an iframe must not stop a chart in the main document
@@ -668,6 +671,13 @@ export class DOMManager extends BaseManager {
         const scaleY = layoutHeight > 0 && rect.height > 0 ? rect.height / layoutHeight : 1;
         this._cachedCanvasScale = { scaleX, scaleY };
         return this._cachedCanvasScale;
+    }
+
+    /** Maps client (viewport) coordinates onto the canvas, using the cached rect and scale. */
+    toCanvasPoint({ clientX, clientY }: ClientPoint): CanvasPoint {
+        const rect = this.getBoundingClientRect();
+        const { scaleX, scaleY } = this.getCanvasScale();
+        return { canvasX: (clientX - rect.x) / scaleX, canvasY: (clientY - rect.y) / scaleY };
     }
 
     /**
