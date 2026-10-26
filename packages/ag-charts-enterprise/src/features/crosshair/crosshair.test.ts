@@ -12,12 +12,15 @@ import type {
 import {
     applyAxesFlip,
     compareImageSnapshot,
+    delay,
     findAxis,
     getAxisLayoutState,
+    getSeriesNodeData,
     getSeriesRect,
     hoverAction,
     mouseDownAction,
     mouseUpAction,
+    scrollAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -27,6 +30,7 @@ import type { AgAnnotation } from 'ag-charts-types';
 
 import { getCrosshairLine } from '../../test/featureAccessors';
 import { createEnterpriseChart } from '../../test/utils';
+import { ZOOM_VALID_CHECK_DEBOUNCE } from '../zoom/zoomUtils';
 
 // JS callers can return null from a label renderer even though the type forbids it, so this is the one value the
 // options type cannot express.
@@ -645,6 +649,86 @@ describe('Crosshair', () => {
         await hoverAction(480, 250)(chart);
         await waitForChartStability(chart);
     });
+
+    it.each(['scatter', 'line'] as const)(
+        'AG-18746 x label and markers stay correct after zooming past a %s series with no visible data',
+        async (type) => {
+            const DAY = 24 * 3600_000;
+            const start = new Date('2025-01-01T00:00:00Z').getTime();
+            const dense = Array.from({ length: 101 }, (_, i) => ({ date: new Date(start + i * DAY), value: 10 }));
+            // Points only at both ends, so zooming into the middle leaves this series with nothing in view.
+            const gap = [0, 1, 2, 98, 99, 100].map((i) => ({
+                date: new Date(start + i * DAY),
+                value: i < 50 ? 0 : 20,
+            }));
+
+            const hoveredDates: number[] = [];
+            const labelValues: Array<{ value: number; domain: number[] }> = [];
+            const options: AgCartesianChartOptions = {
+                series: [
+                    { type, title: 'Gap', data: gap, xKey: 'date', yKey: 'value' },
+                    {
+                        type,
+                        title: 'Dense',
+                        data: dense,
+                        xKey: 'date',
+                        yKey: 'value',
+                        tooltip: {
+                            renderer: ({ datum }: { datum: { date: Date } }) => {
+                                hoveredDates.push(datum.date.getTime());
+                                return '';
+                            },
+                        },
+                    },
+                ],
+                zoom: { enabled: true, anchorPointX: 'pointer', anchorPointY: 'pointer' },
+                axes: {
+                    x: {
+                        type: 'time',
+                        crosshair: {
+                            enabled: true,
+                            label: {
+                                formatter: ({ value, domain }) => {
+                                    labelValues.push({ value: Number(value), domain: domain.map(Number) });
+                                    return String(Number(value));
+                                },
+                            },
+                        },
+                    },
+                    y: { type: 'number' },
+                },
+            };
+            chart = await createEnterpriseChart(options);
+
+            const rect = getSeriesRect(chart);
+            const cx = rect.x + rect.width / 2;
+            const cy = rect.y + rect.height / 2;
+            const zoomIn = async (steps: number) => {
+                for (let i = 0; i < steps; i++) {
+                    await scrollAction(cx, cy, -1)(chart);
+                }
+                await waitForChartStability(chart);
+                // Outlast the zoom toolbar's debounced button-state check, which re-validates the zoom after layout.
+                await delay(ZOOM_VALID_CHECK_DEBOUNCE + 100);
+            };
+
+            await zoomIn(6);
+            await hoverAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+
+            expect(hoveredDates.length).toBeGreaterThan(0);
+            expect(labelValues.length).toBeGreaterThan(0);
+            const { value, domain } = labelValues.at(-1)!;
+            expect(value).toBeGreaterThanOrEqual(domain[0]);
+            expect(value).toBeLessThanOrEqual(domain[1]);
+            expect(value).toBe(hoveredDates.at(-1));
+
+            // A further zoom step must leave the markers spread across the zoomed range, not collapsed onto the left edge.
+            await zoomIn(1);
+            const markerXs = getSeriesNodeData<{ point: { x: number } }>(chart, 1).map((d) => d.point.x);
+            expect(Math.max(...markerXs) - Math.min(...markerXs)).toBeGreaterThan(rect.width / 2);
+        }
+    );
 
     describe('label placement', () => {
         // The label is a DOM element in the canvas overlay, so its placement is invisible to an image
