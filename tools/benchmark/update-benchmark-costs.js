@@ -11,6 +11,8 @@
  *   gh run download <run-id> --repo ag-grid/ag-charts --dir /tmp/nightly-2 -p 'bench-results-*'
  *   node tools/benchmark/update-benchmark-costs.js /tmp/nightly-1 /tmp/nightly-2 --source '<note>'
  *
+ * `--costs <file>` writes to (and reads previous costs from) another table instead of benchmark-costs.json.
+ *
  * A run's cost for an example is the sum of its durationMs over every shard report in that run's
  * directory (both sides, every timing pass and the memory pass), in seconds. An example's cost is the
  * mean of its per-run costs, so one noisy nightly doesn't skew the table. An example that errored or
@@ -97,18 +99,41 @@ function mergeCosts(previous, fresh, available) {
     return merged;
 }
 
-module.exports = { sumCosts, meanCosts, mergeCosts };
+const USAGE = 'Usage: update-benchmark-costs.js <directory of shard reports>... [--source <note>] [--costs <file>]';
+
+/**
+ * Split argv (without node and the script) into run directories and the value flags.
+ * Every argument that is not a flag or a flag's value is a run directory. Returns { error } when a flag has no
+ * value, a flag is unknown, or there is no run directory.
+ */
+function parseArgs(args) {
+    const flags = { '--source': undefined, '--costs': undefined };
+    const dirs = [];
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        if (!arg.startsWith('--')) {
+            dirs.push(arg);
+        } else if (arg in flags && args[i + 1] !== undefined) {
+            flags[arg] = args[++i];
+        } else {
+            return { error: USAGE };
+        }
+    }
+    if (dirs.length === 0) {
+        return { error: USAGE };
+    }
+    return { dirs, source: flags['--source'], costsPath: flags['--costs'] };
+}
+
+module.exports = { sumCosts, meanCosts, mergeCosts, parseArgs };
 
 if (require.main === module) {
-    const { argv } = process;
-    const sourceIndex = argv.indexOf('--source');
-    const dirs = argv
-        .slice(2)
-        .filter((_, i) => sourceIndex === -1 || (i + 2 !== sourceIndex && i + 2 !== sourceIndex + 1));
-    if (dirs.length === 0 || (sourceIndex !== -1 && argv[sourceIndex + 1] === undefined)) {
-        console.error('Usage: update-benchmark-costs.js <directory of shard reports>... [--source <note>]');
+    const { dirs, source: sourceArg, costsPath: costsArg, error } = parseArgs(process.argv.slice(2));
+    if (error) {
+        console.error(error);
         process.exit(1);
     }
+    const costsPath = costsArg === undefined ? COSTS_PATH : path.resolve(costsArg);
     const runs = dirs.map((dir) => {
         const reports = findReports(path.resolve(dir)).map((file) => JSON.parse(fs.readFileSync(file, 'utf8')));
         if (reports.length === 0) {
@@ -118,7 +143,8 @@ if (require.main === module) {
         return reports;
     });
 
-    const previous = JSON.parse(fs.readFileSync(COSTS_PATH, 'utf8'));
+    const previous = JSON.parse(fs.readFileSync(costsPath, 'utf8'));
+
     const { costs: fresh, failed } = meanCosts(runs);
     const available = discoverExamples();
     const costs = mergeCosts(previous.costs ?? {}, fresh, available);
@@ -136,8 +162,8 @@ if (require.main === module) {
         );
     }
 
-    const source = sourceIndex !== -1 ? argv[sourceIndex + 1] : previous.source;
+    const source = sourceArg ?? previous.source;
     const sorted = Object.fromEntries(Object.entries(costs).sort(([a], [b]) => (a < b ? -1 : 1)));
-    fs.writeFileSync(COSTS_PATH, JSON.stringify({ ...previous, source, costs: sorted }, null, 4) + '\n');
-    console.log(`Wrote ${Object.keys(sorted).length} cost(s) to ${COSTS_PATH}`);
+    fs.writeFileSync(costsPath, JSON.stringify({ ...previous, source, costs: sorted }, null, 4) + '\n');
+    console.log(`Wrote ${Object.keys(sorted).length} cost(s) to ${costsPath}`);
 }
