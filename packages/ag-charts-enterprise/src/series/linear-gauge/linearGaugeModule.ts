@@ -4,7 +4,6 @@ import {
     FONT_SIZE,
     FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
-    LABEL_MANAGER_SERVICES,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
@@ -131,7 +130,6 @@ export const LinearGaugeModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
     chartType: 'standalone',
     enterprise: true,
     dependencies: [GaugePresetModule],
-    services: LABEL_MANAGER_SERVICES,
     version: VERSION,
 
     options: linearGaugeSeriesOptionsDef,

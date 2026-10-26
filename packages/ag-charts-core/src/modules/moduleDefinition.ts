@@ -43,11 +43,6 @@ export type ModuleTypeSwitch<TModule extends ModuleType, TOptions = any> = TModu
                 ? SeriesPluginModuleDefinition<TOptions>
                 : never;
 
-/** Chart-context services keyed by registry name, each built on its first read. */
-export type ModuleServices<TRegistry> = {
-    readonly [K in keyof TRegistry]?: (ctx: DynamicContext<TRegistry>) => TRegistry[K];
-};
-
 export interface ModuleInstance {
     destroy?(this: void): void;
 }
@@ -110,21 +105,12 @@ export interface ModuleDefinition<
     readonly enterprise?: boolean;
     readonly dependencies?: ModuleDefinition[];
     readonly placeholder?: boolean;
-    /** The one chart type an axis or series module belongs to. */
-    readonly chartType?: string;
-    /** The chart types the module applies to; none declared applies to all. */
-    readonly chartTypes?: readonly string[];
     /**
      * Option locations this module owns. Omit to derive the single location the module type implies
      * from `options` and `themeTemplate` (see `contributionsOf`); declare it to own options anywhere
      * else in the tree. A module with neither owns nothing.
      */
     readonly contributes?: readonly OptionsContribution[];
-    /**
-     * Services this module provides on the chart context of every chart type it applies to. Several
-     * modules may provide the same name; the first one registered wins, so they must be interchangeable.
-     */
-    readonly services?: ModuleServices<any>;
 
     options?: OptionsDefs<TOptions>; // options definitions validation
     themeOptions?: OptionsDefs<any>; // theme overrides validation where it differs from `options`
@@ -236,7 +222,7 @@ export interface PluginModuleDefinition<TOptions, TRegistry = unknown> extends M
     ModuleType.Plugin,
     TOptions
 > {
-    readonly services?: ModuleServices<TRegistry>;
+    readonly chartTypes?: readonly string[];
 
     register?(this: void, ctx: DynamicContext<TRegistry>): void;
 }
@@ -246,6 +232,7 @@ export interface AxisPluginModuleDefinition<TOptions> extends ModuleDefinition<
     TOptions,
     AxisPluginModuleInstance
 > {
+    readonly chartTypes?: readonly string[];
     readonly axisTypes?: string[];
     readonly optionsKey?: string;
 }
@@ -255,5 +242,6 @@ export interface SeriesPluginModuleDefinition<TOptions> extends ModuleDefinition
     TOptions,
     SeriesPluginModuleInstance
 > {
+    readonly chartTypes?: readonly string[];
     readonly seriesTypes?: string[];
 }

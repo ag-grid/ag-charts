@@ -2,7 +2,6 @@ import { type AgMapLineSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
-    LABEL_MANAGER_SERVICES,
     LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_STROKE_FILL_OPERATION,
@@ -26,7 +25,6 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
     enterprise: true,
     version: VERSION,
     dependencies: [TopologyChartModule],
-    services: LABEL_MANAGER_SERVICES,
 
     options: mapLineSeriesOptionsDef,
 
