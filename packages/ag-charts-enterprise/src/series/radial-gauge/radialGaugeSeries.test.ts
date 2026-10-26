@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 
-import type { AgRadialGaugeOptions } from 'ag-charts-community';
+import type { AgChartInstance, AgRadialGaugeOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
+    type ChartOrProxy,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -16,24 +17,25 @@ import {
 } from 'ag-charts-community-test';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import { destroyChart, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { RadialGaugeSeries } from './radialGaugeSeries';
 
 describe('RadialGaugeSeries', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: ChartOrProxy<any>;
 
+    const example = GALLERY_EXAMPLES.SIMPLE_RADIAL_GAUGE_EXAMPLE.options;
+    assert(example.type === 'radial-gauge');
     const EXAMPLE_OPTIONS: AgRadialGaugeOptions = {
-        ...(GALLERY_EXAMPLES.SIMPLE_RADIAL_GAUGE_EXAMPLE.options as any),
+        ...example,
         bar: {
             fills: [{ color: '#27ae60' }, { color: '#f1c40f' }, { color: '#d35400' }],
         },
     };
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -48,11 +50,11 @@ describe('RadialGaugeSeries', () => {
         return ctx.snapshot();
     };
 
-    const compareImageDataUrl = async () => {
+    const compareImageDataUrl = async (proxy: AgChartInstance) => {
         await waitForChartStability(chart);
         const reference = await snapshot();
 
-        const imageURL = await chart.getImageDataURL();
+        const imageURL = await proxy.getImageDataURL();
         const imagePNGData = Buffer.from(imageURL.split(',')[1], 'base64');
         expect(imagePNGData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
 
@@ -141,7 +143,7 @@ describe('RadialGaugeSeries', () => {
                 ...EXAMPLE_OPTIONS,
                 label: {
                     enabled: true,
-                    formatter(params: any) {
+                    formatter(params) {
                         return `${params.value.toFixed(0)}%`;
                     },
                 },
@@ -242,7 +244,7 @@ describe('RadialGaugeSeries', () => {
             prepareEnterpriseTestOptions(options);
             chart = deproxy(AgCharts.createGauge(options));
             await waitForChartStability(chart);
-            return chart.series[0].getCaptionText();
+            return getSeriesInstance(chart, RadialGaugeSeries).getCaptionText();
         };
 
         it('should render with bigint value, scale and target without throwing', async () => {
@@ -336,7 +338,8 @@ describe('RadialGaugeSeries', () => {
         const options: AgRadialGaugeOptions = { ...EXAMPLE_OPTIONS };
         prepareEnterpriseTestOptions(options);
 
-        chart = AgCharts.createGauge(options);
-        await compareImageDataUrl();
+        const proxy = AgCharts.createGauge(options);
+        chart = proxy;
+        await compareImageDataUrl(proxy);
     });
 });

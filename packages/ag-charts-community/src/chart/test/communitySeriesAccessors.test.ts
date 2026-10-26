@@ -18,6 +18,7 @@ import {
     getVisibleLabelTextNodes,
     getXCoordinateRange,
     toggleSeriesLegendItem,
+    withUndocumentedChartOptions,
     withUndocumentedOptions,
 } from './communitySeriesAccessors';
 import { getSeriesAt, getSeriesContextNodeData, getSeriesSelectionNodes } from './seriesAccessors';
@@ -311,6 +312,42 @@ describe('community series test accessors', () => {
             withUndocumentedOptions(series, { allowNullKeys: true });
 
             expect(series).toEqual({ type: 'bar', xKey: 'x', yKey: 'y' });
+        });
+
+        it('adds the gradient fill keys to a fill', () => {
+            const fill = withUndocumentedOptions(
+                { type: 'gradient' as const, colorStops: [{ color: 'green' }, { color: 'white' }] },
+                { gradient: 'linear', bounds: 'series' }
+            );
+
+            expect(fill).toEqual({
+                type: 'gradient',
+                colorStops: [{ color: 'green' }, { color: 'white' }],
+                gradient: 'linear',
+                bounds: 'series',
+            });
+        });
+
+        it('adds the focus index a series rejects', () => {
+            const series = withUndocumentedOptions({ type: 'bar', xKey: 'x', yKey: 'y' }, { focusIndex: 0 });
+
+            expect(series).toEqual({ type: 'bar', xKey: 'x', yKey: 'y', focusIndex: 0 });
+        });
+    });
+
+    describe('withUndocumentedChartOptions', () => {
+        it('adds the undocumented chart options and keeps the ones it is given', () => {
+            const options = withUndocumentedChartOptions({ width: 400, height: 300 }, { overrideDevicePixelRatio: 2 });
+
+            expect(options).toEqual({ width: 400, height: 300, overrideDevicePixelRatio: 2 });
+        });
+
+        it('does not change the options it is given', () => {
+            const options = { width: 400, height: 300 };
+
+            withUndocumentedChartOptions(options, { overrideDevicePixelRatio: 2 });
+
+            expect(options).toEqual({ width: 400, height: 300 });
         });
     });
 

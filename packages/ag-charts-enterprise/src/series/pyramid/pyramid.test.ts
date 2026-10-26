@@ -1,15 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
-    AgCartesianChartOptions,
     AgChartOptions,
-    AgPolarChartOptions,
+    AgPyramidSeriesOptions,
+    AgPyramidSeriesTooltipRendererParams,
+    AgStandaloneChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
     BIG,
-    type Chart,
+    type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     type PhasedTrajectory,
@@ -21,14 +22,19 @@ import {
     expectAnimatedEndpointsMatchStatic,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getLegendItemNodes,
+    getSeriesAt,
+    getSeriesContextNodeData,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import { Transformable } from 'ag-charts-core';
 
+import { type StageNodeDatum, destroyChart, getStageHighlightNode } from '../../test/enterpriseSeriesAccessors';
 import {
     createEnterpriseChart,
     funnelLabelFadeIn,
@@ -59,13 +65,10 @@ const PYRAMID_EXAMPLE: AgChartOptions = {
 
 describe('PyramidSeries', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: ChartOrProxy<any>;
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -85,35 +88,35 @@ describe('PyramidSeries', () => {
         it('should render highlight of node', async () => {
             const options: AgChartOptions = { ...PYRAMID_EXAMPLE };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            const target = deproxy(await createEnterpriseChart(options));
+            chart = target;
 
-            const node = chart.series[0].contextNodeData.nodeData[0];
+            const node = getSeriesContextNodeData(target).nodeData[0];
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            target.ctx.highlightManager.updateHighlight(target.id, node);
             await compare();
         });
     });
 
     const testPointerEvents = (testParams: {
-        seriesOptions: any;
-        chartOptions?: any;
-        getNodeData: (series: any) => any[];
-        getNodePoint: (nodeItem: any) => [number, number];
-        getDatumValues: (datum: any, series: any) => any[];
-        getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
-        getHighlightNode: (chart: any, series: any) => any;
+        seriesOptions: AgPyramidSeriesOptions;
+        chartOptions?: AgStandaloneChartOptions;
+        getNodePoint: (nodeItem: StageNodeDatum) => [number, number];
+        getDatumValues: (datum: StageNodeDatum) => unknown[];
+        getTooltipRenderedValues: (tooltipRendererParams: AgPyramidSeriesTooltipRendererParams) => unknown[];
     }) => {
-        const format = (...values: any[]) => values.join(' ');
+        const format = (...values: unknown[]) => values.join(' ');
+        const getNodeData = (chartInstance: ChartOrProxy<any>, seriesIndex: number) =>
+            getSeriesContextNodeData<StageNodeDatum>(chartInstance, seriesIndex).nodeData;
 
         const chartOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): AgCartesianChartOptions | AgPolarChartOptions => {
+        }): AgStandaloneChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
-                      renderer(rParams: any) {
+                      renderer(rParams: AgPyramidSeriesTooltipRendererParams) {
                           const values = testParams.getTooltipRenderedValues(rParams);
                           return format(...values);
                       },
@@ -122,7 +125,7 @@ describe('PyramidSeries', () => {
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
-            const options: AgCartesianChartOptions | AgPolarChartOptions = {
+            const options: AgStandaloneChartOptions = {
                 container: document.body,
                 series: [
                     {
@@ -143,36 +146,41 @@ describe('PyramidSeries', () => {
         };
 
         const hoverChartNodes = async (
-            chartInstance: any,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
+            chartInstance: ChartOrProxy<any>,
+            iterator: (params: {
+                seriesIndex: number;
+                item: StageNodeDatum;
+                x: number;
+                y: number;
+            }) => Promise<void> | void
         ) => {
-            for (const series of chartInstance.series) {
-                const nodeData = testParams.getNodeData(series);
+            for (const seriesIndex of deproxy(chartInstance).series.keys()) {
+                const nodeData = getNodeData(chartInstance, seriesIndex);
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
                     const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
-                        series.contentGroup,
+                        getSeriesAt(chartInstance, seriesIndex).contentGroup,
                         itemPoint[0],
                         itemPoint[1]
                     );
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
-                    await iterator({ series, item, x, y });
+                    await iterator({ seriesIndex, item, x, y });
                 }
             }
         };
 
-        const checkHighlight = async (chartInstance: any) => {
-            await hoverChartNodes(chartInstance, ({ series }) => {
-                const highlightNode = testParams.getHighlightNode(chartInstance, series);
+        const checkHighlight = async (chartInstance: ChartOrProxy<any>) => {
+            await hoverChartNodes(chartInstance, ({ seriesIndex }) => {
+                const highlightNode = getStageHighlightNode(chartInstance, seriesIndex);
                 expect(highlightNode).toBeDefined();
-                expect(highlightNode.fill).toEqual('lime');
+                expect(highlightNode?.fill).toEqual('lime');
             });
         };
 
         const checkNodeClick = async (
-            chartInstance: Chart,
+            chartInstance: ChartOrProxy<any>,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {
@@ -181,34 +189,31 @@ describe('PyramidSeries', () => {
                 await waitForChartStability(chartInstance);
             });
 
-            const nodeCount = chartInstance.series.reduce(
-                (sum, series) => sum + testParams.getNodeData(series).length,
+            const nodeCount = deproxy(chartInstance).series.reduce(
+                (sum, _series, seriesIndex) => sum + getNodeData(chartInstance, seriesIndex).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
         };
 
-        const checkLegendClick = async (chartInstance: any) => {
+        const checkLegendClick = async (chartInstance: ChartOrProxy<any>) => {
             await waitForChartStability(chart);
-            for (const { legend } of deproxy(chart).modulesManager.legends()) {
-                const markerLabels = (legend as any).itemSelection?._nodes ?? [];
-                for (const label of markerLabels) {
-                    const { x, y } = Transformable.toCanvas(label).computeCenter();
-                    await clickAction(x, y)(chartInstance);
-                    await waitForChartStability(chart);
-                    await compare();
-                }
+            for (const label of getLegendItemNodes(chart)) {
+                const { x, y } = Transformable.toCanvas(label).computeCenter();
+                await clickAction(x, y)(chartInstance);
+                await waitForChartStability(chart);
+                await compare();
             }
         };
 
         it(`should render tooltip correctly`, async () => {
             chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
-            await hoverChartNodes(chart, ({ series, item }) => {
+            await hoverChartNodes(chart, ({ item }) => {
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                const values = testParams.getDatumValues(item, series);
+                const values = testParams.getDatumValues(item);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
@@ -272,14 +277,7 @@ describe('PyramidSeries', () => {
             valueKey: 'value',
         };
 
-        const cartesianTestParams = {
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
-            getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
-            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
-        } as Parameters<typeof testPointerEvents>[0];
-
         testPointerEvents({
-            ...cartesianTestParams,
             seriesOptions: {
                 type: 'pyramid',
                 stageKey: datasets.stageKey,
@@ -288,25 +286,18 @@ describe('PyramidSeries', () => {
             chartOptions: {
                 data: datasets.data,
             },
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
             getDatumValues: (item) => {
                 const { datum } = item;
                 return [datum[datasets.stageKey], datum[datasets.valueKey]];
             },
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
-            getHighlightNode: (chartInstance, series) => {
-                const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return [...series.highlightNodeGroup.children()].find(
-                    (child: any) => child.datum.id === highlightedDatum.id
-                );
-            },
         });
     });
 
     describe('gradient fill', () => {
         it('should render pyramid series with a default gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...PYRAMID_EXAMPLE,
                 series: [
                     {
@@ -322,12 +313,12 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render pyramid series with a gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...PYRAMID_EXAMPLE,
                 series: [
                     {
@@ -351,12 +342,12 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render pyramid series with a mix of gradient and string fills', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...PYRAMID_EXAMPLE,
                 series: [
                     {
@@ -381,42 +372,34 @@ describe('PyramidSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render pyramid series with a series bound gradient fill', async () => {
-            const options = {
+            const fill = withUndocumentedOptions(
+                {
+                    type: 'gradient' as const,
+                    colorStops: [{ color: 'green' }, { color: 'white' }],
+                },
+                { bounds: 'series' }
+            );
+            const options: AgChartOptions = {
                 ...PYRAMID_EXAMPLE,
-                series: [
-                    {
-                        type: 'pyramid',
-                        stageKey: 'group',
-                        valueKey: 'value',
-                        fills: [
-                            {
-                                type: 'gradient',
-                                bounds: 'series',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
+                series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value', fills: [fill] }],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
 
     describe('null category key', () => {
+        const allowNullKeysSeries = withUndocumentedOptions(
+            { type: 'pyramid' as const, stageKey: 'group', valueKey: 'value' },
+            { allowNullKeys: true }
+        );
+
         it('should render with null category key value', async () => {
             const options: AgChartOptions = {
                 data: [
@@ -485,14 +468,7 @@ describe('PyramidSeries', () => {
                     { group: 'Propose', value: 7260 },
                     { group: 'Close', value: 4460 },
                 ],
-                series: [
-                    {
-                        type: 'pyramid',
-                        stageKey: 'group',
-                        valueKey: 'value',
-                        allowNullKeys: true,
-                    } as any,
-                ],
+                series: [allowNullKeysSeries],
             };
 
             chart = await createEnterpriseChart(options);
@@ -509,14 +485,7 @@ describe('PyramidSeries', () => {
                     { group: 'Propose', value: 7260 },
                     { group: 'Close', value: 4460 },
                 ],
-                series: [
-                    {
-                        type: 'pyramid',
-                        stageKey: 'group',
-                        valueKey: 'value',
-                        allowNullKeys: true,
-                    } as any,
-                ],
+                series: [allowNullKeysSeries],
             };
 
             chart = await createEnterpriseChart(options);
@@ -533,14 +502,7 @@ describe('PyramidSeries', () => {
                     { group: undefined, value: 7260 },
                     { group: 'Close', value: 4460 },
                 ],
-                series: [
-                    {
-                        type: 'pyramid',
-                        stageKey: 'group',
-                        valueKey: 'value',
-                        allowNullKeys: true,
-                    } as any,
-                ],
+                series: [allowNullKeysSeries],
             };
 
             chart = await createEnterpriseChart(options);
@@ -550,27 +512,23 @@ describe('PyramidSeries', () => {
         });
 
         it('should call stageLabel.formatter for null category key when allowNullKeys is true', async () => {
-            const formatterCalls: any[] = [];
+            const formatterCalls: unknown[] = [];
+            const series: AgPyramidSeriesOptions = {
+                ...allowNullKeysSeries,
+                stageLabel: {
+                    formatter: (params) => {
+                        formatterCalls.push(params.datum.group);
+                        return String(params.datum.group);
+                    },
+                },
+            };
             const options: AgChartOptions = {
                 data: [
                     { group: 'Qualify', value: 7910 },
                     { group: null, value: 8170 },
                     { group: 'Propose', value: 7260 },
                 ],
-                series: [
-                    {
-                        type: 'pyramid',
-                        stageKey: 'group',
-                        valueKey: 'value',
-                        allowNullKeys: true,
-                        stageLabel: {
-                            formatter: (params: any) => {
-                                formatterCalls.push(params.datum.group);
-                                return String(params.datum.group);
-                            },
-                        },
-                    } as any,
-                ],
+                series: [series],
             };
 
             chart = await createEnterpriseChart(options);
@@ -580,7 +538,7 @@ describe('PyramidSeries', () => {
         });
     });
 
-    test('AG-8290 label boxing', async () => {
+    it('AG-8290 label boxing', async () => {
         const options: AgChartOptions = {
             data: [
                 { group: 'Close', value: 4460 },

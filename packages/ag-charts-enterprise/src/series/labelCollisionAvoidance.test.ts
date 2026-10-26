@@ -1,36 +1,63 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-community';
+import type {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartLabelCollisionOptions,
+    AgChartLabelOrientation,
+    AgChartOptions,
+    AgConeFunnelSeriesLabelPlacement,
+    AgConeFunnelSeriesLabelPlacementAlias,
+    AgConeFunnelSeriesOptions,
+    AgFunnelSeriesOptions,
+    AgMapLineSeriesOptions,
+    AgMapMarkerSeriesOptions,
+    AgPyramidSeriesOptions,
+    AgRangeAreaSeriesLabelPlacement,
+    AgRangeAreaSeriesOptions,
+    AgRangeBarSeriesLabelPlacement,
+    AgRangeBarSeriesOptions,
+    AgSankeySeriesOptions,
+    AgWaterfallSeriesLabelPlacement,
+    AgWaterfallSeriesOptions,
+} from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
-    type PlacedLabelGeometry,
     compareImageSnapshot,
-    deproxy,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
+    getSeriesContextNodeData,
+    getSeriesSelectionNodes,
     setupMockCanvas,
     setupMockConsole,
     topLabelAnchorGap,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import type { Text } from 'ag-charts-core';
 
+import { getEnterpriseSelectionNodes, getPlacedLabelData } from '../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
 import { ukRoadData } from './map-test/ukRoadData';
 import ukRoadTopology from './map-test/ukRoadTopology.json';
 import ukTopology from './map-test/ukTopology.json';
 
-// `collideWith` within `label.collision` is undocumented, so option objects using it are built
-// untyped and cast at the AgCharts.create boundary.
+/** The public collision options plus `collideWith`, which the public types do not have. */
+type CollisionOptions = AgChartLabelCollisionOptions & {
+    collideWith?: { seriesArea?: boolean; seriesItems?: boolean };
+};
+
+/** A series' label options with the collision options widened to take `collideWith`. */
+type CollisionLabel<TLabel extends { collision?: object } | undefined> = Omit<NonNullable<TLabel>, 'collision'> & {
+    collision?: NonNullable<NonNullable<TLabel>['collision']> & CollisionOptions;
+};
+
 describe('label collision avoidance', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart?.destroy();
     });
 
     const ctx = setupMockCanvas();
@@ -39,23 +66,27 @@ describe('label collision avoidance', () => {
     const overlaps = (a: Box, b: Box) =>
         a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 
-    const renderAndSnapshot = async (options: object) => {
-        chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+    const renderAndSnapshot = async (options: AgChartOptions) => {
+        chart = await createEnterpriseChart(options);
         await compareImageSnapshot(chart, ctx);
     };
 
-    const visibleLabelCount = () => {
-        const series = chart.series[0] as unknown as { labelSelection: { nodes(): { visible: boolean }[] } };
-        return series.labelSelection.nodes().filter((node) => node.visible).length;
+    /** The visible label nodes of the series at `seriesIndex`; `TDatum` is the datum the series draws its labels for. */
+    const visibleLabelNodes = <TDatum = unknown>(seriesIndex = 0) => {
+        const nodes = getSeriesSelectionNodes<Text<TDatum> & { datum: TDatum }>(chart, 'labelSelection', seriesIndex);
+        // The selection sets the datum of every node it holds, which the node types as optional.
+        for (const node of nodes) expect(node.datum, 'label datum').toBeDefined();
+        return nodes.filter((node) => node.visible);
     };
 
-    const renderPlacementCount = async (
-        makeOptions: (collision: object, placement?: string | string[]) => object,
-        collision: object,
-        placement?: string | string[]
+    const visibleLabelCount = (seriesIndex = 0) => visibleLabelNodes(seriesIndex).length;
+
+    const renderPlacementCount = async <TPlacement extends string>(
+        makeOptions: (collision: CollisionOptions, placement?: TPlacement | TPlacement[]) => AgChartOptions,
+        collision: CollisionOptions,
+        placement?: TPlacement | TPlacement[]
     ) => {
-        const opts = makeOptions(collision, placement);
-        chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
+        chart = await createEnterpriseChart(makeOptions(collision, placement));
         return visibleLabelCount();
     };
 
@@ -68,7 +99,9 @@ describe('label collision avoidance', () => {
             lat: 51.5 + (i % 4) * 0.3,
             lon: -1.5 + Math.floor(i / 4) * 0.3,
         }));
-        const markerOptions = (config: object) => ({
+        // The map-marker series follows the background series.
+        const MAP_MARKER_SERIES = 1;
+        const markerOptions = (config: AgMapMarkerSeriesOptions['label']): AgChartOptions => ({
             topology: ukTopology,
             series: [
                 { type: 'map-shape-background' },
@@ -93,14 +126,10 @@ describe('label collision avoidance', () => {
 
         // The theme default is `collision.alwaysShow: false`, so an unset option must match it.
         it('hides overlapping labels by default, matching the explicit alwaysShow: false count', async () => {
-            const render = async (config: object) => {
+            const render = async (config: NonNullable<AgMapMarkerSeriesOptions['label']>) => {
                 chart?.destroy();
-                const opts = markerOptions(config);
-                chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
-                const series = chart.series.find((s: any) => s.type === 'map-marker') as unknown as {
-                    labelSelection: { nodes(): { visible: boolean }[] };
-                };
-                return series.labelSelection.nodes().filter((node) => node.visible).length;
+                chart = await createEnterpriseChart(markerOptions(config));
+                return visibleLabelCount(MAP_MARKER_SERIES);
             };
 
             const defaultVisible = await render({});
@@ -111,27 +140,25 @@ describe('label collision avoidance', () => {
         });
 
         // A single isolated marker, so its 'top' label never collides and only spacing varies.
-        const singleMarker = (spacing: number) =>
-            ({
-                topology: ukTopology,
-                series: [
-                    { type: 'map-shape-background' },
-                    {
-                        type: 'map-marker',
-                        data: [{ name: 'Site', lat: 52, lon: -1.5 }],
-                        latitudeKey: 'lat',
-                        longitudeKey: 'lon',
-                        labelKey: 'name',
-                        label: { enabled: true, placement: 'top', spacing },
-                    },
-                ],
-            }) as AgChartOptions;
+        const singleMarker = (spacing: number): AgChartOptions => ({
+            topology: ukTopology,
+            series: [
+                { type: 'map-shape-background' },
+                {
+                    type: 'map-marker',
+                    data: [{ name: 'Site', lat: 52, lon: -1.5 }],
+                    latitudeKey: 'lat',
+                    longitudeKey: 'lon',
+                    labelKey: 'name',
+                    label: { enabled: true, placement: 'top', spacing },
+                },
+            ],
+        });
 
         const anchorGap = async (spacing: number) => {
             chart?.destroy();
-            chart = deproxy(await createEnterpriseChart(singleMarker(spacing)));
-            const series = chart.series.find((s: any) => s.type === 'map-marker') as unknown as PlacedLabelGeometry;
-            return topLabelAnchorGap(series);
+            chart = await createEnterpriseChart(singleMarker(spacing));
+            return topLabelAnchorGap({ placedLabelData: getPlacedLabelData(chart, MAP_MARKER_SERIES) });
         };
 
         it('a larger label.spacing widens the gap between a map-marker label and its anchor', async () => {
@@ -144,7 +171,7 @@ describe('label collision avoidance', () => {
 
     // Map-line labels centre on the line, so collision only decides hidden vs kept.
     describe('map-line', () => {
-        const lineOptions = (config: object) => ({
+        const lineOptions = (config: AgMapLineSeriesOptions['label']): AgChartOptions => ({
             topology: ukRoadTopology,
             data: ukRoadData,
             series: [
@@ -168,10 +195,9 @@ describe('label collision avoidance', () => {
 
         // The theme default is `collision.alwaysShow: false`, so an unset option must match it.
         it('drops overlapping route labels by default, matching the explicit alwaysShow: false count', async () => {
-            const render = async (config: object) => {
+            const render = async (config: NonNullable<AgMapLineSeriesOptions['label']>) => {
                 chart?.destroy();
-                const opts = lineOptions(config);
-                chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
+                chart = await createEnterpriseChart(lineOptions(config));
                 return visibleLabelCount();
             };
 
@@ -186,7 +212,9 @@ describe('label collision avoidance', () => {
     // A `placement` array is an ordered fallback list: the first candidate that clears its obstacles wins.
     describe('bar-family placement cascade (first fitting candidate wins)', () => {
         it('waterfall renders an array placement identically to its first candidate', async () => {
-            const options = (placement: string | string[]): AgChartOptions => ({
+            const options = (
+                placement: AgWaterfallSeriesLabelPlacement | AgWaterfallSeriesLabelPlacement[]
+            ): AgChartOptions => ({
                 data: [
                     { year: '2020', spending: 10 },
                     { year: '2021', spending: -20 },
@@ -202,7 +230,7 @@ describe('label collision avoidance', () => {
                             negative: { label: { enabled: true, placement } },
                             total: { label: { enabled: true, placement } },
                         },
-                    } as never,
+                    },
                 ],
             });
             await expectPixelIdenticalAcrossUpdate(
@@ -218,15 +246,17 @@ describe('label collision avoidance', () => {
             { x: 'B', low: 3, high: 9 },
             { x: 'C', low: 1, high: 7 },
         ];
-        const rangeAxes = {
+        const rangeAxes: AgCartesianChartOptions['axes'] = {
             x: { type: 'category', position: 'bottom' },
             y: { type: 'number', position: 'left' },
         };
 
         it('range-bar renders an array placement identically to its first candidate', async () => {
-            const options = (placement: string | string[]): AgChartOptions => ({
+            const options = (
+                placement: AgRangeBarSeriesLabelPlacement | AgRangeBarSeriesLabelPlacement[]
+            ): AgChartOptions => ({
                 data: rangeData,
-                axes: rangeAxes as never,
+                axes: rangeAxes,
                 series: [
                     {
                         type: 'range-bar',
@@ -234,7 +264,7 @@ describe('label collision avoidance', () => {
                         yLowKey: 'low',
                         yHighKey: 'high',
                         label: { enabled: true, placement },
-                    } as never,
+                    },
                 ],
             });
             await expectPixelIdenticalAcrossUpdate(
@@ -246,9 +276,11 @@ describe('label collision avoidance', () => {
         });
 
         it('range-area renders an array placement identically to its first candidate', async () => {
-            const options = (placement: string | string[]): AgChartOptions => ({
+            const options = (
+                placement: AgRangeAreaSeriesLabelPlacement | AgRangeAreaSeriesLabelPlacement[]
+            ): AgChartOptions => ({
                 data: rangeData,
-                axes: rangeAxes as never,
+                axes: rangeAxes,
                 series: [
                     {
                         type: 'range-area',
@@ -256,7 +288,7 @@ describe('label collision avoidance', () => {
                         yLowKey: 'low',
                         yHighKey: 'high',
                         label: { enabled: true, placement },
-                    } as never,
+                    },
                 ],
             });
             await expectPixelIdenticalAcrossUpdate(
@@ -269,13 +301,13 @@ describe('label collision avoidance', () => {
     });
 
     describe('bar-family label orientation', () => {
-        const orientations = ['horizontal', 'vertical', 'vertical-reversed'];
+        const orientations: AgChartLabelOrientation[] = ['horizontal', 'vertical', 'vertical-reversed'];
         const rangeData = [
             { x: 'A', low: 2, high: 8 },
             { x: 'B', low: 3, high: 9 },
             { x: 'C', low: 1, high: 7 },
         ];
-        const rangeAxes = {
+        const rangeAxes: AgCartesianChartOptions['axes'] = {
             x: { type: 'category', position: 'bottom' },
             y: { type: 'number', position: 'left' },
         };
@@ -323,8 +355,15 @@ describe('label collision avoidance', () => {
         // Tall, thin bars whose horizontal label overflows the bar width must fall through to the
         // vertical candidate; alternating deltas keep the bars tall enough for it to fit.
         it('waterfall falls through to vertical when the horizontal label overflows a thin bar', async () => {
-            const thinWaterfall = (orientation: string | string[]) => {
-                const label = { enabled: true, placement: 'inside-center', orientation, formatter: () => 'WWWWWWWWWW' };
+            const thinWaterfall = (
+                orientation: AgChartLabelOrientation | AgChartLabelOrientation[]
+            ): AgChartOptions => {
+                const label = {
+                    enabled: true,
+                    placement: 'inside-center' as const,
+                    orientation,
+                    formatter: () => 'WWWWWWWWWW',
+                };
                 return {
                     data: Array.from({ length: 12 }, (_, i) => ({ year: `Y${i}`, spending: i % 2 === 0 ? 100 : -100 })),
                     series: [
@@ -340,8 +379,8 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createEnterpriseChart,
-                thinWaterfall(['horizontal', 'vertical']) as any,
-                thinWaterfall('vertical') as any
+                thinWaterfall(['horizontal', 'vertical']),
+                thinWaterfall('vertical')
             );
         });
 
@@ -382,16 +421,10 @@ describe('label collision avoidance', () => {
             { x: 'B', y: 5, name: 'S1' },
         ];
 
-        const visibleLabelBoxes = (series: {
-            labelSelection: { nodes(): { visible: boolean; computeBBox(): Box | undefined }[] };
-        }) =>
-            series.labelSelection
-                .nodes()
-                .filter((node) => node.visible)
-                .map((node) => node.computeBBox())
-                .filter((box): box is Box => box != null);
+        const visibleLabelBoxes = (seriesIndex: number): Box[] =>
+            visibleLabelNodes(seriesIndex).map((node) => node.getBBox());
 
-        const options = (): any => ({
+        const options = (): AgChartOptions => ({
             legend: { enabled: false },
             axes: { x: { type: 'category' }, y: { type: 'number' } },
             series: [
@@ -423,11 +456,9 @@ describe('label collision avoidance', () => {
         });
 
         it('drops a hideable scatter label overlapping a range-bar baked label', async () => {
-            const opts = options();
-            chart = deproxy(await createEnterpriseChart(opts));
-            const [rangeBar, scatter] = chart.series as unknown as Parameters<typeof visibleLabelBoxes>[0][];
-            const rangeBarBoxes = visibleLabelBoxes(rangeBar);
-            const scatterBoxes = visibleLabelBoxes(scatter);
+            chart = await createEnterpriseChart(options());
+            const rangeBarBoxes = visibleLabelBoxes(0);
+            const scatterBoxes = visibleLabelBoxes(1);
             expect(rangeBarBoxes.length).toBeGreaterThan(0);
             expect(scatterBoxes.length).toBeGreaterThan(0);
             // A hideable scatter label must never remain visible on top of a range-bar's baked label.
@@ -442,7 +473,7 @@ describe('label collision avoidance', () => {
     describe('waterfall series-level labels take part in collision avoidance', () => {
         // The same configuration written at `series.label` rather than per item type must reach
         // collision avoidance on identical terms — same visible labels, same geometry.
-        const options = (label: object, atSeriesLevel: boolean): any => ({
+        const options = (label: AgWaterfallSeriesOptions['label'], atSeriesLevel: boolean): AgChartOptions => ({
             data: [
                 { x: 'A', y: 10 },
                 { x: 'B', y: -4 },
@@ -462,22 +493,17 @@ describe('label collision avoidance', () => {
             ],
         });
 
-        const renderLabelBoxes = async (label: object, atSeriesLevel: boolean) => {
-            const opts = options(label, atSeriesLevel);
-            chart = deproxy(await createEnterpriseChart(opts as AgChartOptions));
-            const series = chart.series[0] as unknown as {
-                labelSelection: { nodes(): { visible: boolean; x: number; y: number; text: string }[] };
-            };
-            const boxes = series.labelSelection
-                .nodes()
-                .filter((node) => node.visible)
-                .map(({ x, y, text }) => ({ x, y, text }));
+        const renderLabelBoxes = async (
+            label: CollisionLabel<AgWaterfallSeriesOptions['label']>,
+            atSeriesLevel: boolean
+        ) => {
+            chart = await createEnterpriseChart(options(label, atSeriesLevel));
+            const boxes = visibleLabelNodes().map(({ x, y, text }) => ({ x, y, text }));
             chart.destroy();
-            (chart as unknown) = undefined;
             return boxes;
         };
 
-        it.each([
+        it.each<[string, CollisionLabel<AgWaterfallSeriesOptions['label']>]>([
             [
                 'kept by alwaysShow',
                 { enabled: true, collision: { alwaysShow: true, collideWith: { seriesArea: true } } },
@@ -514,7 +540,10 @@ describe('label collision avoidance', () => {
     describe('waterfall placement cascade and own-label hiding', () => {
         // The bar's `outside-end` label overflows the series area, so series-area avoidance must
         // drop a single-placement label and cascade a placement array to an inside candidate.
-        const options = (collision: object, placement: string | string[] = 'outside-end'): any => ({
+        const options = (
+            collision: CollisionOptions,
+            placement: AgWaterfallSeriesLabelPlacement | AgWaterfallSeriesLabelPlacement[] = 'outside-end'
+        ): AgChartOptions => ({
             data: [{ x: 'A', y: 10 }],
             legend: { enabled: false },
             padding: { top: 100, right: 10, bottom: 10, left: 10 },
@@ -555,7 +584,7 @@ describe('label collision avoidance', () => {
         // Only an inside-only placement binds label text to the bar rect; a cascade with a fallback must not.
         it('keeps full text and cascades an oversized inside-first label to the outside fallback', async () => {
             // A very short bar whose long label cannot fit inside.
-            const opts: any = {
+            chart = await createEnterpriseChart({
                 data: [{ x: 'A', y: 1 }],
                 legend: { enabled: false },
                 padding: { top: 100, right: 100, bottom: 10, left: 100 },
@@ -577,19 +606,15 @@ describe('label collision avoidance', () => {
                         },
                     },
                 ],
-            };
-            chart = deproxy(await createEnterpriseChart(opts));
-            const series = chart.series[0] as unknown as {
-                labelSelection: { nodes(): { visible: boolean; datum: { label?: { placement?: string } } }[] };
-            };
-            const labels = series.labelSelection.nodes().filter((node) => node.visible);
+            });
+            const labels = visibleLabelNodes<{ label?: { placement?: string } }>();
             expect(labels).toHaveLength(1);
             expect(labels[0].datum.label?.placement).toBe('outside-end');
         });
 
         // Bars sized to cover each outcome: outside-end fits, overflows and cascades inside, or is too wide inside.
-        const multiBarCascade = (label: object) => {
-            const barLabel = {
+        const multiBarCascade = (label: AgWaterfallSeriesOptions['label']): AgChartOptions => {
+            const barLabel: CollisionLabel<AgWaterfallSeriesOptions['label']> = {
                 enabled: true,
                 placement: ['outside-end', 'inside-center'],
                 collision: { alwaysShow: false, collideWith: { seriesArea: true } },
@@ -638,7 +663,10 @@ describe('label collision avoidance', () => {
     describe('range-bar per-label placement cascade and hiding', () => {
         // The bar's high end sits at the axis max, so its `outside` label overflows the top series-area
         // padding band; the low end sits mid-plot with room, so its `outside` label clears it.
-        const options = (collision: object, placement: string | string[] = 'outside'): any => ({
+        const options = (
+            collision: CollisionOptions,
+            placement: AgRangeBarSeriesLabelPlacement | AgRangeBarSeriesLabelPlacement[] = 'outside'
+        ): AgChartOptions => ({
             data: [{ x: 'A', low: 2, high: 10 }],
             legend: { enabled: false },
             padding: { top: 100, right: 10, bottom: 10, left: 10 },
@@ -677,34 +705,30 @@ describe('label collision avoidance', () => {
         });
 
         // One render, every outcome: A keeps both outside, B's high end cascades inside, C's high label is dropped.
-        const multiBarCascade = (label: object) => ({
-            data: [
-                { x: 'A', low: 2, high: 6 },
-                { x: 'B', low: 1, high: 10 },
-                { x: 'C', low: 1, high: 10 },
-            ],
-            legend: { enabled: false },
-            padding: { top: 60, right: 10, bottom: 10, left: 10 },
-            axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10 } },
-            series: [
-                {
-                    type: 'range-bar',
-                    xKey: 'x',
-                    yLowKey: 'low',
-                    yHighKey: 'high',
-                    label: {
-                        enabled: true,
-                        // Range-bar labels default to white (usually drawn inside the bar); force a dark
-                        // colour so the outside labels are legible against the plot background too.
-                        color: 'black',
-                        formatter: ({ datum }: any) => (datum.x === 'C' ? 'WWWWWWWWWWWWWWWWWWWW' : undefined),
-                        placement: ['outside', 'inside'],
-                        collision: { alwaysShow: false, collideWith: { seriesArea: true } },
-                        ...label,
-                    },
-                },
-            ],
-        });
+        const multiBarCascade = (label: AgRangeBarSeriesOptions['label']): AgChartOptions => {
+            const barLabel: CollisionLabel<AgRangeBarSeriesOptions['label']> = {
+                enabled: true,
+                // Range-bar labels default to white (usually drawn inside the bar); force a dark
+                // colour so the outside labels are legible against the series area background too.
+                color: 'black',
+                formatter: ({ datum }: { datum: { x: string } }) =>
+                    datum.x === 'C' ? 'WWWWWWWWWWWWWWWWWWWW' : undefined,
+                placement: ['outside', 'inside'],
+                collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                ...label,
+            };
+            return {
+                data: [
+                    { x: 'A', low: 2, high: 6 },
+                    { x: 'B', low: 1, high: 10 },
+                    { x: 'C', low: 1, high: 10 },
+                ],
+                legend: { enabled: false },
+                padding: { top: 60, right: 10, bottom: 10, left: 10 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10 } },
+                series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'low', yHighKey: 'high', label: barLabel }],
+            };
+        };
 
         // A placement array turns truncation on, so bar C's oversized high label is ellipsised into the
         // candidate that keeps the most of it rather than dropped.
@@ -720,20 +744,15 @@ describe('label collision avoidance', () => {
     });
 
     describe('range-bar sibling-label collision (shared bar rect)', () => {
-        const visibleLabels = (series: {
-            labelSelection: {
-                nodes(): { visible: boolean; datum: { placement?: string }; computeBBox(): Box | undefined }[];
-            };
-        }) =>
-            series.labelSelection
-                .nodes()
-                .filter((node) => node.visible)
-                .map((node) => ({ placement: node.datum.placement, box: node.computeBBox() }))
-                .filter((label): label is { placement: string | undefined; box: Box } => label.box != null);
+        const visibleLabels = () =>
+            visibleLabelNodes<{ placement?: string }>().map((node) => ({
+                placement: node.datum.placement,
+                box: node.getBBox(),
+            }));
 
         // The bar is tall enough to hold one end label, so the sibling obstacle — not fit alone — drives the cascade.
         it('cascades one sibling label outside instead of dropping or overlapping it inside', async () => {
-            const opts: any = {
+            chart = await createEnterpriseChart({
                 data: [{ x: 'A', low: 47, high: 53 }],
                 legend: { enabled: false },
                 axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
@@ -743,13 +762,15 @@ describe('label collision avoidance', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        label: { enabled: true, placement: ['inside', 'outside'], collision: { alwaysShow: false } },
+                        label: {
+                            enabled: true,
+                            placement: ['inside', 'outside'],
+                            collision: { alwaysShow: false },
+                        },
                     },
                 ],
-            };
-            chart = deproxy(await createEnterpriseChart(opts));
-            const series = chart.series[0] as unknown as Parameters<typeof visibleLabels>[0];
-            const labels = visibleLabels(series);
+            });
+            const labels = visibleLabels();
             // Anti-vacuous guard: both end labels must stay visible (neither hidden for failing inside).
             expect(labels.length).toBe(2);
             expect(overlaps(labels[0].box, labels[1].box)).toBe(false);
@@ -783,23 +804,17 @@ describe('label collision avoidance', () => {
 
     describe('range-bar reversed value axis', () => {
         // A reversed value axis puts low at the top of the bar, so the low label must render above the high label.
-        const reversedLabelEnds = async (label: object) => {
-            const opts: any = {
+        const reversedLabelEnds = async (label: AgRangeBarSeriesOptions['label']) => {
+            chart = await createEnterpriseChart({
                 data: [{ x: 'A', low: 2, high: 8 }],
                 legend: { enabled: false },
                 padding: { top: 60, right: 40, bottom: 60, left: 40 },
                 axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10, reverse: true } },
                 series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'low', yHighKey: 'high', label }],
-            };
-            chart = deproxy(await createEnterpriseChart(opts));
-            const series = chart.series[0] as unknown as {
-                labelSelection: {
-                    nodes(): { visible: boolean; datum: { itemType: string }; computeBBox(): Box | undefined }[];
-                };
-            };
-            const nodes = series.labelSelection.nodes().filter((node) => node.visible);
-            const low = nodes.find((node) => node.datum.itemType === 'low')?.computeBBox();
-            const high = nodes.find((node) => node.datum.itemType === 'high')?.computeBBox();
+            });
+            const nodes = visibleLabelNodes<{ itemType: string }>();
+            const low = nodes.find((node) => node.datum.itemType === 'low')?.getBBox();
+            const high = nodes.find((node) => node.datum.itemType === 'high')?.getBBox();
             return { low, high };
         };
 
@@ -824,11 +839,8 @@ describe('label collision avoidance', () => {
 
     // Range-area labels are point-anchored, so `outside`/`inside` map per datum onto compass directions.
     describe('range-area label placement', () => {
-        type LabelNode = {
-            visible: boolean;
-            datum: { itemType: string; placement?: string; valueSide: string };
-            computeBBox(): Box | undefined;
-        };
+        /** The datum a range-area label is drawn for. */
+        type LabelDatum = { itemType: string; placement?: string; valueSide: string };
         /** A visible label node's resolved placement, band side, and rendered box. */
         type PlacedLabelInfo = { placement?: string; side: string; box: Box };
         /** Range-area's engine output, in the plot-local coordinates its anchor points also use. */
@@ -838,24 +850,19 @@ describe('label collision avoidance', () => {
             placement?: string;
             datum: { itemType: string; point: { y: number } };
         };
-        const placedLabelData = (): RangeAreaPlacedLabel[] => chart.series[0].placedLabelData;
+        const placedLabelData = () => getPlacedLabelData<RangeAreaPlacedLabel>(chart);
 
-        const placedLabels = async (options: object): Promise<PlacedLabelInfo[]> => {
+        const placedLabels = async (options: AgChartOptions): Promise<PlacedLabelInfo[]> => {
             chart?.destroy();
-            const opts = options as AgChartOptions;
-            chart = deproxy(await createEnterpriseChart(opts));
-            const series = chart.series[0] as unknown as { labelSelection: { nodes(): LabelNode[] } };
-            const labels: PlacedLabelInfo[] = [];
-            for (const node of series.labelSelection.nodes()) {
-                const box = node.visible ? node.computeBBox() : undefined;
-                if (box != null) {
-                    labels.push({ placement: node.datum.placement, side: node.datum.valueSide, box });
-                }
-            }
-            return labels;
+            chart = await createEnterpriseChart(options);
+            return visibleLabelNodes<LabelDatum>().map((node) => ({
+                placement: node.datum.placement,
+                side: node.datum.valueSide,
+                box: node.getBBox(),
+            }));
         };
 
-        const narrowBand = (label: object) => ({
+        const narrowBand = (label: AgRangeAreaSeriesOptions['label']): AgChartOptions => ({
             data: [{ x: 'A', low: 46, high: 54 }],
             legend: { enabled: false },
             padding: { top: 40, right: 40, bottom: 20, left: 40 },
@@ -878,7 +885,7 @@ describe('label collision avoidance', () => {
         });
 
         // A dense band of long labels: every candidate collides, so `alwaysShow` decides the outcome.
-        const crowded = (collision: object) => ({
+        const crowded = (collision: AgChartLabelCollisionOptions): AgChartOptions => ({
             data: Array.from({ length: 12 }, (_, i) => ({ x: `Category ${i}`, low: 40 + i, high: 44 + i })),
             legend: { enabled: false },
             axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
@@ -970,7 +977,10 @@ describe('label collision avoidance', () => {
                     },
                 ],
             });
-            expect(topLabelAnchorGap(chart.series[0] as PlacedLabelGeometry)).toBeCloseTo(markerSize / 2 + spacing, 5);
+            expect(topLabelAnchorGap({ placedLabelData: getPlacedLabelData(chart) })).toBeCloseTo(
+                markerSize / 2 + spacing,
+                5
+            );
         });
 
         it('reports the resolved coarse placement to the label itemStyler', async () => {
@@ -993,7 +1003,9 @@ describe('label collision avoidance', () => {
         // These pin what renders, not just the resolved placement, so a label drawn in the wrong spot still fails.
         describe('rendered placement fallback', () => {
             // Bands narrow enough that the two end labels cannot both sit inside at the theme's spacing.
-            const cascadeBands = (placement: string | string[]) => ({
+            const cascadeBands = (
+                placement: AgRangeAreaSeriesLabelPlacement | AgRangeAreaSeriesLabelPlacement[]
+            ): AgChartOptions => ({
                 data: [
                     { x: 'A', low: 46, high: 54 },
                     { x: 'B', low: 44, high: 56 },
@@ -1075,29 +1087,34 @@ describe('label collision avoidance', () => {
 
         type LabelDatum = { x: number; y: number; placement?: string; hidden?: boolean; text: unknown };
 
-        const labelDatums = (): LabelDatum[] => chart.series[0].contextNodeData.labelData;
+        const labelDatums = () => getSeriesContextNodeData<unknown, LabelDatum>(chart).labelData;
 
-        const labelNodes = (): { visible: boolean; fill: string; text: unknown }[] =>
-            chart.series[0].labelSelection.nodes();
+        const labelNodes = () => getSeriesSelectionNodes<Text>(chart, 'labelSelection');
 
-        const render = async (options: object) => {
+        type StageChartOptions = { axes?: AgCartesianChartOptions['axes']; enableRtl?: boolean };
+
+        const render = async (options: AgChartOptions) => {
             chart?.destroy();
-            chart = deproxy(await createEnterpriseChart(options as AgChartOptions));
+            chart = await createEnterpriseChart(options);
         };
 
         /** Every stage's label anchor and resolved placement, in stage order. */
-        const anchors = async (options: object) => {
+        const anchors = async (options: AgChartOptions) => {
             await render(options);
             return labelDatums().map(({ x, y, placement, hidden }) => ({ x, y, placement, hidden }));
         };
 
-        const visibleCount = async (options: object) => {
+        const visibleCount = async (options: AgChartOptions) => {
             await render(options);
             return labelNodes().filter((node) => node.visible).length;
         };
 
         describe('funnel', () => {
-            const options = (label: object = {}, series: object = {}, chartOptions: object = {}): any => ({
+            const options = (
+                label: CollisionLabel<AgFunnelSeriesOptions['label']> = {},
+                series: Partial<AgFunnelSeriesOptions> = {},
+                chartOptions: StageChartOptions = {}
+            ): AgChartOptions => ({
                 data: stageData,
                 legend: { enabled: false },
                 padding: { top: 40, right: 80, bottom: 40, left: 80 },
@@ -1113,7 +1130,7 @@ describe('label collision avoidance', () => {
                 ...chartOptions,
             });
 
-            const categoryAxes = (reverse: boolean) => ({
+            const categoryAxes = (reverse: boolean): AgCartesianChartOptions['axes'] => ({
                 x: { type: 'number' },
                 y: { type: 'category', reverse },
             });
@@ -1183,8 +1200,7 @@ describe('label collision avoidance', () => {
                 }
             });
 
-            const bars = (): { x: number; y: number; width: number; height: number }[] =>
-                chart.series[0].contextNodeData.nodeData;
+            const bars = () => getSeriesContextNodeData<Box>(chart).nodeData;
 
             it('places before and after either side of the bar, across the value axis', async () => {
                 const outsideBefore = await anchors(options({ placement: 'outside-before' }));
@@ -1353,7 +1369,7 @@ describe('label collision avoidance', () => {
         });
 
         describe('cone funnel', () => {
-            const CONE_PLACEMENTS = [
+            const CONE_PLACEMENTS: AgConeFunnelSeriesLabelPlacement[] = [
                 'start-before',
                 'start-center',
                 'start-after',
@@ -1365,7 +1381,11 @@ describe('label collision avoidance', () => {
                 'end-after',
             ];
 
-            const options = (label: object = {}, series: object = {}, chartOptions: object = {}): any => ({
+            const options = (
+                label: CollisionLabel<AgConeFunnelSeriesOptions['label']> = {},
+                series: Partial<AgConeFunnelSeriesOptions> = {},
+                chartOptions: StageChartOptions = {}
+            ): AgChartOptions => ({
                 data: stageData,
                 legend: { enabled: false },
                 padding: { top: 40, right: 80, bottom: 40, left: 80 },
@@ -1413,7 +1433,7 @@ describe('label collision avoidance', () => {
             });
 
             it('mirrors start and end, but not before and after, under RTL when the dividers span the vertical axis', async () => {
-                const horizontal = (chartOptions: object = {}) =>
+                const horizontal = (chartOptions: StageChartOptions = {}) =>
                     options({ placement: 'start-before' }, { direction: 'horizontal' }, chartOptions);
                 const ltr = await anchors(horizontal());
                 const rtl = await anchors(horizontal({ enableRtl: true }));
@@ -1426,7 +1446,8 @@ describe('label collision avoidance', () => {
             });
 
             it('runs before to after down a vertical divider', async () => {
-                const along = (placement: string) => anchors(options({ placement }, { direction: 'horizontal' }));
+                const along = (placement: AgConeFunnelSeriesLabelPlacement) =>
+                    anchors(options({ placement }, { direction: 'horizontal' }));
                 const before = await along('start-before');
                 const after = await along('start-after');
 
@@ -1436,7 +1457,7 @@ describe('label collision avoidance', () => {
                 }
             });
 
-            it.each([
+            it.each<[AgConeFunnelSeriesLabelPlacementAlias, AgConeFunnelSeriesLabelPlacement]>([
                 ['before', 'start-center'],
                 ['middle', 'middle-center'],
                 ['after', 'end-center'],
@@ -1466,7 +1487,11 @@ describe('label collision avoidance', () => {
         });
 
         describe('pyramid', () => {
-            const options = (label: object = {}, series: object = {}, chartOptions: object = {}): any => ({
+            const options = (
+                label: CollisionLabel<AgPyramidSeriesOptions['label']> = {},
+                series: Partial<AgPyramidSeriesOptions> = {},
+                chartOptions: StageChartOptions = {}
+            ): AgChartOptions => ({
                 data: stageData,
                 legend: { enabled: false },
                 padding: { top: 40, right: 80, bottom: 40, left: 80 },
@@ -1482,8 +1507,7 @@ describe('label collision avoidance', () => {
                 ...chartOptions,
             });
 
-            const stageLabels = (): { x: number; y: number; text: unknown }[] =>
-                chart.series[0].stageLabelSelection.nodes();
+            const stageLabels = () => getEnterpriseSelectionNodes<Text>(chart, 'stageLabelSelection');
 
             it('renders the theme default exactly as an explicit inside-center placement', async () => {
                 await expectPixelIdenticalAcrossUpdate(
@@ -1533,14 +1557,15 @@ describe('label collision avoidance', () => {
                 }
             });
 
-            const stageNodes = (): {
-                x: number;
-                y: number;
-                top: number;
-                right: number;
-                bottom: number;
-                left: number;
-            }[] => chart.series[0].contextNodeData.nodeData;
+            const stageNodes = () =>
+                getSeriesContextNodeData<{
+                    x: number;
+                    y: number;
+                    top: number;
+                    right: number;
+                    bottom: number;
+                    left: number;
+                }>(chart).nodeData;
 
             it('places before and after either side of the stage, across the value axis', async () => {
                 const outsideBefore = await anchors(options({ placement: 'outside-before' }));
@@ -1602,7 +1627,7 @@ describe('label collision avoidance', () => {
 
             it('anchors a centred value label on the centre of its stage', async () => {
                 const labels = await anchors(options({ placement: 'inside-center' }));
-                const stages = chart.series[0].contextNodeData.nodeData;
+                const stages = getSeriesContextNodeData<{ x: number; y: number }>(chart).nodeData;
 
                 for (const [index, label] of labels.entries()) {
                     expect(label.x).toBeCloseTo(stages[index].x);
@@ -1640,13 +1665,15 @@ describe('label collision avoidance', () => {
             { from: 'Another long interior label here', to: 'Gamma destination', size: 6 },
             { from: 'Gamma destination', to: 'Delta end of the long flow', size: 16 },
         ];
-        const options = (label: object) => ({
+        const options = (label: AgSankeySeriesOptions['label']): AgChartOptions => ({
             data,
             series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
         });
-        type LabelNode = { visible: boolean; text: string; getBBox(): Box };
+        // The text of a drawn label is a string for the plain labels this series draws.
         const drawnLabels = () =>
-            (chart.series[0].labelSelection.nodes() as LabelNode[]).filter((node) => node.visible && node.text !== '');
+            visibleLabelNodes()
+                .filter((node) => node.text !== '')
+                .map((node) => ({ text: String(node.text), getBBox: () => node.getBBox() }));
         const overlappingPairs = () => {
             const boxes = drawnLabels().map((node) => node.getBBox());
             let pairs = 0;
@@ -1658,13 +1685,16 @@ describe('label collision avoidance', () => {
             return pairs;
         };
         // Bespoke: the size is set after preparation, which the factory would overwrite with the default canvas size.
-        const render = async (opts: object, width = 520, height = 360) => {
+        const render = async (opts: AgChartOptions, width = 520, height = 360) => {
             chart?.destroy();
-            prepareEnterpriseTestOptions(opts as AgChartOptions);
-            chart = deproxy(AgCharts.create({ ...opts, width, height } as AgChartOptions));
+            prepareEnterpriseTestOptions(opts);
+            chart = AgCharts.create({ ...opts, width, height });
             await waitForChartStability(chart);
         };
-        const plunker = () => ({ ...options({ placement: 'center' }), title: { text: 'Centre placement' } });
+        const plunker = (): AgChartOptions => ({
+            ...options({ placement: 'center' }),
+            title: { text: 'Centre placement' },
+        });
         const interiorText = () => drawnLabels().find((node) => node.text.startsWith('An interior'))?.text;
 
         it('runs a label past its column even when it cannot run past whole', async () => {
@@ -1703,7 +1733,7 @@ describe('label collision avoidance', () => {
         });
 
         describe('collision threshold', () => {
-            const lone = (collision: object) => ({
+            const lone = (collision: AgChartLabelCollisionOptions): AgChartOptions => ({
                 data: [{ from: 'A long source name', to: 'A long destination name', size: 1 }],
                 series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label: { collision } }],
             });
@@ -1735,7 +1765,7 @@ describe('label collision avoidance', () => {
         describe('when a label cannot shrink clear of a collision', () => {
             const colliding = 'An interior node with a very long label';
             const shortSource = data.map((d) => (d.from.startsWith('Alpha') ? { ...d, from: 'Alpha source' } : d));
-            const unshrinkable = (collision: object) => ({
+            const unshrinkable = (collision: AgChartLabelCollisionOptions): AgChartOptions => ({
                 ...options({ placement: 'center', wrapping: 'never', truncate: false, collision }),
                 data: shortSource,
             });

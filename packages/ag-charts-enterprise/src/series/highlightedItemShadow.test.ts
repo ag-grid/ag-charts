@@ -1,9 +1,18 @@
-import { type Mock, afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-community';
+import type {
+    AgChartInstance,
+    AgChartOptions,
+    AgDropShadowOptions,
+    AgMapShapeSeriesOptions,
+} from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     deproxy,
+    getSeriesAt,
+    getSeriesNodeData,
+    getSeriesOptions,
+    getSeriesSelectionNodes,
     legendHighlight,
     setupMockCanvas,
     setupMockConsole,
@@ -12,36 +21,54 @@ import {
 import { RadialColumnShape, Rect, Sector } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
+import {
+    type EnterpriseSelectionName,
+    getEnterpriseSelectionNodes,
+    getFlowLinkData,
+    getFlowNodeData,
+    getSeriesGroup,
+} from '../test/enterpriseSeriesAccessors';
+import { getHierarchyRootNode } from '../test/seriesAccessors';
 import { HIERARCHY_SHADOW_DATA, HIGHLIGHT_SHADOW, SHADOW, collectShapes, createEnterpriseChart } from '../test/utils';
 import { BoxPlotNode } from './box-plot/boxPlotNode';
 import { CandlestickNode } from './candlestick/candlestickNode';
 import { ChordLink } from './chord/chordLink';
-import { FlowProportionDatumType } from './flow-proportion/flowDatumIndex';
 import { FunnelConnector } from './funnel/funnelConnector';
+import type { HierarchyNode } from './hierarchy/hierarchySeries';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
 import { GeoGeometry } from './map-util/geoGeometry';
 import { OhlcNode } from './ohlc/ohlcNode';
 import { SankeyLink } from './sankey/sankeyLink';
 
+type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;
+
 type Shadow = typeof SHADOW;
+
+/** The options of a series of any chart kind, which is what a case's `series` builds. */
+type AnySeriesOptions = NonNullable<AgChartOptions['series']>[number];
+
+/** The `highlight` option of a series: the cases only ever set the shadow of the highlighted item. */
+interface HighlightOptions {
+    highlightedItem?: { shadow?: AgDropShadowOptions };
+}
 
 interface SeriesCase {
     name: string;
     /** The series options, with `shadow` placed where this series reads it from. */
-    series: (shadow: Shadow | undefined, highlight: object) => object;
+    series: (shadow: Shadow | undefined, highlight: HighlightOptions) => AnySeriesOptions;
     data: object[];
     /** The exact shape class that casts the shadow, so labels, lines and subclasses like sankey links are left out. */
-    kind: abstract new (...args: any[]) => Shape;
+    kind: abstract new (...args: never[]) => Shape;
     chartOptions?: object;
     /** The in-place and highlight-layer shapes, for series that keep both copies of an item in one group. */
-    layers?: (series: any) => { inPlace: Shape[]; highlighted: Shape[] };
+    layers?: (chart: AgChartInstance) => { inPlace: Shape[]; highlighted: Shape[] };
     /** How many copies of the hovered item the highlight layer draws; range-area lights both its low and high marker. */
     hoveredCopies?: number;
     /** The datum to hover; defaults to the first of the series' node data. */
-    hover?: (series: any) => unknown;
+    hover?: (chart: AgChartInstance) => HighlightNodeDatum | undefined;
     /** A second datum of the same kind to move the hover to; defaults to the first node datum of another item. */
-    hoverNext?: (series: any) => unknown;
+    hoverNext?: (chart: AgChartInstance) => HighlightNodeDatum | undefined;
 }
 
 const FLOW_DATA = [
@@ -50,45 +77,47 @@ const FLOW_DATA = [
     { from: 'B', to: 'C', size: 5 },
     { from: 'B', to: 'D', size: 7 },
 ];
-const FIRST_LEAF = (series: any) => {
-    let node = series.rootNode;
-    while (node.children?.length) node = node.children[0];
+// The root of the tree the hierarchy series laid out; a series that has not laid out fails here, not on a later read.
+const hierarchyRoot = (chart: AgChartInstance): HierarchyNode => {
+    const root = getHierarchyRootNode(chart);
+    if (root == null) throw new Error('the hierarchy series has no root node');
+    return root;
+};
+const FIRST_LEAF = (chart: AgChartInstance) => {
+    let node = hierarchyRoot(chart);
+    while (node.children.length > 0) node = node.children[0];
     return node;
 };
-const SECOND_LEAF = (series: any) => {
-    const leaves: any[] = [];
-    for (const node of series.rootNode) if (node.children.length === 0) leaves.push(node);
+const SECOND_LEAF = (chart: AgChartInstance) => {
+    const leaves: HierarchyNode[] = [];
+    for (const node of hierarchyRoot(chart)) if (node.children.length === 0) leaves.push(node);
     return leaves[1];
 };
-const FIRST_GROUP = (series: any) => series.rootNode.children[0];
-const SECOND_GROUP = (series: any) => series.rootNode.children[0].children[0];
-const SELECTION_LAYERS = (series: any) => ({
-    inPlace: [...series.datumSelection.nodes()] as Shape[],
-    highlighted: [...series.highlightSelection.nodes()] as Shape[],
+const FIRST_GROUP = (chart: AgChartInstance) => hierarchyRoot(chart).children[0];
+const SECOND_GROUP = (chart: AgChartInstance) => hierarchyRoot(chart).children[0].children[0];
+const SELECTION_LAYERS = (chart: AgChartInstance) => ({
+    inPlace: getSeriesSelectionNodes<Shape>(chart, 'datumSelection'),
+    highlighted: getSeriesSelectionNodes<Shape>(chart, 'highlightSelection'),
 });
 // Only groups cast in the group case, so the leaf rects that share the selection are left out.
-const GROUP_LAYERS = (series: any) => {
-    const groups = (selection: any) => {
-        const nodes: Shape[] = [];
-        selection.each((node: Shape, datum: any) => {
-            if (datum.children.length > 0) nodes.push(node);
-        });
-        return nodes;
-    };
-    return { inPlace: groups(series.datumSelection), highlighted: groups(series.highlightSelection) };
+const GROUP_LAYERS = (chart: AgChartInstance) => {
+    const groups = (name: 'datumSelection' | 'highlightSelection') =>
+        getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name).filter((node) => node.datum?.hasChildren);
+    return { inPlace: groups('datumSelection'), highlighted: groups('highlightSelection') };
 };
 // A flow series redraws the hovered item's neighbours on a focus layer; the highlight layer holds the item itself,
 // as a node or as a link.
-const FLOW_LAYERS = (series: any) => ({
-    inPlace: collectShapes(series.contentGroup),
-    highlighted: [...collectShapes(series.highlightNodeGroup), ...collectShapes(series.highlightLinkGroup)],
+const FLOW_LAYERS = (chart: AgChartInstance) => ({
+    inPlace: collectShapes(getSeriesAt(chart).contentGroup),
+    highlighted: [
+        ...collectShapes(getSeriesGroup(chart, 'highlightNodeGroup')),
+        ...collectShapes(getSeriesGroup(chart, 'highlightLinkGroup')),
+    ],
 });
-const flowData = (type: FlowProportionDatumType) => (series: any) =>
-    series.contextNodeData.nodeData.filter((datum: any) => datum.type === type);
-const FLOW_NODE = (series: any) => flowData(FlowProportionDatumType.Node)(series)[0];
-const SECOND_FLOW_NODE = (series: any) => flowData(FlowProportionDatumType.Node)(series)[1];
-const FLOW_LINK = (series: any) => flowData(FlowProportionDatumType.Link)(series)[0];
-const SECOND_FLOW_LINK = (series: any) => flowData(FlowProportionDatumType.Link)(series)[1];
+const FLOW_NODE = (chart: AgChartInstance) => getFlowNodeData(chart)[0];
+const SECOND_FLOW_NODE = (chart: AgChartInstance) => getFlowNodeData(chart)[1];
+const FLOW_LINK = (chart: AgChartInstance) => getFlowLinkData(chart)[0];
+const SECOND_FLOW_LINK = (chart: AgChartInstance) => getFlowLinkData(chart)[1];
 
 const STAGE_DATA = [
     { stage: 'Visits', value: 100 },
@@ -398,58 +427,77 @@ describe('highlightedItem.shadow (enterprise series)', () => {
     setupMockConsole();
     const canvasCtx = setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         chart?.destroy();
-        chart = undefined;
     });
 
     const casts = (shape: Shape) => shape.fillShadow?.enabled === true;
 
     /** The visible in-place and highlight-layer shapes that cast (or would cast) the series' shadow. */
-    const layersOf = (testCase: SeriesCase, series: any) => {
+    const layersOf = (testCase: SeriesCase) => {
+        // A node's constructor is typed `Function`, which has no overlap with the class type of the case.
         const drawn = (shapes: Iterable<Shape>) =>
-            [...shapes].filter((shape) => shape.constructor === testCase.kind && shape.visible);
+            [...shapes].filter((shape) => (shape.constructor as unknown) === testCase.kind && shape.visible);
         if (testCase.layers) {
-            const { inPlace, highlighted } = testCase.layers(series);
+            const { inPlace, highlighted } = testCase.layers(chart);
             return { inPlace: drawn(inPlace), highlighted: drawn(highlighted) };
         }
+        const series = getSeriesAt(chart);
         return {
             inPlace: drawn(collectShapes(series.contentGroup)),
             highlighted: drawn(collectShapes(series.highlightGroup)),
         };
     };
 
-    const hoverItem = async (
+    /** Raises the highlight on `datum` (or clears it) as the pointer would. */
+    const highlight = (datum?: HighlightNodeDatum) => {
+        const { ctx, id } = deproxy(chart);
+        ctx.highlightManager.updateHighlight(id, datum);
+    };
+
+    /** The chart options of a case; the case's series is the only one the chart has. */
+    const caseOptions = (
         testCase: SeriesCase,
         shadow: Shadow | undefined,
-        highlight: object = {},
-        drawingMode: 'cutout' | 'overlay' = 'cutout',
-        via: 'item' | 'legend' = 'item'
-    ) => {
-        const options = {
+        highlightOptions: HighlightOptions,
+        extra: object
+    ) =>
+        // The series of a case belongs to one chart kind, which a union of every chart kind's options cannot say.
+        ({
             data: testCase.data,
             animation: { enabled: false },
             legend: { enabled: false },
-            highlight: { drawingMode },
+            ...extra,
             ...testCase.chartOptions,
-            series: [testCase.series(shadow, highlight)],
-        } as AgChartOptions;
-        chart = deproxy(await createEnterpriseChart(options));
+            series: [testCase.series(shadow, highlightOptions)],
+        }) as AgChartOptions;
 
-        const [series] = chart.series;
-        const { inPlace: inPlaceBefore } = layersOf(testCase, series);
+    const hoverItem = async (
+        testCase: SeriesCase,
+        shadow: Shadow | undefined,
+        highlightOptions: HighlightOptions = {},
+        drawingMode: 'cutout' | 'overlay' = 'cutout',
+        via: 'item' | 'legend' = 'item'
+    ) => {
+        chart = await createEnterpriseChart(
+            caseOptions(testCase, shadow, highlightOptions, { highlight: { drawingMode } })
+        );
+
+        const { inPlace: inPlaceBefore } = layersOf(testCase);
         // The shapes are live, so count what they cast now, before the hover changes it.
         const castingBefore = inPlaceBefore.filter(casts).length;
 
         const datum =
-            via === 'legend' ? legendHighlight(series) : (testCase.hover?.(series) ?? series.getNodeData()[0]);
-        if (datum != null) chart.ctx.highlightManager.updateHighlight(chart.id, datum);
+            via === 'legend'
+                ? legendHighlight(getSeriesAt(chart))
+                : (testCase.hover?.(chart) ?? getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
+        if (datum != null) highlight(datum);
         await waitForChartStability(chart);
 
-        const L = layersOf(testCase, series);
-        return { series, inPlaceBefore, castingBefore, ...L };
+        const L = layersOf(testCase);
+        return { inPlaceBefore, castingBefore, ...L };
     };
 
     describe.each(SERIES)('$name', (testCase) => {
@@ -480,37 +528,38 @@ describe('highlightedItem.shadow (enterprise series)', () => {
         });
 
         it('moves the shadow from one hovered item to the next', async () => {
-            const { series, inPlace: hoveredFirst } = await hoverItem(testCase, SHADOW);
+            const { inPlace: hoveredFirst } = await hoverItem(testCase, SHADOW);
             expect(hoveredFirst.filter((shape) => !casts(shape)).length).toBe(testCase.hoveredCopies ?? 1);
 
-            const [first] = [testCase.hover?.(series) ?? series.getNodeData()[0]];
-            const next =
-                testCase.hoverNext?.(series) ??
-                series.getNodeData().find((d: any) => d.datumIndex !== first.datumIndex);
-            chart.ctx.highlightManager.updateHighlight(chart.id, next);
+            const nodeData = () => getSeriesNodeData<HighlightNodeDatum>(chart);
+            const first = testCase.hover?.(chart) ?? nodeData()[0];
+            const next = testCase.hoverNext?.(chart) ?? nodeData().find((d) => d.datumIndex !== first.datumIndex);
+            highlight(next);
             await waitForChartStability(chart);
 
             // The first item casts again, and only the second one's in-place copy is cut out.
-            const { inPlace, highlighted } = layersOf(testCase, series);
+            const { inPlace, highlighted } = layersOf(testCase);
             expect(inPlace.filter((shape) => !casts(shape)).length).toBe(testCase.hoveredCopies ?? 1);
             expect(highlighted.filter(casts).length).toBe(testCase.hoveredCopies ?? 1);
         });
 
         it('restores the in-place shadow when the hover ends', async () => {
-            const { series, inPlaceBefore } = await hoverItem(testCase, SHADOW);
+            const { inPlaceBefore } = await hoverItem(testCase, SHADOW);
 
-            chart.ctx.highlightManager.updateHighlight(chart.id);
+            highlight();
             await waitForChartStability(chart);
 
-            const { inPlace: shapes } = layersOf(testCase, series);
+            const { inPlace: shapes } = layersOf(testCase);
             expect(shapes.length).toBe(inPlaceBefore.length);
             for (const shape of shapes) expect(shape.fillShadow).toMatchObject(SHADOW);
         });
 
         it('has no highlight shadow unless configured', async () => {
-            const { series, inPlaceBefore, inPlace, highlighted } = await hoverItem(testCase, undefined);
+            const { inPlaceBefore, inPlace, highlighted } = await hoverItem(testCase, undefined);
 
-            expect(series.options.highlight?.highlightedItem?.shadow).toBeUndefined();
+            expect(
+                getSeriesOptions<{ highlight?: HighlightOptions }>(chart).highlight?.highlightedItem?.shadow
+            ).toBeUndefined();
             expect([...inPlaceBefore, ...inPlace, ...highlighted].filter(casts).length).toBe(0);
         });
     });
@@ -571,7 +620,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
         // Where the option sits in the path depends on the series: `shadow`, `node.shadow`, `tile.shadow` and so on,
         // and a series that has several shadows, like a waterfall's, warns once for each.
         const expectNegativeSpreadWarnings = (value: number) => {
-            const messages = (console.warn as any).mock.calls.map(([message]: [string]) => message);
+            const messages = vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
             expect(messages.length).toBeGreaterThan(0);
             for (const message of messages) {
                 expect(message).toMatch(
@@ -582,7 +631,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
             }
             // One warning for each shadow, never repeated. Clear them so they are not reported as unexpected.
             expect(new Set(messages).size).toBe(messages.length);
-            (console.warn as Mock).mockClear();
+            vi.mocked(console.warn).mockClear();
         };
 
         it('carries the series shadow spread to the items that cast', async () => {
@@ -657,14 +706,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
         // than the same chart without a shadow. A hover is left out, because it cuts the other items out of their layer.
         const canvasesInUse = async (shadow: Shadow | undefined) => {
             const before = new Set(canvasCtx.getActiveOffscreenCanvasInstances());
-            const options = {
-                data: testCase.data,
-                animation: { enabled: false },
-                legend: { enabled: false },
-                ...testCase.chartOptions,
-                series: [testCase.series(shadow, {})],
-            } as AgChartOptions;
-            chart = deproxy(await createEnterpriseChart(options));
+            chart = await createEnterpriseChart(caseOptions(testCase, shadow, {}, {}));
             return canvasCtx
                 .getActiveOffscreenCanvasInstances()
                 .filter((canvas) => !before.has(canvas) && canvas.width > 0).length;
@@ -682,20 +724,15 @@ describe('highlightedItem.shadow (enterprise series)', () => {
         '$name focus layer',
         (testCase) => {
             // Every copy of the hovered item: in place, on the focus layer beside its neighbours, and highlighted.
-            const copiesOf = (series: any, hovered: unknown) => {
-                const copy = (names: string[]) => {
-                    const shapes: Shape[] = [];
-                    for (const name of names) {
-                        series[name].each((shape: Shape, datum: unknown) => {
-                            if (datum === hovered) shapes.push(shape);
-                        });
-                    }
-                    return shapes;
-                };
+            const copiesOf = (hovered: unknown) => {
+                const copy = (...names: EnterpriseSelectionName[]) =>
+                    names.flatMap((name) =>
+                        getEnterpriseSelectionNodes<Shape>(chart, name).filter((shape) => shape.datum === hovered)
+                    );
                 return {
-                    inPlace: copy(['nodeSelection', 'linkSelection']),
-                    focus: copy(['focusNodeSelection', 'focusLinkSelection']),
-                    highlighted: copy(['highlightNodeSelection', 'highlightLinkSelection']),
+                    inPlace: copy('nodeSelection', 'linkSelection'),
+                    focus: copy('focusNodeSelection', 'focusLinkSelection'),
+                    highlighted: copy('highlightNodeSelection', 'highlightLinkSelection'),
                 };
             };
 
@@ -703,61 +740,62 @@ describe('highlightedItem.shadow (enterprise series)', () => {
                 ['cutout', {}, 'highlighted'],
                 ['overlay', {}, 'inPlace'],
                 ['overlay', { highlightedItem: { shadow: HIGHLIGHT_SHADOW } }, 'highlighted'],
-            ] as const)('casts the hovered item once, in %s mode with %j', async (drawingMode, highlight, caster) => {
-                const { series } = await hoverItem(testCase, SHADOW, highlight, drawingMode);
-                const copies = copiesOf(series, testCase.hover?.(series));
+            ] as const)(
+                'casts the hovered item once, in %s mode with %j',
+                async (drawingMode, highlightOptions, caster) => {
+                    await hoverItem(testCase, SHADOW, highlightOptions, drawingMode);
+                    const copies = copiesOf(testCase.hover?.(chart));
 
-                // The hovered item is drawn in each layer, and exactly one of its copies casts.
-                expect(copies.inPlace.length).toBe(1);
-                expect(copies.focus.length).toBe(1);
-                expect(copies.highlighted.length).toBe(1);
-                expect(copies.focus.filter(casts).length).toBe(0);
-                expect([...copies.inPlace, ...copies.focus, ...copies.highlighted].filter(casts)).toEqual(
-                    copies[caster]
-                );
-            });
+                    // The hovered item is drawn in each layer, and exactly one of its copies casts.
+                    expect(copies.inPlace.length).toBe(1);
+                    expect(copies.focus.length).toBe(1);
+                    expect(copies.highlighted.length).toBe(1);
+                    expect(copies.focus.filter(casts).length).toBe(0);
+                    expect([...copies.inPlace, ...copies.focus, ...copies.highlighted].filter(casts)).toEqual(
+                        copies[caster]
+                    );
+                }
+            );
         }
     );
 
     describe('items the series draws no highlight copy for', () => {
         it('keeps the shadow on a region of a series that shares the hovered series legend item name', async () => {
-            const options = {
+            chart = await createEnterpriseChart({
                 data: ukData,
                 topology: ukTopology,
                 animation: { enabled: false },
                 legend: { enabled: false },
                 highlight: { drawingMode: 'cutout' },
-                series: Array.from({ length: 2 }, () => ({
+                series: Array.from({ length: 2 }, (): AgMapShapeSeriesOptions => ({
                     type: 'map-shape',
                     idKey: 'name',
                     legendItemName: 'Regions',
                     fill: 'steelblue',
                     shadow: SHADOW,
                 })),
-            } as AgChartOptions;
-            chart = deproxy(await createEnterpriseChart(options));
+            });
 
-            const [hoveredSeries, otherSeries] = chart.series;
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredSeries.getNodeData()[0]);
+            highlight(getSeriesNodeData<HighlightNodeDatum>(chart, 0)[0]);
             await waitForChartStability(chart);
 
-            const inPlace = (series: any) =>
-                collectShapes(series.contentGroup).filter(
-                    (shape) => shape.visible && (shape.constructor as unknown) === GeoGeometry
+            const inPlace = (index: number) =>
+                collectShapes(getSeriesAt(chart, index).contentGroup).filter(
+                    (shape) => shape.visible && shape instanceof GeoGeometry
                 );
-            const highlighted = (series: any) =>
-                collectShapes(series.highlightGroup).filter(
-                    (shape) => shape.visible && (shape.constructor as unknown) === GeoGeometry
+            const highlighted = (index: number) =>
+                collectShapes(getSeriesAt(chart, index).highlightGroup).filter(
+                    (shape) => shape.visible && shape instanceof GeoGeometry
                 );
 
             // The hovered series swaps its shadow onto its highlight copy, as in any other series.
-            expect(highlighted(hoveredSeries).filter(casts).length).toBe(1);
-            expect(inPlace(hoveredSeries).filter((shape) => !casts(shape)).length).toBe(1);
+            expect(highlighted(0).filter(casts).length).toBe(1);
+            expect(inPlace(0).filter((shape) => !casts(shape)).length).toBe(1);
 
             // The other series draws no highlight copy, so every region keeps its own shadow.
-            expect(highlighted(otherSeries).length).toBe(0);
-            expect(inPlace(otherSeries).length).toBeGreaterThan(0);
-            for (const shape of inPlace(otherSeries)) expect(shape.fillShadow).toMatchObject(SHADOW);
+            expect(highlighted(1).length).toBe(0);
+            expect(inPlace(1).length).toBeGreaterThan(0);
+            for (const shape of inPlace(1)) expect(shape.fillShadow).toMatchObject(SHADOW);
         });
 
         it('keeps the shadow on a hovered treemap group that is not interactive', async () => {
@@ -767,11 +805,11 @@ describe('highlightedItem.shadow (enterprise series)', () => {
                 kind: Rect,
                 hover: FIRST_GROUP,
                 layers: GROUP_LAYERS,
-                series: (shadow, highlight) => ({
+                series: (shadow, groupHighlight) => ({
                     type: 'treemap',
                     labelKey: 'name',
                     sizeKey: 'size',
-                    group: { shadow, gap: 12, padding: 10, interactive: false, highlight },
+                    group: { shadow, gap: 12, padding: 10, interactive: false, highlight: groupHighlight },
                 }),
             };
             const { inPlace, highlighted } = await hoverItem(testCase, SHADOW);

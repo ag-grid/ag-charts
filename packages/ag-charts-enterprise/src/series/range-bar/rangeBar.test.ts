@@ -7,6 +7,7 @@ import {
     AgCharts,
     type AgRangeBarSeriesItemStylerParams,
     type AgRangeBarSeriesLabelPlacement,
+    type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
     type AgRangeBarSeriesStylerParams,
 } from 'ag-charts-community';
@@ -29,7 +30,6 @@ import {
     clickAction,
     compareImageSnapshot,
     createSceneGeometrySampler,
-    deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectBarCentresOnCategoryGridlines,
     expectBarCentresRenderedOnCategoryGridlines,
@@ -40,6 +40,10 @@ import {
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
     getSeriesAggregationInternals,
+    getSeriesContextNodeData,
+    getSeriesDataNodeGroup,
+    getSeriesRect,
+    getSeriesSelectionNodes,
     hoverAction,
     isoEpochPair,
     magnitudePair,
@@ -53,10 +57,13 @@ import {
     tabIntoChart,
     testLegendItemName,
     waitForChartStability,
+    withUndocumentedChartOptions,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { Transformable, roundTo } from 'ag-charts-core';
-import { Caster } from 'ag-charts-test';
+import { Shape, Transformable, roundTo } from 'ag-charts-core';
+import { classCast } from 'ag-charts-test';
 
+import { destroyChart, getSeriesInstance } from '../../test/enterpriseSeriesAccessors';
 import {
     DEFAULT_DISABLED_SHADOW,
     createEnterpriseChart,
@@ -69,14 +76,11 @@ import { RangeBarSeries } from './rangeBarSeries';
 
 describe('RangeBarSeries', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const CONTINUOUS_DATA = [
@@ -159,6 +163,16 @@ describe('RangeBarSeries', () => {
             high: new Date(2024, 10, 21), //.getTime(),
         },
     ];
+    const RANGE_COLUMN_SERIES: AgRangeBarSeriesOptions = {
+        type: 'range-bar',
+        xKey: 'date',
+        yLowKey: 'low',
+        yHighKey: 'high',
+        label: {
+            enabled: true,
+            formatter: ({ value }) => `${value}°C`,
+        },
+    };
     const RANGE_COLUMN_OPTIONS: AgCartesianChartOptions = {
         data: [
             {
@@ -222,18 +236,7 @@ describe('RangeBarSeries', () => {
                 low: -11.5,
             },
         ],
-        series: [
-            {
-                type: 'range-bar',
-                xKey: 'date',
-                yLowKey: 'low',
-                yHighKey: 'high',
-                label: {
-                    enabled: true,
-                    formatter: ({ value }) => `${value}°C`,
-                },
-            },
-        ],
+        series: [RANGE_COLUMN_SERIES],
     };
     const RANGE_Y_DATE_OPTIONS: AgCartesianChartOptions = {
         data: Y_DATE_DATA,
@@ -284,6 +287,7 @@ describe('RangeBarSeries', () => {
                 ...s,
                 direction,
             })),
+            // Spreading a generic `T` and replacing members yields a type TypeScript cannot relate back to `T`.
         } as T;
     }
 
@@ -306,11 +310,11 @@ describe('RangeBarSeries', () => {
             ...RANGE_COLUMN_OPTIONS,
             series: [
                 {
-                    ...RANGE_COLUMN_OPTIONS.series![0],
+                    ...RANGE_COLUMN_SERIES,
                     shadow: { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 },
                 },
             ],
-        } as AgChartOptions;
+        };
 
         chart = await createEnterpriseChart(options);
         await compare();
@@ -319,13 +323,12 @@ describe('RangeBarSeries', () => {
     it(`should apply the default shadow styling when only shadow.enabled is set`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
-            series: [{ ...RANGE_COLUMN_OPTIONS.series![0], shadow: { enabled: true } }],
-        } as AgChartOptions;
+            series: [{ ...RANGE_COLUMN_SERIES, shadow: { enabled: true } }],
+        };
 
         chart = await createEnterpriseChart(options);
 
-        const series: any = deproxy(chart).series[0];
-        const nodes = series.datumSelection.nodes();
+        const nodes = getSeriesSelectionNodes<Shape>(chart, 'datumSelection');
         expect(nodes.length).toBeGreaterThan(0);
         for (const node of nodes) {
             expect(node.fillShadow).toEqual({ ...DEFAULT_DISABLED_SHADOW, enabled: true, color: expect.any(String) });
@@ -656,9 +659,15 @@ describe('RangeBarSeries', () => {
                 series: [{ type: 'range-bar', direction, xKey: 'date', yLowKey: 'low', yHighKey: 'high' }],
                 axes:
                     direction === 'vertical'
-                        ? { x: { ...catAxis, position: 'bottom' }, y: { ...valueAxis, position: 'left' } }
-                        : { y: { ...catAxis, position: 'left' }, x: { ...valueAxis, position: 'bottom' } },
-            } as AgCartesianChartOptions;
+                        ? {
+                              x: { ...catAxis, position: 'bottom' as const },
+                              y: { ...valueAxis, position: 'left' as const },
+                          }
+                        : {
+                              y: { ...catAxis, position: 'left' as const },
+                              x: { ...valueAxis, position: 'bottom' as const },
+                          },
+            };
         };
 
         // Bespoke: tests that pass their options to `update` or `expectAnimatedEndpointsMatchStatic` create the chart bare
@@ -687,10 +696,10 @@ describe('RangeBarSeries', () => {
                 : { value: 'width', near: 'x', band: 'height', bandPos: 'y' };
 
         const phased = (
-            during: string | readonly string[],
+            during: NonNullable<PhasedPropertyExpectation['during']>,
             ...expectations: readonly TrajectoryExpectation[]
         ): PhasedPropertyExpectation => ({
-            during: during as PhasedPropertyExpectation['during'],
+            during,
             expect: expectations,
         });
 
@@ -977,7 +986,7 @@ describe('RangeBarSeries', () => {
 
     describe('gradient fill', () => {
         it('should render range column series with a default gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...RANGE_COLUMN_OPTIONS,
                 series: [
                     {
@@ -992,13 +1001,13 @@ describe('RangeBarSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
 
             await compare();
         });
 
         it('should render range bar series with a default gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...RANGE_COLUMN_OPTIONS,
                 series: [
                     {
@@ -1014,13 +1023,13 @@ describe('RangeBarSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
 
             await compare();
         });
 
         it('should render range column series with a gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...RANGE_COLUMN_OPTIONS,
                 series: [
                     {
@@ -1043,13 +1052,13 @@ describe('RangeBarSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
 
             await compare();
         });
 
         it('should render range bar series with a gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...RANGE_COLUMN_OPTIONS,
                 series: [
                     {
@@ -1073,7 +1082,7 @@ describe('RangeBarSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
 
             await compare();
         });
@@ -1099,10 +1108,10 @@ describe('RangeBarSeries', () => {
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
         describe('spacing sets the gap between the bar and the label', () => {
-            test('inside', async () => {
+            it('inside', async () => {
                 await testCase({ placement: 'inside', spacing: 30 }, 'AG-8290-range-bar-label-spacing-inside');
             });
-            test('outside', async () => {
+            it('outside', async () => {
                 // `['outside', 'inside']` so bar 3's low label — which would overflow the series-area floor
                 // outside — cascades inside instead of being clipped there.
                 await testCase(
@@ -1216,13 +1225,12 @@ describe('RangeBarSeries', () => {
                 prepareEnterpriseTestOptions(options, container);
 
                 // Bespoke: renders into a custom container.
-                chart = deproxy(AgCharts.create(options));
+                chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                const series = chart.series[0];
-                const [rect] = series.dataNodeGroup.children();
+                const [rect] = getSeriesDataNodeGroup(chart).children();
 
-                expect(rect.fill).toBe('rgb(0, 128, 0)');
+                expect(classCast(rect, Shape).fill).toBe('rgb(0, 128, 0)');
             } finally {
                 restoreCssVarColorSupport();
             }
@@ -1291,16 +1299,16 @@ describe('RangeBarSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
             describe('callbacks', () => {
-                test('context', () => {
+                it('context', () => {
                     styler.expect().nthCalledWithContext(0, c1);
                     styler.expect().nthCalledWithContext(1, c2);
                     styler.expect().toHaveBeenCalledTimes(2);
                 });
-                test('params', () => {
+                it('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
@@ -1346,7 +1354,7 @@ describe('RangeBarSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -1378,7 +1386,7 @@ describe('RangeBarSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -1412,7 +1420,7 @@ describe('RangeBarSeries', () => {
                     ],
                 });
             });
-            test('snapshot', async () => {
+            it('snapshot', async () => {
                 await compare();
             });
         });
@@ -1454,12 +1462,12 @@ describe('RangeBarSeries', () => {
                     await hoverAction(p.x, p.y)(chart);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 }
-                test('miss', async () => testHover(miss));
-                test('series[0].datum[0]', async () => testHover(series0datum0));
-                test('series[0].datum[2]', async () => testHover(series0datum2));
-                test('series[1].datum[0]', async () => testHover(series1datum0));
-                test('legendItem[0]', async () => testHover(legendItem0));
-                test('legendItem[1]', async () => testHover(legendItem1));
+                it('miss', async () => testHover(miss));
+                it('series[0].datum[0]', async () => testHover(series0datum0));
+                it('series[0].datum[2]', async () => testHover(series0datum2));
+                it('series[1].datum[0]', async () => testHover(series1datum0));
+                it('legendItem[0]', async () => testHover(legendItem0));
+                it('legendItem[1]', async () => testHover(legendItem1));
             });
             describe('sequenced', () => {
                 async function hover(p: { readonly x: number; readonly y: number }) {
@@ -1471,7 +1479,7 @@ describe('RangeBarSeries', () => {
                     styler.mock.mockClear();
                     return result;
                 }
-                test('1', async () => {
+                it('1', async () => {
                     await hover(miss);
                     expect(popCalls()).toMatchSnapshot();
 
@@ -1939,15 +1947,10 @@ describe('RangeBarSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS, series: [series] };
 
             chart = await createEnterpriseChart(options);
 
@@ -2019,15 +2022,10 @@ describe('RangeBarSeries', () => {
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS, series: [series] };
 
             chart = await createEnterpriseChart(options);
 
@@ -2036,15 +2034,10 @@ describe('RangeBarSeries', () => {
         });
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
-            const options: AgChartOptions = {
-                ...RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS,
-                series: [
-                    {
-                        ...RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
-            };
+            const series = withUndocumentedOptions(RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0], {
+                allowNullKeys: true,
+            });
+            const options: AgChartOptions = { ...RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS, series: [series] };
 
             chart = await createEnterpriseChart(options);
 
@@ -2204,10 +2197,7 @@ describe('RangeBarSeries', () => {
         });
 
         function getBarCentre(seriesIndex: number, nodeIndex: number) {
-            const series = new Caster(deproxy(chart))
-                .accessProperty('series')
-                .accessProperty(`${seriesIndex}`)
-                .cast(RangeBarSeries).value;
+            const series = getSeriesInstance(chart, RangeBarSeries, seriesIndex);
             const nodeData = series.getNodeData();
             expect(nodeData).toBeDefined();
             const node = nodeData![nodeIndex];
@@ -2337,16 +2327,18 @@ describe('RangeBarSeries', () => {
         const QUARTERS = [`Q1'18`, `Q2'18`, `Q3'18`, `Q4'18`];
 
         it('should draw the other categories and leave a gap for a row without the yHighKey property', async () => {
-            const data = QUARTERS.map((quarter, index) => ({ quarter, low: 10 + index, high: 20 + index }));
-            delete (data[3] as Partial<(typeof data)[number]>).high;
-            chart = deproxy(
-                await createEnterpriseChart({
-                    data,
-                    series: [{ type: 'range-bar', xKey: 'quarter', yLowKey: 'low', yHighKey: 'high' }],
-                })
-            );
+            const data: { quarter: string; low: number; high?: number }[] = QUARTERS.map((quarter, index) => ({
+                quarter,
+                low: 10 + index,
+                high: 20 + index,
+            }));
+            delete data[3].high;
+            chart = await createEnterpriseChart({
+                data,
+                series: [{ type: 'range-bar', xKey: 'quarter', yLowKey: 'low', yHighKey: 'high' }],
+            });
 
-            const nodeData = chart.series[0].contextNodeData.nodeData as any[];
+            const { nodeData } = getSeriesContextNodeData<{ xValue: unknown }>(chart);
             expect(nodeData.map((nodeDatum) => nodeDatum.xValue)).toEqual(QUARTERS.slice(0, 3));
         });
     });
@@ -2355,7 +2347,7 @@ describe('RangeBarSeries', () => {
 describe('RangeBarSeries category/gridline pixel alignment', () => {
     setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -2373,7 +2365,7 @@ describe('RangeBarSeries category/gridline pixel alignment', () => {
         for (const width of WIDTHS) {
             for (const barWidth of BAR_WIDTHS) {
                 it(`every bar renders on a gridline (dpr ${dpr}, width ${width}, bar ${barWidth ?? 'auto'})`, async () => {
-                    const options: any = prepareEnterpriseTestOptions({
+                    const options = prepareEnterpriseTestOptions<AgCartesianChartOptions>({
                         data: DATA,
                         series: [
                             {
@@ -2385,13 +2377,13 @@ describe('RangeBarSeries category/gridline pixel alignment', () => {
                             },
                         ],
                         axes: CATEGORY_CENTRE_GRIDLINE_AXES,
-                    } as any);
-                    options.width = width;
-                    options.height = 400;
-                    options.overrideDevicePixelRatio = dpr;
-
+                    });
                     // Bespoke: the size is set after preparation.
-                    chart = AgCharts.create(options);
+                    chart = AgCharts.create({
+                        ...withUndocumentedChartOptions(options, { overrideDevicePixelRatio: dpr }),
+                        width,
+                        height: 400,
+                    });
                     await waitForChartStability(chart);
 
                     expectBarCentresOnCategoryGridlines(chart, CATEGORIES.length);
@@ -2406,7 +2398,7 @@ describe('RangeBarSeries aggregated device-pixel snap', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -2425,15 +2417,16 @@ describe('RangeBarSeries aggregated device-pixel snap', () => {
 
     for (const dpr of [1, 2]) {
         it(`snaps every aggregated bar edge to the device pixel grid (dpr ${dpr})`, async () => {
-            const options: any = {
+            const options: AgCartesianChartOptions = {
                 data: DATA,
                 // A stroke insets the drawn path by half its width, which would take the edges off the grid.
                 series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi', strokeWidth: 0 }],
-                axes: STRIPPED_NUMBER_AXES,
-                overrideDevicePixelRatio: dpr,
+                // `STRIPPED_NUMBER_AXES` types each axis `type` as `string`, so it needs the cast to the option type.
+                axes: STRIPPED_NUMBER_AXES as AgCartesianChartOptions['axes'],
             };
-
-            chart = await createEnterpriseChart(options);
+            chart = await createEnterpriseChart(
+                withUndocumentedChartOptions(options, { overrideDevicePixelRatio: dpr })
+            );
 
             const series = getSeriesAggregationInternals(chart);
             expect(typeof series.estimateTargetRange).toBe('function');
@@ -2480,7 +2473,7 @@ describe('RangeBarSeries horizontal aggregation', () => {
             axes: { x: { type: 'number' }, y: { type: 'category' } },
         });
 
-        const { height: seriesHeight } = deproxy(chart).seriesRect!;
+        const { height: seriesHeight } = getSeriesRect(chart);
         const bars = itemNodes(chart)
             .filter((node) => node.visible)
             .map((node) => node.getBBox())
@@ -2509,7 +2502,7 @@ describe('RangeBarSeries horizontal aggregation', () => {
 describe('RangeBarSeries redraw with identical data', () => {
     const ctx = setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -2520,7 +2513,7 @@ describe('RangeBarSeries redraw with identical data', () => {
         Array.from({ length: count }, (_, i) => ({ x: `C${i}`, lo: 10 + ((i * 7) % 13), hi: 30 + ((i * 11) % 17) }));
 
     const createChart = async (count: number, dpr: number, extra: object = {}) => {
-        const options: any = prepareEnterpriseTestOptions({
+        const options = prepareEnterpriseTestOptions<AgCartesianChartOptions>({
             data: makeData(count),
             animation: { enabled: false },
             series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
@@ -2528,11 +2521,11 @@ describe('RangeBarSeries redraw with identical data', () => {
             axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
             ...extra,
         });
-        options.overrideDevicePixelRatio = dpr;
-        options.width = 1200;
-        options.height = 600;
-
-        chart = AgCharts.create(options);
+        chart = AgCharts.create({
+            ...withUndocumentedChartOptions(options, { overrideDevicePixelRatio: dpr }),
+            width: 1200,
+            height: 600,
+        });
         await waitForChartStability(chart);
         return chart;
     };

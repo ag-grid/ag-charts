@@ -5,12 +5,15 @@ import {
     type AgChartOptions,
     AgCharts,
     type AgHlcSeriesItemStylerParams,
+    type AgHlcSeriesOptions,
     type AgHlcSeriesStyle,
     type AgHlcSeriesStylerParams,
+    type AgHlcSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
 } from 'ag-charts-community';
 import {
     BIG,
+    type ChartOrProxy,
     HIGH_VOLUME_COUNT,
     HIGH_VOLUME_SIGNALS,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -27,7 +30,7 @@ import {
     expectProgresses,
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
-    getLegendModule,
+    getLegendItemNodes,
     getTooltipElement,
     hoverAction,
     isTooltipVisible,
@@ -40,9 +43,19 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { AGGREGATION_INDEX_UNSET, Transformable } from 'ag-charts-core';
+import { AGGREGATION_INDEX_UNSET, ChartAxisDirection, Transformable } from 'ag-charts-core';
 
+import {
+    destroyChart,
+    getHlcAggregationFilter,
+    getHlcBandEdgeData,
+    getHlcHighlightData,
+    getNavigatorMiniChartSeriesTypes,
+    getSeriesInstance,
+} from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import { HlcSeries } from './hlcSeries';
+import type { HlcMarkerDatum } from './hlcUtil';
 
 type Datum = { date: Date; high: number; low: number; close: number };
 
@@ -59,9 +72,17 @@ const DATA: Datum[] = [
     [121, 113, 119],
 ].map(([high, low, close], i) => ({ date: new Date(2024, 0, i + 1), high, low, close }));
 
+const HLC_SERIES: AgHlcSeriesOptions = {
+    type: 'hlc',
+    xKey: 'date',
+    highKey: 'high',
+    lowKey: 'low',
+    closeKey: 'close',
+};
+
 const HLC_OPTIONS: AgCartesianChartOptions = {
     data: DATA,
-    series: [{ type: 'hlc', xKey: 'date', highKey: 'high', lowKey: 'low', closeKey: 'close' }],
+    series: [HLC_SERIES],
 };
 
 // The test palette gives up, down and neutral the same colour, which hides the band split.
@@ -76,11 +97,10 @@ describe('HlcSeries', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
 
-    let chart: any;
+    let chart: ChartOrProxy<any>;
 
     afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
+        chart = destroyChart(chart);
     });
 
     const compare = async () => {
@@ -90,17 +110,30 @@ describe('HlcSeries', () => {
 
     const renderSeries = async (options: AgChartOptions) => {
         chart = await createEnterpriseChart(options);
-        return deproxy(chart).series[0] as any;
+        return getSeriesInstance(chart, HlcSeries);
     };
 
-    const canvasPointOf = (series: any, node: { point: { x: number; y: number } }) => {
+    // The rows of a structured tooltip, as `[label, value]`.
+    const tooltipRows = (content: ReturnType<HlcSeries['getTooltipContent']>) => {
+        expect(content?.type).toBe('structured');
+        return content?.type === 'structured' ? (content.data ?? []) : [];
+    };
+
+    // The node of `itemType` at `datumIndex`, asserted to exist.
+    const findNode = (series: HlcSeries, datumIndex: number, itemType: HlcMarkerDatum['itemType']) => {
+        const node = series.getNodeData()?.find((d) => d.datumIndex === datumIndex && d.itemType === itemType);
+        expect(node, `${itemType} node of datum ${datumIndex}`).toBeDefined();
+        return node!;
+    };
+
+    const canvasPointOf = (series: HlcSeries, node: { point: { x: number; y: number } }) => {
         const { canvasX, canvasY } = Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
         return { canvasX, canvasY };
     };
 
-    const withSeries = (overrides: object): AgCartesianChartOptions => ({
+    const withSeries = (overrides: Partial<AgHlcSeriesOptions>): AgCartesianChartOptions => ({
         ...HLC_OPTIONS,
-        series: [{ ...HLC_OPTIONS.series![0], ...overrides } as any],
+        series: [{ ...HLC_SERIES, ...overrides }],
     });
 
     describe('rendering', () => {
@@ -132,7 +165,7 @@ describe('HlcSeries', () => {
             await compare();
         });
 
-        it.each([
+        it.each<[string, AgHlcSeriesOptions['interpolation']]>([
             ['smooth', { type: 'smooth' }],
             ['step', { type: 'step' }],
         ])('renders with %s interpolation', async (_name, interpolation) => {
@@ -154,9 +187,11 @@ describe('HlcSeries', () => {
         });
 
         it.each(['xKey', 'highKey', 'lowKey', 'closeKey'])('reports a missing %s', async (key) => {
-            const series: Record<string, unknown> = { ...HLC_OPTIONS.series![0] };
+            const series: Record<string, unknown> = { ...HLC_SERIES };
             delete series[key];
-            await renderSeries({ ...HLC_OPTIONS, series: [series as any] });
+            // A required key is removed on purpose, so the series does not satisfy its type.
+            // The series is dropped, so there is no series to read back (`renderSeries` would assert on it).
+            chart = await createEnterpriseChart({ ...HLC_OPTIONS, series: [series as unknown as AgHlcSeriesOptions] });
             expectWarningsCalls().toEqual([
                 [
                     `AG Charts - Option \`series[0].${key}\` is required and has not been provided; expecting a string, ignoring.`,
@@ -204,8 +239,7 @@ describe('HlcSeries', () => {
             expect(series.visible).toBe(true);
             const legendBox = computeLegendBBox(deproxy(chart));
             expect(legendBox.width).toBeGreaterThan(0);
-            const legendItems = () => getLegendModule(deproxy(chart)).itemSelection.nodes();
-            expect(legendItems()).toHaveLength(1);
+            expect(getLegendItemNodes(chart)).toHaveLength(1);
 
             await clickAction(legendBox.x + legendBox.width / 2, legendBox.y + legendBox.height / 2)(chart);
             await waitForChartStability(chart);
@@ -224,8 +258,7 @@ describe('HlcSeries', () => {
                 withSeries({ highName: 'High', lowName: 'Low', closeName: 'Close', marker: { enabled: true } })
             );
             const content = series.getTooltipContent(1, undefined);
-            expect(content?.type).toBe('structured');
-            expect(content.data.map(({ label, value }: any) => [label, value])).toEqual([
+            expect(tooltipRows(content).map(({ label, value }) => [label, value])).toEqual([
                 ['High', '112'],
                 ['Low', '105'],
                 ['Close', '106'],
@@ -235,14 +268,14 @@ describe('HlcSeries', () => {
         it('headlines the tooltip with the formatted x value', async () => {
             const series = await renderSeries(withSeries({ marker: { enabled: true } }));
             const content = series.getTooltipContent(1, undefined);
-            expect(content.heading).toBe('Jan  2 2024');
+            expect(content?.type === 'structured' ? content.heading : undefined).toBe('Jan  2 2024');
         });
 
         it('shows exactly one tooltip with a High, Low and Close row each when a datum is hovered', async () => {
             const series = await renderSeries(
                 withSeries({ highName: 'High', lowName: 'Low', closeName: 'Close', marker: { enabled: true } })
             );
-            const closeNode = series.getNodeData().find((d: any) => d.datumIndex === 1 && d.itemType === 'close');
+            const closeNode = findNode(series, 1, 'close');
             const { canvasX, canvasY } = canvasPointOf(series, closeNode);
             await hoverAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
@@ -267,12 +300,12 @@ describe('HlcSeries', () => {
         });
 
         it('passes the hovered item type to the renderer', async () => {
-            const renderer = vi.fn(() => undefined);
+            const renderer = vi.fn((_params: AgHlcSeriesTooltipRendererParams<Datum>) => undefined);
             const series = await renderSeries(withSeries({ marker: { enabled: true }, tooltip: { renderer } }));
-            const highNode = series.getNodeData().find((d: any) => d.datumIndex === 2 && d.itemType === 'high');
+            const highNode = findNode(series, 2, 'high');
             series.getTooltipContent(2, highNode);
             series.getTooltipContent(2, undefined);
-            expect(renderer.mock.calls.map(([params]: any[]) => params.itemType)).toEqual(['high', 'close']);
+            expect(renderer.mock.calls.map(([params]) => params.itemType)).toEqual(['high', 'close']);
         });
 
         it("shows an aggregated bucket's drawn values: its highest high, lowest low and last close", async () => {
@@ -287,11 +320,12 @@ describe('HlcSeries', () => {
                 data,
                 series: [{ type: 'hlc', xKey: 'x', highKey: 'hi', lowKey: 'lo', closeKey: 'cl' }],
                 axes: STRIPPED_NUMBER_AXES,
+                // `stripAxes` widens the axis types to string.
             } as AgCartesianChartOptions);
-            const filter = series.aggregationManager.getFilterForRange(series.axes.x.scale.range[1]);
+            const filter = getHlcAggregationFilter(chart);
             expect(filter, 'aggregation is active').toBeDefined();
 
-            const { maxRange, midpointIndices } = filter;
+            const { maxRange, midpointIndices } = filter!;
             const bucket = Math.floor(maxRange / 2);
             const members = data.filter(
                 ({ x }) => Math.min(Math.floor((x / (N - 1)) * maxRange), maxRange - 1) === bucket
@@ -299,7 +333,7 @@ describe('HlcSeries', () => {
             expect(members.length, 'the bucket aggregates several datums').toBeGreaterThan(1);
 
             const content = series.getTooltipContent(midpointIndices[bucket], undefined);
-            expect(content.data.map(({ value }: any) => value)).toEqual([
+            expect(tooltipRows(content).map(({ value }) => value)).toEqual([
                 String(Math.max(...members.map((m) => m.hi))),
                 String(Math.min(...members.map((m) => m.lo))),
                 String(members.at(-1)!.cl),
@@ -310,10 +344,10 @@ describe('HlcSeries', () => {
     describe('highlight and selection', () => {
         it('highlights all three values of the hovered datum', async () => {
             const series = await renderSeries(withSeries({ marker: { enabled: true } }));
-            const nodeData = series.getNodeData();
-            const highlighted = series.getHighlightData(nodeData, nodeData[3]);
-            expect(highlighted.map((d: any) => d.itemType)).toEqual(['high', 'low', 'close']);
-            expect(new Set(highlighted.map((d: any) => d.datumIndex))).toEqual(new Set([1]));
+            const nodeData = series.getNodeData()!;
+            const highlighted = getHlcHighlightData(chart, nodeData, nodeData[3]);
+            expect(highlighted?.map((d) => d.itemType)).toEqual(['high', 'low', 'close']);
+            expect(new Set(highlighted?.map((d) => d.datumIndex))).toEqual(new Set([1]));
         });
 
         it('selects the whole datum when one of its markers is clicked', async () => {
@@ -321,18 +355,18 @@ describe('HlcSeries', () => {
                 ...withSeries({ marker: { enabled: true } }),
                 selection: { enabled: true },
             });
-            const nodeData = series.getNodeData();
-            const closeNode = nodeData.find((d: any) => d.datumIndex === 2 && d.itemType === 'close');
+            const nodeData = series.getNodeData()!;
+            const closeNode = findNode(series, 2, 'close');
             const { canvasX, canvasY } = canvasPointOf(series, closeNode);
             await clickAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
 
-            expect([...chart.getSelection()]).toHaveLength(1);
-            const stateOf = (node: any) => series.getSelectionStateString(node.datumIndex);
-            const selected = nodeData.filter((d: any) => d.datumIndex === 2);
-            expect(selected.map((d: any) => d.itemType)).toEqual(['high', 'low', 'close']);
+            expect([...(deproxy(chart).getSelection() ?? [])]).toHaveLength(1);
+            const stateOf = (node: HlcMarkerDatum) => series.getSelectionStateString(node.datumIndex);
+            const selected = nodeData.filter((d) => d.datumIndex === 2);
+            expect(selected.map((d) => d.itemType)).toEqual(['high', 'low', 'close']);
             expect(selected.map(stateOf)).toEqual(['selected-item', 'selected-item', 'selected-item']);
-            const others = nodeData.filter((d: any) => d.datumIndex !== 2);
+            const others = nodeData.filter((d) => d.datumIndex !== 2);
             expect(others).toHaveLength((DATA.length - 1) * 3);
             expect(new Set(others.map(stateOf))).toEqual(new Set(['unselected-item']));
             await compare();
@@ -390,7 +424,7 @@ describe('HlcSeries', () => {
             expect(renderStates).toEqual(['none']);
 
             styler.mockClear();
-            const closeNode = series.getNodeData().find((d: any) => d.datumIndex === 4 && d.itemType === 'close');
+            const closeNode = findNode(series, 4, 'close');
             const { canvasX, canvasY } = canvasPointOf(series, closeNode);
             await hoverAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
@@ -422,7 +456,7 @@ describe('HlcSeries', () => {
             await pressKey(chart, 'ArrowRight');
             await pressKey(chart, 'ArrowRight');
             expect(focusedDatumIndex()).toBe(2);
-            const closeNode = series.getNodeData().find((d: any) => d.datumIndex === 2 && d.itemType === 'close');
+            const closeNode = findNode(series, 2, 'close');
             expect(focusIndicatorContainsCanvasPoint(chart, canvasPointOf(series, closeNode))).toBe(true);
         });
 
@@ -434,7 +468,11 @@ describe('HlcSeries', () => {
 
             await dragAction({ x: 600, y: 300 }, { x: 100, y: 300 })(chart);
             await waitForChartStability(chart);
-            const nodeIndices = () => new Set(series.getNodeData().map((d: any) => d.datumIndex));
+            const nodeIndices = () => {
+                const nodeData = series.getNodeData();
+                expect(nodeData, 'node data').toBeDefined();
+                return new Set(nodeData!.map((d) => d.datumIndex));
+            };
             expect(nodeIndices().has(2), 'datum 2 is outside the node data').toBe(false);
 
             await pressKey(chart, 'ArrowRight');
@@ -456,13 +494,11 @@ describe('HlcSeries', () => {
 
         it('lists one legend entry per series and shows one hlc section in the shared tooltip', async () => {
             const series = await renderSeries(MIXED_OPTIONS);
-            const legendIds = getLegendModule(deproxy(chart))
-                .itemSelection.nodes()
-                .map((node) => node.datum?.id);
+            const legendIds = getLegendItemNodes(chart).map((node) => node.datum?.id);
             expect(legendIds).toHaveLength(MIXED_OPTIONS.series!.length);
             expect(legendIds.filter((id) => id === series.id)).toHaveLength(1);
 
-            const closeNode = series.getNodeData().find((d: any) => d.datumIndex === 3 && d.itemType === 'close');
+            const closeNode = findNode(series, 3, 'close');
             const { canvasX, canvasY } = canvasPointOf(series, closeNode);
             await hoverAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
@@ -486,9 +522,7 @@ describe('HlcSeries', () => {
                 theme: UP_DOWN_THEME,
                 navigator: { enabled: true, miniChart: { enabled: true } },
             });
-            const { miniChart } = deproxy(chart).modulesManager.getModule<any>('navigator');
-            expect(miniChart.series.filter((s: any) => s.options.type === 'hlc')).toHaveLength(1);
-            expect(miniChart.series).toHaveLength(1);
+            expect(getNavigatorMiniChartSeriesTypes(chart)).toEqual(['hlc']);
             await compare();
         });
 
@@ -530,20 +564,20 @@ describe('HlcSeries', () => {
                 ...withSeries({ item: { high: { fill: '#57b757' }, low: { fill: '#41a9c9' } } }),
                 data: DATA.map((d, i) => (i === 5 ? { ...d, close: 130 } : d)),
             });
-            const [, max] = series.getSeriesDomain('y').domain;
+            const [, max] = series.getSeriesDomain(ChartAxisDirection.Y).domain;
             expect(max).toBeGreaterThanOrEqual(130);
             await compare();
         });
 
         it('clamps the band edge to the high-low range at an out-of-range close', async () => {
-            const series = await renderSeries({
+            await renderSeries({
                 ...HLC_OPTIONS,
                 data: DATA.map((d, i) => {
                     if (i === 5) return { ...d, close: 130 };
                     return i === 6 ? { ...d, close: 90 } : d;
                 }),
             });
-            const edge = series.contextNodeData.bandEdgeData.map((span: any) => [span.yValue0, span.yValue1]);
+            const edge = getHlcBandEdgeData(chart).map((span) => [span.yValue0, span.yValue1]);
             // Datum 5 has high 118 and datum 6 has low 107; the spans either side of each end on the clamped value.
             expect(edge[4][1]).toBe(118);
             expect(edge[5][0]).toBe(118);
@@ -634,15 +668,16 @@ describe('HlcSeries', () => {
                 data,
                 series: [{ type: 'hlc', xKey: 'x', highKey: 'hi', lowKey: 'lo', closeKey: 'cl' }],
                 axes: STRIPPED_NUMBER_AXES,
+                // `stripAxes` widens the axis types to string.
             } as AgCartesianChartOptions);
-            const filter = series.aggregationManager.getFilterForRange(series.axes.x.scale.range[1]);
+            const filter = getHlcAggregationFilter(chart);
             expect(filter, 'aggregation is active').toBeDefined();
 
-            const closeNodes = series.getNodeData().filter((d: any) => d.itemType === 'close');
+            const closeNodes = series.getNodeData()!.filter((d) => d.itemType === 'close');
             expect(closeNodes.length).toBeLessThan(N);
 
             // Bucket x values the way the aggregation is specified: an even split of the x domain [0, N - 1].
-            const { maxRange, midpointIndices } = filter;
+            const { maxRange, midpointIndices } = filter!;
             const lastDatumOfBucket = new Map<number, number>();
             for (const [datumIndex, { x }] of data.entries()) {
                 const bucket = Math.min(Math.floor((x / (N - 1)) * maxRange), maxRange - 1);
@@ -653,9 +688,9 @@ describe('HlcSeries', () => {
 
             for (const [bucket, lastDatumIndex] of lastDatumOfBucket) {
                 expect(midpointIndices[bucket], `bucket ${bucket} is populated`).not.toBe(AGGREGATION_INDEX_UNSET);
-                const node = closeNodes.find((d: any) => d.datumIndex === midpointIndices[bucket]);
+                const node = closeNodes.find((d) => d.datumIndex === midpointIndices[bucket]);
                 expect(node, `bucket ${bucket} has a close node`).toBeDefined();
-                expect(node.closeValue).toBe(data[lastDatumIndex].cl);
+                expect(node!.closeValue).toBe(data[lastDatumIndex].cl);
             }
         });
     });

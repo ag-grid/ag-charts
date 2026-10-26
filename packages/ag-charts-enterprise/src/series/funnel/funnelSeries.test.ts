@@ -3,13 +3,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type {
     AgCartesianChartOptions,
     AgChartOptions,
-    AgPolarChartOptions,
+    AgFunnelSeriesOptions,
+    AgFunnelSeriesTooltipRendererParams,
     InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
     BIG,
-    type Chart,
+    type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     type SceneGeometrySample,
@@ -20,16 +21,21 @@ import {
     expectAnimatedEndpointsMatchStatic,
     expectSceneTrajectory,
     expectWarningsCalls,
+    findAxis,
+    getLegendItemNodes,
+    getSeriesAt,
+    getSeriesContextNodeData,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
     waitForChartStability,
+    withUndocumentedOptions,
 } from 'ag-charts-community-test';
 import { Group, Rect, Transformable } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
-import { classCast } from 'ag-charts-test';
 
+import { type StageNodeDatum, destroyChart, getStageHighlightNode } from '../../test/enterpriseSeriesAccessors';
 import {
     createEnterpriseChart,
     funnelLabelFadeIn,
@@ -39,7 +45,6 @@ import {
     renderEnterpriseChartImage,
 } from '../../test/utils';
 import { FunnelConnector } from './funnelConnector';
-import { FunnelSeries } from './funnelSeries';
 
 const FUNNEL_EXAMPLE: AgChartOptions = {
     title: {
@@ -63,15 +68,17 @@ const FUNNEL_EXAMPLE: AgChartOptions = {
     },
 };
 
+const ALLOW_NULL_KEYS_SERIES = withUndocumentedOptions(
+    { type: 'funnel' as const, stageKey: 'group', valueKey: 'value' },
+    { allowNullKeys: true }
+);
+
 describe('FunnelSeries', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: ChartOrProxy<any>;
 
     afterEach(() => {
-        if (chart) {
-            chart.destroy();
-            (chart as unknown) = undefined;
-        }
+        chart = destroyChart(chart);
     });
 
     const ctx = setupMockCanvas();
@@ -120,35 +127,35 @@ describe('FunnelSeries', () => {
         it('should render highlight of node', async () => {
             const options: AgChartOptions = { ...FUNNEL_EXAMPLE };
 
-            chart = deproxy(await createEnterpriseChart(options));
+            const target = deproxy(await createEnterpriseChart(options));
+            chart = target;
 
-            const node = chart.series[0].contextNodeData.nodeData[0];
+            const node = getSeriesContextNodeData(target).nodeData[0];
 
-            const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            target.ctx.highlightManager.updateHighlight(target.id, node);
             await compare();
         });
     });
 
     const testPointerEvents = (testParams: {
-        seriesOptions: any;
-        chartOptions?: any;
-        getNodeData: (series: any) => any[];
-        getNodePoint: (nodeItem: any) => [number, number];
-        getDatumValues: (datum: any, series: any) => any[];
-        getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
-        getHighlightNode: (chart: any, series: any) => any;
+        seriesOptions: AgFunnelSeriesOptions;
+        chartOptions?: AgCartesianChartOptions;
+        getNodePoint: (nodeItem: StageNodeDatum) => [number, number];
+        getDatumValues: (datum: StageNodeDatum) => unknown[];
+        getTooltipRenderedValues: (tooltipRendererParams: AgFunnelSeriesTooltipRendererParams) => unknown[];
     }) => {
-        const format = (...values: any[]) => values.join(' ');
+        const format = (...values: unknown[]) => values.join(' ');
+        const getNodeData = (chartInstance: ChartOrProxy<any>, seriesIndex: number) =>
+            getSeriesContextNodeData<StageNodeDatum>(chartInstance, seriesIndex).nodeData;
 
         const chartOptions = (params: {
             hasTooltip: boolean;
             onNodeClick?: () => void;
             nodeClickRange?: InteractionRange;
-        }): AgCartesianChartOptions | AgPolarChartOptions => {
+        }): AgCartesianChartOptions => {
             const tooltip = params.hasTooltip
                 ? {
-                      renderer(rParams: any) {
+                      renderer(rParams: AgFunnelSeriesTooltipRendererParams) {
                           const values = testParams.getTooltipRenderedValues(rParams);
                           return format(...values);
                       },
@@ -157,7 +164,7 @@ describe('FunnelSeries', () => {
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
-            const options: AgCartesianChartOptions | AgPolarChartOptions = {
+            const options: AgCartesianChartOptions = {
                 container: document.body,
                 series: [
                     {
@@ -178,36 +185,41 @@ describe('FunnelSeries', () => {
         };
 
         const hoverChartNodes = async (
-            chartInstance: any,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
+            chartInstance: ChartOrProxy<any>,
+            iterator: (params: {
+                seriesIndex: number;
+                item: StageNodeDatum;
+                x: number;
+                y: number;
+            }) => Promise<void> | void
         ) => {
-            for (const series of chartInstance.series) {
-                const nodeData = testParams.getNodeData(series);
+            for (const seriesIndex of deproxy(chartInstance).series.keys()) {
+                const nodeData = getNodeData(chartInstance, seriesIndex);
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
                     const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
-                        series.contentGroup,
+                        getSeriesAt(chartInstance, seriesIndex).contentGroup,
                         itemPoint[0],
                         itemPoint[1]
                     );
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
-                    await iterator({ series, item, x, y });
+                    await iterator({ seriesIndex, item, x, y });
                 }
             }
         };
 
-        const checkHighlight = async (chartInstance: any) => {
-            await hoverChartNodes(chartInstance, ({ series }) => {
-                const highlightNode = testParams.getHighlightNode(chartInstance, series);
+        const checkHighlight = async (chartInstance: ChartOrProxy<any>) => {
+            await hoverChartNodes(chartInstance, ({ seriesIndex }) => {
+                const highlightNode = getStageHighlightNode(chartInstance, seriesIndex);
                 expect(highlightNode).toBeDefined();
-                expect(highlightNode.fill).toEqual('lime');
+                expect(highlightNode?.fill).toEqual('lime');
             });
         };
 
         const checkNodeClick = async (
-            chartInstance: Chart,
+            chartInstance: ChartOrProxy<any>,
             onNodeClick: () => void,
             offset?: { x: number; y: number }
         ) => {
@@ -216,34 +228,31 @@ describe('FunnelSeries', () => {
                 await waitForChartStability(chartInstance);
             });
 
-            const nodeCount = chartInstance.series.reduce(
-                (sum, series) => sum + testParams.getNodeData(series).length,
+            const nodeCount = deproxy(chartInstance).series.reduce(
+                (sum, _series, seriesIndex) => sum + getNodeData(chartInstance, seriesIndex).length,
                 0
             );
             expect(onNodeClick).toHaveBeenCalledTimes(nodeCount);
         };
 
-        const checkLegendClick = async (chartInstance: any) => {
+        const checkLegendClick = async (chartInstance: ChartOrProxy<any>) => {
             await waitForChartStability(chart);
-            for (const { legend } of deproxy(chart).modulesManager.legends()) {
-                const markerLabels = (legend as any).itemSelection?._nodes ?? [];
-                for (const label of markerLabels) {
-                    const { x, y } = Transformable.toCanvas(label).computeCenter();
-                    await clickAction(x, y)(chartInstance);
-                    await waitForChartStability(chart);
-                    await compare();
-                }
+            for (const label of getLegendItemNodes(chart)) {
+                const { x, y } = Transformable.toCanvas(label).computeCenter();
+                await clickAction(x, y)(chartInstance);
+                await waitForChartStability(chart);
+                await compare();
             }
         };
 
         it(`should render tooltip correctly`, async () => {
             chart = deproxy(await createEnterpriseChart(chartOptions({ hasTooltip: true })));
-            await hoverChartNodes(chart, ({ series, item }) => {
+            await hoverChartNodes(chart, ({ item }) => {
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                const values = testParams.getDatumValues(item, series);
+                const values = testParams.getDatumValues(item);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
@@ -307,14 +316,7 @@ describe('FunnelSeries', () => {
             valueKey: 'value',
         };
 
-        const cartesianTestParams = {
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
-            getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
-            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
-        } as Parameters<typeof testPointerEvents>[0];
-
         testPointerEvents({
-            ...cartesianTestParams,
             seriesOptions: {
                 type: 'funnel',
                 stageKey: datasets.stageKey,
@@ -326,25 +328,26 @@ describe('FunnelSeries', () => {
                     enabled: true,
                 },
             },
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
             getDatumValues: (item) => {
                 const { datum } = item;
                 return [datum[datasets.stageKey], datum[datasets.valueKey]];
             },
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
-            getHighlightNode: (chartInstance, series) => {
-                const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return [...series.highlightNodeGroup.children()].find(
-                    (child: any) => child.datum.id === highlightedDatum.id
-                );
-            },
         });
     });
 
     describe('gradient fill', () => {
+        const seriesBoundGradient = withUndocumentedOptions(
+            {
+                type: 'gradient' as const,
+                colorStops: [{ color: 'green' }, { color: 'white' }],
+            },
+            { bounds: 'series' }
+        );
+
         it('should render funnel series with a default gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...FUNNEL_EXAMPLE,
                 series: [
                     {
@@ -360,12 +363,12 @@ describe('FunnelSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render funnel series with a gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...FUNNEL_EXAMPLE,
                 series: [
                     {
@@ -389,12 +392,12 @@ describe('FunnelSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render funnel series with a mix of gradient and string fills', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...FUNNEL_EXAMPLE,
                 series: [
                     {
@@ -419,72 +422,46 @@ describe('FunnelSeries', () => {
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render funnel series with a series bound gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...FUNNEL_EXAMPLE,
                 series: [
                     {
                         type: 'funnel',
                         stageKey: 'group',
                         valueKey: 'value',
-                        fills: [
-                            {
-                                type: 'gradient',
-                                bounds: 'series',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
+                        fills: [seriesBoundGradient],
                     },
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         it('should render funnel series with a series bound drop off gradient fill', async () => {
-            const options = {
+            const options: AgChartOptions = {
                 ...FUNNEL_EXAMPLE,
                 series: [
                     {
                         type: 'funnel',
                         stageKey: 'group',
                         valueKey: 'value',
-                        dropOff: {
-                            fill: {
-                                type: 'gradient',
-                                bounds: 'series',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        },
+                        dropOff: { fill: seriesBoundGradient },
                     },
                 ],
             };
 
-            chart = await createEnterpriseChart(options as AgChartOptions);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
 
-    test('AG-8290 label boxing', async () => {
+    it('AG-8290 label boxing', async () => {
         const options: AgChartOptions = {
             data: [
                 { group: 'Close', value: 4460 },
@@ -556,12 +533,7 @@ describe('FunnelSeries', () => {
         it('should accept null category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = {
                 ...FUNNEL_NULL_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...FUNNEL_NULL_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
+                series: [ALLOW_NULL_KEYS_SERIES],
             };
 
             chart = await createEnterpriseChart(options);
@@ -626,12 +598,7 @@ describe('FunnelSeries', () => {
         it('should accept undefined category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = {
                 ...FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS,
-                series: [
-                    {
-                        ...FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
+                series: [ALLOW_NULL_KEYS_SERIES],
             };
 
             chart = await createEnterpriseChart(options);
@@ -643,12 +610,7 @@ describe('FunnelSeries', () => {
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const options: AgChartOptions = {
                 ...FUNNEL_NULL_AND_UNDEFINED_KEYS_OPTIONS,
-                series: [
-                    {
-                        ...FUNNEL_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
-                        allowNullKeys: true,
-                    } as any,
-                ],
+                series: [ALLOW_NULL_KEYS_SERIES],
             };
 
             chart = await createEnterpriseChart(options);
@@ -694,7 +656,7 @@ describe('FunnelSeries', () => {
 
     describe('cornerRadius', () => {
         // Rect.serializeProps() omits the corner-radius fields, so read the nodes directly.
-        const contentNodes = (target: Chart) => {
+        const contentNodes = (target: ChartOrProxy<any>) => {
             const nodes: Node[] = [];
             const visit = (node: Node) => {
                 nodes.push(node);
@@ -702,14 +664,14 @@ describe('FunnelSeries', () => {
                     for (const child of node.children()) visit(child);
                 }
             };
-            visit(classCast(target.series[0], FunnelSeries).contentGroup);
+            visit(getSeriesAt(target).contentGroup);
             return nodes;
         };
 
-        const segmentRects = (target: Chart) =>
+        const segmentRects = (target: ChartOrProxy<any>) =>
             contentNodes(target).filter((node): node is Rect => node instanceof Rect);
 
-        const dropOffConnectors = (target: Chart) =>
+        const dropOffConnectors = (target: ChartOrProxy<any>) =>
             contentNodes(target).filter((node): node is FunnelConnector => node instanceof FunnelConnector);
 
         const buildOptions = (cornerRadius?: number, direction?: 'horizontal' | 'vertical') => {
@@ -858,7 +820,7 @@ describe('FunnelSeries', () => {
 
         const axisPosition = async (options: AgChartOptions, direction: 'x' | 'y') => {
             chart = deproxy(await createEnterpriseChart(options));
-            return chart.axes[direction].position;
+            return findAxis(chart, direction).position;
         };
 
         it.each([
