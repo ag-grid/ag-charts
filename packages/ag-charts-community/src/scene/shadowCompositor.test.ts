@@ -1731,10 +1731,30 @@ describe('Group shadow compositor', () => {
         });
 
         it.each([
-            ['the shadow options', (first: Rect) => void (first.fillShadow = { ...SHADOW, xOffset: 60 })],
-            ['the geometry of a caster', (first: Rect) => void (first.width = 80)],
-            ['the visibility of a caster', (first: Rect) => void (first.visible = false)],
-            ['the opacity of the group', (_first: Rect, group: Group) => void (group.opacity = 0.5)],
+            [
+                'the shadow options',
+                (first: Rect) => {
+                    first.fillShadow = { ...SHADOW, xOffset: 60 };
+                },
+            ],
+            [
+                'the geometry of a caster',
+                (first: Rect) => {
+                    first.width = 80;
+                },
+            ],
+            [
+                'the visibility of a caster',
+                (first: Rect) => {
+                    first.visible = false;
+                },
+            ],
+            [
+                'the opacity of the group',
+                (_first: Rect, group: Group) => {
+                    group.opacity = 0.5;
+                },
+            ],
         ])('should cast the shadows again when %s changed', (_name, change) => {
             const { group, baseline } = kept();
 

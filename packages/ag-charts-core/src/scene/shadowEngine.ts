@@ -256,7 +256,12 @@ function getCache(user: object, cast: number): ShadowCache | undefined {
         userCaches = [];
         caches.set(user, userCaches);
     }
-    return (userCaches[cast] ??= { signature: [], canvas: undefined, context: undefined, valid: false });
+    let cache = userCaches[cast];
+    if (cache == null) {
+        cache = { signature: [], canvas: undefined, context: undefined, valid: false };
+        userCaches[cast] = cache;
+    }
+    return cache;
 }
 
 /**
@@ -301,7 +306,7 @@ function matchSignature(
         write(shadow.blur);
         write(shadow.spread ?? 0);
         write(clip?.length ?? -1);
-        if (clip != null) clip.forEach(write);
+        for (const corner of clip ?? []) write(corner);
         write(casters.length);
         for (const caster of casters) {
             write(caster.serialNumber);
