@@ -122,7 +122,7 @@ export function contextMenuEvent(
     clientY: number,
     modifiers?: EventModifierInit
 ): MouseEvent {
-    return makeMouseEvent('contextmenu', offsets, clientX, clientY, false, modifiers);
+    return makeMouseEvent('contextmenu', offsets, clientX, clientY, true, { cancelable: true, ...modifiers });
 }
 
 /**
