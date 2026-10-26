@@ -15,7 +15,6 @@ import type { ChartOptions } from '../module/optionsModule';
 import { VERSION } from '../version';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
-import { SeriesAreaModule } from './series-area/seriesAreaModule';
 
 const histogramAxisTypes = new Set(['number', 'log', 'time']);
 const invalidHistogramAxis = (axis: any) => isObject(axis) && axis.type != null && !histogramAxisTypes.has(axis.type);
@@ -24,7 +23,6 @@ export const CartesianChartModule: ChartModuleDefinition<CartesianChartDefOption
     type: 'chart',
     name: 'cartesian',
     version: VERSION,
-    dependencies: [SeriesAreaModule],
 
     options: cartesianChartOptionsDefs,
 

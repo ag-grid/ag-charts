@@ -1,4 +1,4 @@
-import { type AgTopologyChartOptions, SeriesAreaModule, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgTopologyChartOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     type ChartModuleDefinition,
     type WithoutModuleOwnedOptions,
@@ -14,7 +14,6 @@ export const TopologyChartModule: ChartModuleDefinition<WithoutModuleOwnedOption
     name: 'topology',
     enterprise: true,
     version: VERSION,
-    dependencies: [SeriesAreaModule],
 
     options: topologyChartOptionsDefs,
 
