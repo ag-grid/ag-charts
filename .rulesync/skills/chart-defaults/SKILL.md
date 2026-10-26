@@ -144,7 +144,7 @@ contributes: [
 ],
 ```
 
-So the defaults for `seriesArea.backgroundRegions` are in `backgroundRegionsTheme.ts`, not in `SeriesAreaModule`. To find a contribution for an option path:
+So the defaults for `seriesArea.backgroundRegions` are in `backgroundRegionsTheme.ts`, not in the chart's `seriesArea` defaults. To find a contribution for an option path:
 
 ```bash
 grep -rn "path: 'seriesArea.backgroundRegions'" packages/ag-charts-{community,enterprise}/src

@@ -6,6 +6,7 @@ import {
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+    LABEL_MANAGER_SERVICES,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
@@ -106,6 +107,7 @@ export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> =
     chartType: 'cartesian',
     version: VERSION,
     dependencies: [CartesianChartModule],
+    services: LABEL_MANAGER_SERVICES,
 
     options: bubbleSeriesOptionsDef,
 

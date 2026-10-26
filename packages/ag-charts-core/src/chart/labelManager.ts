@@ -1,9 +1,7 @@
+import type { BoxBounds } from '../geometry/boxBounds';
 import {
-    BBox,
-    type BoxBounds,
     type CandidateStyleResolver,
     type LabelObstacle,
-    type NormalisedPaddingOptions,
     type PlacedLabel,
     type PointLabelDatum,
     type PositionedCandidateResolver,
@@ -12,7 +10,10 @@ import {
     isPointLabelDatum,
     labelsAvoidAxisLabels,
     placeLabels,
-} from 'ag-charts-core';
+} from '../geometry/labelPlacement';
+import type { ModuleServices } from '../modules/moduleDefinition';
+import type { NormalisedPaddingOptions } from '../options/normalised/normalisedCommonOptions';
+import { BBox } from '../scene/bbox';
 
 /**
  * Anything taking part in a label solve. A source contributes obstacles whether or not it places
@@ -188,3 +189,8 @@ export class LabelManager {
         return placeLabels(this.labelData, bounds, 5, gatherObstacles);
     }
 }
+
+/** The service every module whose labels take part in a label solve provides. */
+export const LABEL_MANAGER_SERVICES: ModuleServices<{ labelManager: LabelManager }> = {
+    labelManager: () => new LabelManager(),
+};

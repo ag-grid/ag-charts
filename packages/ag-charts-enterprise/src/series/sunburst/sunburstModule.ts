@@ -5,6 +5,7 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
+    LABEL_MANAGER_SERVICES,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
@@ -116,6 +117,7 @@ export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOption
     solo: true,
     version: VERSION,
     dependencies: [StandaloneChartModule],
+    services: LABEL_MANAGER_SERVICES,
 
     options: sunburstSeriesOptionsDef,
 

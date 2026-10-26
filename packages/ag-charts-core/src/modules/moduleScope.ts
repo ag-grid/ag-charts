@@ -1,3 +1,4 @@
+import type { DynamicContext } from './dynamicContext';
 import {
     type AxisModuleDefinition,
     type AxisPluginModuleDefinition,
@@ -10,7 +11,7 @@ import {
     type SeriesModuleDefinition,
     type SeriesPluginModuleDefinition,
 } from './moduleDefinition';
-import { type ResolvedContribution, resolveContributions } from './optionsContribution';
+import { type ResolvedContribution, moduleMatchesChartType, resolveContributions } from './optionsContribution';
 
 export type RegistrableModuleDefinition =
     | ModuleDefinition
@@ -153,6 +154,18 @@ export class ModuleScope {
         for (const definition of this.listModules()) {
             if (isModuleType(moduleType, definition)) {
                 yield definition;
+            }
+        }
+    }
+
+    /** Installs on `ctx` the services of every visible module that applies to `chartType`, keeping any already there. */
+    installServices(ctx: DynamicContext<any>, chartType: string | undefined): void {
+        for (const definition of this.listModules()) {
+            const { services } = definition;
+            if (services == null || !moduleMatchesChartType(definition, chartType)) continue;
+            for (const name of Object.keys(services)) {
+                const factory = services[name];
+                if (factory != null && !ctx.has(name)) ctx.service(name, factory);
             }
         }
     }

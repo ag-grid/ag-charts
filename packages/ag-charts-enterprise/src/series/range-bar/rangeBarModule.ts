@@ -1,5 +1,10 @@
 import { type AgRangeBarSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
-import { ChartAxisDirection, DIRECTION_SWAP_AXES, type SeriesModuleDefinition } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    DIRECTION_SWAP_AXES,
+    LABEL_MANAGER_SERVICES,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { RangeBarSeries } from './rangeBarSeries';
@@ -16,6 +21,7 @@ export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOption
     groupable: true,
     version: VERSION,
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
+    services: LABEL_MANAGER_SERVICES,
 
     options: rangeBarSeriesOptionsDef,
 

@@ -3,6 +3,7 @@ import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
     ChartAxisDirection,
+    LABEL_MANAGER_SERVICES,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 
@@ -20,6 +21,7 @@ export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOpti
     enterprise: true,
     version: VERSION,
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
+    services: LABEL_MANAGER_SERVICES,
 
     options: rangeAreaSeriesOptionsDef,
 

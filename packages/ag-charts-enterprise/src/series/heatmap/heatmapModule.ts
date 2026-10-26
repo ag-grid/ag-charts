@@ -1,6 +1,6 @@
 import { type AgHeatmapSeriesOptions, CartesianChartModule, VERSION } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection } from 'ag-charts-core';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection, LABEL_MANAGER_SERVICES } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { HeatmapSeries } from './heatmapSeries';
@@ -14,6 +14,7 @@ export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions>
     enterprise: true,
     version: VERSION,
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
+    services: LABEL_MANAGER_SERVICES,
 
     options: heatmapSeriesOptionsDef,
 

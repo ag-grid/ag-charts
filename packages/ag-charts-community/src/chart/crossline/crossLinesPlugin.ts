@@ -10,6 +10,7 @@ import type {
     Forbid,
     NormalisedAxisCrossLineOptions,
     PlacedLabel,
+    PlacedLabelSource,
     PointLabelDatum,
     PolarCrossLine,
 } from 'ag-charts-core';
@@ -20,7 +21,6 @@ import type { SeriesAreaCanvasClickEvent, SeriesAreaContextMenuEvent } from '../
 import type { AxisContext } from '../../module/axisContext';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
-import type { PlacedLabelSource } from '../layout/labelManager';
 import { type CrossLineValuePick, type PendingCrossLineCallbackParam, PendingCrossLineCallbacks } from './crossLine';
 import type { CrossLinesRegistry } from './crossLinesRegistry';
 
@@ -128,7 +128,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             new CrossLineLabelSource(`${this.id}:drop`, this, false),
         ];
         for (const source of this.labelSources) {
-            this.ctx.labelManager.registerSource(source);
+            this.ctx.labelManager?.registerSource(source);
         }
         this.axisCtx.attachAxisOverlay(this.rangeGroup, 'low');
         this.axisCtx.attachAxisOverlay(this.lineGroup, 'mid');
@@ -377,7 +377,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     override destroy(): void {
         this.ctx.crossLinesDOMProxy?.detach(this);
         for (const source of this.labelSources) {
-            this.ctx.labelManager.unregisterSource(source.id, source);
+            this.ctx.labelManager?.unregisterSource(source.id, source);
         }
         for (const removeListener of this.removePointerListeners) {
             removeListener();

@@ -1,5 +1,6 @@
-import type { BBox, BoxBounds, LabelObstacle } from 'ag-charts-core';
-
+import type { BoxBounds } from '../geometry/boxBounds';
+import type { LabelObstacle } from '../geometry/labelPlacement';
+import type { BBox } from '../scene/bbox';
 import type { LabelSource } from './labelManager';
 
 /** Contributes an axis's drawn tick labels as obstacles that labels opting into `collideWith.axisLabels` avoid. */
