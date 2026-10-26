@@ -548,11 +548,6 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'plugin',
-        name: 'series-area',
-        moduleId: 'SeriesAreaModule',
-    },
-    {
-        type: 'plugin',
         name: 'statusBar',
         moduleId: 'StatusBarModule',
         chartTypes: ['cartesian'],

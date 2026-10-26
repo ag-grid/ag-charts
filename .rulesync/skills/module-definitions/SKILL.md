@@ -83,14 +83,26 @@ changes wholesale; the generated placeholder then names the enterprise variant.
 
 A feature that lives under another module's option key is its own module, not an override of the
 host. `BackgroundRegionsModule` declares `contributes: [{ path: 'seriesArea.backgroundRegions', ... }]`
-and depends on the community `SeriesAreaModule`, which exposes itself as the `seriesArea` service.
-Every chart module depends on that service, so `ctx.seriesArea` is never optional. The feature
-implements `SeriesAreaContent` and calls `ctx.seriesArea.attach(this)` to render inside the series
-area. The host reads the keys other modules contribute below its path through `contributedKeysUnder`
+and reaches the host through the `seriesArea` chart-context service, which every chart installs, so
+`ctx.seriesArea` is never optional. The feature implements `SeriesAreaContent` and calls
+`ctx.seriesArea.attach(this)` to render inside the series area. The host reads the keys other modules contribute below its path through `contributedKeysUnder`
 and leaves them alone, so it validates only its own options.
 
 Presets that users reach through an API entry point declare `apiName: 'AgCharts.createGauge'` so the
 report names the entry point rather than the registry name.
+
+## Chart-context services
+
+A module of any type provides chart-context services through `services`, a map from registry name
+to factory: `services: { zoomManager: (c) => new ZoomManager(c) }`. The chart installs the services
+of every registered module that applies to its chart type before anything reads the context; the
+first provider of a name wins, so several modules may share one interchangeable provider (such as
+`sharedToolbar`, which both the chart toolbar and annotations provide).
+
+The context is the integration point between modules: consumers read the service from `ctx` and,
+unless every chart module guarantees it, treat it as optional. Never add a `dependencies` edge or
+an export only so that one module can reach a service another module provides. Keep `register` for
+what is not a lazily built service, such as a `ctx.factory` or an eagerly constructed constant.
 
 ## Generated tables
 
