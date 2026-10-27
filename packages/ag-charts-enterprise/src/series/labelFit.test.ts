@@ -879,6 +879,26 @@ describe('series label fit', () => {
         expect(someTruncated(nestedLabelTexts())).toBe(true);
     });
 
+    it('keeps radar labels too narrow for a character as an ellipsis', async () => {
+        const data = [
+            { subject: 'Maths', grade: 8, label: 'Maths' },
+            { subject: 'English', grade: 7, label: 'English' },
+            { subject: 'History', grade: 6, label: 'History' },
+        ];
+        chart = await createEnterpriseChart({
+            data,
+            series: [
+                {
+                    type: 'radar-line',
+                    angleKey: 'subject',
+                    radiusKey: 'grade',
+                    label: perDatumLabel({ maxWidth: 4, wrapping: 'never', truncate: true }),
+                },
+            ],
+        });
+        expect(drawnLabels().map((node) => node.text)).toEqual(data.map(() => ELLIPSIS));
+    });
+
     it('wraps and truncates map-marker labels within an explicit maxWidth/maxHeight', async () => {
         await renderAndSnapshot({
             topology: ukTopology,
