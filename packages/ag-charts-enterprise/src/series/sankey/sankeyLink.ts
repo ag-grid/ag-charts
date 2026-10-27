@@ -37,6 +37,11 @@ export class SankeyLink<D = unknown> extends Path<D> {
     startEdge: SankeyLinkNodeEdge | undefined = undefined;
     endEdge: SankeyLinkNodeEdge | undefined = undefined;
 
+    // Its arcs and elbows are not bounded by the box of its end points.
+    protected override hasBoundedSilhouette(): boolean {
+        return false;
+    }
+
     protected override computeBBox(): BBox | undefined {
         const x = Math.min(this.x1, this.x2);
         const width = Math.max(this.x1, this.x2) - x;

@@ -12,6 +12,11 @@ import { compareZIndex } from './zIndex';
 /** How far a canvas shadow reaches past its source, in blurs: its Gaussian has a deviation of half the blur. */
 const SHADOW_BLUR_REACH = 1.5;
 
+/** How far a shadow's blur, in device pixels, reaches past its source, with a `spread` that widens the source by more. */
+function getBlurReach(blur: number, spread: number = 0) {
+    return Math.ceil(blur * SHADOW_BLUR_REACH + Math.max(0, spread));
+}
+
 /** How far two casters' strengths may differ for a key to cast them as one. */
 const UNIFORM_STRENGTH_TOLERANCE = 1 / 512;
 
@@ -197,6 +202,8 @@ interface ShadowCache {
     pool: ScratchPool | undefined;
     /** Whether the canvas holds the shadows that the signature describes. */
     valid: boolean;
+    /** The pixels the scene's kept shadows held when this cast was refused room, until its signature changes. */
+    declinedAt: number | undefined;
 }
 
 const caches = new WeakMap<object, ShadowCache[]>();
@@ -214,6 +221,7 @@ function freeCanvas(cache: ShadowCache) {
 
 function freeCache(cache: ShadowCache) {
     freeCanvas(cache);
+    cache.declinedAt = undefined;
     cache.signature.length = 0;
 }
 
@@ -236,6 +244,7 @@ function getCache(user: object, cast: number): ShadowCache | undefined {
             y: 0,
             pool: undefined,
             valid: false,
+            declinedAt: undefined,
         };
         userCaches[cast] = cache;
     }
@@ -326,7 +335,7 @@ function getShadowExtent(
         const spread = shadow.spread ?? 0;
         const offsetX = shadow.xOffset * devicePixelRatio;
         const offsetY = shadow.yOffset * devicePixelRatio;
-        const blurReach = Math.ceil(shadow.blur * devicePixelRatio * SHADOW_BLUR_REACH) + CACHED_EXTENT_MARGIN;
+        const blurReach = getBlurReach(shadow.blur * devicePixelRatio) + CACHED_EXTENT_MARGIN;
         for (const caster of casters) {
             if (!caster.getShadowSilhouetteBounds(transform, spread, silhouette)) return { x: 0, y: 0, width, height };
 
@@ -358,18 +367,25 @@ function acquireCacheCanvas(cache: ShadowCache, scene: object | undefined, exten
 
         const pool = getPool(scene);
         const area = width * height;
-        if (pool.cachedArea + area > MAX_CACHED_AREA) return;
-
-        const kept = allocateCanvas(width, height);
-        if (kept == null) return;
+        const kept = pool.cachedArea + area > MAX_CACHED_AREA ? undefined : allocateCanvas(width, height);
+        if (kept == null) {
+            cache.declinedAt = pool.cachedArea;
+            return;
+        }
 
         cache.kept = kept;
         cache.pool = pool;
         pool.cachedArea += area;
     }
+    cache.declinedAt = undefined;
     cache.x = x;
     cache.y = y;
     return cache.kept;
+}
+
+/** Whether the cast was refused room and the scene's kept shadows have not shrunk since, so asking again would fail. */
+function isDeclined(cache: ShadowCache, scene: object | undefined) {
+    return cache.declinedAt != null && getPool(scene).cachedArea >= cache.declinedAt;
 }
 
 /** Whether a cast can keep its shadows: the layer and what the scene's other casts hold leave it room for some. */
@@ -504,7 +520,7 @@ function planKey(
 
     // An item that overhangs the layer still casts its shadow onto it, so the mask extends past the layer by as far as a
     // shadow can reach back. That is never more than MAX_MASK_PAD, past which nothing is drawn, so the mask stays small.
-    const reach = Math.ceil(blur * SHADOW_BLUR_REACH + Math.max(0, spread) * devicePixelRatio);
+    const reach = getBlurReach(blur, spread * devicePixelRatio);
     const padLeft = Math.min(Math.ceil(Math.max(0, offsetX)) + reach, MAX_MASK_PAD);
     const padRight = Math.min(Math.ceil(Math.max(0, -offsetX)) + reach, MAX_MASK_PAD);
     const padTop = Math.min(Math.ceil(Math.max(0, offsetY)) + reach, MAX_MASK_PAD);
@@ -633,12 +649,14 @@ function castPlan(
     return rendered;
 }
 
-function blitCache(ctx: Ctx, cache: ShadowCache, kept: SpreadCanvas) {
+function blitCache(ctx: Ctx, { kept, x, y }: ShadowCache) {
+    if (kept == null) return;
+
     ctx.save();
     try {
         ctx.resetTransform();
         ctx.globalAlpha = 1;
-        ctx.drawImage(kept.canvas, cache.x, cache.y);
+        ctx.drawImage(kept.canvas, x, y);
     } finally {
         ctx.restore();
     }
@@ -668,11 +686,14 @@ export function castShadows({ scene, user, keys, index }: ShadowCast, renderCtx:
     }
     const repeated = cache != null && matchSignature(cache, keys, renderCtx, transform, width, height);
     if (cache?.valid === true && repeated && cache.kept != null) {
-        blitCache(ctx, cache, cache.kept);
+        blitCache(ctx, cache);
         return true;
     }
     // A cast that has stopped matching holds nothing, so that an animating layer keeps no canvas.
-    if (cache != null && !repeated) freeCanvas(cache);
+    if (cache != null && !repeated) {
+        freeCanvas(cache);
+        cache.declinedAt = undefined;
+    }
 
     // Every key is planned before any is drawn, so that a cast that can't be made is not half made.
     const plans: KeyPlan[] = [];
@@ -693,14 +714,11 @@ export function castShadows({ scene, user, keys, index }: ShadowCast, renderCtx:
     const scratch = acquireShadowScratch(scene, user, scratchWidth, scratchHeight);
     if (scratch == null) return false;
 
-    const kept =
-        cache != null && repeated
-            ? acquireCacheCanvas(
-                  cache,
-                  scene,
-                  getShadowExtent(keys, transform, renderCtx.devicePixelRatio, width, height)
-              )
-            : undefined;
+    let kept: SpreadCanvas | undefined;
+    if (cache != null && repeated && !isDeclined(cache, scene)) {
+        const extent = getShadowExtent(keys, transform, renderCtx.devicePixelRatio, width, height);
+        kept = acquireCacheCanvas(cache, scene, extent);
+    }
     if (cache != null && kept != null) {
         kept.context.clearRect(0, 0, kept.canvas.width, kept.canvas.height);
         let rendered = true;
@@ -709,7 +727,7 @@ export function castShadows({ scene, user, keys, index }: ShadowCast, renderCtx:
         }
         // A caster that failed to draw is drawn again by the next cast, rather than left out of the shadows for good.
         cache.valid = rendered;
-        blitCache(ctx, cache, kept);
+        blitCache(ctx, cache);
     } else {
         for (const plan of plans) castPlan(plan, scratch, ctx, transform, renderCtx, 0, 0);
     }
