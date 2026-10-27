@@ -2299,6 +2299,28 @@ describe('DonutSeries', () => {
             });
         });
 
+        it('registers each shown label with the label solve where it is drawn', async () => {
+            chart = deproxy(await createChart(polarExamples.PIE_CALLOUT_LABELS_COLLISIONS));
+            const [series] = calloutSeries(chart);
+            const shown = visibleCalloutLabels(chart).map(({ box }) =>
+                box.clone().translate(series.centerX, series.centerY)
+            );
+            const registered = series
+                .getLabelData(chart.seriesRect)
+                .map((datum) => datum.positionedCandidates?.[0].box);
+
+            expect(shown.length).toBeGreaterThan(1);
+            expect(registered).toHaveLength(shown.length);
+            for (const [i, box] of shown.entries()) {
+                expect(registered[i]).toEqual({
+                    x: expect.closeTo(box.x, 3),
+                    y: expect.closeTo(box.y, 3),
+                    width: expect.closeTo(box.width, 3),
+                    height: expect.closeTo(box.height, 3),
+                });
+            }
+        });
+
         test('a uniform-radius series keeps every label on its own radius', async () => {
             chart = deproxy(await createChart(UNIFORM_RADIUS_CROWDED_TOP));
             expect(hasVariableRadius(chart)).toBe(false);
