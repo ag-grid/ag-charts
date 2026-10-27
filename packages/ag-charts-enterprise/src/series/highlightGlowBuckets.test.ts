@@ -4,7 +4,6 @@ import type { AgChartInstance, AgChartOptions, AgGlowOptions } from 'ag-charts-c
 import {
     HIGHLIGHT_GLOW,
     deproxy,
-    getSeriesAt,
     getSeriesNodeData,
     getSeriesSelectionNodes,
     glowShadow,
@@ -14,7 +13,7 @@ import {
 } from 'ag-charts-community-test';
 import type { Group, Rect, Shape } from 'ag-charts-core';
 
-import { getFlowLinkData, getFlowNodeData } from '../test/enterpriseSeriesAccessors';
+import { getFlowLinkData, getFlowNodeData, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
 import { SHADOW, collectShapes, createEnterpriseChart } from '../test/utils';
 import type { HierarchyNode } from './hierarchy/hierarchySeries';
@@ -382,16 +381,15 @@ describe.each(['sankey', 'chord'] as const)('highlight glow on %s focus copies',
         ctx.highlightManager.updateHighlight(id, datum as any);
         await waitForChartStability(chart);
 
-        // The highlight layer holds, in order, the hovered node's copy, the focus links, the focus nodes and the
-        // hovered link's copy.
-        const series = getSeriesAt(chart) as any;
-        const [hoveredNode, focusLinks, focusNodes, hoveredLink] = [
-            ...(series.highlightGroup.children() as Iterable<Group>),
-        ];
+        // The hovered node's and link's own copies, and the focus layers redrawing their connected items undimmed.
         return {
-            content: castCounts(series.contentGroup),
-            hovered: castCounts(hoveredNode).glowing + castCounts(hoveredLink).glowing,
-            focus: castCounts(focusLinks).glowing + castCounts(focusNodes).glowing,
+            content: castCounts(getSeriesGroup(chart, 'contentGroup')),
+            hovered:
+                castCounts(getSeriesGroup(chart, 'highlightNodeGroup')).glowing +
+                castCounts(getSeriesGroup(chart, 'highlightLinkGroup')).glowing,
+            focus:
+                castCounts(getSeriesGroup(chart, 'focusLinkGroup')).glowing +
+                castCounts(getSeriesGroup(chart, 'focusNodeGroup')).glowing,
         };
     };
 

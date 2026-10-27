@@ -266,6 +266,9 @@ export type SeriesGroupName =
     | 'linkGroup'
     | 'highlightNodeGroup'
     | 'highlightLinkGroup'
+    | 'focusNodeGroup'
+    | 'focusLinkGroup'
+    | 'contentGroup'
     | 'connectorNodeGroup';
 
 /** A scene group the series keeps to itself. */
