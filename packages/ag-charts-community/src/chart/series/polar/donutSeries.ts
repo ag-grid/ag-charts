@@ -322,6 +322,8 @@ export class DonutSeries extends PolarSeries<
     // Built only by the label solve: node data is remapped on every update, so it cannot carry the writeback.
     private labelTargets: { readonly label: PolarLabelDatum }[] = [];
     private readonly sectorLabels = new Map<number, PolarLabelDatum>();
+    private readonly calloutLabels = new Map<number, PolarLabelDatum>();
+    private readonly calloutProbeText = new Text();
     private innerLabelTargets: PolarLabelDatum[] = [];
     private titleLabel: PolarLabelDatum | undefined;
     private labelLayout = '';
@@ -1072,8 +1074,8 @@ export class DonutSeries extends PolarSeries<
     }
 
     private syncLabelPlacementInputs() {
-        const { sectorLabel, title, innerLabels = [] } = this.options;
-        this.usesPlacedLabels = sectorLabel.enabled || title.enabled || innerLabels.length > 0;
+        const { calloutLabel, sectorLabel, title, innerLabels = [] } = this.options;
+        this.usesPlacedLabels = calloutLabel.enabled || sectorLabel.enabled || title.enabled || innerLabels.length > 0;
         const layout = `${this.centerX},${this.centerY},${this.radius},${this.surroundingRadius},${this.visibleSectorCount()}`;
         if (layout === this.labelLayout) return;
         // The labels anchor on the circle, which lays out without rebuilding the node data.
@@ -1340,8 +1342,10 @@ export class DonutSeries extends PolarSeries<
 
         // The labels resolve legend-linked highlights the same way the sectors do, so a label on a series that
         // does not own the hovered legend item is lit with its sector rather than dimmed as another series.
-        this.updateCalloutLineNodes(legendItemValues);
-        this.updateCalloutLabelNodes(seriesRect, legendItemValues);
+        if (!this.usesPlacedLabels) {
+            this.updateCalloutLineNodes(legendItemValues);
+            this.updateCalloutLabelNodes(seriesRect, legendItemValues);
+        }
         this.updateSectorLabelNodes(legendItemValues);
         this.updateInnerLabelNodes();
         this.updateZerosumRings();
@@ -1363,8 +1367,9 @@ export class DonutSeries extends PolarSeries<
             const calloutStrokeWidth = strokeWidth;
             const calloutColors: string[] = isStringFillArray(colors) ? colors : strokes;
             const { calloutLabel: label, outerRadius, datumIndex } = datum;
+            const placed = placedPolarLabel(this.calloutLabels.get(datumIndex)) != null;
 
-            if (label?.text != null && label.text !== '' && !label.hidden && outerRadius !== 0) {
+            if (label?.text != null && label.text !== '' && !label.hidden && outerRadius !== 0 && placed) {
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
                 line.stroke = color ?? cycledValue(calloutColors, datumIndex);
@@ -1955,65 +1960,73 @@ export class DonutSeries extends PolarSeries<
         ]);
     }
 
-    private updateCalloutLabelNodes(seriesRect: BBox, legendItemValues: string[] | undefined) {
-        const { radiusScale } = this;
-        const { calloutLabel } = this.options;
+    private hasCalloutLabel(datum: PieDonutNodeDatum): datum is Has<'calloutLabel', PieDonutNodeDatum> {
+        const label = datum.calloutLabel;
+        const outerRadius = Math.max(0, this.radiusScale.convert(datum.radius));
+        return label?.text != null && label.text !== '' && outerRadius !== 0 && !label.hidden;
+    }
 
-        const tempTextNode = new Text();
+    /** The callout label as drawn: probing it for the label solve and painting it must agree. */
+    private resolveCalloutLabel(
+        datum: Has<'calloutLabel', PieDonutNodeDatum>,
+        seriesRect: BBox | undefined,
+        isHighlight: boolean
+    ) {
+        const label = datum.calloutLabel;
+        const outerRadius = Math.max(0, this.radiusScale.convert(datum.radius));
+        const metrics = this.getCalloutLabelMetrics(datum, label, isHighlight);
+        const { style, text: fittedText, font } = metrics;
+        const { x, y } = this.getCalloutLabelAnchor(datum, label, outerRadius, metrics);
+        const align = { textAlign: label.collisionTextAlign ?? label.textAlign, textBaseline: label.textBaseline };
+
+        let text = fittedText;
+        let visible = true;
+        if (this.options.calloutLabel.avoidCollisions && seriesRect != null) {
+            const probe = this.calloutProbeText;
+            probe.text = fittedText;
+            probe.x = x;
+            probe.y = y;
+            probe.setFont(font);
+            probe.setAlign(align);
+            probe.setBoxing(style);
+            const box = probe.getBBox();
+            const { maxWidth, hasVerticalOverflow } = this.getLabelOverflow(box, seriesRect);
+            if (box.width > maxWidth) {
+                const options: WrapOptions = { font, textWrap: 'on-space', overflow: 'hide', maxWidth };
+                text = wrapTextOrSegments(fittedText, options);
+            }
+            visible = !hasVerticalOverflow;
+        }
+        return { x, y, text, font, style, align, visible };
+    }
+
+    private updateCalloutLabelNodes(seriesRect: BBox | undefined, legendItemValues: string[] | undefined) {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
         for (const text of this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel)) {
             const datum: PieDonutNodeDatum = text.unsafeClosestDatum();
-            const label = datum.calloutLabel;
-            const radius = radiusScale.convert(datum.radius);
-            const outerRadius = Math.max(0, radius);
-
-            if (label?.text == null || label.text === '' || outerRadius === 0 || label.hidden) {
+            if (!this.hasCalloutLabel(datum) || placedPolarLabel(this.calloutLabels.get(datum.datumIndex)) == null) {
                 text.visible = false;
                 continue;
             }
 
             const isDatumHighlighted =
                 seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
-
-            const metrics = this.getCalloutLabelMetrics(datum, label, isDatumHighlighted);
-            const { style, text: fittedText, font: fittedFont } = metrics;
-            const { x, y } = this.getCalloutLabelAnchor(datum, label, outerRadius, metrics);
-
-            // Detect text overflow
-            const align = {
-                textAlign: label.collisionTextAlign ?? label.textAlign,
-                textBaseline: label.textBaseline,
-            };
-            tempTextNode.text = fittedText;
-            tempTextNode.x = x;
-            tempTextNode.y = y;
-            tempTextNode.setFont(fittedFont);
-            tempTextNode.setAlign(align);
-            tempTextNode.setBoxing(style);
-            const box = tempTextNode.getBBox();
-
-            let displayText = fittedText;
-            let visible = true;
-            if (calloutLabel.avoidCollisions) {
-                const { maxWidth, hasVerticalOverflow } = this.getLabelOverflow(box, seriesRect);
-                if (box.width > maxWidth) {
-                    const options: WrapOptions = {
-                        font: fittedFont,
-                        textWrap: 'on-space',
-                        overflow: 'hide',
-                        maxWidth,
-                    };
-                    displayText = wrapTextOrSegments(fittedText, options);
-                }
-                visible = !hasVerticalOverflow;
-            }
+            const {
+                x,
+                y,
+                text: displayText,
+                font,
+                style,
+                align,
+                visible,
+            } = this.resolveCalloutLabel(datum, seriesRect, isDatumHighlighted);
 
             text.text = displayText;
             text.x = x;
             text.y = y;
-            text.setFont(fittedFont);
+            text.setFont(font);
             text.setAlign(align);
             text.setBoxing(style);
             text.fill = style.color;
@@ -2118,9 +2131,10 @@ export class DonutSeries extends PolarSeries<
         return BBox.merge(textBoxes);
     }
 
-    override getLabelData(): PointLabelDatum[] {
+    override getLabelData(seriesRect?: BBox): PointLabelDatum[] {
         const data: PointLabelDatum[] = [];
         this.labelTargets = [];
+        this.calloutLabelData(data, seriesRect);
         this.sectorLabelData(data);
         this.titleLabelData(data);
         this.innerLabelData(data);
@@ -2135,6 +2149,20 @@ export class DonutSeries extends PolarSeries<
     ) {
         data.push(polarLabelDatum(label, style, this.centerX, this.centerY, undefined, fitTarget));
         this.labelTargets.push({ label });
+    }
+
+    // Callouts are spread by the layout pass before the solve, so they register where that pass left them.
+    private calloutLabelData(data: PointLabelDatum[], seriesRect: BBox | undefined) {
+        const { calloutLabels } = this;
+        calloutLabels.clear();
+        for (const datum of this.calloutNodeData) {
+            if (!this.hasCalloutLabel(datum)) continue;
+            const { x, y, text, font, style, align, visible } = this.resolveCalloutLabel(datum, seriesRect, false);
+            if (!visible) continue;
+            const label: PolarLabelDatum = { x, y, text, ...align };
+            calloutLabels.set(datum.datumIndex, label);
+            this.pushLabel(data, label, { font, boxPadding: expandLabelBoxExtent(style) });
+        }
     }
 
     private sectorLabelData(data: PointLabelDatum[]) {
@@ -2248,7 +2276,7 @@ export class DonutSeries extends PolarSeries<
         return polarSectorObstacles(sectors, this.centerX, this.centerY);
     }
 
-    override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
+    override updatePlacedLabelData(placed: PlacedLabel<unknown>[], seriesRect?: BBox) {
         writePlacedPolarLabels(this.labelTargets, placed);
         const { dataModel, processedData } = this;
         const legendItemValues =
@@ -2256,6 +2284,8 @@ export class DonutSeries extends PolarSeries<
                 ? undefined
                 : this.getProcessedDataValues(dataModel, processedData).legendItemValues;
         this.updateTitleNode();
+        this.updateCalloutLineNodes(legendItemValues);
+        this.updateCalloutLabelNodes(seriesRect, legendItemValues);
         this.updateSectorLabelNodes(legendItemValues);
         this.updateInnerLabelNodes();
     }
