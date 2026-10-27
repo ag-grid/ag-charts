@@ -5,9 +5,11 @@ import {
     Logger,
     Path,
     Rect,
+    Scalable,
     Scene,
     SegmentedGroup,
     SegmentedPath,
+    Text,
     TransformableGroup,
     Translatable,
     castShadows,
@@ -2218,6 +2220,93 @@ describe('Group shadow compositor', () => {
                 expect(recovered.masked).not.toEqual([]);
                 expect(blitted.masked).toEqual([]);
                 expectSamePixels(blitted.pixels, direct(sceneGroup, change));
+            });
+        });
+
+        // A caster with a transform of its own widens its stroke and spread with it, which the kept canvas must reach.
+        describe('a caster with a transform of its own', () => {
+            const ScalableRect = Scalable(Rect);
+
+            const scaled = (x: number) => {
+                const node = new ScalableRect();
+                Object.assign(node, {
+                    x,
+                    y: 10,
+                    width: 15,
+                    height: 15,
+                    fill: 'black',
+                    stroke: 'black',
+                    strokeWidth: 6,
+                    lineJoin: 'round',
+                    scalingX: 4,
+                    scalingY: 4,
+                    fillShadow: { ...SHADOW, xOffset: 60, spread: 10 },
+                });
+                return node;
+            };
+            const makeScaled = () => createGroup([scaled(5), scaled(40)]);
+
+            it('should draw the same shadows from what it kept as it drew at first', () => {
+                const group = kept(makeScaled);
+                const expected = direct(makeScaled, nothing);
+
+                const { pixels: actual, masked: casts } = redraw(group);
+
+                expect(casts).toEqual([]);
+                expect(paintedPixels()).toBeGreaterThan(0);
+                expectSamePixels(actual, expected);
+            });
+        });
+
+        // The bounds of a text follow the direction of the scene, and are not marked changed when it switches.
+        describe('a text caster', () => {
+            const makeScene = () => {
+                const chart = new Scene({ canvasElement: document.createElement('canvas'), pixelRatio: 1 });
+                chart.resize(WIDTH, HEIGHT, 1);
+                const text = new Text();
+                Object.assign(text, {
+                    x: 200,
+                    y: 100,
+                    text: 'Shadow',
+                    fontSize: 40,
+                    fontFamily: 'Arial',
+                    fill: 'black',
+                    textAlign: 'start',
+                    textBaseline: 'middle',
+                    fillShadow: { ...SHADOW, xOffset: 30, blur: 2 },
+                });
+                const group = createGroup([text]);
+                const root = new Group({ name: 'root' });
+                root.appendChild(group);
+                chart.setRoot(root);
+                return { chart, group };
+            };
+
+            const draw = (chart: Scene, group: Group, rtl: boolean) => {
+                chart.setDirection(rtl);
+                group.markDirty();
+                chart.render();
+                const { width, height } = chart.canvas;
+                return Array.from(chart.canvas.context.getImageData(0, 0, width, height).data);
+            };
+
+            it('should draw the same shadows from what it kept after the direction switched as a first draw', () => {
+                const { chart, group } = makeScene();
+                draw(chart, group, false);
+                draw(chart, group, false);
+                const ltr = draw(chart, group, false);
+                expect(ltr.some((value) => value !== 0)).toBe(true);
+
+                draw(chart, group, true);
+                draw(chart, group, true);
+                const afterSwitch = draw(chart, group, true);
+
+                const reference = makeScene();
+                const expected = draw(reference.chart, reference.group, true);
+                expect(expected).not.toEqual(ltr);
+                expectSamePixels(afterSwitch, expected);
+                chart.destroy();
+                reference.chart.destroy();
             });
         });
 

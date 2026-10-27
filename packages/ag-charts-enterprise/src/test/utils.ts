@@ -214,12 +214,13 @@ export function renderNode(canvasCtx: MockCanvas, node: Shape, pixelRatio = 1) {
     ctx.restore();
 }
 
-/** Renders `nodes` over a white background as one batch of a group that casts its shadows with a single blur. */
-export function renderShadowBatch(canvasCtx: MockCanvas, nodes: readonly Shape[]) {
+/**
+ * Renders `nodes` over a white background as one batch of a group that casts its shadows with a single blur, `draws`
+ * times, so that a draw after the first can blit the shadows that the group kept.
+ */
+export function renderShadowBatch(canvasCtx: MockCanvas, nodes: readonly Shape[], draws = 1) {
     const { width, height } = canvasCtx.nodeCanvas;
     const ctx = canvasCtx.getRenderContext2D();
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, width, height);
 
     const group = new Group({ name: 'shadow-batch' });
     group.batchShadows = true;
@@ -234,8 +235,12 @@ export function renderShadowBatch(canvasCtx: MockCanvas, nodes: readonly Shape[]
         logger: testLogger,
         debugNodes: {},
     };
-    group.preRender(renderCtx);
-    group.render(renderCtx);
+    for (let i = 0; i < draws; i++) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, width, height);
+        group.preRender(renderCtx);
+        group.render(renderCtx);
+    }
     // The group keeps a scratch canvas for the batch, which it gives up once it has no casters.
     for (const node of nodes) node.fillShadow = undefined;
     group.preRender(renderCtx);
