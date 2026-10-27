@@ -98,6 +98,8 @@ const frameworkLandingPageSlugs = [
 ];
 const isFrameworkLandingPage = frameworkLandingPageSlugs.includes(content.analyticsPrefix);
 const frameworkKey = isFrameworkLandingPage ? content.internalFramework : '';
+// The enterprise page is not specific to a framework, so it must leave the visitor's selected framework alone
+const syncFramework = isFrameworkLandingPage && content.analyticsPrefix !== 'enterprise-charts';
 const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
 ---
 
@@ -174,7 +176,11 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
                             : section;
                     return (
                         <FeaturesSection section={featuresSectionWithLogo} pageContent={content}>
-                            <FeaturesWithExamples features={section.items} framework={content.internalFramework} />
+                            <FeaturesWithExamples
+                                features={section.items}
+                                framework={content.internalFramework}
+                                syncFramework={syncFramework}
+                            />
                         </FeaturesSection>
                     );
 
