@@ -213,9 +213,13 @@ describe('cartesian series shadow root', () => {
         });
 
         it('should cast the shadow of translucent areas once where they overlap, as it is cast for one of them', async () => {
+            // The fill opacity is the default of the theme, which is translucent.
             const translucent = (series: AgCartesianChartOptions['series']): AgCartesianChartOptions => ({
                 ...areas,
-                series: series!.map((item) => ({ ...item, fillOpacity: 0.8 })) as AgCartesianChartOptions['series'],
+                series: series!.map((item) => ({
+                    ...item,
+                    fillOpacity: undefined,
+                })) as AgCartesianChartOptions['series'],
             });
             // The shadow of the lower area is within that of the taller one, so the second adds nothing to it.
             await create(translucent(areas.series));
