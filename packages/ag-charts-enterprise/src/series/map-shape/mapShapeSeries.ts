@@ -1,19 +1,24 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type {
     CallbackParamRules,
+    CollideWith,
     DynamicContext,
     Feature,
     FeatureCollection,
     FontOptions,
     Geometry,
     LabelFit,
+    LabelFitDescriptor,
     Node,
     NormalisedMapShapeSeriesLabelOptions,
     NormalisedMapShapeSeriesOwnOptions,
     NormalisedMapShapeSeriesStyle,
     NormalisedTextOrSegments,
     Path,
+    PlacedFit,
+    PlacedLabel,
     Point,
+    PointLabelDatum,
     Position,
 } from 'ag-charts-core';
 import {
@@ -94,7 +99,36 @@ export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDat
 interface MapShapeNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
     MapShapeNodeDatum,
     MapShapeNodeLabelDatum
-> {}
+> {
+    /** Every shape's label before the solve fits it; `labelData` holds the ones it drew. */
+    readonly labelTargets: MapShapeLabelTarget[];
+    readonly labelFitting: LabelFitting;
+}
+
+interface MapShapeLabelTarget {
+    readonly layout: LabelLayout;
+    /** The shape's largest polygon, as drawn. */
+    readonly polygon: Position[][];
+    readonly datumIndex: number;
+    readonly idValue: string;
+}
+
+interface MapShapePlacedLabelDatum extends PointLabelDatum {
+    readonly target: MapShapeLabelTarget;
+}
+
+function placedLabelDatum(placed: PlacedLabel<unknown>): MapShapePlacedLabelDatum {
+    return placed.datum as MapShapePlacedLabelDatum;
+}
+
+// Shape labels hold their fitted position, and only labels opting in to background labels avoid them.
+const SHAPE_LABEL_COLLISIONS: CollideWith = {
+    marker: false,
+    label: false,
+    seriesItem: false,
+    seriesArea: false,
+    axisLabel: false,
+};
 
 interface ShapeDataValues {
     readonly idValue: string;
@@ -208,6 +242,7 @@ export class MapShapeSeries
                 label: ['labelName'],
             },
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            usesPlacedLabels: true,
         });
 
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
@@ -382,20 +417,14 @@ export class MapShapeSeries
     // Each line is wrapped to the width the polygon offers where it lands. Text that fits whole on one line
     // keeps the single-line anchor; anything else is also tried at the squarer one and the fuller result wins.
     // The winner then moves as near the centroid as it can while still fitting as well.
-    private getLabelDatum(
-        labelLayout: LabelLayout,
-        projectedGeometry: Geometry,
-        { fit, font, inset }: LabelFitting,
-        datumIndex: number,
-        idValue: string
-    ): MapShapeNodeLabelDatum | undefined {
+    private placeLabel(
+        { layout: labelLayout, polygon }: MapShapeLabelTarget,
+        { text: labelText, policy: fit, font }: LabelFitDescriptor,
+        inset: LabelFitting['inset']
+    ): PlacedFit | undefined {
         const { scale } = this;
         if (scale == null) return;
 
-        const polygon = largestPolygon(projectedGeometry);
-        if (polygon == null) return;
-
-        const { labelText } = labelLayout;
         const fitAt = (fixedX: number, fixedY: number) => {
             const [x, y] = scale.convert(fixedScale.invert([fixedX, fixedY]));
             const region = insetFitRegion(polygonFitRegion(polygon, x, y), inset.x, inset.y);
@@ -417,16 +446,7 @@ export class MapShapeSeries
         if (!hasRealChars(placed.fitted.text)) return;
         placed = centreLabel(placed, labelLayout.centroid, fitAt, font.fontSize);
 
-        return {
-            x: placed.x,
-            y: placed.y,
-            text: placed.fitted.text,
-            fontSize: placed.fitted.fontSize ?? font.fontSize,
-            lineHeight: lineHeightAtSize(font, placed.fitted.fontSize),
-            datumIndex,
-            idValue,
-            datumId: createDatumId(idValue),
-        };
+        return { text: placed.fitted.text, x: placed.x, y: placed.y, fontSize: placed.fitted.fontSize };
     }
 
     private resolveColumn<T>(
@@ -477,19 +497,18 @@ export class MapShapeSeries
 
         if (dataModel == null || processedData == null) return;
 
+        const labelFitting = resolveLabelFitting(label, this.getLabelLayoutFont(), options.padding);
         if (!this.visible) {
-            return { itemId: seriesId, nodeData: [], labelData: [] };
+            return { itemId: seriesId, nodeData: [], labelData: [], labelTargets: [], labelFitting };
         }
 
         const columns = this.resolveShapeDataColumns(processedData);
-
-        const labelFitting = resolveLabelFitting(label, this.getLabelLayoutFont(), options.padding);
 
         const labelLayouts = new Map<string, LabelLayout>();
         this.previousLabelLayouts = labelLayouts;
 
         const nodeData: MapShapeNodeDatum[] = [];
-        const labelData: MapShapeNodeLabelDatum[] = [];
+        const labelTargets: MapShapeLabelTarget[] = [];
         const missingGeometries: string[] = [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
@@ -522,12 +541,10 @@ export class MapShapeSeries
 
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
 
-            const labelDatum =
-                labelLayout != null && projectedGeometry != null
-                    ? this.getLabelDatum(labelLayout, projectedGeometry, labelFitting, datumIndex, dataValues.idValue)
-                    : undefined;
-            if (labelDatum != null) {
-                labelData.push(labelDatum);
+            const polygon =
+                labelLayout != null && projectedGeometry != null ? largestPolygon(projectedGeometry) : undefined;
+            if (labelLayout != null && polygon != null) {
+                labelTargets.push({ layout: labelLayout, polygon, datumIndex, idValue: dataValues.idValue });
             }
 
             nodeData.push({
@@ -546,8 +563,67 @@ export class MapShapeSeries
         return {
             itemId: seriesId,
             nodeData,
-            labelData,
+            labelData: [],
+            labelTargets,
+            labelFitting,
         };
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        const { contextNodeData, scale } = this;
+        if (!this.isLabelEnabled() || contextNodeData == null || scale == null) return [];
+        const { labelTargets, labelFitting } = contextNodeData;
+        const { fit: policy, font, inset } = labelFitting;
+        const padding = expandLabelBoxExtent(this.options.label);
+        const data: MapShapePlacedLabelDatum[] = [];
+        for (const target of labelTargets) {
+            const text = target.layout.labelText;
+            const [x, y] = scale.convert(fixedScale.invert([target.layout.x, target.layout.y]));
+            const measured = measureLabelText(text, font);
+            const width = measured.width + padding.left + padding.right;
+            const height = measured.height + padding.top + padding.bottom;
+            const anchor = { x, y, textAlign: 'center', textBaseline: 'middle' } as const;
+            data.push({
+                point: { x, y, size: 0 },
+                label: { text, width, height },
+                fit: { text, policy, font, boxPadding: padding, boundByRegion: false },
+                anchor: undefined,
+                placement: undefined,
+                collideWith: SHAPE_LABEL_COLLISIONS,
+                background: true,
+                positionedCandidates: [
+                    {
+                        box: { x: x - width / 2, y: y - height / 2, width, height },
+                        unbounded: true,
+                        fitTo: { anchor, padding, place: (fit) => this.placeLabel(target, fit, inset) },
+                    },
+                ],
+                target,
+            });
+        }
+        return data;
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
+        const { contextNodeData } = this;
+        if (contextNodeData == null) return;
+        const { font } = contextNodeData.labelFitting;
+        contextNodeData.labelData = placed.map((label) => {
+            const { text, fontSize, offsetX = 0, offsetY = 0 } = label;
+            const { point, target } = placedLabelDatum(label);
+            const { datumIndex, idValue } = target;
+            return {
+                x: point.x + offsetX,
+                y: point.y + offsetY,
+                text,
+                fontSize: fontSize ?? font.fontSize,
+                lineHeight: lineHeightAtSize(font, fontSize),
+                datumIndex,
+                idValue,
+                datumId: createDatumId(idValue),
+            };
+        });
+        this.updateLabels();
     }
 
     updateSelections() {
@@ -558,7 +634,7 @@ export class MapShapeSeries
     }
 
     override update() {
-        const { datumSelection, labelSelection, highlightDatumSelection } = this;
+        const { datumSelection, highlightDatumSelection } = this;
 
         this.updateSelections();
 
@@ -569,20 +645,12 @@ export class MapShapeSeries
         const highlightedDatum = this.getHighlightedDatum();
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
-        const labelData = this.contextNodeData?.labelData ?? [];
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumStyles({ datumSelection, isHighlight: false });
         this.updateDatumNodes({ datumSelection, drawingMode: 'overlay', isHighlight: false });
 
-        this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
-        const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum);
-        this.highlightLabelSelection = this.updateLabelSelection({
-            labelData: highlightLabelData,
-            labelSelection: this.highlightLabelSelection,
-        });
-        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
-        this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        this.updateLabels();
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum == null ? [] : [highlightedDatum],
@@ -590,6 +658,18 @@ export class MapShapeSeries
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection, drawingMode, isHighlight: true });
+    }
+
+    private updateLabels() {
+        const labelData = this.contextNodeData?.labelData ?? [];
+        this.labelSelection = this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
+        const highlightLabelData = this.getHighlightLabelData(labelData, this.getHighlightedDatum());
+        this.highlightLabelSelection = this.updateLabelSelection({
+            labelData: highlightLabelData,
+            labelSelection: this.highlightLabelSelection,
+        });
+        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
     }
 
     private getHighlightLabelData(
@@ -1021,18 +1101,18 @@ export class MapShapeSeries
     }
 }
 
-interface PlacedLabel {
+interface FitAttempt {
     fixedX: number;
     fixedY: number;
     fitted: { text: NormalisedTextOrSegments; fontSize?: number };
     kept: number;
 }
 
-function lineCount(placed: PlacedLabel) {
+function lineCount(placed: FitAttempt) {
     return toPlainText(placed.fitted.text).split('\n').length;
 }
 
-function centreLabel<T extends PlacedLabel>(
+function centreLabel<T extends FitAttempt>(
     placed: T,
     centroid: Position | undefined,
     fitAt: (fixedX: number, fixedY: number) => T,

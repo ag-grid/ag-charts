@@ -211,6 +211,8 @@ export interface PositionedLabelCandidate {
     readonly slideAxis?: 'x' | 'y';
     /** Render rotation in degrees (engine convention, matching {@link PlacedLabel.rotation}); `0`/unset is upright. */
     readonly rotation?: number;
+    /** Collides as its rotated rectangle rather than that rectangle's axis-aligned footprint. */
+    readonly orientedCollision?: boolean;
     /** Fit inputs for this candidate; used only when the datum carries a {@link PointLabelDatum.fit}. */
     readonly fitTo?: CandidateFitTarget;
     /**
@@ -312,6 +314,8 @@ export interface PointLabelDatum {
     readonly neverDrop?: boolean;
     /** When `false`, the placed label is not an obstacle for the labels resolved after it. */
     readonly obstacle?: boolean;
+    /** Only labels opting in to {@link CollideWith.backgroundLabel} treat the placed label as an obstacle. */
+    readonly background?: boolean;
     /** Placed labels sharing a group never block one another. */
     readonly labelGroup?: string;
     /** Gives way only to placed labels and obstacles that {@link outranks outrank} it. */
@@ -345,7 +349,7 @@ export interface PointLabelDatum {
     readonly stack?: LabelStack;
 }
 
-export type ObstacleCategory = 'marker' | 'label' | 'seriesItem' | 'axisLabel';
+export type ObstacleCategory = 'marker' | 'label' | 'seriesItem' | 'axisLabel' | 'backgroundLabel';
 
 /** Per-category toggle: `false` disables avoidance of that obstacle category. */
 export interface CollideWith {
@@ -356,6 +360,8 @@ export interface CollideWith {
     readonly seriesArea?: boolean;
     /** Opt-in, unlike the other categories: only `true` makes axis tick labels obstacles. */
     readonly axisLabel?: boolean;
+    /** Opt-in like {@link axisLabel}: only `true` makes {@link PointLabelDatum.background} labels obstacles. */
+    readonly backgroundLabel?: boolean;
 }
 
 /**
@@ -936,7 +942,7 @@ function obstacleExcluded(o: LabelObstacle): boolean {
 
     if (o.overlay === true) return false;
     const enabled = candidateCollideWith?.[category];
-    return category === 'axisLabel' ? enabled !== true : enabled === false;
+    return category === 'axisLabel' || category === 'backgroundLabel' ? enabled !== true : enabled === false;
 }
 
 /**
@@ -982,9 +988,10 @@ function obstacleOverlapsCandidateRect(o: LabelObstacle, testBox: BoxBounds): bo
     }
 }
 
-/** A label fitted inside its own shape collides by its rotated rectangle, not its wider axis-aligned box. */
+/** A rotated label fitted inside its own shape, or opting in, collides by its rotated rectangle, not its axis-aligned box. */
 function collidesByRotatedRect(candidate: PositionedLabelCandidate | undefined, rotation: number | undefined) {
-    return candidate?.fitTo?.shape != null && rotation != null && rotation % 90 !== 0;
+    if (rotation == null || rotation % 90 === 0) return false;
+    return candidate?.orientedCollision === true || candidate?.fitTo?.shape != null;
 }
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
@@ -1459,20 +1466,22 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
 function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     const box = labelObstacleBox(placed);
-    const { labelGroup, outranks } = placed.datum;
+    const { labelGroup, outranks, background } = placed.datum;
+    const category = background === true ? 'backgroundLabel' : 'label';
     let obstacle = labelObstaclePool[count];
     if (obstacle == null) {
         obstacle = {
             kind: 'rect',
             box,
             rect: { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 },
-            category: 'label',
+            category,
             labelGroup,
             outranks,
         };
         labelObstaclePool.push(obstacle);
     } else {
         obstacle.box = box;
+        obstacle.category = category;
         obstacle.labelGroup = labelGroup;
         obstacle.outranks = outranks;
     }
