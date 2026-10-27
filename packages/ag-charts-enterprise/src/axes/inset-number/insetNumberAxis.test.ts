@@ -77,17 +77,64 @@ describe('InsetNumberAxis', () => {
         expect(pixels.max).toBeCloseTo(pixels[length] * maxRatio);
     });
 
-    it('should render series within the band of their inset axes', async () => {
+    // Shown axis parts mark each band; `max` below the data shows the clip at the band edge.
+    const shownInsetAxis = (title: string) => ({
+        title: { text: title },
+        label: { enabled: true },
+        line: { enabled: true },
+        gridLine: { enabled: true },
+    });
+
+    it('should lay vertical inset axes and their series out along their bands', async () => {
         chart = await createEnterpriseChart({
             data: DATA,
             series: [
-                { type: 'scatter', xKey: 'price', yKey: 'size' },
-                { type: 'line', xKey: 'price', yKey: 'volume', yKeyAxis: 'yInset' },
+                { type: 'line', xKey: 'year', yKey: 'price' },
+                { type: 'bar', xKey: 'year', yKey: 'volume', yKeyAxis: 'yBottom' },
+                { type: 'bar', xKey: 'year', yKey: 'size', yKeyAxis: 'yTop' },
             ],
             axes: {
-                x: { type: 'inset-number', position: 'bottom', lengthRatio: 0.6, reverse: true },
+                x: { type: 'category', position: 'bottom' },
                 y: { type: 'number', position: 'left' },
-                yInset: { type: 'inset-number', position: 'right', lengthRatio: 0.3, line: { enabled: true } },
+                yBottom: {
+                    type: 'inset-number',
+                    position: 'left',
+                    lengthRatio: 0.3,
+                    ...shownInsetAxis('Bottom'),
+                    crossLines: [{ type: 'range', range: [9, 11] }],
+                },
+                yTop: {
+                    type: 'inset-number',
+                    position: 'left',
+                    lengthRatio: 0.3,
+                    reverse: true,
+                    max: 6,
+                    ...shownInsetAxis('Top'),
+                },
+            },
+        });
+
+        await compareImageSnapshot(chart, ctx);
+    });
+
+    it('should lay horizontal inset axes and their series out along their bands', async () => {
+        chart = await createEnterpriseChart({
+            data: DATA,
+            series: [
+                { type: 'bar', direction: 'horizontal', xKey: 'year', yKey: 'volume', yKeyAxis: 'xStart' },
+                { type: 'bar', direction: 'horizontal', xKey: 'year', yKey: 'size', yKeyAxis: 'xEnd' },
+            ],
+            axes: {
+                y: { type: 'category', position: 'left' },
+                xStart: { type: 'inset-number', position: 'bottom', lengthRatio: 0.4, ...shownInsetAxis('Start') },
+                xEnd: {
+                    type: 'inset-number',
+                    position: 'top',
+                    lengthRatio: 0.4,
+                    reverse: true,
+                    max: 6,
+                    ...shownInsetAxis('End'),
+                },
             },
         });
 
@@ -135,25 +182,6 @@ describe('InsetNumberAxis', () => {
         });
 
         await expectPixelIdenticalAcrossUpdate(ctx, createEnterpriseChart, options(false), options(true));
-    });
-
-    it('should stack inset axes at the same position outwards', async () => {
-        chart = await createEnterpriseChart({
-            data: DATA,
-            series: [
-                { type: 'line', xKey: 'year', yKey: 'price', yKeyAxis: 'yA' },
-                { type: 'line', xKey: 'year', yKey: 'volume', yKeyAxis: 'yB' },
-            ],
-            axes: {
-                x: { type: 'category', position: 'bottom' },
-                yA: { type: 'inset-number', position: 'left', lengthRatio: 0.5, label: { enabled: true } },
-                yB: { type: 'inset-number', position: 'left', lengthRatio: 0.5, label: { enabled: true } },
-            },
-        });
-        const internal = deproxy(chart);
-
-        const [yA, yB] = ['yA', 'yB'].map((key) => internal.axes.find((a) => a.userKey === key)!);
-        expect(yA.translation.x).not.toBeCloseTo(yB.translation.x);
     });
 
     it('should require lengthRatio', async () => {

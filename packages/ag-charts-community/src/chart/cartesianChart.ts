@@ -560,18 +560,42 @@ export class CartesianChart extends Chart {
             // Snap the axis-area depth to the device grid only at fractional DPR, keyed off the resize-invariant outer bound so the offset never cycles as the container resizes.
             const isHorizontalAxis = position === 'top' || position === 'bottom';
             const boundDepthOrigin = isHorizontalAxis ? axisAreaBound.y : axisAreaBound.x;
-            let currentOffset = scene.pixelRatio % 1 === 0 ? 0 : boundDepthOrigin % scene.pixelRatio;
+            const baseOffset = scene.pixelRatio % 1 === 0 ? 0 : boundDepthOrigin % scene.pixelRatio;
             let totalAxisWidth = 0;
 
-            for (const axis of axes ?? []) {
-                axisOffsets.set(axis.id, currentOffset);
-
-                const axisThickness = axisWidths.get(axis.id) ?? 0;
-                totalAxisWidth = Math.max(totalAxisWidth, currentOffset + axisThickness);
-                if (axis.layoutConstraints.stacked) {
-                    // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
-                    currentOffset += axisThickness + CartesianChart.AxesPadding;
+            // A stacked axis pushes later axes out a level only where their bands overlap.
+            const groupAxes = axes ?? [];
+            const bands = groupAxes.map((axis) => this.axisBand(axis, position));
+            const levels: number[] = [];
+            const levelDepths: number[] = [];
+            for (const [i, axis] of groupAxes.entries()) {
+                let level = 0;
+                for (let j = 0; j < i; j++) {
+                    const [start, end] = bands[j];
+                    if (groupAxes[j].layoutConstraints.stacked && start < bands[i][1] && bands[i][0] < end) {
+                        level = Math.max(level, levels[j] + 1);
+                    }
                 }
+                levels.push(level);
+                if (axis.layoutConstraints.stacked) {
+                    levelDepths[level] = Math.max(levelDepths[level] ?? 0, axisWidths.get(axis.id) ?? 0);
+                }
+            }
+
+            // Every level above the first holds an axis pushed out by a stacked axis on the level below.
+            const levelOffsets = [baseOffset];
+            for (let level = 1; level <= levelDepths.length; level++) {
+                levelOffsets[level] = levelOffsets[level - 1] + levelDepths[level - 1] + CartesianChart.AxesPadding;
+            }
+
+            for (const [i, axis] of groupAxes.entries()) {
+                const axisThickness = axisWidths.get(axis.id) ?? 0;
+                const level = levels[i];
+                // Stacked axes sharing a level align to its inner edge, beside the series area.
+                const levelInset = axis.layoutConstraints.stacked ? levelDepths[level] - axisThickness : 0;
+                const offset = levelOffsets[level] + levelInset;
+                axisOffsets.set(axis.id, offset);
+                totalAxisWidth = Math.max(totalAxisWidth, offset + axisThickness);
             }
 
             // The inset sits between the innermost axis and the series area, so it widens the area after the axes.
@@ -775,8 +799,9 @@ export class CartesianChart extends Chart {
         const isLeftRight = position === 'left' || position === 'right';
 
         const { width, height } = seriesRect;
-        const [bandStart, bandLength] = this.axisBand(axis, isLeftRight ? height : width, isLeftRight && isNumberAxis);
-        const bandEnd = bandStart + bandLength;
+        const fullLength = isLeftRight ? height : width;
+        const [bandStart, bandEnd] = this.axisBand(axis, position).map((ratio) => ratio * fullLength);
+        const bandLength = bandEnd - bandStart;
 
         // Per-axis zoom is axis-local — secondary axes in independent-axes mode diverge from their
         // direction primary. Read directly from the axis rather than the central chart state.
@@ -811,14 +836,14 @@ export class CartesianChart extends Chart {
         axis.lineRange = isLeftRight ? [bandEnd, bandStart] : [bandStart, bandEnd];
     }
 
-    /** The part of the series area length the axis is laid out in, as `[start, length]`. */
-    private axisBand(axis: CartesianAxis, fullLength: number, minAtEnd: boolean): [number, number] {
+    /** The part of the series area length the axis is laid out in, as `[start, end]` ratios. */
+    private axisBand(axis: CartesianAxis, position: AgCartesianAxisPosition): [number, number] {
         const { lengthRatio } = axis;
-        if (lengthRatio == null) return [0, fullLength];
+        if (lengthRatio == null) return [0, 1];
 
-        const bandLength = fullLength * lengthRatio;
-        const anchoredAtEnd = minAtEnd !== axis.options.reverse;
-        return [anchoredAtEnd ? fullLength - bandLength : 0, bandLength];
+        const isNumberAxis = axis.scale.type === 'number' || axis.scale.type === 'log';
+        const minAtEnd = (position === 'left' || position === 'right') && isNumberAxis;
+        return minAtEnd === axis.options.reverse ? [0, lengthRatio] : [1 - lengthRatio, 1];
     }
 
     // Centres each band of a `linkZoom` category axis on its category's value in the linked axis' scale,
