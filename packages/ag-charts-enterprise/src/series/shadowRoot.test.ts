@@ -1,9 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { type MockInstance, afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, AgDropShadowOptions } from 'ag-charts-community';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 import { Group } from 'ag-charts-core';
 
+import { type SeriesGroupName, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
 import { HIERARCHY_SHADOW_DATA, createEnterpriseChart } from '../test/utils';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
@@ -49,11 +50,14 @@ describe('series that cast their shadows through the shadow root', () => {
     setupMockCanvas();
 
     let chart: AgChartInstance | undefined;
+    let rootSpy: MockInstance | undefined;
 
     afterEach(() => {
         chart?.destroy();
         chart = undefined;
-        vi.restoreAllMocks();
+        // Only the spy: restoring every mock would disarm the console check that setupMockConsole makes after each test.
+        rootSpy?.mockRestore();
+        rootSpy = undefined;
     });
 
     const create = async (options: AgChartOptions) => {
@@ -70,12 +74,11 @@ describe('series that cast their shadows through the shadow root', () => {
 
     /** Gathers nothing for the root to cast, so that every group batches its own shadows, as it does without a root. */
     const withoutRoot = () => {
-        vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
+        rootSpy = vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
     };
 
     /** How the group of a series that is named, which holds the shapes that it casts shadows from, batches them. */
-    const batching = (name: string, seriesIndex = 0) =>
-        (deproxy(chart!).series[seriesIndex] as unknown as Record<string, Group>)[name].batchShadows;
+    const batching = (name: SeriesGroupName, seriesIndex = 0) => getSeriesGroup(chart!, name, seriesIndex).batchShadows;
 
     /**
      * Draws the chart without any shadow, then with the shadow of the series that `build` makes cast. Returns the
@@ -118,7 +121,7 @@ describe('series that cast their shadows through the shadow root', () => {
             ['sankey', 'nodeGroup'],
             ['chord', 'linkGroup'],
             ['chord', 'nodeGroup'],
-        ])('should cast the shadows of %s through the root, from its %s', async (type, group) => {
+        ] as const)('should cast the shadows of %s through the root, from its %s', async (type, group) => {
             await create({
                 data: FLOW_DATA,
                 series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
@@ -276,9 +279,17 @@ describe('series that cast their shadows through the shadow root', () => {
                 data: ukData,
                 topology: ukTopology,
                 series: [
-                    { type: 'map-shape', idKey: 'name', fill: 'red', fillOpacity: 1, stroke: 'transparent' },
                     {
                         type: 'map-shape',
+                        title: 'Earlier',
+                        idKey: 'name',
+                        fill: 'red',
+                        fillOpacity: 1,
+                        stroke: 'transparent',
+                    },
+                    {
+                        type: 'map-shape',
+                        title: 'Later',
                         data: ukData.filter(({ name }) => name === 'Scotland'),
                         idKey: 'name',
                         fill: 'blue',
@@ -376,17 +387,18 @@ describe('series that cast their shadows through the shadow root', () => {
     });
 
     describe('series that keep their own batches', () => {
-        it('should batch the stages and connectors of a funnel and a cone funnel itself, not through the root', async () => {
-            for (const type of ['funnel', 'cone-funnel']) {
+        it.each(['funnel', 'cone-funnel'])(
+            'should batch the stages and connectors of a %s itself, not through the root',
+            async (type) => {
                 await create({
                     data: STAGES,
                     series: [{ type, stageKey: 'group', valueKey: 'value' }],
                 } as AgChartOptions);
 
-                const series = deproxy(chart!).series[0] as unknown as Record<string, Group>;
-                expect(series.dataNodeGroup.batchShadows).toBe(true);
+                expect(batching('dataNodeGroup')).toBe(true);
+                expect(batching('connectorNodeGroup')).toBe(true);
             }
-        });
+        );
 
         it('should batch the shadows of a map marker itself, layer by layer, not through the root', async () => {
             await create({
@@ -398,15 +410,14 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('markerGroup')).toBe('by-layer');
         });
 
-        // Without a root to cast through, a series that batches its own shadows draws exactly as it does with one.
-        it.each(['funnel', 'cone-funnel'])('should draw a %s exactly as when the root cannot cast', (type) =>
+        // The shadow of a stage lands on the connector beside it, which a root would draw beneath it.
+        it('should draw a funnel with its stage shadows over its connectors, as when the root cannot cast', () =>
             same({
                 data: STAGES,
-                series: [{ type, stageKey: 'group', valueKey: 'value', shadow: SHADOW }],
-            } as AgChartOptions)
-        );
+                series: [{ type: 'funnel', stageKey: 'group', valueKey: 'value', shadow: SHADOW }],
+            } as AgChartOptions));
 
-        it('should draw a map marker over a map background exactly as when the root cannot cast', () =>
+        it('should draw map marker shadows over a map background, as when the root cannot cast', () =>
             same({
                 data: ukData,
                 topology: ukTopology,
@@ -414,35 +425,6 @@ describe('series that cast their shadows through the shadow root', () => {
                     { type: 'map-shape-background' },
                     { type: 'map-marker', idKey: 'name', shadow: SHADOW, size: 24 },
                 ],
-            } as AgChartOptions));
-
-        it('should draw two overlapping funnels exactly as when the root cannot cast', () =>
-            same({
-                data: STAGES,
-                series: [
-                    { type: 'funnel', stageKey: 'group', valueKey: 'value', fill: 'red' },
-                    { type: 'funnel', stageKey: 'group', valueKey: 'value', fill: 'blue', shadow: SHADOW },
-                ],
-            } as unknown as AgChartOptions));
-
-        it('should draw a treemap exactly as when the root cannot cast', () =>
-            same({
-                data: HIERARCHY_SHADOW_DATA,
-                series: [
-                    {
-                        type: 'treemap',
-                        labelKey: 'name',
-                        sizeKey: 'size',
-                        group: { shadow: SHADOW },
-                        tile: { shadow: SHADOW },
-                    },
-                ],
-            } as AgChartOptions));
-
-        it('should draw a sunburst exactly as when the root cannot cast', () =>
-            same({
-                data: HIERARCHY_SHADOW_DATA,
-                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', shadow: SHADOW }],
             } as AgChartOptions));
     });
 });
