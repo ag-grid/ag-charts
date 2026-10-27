@@ -1,9 +1,14 @@
 // Modules brought in by another module's `dependencies` count as registered. The enterprise axis
 // modules carry such a dependency and the community ones do not, so the import package matters here.
-import { LineSeriesModule, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import {
+    AllCartesianAxesModule,
+    AllCommunityModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    TimeAxisModule,
+} from 'ag-charts-community';
 import {
     AgCharts,
-    AxisInteractionModule,
     ContextMenuModule,
     GroupedCategoryAxisModule,
     ScrollbarModule,
@@ -56,9 +61,9 @@ const impliedByScrollbar = {
 AgCharts.create(impliedByScrollbar, { modules: [LineSeriesModule, TimeAxisModule, NumberAxisModule, ScrollbarModule] });
 
 // =============================================================================
-// TEST CASE 4: Explicitly registering an implied module alongside its dependent - should pass
+// TEST CASE 4: Two registered modules imply the same internal module - should pass
 // =============================================================================
-const explicitAndImplied = {
+const impliedTwice = {
     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
     axes: {
         x: { type: 'unit-time', listeners: { click: () => {} } },
@@ -66,6 +71,36 @@ const explicitAndImplied = {
     },
     contextMenu: {},
 };
-AgCharts.create(explicitAndImplied, {
-    modules: [LineSeriesModule, UnitTimeAxisModule, NumberAxisModule, AxisInteractionModule, ContextMenuModule],
+AgCharts.create(impliedTwice, {
+    modules: [LineSeriesModule, UnitTimeAxisModule, NumberAxisModule, ContextMenuModule],
+});
+
+// TEST CASE 5: Community bundles do not bring in the enterprise axis interaction - should error
+const communityBundle = {
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+    axes: {
+        x: { type: 'number', listeners: { click: () => {} } },
+        y: { type: 'number' },
+    },
+};
+AgCharts.create(communityBundle, { modules: [AllCommunityModule] });
+const communityAxesBundle = {
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+    axes: {
+        x: { type: 'number', listeners: { click: () => {} } },
+        y: { type: 'number' },
+    },
+};
+AgCharts.create(communityAxesBundle, { modules: [LineSeriesModule, AllCartesianAxesModule] });
+
+// TEST CASE 6: A module whose dependency another registered module already provides is unnecessary - should error
+const zoomNotNeeded = {
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+    axes: {
+        x: { type: 'unit-time', listeners: { click: () => {} } },
+        y: { type: 'grouped-category' },
+    },
+};
+AgCharts.create(zoomNotNeeded, {
+    modules: [LineSeriesModule, UnitTimeAxisModule, GroupedCategoryAxisModule, ZoomModule],
 });

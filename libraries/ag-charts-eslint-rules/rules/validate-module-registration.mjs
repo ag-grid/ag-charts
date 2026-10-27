@@ -2,32 +2,30 @@
  * @fileoverview Validates that ModuleRegistry.registerModules includes all required modules
  */
 import {
-    annotationsPluginToModule,
-    axisListenerToModule,
+    annotationsPluginToDefinition,
+    axisListenerToDefinition,
     axisModuleCompatibility,
-    axisPluginToModule,
-    axisTypeToModule,
+    axisPluginToDefinition,
+    axisTypeToDefinition,
     bundleContents,
     cartesianSeriesModules,
-    chartListenerToModule,
-    chartOptionPathToModule,
-    enterpriseBundleContents,
-    enterpriseImpliedModules,
-    enterpriseModules,
-    impliedModules,
+    chartListenerToDefinition,
+    chartOptionPathToDefinition,
+    definitions,
+    enterpriseModuleContents,
     intrinsicDefaults,
-    moduleToPackage,
-    pluginOptionToModule,
-    polarAxisPluginToModule,
+    moduleContents,
+    pluginOptionToDefinition,
+    polarAxisPluginToDefinition,
     polarSeriesModules,
     seriesChartType,
     seriesDefaultAxes,
-    seriesPluginToModule,
-    seriesTypeToModule,
+    seriesPluginToDefinition,
+    seriesTypeToDefinition,
     validModuleIds,
 } from './module-mappings.mjs';
 
-const nestedChartOptionHeads = new Set([...chartOptionPathToModule.keys()].map((path) => path.split('.')[0]));
+const nestedChartOptionHeads = new Set([...chartOptionPathToDefinition.keys()].map((path) => path.split('.')[0]));
 
 /** @type {import('eslint').Rule.RuleModule} */
 export default {
@@ -73,7 +71,7 @@ export default {
         // Per-chart modules from AgCharts.create(options, { modules }), keyed by the options variable
         // name or, for inline options, the call node. Only that chart's options can rely on them.
         const instanceModules = new Map(); // owner -> { modules: Set, arrayNode, sources: Map<moduleId, arrayNode> }
-        let requiredModules = new Map(); // moduleId -> { reason, node, owners: Map<owner, node> }
+        let requiredModules = new Map(); // definition name -> { reason, node, owners: Map<owner, node> }
         let isEnterprise = false;
         let explicitAxes = new Set(); // tracks 'x', 'y', 'angle', 'radius'
         let seriesTypes = [];
@@ -83,57 +81,42 @@ export default {
         let importDeclarations = new Map(); // packageName -> ImportDeclaration node
 
         /**
-         * Expand bundle modules to their contents, then add the modules those bring in as dependencies
+         * The definitions registering `modules` brings in. An id both packages export names a different module
+         * only where the enterprise one is a distinct definition, so the import decides which applies.
          */
-        function expandBundles(modules) {
-            const expanded = new Set();
-            for (const mod of modules) {
-                if (bundleContents.has(mod)) {
-                    for (const contained of contentsOfBundle(mod)) {
-                        expanded.add(contained);
-                    }
-                    // Also add the bundle itself as registered
-                    expanded.add(mod);
-                } else {
-                    expanded.add(mod);
-                }
+        function definitionsOf(modules) {
+            const registered = new Set();
+            for (const moduleId of modules) {
+                for (const name of contentsOf(moduleId)) registered.add(name);
             }
-            const pending = [...expanded];
-            while (pending.length > 0) {
-                for (const implied of impliedBy(pending.pop())) {
-                    if (expanded.has(implied)) continue;
-                    expanded.add(implied);
-                    pending.push(implied);
-                }
-            }
-            return expanded;
-        }
-
-        /** A bundle exported by both packages carries more when imported from ag-charts-enterprise. */
-        function contentsOfBundle(bundleId) {
-            if (importedModules.get(bundleId)?.packageName === 'ag-charts-enterprise') {
-                return enterpriseBundleContents.get(bundleId) ?? bundleContents.get(bundleId);
-            }
-            return bundleContents.get(bundleId);
+            return registered;
         }
 
         /**
-         * The modules registering `moduleId` also pulls in via its own `dependencies`
+         * Whether `moduleId` serves a required definition: it is the module reported for it, or the only one of
+         * `modules` that brings it in.
          */
-        function impliedBy(moduleId) {
-            const implied = impliedModules.get(moduleId) ?? [];
-            if (importedModules.get(moduleId)?.packageName !== 'ag-charts-enterprise') return implied;
-            return [...implied, ...(enterpriseImpliedModules.get(moduleId) ?? [])];
+        function servesRequirement(moduleId, definition, modules) {
+            if (definitions.get(definition)?.moduleId === moduleId) return true;
+            if (!contentsOf(moduleId).includes(definition)) return false;
+            return [...modules].every((other) => other === moduleId || !contentsOf(other).includes(definition));
+        }
+
+        function contentsOf(moduleId) {
+            if (importedModules.get(moduleId)?.packageName === 'ag-charts-enterprise') {
+                return enterpriseModuleContents.get(moduleId) ?? moduleContents.get(moduleId) ?? [];
+            }
+            return moduleContents.get(moduleId) ?? [];
         }
 
         /**
          * Add a required module with reason
          */
-        function requireModule(moduleId, reason, node) {
-            let info = requiredModules.get(moduleId);
+        function requireModule(definition, reason, node) {
+            let info = requiredModules.get(definition);
             if (!info) {
                 info = { reason, node, owners: new Map() };
-                requiredModules.set(moduleId, info);
+                requiredModules.set(definition, info);
             }
             const owner = ownerOf(node);
             if (!info.owners.has(owner)) {
@@ -182,25 +165,18 @@ export default {
          * Where the required module is missing, one entry per registration array a fix would add it to:
          * the global one for charts on the registry, or a chart's own `modules` array.
          */
-        function unsatisfiedRequirements(moduleId, owners, expandedRegistered, expandedAll) {
-            if (isModuleSatisfied(moduleId, expandedRegistered)) return [];
+        function unsatisfiedRequirements(definition, owners, registeredDefinitions, allDefinitions) {
+            if (registeredDefinitions.has(definition)) return [];
             const missing = new Map(); // arrayNode -> node
             for (const [owner, node] of owners) {
                 const instance = instanceModules.get(owner);
-                const available = owner === null ? expandedAll : instance ? expandBundles(instance.modules) : null;
-                if (!available || !isModuleSatisfied(moduleId, available)) {
+                const available = owner === null ? allDefinitions : instance ? definitionsOf(instance.modules) : null;
+                if (!available?.has(definition)) {
                     const arrayNode = instance?.arrayNode ?? registeredModulesArrayNode;
                     if (!missing.has(arrayNode)) missing.set(arrayNode, node);
                 }
             }
             return [...missing].map(([arrayNode, node]) => ({ node, arrayNode }));
-        }
-
-        /**
-         * Check if a module is satisfied by registration (including bundles)
-         */
-        function isModuleSatisfied(moduleId, expandedModules) {
-            return expandedModules.has(moduleId);
         }
 
         /**
@@ -336,17 +312,17 @@ export default {
                     const seriesType = getStringValue(typeValue);
                     if (seriesType) {
                         seriesTypes.push(seriesType);
-                        const moduleId = seriesTypeToModule.get(seriesType);
-                        if (moduleId) {
-                            requireModule(moduleId, `series type '${seriesType}'`, prop);
+                        const definition = seriesTypeToDefinition.get(seriesType);
+                        if (definition) {
+                            requireModule(definition, `series type '${seriesType}'`, prop);
                         }
                     }
                 }
 
                 // Check for series plugins (errorBar)
-                if (keyName && seriesPluginToModule.has(keyName)) {
-                    const moduleId = seriesPluginToModule.get(keyName);
-                    requireModule(moduleId, `series option '${keyName}'`, prop);
+                if (keyName && seriesPluginToDefinition.has(keyName)) {
+                    const definition = seriesPluginToDefinition.get(keyName);
+                    requireModule(definition, `series option '${keyName}'`, prop);
                 }
             }
         }
@@ -456,23 +432,23 @@ export default {
                 const keyName = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
 
                 if (keyName === 'type' && axisType) {
-                    const moduleId = axisTypeToModule.get(axisType);
-                    if (moduleId) {
-                        requireModule(moduleId, `axis type '${axisType}'`, prop);
+                    const definition = axisTypeToDefinition.get(axisType);
+                    if (definition) {
+                        requireModule(definition, `axis type '${axisType}'`, prop);
                     }
                 }
 
                 // Check for axis plugins (crosshair, bandHighlight, crossLines)
-                if (keyName && axisPluginToModule.has(keyName)) {
+                if (keyName && axisPluginToDefinition.has(keyName)) {
                     // Skip if feature is explicitly disabled (e.g., crosshair: { enabled: false })
                     if (isFeatureDisabled(prop.value)) {
                         continue;
                     }
-                    const moduleId =
-                        isPolarAxis && polarAxisPluginToModule.has(keyName)
-                            ? polarAxisPluginToModule.get(keyName)
-                            : axisPluginToModule.get(keyName);
-                    requireModule(moduleId, `axis option '${keyName}'`, prop);
+                    const definition =
+                        isPolarAxis && polarAxisPluginToDefinition.has(keyName)
+                            ? polarAxisPluginToDefinition.get(keyName)
+                            : axisPluginToDefinition.get(keyName);
+                    requireModule(definition, `axis option '${keyName}'`, prop);
                 }
 
                 // Check for axis listeners, whose events map to different modules. `listeners` is a
@@ -484,9 +460,9 @@ export default {
                             listenerProp.key.type === 'Identifier'
                                 ? listenerProp.key.name
                                 : getStringValue(listenerProp.key);
-                        if (!eventName || !axisListenerToModule.has(eventName)) continue;
+                        if (!eventName || !axisListenerToDefinition.has(eventName)) continue;
                         requireModule(
-                            axisListenerToModule.get(eventName),
+                            axisListenerToDefinition.get(eventName),
                             `axis listener '${eventName}'`,
                             listenerProp
                         );
@@ -497,12 +473,12 @@ export default {
 
         /** Requires the owner of an option nested below a chart-level key, e.g. `seriesArea.backgroundRegions`. */
         function processNestedChartOptions(keyName, valueNode) {
-            for (const [path, moduleId] of chartOptionPathToModule) {
+            for (const [path, definition] of chartOptionPathToDefinition) {
                 const [head, ...rest] = path.split('.');
                 if (head !== keyName) continue;
                 const nested = findNestedProperty(valueNode, rest);
                 if (nested == null || isFeatureDisabled(nested.value)) continue;
-                requireModule(moduleId, `option '${path}'`, nested);
+                requireModule(definition, `option '${path}'`, nested);
             }
         }
 
@@ -526,13 +502,13 @@ export default {
          * Process top-level plugin options
          */
         function processPluginOption(keyName, valueNode, propNode) {
-            if (pluginOptionToModule.has(keyName)) {
+            if (pluginOptionToDefinition.has(keyName)) {
                 // Skip if feature is explicitly disabled (e.g., legend: { enabled: false })
                 if (isFeatureDisabled(valueNode)) {
                     return;
                 }
-                const moduleId = pluginOptionToModule.get(keyName);
-                requireModule(moduleId, `option '${keyName}'`, propNode);
+                const definition = pluginOptionToDefinition.get(keyName);
+                requireModule(definition, `option '${keyName}'`, propNode);
             }
 
             processNestedChartOptions(keyName, valueNode);
@@ -543,9 +519,9 @@ export default {
                     if (nestedProp.type !== 'Property') continue;
                     const eventName =
                         nestedProp.key.type === 'Identifier' ? nestedProp.key.name : getStringValue(nestedProp.key);
-                    if (eventName && chartListenerToModule.has(eventName)) {
-                        const listenerModuleId = chartListenerToModule.get(eventName);
-                        requireModule(listenerModuleId, `listeners.${eventName} option`, nestedProp);
+                    if (eventName && chartListenerToDefinition.has(eventName)) {
+                        const listenerDefinition = chartListenerToDefinition.get(eventName);
+                        requireModule(listenerDefinition, `listeners.${eventName} option`, nestedProp);
                     }
                 }
             }
@@ -556,9 +532,9 @@ export default {
                     if (nestedProp.type !== 'Property') continue;
                     const nestedKey =
                         nestedProp.key.type === 'Identifier' ? nestedProp.key.name : getStringValue(nestedProp.key);
-                    if (nestedKey && annotationsPluginToModule.has(nestedKey)) {
-                        const nestedModuleId = annotationsPluginToModule.get(nestedKey);
-                        requireModule(nestedModuleId, `annotations.${nestedKey} option`, nestedProp);
+                    if (nestedKey && annotationsPluginToDefinition.has(nestedKey)) {
+                        const nestedDefinition = annotationsPluginToDefinition.get(nestedKey);
+                        requireModule(nestedDefinition, `annotations.${nestedKey} option`, nestedProp);
                     }
                 }
             }
@@ -710,11 +686,13 @@ export default {
         /**
          * Create a fixer to add a module to the registerModules array and import if needed
          */
-        function createAddModuleFixer(moduleId, arrayNode = registeredModulesArrayNode) {
+        function createAddModuleFixer(definition, arrayNode = registeredModulesArrayNode) {
             if (!arrayNode) return null;
 
-            const packageName = moduleToPackage.get(moduleId);
-            if (!packageName) return null; // Can't fix if we don't know the package
+            const { moduleId, enterprise } = definitions.get(definition);
+            const packageName = enterprise ? 'ag-charts-enterprise' : 'ag-charts-community';
+            // The same name imported from the other package is a different module, and cannot be imported twice.
+            if (importedModules.has(moduleId) && importedModules.get(moduleId).packageName !== packageName) return null;
 
             return function* (fixer) {
                 const sourceCode = context.sourceCode || context.getSourceCode();
@@ -792,11 +770,11 @@ export default {
          * Returns true only if a DIFFERENT compatible module is registered (not the exact module).
          * This allows us to skip requiring CategoryAxisModule when GroupedCategoryAxisModule is registered.
          */
-        function isAxisRequirementSatisfiedByCompatible(moduleId, expandedModules) {
-            // Check if a compatible module is registered (e.g., GroupedCategoryAxisModule for CategoryAxisModule)
-            const compatibleModules = axisModuleCompatibility.get(moduleId);
-            if (compatibleModules) {
-                return compatibleModules.some((compatMod) => expandedModules.has(compatMod));
+        function isAxisRequirementSatisfiedByCompatible(definition, registeredDefinitions) {
+            // Check if a compatible axis is registered (e.g., grouped-category for category)
+            const compatibleDefinitions = axisModuleCompatibility.get(definition);
+            if (compatibleDefinitions) {
+                return compatibleDefinitions.some((compatible) => registeredDefinitions.has(compatible));
             }
 
             return false;
@@ -806,35 +784,35 @@ export default {
          * Apply default axes based on series types
          */
         function applyDefaultAxes() {
-            const expandedRegistered = expandBundles(registeredModules);
+            const registeredDefinitions = definitionsOf(registeredModules);
 
             for (const seriesType of seriesTypes) {
                 const defaults = seriesDefaultAxes.get(seriesType);
                 if (defaults) {
                     // Cartesian axes (x, y) - only apply if not explicitly defined
                     if (defaults.x && !explicitAxes.has('x')) {
-                        const moduleId = axisTypeToModule.get(defaults.x);
-                        if (moduleId && !isAxisRequirementSatisfiedByCompatible(moduleId, expandedRegistered)) {
-                            requireModule(moduleId, `default axis for '${seriesType}' series`, null);
+                        const definition = axisTypeToDefinition.get(defaults.x);
+                        if (definition && !isAxisRequirementSatisfiedByCompatible(definition, registeredDefinitions)) {
+                            requireModule(definition, `default axis for '${seriesType}' series`, null);
                         }
                     }
                     if (defaults.y && !explicitAxes.has('y')) {
-                        const moduleId = axisTypeToModule.get(defaults.y);
-                        if (moduleId && !isAxisRequirementSatisfiedByCompatible(moduleId, expandedRegistered)) {
-                            requireModule(moduleId, `default axis for '${seriesType}' series`, null);
+                        const definition = axisTypeToDefinition.get(defaults.y);
+                        if (definition && !isAxisRequirementSatisfiedByCompatible(definition, registeredDefinitions)) {
+                            requireModule(definition, `default axis for '${seriesType}' series`, null);
                         }
                     }
                     // Polar axes (angle, radius) - only apply if not explicitly defined
                     if (defaults.angle && !explicitAxes.has('angle')) {
-                        const moduleId = axisTypeToModule.get(defaults.angle);
-                        if (moduleId && !isAxisRequirementSatisfiedByCompatible(moduleId, expandedRegistered)) {
-                            requireModule(moduleId, `default axis for '${seriesType}' series`, null);
+                        const definition = axisTypeToDefinition.get(defaults.angle);
+                        if (definition && !isAxisRequirementSatisfiedByCompatible(definition, registeredDefinitions)) {
+                            requireModule(definition, `default axis for '${seriesType}' series`, null);
                         }
                     }
                     if (defaults.radius && !explicitAxes.has('radius')) {
-                        const moduleId = axisTypeToModule.get(defaults.radius);
-                        if (moduleId && !isAxisRequirementSatisfiedByCompatible(moduleId, expandedRegistered)) {
-                            requireModule(moduleId, `default axis for '${seriesType}' series`, null);
+                        const definition = axisTypeToDefinition.get(defaults.radius);
+                        if (definition && !isAxisRequirementSatisfiedByCompatible(definition, registeredDefinitions)) {
+                            requireModule(definition, `default axis for '${seriesType}' series`, null);
                         }
                     }
                 }
@@ -903,7 +881,7 @@ export default {
                         processAxisObject(node.value, node);
                     }
                 } else if (
-                    pluginOptionToModule.has(keyName) ||
+                    pluginOptionToDefinition.has(keyName) ||
                     nestedChartOptionHeads.has(keyName) ||
                     keyName === 'listeners'
                 ) {
@@ -924,16 +902,16 @@ export default {
                     if (isInNonSeriesContext) return;
 
                     // Check if it's a series type
-                    if (seriesTypeToModule.has(typeValue)) {
+                    if (seriesTypeToDefinition.has(typeValue)) {
                         seriesTypes.push(typeValue);
-                        const moduleId = seriesTypeToModule.get(typeValue);
-                        requireModule(moduleId, `series type '${typeValue}'`, node);
+                        const definition = seriesTypeToDefinition.get(typeValue);
+                        requireModule(definition, `series type '${typeValue}'`, node);
                     }
 
                     // Check if it's an axis type
-                    if (axisTypeToModule.has(typeValue)) {
-                        const moduleId = axisTypeToModule.get(typeValue);
-                        requireModule(moduleId, `axis type '${typeValue}'`, node);
+                    if (axisTypeToDefinition.has(typeValue)) {
+                        const definition = axisTypeToDefinition.get(typeValue);
+                        requireModule(definition, `axis type '${typeValue}'`, node);
                     }
                 }
             },
@@ -948,16 +926,16 @@ export default {
                 if (isLiteralInExcludedContext(node)) return;
 
                 // Check if it's a known series type
-                if (seriesTypeToModule.has(value)) {
+                if (seriesTypeToDefinition.has(value)) {
                     seriesTypes.push(value);
-                    const moduleId = seriesTypeToModule.get(value);
-                    requireModule(moduleId, `series type '${value}'`, node);
+                    const definition = seriesTypeToDefinition.get(value);
+                    requireModule(definition, `series type '${value}'`, node);
                 }
 
                 // Check if it's a known axis type and require the module
-                if (axisTypeToModule.has(value)) {
-                    const moduleId = axisTypeToModule.get(value);
-                    requireModule(moduleId, `axis type '${value}'`, node);
+                if (axisTypeToDefinition.has(value)) {
+                    const definition = axisTypeToDefinition.get(value);
+                    requireModule(definition, `axis type '${value}'`, node);
                 }
             },
 
@@ -971,30 +949,29 @@ export default {
                 // Apply default axes based on series
                 applyDefaultAxes();
 
-                // Expand bundles in registered modules
-                const expandedRegistered = expandBundles(registeredModules);
+                const registeredDefinitions = definitionsOf(registeredModules);
                 const allModules = new Set(registeredModules);
                 for (const { modules } of instanceModules.values()) {
                     for (const moduleId of modules) allModules.add(moduleId);
                 }
-                const expandedAll = expandBundles(allModules);
+                const allDefinitions = definitionsOf(allModules);
 
                 // Get intrinsic defaults (modules that are OK to register without explicit options)
                 const intrinsicDefaultSet = getIntrinsicDefaults();
 
                 // Check for missing modules
-                for (const [moduleId, info] of requiredModules) {
+                for (const [definition, info] of requiredModules) {
                     for (const missing of unsatisfiedRequirements(
-                        moduleId,
+                        definition,
                         info.owners,
-                        expandedRegistered,
-                        expandedAll
+                        registeredDefinitions,
+                        allDefinitions
                     )) {
                         context.report({
                             node: missing.node || info.node || registeredModulesNode,
                             messageId: 'missingModule',
-                            data: { moduleId, reason: info.reason },
-                            fix: createAddModuleFixer(moduleId, missing.arrayNode),
+                            data: { moduleId: definitions.get(definition).moduleId, reason: info.reason },
+                            fix: createAddModuleFixer(definition, missing.arrayNode),
                         });
                     }
                 }
@@ -1016,10 +993,13 @@ export default {
                     for (const [element, owners] of elementOwners) {
                         const moduleId = element.name;
                         if (bundleContents.has(moduleId) || intrinsicDefaultSet.has(moduleId)) continue;
+                        const siblings = element.parent.elements.flatMap((e) =>
+                            e?.type === 'Identifier' ? [e.name] : []
+                        );
                         const used = [...requiredModules.entries()].some(
-                            ([reqMod, info]) =>
+                            ([definition, info]) =>
                                 (info.owners.has(null) || [...owners].some((owner) => info.owners.has(owner))) &&
-                                (reqMod === moduleId || bundleContents.get(reqMod)?.includes(moduleId))
+                                servesRequirement(moduleId, definition, siblings)
                         );
                         if (used) continue;
                         context.report({
@@ -1054,27 +1034,20 @@ export default {
 
                 // Check for over-registration
                 if (warnOverRegistration && registeredModulesNode) {
-                    const requiredSet = new Set(requiredModules.keys());
-
                     for (const moduleId of registeredModules) {
                         // Skip bundles - they're expected to include more than needed
                         if (bundleContents.has(moduleId)) continue;
 
-                        // Skip if it's a required module
-                        if (requiredSet.has(moduleId)) continue;
-
                         // Skip intrinsic defaults (commonly registered modules)
                         if (intrinsicDefaultSet.has(moduleId)) continue;
 
-                        // Skip if it's contained in a required module's bundle
-                        let isContainedInRequired = false;
-                        for (const reqMod of requiredSet) {
-                            if (bundleContents.has(reqMod) && bundleContents.get(reqMod).includes(moduleId)) {
-                                isContainedInRequired = true;
-                                break;
-                            }
+                        if (
+                            [...requiredModules.keys()].some((definition) =>
+                                servesRequirement(moduleId, definition, registeredModules)
+                            )
+                        ) {
+                            continue;
                         }
-                        if (isContainedInRequired) continue;
 
                         // Check if it's a valid module ID
                         if (!validModuleIds.has(moduleId)) {

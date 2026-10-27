@@ -36,7 +36,6 @@ describe('instance modules', () => {
         };
         chart = await createEnterpriseChart(options);
 
-        expect(chart.isModuleRegistered('AxisInteractionModule')).toBe(true);
         expect(chart.isModuleRegistered('ZoomModule')).toBe(true);
         expect(chart.isModuleRegistered('QuadrantChartModule')).toBe(true);
         expect(chart.isModuleRegistered('NotAModule')).toBe(false);
@@ -134,7 +133,7 @@ describe('enterprise cartesian axis modules', () => {
         expect(ModuleRegistry.getAxisModule('number')?.enterprise).toBe(true);
     });
 
-    it('fires axis click listeners without registering AxisInteractionModule by hand', async () => {
+    it('fires axis click listeners with only the enterprise axis module registered', async () => {
         ModuleRegistry.registerModules([LineSeriesModule, EnterpriseNumberAxisModule]);
         const click = vi.fn();
         chart = await createEnterpriseChart({
@@ -145,8 +144,6 @@ describe('enterprise cartesian axis modules', () => {
             },
             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
         });
-
-        expect(chart.isModuleRegistered('AxisInteractionModule')).toBe(true);
 
         await clickAction(418, 560)(chart);
         expect(click).toHaveBeenCalledTimes(1);

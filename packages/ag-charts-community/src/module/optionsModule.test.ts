@@ -5799,21 +5799,21 @@ describe('ChartOptions', () => {
                     ...extra,
                 });
 
-                it('reports AxisInteractionModule for an axis click listener and strips the listener', () => {
+                it('reports AllCartesianAxesModule for an axis click listener and strips the listener', () => {
                     const processed = prepareOptions(axisListenerOptions(), new Logger());
 
-                    expect(moduleMessages()).toEqual([expect.stringContaining('AxisInteractionModule')]);
+                    expect(moduleMessages()).toEqual([expect.stringContaining('AllCartesianAxesModule')]);
                     expect(valuesAt(processed, 'axes').some((axis) => optionAt(axis, 'listeners.click'))).toBe(false);
                 });
 
-                it('reports AxisInteractionModule for a chart-level axisDoubleClick listener', () => {
+                it('reports AllCartesianAxesModule for a chart-level axisDoubleClick listener', () => {
                     const options = {
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                         listeners: { axisDoubleClick: () => {} },
                     } as AgChartOptions;
                     const processed = prepareOptions(options, new Logger());
 
-                    expect(moduleMessages()).toEqual([expect.stringContaining('AxisInteractionModule')]);
+                    expect(moduleMessages()).toEqual([expect.stringContaining('AllCartesianAxesModule')]);
                     expect(optionAt(processed, 'listeners.axisDoubleClick')).toBeUndefined();
                 });
 

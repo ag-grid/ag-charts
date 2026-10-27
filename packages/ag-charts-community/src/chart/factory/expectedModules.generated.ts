@@ -370,7 +370,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     {
         type: 'plugin',
         name: 'axis-interaction',
-        moduleId: 'AxisInteractionModule',
+        moduleId: 'AllCartesianAxesModule',
         chartTypes: ['cartesian'],
         enterprise: true,
         contributes: [
@@ -591,7 +591,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     {
         type: 'axis:plugin',
         name: 'axisInsetValue',
-        moduleId: 'AxisInsetValueModule',
+        moduleId: 'FinancialChartModule',
         chartTypes: ['cartesian'],
         enterprise: true,
         axisTypes: ['category'],
@@ -605,7 +605,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     {
         type: 'axis:plugin',
         name: 'axisSelectedBand',
-        moduleId: 'AxisSelectedBandModule',
+        moduleId: 'FinancialChartModule',
         chartTypes: ['cartesian'],
         enterprise: true,
         axisTypes: ['category'],
