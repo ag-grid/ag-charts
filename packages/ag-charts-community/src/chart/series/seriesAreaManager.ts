@@ -593,11 +593,11 @@ export class SeriesAreaManager extends BaseManager {
         if (event.device === 'keyboard') {
             return; // already handled natively by 'keydown' listener
         }
-        // Click events in the series-area are handled by the seriesDragInterpreter instance; so if current listener
-        // of this event is `chartWidget`, then ignore these click events in the series-area bounds which are already
-        // handled by the drag interpreter.
+        // Click events in the series-area are handled by the seriesDragInterpreter instance; so if current listener of
+        // this event is `chartWidget`, then ignore these click events that are on other elements (like the series-area,
+        // axes, captions, legend, etc...)
         const { seriesWidget, chartWidget } = this.chart.ctx.widgets;
-        if (current === chartWidget && seriesWidget.containsTarget(event)) {
+        if (current === chartWidget && !chartWidget.isOnTarget(event)) {
             return;
         }
         const isSeriesWidget = seriesWidget.isOnTarget(event);
