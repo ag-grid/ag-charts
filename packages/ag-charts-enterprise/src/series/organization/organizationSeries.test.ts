@@ -39,6 +39,7 @@ import { Caster } from 'ag-charts-test';
 
 import {
     getNetworkContentBBox,
+    getNetworkLayout,
     getNetworkSeriesRect,
     getNetworkViewport,
     getOrganizationCardContentHeight,
@@ -50,7 +51,7 @@ import {
     getSeriesInstance,
 } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
-import { OrganizationNodeTag } from './organizationNode';
+import { OrganizationNode, OrganizationNodeTag } from './organizationNode';
 import { OrganizationSeries } from './organizationSeries';
 import type { OrganizationDatum } from './organizationTypes';
 
@@ -1077,6 +1078,12 @@ describe('OrganizationSeries', () => {
         await waitForChartStability(chart);
     }
 
+    async function hoverItem(itemId: string, tag = OrganizationNodeTag.Card): Promise<void> {
+        const { x, y } = centreOf(itemId, tag);
+        await hoverAction(x, y)(chart);
+        await waitForChartStability(chart);
+    }
+
     describe('#create', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
@@ -1607,12 +1614,6 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart, 50);
         }
 
-        async function hoverItem(itemId: string): Promise<void> {
-            const { x, y } = centreOf(itemId, OrganizationNodeTag.Card);
-            await hoverAction(x, y)(chart);
-            await waitForChartStability(chart);
-        }
-
         /** The card `Rect`'s paint style, which is what the highlight alters. */
         function cardStyle(itemId: string) {
             const card = new Caster(findTaggedNode(itemId, OrganizationNodeTag.Card)).cast(Rect).value;
@@ -1726,6 +1727,115 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    describe('highlight updates', () => {
+        const buildOptions = (nodeOverrides: Record<string, unknown> = {}): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: { title: { key: 'name' }, subtitle: { key: 'job' }, ...nodeOverrides },
+                },
+            ],
+        });
+
+        function cardSize(itemId: string) {
+            const { width, height } = getOrganizationCards(chart)
+                .find(({ datum }) => datum.itemId === itemId)!
+                .node.getShapeBBox();
+            return { width, height };
+        }
+
+        it('should not lay the nodes out again when the highlight moves between nodes', async () => {
+            chart = await createEnterpriseChart(buildOptions());
+            const layoutUpdate = vi.spyOn(getNetworkLayout(chart), 'update');
+
+            await hoverItem('cto');
+            await hoverItem('cfo');
+
+            expect(layoutUpdate).not.toHaveBeenCalled();
+            const { stroke } = new Caster(findTaggedNode('cfo', OrganizationNodeTag.Card)).cast(Rect).value;
+            expect(stroke).not.toEqual(
+                new Caster(findTaggedNode('cto', OrganizationNodeTag.Card)).cast(Rect).value.stroke
+            );
+        });
+
+        it('should keep a highlighted card the size every other card is laid out at', async () => {
+            chart = await createEnterpriseChart(buildOptions());
+            // The shortest card is the one a layout clamp stretches, so it shows a lost clamp.
+            const before = cardSize('dev');
+            expect(cardSize('ceo')).toEqual(before);
+
+            await hoverItem('dev');
+
+            expect(cardSize('dev')).toEqual(before);
+        });
+
+        it('should lay the nodes out again when a styler can restyle any node', async () => {
+            chart = await createEnterpriseChart(buildOptions({ itemStyler: () => ({}) }));
+            const layoutUpdate = vi.spyOn(getNetworkLayout(chart), 'update');
+
+            await hoverItem('cto');
+
+            expect(layoutUpdate).toHaveBeenCalled();
+        });
+    });
+
+    describe('collapse updates', () => {
+        // A square card makes the card and expander pill hit-testable in JSDOM (see .claude/rules/testing.md).
+        const buildOptions = (nodeOverrides: Record<string, unknown> = {}): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: { title: { key: 'name' }, subtitle: { key: 'job' }, cornerRadius: 0, ...nodeOverrides },
+                },
+            ],
+        });
+
+        const visibleCardCount = () =>
+            getOrganizationCards(chart).filter(({ datum }) => !datum.collapsedByAncestor).length;
+
+        function restyledItemIds(restyled: { mock: { contexts: unknown[] } }) {
+            const ids = new Map(getOrganizationCards(chart).map(({ node, datum }) => [node, datum.itemId]));
+            return restyled.mock.contexts.map((node) => ids.get(node as OrganizationNode));
+        }
+
+        it('should restyle only the card whose collapsed state changed', async () => {
+            chart = await createEnterpriseChart(buildOptions());
+            const restyled = vi.spyOn(OrganizationNode.prototype, 'update');
+
+            await clickItem('cto', OrganizationNodeTag.Expander);
+            expect(restyledItemIds(restyled)).toEqual(['cto']);
+
+            restyled.mockClear();
+            await clickItem('cto', OrganizationNodeTag.Expander);
+            expect(restyledItemIds(restyled)).toEqual(['cto']);
+        });
+
+        it('should restyle every visible card when a styler can restyle any of them', async () => {
+            chart = await createEnterpriseChart(buildOptions({ itemStyler: () => ({}) }));
+            const restyled = vi.spyOn(OrganizationNode.prototype, 'update');
+
+            await clickItem('cto', OrganizationNodeTag.Expander);
+
+            expect(restyled).toHaveBeenCalledTimes(visibleCardCount());
+        });
+
+        it('should restyle every visible card when the options change', async () => {
+            chart = await createEnterpriseChart(buildOptions());
+            const restyled = vi.spyOn(OrganizationNode.prototype, 'update');
+
+            await chart.update(prepareEnterpriseTestOptions(buildOptions({ fill: 'red' })));
+            await waitForChartStability(chart);
+
+            expect(restyled).toHaveBeenCalledTimes(visibleCardCount());
+        });
+    });
+
     describe('expander hoverStyle', () => {
         // node.cornerRadius=0 makes both the card and pill Rects bbox-hittable in JSDOM (see
         // .claude/rules/testing.md); expander.cornerRadius defaults to `../node/cornerRadius`.
@@ -1756,12 +1866,6 @@ describe('OrganizationSeries', () => {
             const textNode = candidates.find((node) => node instanceof Text);
             expect(textNode).toBeDefined();
             return new Caster(textNode).cast(Text).value;
-        }
-
-        async function hoverItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
-            const { x, y } = centreOf(itemId, tag);
-            await hoverAction(x, y)(chart);
-            await waitForChartStability(chart);
         }
 
         it('applies the configured hoverStyle fill/stroke to the expander pill while hovered', async () => {

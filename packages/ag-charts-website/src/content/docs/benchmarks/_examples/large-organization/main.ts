@@ -1,6 +1,7 @@
 // @ag-skip-fws
 /* @ag-options-extract */
 import {
+    AgChartInstance,
     AgCharts,
     AgStandaloneChartOptions,
     ModuleRegistry,
@@ -10,7 +11,7 @@ import {
 } from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
-import { ChartRef, performInitialLoad, scroll } from './benchmarkUtils';
+import { ChartRef, hover, performInitialLoad, scroll } from './benchmarkUtils';
 import { type OrgDatum, generateOrg } from './data';
 
 ModuleRegistry.registerModules([OrganizationSeriesModule, ZoomModule]);
@@ -23,6 +24,14 @@ const PAN_REPS = 20;
 const PAN_ZOOM_STEPS = 12;
 const PAN_DRAG_STEPS = 12;
 const STACK_FROM_DEPTH = 4;
+const HOVER_STEPS = 12;
+const CLICK_ABOVE_FLOOR = 1.5;
+const DIRECTOR_BAND = 3;
+const CLICK_MIN_RUN = 12;
+const CLICK_SEARCH_RADIUS = 200;
+const CLICK_SEARCH_STEP = 2;
+// Fraction of the chart kept in view, sized so a few columns of cards are large enough to hover.
+const HOVER_WINDOW: Record<number, number> = { 1_000: 0.3, 10_000: 0.1 };
 
 const baseOptions: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
@@ -139,27 +148,30 @@ async function performZoomInOut(nodes: number): Promise<number> {
 }
 
 /** inScope */
-function dragPan(seriesArea: Element, fromX: number, toX: number, y: number): void {
+function pointerEvent(seriesArea: Element, type: string, x: number, y: number, buttons: number): PointerEvent {
     const { left, top } = seriesArea.getBoundingClientRect();
-    const pointer = (type: string, x: number, buttons: number) =>
-        new PointerEvent(type, {
-            bubbles: true,
-            cancelable: true,
-            pointerId: 1,
-            pointerType: 'mouse',
-            isPrimary: true,
-            button: 0,
-            buttons,
-            clientX: left + x,
-            clientY: top + y,
-            view: window,
-        });
+    return new PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        pointerId: 1,
+        pointerType: 'mouse',
+        isPrimary: true,
+        button: 0,
+        buttons,
+        clientX: left + x,
+        clientY: top + y,
+        view: window,
+    });
+}
 
-    seriesArea.dispatchEvent(pointer('pointerdown', fromX, 1));
+/** inScope */
+function dragPan(seriesArea: Element, fromX: number, toX: number, y: number): void {
+    seriesArea.dispatchEvent(pointerEvent(seriesArea, 'pointerdown', fromX, y, 1));
     for (let step = 1; step <= PAN_DRAG_STEPS; step++) {
-        seriesArea.dispatchEvent(pointer('pointermove', fromX + ((toX - fromX) * step) / PAN_DRAG_STEPS, 1));
+        const x = fromX + ((toX - fromX) * step) / PAN_DRAG_STEPS;
+        seriesArea.dispatchEvent(pointerEvent(seriesArea, 'pointermove', x, y, 1));
     }
-    seriesArea.dispatchEvent(pointer('pointerup', toX, 0));
+    seriesArea.dispatchEvent(pointerEvent(seriesArea, 'pointerup', toX, y, 0));
 }
 
 /** inScope */
@@ -186,6 +198,256 @@ async function performPan(nodes: number): Promise<number> {
         await chart.waitForUpdate();
     }
     return performance.now() - start;
+}
+
+// Reads the hover targets from the painted canvas, so they are cards whatever the layout and library version.
+/** inScope */
+function findCardPoints(count: number): { x: number; y: number }[] {
+    const canvas = container.querySelector('canvas')!;
+    const area = container.querySelector('.ag-charts-series-area')!.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+    const scale = canvas.width / canvasRect.width;
+    const context = canvas.getContext('2d')!;
+    const left = Math.round((area.left - canvasRect.left) * scale);
+    const top = (area.top - canvasRect.top) * scale;
+    const width = Math.round(area.width * scale);
+    const background = context.getImageData(0, 0, 1, 1).data;
+    const minRun = 12 * scale;
+    const maxRun = (area.width / 3) * scale;
+
+    let best: { x: number; y: number }[] = [];
+    for (let fraction = 0.3; fraction <= 0.7; fraction += 0.05) {
+        const row = Math.round(top + area.height * scale * fraction);
+        const { data } = context.getImageData(left, row, width, 1);
+        const points: { x: number; y: number }[] = [];
+        let runStart = -1;
+        for (let i = 0; i <= width; i++) {
+            const painted =
+                i < width &&
+                (data[i * 4] !== background[0] ||
+                    data[i * 4 + 1] !== background[1] ||
+                    data[i * 4 + 2] !== background[2] ||
+                    data[i * 4 + 3] !== background[3]);
+            if (painted && runStart < 0) runStart = i;
+            if (!painted && runStart >= 0) {
+                const length = i - runStart;
+                if (length >= minRun && length <= maxRun) {
+                    points.push({ x: (runStart + length / 2) / scale, y: (row - top) / scale });
+                }
+                runStart = -1;
+            }
+        }
+        if (points.length > best.length) best = points;
+    }
+
+    if (best.length < count) throw new Error(`Found ${best.length} cards to hover, expected ${count}`);
+    return best.slice(0, count);
+}
+
+/** inScope */
+async function performHover(nodes: number): Promise<number> {
+    await ensureChart(nodes);
+    const half = HOVER_WINDOW[nodes] / 2;
+    await setZoom({ start: 0.5 - half, end: 0.5 + half });
+    const points = findCardPoints(HOVER_STEPS);
+
+    const chart = chartRef.current!;
+    const start = performance.now();
+    for (const { x, y } of points) {
+        hover(container, x, y);
+        // The chart handles a hover on the next animation frame, so wait for that before the update it causes.
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await chart.waitForUpdate();
+    }
+    return performance.now() - start;
+}
+
+type ChartState = ReturnType<AgChartInstance['getState']>;
+
+interface ClickToggleTarget {
+    // The view with every card expanded, and the one after a director is clicked to collapse it.
+    expandedState: ChartState;
+    collapsedState: ChartState;
+    // A point in the director's pixel row, to find the director again once a view is restored.
+    director: { x: number; y: number };
+}
+
+const clickToggleTargets = new Map<number, ClickToggleTarget>();
+
+/** inScope */
+async function clickAtPoint(point: { x: number; y: number }): Promise<void> {
+    const seriesArea = container.querySelector('.ag-charts-series-area')!;
+    seriesArea.dispatchEvent(pointerEvent(seriesArea, 'pointerdown', point.x, point.y, 1));
+    seriesArea.dispatchEvent(pointerEvent(seriesArea, 'pointerup', point.x, point.y, 0));
+    // The chart handles a click on the next animation frame, so wait for that before the update it causes.
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await chartRef.current!.waitForUpdate();
+}
+
+// Finds the third band of painted rows in the fit view, which is the directors: the chief executive and the vice
+// presidents are above them. At that size the cards are small but painted, and there are no links between them.
+/** inScope */
+function findDirectorPoint(): { x: number; y: number } {
+    const canvas = container.querySelector('canvas')!;
+    const area = container.querySelector('.ag-charts-series-area')!.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+    const scale = canvas.width / canvasRect.width;
+    const left = Math.round((area.left - canvasRect.left) * scale);
+    const top = Math.round((area.top - canvasRect.top) * scale);
+    const width = Math.round(area.width * scale);
+    const height = Math.round(area.height * scale);
+    const { data } = canvas.getContext('2d')!.getImageData(left, top, width, height);
+    const background = canvas.getContext('2d')!.getImageData(0, 0, 1, 1).data;
+
+    const isPainted = (column: number, row: number) => {
+        const i = (row * width + column) * 4;
+        return (
+            data[i] !== background[0] ||
+            data[i + 1] !== background[1] ||
+            data[i + 2] !== background[2] ||
+            data[i + 3] !== background[3]
+        );
+    };
+
+    let band = 0;
+    let inBand = false;
+    for (let row = 0; row < height; row++) {
+        let painted = false;
+        for (let column = 0; column < width && !painted; column++) painted = isPainted(column, row);
+        if (painted && !inBand) band++;
+        inBand = painted;
+        if (painted && band === DIRECTOR_BAND) {
+            // The painted pixel nearest the middle of this row is a director.
+            let nearest = -1;
+            for (let column = 0; column < width; column++) {
+                if (
+                    isPainted(column, row) &&
+                    (nearest < 0 || Math.abs(column - width / 2) < Math.abs(nearest - width / 2))
+                ) {
+                    nearest = column;
+                }
+            }
+            return { x: nearest / scale, y: (row + 1) / scale };
+        }
+    }
+    throw new Error(`Found fewer than ${DIRECTOR_BAND} bands of cards in the fit view`);
+}
+
+// Zooms in with the wheel at `point`, as a user would, until the window is just above the floor, where cards are at
+// their native size. A window exactly at the floor is a zoom limit, which the chart does not move.
+/** inScope */
+async function zoomInAt(point: { x: number; y: number }): Promise<void> {
+    const chart = chartRef.current!;
+    const fit = zoomWindowWidth();
+    await setZoom({ start: 0.4999, end: 0.5001 });
+    const target = zoomWindowWidth() * CLICK_ABOVE_FLOOR;
+    await setZoom(null);
+
+    for (let step = 0; step < ZOOM_STEPS * 4 && zoomWindowWidth() > target; step++) {
+        scroll(container, point.x, point.y, -1, 1);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        await chart.waitForUpdate();
+    }
+    if (zoomWindowWidth() > target || zoomWindowWidth() >= fit) throw new Error('Could not zoom in to the floor');
+}
+
+// The painted run of a card in the canvas row at `y` nearest `x`, or undefined where the row holds no card.
+/** inScope */
+function findCardRun(y: number, x: number): number | undefined {
+    const canvas = container.querySelector('canvas')!;
+    const area = container.querySelector('.ag-charts-series-area')!.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+    const scale = canvas.width / canvasRect.width;
+    const context = canvas.getContext('2d')!;
+    const left = Math.round((area.left - canvasRect.left) * scale);
+    const width = Math.round(area.width * scale);
+    const row = Math.round((area.top - canvasRect.top + y) * scale);
+    const background = context.getImageData(0, 0, 1, 1).data;
+    const { data } = context.getImageData(left, row, width, 1);
+
+    let nearest: number | undefined;
+    let runStart = -1;
+    for (let i = 0; i <= width; i++) {
+        const painted =
+            i < width &&
+            (data[i * 4] !== background[0] ||
+                data[i * 4 + 1] !== background[1] ||
+                data[i * 4 + 2] !== background[2] ||
+                data[i * 4 + 3] !== background[3]);
+        if (painted && runStart < 0) runStart = i;
+        if (!painted && runStart >= 0) {
+            const length = i - runStart;
+            const centre = (runStart + length / 2) / scale;
+            if (length >= CLICK_MIN_RUN * scale && (nearest == null || Math.abs(centre - x) < Math.abs(nearest - x))) {
+                nearest = centre;
+            }
+            runStart = -1;
+        }
+    }
+    return nearest;
+}
+
+// The card nearest `point`, searching outward through the canvas rows because zooming in at a point can leave it a
+// little short of the card it was over.
+/** inScope */
+function findCardNear(point: { x: number; y: number }): { x: number; y: number } {
+    for (let offset = 0; offset <= CLICK_SEARCH_RADIUS; offset += CLICK_SEARCH_STEP) {
+        for (const y of offset === 0 ? [point.y] : [point.y - offset, point.y + offset]) {
+            const x = findCardRun(y, point.x);
+            if (x != null) return { x, y };
+        }
+    }
+    throw new Error('No card found near the point to click');
+}
+
+/** inScope */
+async function findClickToggleTarget(): Promise<ClickToggleTarget> {
+    const chart = chartRef.current!;
+    const collapsedCount = () => (chart.getState().collapsed ?? []).length;
+    await chart.setState({ ...chart.getState(), collapsed: [] });
+    await setZoom(null);
+
+    const director = findDirectorPoint();
+    await zoomInAt(director);
+
+    const expandedState = chart.getState();
+    const collapsePoint = findCardNear(director);
+    await clickAtPoint(collapsePoint);
+    if (collapsedCount() === 0) throw new Error('The director did not collapse when clicked');
+
+    // A toggle holds the card in place, so the collapsed director is in the same row.
+    const collapsedState = chart.getState();
+    await clickAtPoint(findCardNear(collapsePoint));
+    if (collapsedCount() !== 0) throw new Error('The director did not expand when clicked');
+
+    return { expandedState, collapsedState, director: collapsePoint };
+}
+
+/** inScope */
+async function performClickToggle(nodes: number, operation: 'Collapse' | 'Expand'): Promise<number> {
+    await ensureChart(nodes);
+    const chart = chartRef.current!;
+
+    let target = clickToggleTargets.get(nodes);
+    if (target == null) {
+        target = await findClickToggleTarget();
+        clickToggleTargets.set(nodes, target);
+    }
+
+    // Start from the opposite state, outside the timing.
+    const collapse = operation === 'Collapse';
+    await chart.setState(collapse ? target.expandedState : target.collapsedState);
+    await chart.waitForUpdate();
+
+    const before = (chart.getState().collapsed ?? []).length;
+    const point = findCardNear(target.director);
+    const start = performance.now();
+    await clickAtPoint(point);
+    const elapsed = performance.now() - start;
+
+    if ((chart.getState().collapsed ?? []).length === before)
+        throw new Error(`${operation} click did not toggle a card`);
+    return elapsed;
 }
 
 /** inScope */
@@ -220,6 +482,18 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 label: 'Pan',
                 variants: variants(performPan, { Repetitions: String(PAN_REPS) }),
             },
+            {
+                id: 'hover',
+                label: 'Hover',
+                variants: variants(performHover, { Hovers: String(HOVER_STEPS) }),
+            },
+            {
+                id: 'click-toggle',
+                label: 'Click To Collapse And Expand',
+                variants: (['Collapse', 'Expand'] as const).flatMap((operation) =>
+                    variants((nodes) => performClickToggle(nodes, operation), { Operation: operation })
+                ),
+            },
         ],
         config: {
             updatesPerTest: 5,
@@ -231,6 +505,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
             nodeCounts: NODE_COUNTS,
             zoomSteps: ZOOM_STEPS,
             panReps: PAN_REPS,
+            hoverSteps: HOVER_STEPS,
             version: VERSION,
             minVersion: SERIES_MIN_VERSION,
         },

@@ -19,6 +19,7 @@ import type { HierarchyNode } from '../series/hierarchy/hierarchySeries';
 import { HlcSeries } from '../series/hlc/hlcSeries';
 import type { HlcMarkerDatum } from '../series/hlc/hlcUtil';
 import type { MapMarkerNodeDatum } from '../series/map-marker/mapMarkerSeries';
+import { NetworkLayout } from '../series/network/networkLayout';
 import type { NetworkLinkNode } from '../series/network/networkLinkNode';
 import { AbstractNetworkSeries } from '../series/network/networkSeries';
 import type { OhlcSeriesDataAggregationFilter } from '../series/ohlc/ohlcAggregation';
@@ -192,6 +193,12 @@ export function getNetworkContentBBox(chartOrProxy: ChartOrProxy<any>, index = 0
     const layout = new Caster(series).accessProperty('layout');
     const getContentBBox = layout.accessProperty('getContentBBox').cast(Function).value;
     return new Caster(getContentBBox.call(layout.value)).cast(BBox).value;
+}
+
+/** The layout a network series positions its nodes with. */
+export function getNetworkLayout(chartOrProxy: ChartOrProxy<any>, index = 0): NetworkLayout<unknown, unknown> {
+    const series = classCast(getSeriesAt(chartOrProxy, index), AbstractNetworkSeries);
+    return new Caster(series).accessProperty('layout').cast(NetworkLayout).value;
 }
 
 /** The rect the chart gave a network series to lay out in. */

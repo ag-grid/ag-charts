@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaLabelColorPickerHue: 'Farvetone',
     ariaLabelColorPickerMultiColor: 'Flerfarvet',
     ariaLabelColorPickerPalette: 'Palet',
+    ariaLabelCrossLine: '${label}, Krydslinje ${index}[number] af ${count}[number]',
     ariaLabelFinancialCharts: 'Finansielle diagrammer',
     ariaLabelGaugeTarget: 'Mål',
     ariaLabelGaugeValue: 'Værdi',
