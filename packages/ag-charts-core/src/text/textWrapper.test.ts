@@ -22,7 +22,7 @@ const { CHAR_WIDTH, LINE_HEIGHT, canvasMetrics } = vi.hoisted(() => ({
     CHAR_WIDTH: 10,
     LINE_HEIGHT: 20,
     // Pixels a string gains (negative: loses) at each join between its characters, as kerning and shaping do.
-    canvasMetrics: { join: 0 },
+    canvasMetrics: { join: 0, ellipsisExtra: 0 },
 }));
 
 vi.mock('../rendering/canvasUtil', () => ({
@@ -31,7 +31,10 @@ vi.mock('../rendering/canvasUtil', () => ({
     createCanvasContext: () => ({
         font: '',
         measureText: (text: string) => ({
-            width: joinedWidth(text, CHAR_WIDTH, canvasMetrics.join),
+            width:
+                joinedWidth(text, CHAR_WIDTH, canvasMetrics.join) +
+                text.split('\u2026').length * canvasMetrics.ellipsisExtra -
+                canvasMetrics.ellipsisExtra,
             fontBoundingBoxAscent: 16,
             fontBoundingBoxDescent: 4,
             emHeightAscent: 16,
@@ -1597,6 +1600,24 @@ describe('fitLabelText bounded by a shape', () => {
         };
         const fitted = fitLabelText('AAAA BBBB', { region, wrapping: 'on-space' }, font);
         expect(fitted).toBe('AAAA\nBBBB');
+    });
+
+    it('does not end a block on an ellipsis wider than the band it lands in', () => {
+        // Real fonts draw the ellipsis wider than a letter, so a band can hold a character but not the mark.
+        canvasMetrics.ellipsisExtra = 14;
+        cachedTextMeasurer.clear();
+        try {
+            const region: FitRegion = {
+                spanAt: (_top, bottom) => (bottom <= 2 * LINE_HEIGHT ? [-25, 25] : [-9, 9]),
+                extentAbove: 0,
+                extentBelow: 3 * LINE_HEIGHT,
+            };
+            const fit = { region, regionAlign: 'start', wrapping: 'on-space', overflowStrategy: 'ellipsis' } as const;
+            expect(fitLabelText('AAAA BBBB CCCC', fit, font)).toBe(`AAAA\nBB${E}`);
+        } finally {
+            canvasMetrics.ellipsisExtra = 0;
+            cachedTextMeasurer.clear();
+        }
     });
 });
 

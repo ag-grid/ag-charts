@@ -365,6 +365,11 @@ export abstract class Series<
     get nodeDataVersion() {
         return this._nodeDataVersion;
     }
+
+    /** Re-solves this series' labels for an input that lives outside its node data, such as its layout. */
+    protected invalidateLabelPlacement() {
+        this._nodeDataVersion++;
+    }
     protected processedDataUpdated = true;
 
     protected readonly moduleMap = new ModuleMap<SeriesPluginModuleInstance>();
