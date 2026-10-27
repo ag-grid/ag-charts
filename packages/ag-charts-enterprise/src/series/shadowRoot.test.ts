@@ -158,6 +158,15 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('areaGroup')).toBe('shared');
         });
 
+        it('should keep the marker shadows of a radar area out of the root, so that they stay above its fill', async () => {
+            await create({
+                data: RADAR_DATA,
+                series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'a' }],
+            } as AgChartOptions);
+
+            expect(batching('itemGroup')).toBe(true);
+        });
+
         it('should cast the shadows of a polar series through the root', async () => {
             await create({
                 data: NIGHTINGALE_DATA,
@@ -238,6 +247,27 @@ describe('series that cast their shadows through the shadow root', () => {
             withoutRoot();
 
             expect(allRed(await fillPixelsAfterCasting(radar))).toBe(false);
+        });
+
+        it('should draw the marker shadows of a radar area over its own fill', async () => {
+            const fills = await fillPixelsAfterCasting(
+                (shadow) =>
+                    ({
+                        data: RADAR_DATA,
+                        series: [
+                            {
+                                type: 'radar-area',
+                                angleKey: 'subject',
+                                radiusKey: 'a',
+                                fill: 'red',
+                                fillOpacity: 1,
+                                marker: { enabled: true, size: 24, fill: 'blue', stroke: 'blue', shadow },
+                            },
+                        ],
+                    }) as AgChartOptions
+            );
+
+            expect(allRed(fills)).toBe(false);
         });
 
         const nightingale = (shadow: AgDropShadowOptions | undefined): AgChartOptions =>
