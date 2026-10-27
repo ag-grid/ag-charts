@@ -1022,16 +1022,14 @@ describe('Caption', () => {
             });
         });
 
-        // The chart-level `click` listener only fires for the chart container itself, so a caption click must not reach it.
+        // The chart-level `click` listener only fires for the chart background itself, so a caption click must not reach it.
         describe('AC4/AC5: interaction with the chart-background handler', () => {
             // Control for the negative assertions below: the chart `click` listener really is reachable here.
             it('a click on the chart background does fire the chart `click` listener', async () => {
                 const chartClick = vi.fn();
                 chart = deproxy(await createChart(chartOptions({ listeners: { click: chartClick } })));
 
-                chart.ctx.widgets.containerWidget
-                    .getElement()
-                    .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                chart.ctx.widgets.chartWidget.getElement().dispatchEvent(new MouseEvent('click', { bubbles: true }));
                 await delay(50);
 
                 expect(chartClick).toHaveBeenCalledTimes(1);
