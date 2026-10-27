@@ -77,7 +77,7 @@ export type TextAlign = 'left' | 'center' | 'right' | 'start' | 'end';
  * Text wrapping strategy for labels.
  * - `'always'` will always wrap text to fit within the tile.
  * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
- * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the tile dimensions, the text will be truncated.
+ * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), never a non-breaking space (`\u00A0`). If there is no possibility to wrap a line on space and satisfy the tile dimensions, the text will be truncated.
  * - `'never'` disables text wrapping.
  *
  * Default: `'on-space'`

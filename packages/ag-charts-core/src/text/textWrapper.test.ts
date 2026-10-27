@@ -40,9 +40,9 @@ vi.mock('../rendering/canvasUtil', () => ({
     }),
 }));
 
-// Zero-width joiners and spaces draw nothing; every other codepoint counts as one character.
+// Zero-width spaces, joiners and word joiners draw nothing; every other codepoint counts as one character.
 function joinedWidth(text: string, charWidth: number, join: number) {
-    const length = [...text.replaceAll(/[\u200B\u200D]/g, '')].length;
+    const length = [...text.replaceAll(/[\u200B\u2060\u200D]/g, '')].length;
     return length * charWidth + Math.max(length - 1, 0) * join;
 }
 
@@ -82,6 +82,10 @@ function createMockMeasurer(charWidth = 10, join = 0): ITextMeasurer {
 // Used by the truncateLine/clipLines suites (which take an explicit measurer) and the wrapLines
 // width assertions. Identical metrics to the mocked canvas, so it agrees with the real measurer.
 const mockMeasurer = createMockMeasurer(10);
+
+function codePoint(char: string) {
+    return `U+${char.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0')}`;
+}
 
 // Helper: returns true if the string contains any lone UTF-16 surrogates.
 function hasLoneSurrogates(str: string): boolean {
@@ -553,6 +557,57 @@ describe('wrapLines', () => {
             expect(result).toEqual(['Hello']);
         });
     });
+    describe('break spaces (white-space: pre-wrap)', () => {
+        const BreakSpaces = ['\t', '\u1680', '\u2000', '\u2006', '\u2008', '\u200A', '\u200B', '\u205F', '\u3000'];
+        const NoBreakSpaces = ['\u00A0', '\u2007', '\u202F', '\u2060'];
+
+        it.each(BreakSpaces.map((char) => [codePoint(char), char]))('breaks a line at %s', (_, char) => {
+            expect(wrapLines(`Hello${char}World`, { font, maxWidth: 60 })).toEqual(['Hello', 'World']);
+        });
+
+        it.each(NoBreakSpaces.map((char) => [codePoint(char), char]))('never breaks a line at %s', (_, char) => {
+            const result = wrapLines(`AB${char}CD EF`, { font, maxWidth: 50 });
+            expect(result).toEqual([`AB${char}CD`, 'EF']);
+        });
+
+        it('keeps a zero-width space where the line does not break', () => {
+            expect(wrapLines('Ab\u200BCd', { font, maxWidth: 100 })).toEqual(['Ab\u200BCd']);
+        });
+
+        it('wraps a run of zero-width-space separated words', () => {
+            const result = wrapLines('Total\u200BRevenue\u200BPer\u200BRegion', { font, maxWidth: 100 });
+            expect(result).toEqual(['Total', 'Revenue\u200BPer', 'Region']);
+        });
+
+        it('does not hide a label whose zero-width spaces were consumed by line breaks', () => {
+            const result = wrapLines('Total\u200BRevenue', { font, maxWidth: 70, overflow: 'hide' });
+            expect(result).toEqual(['Total', 'Revenue']);
+        });
+
+        it('keeps a no-break space at the edges of a line', () => {
+            expect(wrapLines('AB\u00A0 CD', { font, maxWidth: 30 })).toEqual(['AB\u00A0', 'CD']);
+            expect(wrapLines('AB \u00A0CD', { font, maxWidth: 30 })).toEqual(['AB', '\u00A0CD']);
+            expect(wrapLines('AB\u00A0', { font, maxWidth: 100 })).toEqual(['AB\u00A0']);
+            expect(wrapLines('AB\u00A0', { font, maxWidth: 100, textWrap: 'never' })).toEqual(['AB\u00A0']);
+        });
+
+        it('drops a run of break spaces at a line break without collapsing runs within a line', () => {
+            expect(wrapLines('AA \t\u200B BB', { font, maxWidth: 30 })).toEqual(['AA', 'BB']);
+            expect(wrapLines('A  B', { font, maxWidth: 100 })).toEqual(['A  B']);
+        });
+
+        it('cuts a word that starts after a break space without repeating a character', () => {
+            const text = '\u200Babcdefghij';
+            expect(wrapLines(text, { font, maxWidth: 50, textWrap: 'hyphenate' })).toEqual(['abcd-', 'efgh-', 'ij']);
+            expect(wrapLines(text, { font, maxWidth: 50, textWrap: 'always' })).toEqual(['abcde', 'fghij']);
+        });
+
+        it('rejoins an orphan with the break space it was separated by', () => {
+            const result = wrapLines('AAA\u200BBBB\u200BCCC\u200BD', { font, maxWidth: 90 });
+            expect(result).toEqual(['AAA\u200BBBB', 'CCC\u200BD']);
+        });
+    });
+
     it('keeps an orphan on its own line when moving it back would overrun the width', () => {
         // Pulling the previous line's last word down to join the orphan adds a space, and the joined line
         // has to be measured as it will be drawn: 'CC DDDD' is 70px, so the 65px budget cannot take it.
@@ -1027,6 +1082,17 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
         // 'Germany' wraps onto its own line below the flag, but both its leading space (flag→text
         // gap) and trailing space (text→arrow gap) survive — only the wrap line break is added.
         expect(firstText(result).replace(/\n/g, '')).toBe(' Germany ');
+    });
+
+    it('breaks a text segment at a zero-width space and keeps its no-break edge spaces', () => {
+        const segments: ContentSegment[] = [
+            image('flag', { width: 20, height: 13, overflowStrategy: 'keep' }),
+            text('\u00A0Total\u200BRevenue\u00A0'),
+            image('arrow', { width: 12, height: 12, overflowStrategy: 'hide' }),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 100, textWrap: 'on-space' });
+
+        expect(textOf(result)).toBe('\u00A0Total\nRevenue\u00A0');
     });
 
     it("respects 'on-space' even when overflowStrategy is 'keep' and the line wraps", () => {

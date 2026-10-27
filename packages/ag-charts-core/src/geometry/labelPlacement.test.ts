@@ -2631,6 +2631,18 @@ describe('placeLabels obstacle-driven shrink', () => {
         expect(placed.height).toBe(40);
     });
 
+    it('wraps at a zero-width space into the room the obstacle leaves when lost text hides the label', () => {
+        const text = 'WW\u200BWW';
+        const placed = placeOne(
+            shrinkableLabel({
+                label: { text, width: 40, height: 20 },
+                fit: { text, policy: { wrapping: 'on-space', overflowStrategy: 'hide' }, font: FONT },
+            }),
+            [fromTheRight(10)]
+        );
+        expect(placed).toMatchObject({ text: 'WW\nWW', width: 20, height: 40 });
+    });
+
     it('prefers a placement that needs no shrinking at all', () => {
         const placed = placeOne(shrinkableLabel({ placements: ['top', 'bottom'] }), [fromTheRight(10)]);
         expect(placed.text).toBe(TEXT);
