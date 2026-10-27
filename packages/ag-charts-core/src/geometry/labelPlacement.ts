@@ -2581,7 +2581,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
     const recordBest = !trial || floorRecordsKept;
     for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
         // The configured-size fit also tried the floor, which no trial goes below, so a candidate it erased fits
-        // at no trial size: a fit only improves as the font shrinks.
+        // at no trial size: a fit only improves as the font shrinks. Plain text only (see where this is set).
         if (trial && positionedFitFailed[ci] === true) continue;
         // Resolved here rather than when the list was built: the styler runs for the candidates the
         // cascade reaches and no others, so a fallback the label never needed never invokes it.
@@ -2614,7 +2614,10 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
             const font = candidateFontAt(c.fitTo.font ?? fit.font);
             const source = c.fitTo.font == null && !trial ? positionedFitSource : styledFitSource(fit, font);
             if (!fitPositionedCandidate(d, fit, c.fitTo, font, source, threshold)) {
-                if (!trial) positionedFitFailed[ci] = true;
+                // Segments are not recorded: a segment with its own `minimumFontSize` is held at that size by the
+                // configured-size fit, but a trial fits it at the trial size, which can be smaller than anything
+                // that fit tried, so an erasure there does not carry over to the trials.
+                if (!trial && !isArray(fit.text)) positionedFitFailed[ci] = true;
                 continue;
             }
             ({ text, dropped, shrink } = fittedLabel);

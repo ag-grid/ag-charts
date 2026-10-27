@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 
+import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
 import type { Point, SizedPoint } from '../types/scene';
 import {
@@ -3102,7 +3103,14 @@ describe('placeLabels positioned shrink ladder', () => {
         {
             alwaysShow = false,
             resolveCandidate,
-        }: { alwaysShow?: boolean; resolveCandidate?: PositionedCandidateResolver } = {}
+            fitText = TEXT,
+            overflowStrategy = 'ellipsis',
+        }: {
+            alwaysShow?: boolean;
+            resolveCandidate?: PositionedCandidateResolver;
+            fitText?: NormalisedTextOrSegments;
+            overflowStrategy?: 'ellipsis' | 'hide';
+        } = {}
     ) => {
         const datum = buildBarPositionedLabelDatum(
             TEXT,
@@ -3116,8 +3124,8 @@ describe('placeLabels positioned shrink ladder', () => {
             0,
             false,
             {
-                text: TEXT,
-                policy: { minimumFontSize: 6, overflowStrategy: 'ellipsis' },
+                text: fitText,
+                policy: { minimumFontSize: 6, overflowStrategy },
                 font: FONT,
                 boxPadding: NO_PADDING,
             }
@@ -3277,6 +3285,24 @@ describe('placeLabels positioned shrink ladder', () => {
                     },
                 ]);
             });
+        });
+
+        it('still tries a candidate whose segment holds its own minimum font size at the configured size', () => {
+            // The configured-size fit holds the segment at 10px, which a 32px container cannot take; a trial fits
+            // it at the trial size instead, so the first candidate places at 7px on the ladder.
+            const fitText: NormalisedTextOrSegments = [{ type: 'text', text: TEXT, minimumFontSize: 10 }];
+            const first = candidate(100, { width: 32, height: 60 });
+            const placed = place([first, candidate(140)], [EDGE], { fitText, overflowStrategy: 'hide' });
+            expect(placed).toEqual([
+                {
+                    text: fitText,
+                    fontSize: 7,
+                    x: 85.41666666666667,
+                    y: 94.16666666666667,
+                    width: 29.166666666666668,
+                    height: 11.666666666666668,
+                },
+            ]);
         });
 
         it('still tries a candidate whose box only fits its region at a smaller size', () => {
