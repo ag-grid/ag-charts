@@ -111,6 +111,8 @@ interface MapShapeLabelTarget {
     readonly polygon: Position[][];
     readonly datumIndex: number;
     readonly idValue: string;
+    /** Solves that other sources trigger reuse the last fit while the inputs match. */
+    lastFit?: { readonly input: LabelFitDescriptor; readonly placed: PlacedFit | undefined };
 }
 
 interface MapShapePlacedLabelDatum extends PointLabelDatum {
@@ -490,6 +492,7 @@ export class MapShapeSeries
     }
 
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
+    private appliedPlacedLabels: PlacedLabel<unknown>[] | undefined = undefined;
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, options, scale, previousLabelLayouts } = this;
         const { label, legendItemName, colorKey } = options;
@@ -563,7 +566,8 @@ export class MapShapeSeries
         return {
             itemId: seriesId,
             nodeData,
-            labelData: [],
+            // Drawn labels stay until the solve replaces them, so their nodes are reused.
+            labelData: this.contextNodeData?.labelData ?? [],
             labelTargets,
             labelFitting,
         };
@@ -595,7 +599,7 @@ export class MapShapeSeries
                     {
                         box: { x: x - width / 2, y: y - height / 2, width, height },
                         unbounded: true,
-                        fitTo: { anchor, padding, place: (fit) => this.placeLabel(target, fit, inset) },
+                        fitTo: { anchor, padding, place: (fit) => this.fitLabel(target, fit, inset) },
                     },
                 ],
                 target,
@@ -604,11 +608,32 @@ export class MapShapeSeries
         return data;
     }
 
+    private fitLabel(target: MapShapeLabelTarget, fit: LabelFitDescriptor, inset: LabelFitting['inset']) {
+        const { lastFit } = target;
+        if (
+            lastFit?.input.text === fit.text &&
+            lastFit.input.policy === fit.policy &&
+            lastFit.input.font === fit.font
+        ) {
+            return lastFit.placed;
+        }
+        const placed = this.placeLabel(target, fit, inset);
+        target.lastFit = { input: fit, placed };
+        return placed;
+    }
+
     override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
         const { contextNodeData } = this;
         if (contextNodeData == null) return;
-        const { font } = contextNodeData.labelFitting;
-        contextNodeData.labelData = placed.map((label) => {
+        if (placed !== this.appliedPlacedLabels) {
+            this.appliedPlacedLabels = placed;
+            contextNodeData.labelData = this.toLabelData(placed, contextNodeData.labelFitting.font);
+        }
+        this.updateLabels();
+    }
+
+    private toLabelData(placed: PlacedLabel<unknown>[], font: FontOptions): MapShapeNodeLabelDatum[] {
+        return placed.map((label) => {
             const { text, fontSize, offsetX = 0, offsetY = 0 } = label;
             const { point, target } = placedLabelDatum(label);
             const { datumIndex, idValue } = target;
@@ -623,7 +648,6 @@ export class MapShapeSeries
                 datumId: createDatumId(idValue),
             };
         });
-        this.updateLabels();
     }
 
     updateSelections() {
