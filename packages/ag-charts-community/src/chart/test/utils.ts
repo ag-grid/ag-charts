@@ -490,6 +490,8 @@ interface AxisLayoutInternals {
     };
     tickLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
     gridLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
+    unzoomedTickLayoutCache?: { domain: unknown[] };
+    tickLayoutCache?: { domain: unknown[] };
     calculateTickLayout(...args: unknown[]): unknown;
 }
 
@@ -555,6 +557,40 @@ export function getAxisLabelDatums(chartOrProxy: ChartOrProxy<any>, position: st
 /** Counts the tick layouts the axis at `position` calculates, rather than reuses, from now on. */
 export function spyOnAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: string) {
     return vi.spyOn(findAxisInternals(chartOrProxy, position), 'calculateTickLayout');
+}
+
+/**
+ * Counts, per axis position, the walks that check a domain for primitives (`isPrimitiveCategory`, private to the axis,
+ * so counted through its callback) over a domain that axis has cached. A domain the axis has since replaced still
+ * counts, which is how a walk over the previous entry in `processData()` shows. Call `restore()` when done.
+ */
+export function spyOnAxisPrimitiveDomainWalks(chartOrProxy: ChartOrProxy<any>) {
+    const axes = getAxisInternals(chartOrProxy);
+    const cachedDomains = new Map<string, Set<unknown>>(axes.map((axis) => [axis.position, new Set()]));
+    const sampleCachedDomains = () => {
+        for (const { position, unzoomedTickLayoutCache, tickLayoutCache } of axes) {
+            for (const cache of [unzoomedTickLayoutCache, tickLayoutCache]) {
+                if (cache != null) cachedDomains.get(position)!.add(cache.domain);
+            }
+        }
+    };
+    const walked: unknown[] = [];
+    const every = Array.prototype.every;
+    const spy = vi.spyOn(Array.prototype, 'every').mockImplementation(function (this: unknown[], ...args: any[]) {
+        if (args[0]?.name === 'isPrimitiveCategory') {
+            // The walk may be over the entry about to be replaced, so sample before it is.
+            sampleCachedDomains();
+            walked.push(this);
+        }
+        return every.apply(this, args as Parameters<typeof every>);
+    });
+    return {
+        walks: (position: string) => {
+            sampleCachedDomains();
+            return walked.filter((domain) => cachedDomains.get(position)!.has(domain)).length;
+        },
+        restore: () => spy.mockRestore(),
+    };
 }
 
 function getAxisInternals(chartOrProxy: ChartOrProxy<any>) {

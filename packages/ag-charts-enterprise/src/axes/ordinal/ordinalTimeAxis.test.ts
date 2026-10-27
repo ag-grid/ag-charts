@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -17,6 +17,7 @@ import {
     mixinDerivedCases,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAxisPrimitiveDomainWalks,
     spyOnAxisTickLayout,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -665,19 +666,17 @@ describe('Ordinal Time Axis Examples', () => {
             date: new Date(2023, 0, 1, 0, i),
             open: 100 + Math.sin(i / 100) * 50,
         }));
-        // `isPrimitiveCategory` is private to the axis, so the walk is counted through its callback.
-        const every = vi.spyOn(Array.prototype, 'every');
+        chart = await createEnterpriseChart({
+            width: 600,
+            height: 300,
+            data: largeData,
+            axes: { x: { type: 'ordinal-time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+            zoom: {},
+        });
+        const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+        const domainWalks = spyOnAxisPrimitiveDomainWalks(chart);
         try {
-            chart = await createEnterpriseChart({
-                width: 600,
-                height: 300,
-                data: largeData,
-                axes: { x: { type: 'ordinal-time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
-                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
-                zoom: {},
-            });
-            const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
-
             for (const [start, end] of [
                 [0.2, 0.8],
                 [0.3, 0.6],
@@ -689,10 +688,9 @@ describe('Ordinal Time Axis Examples', () => {
 
             // Anti-vacuous: the zoom steps must have rebuilt the layout, or there was no write to avoid the walk on.
             expect(xTickLayout).toHaveBeenCalled();
-            const walks = every.mock.calls.filter(([callback]) => callback.name === 'isPrimitiveCategory');
-            expect(walks).toHaveLength(0);
+            expect(domainWalks.walks('bottom')).toBe(0);
         } finally {
-            every.mockRestore();
+            domainWalks.restore();
         }
     });
 
