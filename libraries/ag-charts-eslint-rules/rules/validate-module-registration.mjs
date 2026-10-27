@@ -691,8 +691,8 @@ export default {
 
             const { moduleId, enterprise } = definitions.get(definition);
             const packageName = enterprise ? 'ag-charts-enterprise' : 'ag-charts-community';
-            // The same name imported from the other package is a different module, and cannot be imported twice.
-            if (importedModules.has(moduleId) && importedModules.get(moduleId).packageName !== packageName) return null;
+            // An existing import of the name is reused, so it must bring in the definition; it cannot be imported twice.
+            if (importedModules.has(moduleId) && !contentsOf(moduleId).includes(definition)) return null;
 
             return function* (fixer) {
                 const sourceCode = context.sourceCode || context.getSourceCode();

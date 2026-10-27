@@ -9,6 +9,8 @@ import {
 } from 'ag-charts-community';
 import {
     AgCharts,
+    AreaSeriesModule,
+    CategoryAxisModule,
     ContextMenuModule,
     GroupedCategoryAxisModule,
     ScrollbarModule,
@@ -104,3 +106,10 @@ const zoomNotNeeded = {
 AgCharts.create(zoomNotNeeded, {
     modules: [LineSeriesModule, UnitTimeAxisModule, GroupedCategoryAxisModule, ZoomModule],
 });
+
+// TEST CASE 7: Missing modules already imported from enterprise, re-exported or enterprise variants, are fixable - should error
+const importedFromEnterprise = {
+    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'category' }, y: { type: 'number' } },
+};
+AgCharts.create(importedFromEnterprise, { modules: [NumberAxisModule] });
