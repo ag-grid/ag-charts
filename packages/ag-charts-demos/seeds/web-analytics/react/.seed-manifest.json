@@ -1,8 +1,8 @@
 {
     "demo": "web-analytics",
     "framework": "react",
-    "sourceHash": "sha256-d943a3b3b6ddfb379a51f1c6c4ae6200c86e087eaf25f58bd180d606c5a89765",
-    "sourceCommit": "dd32a0a1423c1216d26ce37766d3470fb4bdeab1",
+    "sourceHash": "sha256-d0b4121895f3b584bc65aa28ee58386bb1218dbd3aa5414c1187d5f7336a88be",
+    "sourceCommit": "c7c1f280865790597d2a8352e97826018ba632d6",
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",
     "vendored": []
