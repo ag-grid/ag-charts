@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import path from 'path';
 import * as SkiaCanvas from 'skia-canvas';
 import { Canvas, DOMMatrix, type ExportFormat, FontLibrary } from 'skia-canvas';
