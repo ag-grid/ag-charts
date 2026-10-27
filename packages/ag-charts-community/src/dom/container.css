@@ -33,9 +33,6 @@
 
 .ag-charts-canvas-center {
     position: absolute;
-    touch-action: auto;
-    pointer-events: auto;
-
     display: flex;
     align-items: var(--align-items);
     justify-content: var(--justify-content);
@@ -85,7 +82,15 @@
     opacity: 1;
 }
 
-.ag-charts-canvas-proxy,
+.ag-charts-canvas-proxy {
+    position: absolute;
+    inset: 0;
+    touch-action: auto;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 .ag-charts-canvas-overlay {
     position: absolute;
     inset: 0;

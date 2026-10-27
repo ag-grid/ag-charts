@@ -505,7 +505,10 @@ export class SeriesAreaManager extends BaseManager {
         // Ask the modules owning other regions whether they overlap this point (mirrors the hover/drag handoff).
         // They annotate rather than dispatch, so a single menu can offer every region at the point.
         const { primaryRegions } = this.collectContextMenuRegions(event, contexts);
-        const regions: AgContextMenuItemShowOn[] = ['series-area', ...strictObjectKeys(contexts)];
+        const isSeriesArea = this.chart.ctx.widgets.seriesWidget.containsTarget(event);
+        const regions: AgContextMenuItemShowOn[] = isSeriesArea
+            ? ['series-area', ...strictObjectKeys(contexts)]
+            : [...strictObjectKeys(contexts)];
 
         this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
             primaryContextMenuRegion(contexts, directNodeHit, primaryRegions),
