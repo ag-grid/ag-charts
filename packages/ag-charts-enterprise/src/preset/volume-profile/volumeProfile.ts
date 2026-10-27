@@ -51,9 +51,6 @@ export function groupVolumeProfile(
 export const VOLUME_PROFILE_UP_SERIES_ID = 'volumeProfileUp';
 export const VOLUME_PROFILE_DOWN_SERIES_ID = 'volumeProfileDown';
 
-const VOLUME_NUMBER = new Intl.NumberFormat('en-US');
-const formatVolume = (value: number) => VOLUME_NUMBER.format(value);
-
 // The two series share one tooltip, so only the up series adds the range.
 const priceRangeRow = ({ priceLow, priceHigh }: VolumeProfileDatum) => ({
     label: 'Range',
@@ -62,7 +59,7 @@ const priceRangeRow = ({ priceLow, priceHigh }: VolumeProfileDatum) => ({
 
 const volumeRow = ({ datum, yKey, yName }: { datum: any; yKey: string; yName?: string }) => ({
     label: yName ?? yKey,
-    value: formatVolume(datum[yKey]),
+    value: formatFixedCompact({ value: datum[yKey] }),
 });
 
 // Without `levels`, the series read the chart's data, which must then hold the grouped levels.
@@ -125,7 +122,10 @@ export function createVolumeProfileSeries(
                 renderer: (params) => {
                     return {
                         symbol: { marker: { fill: getTheme().palette.down?.fill } },
-                        data: [volumeRow(params), { label: 'Total', value: formatVolume(params.datum.total) }],
+                        data: [
+                            volumeRow(params),
+                            { label: 'Total', value: formatFixedCompact({ value: params.datum.total }) },
+                        ],
                     };
                 },
             },
