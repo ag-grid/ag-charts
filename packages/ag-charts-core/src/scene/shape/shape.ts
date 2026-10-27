@@ -584,7 +584,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * if it casts none. Returns undefined if the shape draws its silhouette some other way, which does not follow this
      * strength. A batch whose casters all share a strength draws their silhouettes solid, and casts its one shadow at that
      * strength, rather than each caster adding its silhouette at its own. Without a `spread` that is only so for a shape
-     * that casts from its fill alone, as a stroke or extras drawn over the fill add to it.
+     * that casts from a plain colour alone, as a stroke or extras drawn over the fill add to it, and the alpha of a
+     * gradient, pattern or image varies across the shape, where its strongest alpha is not that of every pixel.
      */
     getSpreadMaskStrength(): number | undefined {
         const shadow = this.__fillShadow;
@@ -593,7 +594,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const drawsFill = this.castsShadowFromFill();
         const drawsStroke = this.castsShadowFromStroke();
         const hasExtras = this.castsShadowFromExtras();
-        if ((shadow.spread ?? 0) <= 0 && (drawsStroke || hasExtras)) return;
+        if ((shadow.spread ?? 0) <= 0 && (drawsStroke || hasExtras || (drawsFill && typeof this.__fill !== 'string'))) {
+            return;
+        }
 
         const strength = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras);
         return isFiniteNumber(strength) ? strength : undefined;
@@ -605,8 +608,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
-     * Draws the silhouette that casts a shape's shadow into a shadow batch's mask when it has a `spread`: what
-     * {@link castSpreadShadow} blits for the shape without the blur. That is the fill, the dilated stroke and the dilated
+     * Draws the silhouette that casts a shape's shadow into a shadow batch's mask when it has a `spread`, or when the batch
+     * casts all its casters at one strength: what {@link castSpreadShadow} blits for the shape without the blur. That is the fill, the dilated stroke and the dilated
      * extras, drawn solid at a single strength. Only that strength follows the paint: the fill's strongest alpha, else the
      * stroke's, else the extras'. An opaque shape is drawn straight into the mask, where its parts can only cover each
      * other fully. A translucent one is drawn opaque off to the side and added once at its strength, so that where its
