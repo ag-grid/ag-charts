@@ -2302,9 +2302,10 @@ describe('DonutSeries', () => {
         it('registers each shown label with the label solve where it is drawn', async () => {
             chart = deproxy(await createChart(polarExamples.PIE_CALLOUT_LABELS_COLLISIONS));
             const [series] = calloutSeries(chart);
-            const shown = visibleCalloutLabels(chart).map(({ box }) =>
-                box.clone().translate(series.centerX, series.centerY)
-            );
+            const shown = series['calloutLabelSelection']
+                .selectByTag<Text>(DonutNodeTag.CalloutLabel)
+                .filter((node) => node.visible)
+                .map((node) => node.getBBox().clone().translate(series.centerX, series.centerY));
             const registered = series
                 .getLabelData(chart.seriesRect)
                 .map((datum) => datum.positionedCandidates?.[0].box);
@@ -2319,6 +2320,30 @@ describe('DonutSeries', () => {
                     height: expect.closeTo(box.height, 3),
                 });
             }
+        });
+
+        it('draws the labels when they are the only labels the series shows', async () => {
+            chart = deproxy(
+                await createChart({
+                    data: ['A', 'B', 'C'].map((name) => ({ name, value: 1 })),
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'value',
+                            calloutLabelKey: 'name',
+                            sectorLabel: { enabled: false },
+                            title: { enabled: false },
+                        },
+                    ],
+                })
+            );
+            const [series] = calloutSeries(chart);
+            const drawn = series['calloutLabelSelection']
+                .selectByTag<Text>(DonutNodeTag.CalloutLabel)
+                .filter((node) => node.visible)
+                .map((node) => node.text);
+
+            expect(drawn).toEqual(['A', 'B', 'C']);
         });
 
         test('a uniform-radius series keeps every label on its own radius', async () => {

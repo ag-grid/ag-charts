@@ -1074,8 +1074,8 @@ export class DonutSeries extends PolarSeries<
     }
 
     private syncLabelPlacementInputs() {
-        const { sectorLabel, title, innerLabels = [] } = this.options;
-        this.usesPlacedLabels = sectorLabel.enabled || title.enabled || innerLabels.length > 0;
+        const { calloutLabel, sectorLabel, title, innerLabels = [] } = this.options;
+        this.usesPlacedLabels = calloutLabel.enabled || sectorLabel.enabled || title.enabled || innerLabels.length > 0;
         const layout = `${this.centerX},${this.centerY},${this.radius},${this.surroundingRadius},${this.visibleSectorCount()}`;
         if (layout === this.labelLayout) return;
         // The labels anchor on the circle, which lays out without rebuilding the node data.
