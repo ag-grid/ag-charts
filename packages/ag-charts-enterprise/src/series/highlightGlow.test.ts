@@ -41,6 +41,7 @@ type AnySeriesOptions = NonNullable<AgChartOptions['series']>[number];
 /** The `highlight` option of a series: the cases only ever set the glow of the highlight styles. */
 interface HighlightOptions {
     highlightedItem?: { glow?: AgGlowOptions };
+    unhighlightedItem?: { glow?: AgGlowOptions };
 }
 
 interface SeriesCase {
@@ -578,6 +579,27 @@ describe('highlight glow (enterprise series)', () => {
             expect(inPlace.filter(casts)).toHaveLength(0);
         });
     });
+
+    describe.each(SERIES.filter(({ name }) => name === 'funnel' || name === 'pyramid'))(
+        '$name legend highlight',
+        (testCase) => {
+            it('casts the unhighlightedItem glow from every stage, as no stage has a highlight copy', async () => {
+                await hoverItem(testCase, SHADOW, { unhighlightedItem: { glow: HIGHLIGHT_GLOW } });
+
+                // A legend item of a stage is a highlight with an index but no datum, and nothing to draw.
+                const [stage] = getSeriesNodeData<HighlightNodeDatum>(chart);
+                raiseHighlight();
+                await waitForChartStability(chart);
+                raiseHighlight({ ...stage, datum: undefined, itemId: undefined });
+                await waitForChartStability(chart);
+
+                const { inPlace, highlighted } = layersOf(testCase);
+                expect(inPlace.length).toBeGreaterThan(1);
+                expect(highlighted.filter(casts)).toHaveLength(0);
+                for (const shape of inPlace) expect(shape.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+            });
+        }
+    );
 
     describe('highlight shadow is rejected', () => {
         const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));

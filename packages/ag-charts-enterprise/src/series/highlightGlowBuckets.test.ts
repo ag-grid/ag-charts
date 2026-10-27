@@ -153,6 +153,14 @@ describe('highlight glow on every hierarchy bucket', () => {
             }
         });
 
+        it('shares one shadow object between the nodes in a highlight state, so an unchanged glow is not redrawn', async () => {
+            const { inPlace } = await hover(series('unhighlightedBranch', HIGHLIGHT_GLOW));
+
+            const [first, ...rest] = inPlace.filter(({ role }) => role === 'otherBranch');
+            expect(rest.length).toBeGreaterThan(0);
+            for (const { shape } of rest) expect(shape.fillShadow).toBe(first.shape.fillShadow);
+        });
+
         it('lets the glow replace the base shadow of an item in that state, and keeps the shadow elsewhere', async () => {
             const { inPlace, highlighted } = await hover(series('unhighlightedBranch', HIGHLIGHT_GLOW, SHADOW));
 

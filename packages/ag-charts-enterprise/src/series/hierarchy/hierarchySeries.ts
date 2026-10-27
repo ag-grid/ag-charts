@@ -2,10 +2,12 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type {
     BBox,
     ChartAnimationPhase,
+    DeepPartial,
     DynamicContext,
     Node,
     NormalisedDropShadowOptions,
     NormalisedHierarchySeriesKeys,
+    NormalisedSeriesOptions,
     Path,
     Selection,
     SelectionInterface,
@@ -34,6 +36,7 @@ const {
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
     createDatumId,
+    glowToShadow,
 } = _ModuleSupport;
 
 export enum HierarchyHighlightState {
@@ -576,6 +579,33 @@ export abstract class HierarchySeries<
             default:
                 return undefined;
         }
+    }
+
+    /** The shadow of each highlight state's `glow`, by slot, which `syncOptionDerivedState` drops. `null` once none. */
+    private glowBySlot: Array<Array<NormalisedDropShadowOptions | null> | undefined> = [];
+
+    protected override syncOptionDerivedState(diff: DeepPartial<NormalisedSeriesOptions<TOptions>> | undefined) {
+        super.syncOptionDerivedState(diff);
+        this.glowBySlot = [];
+    }
+
+    /**
+     * The glow of one highlight state as a shadow, converted once per state and slot so that a node's shadow keeps its
+     * identity across updates. `slot` tells apart the places that resolve a state to different options, such as a
+     * treemap's tiles and groups; `resolveGlow` is only called on the first lookup of a state.
+     */
+    protected getHierarchyGlow(
+        slot: number,
+        highlightState: HierarchyHighlightState,
+        resolveGlow: (highlightState: HierarchyHighlightState) => Parameters<typeof glowToShadow>[0]
+    ): NormalisedDropShadowOptions | undefined {
+        const glowByState = (this.glowBySlot[slot] ??= []);
+        let glow = glowByState[highlightState];
+        if (glow === undefined) {
+            glow = glowToShadow(resolveGlow(highlightState)) ?? null;
+            glowByState[highlightState] = glow;
+        }
+        return glow ?? undefined;
     }
 
     /**

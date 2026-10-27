@@ -1058,12 +1058,22 @@ export abstract class Series<
         if (
             highlightState === HighlightState.OtherItem &&
             datumIndex != null &&
-            highlightedDatum.datumIndex === datumIndex
+            highlightedDatum.datumIndex === datumIndex &&
+            this.hasHighlightCopy(highlightedDatum)
         ) {
             return shadow;
         }
 
         return this.getStateGlow(highlightState) ?? shadow;
+    }
+
+    /**
+     * Whether the highlight layer draws the active highlight, so the hovered item's in-place copy lies beneath a copy
+     * that casts its glow. A series overrides this where a highlight with a `datumIndex` can have no geometry to draw,
+     * as a legend item of a funnel stage does: that stage's in-place copy then casts its state's glow like the others.
+     */
+    protected hasHighlightCopy(_highlightedDatum: HighlightNodeDatum): boolean {
+        return true;
     }
 
     protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datumIndex?: DatumIndex) {

@@ -64,7 +64,7 @@ import {
 } from '../hierarchy/hierarchySeries';
 import { autoSizedLabelFit, labelPairBlocks, styledLabelFont } from '../util/autoSizedLabelFit';
 
-const { createDatumId, SelectionState, expandLabelBoxExtent, getLabelStyles, glowToShadow } = _ModuleSupport;
+const { createDatumId, SelectionState, expandLabelBoxExtent, getLabelStyles } = _ModuleSupport;
 
 class TreemapNode extends HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
@@ -103,6 +103,10 @@ interface TreemapPlacedLabelDatum extends PointLabelDatum {
 interface TreemapLabelCandidate extends PositionedLabelCandidate {
     readonly anchor: OrientationAnchor;
 }
+
+/** The glow cache slots (see `HierarchySeries.getHierarchyGlow`), as tiles and groups resolve a state to different options. */
+const TILE_GLOW_SLOT = 0;
+const GROUP_GLOW_SLOT = 1;
 
 const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -503,18 +507,6 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         isLeaf: boolean,
         isHighlight: boolean
     ) {
-        return this.getItemStyleAndGlow(nodeDatum, isLeaf, isHighlight).style;
-    }
-
-    /**
-     * The node's style, and the glow of its highlight state as a shadow, from the one highlight resolution. Tile and
-     * group highlights sit under `tile.highlight` and `group.highlight`.
-     */
-    private getItemStyleAndGlow(
-        nodeDatum: Pick<TreemapNode, 'path' | 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
-        isLeaf: boolean,
-        isHighlight: boolean
-    ) {
         const { options, colorScale } = this;
         const { itemStyler, colorKey } = options;
         const { missingDataFill } = options.colorScale;
@@ -532,7 +524,6 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const highlightStyle = isLeaf
             ? this.getTileHighlightStyle(tileHighlightState, groupHighlightState, highlightedNode)
             : this.getGroupHighlightStyle(groupHighlightState);
-        const glow = glowToShadow(highlightStyle?.glow);
         const selectionStyle = isLeaf ? this.getTileSelectionStyle(nodeDatum.datumIndex) : undefined;
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, this.itemStyle(isLeaf, fills, strokes, index));
 
@@ -565,7 +556,37 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             }
         }
 
-        return { style, glow };
+        return style;
+    }
+
+    private readonly resolveTileGlow = (highlightState: HierarchyHighlightState) =>
+        this.getHierarchyHighlightStyles(highlightState, this.options.tile.highlight)?.glow;
+
+    private readonly resolveGroupGlow = (highlightState: HierarchyHighlightState) =>
+        this.getGroupHighlightStyle(highlightState)?.glow;
+
+    /**
+     * The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. Tile
+     * and group highlights sit under `tile.highlight` and `group.highlight`.
+     */
+    private getNodeGlow(
+        node: Pick<TreemapNode, 'path' | 'datumIndex' | 'depth' | 'children'>,
+        isLeaf: boolean,
+        isHighlight: boolean,
+        highlightedNode: TreemapNode | undefined
+    ) {
+        if (!isLeaf) {
+            if (!this.options.group.highlight.enabled) return;
+
+            const groupState = this.getGroupHighlightState(isHighlight, highlightedNode, node);
+            return this.getHierarchyGlow(GROUP_GLOW_SLOT, groupState, this.resolveGroupGlow);
+        }
+
+        // With a group highlighted, a tile inherits only the group's opacities (see `getTileHighlightStyle`).
+        if (!this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0) return;
+
+        const tileState = this.getHierarchyHighlightState(isHighlight, highlightedNode, node);
+        return this.getHierarchyGlow(TILE_GLOW_SLOT, tileState, this.resolveTileGlow);
     }
 
     private itemStyle(
@@ -750,7 +771,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             const { depth = -1 } = node;
             const isLeaf = node.children.length === 0;
 
-            const { style, glow } = this.getItemStyleAndGlow(node, isLeaf, isHighlight);
+            const style = this.getItemStyle(node, isLeaf, isHighlight);
+            const glow = this.getNodeGlow(node, isLeaf, isHighlight, highlightedNode);
 
             rect.crisp = true;
 
