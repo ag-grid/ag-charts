@@ -39,6 +39,7 @@ import { Caster } from 'ag-charts-test';
 
 import {
     getNetworkContentBBox,
+    getNetworkLayout,
     getNetworkSeriesRect,
     getNetworkViewport,
     getOrganizationCardContentHeight,
@@ -1739,10 +1740,6 @@ describe('OrganizationSeries', () => {
             ],
         });
 
-        function spyOnLayout() {
-            return vi.spyOn((getSeriesInstance(chart, OrganizationSeries) as any).layout, 'update');
-        }
-
         function cardSize(itemId: string) {
             const { width, height } = getOrganizationCards(chart)
                 .find(({ datum }) => datum.itemId === itemId)!
@@ -1752,7 +1749,7 @@ describe('OrganizationSeries', () => {
 
         it('should not lay the nodes out again when the highlight moves between nodes', async () => {
             chart = await createEnterpriseChart(buildOptions());
-            const layoutUpdate = spyOnLayout();
+            const layoutUpdate = vi.spyOn(getNetworkLayout(chart), 'update');
 
             await hoverItem('cto');
             await hoverItem('cfo');
@@ -1777,7 +1774,7 @@ describe('OrganizationSeries', () => {
 
         it('should lay the nodes out again when a styler can restyle any node', async () => {
             chart = await createEnterpriseChart(buildOptions({ itemStyler: () => ({}) }));
-            const layoutUpdate = spyOnLayout();
+            const layoutUpdate = vi.spyOn(getNetworkLayout(chart), 'update');
 
             await hoverItem('cto');
 
