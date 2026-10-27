@@ -4241,6 +4241,56 @@ describe('CartesianAxis', () => {
                 expect(afterFirstUpdate).toBeGreaterThan(0);
                 expect(walks()).toBe(afterFirstUpdate);
             });
+
+            it('does not walk the domain of a category axis that has a label formatter', async () => {
+                const walks = spyOnPrimitiveDomainWalks();
+                const axes = {
+                    x: { type: 'category', position: 'bottom', label: { formatter: ({ value }: any) => `${value}!` } },
+                    y: { type: 'number', position: 'left' },
+                };
+                chart = await create({ axes, data: categories(0, 8, alternating(0)) });
+
+                await update({ data: categories(0, 8, alternating(1)) });
+
+                expect(tickLayoutCaches(getAxis('bottom'))).not.toHaveLength(0);
+                expect(walks(getAxis('bottom'))).toBe(0);
+                // Anti-vacuous: the y axis has no formatter and a stable layout, so it does walk its domain.
+                expect(walks()).toBeGreaterThan(0);
+            });
+
+            // A single in-place object among primitives is enough to make comparing by identity unsound.
+            it.each([
+                { name: 'only objects', objectAt: [0, 1, 2] },
+                { name: 'a single object after primitives', objectAt: [2] },
+                { name: 'a single object before primitives', objectAt: [0] },
+            ])('relabels on every update when the domain has $name mutated in place', async ({ objectAt }) => {
+                const items = [0, 1, 2].map((i) => ({ name: `Item ${i}`, toString: () => items[i].name }));
+                const category = (i: number) => (objectAt.includes(i) ? items[i] : `Item ${i}`);
+                const data = () => [0, 1, 2].map((i) => ({ x: category(i), y: i }));
+                chart = await create({ axes: categoryAxes, data: data() });
+
+                for (const name of ['Renamed', 'Renamed again']) {
+                    items[objectAt[0]].name = name;
+                    await update({ data: data() });
+
+                    expect(getAxisTickLayoutLabelTexts(chart, 'bottom')[objectAt[0]]).toBe(name);
+                }
+            });
+
+            it('detects object categories that replace a primitive domain', async () => {
+                const items = [0, 1, 2].map((i) => ({ name: `Item ${i}`, toString: () => items[i].name }));
+                chart = await create({ axes: categoryAxes, data: categories(0, 3, alternating(0)) });
+                // Let the primitive domain's cache entry be read once, so any stale answer would be remembered.
+                await update({ data: categories(0, 3, alternating(1)) });
+
+                await update({ data: items.map((item, i) => ({ x: item, y: i })) });
+                expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Item 1', 'Item 2']);
+
+                items[1].name = 'Renamed';
+                await update({ data: items.map((item, i) => ({ x: item, y: i })) });
+
+                expect(getAxisTickLayoutLabelTexts(chart, 'bottom')).toEqual(['Item 0', 'Renamed', 'Item 2']);
+            });
         });
 
         it('follows a new category order', async () => {

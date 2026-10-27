@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -17,6 +17,7 @@ import {
     mixinDerivedCases,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAxisTickLayout,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -656,6 +657,43 @@ describe('Ordinal Time Axis Examples', () => {
         );
 
         expect(chart).toBeDefined();
+    });
+
+    // Zooming rebuilds the tick layout on every step, and nothing reads whether the domain holds only primitives there.
+    it('does not walk the domain for primitives while zooming a large dataset', async () => {
+        const largeData = Array.from({ length: 5000 }, (_, i) => ({
+            date: new Date(2023, 0, 1, 0, i),
+            open: 100 + Math.sin(i / 100) * 50,
+        }));
+        // `isPrimitiveCategory` is private to the axis, so the walk is counted through its callback.
+        const every = vi.spyOn(Array.prototype, 'every');
+        try {
+            chart = await createEnterpriseChart({
+                width: 600,
+                height: 300,
+                data: largeData,
+                axes: { x: { type: 'ordinal-time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+                zoom: {},
+            });
+            const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+
+            for (const [start, end] of [
+                [0.2, 0.8],
+                [0.3, 0.6],
+                [0.4, 0.5],
+            ]) {
+                await chart.updateDelta({ initialState: { zoom: { ratioX: { start, end } } } });
+                await waitForChartStability(chart);
+            }
+
+            // Anti-vacuous: the zoom steps must have rebuilt the layout, or there was no write to avoid the walk on.
+            expect(xTickLayout).toHaveBeenCalled();
+            const walks = every.mock.calls.filter(([callback]) => callback.name === 'isPrimitiveCategory');
+            expect(walks).toHaveLength(0);
+        } finally {
+            every.mockRestore();
+        }
     });
 
     it('fits a label bounded through an ordinal-time axis theme override', async () => {
