@@ -1,53 +1,27 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Group, Rect, Sector, Shape, Transformable, mergeDefaults } from 'ag-charts-core';
+import { Rect, Sector, Shape, Transformable } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
-import type { AgChartOptions, AgDropShadowOptions, AgGlowOptions } from 'ag-charts-types';
+import type { AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import { Marker } from '../marker/marker';
 import { getSeriesSelectionNodes } from '../test/seriesAccessors';
-import { HIGHLIGHT_GLOW, SERIES_SHADOW } from '../test/shadowFixtures';
+import {
+    CATEGORY_DATA,
+    HIGHLIGHT_GLOW,
+    HISTOGRAM_DATA,
+    SERIES_SHADOW,
+    XY_DATA,
+    glowShadow,
+    shapesOf,
+} from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
-
-const XY_DATA = [
-    { x: 1, y: 5, size: 10 },
-    { x: 2, y: 8, size: 20 },
-    { x: 3, y: 3, size: 30 },
-];
-const CATEGORY_DATA = [
-    { category: 'A', value: 5 },
-    { category: 'B', value: 8 },
-    { category: 'C', value: 3 },
-];
-const HISTOGRAM_DATA = [{ x: 1 }, { x: 2 }, { x: 2.5 }, { x: 4 }, { x: 5 }, { x: 5.5 }, { x: 7 }];
+import { HighlightState } from './seriesTypes';
 
 /** The four highlight styles that accept a `glow` on a series with series states. */
 const BUCKETS = ['highlightedItem', 'unhighlightedItem', 'highlightedSeries', 'unhighlightedSeries'] as const;
 
-/** The buckets whose `glow` the cascade falls back to, as `getHighlightStyle` merges them. */
-const GLOW_FALLBACKS = {
-    highlightedItem: ['highlightedSeries'],
-    unhighlightedItem: ['highlightedSeries'],
-    highlightedSeries: [],
-    unhighlightedSeries: [],
-} as const;
-
-function shapesOf<T extends Shape>(root: Group, kind: abstract new (...args: any[]) => T): T[] {
-    const found: T[] = [];
-    const visit = (node: unknown) => {
-        if (node instanceof kind) found.push(node);
-        if (node instanceof Group) {
-            for (const child of node.children()) visit(child);
-        }
-    };
-    visit(root);
-    return found;
-}
-
 const casts = (shape: Shape) => shape.fillShadow?.enabled === true;
-
-/** The shadow a glow casts: the same blurred silhouette as a shadow, centred on the item. */
-const glowShadow = (glow: AgGlowOptions) => ({ ...glow, xOffset: 0, yOffset: 0 });
 
 interface SeriesCase {
     name: string;
@@ -244,20 +218,30 @@ describe('highlight glow', () => {
             expect(highlighted.filter(casts)).toHaveLength(0);
         });
 
-        it('takes glow fields from highlightedItem over highlightedSeries, field by field', async () => {
+        it('takes the glow fields highlightedItem sets, and the rest from highlightedSeries', async () => {
             const { highlighted } = await hoverFirstItem(testCase, undefined, {
                 highlightedSeries: { glow: { enabled: true, color: '#0000ff', blur: 9, spread: 4 } },
-                highlightedItem: { glow: { enabled: true, color: '#ff0000', blur: 5, spread: 3 } },
+                highlightedItem: { glow: { color: '#ff0000', spread: 3 } },
             });
 
+            // The item bucket sets the colour and spread alone; `enabled` and `blur` fall through to the series bucket.
             expect(highlighted[0].fillShadow).toMatchObject({
                 enabled: true,
                 color: '#ff0000',
-                blur: 5,
+                blur: 9,
                 spread: 3,
                 xOffset: 0,
                 yOffset: 0,
             });
+        });
+
+        it('lets highlightedItem switch off a glow that highlightedSeries turns on', async () => {
+            const { highlighted } = await hoverFirstItem(testCase, undefined, {
+                highlightedSeries: { glow: HIGHLIGHT_GLOW },
+                highlightedItem: { glow: { enabled: false } },
+            });
+
+            expect(highlighted.filter(casts)).toHaveLength(0);
         });
 
         it('moves the glow from one hovered item to the next and ends it with the hover', async () => {
@@ -343,63 +327,77 @@ describe('highlight glow', () => {
             return { left, right, gap: right.x - (left.x + left.width), firstIsLeft: box(0).x < box(1).x };
         };
 
-        it('draws the glow of the hovered item above its neighbour, but only as far as the glow reaches', async () => {
-            const { gap, firstIsLeft } = await gapBetweenBars();
-            const reach = Math.ceil(gap) + 4;
-            await create(
-                bars({
-                    second: {
-                        highlight: {
-                            highlightedItem: { glow: { enabled: true, color: '#00aa00', blur: 0, spread: reach } },
-                        },
-                    },
-                })
-            );
-            await hoverSecond();
-
-            const first = box(0);
-            const second = box(1);
-            const y = first.y + first.height / 2;
-            // The edge of the neighbour that faces the hovered bar, and the one that faces away from it.
-            const near = firstIsLeft ? first.x + first.width - 1 : first.x + 1;
-            const far = firstIsLeft ? first.x + 1 : first.x + first.width - 1;
-            const outsideGlow =
-                (firstIsLeft ? first.x + first.width : first.x) + (firstIsLeft ? -(reach + 2) : reach + 2);
-
-            // The glow reaches into the neighbour, and sits above it ...
-            expect(pixelAt(near, y)).toEqual(GLOW_COLOR);
-            // ... and stops where its spread stops, so the rest of the neighbour keeps its own colour.
-            expect(pixelAt(outsideGlow, y)).toEqual(RED);
-            expect(pixelAt(far, y)).toEqual(RED);
-            expect(pixelAt(first.x + first.width / 2, y)).toEqual(RED);
-            expect(second.width).toBeGreaterThan(0);
-        });
-
-        it('does not tint the neighbour at all when the glow does not reach it', async () => {
-            const { gap } = await gapBetweenBars();
-            await create(
-                bars({
-                    second: {
-                        highlight: {
-                            highlightedItem: {
-                                glow: {
-                                    enabled: true,
-                                    color: '#00aa00',
-                                    blur: 0,
-                                    spread: Math.max(0, Math.floor(gap) - 2),
+        it.each(['cutout', 'overlay'] as const)(
+            'draws the glow of the hovered item above its neighbour, but only as far as the glow reaches in %s mode',
+            async (drawingMode) => {
+                const { gap, firstIsLeft } = await gapBetweenBars();
+                const reach = Math.ceil(gap) + 4;
+                await create(
+                    bars(
+                        {
+                            second: {
+                                highlight: {
+                                    highlightedItem: {
+                                        glow: { enabled: true, color: '#00aa00', blur: 0, spread: reach },
+                                    },
                                 },
                             },
                         },
-                    },
-                })
-            );
-            await hoverSecond();
+                        drawingMode
+                    )
+                );
+                await hoverSecond();
 
-            const first = box(0);
-            for (const fraction of [0.05, 0.5, 0.95]) {
-                expect(pixelAt(first.x + first.width * fraction, first.y + first.height / 2)).toEqual(RED);
+                const first = box(0);
+                const second = box(1);
+                const y = first.y + first.height / 2;
+                // The edge of the neighbour that faces the hovered bar, and the one that faces away from it.
+                const near = firstIsLeft ? first.x + first.width - 1 : first.x + 1;
+                const far = firstIsLeft ? first.x + 1 : first.x + first.width - 1;
+                const outsideGlow =
+                    (firstIsLeft ? first.x + first.width : first.x) + (firstIsLeft ? -(reach + 2) : reach + 2);
+
+                // The glow reaches into the neighbour, and sits above it ...
+                expect(pixelAt(near, y)).toEqual(GLOW_COLOR);
+                // ... and stops where its spread stops, so the rest of the neighbour keeps its own colour.
+                expect(pixelAt(outsideGlow, y)).toEqual(RED);
+                expect(pixelAt(far, y)).toEqual(RED);
+                expect(pixelAt(first.x + first.width / 2, y)).toEqual(RED);
+                expect(second.width).toBeGreaterThan(0);
             }
-        });
+        );
+
+        it.each(['cutout', 'overlay'] as const)(
+            'does not tint the neighbour at all when the glow does not reach it in %s mode',
+            async (drawingMode) => {
+                const { gap } = await gapBetweenBars();
+                await create(
+                    bars(
+                        {
+                            second: {
+                                highlight: {
+                                    highlightedItem: {
+                                        glow: {
+                                            enabled: true,
+                                            color: '#00aa00',
+                                            blur: 0,
+                                            spread: Math.max(0, Math.floor(gap) - 2),
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        drawingMode
+                    )
+                );
+                await hoverSecond();
+
+                const first = box(0);
+                for (const fraction of [0.05, 0.5, 0.95]) {
+                    expect(pixelAt(first.x + first.width * fraction, first.y + first.height / 2)).toEqual(RED);
+                }
+            }
+        );
 
         it.each(['cutout', 'overlay'] as const)(
             'keeps the base shadow of the hovered series beneath the neighbouring series in %s mode',
@@ -439,7 +437,14 @@ describe('highlight glow', () => {
     });
 
     describe('theme defaults', () => {
-        const resolvedBuckets = async (theme: 'ag-default' | 'ag-default-dark') => {
+        const STATES = {
+            highlightedItem: HighlightState.Item,
+            unhighlightedItem: HighlightState.OtherItem,
+            highlightedSeries: HighlightState.Series,
+            unhighlightedSeries: HighlightState.OtherSeries,
+        } as const;
+
+        const createBar = async (theme: 'ag-default' | 'ag-default-dark') => {
             chart = deproxy(
                 await createChart({
                     theme,
@@ -448,21 +453,14 @@ describe('highlight glow', () => {
                     series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
                 } as AgChartOptions)
             );
-            const { highlight } = chart.series[0].options;
-            return BUCKETS.map(
-                (bucket) =>
-                    [
-                        bucket,
-                        mergeDefaults(
-                            highlight[bucket]?.glow,
-                            ...GLOW_FALLBACKS[bucket].map((b) => highlight[b]?.glow)
-                        ),
-                    ] as const
-            );
         };
 
+        /** The glow the series resolves for an item in the bucket's highlight state, through its real cascade. */
+        const resolvedGlow = (bucket: (typeof BUCKETS)[number]) =>
+            chart.series[0].getHighlightStyle(true, undefined, STATES[bucket]).glow;
+
         it('puts the glow theme defaults on the series buckets only, so a series glow reaches the items', async () => {
-            await resolvedBuckets('ag-default');
+            await createBar('ag-default');
             const { highlight } = chart.series[0].options;
 
             expect(highlight.highlightedSeries?.glow).toBeDefined();
@@ -474,9 +472,9 @@ describe('highlight glow', () => {
         it.each(BUCKETS)(
             'has the %s glow off, with the light values ready for when it is turned on',
             async (bucket) => {
-                const buckets = Object.fromEntries(await resolvedBuckets('ag-default'));
+                await createBar('ag-default');
 
-                expect(buckets[bucket]).toMatchObject({
+                expect(resolvedGlow(bucket)).toEqual({
                     enabled: false,
                     color: 'rgba(0, 0, 0, 0.35)',
                     blur: 6,
@@ -486,9 +484,9 @@ describe('highlight glow', () => {
         );
 
         it.each(BUCKETS)('has the %s glow off, with the dark values ready for when it is turned on', async (bucket) => {
-            const buckets = Object.fromEntries(await resolvedBuckets('ag-default-dark'));
+            await createBar('ag-default-dark');
 
-            expect(buckets[bucket]).toMatchObject({
+            expect(resolvedGlow(bucket)).toEqual({
                 enabled: false,
                 color: 'rgba(255, 255, 255, 0.6)',
                 blur: 4,
@@ -497,9 +495,9 @@ describe('highlight glow', () => {
         });
 
         it('does not apply the dark shadow colour to the glow', async () => {
-            const buckets = Object.fromEntries(await resolvedBuckets('ag-default-dark'));
+            await createBar('ag-default-dark');
 
-            expect(buckets.highlightedItem?.color).toBe('rgba(255, 255, 255, 0.6)');
+            expect(resolvedGlow('highlightedItem')?.color).toBe('rgba(255, 255, 255, 0.6)');
         });
 
         it('casts the light default glow once it is enabled, without any other glow field', async () => {

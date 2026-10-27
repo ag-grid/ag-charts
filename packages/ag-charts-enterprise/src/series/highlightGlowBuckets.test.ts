@@ -4,15 +4,19 @@ import type { AgChartInstance, AgChartOptions, AgGlowOptions } from 'ag-charts-c
 import {
     HIGHLIGHT_GLOW,
     deproxy,
+    getSeriesAt,
+    getSeriesNodeData,
     getSeriesSelectionNodes,
+    glowShadow,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { Shape } from 'ag-charts-core';
+import type { Group, Rect, Shape } from 'ag-charts-core';
 
+import { getFlowLinkData, getFlowNodeData } from '../test/enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
-import { SHADOW, createEnterpriseChart } from '../test/utils';
+import { SHADOW, collectShapes, createEnterpriseChart } from '../test/utils';
 import type { HierarchyNode } from './hierarchy/hierarchySeries';
 
 // Two top-level branches, so that hovering a leaf of A leaves B as the other branch.
@@ -33,7 +37,7 @@ const TWO_BRANCH_DATA = [
     },
 ];
 
-const GLOW_SHADOW = { ...HIGHLIGHT_GLOW, xOffset: 0, yOffset: 0 };
+const GLOW_SHADOW = glowShadow(HIGHLIGHT_GLOW);
 
 type Bucket = 'highlightedItem' | 'unhighlightedItem' | 'highlightedBranch' | 'unhighlightedBranch';
 
@@ -195,5 +199,219 @@ describe('highlight glow on every hierarchy bucket', () => {
                 yOffset: 0,
             });
         });
+    });
+});
+
+describe('highlight glow on treemap groups', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const SIBLING_DATA = [
+        { name: 'A', children: [{ name: 'A1', size: 10 }] },
+        { name: 'B', children: [{ name: 'B1', size: 8 }] },
+        { name: 'C', children: [{ name: 'C1', size: 6 }] },
+    ];
+
+    /** Hovers group A and returns, by group name, the group rects of each layer that cast a shadow. */
+    const hoverGroupA = async (highlight: object, shadow?: object) => {
+        chart = await createEnterpriseChart({
+            data: SIBLING_DATA,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    group: { shadow, gap: 12, padding: 10, interactive: true, highlight },
+                },
+            ],
+        } as AgChartOptions);
+
+        const groupA = getHierarchyRootNode(chart)!.children.find((node) => node.datum?.name === 'A')!;
+        const { ctx, id } = deproxy(chart);
+        ctx.highlightManager.updateHighlight(id, groupA);
+        await waitForChartStability(chart);
+
+        const groups = (name: 'datumSelection' | 'highlightSelection') =>
+            getSeriesSelectionNodes<Shape<HierarchyNode>>(chart, name).filter(
+                (shape) => shape.visible && shape.datum?.hasChildren && shape.datum.depth === groupA.depth
+            );
+        const castBy = (shapes: Array<Shape<HierarchyNode>>) =>
+            shapes.filter((shape) => shape.fillShadow?.enabled).map((shape) => shape.datum!.datum?.name);
+        return { inPlace: groups('datumSelection'), highlighted: groups('highlightSelection'), castBy };
+    };
+
+    it('casts unhighlightedItem.glow from the sibling groups of the hovered group, not from the group itself', async () => {
+        const { inPlace, highlighted, castBy } = await hoverGroupA({ unhighlightedItem: { glow: HIGHLIGHT_GLOW } });
+
+        expect(castBy(inPlace).sort((a, b) => String(a).localeCompare(String(b)))).toEqual(['B', 'C']);
+        for (const shape of inPlace.filter((s) => s.datum?.datum?.name !== 'A')) {
+            expect(shape.fillShadow).toMatchObject(GLOW_SHADOW);
+        }
+        expect(castBy(highlighted)).toEqual([]);
+    });
+
+    it('casts highlightedItem.glow from the hovered group alone, via the highlight copy', async () => {
+        const { inPlace, highlighted, castBy } = await hoverGroupA({ highlightedItem: { glow: HIGHLIGHT_GLOW } });
+
+        expect(castBy(highlighted)).toEqual(['A']);
+        expect(highlighted.find((s) => s.fillShadow?.enabled)?.fillShadow).toMatchObject(GLOW_SHADOW);
+        expect(castBy(inPlace)).toEqual([]);
+    });
+
+    it('lets unhighlightedItem.glow replace the base shadow of the sibling groups only', async () => {
+        const { inPlace } = await hoverGroupA({ unhighlightedItem: { glow: HIGHLIGHT_GLOW } }, SHADOW);
+
+        for (const shape of inPlace) {
+            expect(shape.fillShadow).toMatchObject(shape.datum?.datum?.name === 'A' ? SHADOW : GLOW_SHADOW);
+        }
+    });
+});
+
+describe('highlight glow on heatmap cells', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const GRID_DATA = [
+        { x: 'a', y: 'p', value: 1 },
+        { x: 'b', y: 'p', value: 3 },
+        { x: 'a', y: 'q', value: 2 },
+        { x: 'b', y: 'q', value: 5 },
+    ];
+
+    const hoverFirstCell = async (highlight: object) => {
+        chart = await createEnterpriseChart({
+            data: GRID_DATA,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', highlight }],
+        } as AgChartOptions);
+        const { ctx, id } = deproxy(chart);
+        ctx.highlightManager.updateHighlight(id, getSeriesNodeData<any>(chart)[0]);
+        await waitForChartStability(chart);
+    };
+
+    const cells = () => getSeriesSelectionNodes<Rect>(chart, 'datumSelection').filter((cell) => cell.visible);
+
+    it('paints the cells as one batch, with no cell nodes, while no glow is enabled', async () => {
+        await hoverFirstCell({});
+
+        expect(cells()).toHaveLength(0);
+    });
+
+    it('draws each cell as its own node, with the other cells casting unhighlightedItem.glow', async () => {
+        await hoverFirstCell({ unhighlightedItem: { glow: HIGHLIGHT_GLOW } });
+
+        // The batch can't paint a glow, so every cell is a node, the hovered one beneath its highlight copy.
+        expect(cells()).toHaveLength(GRID_DATA.length);
+        const [hovered, ...others] = cells();
+        expect(hovered.fillShadow?.enabled).not.toBe(true);
+        for (const cell of others) expect(cell.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+    });
+
+    it('keeps the cell batch when unhighlightedItem.glow is configured but disabled', async () => {
+        await hoverFirstCell({ unhighlightedItem: { glow: { ...HIGHLIGHT_GLOW, enabled: false } } });
+
+        expect(cells()).toHaveLength(0);
+    });
+
+    it('casts the hovered cell glow from its highlight copy when only highlightedItem.glow is set', async () => {
+        await hoverFirstCell({ highlightedItem: { glow: HIGHLIGHT_GLOW } });
+
+        const highlighted = getSeriesSelectionNodes<Rect>(chart, 'highlightSelection').filter((cell) => cell.visible);
+        expect(highlighted).toHaveLength(1);
+        expect(highlighted[0].fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+    });
+});
+
+// The connected items of a hovered flow node or link are drawn a second time, undimmed, over the dimmed content.
+describe.each(['sankey', 'chord'] as const)('highlight glow on %s focus copies', (type) => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: AgChartInstance;
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const FLOW_DATA = [
+        { from: 'A', to: 'C', size: 8 },
+        { from: 'A', to: 'D', size: 4 },
+        { from: 'B', to: 'C', size: 5 },
+        { from: 'B', to: 'D', size: 7 },
+    ];
+
+    const castCounts = (root: Group) => {
+        const shapes = collectShapes(root).filter((shape) => shape.visible);
+        return { glowing: shapes.filter((shape) => shape.fillShadow?.enabled).length };
+    };
+
+    /** Hovers the first node or link, and counts the shapes that cast in the content layer and in the focus layers. */
+    const hover = async (target: 'node' | 'link', highlight: object) => {
+        chart = await createEnterpriseChart({
+            data: FLOW_DATA,
+            animation: { enabled: false },
+            legend: { enabled: false },
+            series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size', highlight }],
+        } as AgChartOptions);
+
+        const datum = target === 'node' ? getFlowNodeData(chart)[0] : getFlowLinkData(chart)[0];
+        const { ctx, id } = deproxy(chart);
+        ctx.highlightManager.updateHighlight(id, datum as any);
+        await waitForChartStability(chart);
+
+        // The highlight layer holds, in order, the hovered node's copy, the focus links, the focus nodes and the
+        // hovered link's copy.
+        const series = getSeriesAt(chart) as any;
+        const [hoveredNode, focusLinks, focusNodes, hoveredLink] = [
+            ...(series.highlightGroup.children() as Iterable<Group>),
+        ];
+        return {
+            content: castCounts(series.contentGroup),
+            hovered: castCounts(hoveredNode).glowing + castCounts(hoveredLink).glowing,
+            focus: castCounts(focusLinks).glowing + castCounts(focusNodes).glowing,
+        };
+    };
+
+    it('casts unhighlightedItem.glow in the content layer and, for the connected items, again in the focus layer', async () => {
+        const { content, hovered, focus } = await hover('node', { unhighlightedItem: { glow: HIGHLIGHT_GLOW } });
+
+        // Every link and every node but the hovered one casts in the content layer ...
+        expect(content.glowing).toBe(4 + 3);
+        // ... the hovered node's own highlight copy casts none ...
+        expect(hovered).toBe(0);
+        // ... and its two links and two neighbouring nodes cast again from the focus layer.
+        expect(focus).toBe(2 + 2);
+    });
+
+    it('casts nothing from the focus layer or the highlight copy for the hovered link', async () => {
+        const { content, hovered, focus } = await hover('link', { unhighlightedItem: { glow: HIGHLIGHT_GLOW } });
+
+        // The hovered link keeps no glow of its own in either layer; the other three links and every node do.
+        expect(content.glowing).toBe(3 + 4);
+        expect(hovered).toBe(0);
+        expect(focus).toBe(2);
+    });
+
+    it('casts no glow anywhere when unhighlightedItem.glow is disabled', async () => {
+        const { content, hovered, focus } = await hover('node', {
+            unhighlightedItem: { glow: { ...HIGHLIGHT_GLOW, enabled: false } },
+        });
+
+        expect(content.glowing + hovered + focus).toBe(0);
     });
 });

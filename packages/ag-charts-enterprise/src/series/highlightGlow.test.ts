@@ -9,11 +9,12 @@ import {
     getSeriesNodeData,
     getSeriesOptions,
     getSeriesSelectionNodes,
+    glowShadow,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { RadialColumnShape, Rect, Sector, mergeDefaults } from 'ag-charts-core';
+import { RadialColumnShape, Rect, Sector } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
@@ -59,6 +60,10 @@ interface SeriesCase {
     /** A second datum of the same kind to move the hover to; defaults to the first node datum of another item. */
     hoverNext?: (chart: AgChartInstance) => HighlightNodeDatum | undefined;
 }
+
+/** The glow theme defaults, which a glow takes the fields it leaves unset from. */
+const LIGHT_GLOW = { enabled: false, color: 'rgba(0, 0, 0, 0.35)', blur: 6, spread: 1 };
+const DARK_GLOW = { enabled: false, color: 'rgba(255, 255, 255, 0.6)', blur: 4, spread: 1 };
 
 const FLOW_DATA = [
     { from: 'A', to: 'C', size: 8 },
@@ -423,7 +428,6 @@ describe('highlight glow (enterprise series)', () => {
     });
 
     const casts = (shape: Shape) => shape.fillShadow?.enabled === true;
-    const glowShadow = (glow: AgGlowOptions) => ({ ...glow, xOffset: 0, yOffset: 0 });
 
     /** The visible in-place and highlight-layer shapes of the case's shape kind. */
     const layersOf = (testCase: SeriesCase) => {
@@ -442,7 +446,7 @@ describe('highlight glow (enterprise series)', () => {
     };
 
     /** Raises the highlight on `datum` (or clears it) as the pointer would. */
-    const highlight = (datum?: HighlightNodeDatum) => {
+    const raiseHighlight = (datum?: HighlightNodeDatum) => {
         const { ctx, id } = deproxy(chart);
         ctx.highlightManager.updateHighlight(id, datum);
     };
@@ -464,7 +468,7 @@ describe('highlight glow (enterprise series)', () => {
         } as AgChartOptions);
 
         const datum = testCase.hover?.(chart) ?? getSeriesNodeData<HighlightNodeDatum>(chart)[0];
-        if (datum != null) highlight(datum);
+        if (datum != null) raiseHighlight(datum);
         await waitForChartStability(chart);
 
         return layersOf(testCase);
@@ -494,6 +498,23 @@ describe('highlight glow (enterprise series)', () => {
 
             expect(highlighted.length).toBeGreaterThan(0);
             expect(highlighted.filter(casts)).toHaveLength(0);
+        });
+
+        it.each([
+            ['ag-default', LIGHT_GLOW],
+            ['ag-default-dark', DARK_GLOW],
+        ])('casts the %s theme glow once only enabled is set', async (theme, defaults) => {
+            const themed = { ...testCase, chartOptions: { ...testCase.chartOptions, theme } };
+            const { highlighted } = await hoverItem(themed, undefined, {
+                highlightedItem: { glow: { enabled: true } },
+            });
+
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject({
+                ...defaults,
+                enabled: true,
+                xOffset: 0,
+                yOffset: 0,
+            });
         });
 
         it('casts no glow when it is configured but disabled', async () => {
@@ -543,14 +564,14 @@ describe('highlight glow (enterprise series)', () => {
             const nodeData = () => getSeriesNodeData<HighlightNodeDatum>(chart);
             const first = testCase.hover?.(chart) ?? nodeData()[0];
             const next = testCase.hoverNext?.(chart) ?? nodeData().find((d) => d.datumIndex !== first.datumIndex);
-            highlight(next);
+            raiseHighlight(next);
             await waitForChartStability(chart);
 
             const moved = layersOf(testCase);
             expect(moved.highlighted.filter(casts)).toHaveLength(copies);
             expect(moved.highlighted.find(casts)?.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
 
-            highlight();
+            raiseHighlight();
             await waitForChartStability(chart);
 
             const { inPlace } = layersOf(testCase);
@@ -615,7 +636,7 @@ describe('highlight glow (enterprise series)', () => {
 
             // Nothing is cast from the highlight copy for the rejected option.
             const datum = testCase.hover?.(chart) ?? getSeriesNodeData<HighlightNodeDatum>(chart)[0];
-            highlight(datum);
+            raiseHighlight(datum);
             await waitForChartStability(chart);
             expect(layersOf(testCase).highlighted.filter(casts)).toHaveLength(0);
         });
@@ -627,17 +648,7 @@ describe('highlight glow (enterprise series)', () => {
         const ITEM_BUCKETS = ['highlightedItem', 'unhighlightedItem'];
         const SERIES_BUCKETS = [...ITEM_BUCKETS, 'highlightedSeries', 'unhighlightedSeries'];
 
-        /** The buckets whose `glow` an item bucket falls back to, where the series has such buckets. */
-        const BRANCH_FALLBACKS: Record<string, string[]> = {
-            highlightedItem: ['highlightedBranch'],
-            unhighlightedItem: ['highlightedBranch'],
-        };
-        const SERIES_FALLBACKS: Record<string, string[]> = {
-            highlightedItem: ['highlightedSeries'],
-            unhighlightedItem: ['highlightedSeries'],
-        };
-
-        const resolvedGlows = async (theme: string, series: object, data: object[] = HIERARCHY_SHADOW_DATA) => {
+        const resolvedOptions = async (theme: string, series: object, data: object[] = HIERARCHY_SHADOW_DATA) => {
             chart = await createEnterpriseChart({
                 theme,
                 data,
@@ -648,36 +659,34 @@ describe('highlight glow (enterprise series)', () => {
             return getSeriesOptions<any>(chart);
         };
 
-        const LIGHT = { enabled: false, color: 'rgba(0, 0, 0, 0.35)', blur: 6, spread: 1 };
-        const DARK = { enabled: false, color: 'rgba(255, 255, 255, 0.6)', blur: 4, spread: 1 };
-
+        // `defaulted` are the buckets that carry the glow theme defaults, which the others fall back to.
         const CASES: Array<{
             name: string;
             series: object;
             data?: object[];
             buckets: string[];
-            fallbacks: Record<string, string[]>;
+            defaulted: string[];
             highlight: (options: any) => any;
         }> = [
             {
                 name: 'treemap tile',
                 series: HIERARCHY({ type: 'treemap' }),
                 buckets: BRANCH_BUCKETS,
-                fallbacks: BRANCH_FALLBACKS,
+                defaulted: ['highlightedBranch', 'unhighlightedBranch'],
                 highlight: (options) => options.tile.highlight,
             },
             {
                 name: 'treemap group',
                 series: HIERARCHY({ type: 'treemap' }),
                 buckets: ITEM_BUCKETS,
-                fallbacks: {},
+                defaulted: ITEM_BUCKETS,
                 highlight: (options) => options.group.highlight,
             },
             {
                 name: 'sunburst',
                 series: HIERARCHY({ type: 'sunburst' }),
                 buckets: BRANCH_BUCKETS,
-                fallbacks: BRANCH_FALLBACKS,
+                defaulted: ['highlightedBranch', 'unhighlightedBranch'],
                 highlight: (options) => options.highlight,
             },
             {
@@ -685,7 +694,7 @@ describe('highlight glow (enterprise series)', () => {
                 data: GRID_DATA,
                 series: { type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value' },
                 buckets: ITEM_BUCKETS,
-                fallbacks: {},
+                defaulted: ITEM_BUCKETS,
                 highlight: (options) => options.highlight,
             },
             {
@@ -700,7 +709,7 @@ describe('highlight glow (enterprise series)', () => {
                     closeKey: 'close',
                 },
                 buckets: SERIES_BUCKETS,
-                fallbacks: SERIES_FALLBACKS,
+                defaulted: ['highlightedSeries', 'unhighlightedSeries'],
                 highlight: (options) => options.highlight,
             },
             {
@@ -708,36 +717,29 @@ describe('highlight glow (enterprise series)', () => {
                 data: FLOW_DATA,
                 series: { type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' },
                 buckets: ITEM_BUCKETS,
-                fallbacks: {},
+                defaulted: ITEM_BUCKETS,
                 highlight: (options) => options.highlight,
             },
         ];
 
-        describe.each(CASES)('$name', ({ series, data, buckets, fallbacks, highlight: highlightOf }) => {
-            const resolvedGlow = (highlight: any, bucket: string) =>
-                mergeDefaults(
-                    highlight[bucket]?.glow,
-                    ...(fallbacks[bucket] ?? []).map((fallback) => highlight[fallback]?.glow)
-                );
+        describe.each(CASES)('$name', ({ series, data, buckets, defaulted, highlight: highlightOf }) => {
+            it.each([
+                ['light', 'ag-default', LIGHT_GLOW],
+                ['dark', 'ag-default-dark', DARK_GLOW],
+            ])(
+                'puts the %s glow theme defaults, with the glow off, on the buckets the others fall back to',
+                async (_, theme, expected) => {
+                    const styles = highlightOf(await resolvedOptions(theme, series, data));
 
-            it.each(buckets)('has the %s glow off, with the light values ready', async (bucket) => {
-                const options = await resolvedGlows('ag-default', series, data);
-                expect(resolvedGlow(highlightOf(options), bucket)).toMatchObject(LIGHT);
-            });
+                    for (const bucket of defaulted) expect(styles[bucket].glow).toEqual(expected);
+                }
+            );
 
-            it.each(buckets)('has the %s glow off, with the dark values ready', async (bucket) => {
-                const options = await resolvedGlows('ag-default-dark', series, data);
-                expect(resolvedGlow(highlightOf(options), bucket)).toMatchObject(DARK);
-            });
+            it('leaves the glow of the other buckets unset, so a glow on a broader bucket reaches them', async () => {
+                const styles = highlightOf(await resolvedOptions('ag-default', series, data));
 
-            it('puts the glow theme defaults only on the buckets the others fall back to', async () => {
-                const highlight = highlightOf(await resolvedGlows('ag-default', series, data));
-                for (const bucket of buckets) {
-                    if (bucket in fallbacks) {
-                        expect(highlight[bucket]?.glow).toBeUndefined();
-                    } else {
-                        expect(highlight[bucket].glow).toMatchObject(LIGHT);
-                    }
+                for (const bucket of buckets.filter((name) => !defaulted.includes(name))) {
+                    expect(styles[bucket]?.glow).toBeUndefined();
                 }
             });
         });
@@ -747,7 +749,7 @@ describe('highlight glow (enterprise series)', () => {
                 [{ type: 'cone-funnel', stageKey: 'stage', valueKey: 'value' }, STAGE_DATA],
                 [{ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter' }, POLAR_DATA],
             ] as const) {
-                const options = await resolvedGlows('ag-default', series, [...data]);
+                const options = await resolvedOptions('ag-default', series, [...data]);
                 for (const bucket of SERIES_BUCKETS) {
                     expect(options.highlight?.[bucket]?.glow).toBeUndefined();
                 }
