@@ -3171,7 +3171,7 @@ describe('placeLabels positioned shrink ladder', () => {
             expect(placed).toEqual([AT_SEVEN]);
         });
 
-        it('is sized from the source measured under the candidate's own font, including its line height', () => {
+        it('is sized from the source measured under its own candidate font, including line height', () => {
             // Only the last candidate clears, and the fit of the first, in the same font, must not stand in for it.
             const serif = (lineHeight: number) => ({ fontSize: 12, fontFamily: 'serif', lineHeight });
             const fonts = new Map([
