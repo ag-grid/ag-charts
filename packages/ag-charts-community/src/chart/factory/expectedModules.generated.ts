@@ -55,6 +55,13 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'axis',
+        name: 'inset-number',
+        moduleId: 'InsetNumberAxisModule',
+        chartType: 'cartesian',
+        enterprise: true,
+    },
+    {
+        type: 'axis',
         name: 'log',
         moduleId: 'LogAxisModule',
         chartType: 'cartesian',
@@ -652,7 +659,16 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
                 path: 'axes[].crossLines',
                 options: defined,
                 themeOptions: object,
-                axisTypes: ['category', 'grouped-category', 'number', 'log', 'time', 'unit-time', 'ordinal-time'],
+                axisTypes: [
+                    'category',
+                    'grouped-category',
+                    'number',
+                    'inset-number',
+                    'log',
+                    'time',
+                    'unit-time',
+                    'ordinal-time',
+                ],
             },
             {
                 path: 'axes[].listeners.crossLineClick',

@@ -506,10 +506,34 @@ export interface AgLogAxisOptions<TContext = ContextDefault>
     crossLines?: AgCartesianCrossLineOptions<AgNumericValue, TContext>[];
 }
 
+/**
+ * A number axis drawn along part of the series area, for series that share the chart with others, such as volume bars below a price line. It does not zoom.
+ */
+export interface AgInsetNumberAxisOptions<TContext = ContextDefault>
+    extends
+        Omit<
+            AgBaseCartesianAxisOptions<
+                AgCartesianAxisLabelOptions<TContext>,
+                AgCrosshairLabel<string, TContext>,
+                TContext
+            >,
+            'interval'
+        >,
+        AgContinuousAxisOptions<AgNumericValue, AgNumericValue> {
+    type: 'inset-number';
+    /** Add cross-lines or regions corresponding to data values. */
+    crossLines?: AgCartesianCrossLineOptions<AgNumericValue, TContext>[];
+    /**
+     * The length of the axis, as a ratio of the series area. The axis starts at the end where its minimum value sits, or at the opposite end when `reverse` is `true`.
+     */
+    lengthRatio: Ratio;
+}
+
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
 export type AgCartesianAxisOptions<TContext = ContextDefault> =
     | AgNumberAxisOptions<TContext>
+    | AgInsetNumberAxisOptions<TContext>
     | AgLogAxisOptions<TContext>
     | AgCategoryAxisOptions<TContext>
     | AgOrdinalTimeAxisOptions<TContext>
@@ -562,6 +586,8 @@ export interface AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType = AgBas
 export interface AgCartesianAxesTheme<TContext = ContextDefault> {
     /** This extends the common axis configuration with options specific to number axes. */
     number?: AgNumberAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
+    /** This extends the common axis configuration with options specific to inset number axes. */
+    'inset-number'?: AgInsetNumberAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
     /** This extends the common axis configuration with options specific to number axes. */
     log?: AgLogAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
     /** This extends the common axis configuration with options specific to category axes. */
@@ -588,6 +614,18 @@ export interface AgNumberAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLa
         Omit<AgNumberAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgNumberAxisOptions<TContext>>,
         AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
+
+export interface AgInsetNumberAxisThemeOptions<
+    CrossLineLabelType = AgBaseCrossLineLabelOptions,
+    TContext = ContextDefault,
+>
+    extends
+        Omit<AgInsetNumberAxisOptions<TContext>, ThemeOmittedAxisOptions | 'lengthRatio'>,
+        AgCartesianAxisThemeOptions<Omit<AgInsetNumberAxisOptions<TContext>, 'lengthRatio'>>,
+        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {
+    /** The length of the axis, as a ratio of the series area. */
+    lengthRatio?: Ratio;
+}
 
 export interface AgLogAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
     extends

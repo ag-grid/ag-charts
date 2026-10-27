@@ -9,6 +9,7 @@ import type {
     AgCartesianChartOptions,
     AgChartSyncOptions,
     AgHlcSeriesOptions,
+    AgInsetNumberAxisOptions,
     AgLineSeriesOptions,
     AgNavigatorOptions,
     AgNumberAxisOptions,
@@ -321,25 +322,15 @@ function createDateAxis() {
     };
 }
 
-function createVolumeAxis(volume: boolean): Record<string, AgNumberAxisOptions> {
+function createVolumeAxis(volume: boolean): Record<string, AgInsetNumberAxisOptions> {
     if (!volume) return {};
 
     return {
         yVolume: {
-            type: 'number',
+            type: 'inset-number',
             position: 'left',
-            label: { enabled: false },
-            crosshair: { enabled: false },
-            gridLine: { enabled: false },
-            nice: false,
-            // @ts-expect-error undocumented option
-            layoutConstraints: {
-                stacked: false,
-                width: 20,
-                unit: 'percent',
-                align: 'end',
-            },
-        } satisfies AgNumberAxisOptions,
+            lengthRatio: 0.2,
+        } satisfies AgInsetNumberAxisOptions,
     };
 }
 

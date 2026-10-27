@@ -42,8 +42,6 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import { LogAxis } from '../../axis/logAxis';
-import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DataModelOptions, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
@@ -363,7 +361,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             'xValue'
         );
 
-        if (this.isNormalized() && yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
+        if (this.isNormalized() && yAxis?.scale.type === 'number') {
             return { domain: fixNumericExtent(extendDomainToZero(yExtent)) };
         } else {
             return { domain: fixNumericExtent(yExtent) };

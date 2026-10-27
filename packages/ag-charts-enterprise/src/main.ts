@@ -19,6 +19,7 @@ export {
     TimeAxisModule,
     UnitTimeAxisModule,
 } from './axes/cartesian/cartesianAxisModules';
+export { InsetNumberAxisModule } from './axes/inset-number/insetNumberAxisModule';
 export { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 export { RadiusCategoryAxisModule } from './axes/radius-category/radiusCategoryAxisModule';
 export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';

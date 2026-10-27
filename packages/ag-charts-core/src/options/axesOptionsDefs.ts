@@ -293,7 +293,6 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
             unit: required(union('percent', 'px')),
             width: required(positiveNumber),
         },
-        ignoreZoom: boolean,
         linkZoom: string,
     }),
 };

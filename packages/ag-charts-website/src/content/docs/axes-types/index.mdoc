@@ -164,6 +164,33 @@ These configurations above are demonstrated in the following example:
 The domain of a log axis should be strictly positive or strictly negative (because there's no power you can raise a number to that will yield zero). For that reason, any non-conforming domain will be clipped to conformity. For example, `[0, 10]` will be clipped to `[1, 10]`. If the data domain crosses `0`, for example `[-10, 5]`, no data will be rendered. It is often desirable to set the `min` or `max` property of the axis manually. In this case it can be `max: -1`.
 {% /note %}
 
+## Inset Number {% enterpriseIcon /%}
+
+An `inset-number` axis is a number axis laid out along part of the series area. Its `lengthRatio` sets that length as a ratio of the series area, and series on the axis are scaled to fit it, such as volume bars below a price line.
+
+{% chartExampleRunner title="Inset Number Axis" name="inset-number" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        yVolume: {
+            type: 'inset-number',
+            position: 'left',
+            lengthRatio: 0.2,
+        },
+    },
+}
+```
+
+In this example:
+
+- The volume axis has a `lengthRatio` of `0.2`, so the volume bars use the bottom 20% of the series area.
+- The axis starts at the end where its minimum value sits. Set `reverse: true` to start it from the opposite end.
+- The axis line, labels and grid lines are hidden by default.
+- Zooming does not change the axis, so its whole domain stays in view.
+
+For a full list of configuration options see [Inset Number Axis Options](#reference-AgInsetNumberAxisOptions).
+
 ## Time
 
 There are three methods of displaying time along an axis.
@@ -196,6 +223,10 @@ For more detail on time axes, see the [Time Axes](./axes-time/) page.
 
 {% tabItem id="AgLogAxisOptions" label="Log Axis" %}
 {% apiReference id="AgLogAxisOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgInsetNumberAxisOptions" label="Inset Number Axis" %}
+{% apiReference id="AgInsetNumberAxisOptions" /%}
 {% /tabItem %}
 
 {% tabItem id="AgUnitTimeAxisOptions" label="Unit Time Axis" %}

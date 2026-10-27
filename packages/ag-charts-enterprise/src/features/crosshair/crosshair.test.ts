@@ -397,6 +397,32 @@ describe('Crosshair', () => {
         await compare();
     });
 
+    it('should follow the pointer on an inset axis in a zoomed chart', async () => {
+        chart = await createEnterpriseChart({
+            theme: BASE_OPTIONS.theme,
+            data: BASE_OPTIONS.data,
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'y1' },
+                { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'yInset' },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom', crosshair: CROSSHAIR_OPTIONS },
+                y: { type: 'number', position: 'left', crosshair: CROSSHAIR_OPTIONS },
+                yInset: {
+                    type: 'inset-number',
+                    position: 'right',
+                    lengthRatio: 0.4,
+                    label: { enabled: true },
+                    crosshair: { ...CROSSHAIR_OPTIONS, enabled: true },
+                },
+            },
+            zoom: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.2, end: 0.8 } } },
+        });
+        await hoverAction(300, 450)(chart);
+        await compare();
+    });
+
     it('AG-16613 should handle null category values with crosshair', async () => {
         // `allowNullKeys` is undocumented, so the series options type does not know it.
         const series: AgLineSeriesOptions & { allowNullKeys: boolean } = {

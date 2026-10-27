@@ -69,8 +69,6 @@ import type {
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import { LogAxis } from '../../axis/logAxis';
-import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, extendDomainToZero, fixNumericExtent } from '../../data/dataModel';
@@ -573,7 +571,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
 
         const yAxis = this.getValueAxis();
-        if (yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
+        if (yAxis?.scale.type === 'number') {
             return { domain: fixNumericExtent(extendDomainToZero(yExtent)) };
         } else {
             return { domain: fixNumericExtent(yExtent) };

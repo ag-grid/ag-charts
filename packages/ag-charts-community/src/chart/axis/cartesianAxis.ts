@@ -213,6 +213,16 @@ export abstract class CartesianAxis<
         this.zoom = { min: zoom.min, max: zoom.max };
     }
 
+    /** The share of the series area length the axis is laid out in, or `undefined` for all of it. */
+    get lengthRatio(): number | undefined {
+        return undefined;
+    }
+
+    // Zoom gestures map onto the whole series area, so an axis laid out along part of it cannot zoom.
+    get zoomable(): boolean {
+        return this.lengthRatio == null;
+    }
+
     protected animationManager: AnimationManager;
 
     protected readonly headingLabelGroup = this.axisGroup.appendChild(

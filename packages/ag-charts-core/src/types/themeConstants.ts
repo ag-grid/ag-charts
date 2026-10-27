@@ -40,6 +40,7 @@ export enum CARTESIAN_AXIS_TYPE {
     UNIT_TIME = 'unit-time',
     TIME = 'time',
     NUMBER = 'number',
+    INSET_NUMBER = 'inset-number',
     LOG = 'log',
 }
 

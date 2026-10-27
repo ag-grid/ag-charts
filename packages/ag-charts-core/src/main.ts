@@ -272,6 +272,7 @@ export * from './chart/crossLine';
 export * from './chart/legendUtil';
 export * from './chart/markerShapes';
 export * from './chart/markerUtil';
+export * from './chart/numberAxisUtil';
 export * from './chart/polarAxisLayout';
 export * from './chart/polarLabels';
 export * from './chart/sectorLabelFit';
