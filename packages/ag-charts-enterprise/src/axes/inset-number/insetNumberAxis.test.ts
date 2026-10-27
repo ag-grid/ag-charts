@@ -117,7 +117,7 @@ describe('InsetNumberAxis', () => {
         await compareImageSnapshot(chart, ctx);
     });
 
-    it('should lay horizontal inset axes and their series out along their bands', async () => {
+    it('should stack horizontal inset axes at one position even when their bands do not overlap', async () => {
         chart = await createEnterpriseChart({
             data: DATA,
             series: [
@@ -126,11 +126,11 @@ describe('InsetNumberAxis', () => {
             ],
             axes: {
                 y: { type: 'category', position: 'left' },
-                xStart: { type: 'inset-number', position: 'bottom', lengthRatio: 0.4, ...shownInsetAxis('Start') },
+                xStart: { type: 'inset-number', position: 'bottom', lengthRatio: 0.5, ...shownInsetAxis('Start') },
                 xEnd: {
                     type: 'inset-number',
-                    position: 'top',
-                    lengthRatio: 0.4,
+                    position: 'bottom',
+                    lengthRatio: 0.5,
                     reverse: true,
                     max: 6,
                     ...shownInsetAxis('End'),

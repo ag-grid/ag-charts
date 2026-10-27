@@ -560,42 +560,18 @@ export class CartesianChart extends Chart {
             // Snap the axis-area depth to the device grid only at fractional DPR, keyed off the resize-invariant outer bound so the offset never cycles as the container resizes.
             const isHorizontalAxis = position === 'top' || position === 'bottom';
             const boundDepthOrigin = isHorizontalAxis ? axisAreaBound.y : axisAreaBound.x;
-            const baseOffset = scene.pixelRatio % 1 === 0 ? 0 : boundDepthOrigin % scene.pixelRatio;
+            let currentOffset = scene.pixelRatio % 1 === 0 ? 0 : boundDepthOrigin % scene.pixelRatio;
             let totalAxisWidth = 0;
 
-            // A stacked axis pushes later axes out a level only where their bands overlap.
-            const groupAxes = axes ?? [];
-            const bands = groupAxes.map((axis) => this.axisBand(axis, position));
-            const levels: number[] = [];
-            const levelDepths: number[] = [];
-            for (const [i, axis] of groupAxes.entries()) {
-                let level = 0;
-                for (let j = 0; j < i; j++) {
-                    const [start, end] = bands[j];
-                    if (groupAxes[j].layoutConstraints.stacked && start < bands[i][1] && bands[i][0] < end) {
-                        level = Math.max(level, levels[j] + 1);
-                    }
-                }
-                levels.push(level);
-                if (axis.layoutConstraints.stacked) {
-                    levelDepths[level] = Math.max(levelDepths[level] ?? 0, axisWidths.get(axis.id) ?? 0);
-                }
-            }
+            for (const axis of axes ?? []) {
+                axisOffsets.set(axis.id, currentOffset);
 
-            // Every level above the first holds an axis pushed out by a stacked axis on the level below.
-            const levelOffsets = [baseOffset];
-            for (let level = 1; level <= levelDepths.length; level++) {
-                levelOffsets[level] = levelOffsets[level - 1] + levelDepths[level - 1] + CartesianChart.AxesPadding;
-            }
-
-            for (const [i, axis] of groupAxes.entries()) {
                 const axisThickness = axisWidths.get(axis.id) ?? 0;
-                const level = levels[i];
-                // Stacked axes sharing a level align to its inner edge, beside the series area.
-                const levelInset = axis.layoutConstraints.stacked ? levelDepths[level] - axisThickness : 0;
-                const offset = levelOffsets[level] + levelInset;
-                axisOffsets.set(axis.id, offset);
-                totalAxisWidth = Math.max(totalAxisWidth, offset + axisThickness);
+                totalAxisWidth = Math.max(totalAxisWidth, currentOffset + axisThickness);
+                if (axis.layoutConstraints.stacked) {
+                    // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
+                    currentOffset += axisThickness + CartesianChart.AxesPadding;
+                }
             }
 
             // The inset sits between the innermost axis and the series area, so it widens the area after the axes.
