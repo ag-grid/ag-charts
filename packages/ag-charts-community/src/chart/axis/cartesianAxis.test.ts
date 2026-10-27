@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Transformable, axisLabelsOverlap, getDocument, rotatePoint } from 'ag-charts-core';
 import type {
@@ -4182,6 +4182,65 @@ describe('CartesianAxis', () => {
 
             expect(xTickLayout).not.toHaveBeenCalled();
             await expectMatchesFresh({ axes: categoryAxes, data: categories(0, 8, alternating(1)) });
+        });
+
+        describe('primitive domain check', () => {
+            // `isPrimitiveCategory` is private to the axis, so the walk is counted through its callback.
+            const spyOnPrimitiveDomainWalks = () => {
+                const every = vi.spyOn(Array.prototype, 'every');
+                return (onlyDomainsOf?: object) => {
+                    const caches = onlyDomainsOf == null ? [] : tickLayoutCaches(onlyDomainsOf);
+                    return every.mock.calls.filter(
+                        ([callback], i) =>
+                            callback.name === 'isPrimitiveCategory' &&
+                            (onlyDomainsOf == null || caches.some((cache) => cache.domain === every.mock.contexts[i]))
+                    ).length;
+                };
+            };
+            const tickLayoutCaches = (axis: object) =>
+                [(axis as any).unzoomedTickLayoutCache, (axis as any).tickLayoutCache].filter((cache) => cache != null);
+            const getAxis = (position: string) =>
+                (deproxy(chart).axes as unknown as { position: string }[]).find((a) => a.position === position)!;
+
+            afterEach(() => {
+                vi.restoreAllMocks();
+            });
+
+            it('does not walk the domain of an axis whose tick layout depends on the data', async () => {
+                const walks = spyOnPrimitiveDomainWalks();
+                const timeAxes = {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                };
+                const data = (count: number) =>
+                    Array.from({ length: count }, (_, i) => ({ x: new Date(2020, 0, 1 + i), y: i }));
+                chart = await create({ axes: timeAxes, data: data(10) });
+                const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+
+                await update({ data: data(11) });
+
+                expect(xTickLayout).toHaveBeenCalled();
+                expect(tickLayoutCaches(getAxis('bottom'))).not.toHaveLength(0);
+                expect(walks(getAxis('bottom'))).toBe(0);
+                // Anti-vacuous: the number y axis can retain its layout across data, so it does walk its domain.
+                expect(walks()).toBeGreaterThan(0);
+            });
+
+            it('walks each cached domain once, however many data updates reuse it', async () => {
+                const walks = spyOnPrimitiveDomainWalks();
+                chart = await create({ axes: categoryAxes, data: categories(0, 8, alternating(0)) });
+                const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+
+                await update({ data: categories(0, 8, alternating(1)) });
+                const afterFirstUpdate = walks();
+                await update({ data: categories(0, 8, alternating(0)) });
+                await update({ data: categories(0, 8, alternating(1)) });
+
+                expect(xTickLayout).not.toHaveBeenCalled();
+                // Anti-vacuous: the first update must have walked, or the later counts say nothing about memoising.
+                expect(afterFirstUpdate).toBeGreaterThan(0);
+                expect(walks()).toBe(afterFirstUpdate);
+            });
         });
 
         it('follows a new category order', async () => {
