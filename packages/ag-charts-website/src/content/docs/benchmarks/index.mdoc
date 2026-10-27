@@ -152,8 +152,8 @@ Exercise:
 Exercise:
 
 - Initial load and redraw time of series whose shadows overlap: grouped bars with a shadow `spread`, overlapping areas with marker shadows, and 20 lines of 1,000 markers with shadows.
-- Hover redraw time where the highlighted marker casts a shadow of its own.
-- Each is timed with the shadows off and on.
+- Hover redraw time where the highlighted marker casts a `glow` of its own, above the series, while the other markers keep their shadows.
+- Each is timed with the shadows (and, for the hover case, the glow) off and on.
 
 {% chartExampleRunner title="Shadow Layering" name="shadow-root" type="generated" initialLoadDeferred=true /%}
 
