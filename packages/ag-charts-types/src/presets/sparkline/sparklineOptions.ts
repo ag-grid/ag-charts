@@ -38,7 +38,7 @@ export interface AgSparklineTooltip<TDatum = DatumDefault> {
     position?: AgTooltipPositionOptions;
     /** Configuration for tooltip interaction. */
     interaction?: AgSeriesTooltipInteraction;
-    /** Function used to create the content for tooltips. */
+    /** Function used to create the content for tooltips. A returned string is inserted as HTML, so escape any values derived from chart data. */
     renderer?: Renderer<AgSparklineTooltipRendererParams<TDatum>, AgSparklineTooltipRendererResult>;
 }
 
