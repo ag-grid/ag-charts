@@ -11,14 +11,24 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { toPlainText } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartInstance, AgStatusBarRendererParams } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgStatusBarRendererParams,
+    NormalisedTextOrSegments,
+} from 'ag-charts-types';
 
 import { createEnterpriseChart } from '../../test/utils';
+
+interface StatusBarTextNode {
+    visible: boolean;
+    text?: NormalisedTextOrSegments;
+}
 
 interface StatusBarInternals {
     itemsView?: {
         group: { visible: boolean };
-        nodes: Array<{ label: { visible: boolean; text?: unknown }; value: { visible: boolean; text?: unknown } }>;
+        nodes: Array<{ label: StatusBarTextNode; value: StatusBarTextNode }>;
     };
 }
 
@@ -50,23 +60,24 @@ describe('StatusBar', () => {
         chart = undefined;
     });
 
-    function shownItems() {
-        const statusBar = deproxy(chart!).modulesManager.getModule<StatusBarInternals>('statusBar');
-        const view = statusBar?.itemsView;
+    function shownNodes() {
+        const view = deproxy(chart!).modulesManager.getModule<StatusBarInternals>('statusBar')?.itemsView;
         if (view?.group.visible !== true) return [];
-        return view.nodes
-            .filter(({ value }) => value.visible)
-            .map(({ label, value }) => {
-                const labelText = label.visible ? toPlainText(label.text as never) : '';
-                return `${labelText}${labelText === '' ? '' : ' '}${toPlainText(value.text as never)}`;
-            });
+        return view.nodes.filter(({ value }) => value.visible);
+    }
+
+    function shownItems() {
+        return shownNodes().map(({ label, value }) => {
+            const labelText = label.visible ? toPlainText(label.text) : '';
+            return `${labelText}${labelText === '' ? '' : ' '}${toPlainText(value.text)}`;
+        });
     }
 
     function shownColors() {
-        const view = deproxy(chart!).modulesManager.getModule<StatusBarInternals>('statusBar')?.itemsView;
-        return (view?.nodes ?? [])
-            .filter(({ value }) => value.visible)
-            .map(({ value }) => (Array.isArray(value.text) ? value.text[0]?.color : undefined));
+        return shownNodes().map(({ value }) => {
+            const [segment] = Array.isArray(value.text) ? value.text : [];
+            return segment?.type === 'image' ? undefined : segment?.color;
+        });
     }
 
     async function hoverCategory(index: number) {
