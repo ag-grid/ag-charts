@@ -1,7 +1,9 @@
 import type { BBox, NormalisedBasePolarAxisOptions, PolarAxisLayout, Scale } from 'ag-charts-core';
+import { Transformable } from 'ag-charts-core';
 import type { AgAxisListeners } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
+import { AxisLabelSource } from '../layout/axisLabelSource';
 import { Axis } from './axis';
 import type { TickInterval } from './axisTick';
 import { resetAxisLabelSelectionFn } from './axisUtil';
@@ -23,6 +25,10 @@ export abstract class PolarAxis<
 > extends Axis<S, D, any, TOptions> {
     gridAngles: number[] | undefined;
     gridRange: number[] | undefined;
+
+    readonly labelSource = new AxisLabelSource(`axisLabels:${this.id}`, (seriesRect) =>
+        this.getTickLabelBoxes(seriesRect)
+    );
 
     get shape(): 'polygon' | 'circle' {
         return this.options.shape;
@@ -52,8 +58,14 @@ export abstract class PolarAxis<
 
     abstract calculateRotations(): { rotation: number; parallelFlipRotation: number; regularFlipRotation: number };
 
+    override destroy() {
+        this.moduleCtx.labelManager.unregisterSource(this.labelSource.id, this.labelSource);
+        super.destroy();
+    }
+
     override update() {
         super.update();
+        this.labelSource.nodeDataVersion++;
 
         this.tickLineGroup.visible = this.options.tick.enabled;
         this.tickLabelGroup.visible = this.options.label.enabled;
@@ -90,6 +102,16 @@ export abstract class PolarAxis<
 
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null {
         return null;
+    }
+
+    private getTickLabelBoxes(seriesRect: BBox): BBox[] {
+        if (!this.tickLabelGroup.visible) return [];
+        const boxes: BBox[] = [];
+        for (const node of this.tickLabelGroupSelection.nodes()) {
+            if (!node.visible) continue;
+            boxes.push(Transformable.toCanvas(node).translate(-seriesRect.x, -seriesRect.y));
+        }
+        return boxes;
     }
 
     computeRange(): void {
