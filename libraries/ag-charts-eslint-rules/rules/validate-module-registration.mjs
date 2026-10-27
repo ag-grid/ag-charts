@@ -71,9 +71,10 @@ export default {
         // Per-chart modules from AgCharts.create(options, { modules }), keyed by the options variable
         // name or, for inline options, the call node. Only that chart's options can rely on them.
         const instanceModules = new Map(); // owner -> { modules: Set, arrayNode, sources: Map<moduleId, arrayNode> }
-        let requiredModules = new Map(); // definition name -> { reason, node, owners: Map<owner, node> }
+        let requiredModules = new Map(); // definition name -> { reason, node, owners: Map<owner, { node, reason, types, anyType }> }
         let isEnterprise = false;
         let explicitAxes = new Set(); // tracks 'x', 'y', 'angle', 'radius'
+        const chartTypes = new Map(); // owner -> { types: Set, axisKeys: Set, seriesTypes: Set }
         let seriesTypes = [];
 
         // Import tracking for auto-fix
@@ -102,6 +103,46 @@ export default {
             return [...modules].every((other) => other === moduleId || !contentsOf(other).includes(definition));
         }
 
+        /**
+         * The modules reported for a requirement: the carriers of an internal owner that the types it applies
+         * to name, else the owner's own module.
+         */
+        function reportedModuleIds(definition, info, owners) {
+            const { moduleId, alternativeModuleIds } = definitions.get(definition);
+            if (alternativeModuleIds == null) return [moduleId];
+            const carriers = [moduleId, ...alternativeModuleIds];
+            const named = new Set();
+            for (const owner of owners) {
+                const { types, anyType } = info.owners.get(owner);
+                for (const type of anyType ? [...types, ...typesInUse(owner)] : types) {
+                    const id = definitions.get(type)?.moduleId;
+                    if (carriers.includes(id)) named.add(id);
+                }
+            }
+            return named.size > 0 ? [...named] : [moduleId];
+        }
+
+        function chartTypesOf(owner) {
+            let entry = chartTypes.get(owner);
+            if (!entry) {
+                entry = { types: new Set(), axisKeys: new Set(), seriesTypes: new Set() };
+                chartTypes.set(owner, entry);
+            }
+            return entry;
+        }
+
+        /** The axis and series types a chart uses, including the default axes of its series. */
+        function typesInUse(owner) {
+            const { types, axisKeys, seriesTypes: ownerSeriesTypes } = chartTypesOf(owner);
+            const inUse = new Set(types);
+            for (const seriesType of ownerSeriesTypes) {
+                for (const [axisKey, axisType] of Object.entries(seriesDefaultAxes.get(seriesType) ?? {})) {
+                    if (!axisKeys.has(axisKey)) inUse.add(axisType);
+                }
+            }
+            return inUse;
+        }
+
         function contentsOf(moduleId) {
             if (importedModules.get(moduleId)?.packageName === 'ag-charts-enterprise') {
                 return enterpriseModuleContents.get(moduleId) ?? moduleContents.get(moduleId) ?? [];
@@ -110,18 +151,23 @@ export default {
         }
 
         /**
-         * Add a required module with reason
+         * Add a required module with reason. `types` are the axis or series types the option applies to;
+         * without them it applies to every type in use.
          */
-        function requireModule(definition, reason, node) {
+        function requireModule(definition, reason, node, types) {
             let info = requiredModules.get(definition);
             if (!info) {
                 info = { reason, node, owners: new Map() };
                 requiredModules.set(definition, info);
             }
             const owner = ownerOf(node);
-            if (!info.owners.has(owner)) {
-                info.owners.set(owner, node);
+            let entry = info.owners.get(owner);
+            if (!entry) {
+                entry = { node, reason, types: new Set(), anyType: false };
+                info.owners.set(owner, entry);
             }
+            if (types == null) entry.anyType = true;
+            for (const type of types ?? []) entry.types.add(type);
         }
 
         /**
@@ -167,16 +213,17 @@ export default {
          */
         function unsatisfiedRequirements(definition, owners, registeredDefinitions, allDefinitions) {
             if (registeredDefinitions.has(definition)) return [];
-            const missing = new Map(); // arrayNode -> node
-            for (const [owner, node] of owners) {
+            const missing = new Map(); // arrayNode -> { node, reason, owners }
+            for (const [owner, { node, reason }] of owners) {
                 const instance = instanceModules.get(owner);
                 const available = owner === null ? allDefinitions : instance ? definitionsOf(instance.modules) : null;
                 if (!available?.has(definition)) {
                     const arrayNode = instance?.arrayNode ?? registeredModulesArrayNode;
-                    if (!missing.has(arrayNode)) missing.set(arrayNode, node);
+                    if (!missing.has(arrayNode)) missing.set(arrayNode, { node, reason, owners: [] });
+                    missing.get(arrayNode).owners.push(owner);
                 }
             }
-            return [...missing].map(([arrayNode, node]) => ({ node, arrayNode }));
+            return [...missing].map(([arrayNode, entry]) => ({ ...entry, arrayNode }));
         }
 
         /**
@@ -312,6 +359,7 @@ export default {
                     const seriesType = getStringValue(typeValue);
                     if (seriesType) {
                         seriesTypes.push(seriesType);
+                        chartTypesOf(ownerOf(prop)).seriesTypes.add(seriesType);
                         const definition = seriesTypeToDefinition.get(seriesType);
                         if (definition) {
                             requireModule(definition, `series type '${seriesType}'`, prop);
@@ -406,6 +454,7 @@ export default {
                 const axisKey = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
                 if (axisKey) {
                     explicitAxes.add(axisKey);
+                    chartTypesOf(ownerOf(prop)).axisKeys.add(axisKey);
                 }
 
                 processAxisObject(prop.value, prop);
@@ -425,6 +474,7 @@ export default {
                     break;
                 }
             }
+            if (axisType) chartTypesOf(ownerOf(axisObj)).types.add(axisType);
             const isPolarAxis = axisType?.startsWith('angle-') || axisType?.startsWith('radius-');
 
             for (const prop of axisObj.properties) {
@@ -464,7 +514,8 @@ export default {
                         requireModule(
                             axisListenerToDefinition.get(eventName),
                             `axis listener '${eventName}'`,
-                            listenerProp
+                            listenerProp,
+                            axisType ? [axisType] : undefined
                         );
                     }
                 }
@@ -686,10 +737,10 @@ export default {
         /**
          * Create a fixer to add a module to the registerModules array and import if needed
          */
-        function createAddModuleFixer(definition, arrayNode = registeredModulesArrayNode) {
+        function createAddModuleFixer(definition, moduleId, arrayNode = registeredModulesArrayNode) {
             if (!arrayNode) return null;
 
-            const { moduleId, enterprise } = definitions.get(definition);
+            const { enterprise } = definitions.get(definition);
             const packageName = enterprise ? 'ag-charts-enterprise' : 'ag-charts-community';
             // An existing import of the name is reused, so it must bring in the definition; it cannot be imported twice.
             if (importedModules.has(moduleId) && !contentsOf(moduleId).includes(definition)) return null;
@@ -967,12 +1018,14 @@ export default {
                         registeredDefinitions,
                         allDefinitions
                     )) {
-                        context.report({
-                            node: missing.node || info.node || registeredModulesNode,
-                            messageId: 'missingModule',
-                            data: { moduleId: definitions.get(definition).moduleId, reason: info.reason },
-                            fix: createAddModuleFixer(definition, missing.arrayNode),
-                        });
+                        for (const moduleId of reportedModuleIds(definition, info, missing.owners)) {
+                            context.report({
+                                node: missing.node || info.node || registeredModulesNode,
+                                messageId: 'missingModule',
+                                data: { moduleId, reason: missing.reason },
+                                fix: createAddModuleFixer(definition, moduleId, missing.arrayNode),
+                            });
+                        }
                     }
                 }
 

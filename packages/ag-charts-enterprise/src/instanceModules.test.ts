@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     type AgCartesianChartOptions,
     type AgChartInstance,
-    AllCartesianAxesModule as AllCommunityCartesianAxesModule,
+    AllCommunityModule,
     CategoryAxisModule,
     LineSeriesModule,
     NumberAxisModule,
@@ -11,9 +11,9 @@ import {
 import { clickAction, expectErrorsCalls, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 import { type ModuleDefinition, ModuleRegistry, ModuleScope } from 'ag-charts-core';
 
+import * as enterpriseCartesianAxisModules from './axes/cartesian/cartesianAxisModules';
 import { NumberAxisModule as EnterpriseNumberAxisModule } from './axes/cartesian/cartesianAxisModules';
 import { RangeBarSeriesModule } from './main';
-import { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
 import { PriceVolumePresetModule } from './preset/price-volume/priceVolumePresetModule';
 import { VolumeProfilePresetModule } from './preset/volume-profile/volumeProfilePresetModule';
 import { createEnterpriseChart } from './test/utils';
@@ -150,9 +150,11 @@ describe('enterprise cartesian axis modules', () => {
     });
 
     it('wraps every community cartesian axis module', () => {
-        const wrapped = new Map(AllCartesianAxesModule.map((module) => [module.name, module]));
+        const wrapped = new Map(Object.values(enterpriseCartesianAxisModules).map((module) => [module.name, module]));
+        const communityAxes = AllCommunityModule.filter((m) => m.type === 'axis' && m.chartType === 'cartesian');
 
-        for (const community of AllCommunityCartesianAxesModule) {
+        expect(communityAxes.length).toBeGreaterThan(0);
+        for (const community of communityAxes) {
             const module = wrapped.get(community.name);
             expect(module?.enterprise, community.name).toBe(true);
             expect(

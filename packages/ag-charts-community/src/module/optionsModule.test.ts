@@ -739,7 +739,8 @@ describe('ChartOptions', () => {
 
             const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
             expect(errors.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(errors.some((m) => m.includes('AllGaugeModule'))).toBe(true);
+            expect(errors.some((m) => m.includes('RadialGaugeModule'))).toBe(true);
+            expect(errors.every((m) => !m.includes('LinearGaugeModule'))).toBe(true);
             expect((console.warn as Mock).mock.calls.every(([m]) => !String(m).includes('Unknown option'))).toBe(true);
         });
 
@@ -5799,21 +5800,27 @@ describe('ChartOptions', () => {
                     ...extra,
                 });
 
-                it('reports AllCartesianAxesModule for an axis click listener and strips the listener', () => {
+                it('reports the enterprise variant of the listening axis and strips the listener', () => {
                     const processed = prepareOptions(axisListenerOptions(), new Logger());
 
-                    expect(moduleMessages()).toEqual([expect.stringContaining('AllCartesianAxesModule')]);
+                    expect(moduleMessages()).toEqual([expect.stringContaining('CategoryAxisModule')]);
+                    expect(moduleMessages()).toEqual([expect.stringContaining("from 'ag-charts-enterprise'")]);
+                    expect(moduleMessages()).toEqual([expect.not.stringContaining('NumberAxisModule')]);
                     expect(valuesAt(processed, 'axes').some((axis) => optionAt(axis, 'listeners.click'))).toBe(false);
                 });
 
-                it('reports AllCartesianAxesModule for a chart-level axisDoubleClick listener', () => {
+                it('reports the enterprise variant of every axis in use for a chart-level axisDoubleClick listener', () => {
                     const options = {
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                         listeners: { axisDoubleClick: () => {} },
                     } as AgChartOptions;
                     const processed = prepareOptions(options, new Logger());
 
-                    expect(moduleMessages()).toEqual([expect.stringContaining('AllCartesianAxesModule')]);
+                    expect(moduleMessages()).toEqual([
+                        expect.stringMatching(
+                            /registerModules\(\[(?=[^\]]*CategoryAxisModule)(?=[^\]]*NumberAxisModule)/
+                        ),
+                    ]);
                     expect(optionAt(processed, 'listeners.axisDoubleClick')).toBeUndefined();
                 });
 

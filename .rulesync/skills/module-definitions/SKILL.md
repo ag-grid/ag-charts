@@ -119,8 +119,9 @@ UPDATE_MODULE_TABLES=1 yarn nx test ag-charts-enterprise -- moduleTables
 yarn nx format
 ```
 
-The test fails until the files are regenerated. Do not edit the generated files. A module reachable
-only through a bundle is named after the smallest exported bundle that carries it.
+The test fails until the files are regenerated. Do not edit the generated files. An unexported
+preset, or an unexported module that owns options, is reported as the exported modules that carry
+it: its axis and series carriers, narrowed to the types in use, else the smallest carriers.
 
 The ESLint tables key each requirement by the owning definition's `name`, and list the definitions
 every exported module brings in, per package. The rule treats a requirement as met when a

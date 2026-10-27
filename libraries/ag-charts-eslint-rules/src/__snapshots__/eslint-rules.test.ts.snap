@@ -295,15 +295,18 @@ exports[`aglint/validate-module-registration-implied 1`] = `
   "stderr": "",
   "stdout": "
 <dirname>/lint-validate-module-registration-implied.data.ts
-   41:41  error  Module 'AllCartesianAxesModule' is required for axis listener 'click' but not registered  aglint/validate-module-registration
-   84:43  error  Module 'AllCartesianAxesModule' is required for axis listener 'click' but not registered  aglint/validate-module-registration
-   92:43  error  Module 'AllCartesianAxesModule' is required for axis listener 'click' but not registered  aglint/validate-module-registration
-  107:80  error  Module 'ZoomModule' is registered but not used by chart options                           aglint/validate-module-registration
-  112:16  error  Module 'AreaSeriesModule' is required for series type 'area' but not registered           aglint/validate-module-registration
-  113:18  error  Module 'CategoryAxisModule' is required for axis type 'category' but not registered       aglint/validate-module-registration
+   35:19  error  Module 'BackgroundRegionsModule' is required for option 'seriesArea.backgroundRegions' but not registered  aglint/validate-module-registration
+   80:19  error  Module 'BackgroundRegionsModule' is required for option 'seriesArea.backgroundRegions' but not registered  aglint/validate-module-registration
+   98:80  error  Module 'ZoomModule' is registered but not used by chart options                                            aglint/validate-module-registration
+  103:16  error  Module 'AreaSeriesModule' is required for series type 'area' but not registered                            aglint/validate-module-registration
+  104:18  error  Module 'CategoryAxisModule' is required for axis type 'category' but not registered                        aglint/validate-module-registration
+  111:45  error  Module 'TimeAxisModule' is required for axis listener 'click' but not registered                           aglint/validate-module-registration
+  118:18  error  Module 'CategoryAxisModule' is required for axis type 'category' but not registered                        aglint/validate-module-registration
+  119:18  error  Module 'CategoryAxisModule' is required for listeners.axisClick option but not registered                  aglint/validate-module-registration
+  119:18  error  Module 'NumberAxisModule' is required for listeners.axisClick option but not registered                    aglint/validate-module-registration
 
-✖ 6 problems (6 errors, 0 warnings)
-  3 errors and 0 warnings potentially fixable with the \`--fix\` option.
+✖ 9 problems (9 errors, 0 warnings)
+  7 errors and 0 warnings potentially fixable with the \`--fix\` option.
 
 ",
 }
