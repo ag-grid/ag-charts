@@ -99,6 +99,19 @@ describe('series that cast their shadows through the shadow root', () => {
 
     const allRed = (fills: boolean[]) => fills.every(Boolean);
 
+    // A batch of its own and the root blend a shadow over the strokes of the shapes around it a channel value apart.
+    const same = async (options: AgChartOptions, tolerance = 0) => {
+        await create(options);
+        const through = pixels();
+        expect(through.some((value, i) => i % 4 !== 3 && value !== 255)).toBe(true);
+
+        withoutRoot();
+        await create(options);
+        const local = pixels();
+        expect(local).toHaveLength(through.length);
+        expect(through.every((value, i) => Math.abs(value - local[i]) <= tolerance)).toBe(true);
+    };
+
     describe('the opt-in', () => {
         it.each([
             ['sankey', 'linkGroup'],
@@ -159,6 +172,30 @@ describe('series that cast their shadows through the shadow root', () => {
             } as AgChartOptions);
 
             expect(batching('itemGroup')).toBe('shared');
+        });
+
+        it.each([
+            ['radial-bar', { type: 'radial-bar', angleKey: 'a', radiusKey: 'category' }],
+            ['radial-column', { type: 'radial-column', angleKey: 'category', radiusKey: 'a' }],
+            ['donut', { type: 'donut', angleKey: 'a' }],
+            ['radar-line', { type: 'radar-line', angleKey: 'category', radiusKey: 'a' }],
+        ])('should cast the shadows of a %s through the root', async (_name, series) => {
+            await create({ data: NIGHTINGALE_DATA, series: [series] } as AgChartOptions);
+
+            expect(batching('itemGroup')).toBe('shared');
+        });
+
+        it.each([
+            ['sankey', FLOW_DATA, { fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+            ['pyramid', STAGES, { stageKey: 'group', valueKey: 'value' }],
+            ['radar-area', RADAR_DATA, { angleKey: 'subject', radiusKey: 'a' }],
+            ['nightingale', NIGHTINGALE_DATA, { angleKey: 'category', radiusKey: 'a' }],
+        ])('should keep the highlight layer of a %s out of the root', async (type, data, keys) => {
+            await create({ data, series: [{ type, ...keys }] } as AgChartOptions);
+
+            const series = deproxy(chart!).series[0];
+            expect(series.highlightGroup.batchShadows).toBe(true);
+            expect(series.highlightNodeGroup.batchShadows).toBe(true);
         });
 
         it('should keep the tiles of a treemap layered, so that a deeper tile still shadows its parent', async () => {
@@ -292,19 +329,6 @@ describe('series that cast their shadows through the shadow root', () => {
     });
 
     describe('one series', () => {
-        // A batch of its own and the root blend a shadow over the strokes of the shapes around it a channel value apart.
-        const same = async (options: AgChartOptions, tolerance = 0) => {
-            await create(options);
-            const through = pixels();
-            expect(through.some((value, i) => i % 4 !== 3 && value !== 255)).toBe(true);
-
-            withoutRoot();
-            await create(options);
-            const local = pixels();
-            expect(local).toHaveLength(through.length);
-            expect(through.every((value, i) => Math.abs(value - local[i]) <= tolerance)).toBe(true);
-        };
-
         it.each(['sankey', 'chord'])(
             'should draw the links of a %s the same through the root as through its own batch',
             (type) =>
@@ -349,5 +373,76 @@ describe('series that cast their shadows through the shadow root', () => {
                 } as AgChartOptions,
                 4
             ));
+    });
+
+    describe('series that keep their own batches', () => {
+        it('should batch the stages and connectors of a funnel and a cone funnel itself, not through the root', async () => {
+            for (const type of ['funnel', 'cone-funnel']) {
+                await create({
+                    data: STAGES,
+                    series: [{ type, stageKey: 'group', valueKey: 'value' }],
+                } as AgChartOptions);
+
+                const series = deproxy(chart!).series[0] as unknown as Record<string, Group>;
+                expect(series.dataNodeGroup.batchShadows).toBe(true);
+            }
+        });
+
+        it('should batch the shadows of a map marker itself, layer by layer, not through the root', async () => {
+            await create({
+                data: ukData,
+                topology: ukTopology,
+                series: [{ type: 'map-marker', idKey: 'name' }],
+            } as AgChartOptions);
+
+            expect(batching('markerGroup')).toBe('by-layer');
+        });
+
+        // Without a root to cast through, a series that batches its own shadows draws exactly as it does with one.
+        it.each(['funnel', 'cone-funnel'])('should draw a %s exactly as when the root cannot cast', (type) =>
+            same({
+                data: STAGES,
+                series: [{ type, stageKey: 'group', valueKey: 'value', shadow: SHADOW }],
+            } as AgChartOptions)
+        );
+
+        it('should draw a map marker over a map background exactly as when the root cannot cast', () =>
+            same({
+                data: ukData,
+                topology: ukTopology,
+                series: [
+                    { type: 'map-shape-background' },
+                    { type: 'map-marker', idKey: 'name', shadow: SHADOW, size: 24 },
+                ],
+            } as AgChartOptions));
+
+        it('should draw two overlapping funnels exactly as when the root cannot cast', () =>
+            same({
+                data: STAGES,
+                series: [
+                    { type: 'funnel', stageKey: 'group', valueKey: 'value', fill: 'red' },
+                    { type: 'funnel', stageKey: 'group', valueKey: 'value', fill: 'blue', shadow: SHADOW },
+                ],
+            } as unknown as AgChartOptions));
+
+        it('should draw a treemap exactly as when the root cannot cast', () =>
+            same({
+                data: HIERARCHY_SHADOW_DATA,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        group: { shadow: SHADOW },
+                        tile: { shadow: SHADOW },
+                    },
+                ],
+            } as AgChartOptions));
+
+        it('should draw a sunburst exactly as when the root cannot cast', () =>
+            same({
+                data: HIERARCHY_SHADOW_DATA,
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', shadow: SHADOW }],
+            } as AgChartOptions));
     });
 });
