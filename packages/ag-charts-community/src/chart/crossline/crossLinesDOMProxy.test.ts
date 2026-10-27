@@ -74,7 +74,11 @@ describe('CrossLinesDOMProxy', () => {
     it('lists the cross lines in axis order with only the first tabbable', async () => {
         chart = await createChart(crossLineOptions());
 
-        expect(buttonTexts()).toEqual(['X1, Feb', 'Y1, 3', '5 - 6']);
+        expect(buttonTexts()).toEqual([
+            'X1, Feb, Cross line 1 of 3',
+            'Y1, 3, Cross line 2 of 3',
+            '5 - 6, Cross line 3 of 3',
+        ]);
         expect(crossLineButtons().map((button) => button.tabIndex)).toEqual([0, -1, -1]);
     });
 
@@ -82,11 +86,15 @@ describe('CrossLinesDOMProxy', () => {
         const options = crossLineOptions();
         options.axes!.x!.crossLines = undefined;
         chart = await createChart(options);
-        expect(buttonTexts()).toEqual(['Y1, 3', '5 - 6']);
+        expect(buttonTexts()).toEqual(['Y1, 3, Cross line 1 of 2', '5 - 6, Cross line 2 of 2']);
 
         await chart.updateDelta({ axes: { x: { crossLines: X_CROSS_LINES } } });
         await waitForChartStability(chart);
-        expect(buttonTexts()).toEqual(['X1, Feb', 'Y1, 3', '5 - 6']);
+        expect(buttonTexts()).toEqual([
+            'X1, Feb, Cross line 1 of 3',
+            'Y1, 3, Cross line 2 of 3',
+            '5 - 6, Cross line 3 of 3',
+        ]);
     });
 
     it('keeps the cross lines of a recreated axis', async () => {
@@ -104,7 +112,7 @@ describe('CrossLinesDOMProxy', () => {
 
         await chart.updateDelta({ axes: { x: { type: 'log' } } });
         await waitForChartStability(chart);
-        expect(buttonTexts()).toEqual(['X1, 2', 'Y1, 3']);
+        expect(buttonTexts()).toEqual(['X1, 2, Cross line 1 of 2', 'Y1, 3, Cross line 2 of 2']);
     });
 
     it('moves focus through the list with the arrow keys', async () => {
