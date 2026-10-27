@@ -3797,6 +3797,75 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    describe('reset zoom', () => {
+        // Double-clicks the series area's top-left corner, which no card covers at any zoom.
+        async function doubleClickToReset(c: ChartOrProxy<any>) {
+            const { x, y } = getNetworkSeriesRect(c);
+            await doubleClickAction(x + 2, y + 2)(c);
+            await waitForChartStability(c);
+        }
+
+        function getWindow(c: ChartOrProxy<any>) {
+            const ratios = getZoomRatios(c);
+            return {
+                xMin: ratios?.ratioX?.start ?? Number.NaN,
+                xMax: ratios?.ratioX?.end ?? Number.NaN,
+                yMin: ratios?.ratioY?.start ?? Number.NaN,
+                yMax: ratios?.ratioY?.end ?? Number.NaN,
+            };
+        }
+
+        // Content that fits the viewport cannot be zoomed in, so only overflowing content is used here.
+        it('returns to the fitted view after zooming in', async () => {
+            chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
+            const fitted = getWindow(chart);
+
+            // Inside the content-fits floor, so the request is honoured rather than refused outright.
+            const xSize = fitted.xMax - fitted.xMin;
+            const ySize = fitted.yMax - fitted.yMin;
+            const xMid = (fitted.xMin + fitted.xMax) / 2;
+            const yMid = (fitted.yMin + fitted.yMax) / 2;
+            setZoom(chart, xMid - xSize / 4, xMid + xSize / 4, yMid - ySize / 4, yMid + ySize / 4);
+            await waitForChartStability(chart);
+
+            const zoomed = getWindow(chart);
+            expect(zoomed.xMax - zoomed.xMin).toBeLessThan(xSize);
+
+            await doubleClickToReset(chart);
+
+            const reset = getWindow(chart);
+            expect(reset.xMin).toBeCloseTo(fitted.xMin, 5);
+            expect(reset.xMax).toBeCloseTo(fitted.xMax, 5);
+            expect(reset.yMin).toBeCloseTo(fitted.yMin, 5);
+            expect(reset.yMax).toBeCloseTo(fitted.yMax, 5);
+        });
+
+        it.each([
+            ['overflowing content', SQUARE_OVERFLOW_ORG_CHART],
+            ['content that fits the viewport', SIMPLE_ORG_CHART],
+        ] as [string, AgChartOptions][])(
+            'recentres the fitted view after panning at the zoom floor, %s',
+            async (_name, fixture) => {
+                chart = await createEnterpriseChart({ ...fixture });
+                const fitted = getWindow(chart);
+                const xSize = fitted.xMax - fitted.xMin;
+                const ySize = fitted.yMax - fitted.yMin;
+
+                setZoom(chart, 1 - xSize, 1, 1 - ySize, 1);
+                await waitForChartStability(chart);
+                expect(getWindow(chart).xMin).not.toBeCloseTo(fitted.xMin, 3);
+
+                await doubleClickToReset(chart);
+
+                const reset = getWindow(chart);
+                expect(reset.xMin).toBeCloseTo(fitted.xMin, 5);
+                expect(reset.xMax).toBeCloseTo(fitted.xMax, 5);
+                expect(reset.yMin).toBeCloseTo(fitted.yMin, 5);
+                expect(reset.yMax).toBeCloseTo(fitted.yMax, 5);
+            }
+        );
+    });
+
     describe('collapsedChange event', () => {
         it('should trigger the collapsedChange event on setState', async () => {
             let source;

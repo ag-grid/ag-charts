@@ -807,7 +807,6 @@ export abstract class AbstractNetworkSeries<
     }
 
     private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        if (event.isReset) return;
         this.constrainZoomWindow(event);
     }
 
@@ -918,7 +917,8 @@ export abstract class AbstractNetworkSeries<
         const sizes = this.getSharedScaleWindowSizes(requested.x, requested.y);
         if (!sizes) return;
 
-        if (this.isZoomAtLimit(event, requested, sizes)) {
+        // A reset must still re-centre a panned view at the zoom floor, so it is never dropped as a no-op.
+        if (!event.isReset && this.isZoomAtLimit(event, requested, sizes)) {
             this.restoreZoomWindow(event);
             return;
         }
