@@ -55,24 +55,18 @@ This release includes the following breaking changes:
 
 ## Behaviour Changes
 
-<!-- If behaviour changes do *not* exist, add the following: -->
-
-There are no behaviour changes in AG Charts version {% migrationVersion() %}.
-
-<!-- Otherwise -->
-<!--
 The full list of behaviour changes across all features for version {% migrationVersion() %}.
 
 {% expandingSection headerText="Behaviour Changes" %}
 
 This release includes the following behaviour changes:
 
-### Behaviour Changes section Name
+### Series Shadows
 
-- item...
+- The `shadow` of bar, line, area, scatter, bubble and range area series is now cast once, beneath the items of all of these series in the chart. Previously the shadow of a later series could be drawn over the items of an earlier series.
+- The highlighted item no longer casts a second copy of its `shadow` in the highlight layer above the other series. Its `shadow` stays beneath the series. To emphasise a highlighted item, use the new `glow` option of the [highlight styles](./series-highlighting/#glow).
 
 {% /expandingSection %}
--->
 
 ## Removal of Deprecated APIs
 
