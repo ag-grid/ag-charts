@@ -176,6 +176,18 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('itemGroup')).toBe('shared');
         });
 
+        it.each(['donut', 'pie'])(
+            'should keep the sector shadows of a %s out of the root, so that they stay above its inner circle',
+            async (type) => {
+                await create({
+                    data: NIGHTINGALE_DATA,
+                    series: [{ type, angleKey: 'a' }],
+                } as AgChartOptions);
+
+                expect(batching('itemGroup')).toBe(true);
+            }
+        );
+
         it('should cast the shadows of a map shape through the root', async () => {
             await create({
                 data: ukData,
@@ -189,7 +201,6 @@ describe('series that cast their shadows through the shadow root', () => {
         it.each([
             ['radial-bar', { type: 'radial-bar', angleKey: 'a', radiusKey: 'category' }],
             ['radial-column', { type: 'radial-column', angleKey: 'category', radiusKey: 'a' }],
-            ['donut', { type: 'donut', angleKey: 'a' }],
             ['radar-line', { type: 'radar-line', angleKey: 'category', radiusKey: 'a' }],
         ])('should cast the shadows of a %s through the root', async (_name, series) => {
             await create({ data: NIGHTINGALE_DATA, series: [series] } as AgChartOptions);
@@ -262,6 +273,27 @@ describe('series that cast their shadows through the shadow root', () => {
                                 fill: 'red',
                                 fillOpacity: 1,
                                 marker: { enabled: true, size: 24, fill: 'blue', stroke: 'blue', shadow },
+                            },
+                        ],
+                    }) as AgChartOptions
+            );
+
+            expect(allRed(fills)).toBe(false);
+        });
+
+        it('should draw the sector shadows of a donut over its own inner circle', async () => {
+            const fills = await fillPixelsAfterCasting(
+                (shadow) =>
+                    ({
+                        data: NIGHTINGALE_DATA,
+                        series: [
+                            {
+                                type: 'donut',
+                                angleKey: 'a',
+                                innerRadiusRatio: 0.5,
+                                innerCircle: { fill: 'red', fillOpacity: 1 },
+                                fills: ['blue', 'green', 'orange', 'purple'],
+                                shadow,
                             },
                         ],
                     }) as AgChartOptions

@@ -359,6 +359,9 @@ export class DonutSeries extends PolarSeries<
         this.phantomGroup.opacity = 0.2;
         this.phantomHighlightGroup.opacity = 0.2;
 
+        // The inner circle is the series' own fill and draws beneath the root's shadows; the sector shadows must stay above it.
+        this.itemGroup.batchShadows = true;
+
         this.innerLabelsGroup.pointerEvents = PointerEvents.None;
     }
 
