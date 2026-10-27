@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Group, Rect, Sector, Shape, Transformable } from 'ag-charts-core';
+import { Group, Rect, Sector, Shape, Transformable, mergeDefaults } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
 import type { AgChartOptions, AgDropShadowOptions, AgGlowOptions } from 'ag-charts-types';
 
@@ -23,6 +23,14 @@ const HISTOGRAM_DATA = [{ x: 1 }, { x: 2 }, { x: 2.5 }, { x: 4 }, { x: 5 }, { x:
 
 /** The four highlight styles that accept a `glow` on a series with series states. */
 const BUCKETS = ['highlightedItem', 'unhighlightedItem', 'highlightedSeries', 'unhighlightedSeries'] as const;
+
+/** The buckets whose `glow` the cascade falls back to, as `getHighlightStyle` merges them. */
+const GLOW_FALLBACKS = {
+    highlightedItem: ['highlightedSeries'],
+    unhighlightedItem: ['highlightedSeries'],
+    highlightedSeries: [],
+    unhighlightedSeries: [],
+} as const;
 
 function shapesOf<T extends Shape>(root: Group, kind: abstract new (...args: any[]) => T): T[] {
     const found: T[] = [];
@@ -441,8 +449,27 @@ describe('highlight glow', () => {
                 } as AgChartOptions)
             );
             const { highlight } = chart.series[0].options;
-            return BUCKETS.map((bucket) => [bucket, highlight[bucket]?.glow] as const);
+            return BUCKETS.map(
+                (bucket) =>
+                    [
+                        bucket,
+                        mergeDefaults(
+                            highlight[bucket]?.glow,
+                            ...GLOW_FALLBACKS[bucket].map((b) => highlight[b]?.glow)
+                        ),
+                    ] as const
+            );
         };
+
+        it('puts the glow theme defaults on the series buckets only, so a series glow reaches the items', async () => {
+            await resolvedBuckets('ag-default');
+            const { highlight } = chart.series[0].options;
+
+            expect(highlight.highlightedSeries?.glow).toBeDefined();
+            expect(highlight.unhighlightedSeries?.glow).toBeDefined();
+            expect(highlight.highlightedItem?.glow).toBeUndefined();
+            expect(highlight.unhighlightedItem?.glow).toBeUndefined();
+        });
 
         it.each(BUCKETS)(
             'has the %s glow off, with the light values ready for when it is turned on',
@@ -472,7 +499,7 @@ describe('highlight glow', () => {
         it('does not apply the dark shadow colour to the glow', async () => {
             const buckets = Object.fromEntries(await resolvedBuckets('ag-default-dark'));
 
-            expect(buckets.highlightedItem?.color).not.toBe('#000');
+            expect(buckets.highlightedItem?.color).toBe('rgba(255, 255, 255, 0.6)');
         });
 
         it('casts the light default glow once it is enabled, without any other glow field', async () => {

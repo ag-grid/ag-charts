@@ -668,7 +668,7 @@ export const SHADOW_THEME_DEFAULTS = {
 } as const;
 
 /**
- * Disabled glow; the theme value every highlight state of a series with a `glow` starts from. The colour and blur follow
+ * Disabled glow; the theme value the highlight states that the others inherit from start with. The colour and blur follow
  * the theme, as the light theme's dark glow suits a light background and the dark theme's pale one a dark background.
  */
 export const GLOW_THEME_DEFAULTS = {
@@ -681,11 +681,14 @@ export const GLOW_THEME_DEFAULTS = {
 /** The highlight states of a series with only item states, and of a treemap group. */
 export const ITEM_GLOW_BUCKETS = ['highlightedItem', 'unhighlightedItem'] as const;
 
-/** The highlight states of a series with series states as well. */
-export const SERIES_GLOW_BUCKETS = [...ITEM_GLOW_BUCKETS, 'highlightedSeries', 'unhighlightedSeries'] as const;
+/**
+ * The highlight states of a series with series states as well. The item states inherit from these, so a `glow` set on
+ * a series state reaches the items, as with every other highlight style field.
+ */
+export const SERIES_GLOW_BUCKETS = ['highlightedSeries', 'unhighlightedSeries'] as const;
 
 /** The highlight states of a hierarchy series, where branch states take the place of the series states. */
-export const BRANCH_GLOW_BUCKETS = [...ITEM_GLOW_BUCKETS, 'highlightedBranch', 'unhighlightedBranch'] as const;
+export const BRANCH_GLOW_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'] as const;
 
 /** Adds the disabled {@link GLOW_THEME_DEFAULTS} to each of the `buckets` of a highlight theme, keeping what they hold. */
 export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: readonly string[]): T {

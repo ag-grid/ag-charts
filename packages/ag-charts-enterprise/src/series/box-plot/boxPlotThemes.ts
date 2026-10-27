@@ -41,9 +41,7 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
             bringToFront: true,
-            highlightedItem: { glow: GLOW_THEME_DEFAULTS },
             unhighlightedItem: {
-                glow: GLOW_THEME_DEFAULTS,
                 opacity: 0.5,
             },
             highlightedSeries: { glow: GLOW_THEME_DEFAULTS },

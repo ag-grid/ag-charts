@@ -302,23 +302,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -441,23 +425,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -580,23 +548,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -1102,14 +1054,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -1119,12 +1063,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -1240,14 +1178,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -1257,12 +1187,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -1375,23 +1299,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -1833,14 +1741,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -1849,14 +1749,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -1973,14 +1865,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -1989,14 +1873,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2113,14 +1989,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -2129,14 +1997,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2253,14 +2113,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -2269,14 +2121,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2393,14 +2237,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -2409,14 +2245,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2533,14 +2361,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -2549,14 +2369,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -2673,14 +2485,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -2689,14 +2493,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -3134,14 +2930,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -3151,12 +2939,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -3273,14 +3055,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -3290,12 +3064,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -3412,14 +3180,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -3429,12 +3189,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -3551,14 +3305,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -3568,12 +3314,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -3690,14 +3430,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -3707,12 +3439,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -3829,14 +3555,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -3846,12 +3564,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -3968,14 +3680,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -3985,12 +3689,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -4107,14 +3805,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -4124,12 +3814,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -4555,14 +4239,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -4572,12 +4248,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -5023,23 +4693,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -5162,23 +4816,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -5301,23 +4939,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -5440,23 +5062,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -5898,14 +5504,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -5914,14 +5512,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -6047,14 +5637,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -6063,14 +5645,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -6196,14 +5770,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -6212,14 +5778,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -6345,14 +5903,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -6361,14 +5911,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -6494,14 +6036,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -6510,14 +6044,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -6961,14 +6487,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -6978,12 +6496,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -7418,12 +6930,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "enabled": true,
         "highlightedItem": {
           "fill": "#0ab9ff",
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "highlightedSeries": {
           "glow": {
@@ -7434,12 +6940,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -7879,14 +7379,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -7896,12 +7388,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -8328,14 +7814,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -8345,12 +7823,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -8781,14 +8253,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -8798,12 +8262,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -8917,14 +8375,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -8934,12 +8384,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -9370,14 +8814,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -9388,12 +8824,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -9509,14 +8939,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -9527,12 +8949,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -9967,12 +9383,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -9985,12 +9395,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -10106,12 +9510,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -10124,12 +9522,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -10245,12 +9637,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -10263,12 +9649,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -10384,12 +9764,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -10402,12 +9776,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -10523,12 +9891,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -10541,12 +9903,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -10662,12 +10018,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -10680,12 +10030,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -10801,12 +10145,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -10819,12 +10157,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -11257,14 +10589,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -11273,14 +10597,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -11397,14 +10713,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -11413,14 +10721,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -11537,14 +10837,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -11553,14 +10845,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -11677,14 +10961,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -11693,14 +10969,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -11817,14 +11085,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -11833,14 +11093,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -11957,14 +11209,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -11973,14 +11217,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12097,14 +11333,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -12113,14 +11341,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12237,14 +11457,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -12253,14 +11465,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12377,14 +11581,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -12393,14 +11589,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12517,14 +11705,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -12533,14 +11713,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12657,14 +11829,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -12673,14 +11837,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12797,14 +11953,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -12813,14 +11961,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -12937,14 +12077,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -12953,14 +12085,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -13077,14 +12201,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -13093,14 +12209,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -13217,14 +12325,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -13233,14 +12333,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -13357,14 +12449,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -13373,14 +12457,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -13810,23 +12886,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -14268,14 +13328,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -14284,14 +13336,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -14425,14 +13469,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -14441,14 +13477,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -14582,14 +13610,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -14598,14 +13618,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -14739,14 +13751,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -14755,14 +13759,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -14896,14 +13892,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -14912,14 +13900,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -15053,14 +14033,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -15069,14 +14041,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -15210,14 +14174,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -15226,14 +14182,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
             "spread": 1,
           },
           "strokeWidth": 4,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -15687,14 +14635,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -15705,12 +14645,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -15827,14 +14761,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -15845,12 +14771,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -15967,14 +14887,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -15985,12 +14897,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -16425,14 +15331,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -16442,12 +15340,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -16564,14 +15456,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -16581,12 +15465,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -16703,14 +15581,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -16720,12 +15590,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -16842,14 +15706,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -16859,12 +15715,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -16981,14 +15831,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -16998,12 +15840,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -17120,14 +15956,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -17137,12 +15965,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -17604,23 +16426,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -17752,23 +16558,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -17900,23 +16690,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -18048,23 +16822,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -18515,14 +17273,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -18532,12 +17282,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -18954,12 +17698,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         "enabled": true,
         "highlightedItem": {
           "fillOpacity": 0,
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "stroke": "#535455",
           "strokeWidth": 1,
         },
@@ -18972,12 +17710,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.2,
         },
         "unhighlightedSeries": {
@@ -19462,14 +18194,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -19478,14 +18202,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -19601,14 +18317,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -19617,14 +18325,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
             "spread": 1,
           },
           "strokeWidth": 3,
-        },
-        "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
         },
         "unhighlightedSeries": {
           "glow": {
@@ -20042,12 +18742,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         "enabled": true,
         "highlightedItem": {
           "fillOpacity": 0,
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "stroke": "#535455",
           "strokeWidth": 1,
         },
@@ -20060,12 +18754,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.2,
         },
         "unhighlightedSeries": {
@@ -20482,14 +19170,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -20499,12 +19179,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -20952,23 +19626,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -21107,23 +19765,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -21262,23 +19904,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -21417,23 +20043,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -21572,23 +20182,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -21727,23 +20321,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -22201,14 +20779,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -22219,12 +20789,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -22340,14 +20904,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -22358,12 +20914,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -22479,14 +21029,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -22497,12 +21039,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -22618,14 +21154,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -22636,12 +21164,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "strokeWidth": 1,
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -23077,12 +21599,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -23094,12 +21610,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -23216,12 +21726,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -23233,12 +21737,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -23355,12 +21853,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -23372,12 +21864,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -23494,12 +21980,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -23511,12 +21991,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -23633,12 +22107,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "bringToFront": true,
         "enabled": true,
         "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "strokeWidth": 1,
         },
         "highlightedSeries": {
@@ -23650,12 +22118,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -24115,14 +22577,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -24132,12 +22586,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -24614,14 +23062,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -24631,12 +23071,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -25113,14 +23547,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
           "glow": {
             "blur": 6,
@@ -25130,12 +23556,6 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
           },
         },
         "unhighlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
           "opacity": 0.6,
         },
         "unhighlightedSeries": {
@@ -25606,23 +24026,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -26103,23 +24507,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -26599,23 +24987,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
@@ -27097,23 +25469,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
       "highlight": {
         "bringToFront": true,
         "enabled": true,
-        "highlightedItem": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
         "highlightedSeries": {
-          "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
-            "enabled": false,
-            "spread": 1,
-          },
-        },
-        "unhighlightedItem": {
           "glow": {
             "blur": 6,
             "color": "rgba(0, 0, 0, 0.35)",
