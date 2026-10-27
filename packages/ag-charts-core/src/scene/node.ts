@@ -251,9 +251,9 @@ export abstract class Node<TDatum = unknown> {
     /**
      * Isolated render - the context is returned to its prior state, even if `render` fails, unless
      * {@link needsIsolatedState} is false. Then there is no save and restore, so a failed render can leak
-     * state, and later siblings must set their own fill style.
+     * state, and later siblings must set their own fill style. Returns false if `render` failed.
      */
-    isolatedRender(renderCtx: RenderContext): void {
+    isolatedRender(renderCtx: RenderContext): boolean {
         const isolate = this.needsIsolatedState();
         // Snapshot alongside ctx.save() — restore() reverts ctx.font, so tracker must too.
         const savedFont = renderCtx.currentFont;
@@ -262,6 +262,7 @@ export abstract class Node<TDatum = unknown> {
         }
         try {
             this.render(renderCtx);
+            return true;
         } catch (e: any) {
             // The failed node may have left the layer's bitmap half painted, so it can't be repainted in part.
             this.invalidateLayerOnRenderError();
@@ -276,6 +277,7 @@ export abstract class Node<TDatum = unknown> {
             }
 
             renderCtx.logger.warnOnce('Error during rendering', e, e.stack);
+            return false;
         } finally {
             if (isolate) {
                 renderCtx.ctx.restore();

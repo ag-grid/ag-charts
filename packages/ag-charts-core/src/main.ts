@@ -231,6 +231,7 @@ export * from './scene/sectorBox';
 export * from './scene/segmentedGroup';
 export * from './scene/selection';
 export * from './scene/shadowCompositor';
+export * from './scene/shadowEngine';
 export * from './scene/shadowPass';
 export * from './scene/shape/arc';
 export * from './scene/shape/barShape';

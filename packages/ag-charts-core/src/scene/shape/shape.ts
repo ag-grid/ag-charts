@@ -40,6 +40,7 @@ import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
+import type { MatrixFrame } from '../matrix';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
 import { shadowPass } from '../shadowPass';
@@ -113,8 +114,18 @@ interface SpreadBounds {
     blur: number;
 }
 
+/** Device-space bounds, as {@link Shape.getShadowSilhouetteBounds} writes them. */
+export interface SilhouetteBounds {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+}
+
 /** The device-space bounds of a silhouette that was just measured, reused to avoid a per-shape allocation. */
-const silhouetteBounds = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+const silhouetteBounds: SilhouetteBounds = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+
+const silhouetteFrame: MatrixFrame = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
 
 /** The device-space bounds of the shape whose spread shadow is being drawn, reused to avoid a per-shape allocation. */
 const spreadBounds: SpreadBounds = {
@@ -181,7 +192,10 @@ function hasCanvas(ctx: CanvasContext): ctx is CanvasContext & { canvas: { width
 }
 
 /** Nodes with their own transform matrix, whose `getBBox()` is in parent space rather than the space they draw in. */
-function hasLocalTransform(node: Node): node is Node & { computeBBoxWithoutTransforms(): BBox | undefined } {
+function hasLocalTransform(node: Node): node is Node & {
+    computeBBoxWithoutTransforms(): BBox | undefined;
+    composeTransform(parent: Readonly<MatrixFrame>, out: MatrixFrame): void;
+} {
     return 'computeBBoxWithoutTransforms' in node;
 }
 
@@ -419,7 +433,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     private cachedDefaultGradientFillBBox?: BBox;
 
+    /** Counts the changes marked on the shape, so that a cache of what it drew can tell when to draw it again. */
+    revision = 0;
+
     override markDirty(property?: string): void {
+        this.revision++;
         super.markDirty(property);
         this.cachedDefaultGradientFillBBox = undefined;
     }
@@ -618,7 +636,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         const matrix = ctx.getTransform();
         const canvas = hasCanvas(ctx) ? ctx.canvas : undefined;
-        if (!this.measureSilhouette(matrix, spread, bboxOverride)) return;
+        if (!this.measureSilhouette(matrix, spread, silhouetteBounds, bboxOverride)) return;
         const left = Math.max(0, Math.floor(silhouetteBounds.minX));
         const top = Math.max(0, Math.floor(silhouetteBounds.minY));
         const right = Math.min(canvas?.width ?? Infinity, Math.ceil(silhouetteBounds.maxX));
@@ -652,10 +670,15 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
-     * Measures, into {@link silhouetteBounds}, the device-space bounds of what the shape casts a shadow from, through
-     * `matrix`. Returns false when the shape has no bounds to measure.
+     * Measures, into `out`, the device-space bounds of what the shape casts a shadow from, through `matrix`. Returns false
+     * when the shape has no bounds to measure.
      */
-    private measureSilhouette(matrix: DOMMatrix, spread: number, bboxOverride?: BBox): boolean {
+    private measureSilhouette(
+        matrix: Readonly<MatrixFrame>,
+        spread: number,
+        out: SilhouetteBounds,
+        bboxOverride?: BBox
+    ): boolean {
         const localBBox: BBox | undefined =
             bboxOverride ?? (hasLocalTransform(this) ? this.computeBBoxWithoutTransforms() : this.getBBox());
         if (localBBox == null) return false;
@@ -673,10 +696,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const crispPad = this.isCrisp() ? 1 : 0;
         const reachX = Math.abs(a) * halfWidth + Math.abs(c) * halfHeight + crispPad;
         const reachY = Math.abs(b) * halfWidth + Math.abs(d) * halfHeight + crispPad;
-        silhouetteBounds.minX = deviceCentreX - reachX;
-        silhouetteBounds.maxX = deviceCentreX + reachX;
-        silhouetteBounds.minY = deviceCentreY - reachY;
-        silhouetteBounds.maxY = deviceCentreY + reachY;
+        out.minX = deviceCentreX - reachX;
+        out.maxX = deviceCentreX + reachX;
+        out.minY = deviceCentreY - reachY;
+        out.maxY = deviceCentreY + reachY;
         return true;
     }
 
@@ -730,6 +753,22 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0;
     }
 
+    /**
+     * Writes into `out` the device-space bounds of what the shape casts a shadow from, drawn in a parent whose transform is
+     * `parent`: the same measurement the shadow's mask is cleared by. Returns false if the bounds can't be told, or are
+     * not fixed by the shape and its transform.
+     */
+    getShadowSilhouetteBounds(parent: Readonly<MatrixFrame>, spread: number, out: SilhouetteBounds): boolean {
+        if (!this.hasBoundedSilhouette()) return false;
+
+        let frame = parent;
+        if (hasLocalTransform(this)) {
+            this.composeTransform(parent, silhouetteFrame);
+            frame = silhouetteFrame;
+        }
+        return this.measureSilhouette(frame, spread, out);
+    }
+
     /** How far the pre-pass's strokes reach past the shape's bounds, in the shape's own units. */
     private getShadowStrokeReach(spread: number): number {
         const fillOnly = this.__shadowMode === 'fill';
@@ -777,7 +816,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         let minY = 0;
         let maxX = (canvasWidth ?? 0) + spread * pixelRatio;
         let maxY = canvasHeight ?? 0;
-        if (this.measureSilhouette(matrix, spread, bboxOverride)) {
+        if (this.measureSilhouette(matrix, spread, silhouetteBounds, bboxOverride)) {
             ({ minX, minY, maxX, maxY } = silhouetteBounds);
 
             if (canvasWidth != null && canvasHeight != null) {
@@ -929,6 +968,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /** Whether the shape snaps its geometry to the device pixel grid, which can move it up to a pixel past its bounds. */
     protected isCrisp(): boolean {
         return false;
+    }
+
+    /** Whether everything the shape draws lies within its bounds and stroke reach. False where its path can go past them. */
+    protected hasBoundedSilhouette(): boolean {
+        return true;
     }
 
     /** The widest stroke cast into the silhouette shadow, which the shape's off-canvas pre-pass has to clear. */

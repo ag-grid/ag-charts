@@ -8,7 +8,8 @@ import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { ChildNodeCounts, IScene, RenderContext } from './node';
 import { Node, PointerEvents } from './node';
-import { getBatchedShadow, releaseShadowScratch, renderChildrenWithShadowBatches } from './shadowCompositor';
+import { renderChildrenWithShadowBatches } from './shadowCompositor';
+import { getBatchedShadow, releaseShadowScratch } from './shadowEngine';
 import { type CanvasContext, Shape } from './shape/shape';
 import {
     Rotatable,
@@ -437,11 +438,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 counts.groups += childCounts.groups;
                 counts.nonGroups += childCounts.nonGroups;
                 counts.complexity += childCounts.complexity;
-                if (countCasters && getBatchedShadow(child) != null) casters++;
+                if (countCasters && child.visible && getBatchedShadow(child) != null) casters++;
             }
             this.shadowCasterCount = casters;
             if (casters === 0) {
-                // A group with no casters has nothing to batch, so it gives up the scene's scratch canvas.
+                // Nothing to batch, so the group gives up the scene's scratch canvas and the shadows its casts kept.
                 releaseShadowScratch(this.scene, this);
             }
 
@@ -451,6 +452,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         } else {
             counts = this.childNodeCounts;
         }
+
+        // A group that isn't drawn holds no shadows, as a hidden series would otherwise keep them until it is shown.
+        if (this.batchShadows !== false && !this.getVisibility()) releaseShadowScratch(this.scene, this);
 
         if (
             this.useOffscreenCanvas &&
@@ -648,7 +652,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 this.scene,
                 this,
                 childRenderCtx,
-                this.batchShadows === 'by-layer'
+                this.batchShadows === 'by-layer' ? 'layer' : 'run'
             );
             return;
         }
@@ -678,7 +682,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         if (this.shadowCasterCount < 0) {
             let casters = 0;
             for (const child of this.children()) {
-                if (getBatchedShadow(child) != null) casters++;
+                if (child.visible && getBatchedShadow(child) != null) casters++;
             }
             this.shadowCasterCount = casters;
         }
