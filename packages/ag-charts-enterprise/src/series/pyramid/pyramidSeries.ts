@@ -946,7 +946,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             applyPyramidDatum(connector, nodeDatum);
 
-            connector.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+            connector.fillShadow = this.resolveItemShadow(shadow, isHighlight);
         });
     }
 
@@ -1146,11 +1146,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 lineDashOffset,
             },
         };
-    }
-
-    /** A legend highlight carries no datum and draws no highlight copy, so the in-place stage keeps its shadow. */
-    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
-        return highlightedDatum?.datum == null ? undefined : super.getRedrawnDatumIndex(highlightedDatum);
     }
 
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

@@ -12,15 +12,6 @@ export const SERIES_SHADOW: AgDropShadowOptions = {
     blur: 6,
 };
 
-/** The shadow the highlight tests set on `highlightedItem`, distinct from `SERIES_SHADOW` in every field. */
-export const HIGHLIGHT_SHADOW: AgDropShadowOptions = {
-    enabled: true,
-    color: '#aa0000',
-    xOffset: 8,
-    yOffset: 8,
-    blur: 2,
-};
-
 /** A custom marker shape (a triangle), which the out-of-the-box marker shadow must not apply to. */
 export const customMarkerShape: AgMarkerShapeFn = ({ path, x, y, size }) => {
     path.moveTo(x - size / 2, y - size / 2);

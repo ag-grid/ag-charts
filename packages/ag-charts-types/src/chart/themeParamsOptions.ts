@@ -655,6 +655,8 @@ export interface AgChartPrivateThemeParams {
     annotationTextboxBorderColor?: CssColor;
     annotationDividerColor?: CssColor;
     shadowColor?: CssColor;
+    glowColor?: CssColor;
+    glowBlur?: PixelSize;
     captionLayoutStyle?: 'block' | 'overlay';
     captionAlignment?: TextAlign;
 }

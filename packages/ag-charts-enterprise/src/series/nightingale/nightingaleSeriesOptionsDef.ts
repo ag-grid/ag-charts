@@ -8,7 +8,7 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
-    multiSeriesShadowHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     number,
     positiveNumber,
     required,
@@ -33,7 +33,7 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesShadowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
 export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions> = {

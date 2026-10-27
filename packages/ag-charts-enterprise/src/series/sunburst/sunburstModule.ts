@@ -2,6 +2,7 @@ import { type AgSunburstSeriesOptions, StandaloneChartModule, VERSION } from 'ag
 import {
     AUTO_SIZED_LABEL_TRUNCATE,
     BASE_FONT_SIZE,
+    BRANCH_GLOW_BUCKETS,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
@@ -13,6 +14,7 @@ import {
     cycledFillThemeTemplate,
     themeLineHeight,
     undocumentedThemeOptions,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -79,17 +81,20 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         },
         sectorSpacing: 2,
         padding: 3,
-        highlight: {
-            enabled: { $circular: { $path: '/highlight/enabled' } },
-            unhighlightedItem: {
-                fillOpacity: 0.6,
-                strokeOpacity: 0.6,
+        highlight: withGlowThemeDefaults(
+            {
+                enabled: { $circular: { $path: '/highlight/enabled' } },
+                unhighlightedItem: {
+                    fillOpacity: 0.6,
+                    strokeOpacity: 0.6,
+                },
+                unhighlightedBranch: {
+                    fillOpacity: 0.2,
+                    strokeOpacity: 0.2,
+                },
             },
-            unhighlightedBranch: {
-                fillOpacity: 0.2,
-                strokeOpacity: 0.2,
-            },
-        },
+            BRANCH_GLOW_BUCKETS
+        ),
         selection: SERIES_SELECTION_THEME,
         ...undocumentedThemeOptions({ childrenKey: 'children' }),
     },

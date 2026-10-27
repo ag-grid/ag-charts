@@ -20,8 +20,8 @@ import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio 
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
+    AgGlowHighlightOptions,
     AgHighlightStyleOptions,
-    AgShadowHighlightOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -118,7 +118,7 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgShadowHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Fixed width of each bar in the series. */

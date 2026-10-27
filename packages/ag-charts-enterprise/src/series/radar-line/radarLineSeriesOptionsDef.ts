@@ -10,7 +10,7 @@ import {
     lineHighlightOptionsDef,
     markerOptionsDefs,
     markerStyleOptionsDefs,
-    multiSeriesShadowHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     required,
     seriesLabelOptionsDefs,
     shapeHighlightOptionsDef,
@@ -37,7 +37,7 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
     ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
 export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = {

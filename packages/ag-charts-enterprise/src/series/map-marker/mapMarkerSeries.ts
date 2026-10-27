@@ -939,7 +939,7 @@ export class MapMarkerSeries
             marker.size = style.size;
 
             marker.setStyleProperties(style, fillBBox);
-            const shadow = this.resolveItemShadow(this.options.shadow, isHighlight, markerDatum.datumIndex);
+            const shadow = this.resolveItemShadow(this.options.shadow, isHighlight);
             marker.fillShadow = shadow?.enabled && isSupportedMarkerShape(style.shape) ? shadow : undefined;
 
             marker.x = point.x;

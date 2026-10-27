@@ -6,10 +6,12 @@ import {
     FILL_PATTERN_KEYED_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     NEAREST_TOOLTIP_THEME,
+    SERIES_GLOW_BUCKETS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -53,7 +55,7 @@ export const CANDLESTICK_SERIES_THEME: ExtensibleSeriesTheme<'candlestick'> = {
         },
         shadow: SHADOW_THEME_DEFAULTS,
         tooltip: NEAREST_TOOLTIP_THEME,
-        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+        highlight: withGlowThemeDefaults({ ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
     },
     animation: { enabled: false },

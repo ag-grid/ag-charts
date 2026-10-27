@@ -2,6 +2,7 @@ import {
     CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     SAFE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
@@ -40,10 +41,14 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
             bringToFront: true,
+            highlightedItem: { glow: GLOW_THEME_DEFAULTS },
             unhighlightedItem: {
+                glow: GLOW_THEME_DEFAULTS,
                 opacity: 0.5,
             },
+            highlightedSeries: { glow: GLOW_THEME_DEFAULTS },
             unhighlightedSeries: {
+                glow: GLOW_THEME_DEFAULTS,
                 opacity: 0.1,
             },
         },

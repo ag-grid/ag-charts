@@ -63,7 +63,7 @@ import {
 } from '../hierarchy/hierarchySeries';
 import { autoSizedLabelFit, labelPairBlocks, styledLabelFont } from '../util/autoSizedLabelFit';
 
-const { createDatumId, SelectionState, expandLabelBoxExtent, getLabelStyles } = _ModuleSupport;
+const { createDatumId, SelectionState, expandLabelBoxExtent, getLabelStyles, glowToShadow } = _ModuleSupport;
 
 class TreemapNode extends HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
@@ -623,31 +623,23 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         this.labelSelection.update(descendants, updateLabelGroup, (node) => node.datumIndex);
     }
 
-    /** The shadows of the tiles and groups, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return [this.options.tile.shadow, this.options.group.shadow];
-    }
-
     protected override getActiveHighlightNode(): TreemapNode | undefined {
         const highlightedNode = super.getActiveHighlightNode();
         return this.isNodeHighlightable(highlightedNode) ? highlightedNode : undefined;
     }
 
-    /** A group that isn't interactive gets no highlight copy, so its in-place copy keeps its shadow. */
-    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
-        return this.isNodeHighlightable(highlightedDatum as TreemapNode | undefined)
-            ? super.getRedrawnDatumIndex(highlightedDatum)
-            : undefined;
+    /** Tile and group highlights sit under `tile.highlight` and `group.highlight`, not the series' `highlight`. */
+    private getHighlightedGlow(isLeaf: boolean) {
+        const { highlight } = isLeaf ? this.options.tile : this.options.group;
+        if (!highlight.enabled) return;
+
+        return isLeaf
+            ? this.getHierarchyHighlightStyles(HierarchyHighlightState.Item, this.options.tile.highlight)?.glow
+            : highlight.highlightedItem?.glow;
     }
 
     private isNodeHighlightable(node: TreemapNode | undefined) {
         return node == null || node.children.length === 0 || this.options.group.interactive;
-    }
-
-    /** Whether either tile or group sets one, for the series-wide check; each item resolves its own in `updateNodes`. */
-    protected override getHighlightedItemShadow() {
-        const { tile, group } = this.options;
-        return tile.highlight.highlightedItem?.shadow ?? group.highlight.highlightedItem?.shadow;
     }
 
     updateNodes() {
@@ -759,14 +751,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
             rect.setStyleProperties(style, fillBBox);
 
-            // Tile and group highlights sit under `tile.highlight` and `group.highlight`, not the series' `highlight`.
-            const itemOptions = isLeaf ? tile : group;
-            rect.fillShadow = this.resolveItemShadowWith(
-                itemOptions.highlight.highlightedItem?.shadow,
-                itemOptions.shadow,
-                isHighlight,
-                node.datumIndex
-            );
+            rect.fillShadow = isHighlight
+                ? glowToShadow(this.getHighlightedGlow(isLeaf))
+                : (isLeaf ? tile : group).shadow;
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];
 

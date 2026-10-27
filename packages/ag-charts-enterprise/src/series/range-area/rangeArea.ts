@@ -1347,7 +1347,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 pickInflation,
                 shadow: shadows[itemType],
                 isHighlight,
-                datumIndex: datum.datumIndex,
             });
             node.drawingMode = drawingMode;
         });
@@ -1716,11 +1715,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 lineDash,
             },
         };
-    }
-
-    /** The shadows of the low and high markers, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return [this.itemMarkers.low.shadow, this.itemMarkers.high.shadow];
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

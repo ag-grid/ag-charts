@@ -1163,11 +1163,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             rect.setStyleProperties(style as Required<NormalisedWaterfallSeriesStyle>, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
-            rect.fillShadow = this.resolveItemShadow(
-                this.getItemConfig(datum.itemType).shadow,
-                isHighlight,
-                datum.datumIndex
-            );
+            rect.fillShadow = this.resolveItemShadow(this.getItemConfig(datum.itemType).shadow, isHighlight);
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;
@@ -1492,11 +1488,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 lineDashOffset,
             },
         };
-    }
-
-    /** The shadows of the positive, negative and total items, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return (['positive', 'negative', 'total'] as const).map((itemType) => this.getItemConfig(itemType).shadow);
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType) {

@@ -99,11 +99,6 @@ export class ChordSeries extends FlowProportionSeries<
         return new ChordLink<ChordLinkDatum>();
     }
 
-    /** The shadows of the nodes and links, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return [this.options.node.shadow, this.options.link.shadow];
-    }
-
     protected nodeFactory() {
         return new Sector<ChordNodeDatum>();
     }
@@ -533,8 +528,7 @@ export class ChordSeries extends FlowProportionSeries<
             const style = this.getNodeStyle(datum, datumIndex, isHighlight);
 
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow =
-                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex);
+            sector.fillShadow = datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight);
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -681,8 +675,7 @@ export class ChordSeries extends FlowProportionSeries<
 
             link.tension = style.tension;
             link.setStyleProperties(style, fillBBox);
-            link.fillShadow =
-                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
+            link.fillShadow = datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight);
         });
     }
 

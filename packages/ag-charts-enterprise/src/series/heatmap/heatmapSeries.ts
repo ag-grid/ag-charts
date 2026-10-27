@@ -840,12 +840,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     /** Whether every cell can be painted by `cellBatch` exactly as its own `Rect` would be. */
     private canBatchCells() {
-        const { cornerRadius, shadow, highlight } = this.options;
+        const { cornerRadius, shadow } = this.options;
         return (
             this.unbatchableCells === 0 &&
             ((cornerRadius ?? 0) <= 0 || Number.isNaN(cornerRadius)) &&
-            shadow?.enabled !== true &&
-            highlight?.highlightedItem?.shadow == null
+            shadow?.enabled !== true
         );
     }
 
@@ -1019,7 +1018,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight);
 
             rect.crisp = crisp;
             rect.cornerRadius = cornerRadius;

@@ -1,6 +1,7 @@
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
@@ -63,7 +64,9 @@ export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
         shadow: SHADOW_THEME_DEFAULTS,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
+            highlightedItem: { glow: GLOW_THEME_DEFAULTS },
             unhighlightedItem: {
+                glow: GLOW_THEME_DEFAULTS,
                 opacity: 0.4,
             },
         },

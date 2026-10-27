@@ -667,6 +667,35 @@ export const SHADOW_THEME_DEFAULTS = {
     blur: 5,
 } as const;
 
+/**
+ * Disabled glow; the theme value every highlight state of a series with a `glow` starts from. The colour and blur follow
+ * the theme, as the light theme's dark glow suits a light background and the dark theme's pale one a dark background.
+ */
+export const GLOW_THEME_DEFAULTS = {
+    enabled: false,
+    color: { $ref: 'glowColor' },
+    blur: { $ref: 'glowBlur' },
+    spread: 1,
+} as const;
+
+/** The highlight states of a series with only item states, and of a treemap group. */
+export const ITEM_GLOW_BUCKETS = ['highlightedItem', 'unhighlightedItem'] as const;
+
+/** The highlight states of a series with series states as well. */
+export const SERIES_GLOW_BUCKETS = [...ITEM_GLOW_BUCKETS, 'highlightedSeries', 'unhighlightedSeries'] as const;
+
+/** The highlight states of a hierarchy series, where branch states take the place of the series states. */
+export const BRANCH_GLOW_BUCKETS = [...ITEM_GLOW_BUCKETS, 'highlightedBranch', 'unhighlightedBranch'] as const;
+
+/** Adds the disabled {@link GLOW_THEME_DEFAULTS} to each of the `buckets` of a highlight theme, keeping what they hold. */
+export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: readonly string[]): T {
+    const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
+    for (const bucket of buckets) {
+        result[bucket] = { ...(result[bucket] as object | undefined), glow: GLOW_THEME_DEFAULTS };
+    }
+    return result as T;
+}
+
 type SeriesTooltipTheme = WithThemeParams<Pick<AgSeriesTooltip<never>, 'range' | 'position' | 'interaction'>>;
 
 /** Series tooltip defaults, following the chart `tooltip` range and position. */

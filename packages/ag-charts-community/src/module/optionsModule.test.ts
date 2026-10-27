@@ -958,10 +958,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1066,10 +1094,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1174,10 +1230,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1282,10 +1366,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1387,7 +1499,37 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1494,7 +1636,37 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1615,10 +1787,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1723,10 +1923,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1831,10 +2059,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1939,10 +2195,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2044,7 +2328,37 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2151,7 +2465,37 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2272,10 +2616,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2380,10 +2752,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2488,10 +2888,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2596,10 +3024,38 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2701,7 +3157,37 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2808,7 +3294,37 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
+                    "unhighlightedItem": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },

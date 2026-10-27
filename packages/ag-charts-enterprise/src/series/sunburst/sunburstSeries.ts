@@ -41,10 +41,16 @@ import {
 import type { Path } from 'ag-charts-core';
 import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight, PaddingOptions } from 'ag-charts-types';
 
-import { HierarchyNode, HierarchySeries, toHierarchyHighlightString } from '../hierarchy/hierarchySeries';
+import {
+    HierarchyHighlightState,
+    HierarchyNode,
+    HierarchySeries,
+    toHierarchyHighlightString,
+} from '../hierarchy/hierarchySeries';
 import { autoSizedLabelFit, labelPairBlocks, styledLabelFont } from '../util/autoSizedLabelFit';
 
-const { fromToMotion, createDatumId, expandLabelBoxExtent, fitLabelToContainer, getLabelStyles } = _ModuleSupport;
+const { fromToMotion, createDatumId, expandLabelBoxExtent, fitLabelToContainer, getLabelStyles, glowToShadow } =
+    _ModuleSupport;
 
 class SunburstNode extends HierarchyNode<SunburstNode> {
     labelText: NormalisedTextOrSegments | undefined = undefined;
@@ -260,6 +266,13 @@ export class SunburstSeries extends HierarchySeries<
 
         this.datumSelection.update(descendants, undefined, (node) => node.datumIndex);
         this.labelSelection.update(descendants, updateLabelGroup, (node) => node.datumIndex);
+    }
+
+    private getHighlightedGlow() {
+        const { highlight } = this.options;
+        return highlight.enabled
+            ? this.getHierarchyHighlightStyles(HierarchyHighlightState.Item, highlight)?.glow
+            : undefined;
     }
 
     protected getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
@@ -518,7 +531,7 @@ export class SunburstSeries extends HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = this.resolveItemShadow(shadow, highlighted, nodeDatum.datumIndex);
+            sector.fillShadow = highlighted ? glowToShadow(this.getHighlightedGlow()) : shadow;
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;

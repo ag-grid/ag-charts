@@ -1,5 +1,6 @@
 import {
     AUTO_SIZED_LABEL_TRUNCATE,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
@@ -62,7 +63,9 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
         },
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
+            highlightedItem: { glow: GLOW_THEME_DEFAULTS },
             unhighlightedItem: {
+                glow: GLOW_THEME_DEFAULTS,
                 opacity: 0.6,
             },
         },

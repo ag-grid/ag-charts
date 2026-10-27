@@ -165,9 +165,6 @@ export const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, 
 /** A smaller shadow than `SHADOW`, for the tests that turn on a second, distinct shadow (flow-proportion, map-shape, waterfall). */
 export const SMALL_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
 
-/** The shadow the highlight tests set on `highlightedItem`, distinct from `SHADOW` in every field. */
-export const HIGHLIGHT_SHADOW = { enabled: true, color: 'rgba(170, 0, 0, 1)', xOffset: 8, yOffset: 8, blur: 2 };
-
 /** A red shadow with no offset or blur, so a node test sees the shadow as exactly the node's own pixels. */
 export const RED_SHADOW = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 

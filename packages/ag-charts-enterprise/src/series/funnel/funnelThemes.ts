@@ -3,6 +3,7 @@ import {
     CARTESIAN_POSITION,
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
@@ -116,7 +117,9 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
         shadow: SHADOW_THEME_DEFAULTS,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
+            highlightedItem: { glow: GLOW_THEME_DEFAULTS },
             unhighlightedItem: {
+                glow: GLOW_THEME_DEFAULTS,
                 opacity: 0.6,
             },
         },

@@ -1032,7 +1032,6 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 pickInflation,
                 shadow,
                 isHighlight,
-                datumIndex: datum.datumIndex,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);
@@ -1235,11 +1234,6 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 lineDash,
             },
         };
-    }
-
-    /** The shadows of the markers, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return [this.options.marker.shadow];
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {

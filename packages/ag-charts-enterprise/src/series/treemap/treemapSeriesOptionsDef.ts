@@ -63,7 +63,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         interactive: boolean,
         highlight: {
             enabled: boolean,
-            highlightedItem: { ...hierarchyHighlightStyleOptionsDef, shadow: shadowOptionsDefs },
+            highlightedItem: hierarchyHighlightStyleOptionsDef,
             unhighlightedItem: hierarchyHighlightStyleOptionsDef,
         },
         label: {
@@ -100,7 +100,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         },
         highlight: {
             enabled: boolean,
-            highlightedItem: { ...hierarchyHighlightStyleOptionsDef, shadow: shadowOptionsDefs },
+            highlightedItem: hierarchyHighlightStyleOptionsDef,
             highlightedBranch: hierarchyHighlightStyleOptionsDef,
             unhighlightedItem: hierarchyHighlightStyleOptionsDef,
             unhighlightedBranch: hierarchyHighlightStyleOptionsDef,

@@ -1032,7 +1032,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
             rect.crisp = datum.crisp;
-            rect.fillShadow = this.resolveItemShadow(shadow, opts.isHighlight, datum.datumIndex);
+            rect.fillShadow = this.resolveItemShadow(shadow, opts.isHighlight);
         });
     }
 

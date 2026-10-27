@@ -72,7 +72,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
                 yOpen,
                 yClose,
                 crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex)
+                series.resolveItemShadow(shadow, isHighlight)
             );
 
             const style = (datum.style ??

@@ -7,8 +7,8 @@ import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '.
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
+    AgGlowHighlightOptions,
     AgHighlightStyleOptions,
-    AgShadowHighlightOptions,
 } from '../seriesOptions';
 
 export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
@@ -76,7 +76,7 @@ export interface AgChordSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     /** Options for the nodes. */
     node?: AgChordSeriesNodeOptions<TDatum, TContext>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgShadowHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum, TContext>>;
 }

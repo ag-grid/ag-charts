@@ -1,4 +1,4 @@
-import type { AgDropShadowOptions } from '../chart/dropShadowOptions';
+import type { AgGlowOptions } from '../chart/dropShadowOptions';
 import type { AgSeriesListeners } from '../chart/eventOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../chart/selectionOptions';
 import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
@@ -19,38 +19,34 @@ export interface AgMultiSeriesHighlightOptions<
     bringToFront?: boolean;
 }
 
-/** Highlight style options that only the highlighted item can set; the highlighted series cannot. */
-export interface AgItemHighlightStyleOptions {
+/** Highlight style options for an item that can cast a `glow`. */
+export interface AgGlowHighlightStyleOptions {
     /**
-     * Configuration for the shadow used behind the highlighted item. While the item is highlighted, it is merged with
-     * the item's normal `shadow` field by field, so any field left unset comes from that shadow. For example,
-     * `{ color }` without `enabled: true` stays off if the normal `shadow` is off. The normal `shadow` is the series'
-     * `shadow`, or for some series another one, such as `marker.shadow`, `node.shadow` or `link.shadow`.
+     * Configuration for the glow around the item while this highlight state applies. It is drawn above the item's
+     * series, centred on the item, and is separate from the item's `shadow`, which stays behind every series. For the
+     * hovered item, `highlightedItem.glow` is merged over `highlightedSeries.glow` field by field.
      *
-     * Area, radar area and range area fills are not redrawn when highlighted, so only the shadow on their markers
-     * changes. Cone funnel series do not have this option.
+     * Area, radar area and range area fills are not redrawn when highlighted, so only their markers glow. Cone funnel
+     * series do not have this option.
      *
-     * Default: no highlight shadow, so the highlighted item keeps its normal `shadow`.
+     * Default: no glow
      */
-    shadow?: AgDropShadowOptions;
+    glow?: AgGlowOptions;
 }
 
-/** Highlight options for a series whose items can cast a `shadow`. */
-export interface AgShadowHighlightOptions<
-    ItemHighlightStyleOptions = AgHighlightStyleOptions,
-> extends AgHighlightOptions<ItemHighlightStyleOptions> {
-    /** Options for the highlighted item. */
-    highlightedItem?: ItemHighlightStyleOptions & AgItemHighlightStyleOptions;
-}
+/** Highlight options for a series whose items can cast a `glow`. */
+export interface AgGlowHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> extends AgHighlightOptions<
+    ItemHighlightStyleOptions & AgGlowHighlightStyleOptions
+> {}
 
-/** Highlight options for a series whose items can cast a `shadow`, with separate options for the highlighted series. */
-export interface AgMultiSeriesShadowHighlightOptions<
+/** Highlight options for a series whose items can cast a `glow`, with separate options for the highlighted series. */
+export interface AgMultiSeriesGlowHighlightOptions<
     ItemHighlightStyleOptions,
     SeriesHighlightStyleOptions = ItemHighlightStyleOptions,
-> extends AgMultiSeriesHighlightOptions<ItemHighlightStyleOptions, SeriesHighlightStyleOptions> {
-    /** Options for the highlighted item. */
-    highlightedItem?: ItemHighlightStyleOptions & AgItemHighlightStyleOptions;
-}
+> extends AgMultiSeriesHighlightOptions<
+    ItemHighlightStyleOptions & AgGlowHighlightStyleOptions,
+    SeriesHighlightStyleOptions & AgGlowHighlightStyleOptions
+> {}
 
 export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> {
     /** Set to `false` to disable highlighting. */

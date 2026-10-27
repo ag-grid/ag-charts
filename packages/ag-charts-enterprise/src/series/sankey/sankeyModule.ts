@@ -4,6 +4,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    GLOW_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
@@ -44,7 +45,9 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             strokes: { $palette: 'strokes' },
             highlight: {
                 enabled: { $path: ['/highlight/enabled', true] },
+                highlightedItem: { glow: GLOW_THEME_DEFAULTS },
                 unhighlightedItem: {
+                    glow: GLOW_THEME_DEFAULTS,
                     opacity: 0.5,
                 },
             },

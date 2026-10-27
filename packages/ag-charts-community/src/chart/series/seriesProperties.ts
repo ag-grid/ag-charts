@@ -1,6 +1,10 @@
-import type { AreExact, NormalisedColorType } from 'ag-charts-core';
-import { isEmptyObject, mergeDefaults } from 'ag-charts-core';
-import type { HighlightState as PublicHighlightState, SelectionState as PublicSelectionState } from 'ag-charts-types';
+import type { AreExact, DeepPartial, NormalisedColorType, NormalisedDropShadowOptions } from 'ag-charts-core';
+import { mergeDefaults } from 'ag-charts-core';
+import type {
+    AgGlowOptions,
+    HighlightState as PublicHighlightState,
+    SelectionState as PublicSelectionState,
+} from 'ag-charts-types';
 
 import { HighlightState, SelectionState } from './seriesTypes';
 
@@ -155,7 +159,28 @@ export function getSelectionStyle<TStyle extends object>(
     return mergeDefaults<TStyle>(...keys.map((key) => selection[key]));
 }
 
-/** Whether a highlight/selection bucket carries any overrides; an absent bucket carries none. */
+/**
+ * Whether a highlight/selection bucket carries any overrides of how an item is drawn in place; an absent bucket
+ * carries none. A `glow` is no such override, as only the highlight layer's copy of the hovered item casts it.
+ */
 export function hasStateStyle(bucket: object | undefined): boolean {
-    return bucket != null && !isEmptyObject(bucket);
+    if (bucket == null) return false;
+
+    for (const key in bucket) {
+        if (key !== 'glow') return true;
+    }
+    return false;
+}
+
+/**
+ * The shadow that casts a `glow`: centred on the item, as a glow is the same blurred silhouette as a shadow with no
+ * offset. A glow that is off, or has no colour or blur to cast, casts none.
+ */
+export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
+    if (glow?.enabled !== true) return;
+
+    const { color, blur, spread } = glow;
+    if (color == null || blur == null) return;
+
+    return { enabled: true, color, xOffset: 0, yOffset: 0, blur, spread };
 }
