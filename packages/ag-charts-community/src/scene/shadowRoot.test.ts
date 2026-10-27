@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Group, Rect, Scene, SegmentedGroup, TranslatableGroup, shadowPass } from 'ag-charts-core';
+import { BBox, Group, Path, Rect, Scene, SegmentedGroup, TranslatableGroup, shadowPass } from 'ag-charts-core';
 import type { Node, RenderContext } from 'ag-charts-core';
 
 import { expectSamePixels } from '../chart/test/expectSamePixels';
@@ -190,6 +190,65 @@ describe('Shadow root', () => {
                     return node;
                 })(),
             ]);
+        });
+    });
+
+    describe('clips', () => {
+        const CLEAR = [0, 0, 0, 0];
+
+        // A box of 20 to 80 across, whose shadow is 50 to 110, so that only the part of it that is beyond the box shows.
+        const clippedPath = (y: number, clipX: number) => {
+            const node = new Path();
+            Object.assign(node, { fill: 'black', stroke: undefined, strokeWidth: 0, clip: true, clipX, clipY: HEIGHT });
+            node.fillShadow = redHalfShadow(30);
+            node.path.rect(20, y, 60, 50);
+            return node;
+        };
+
+        const clippedGroup = (clipWidth: number) => {
+            const node = group('shared', [square(20, 40, { fillShadow: RED_HALF })]);
+            node.setClipRectCanvasSpace(new BBox(0, 0, clipWidth, HEIGHT));
+            return node;
+        };
+
+        it('should clip the shadow of a path at the clip of that path, as the group does for itself', () => {
+            const build = () => [group('shared', [clippedPath(20, 90), clippedPath(100, 100)])];
+
+            expectSameAsLocal(build);
+
+            // Each path is clipped at its own edge, so the paths do not share a clip.
+            const scene = draw(true, build);
+            expect(isHalfRed(at(scene, 85, 45))).toBe(true);
+            expect(at(scene, 95, 45)).toEqual(CLEAR);
+            expect(isHalfRed(at(scene, 95, 125))).toBe(true);
+            expect(at(scene, 105, 125)).toEqual(CLEAR);
+        });
+
+        it('should clip the shadow at the clip rect of its group', () => {
+            const build = () => [clippedGroup(100)];
+
+            expectSameAsLocal(build);
+
+            // The shadow is 80 to 140, and is cut at 100.
+            const scene = draw(true, build);
+            expect(isHalfRed(at(scene, 90, 70))).toBe(true);
+            expect(at(scene, 110, 70)).toEqual(CLEAR);
+        });
+
+        it('should clip the shadow at the clip rect of its group, through a parent that is translated', () => {
+            const build = () => {
+                const parent = new TranslatableGroup({ name: 'moved' });
+                parent.translationX = 40;
+                parent.appendChild(clippedGroup(100));
+                return [parent];
+            };
+
+            expectSameAsLocal(build);
+
+            // The clip is 0 to 100 in the parent, which is 40 to 140 on the canvas, and the shadow is 120 to 180.
+            const scene = draw(true, build);
+            expect(isHalfRed(at(scene, 130, 70))).toBe(true);
+            expect(at(scene, 150, 70)).toEqual(CLEAR);
         });
     });
 
