@@ -22,9 +22,17 @@ export interface AgMultiSeriesHighlightOptions<
 /** Highlight style options for an item that can cast a `glow`. */
 export interface AgGlowHighlightStyleOptions {
     /**
-     * Configuration for the glow around the item while this highlight state applies. It is drawn above the item's
-     * series, centred on the item, and is separate from the item's `shadow`, which stays behind every series. For the
-     * hovered item, `highlightedItem.glow` is merged over `highlightedSeries.glow` field by field.
+     * Configuration for the glow around the item while this highlight state applies.
+     *
+     * The hovered item's glow (`highlightedItem`) is drawn centred on the item, above every series, with the item drawn
+     * over its own glow. The glow of every other state (`unhighlightedItem`, `unhighlightedSeries`, and the other items
+     * under `highlightedSeries`; on treemap and sunburst, `highlightedBranch` and `unhighlightedBranch`) is cast in the
+     * same pass as the item's `shadow`, so it stays behind every series.
+     *
+     * While a glow is enabled for an item's state it replaces that item's `shadow`; the two are never merged. The
+     * hovered item's own `shadow` stays beneath its glow. Series with a series-level bucket (`highlightedSeries`,
+     * `unhighlightedSeries`) fall back to it, and `highlightedItem.glow` is merged over `highlightedSeries.glow` field
+     * by field. On treemap and sunburst the branch buckets take the place of the series buckets.
      *
      * Area, radar area and range area fills are not redrawn when highlighted, so only their markers glow. Cone funnel
      * series do not have this option.

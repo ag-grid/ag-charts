@@ -413,6 +413,7 @@ export abstract class Series<
     applyOptions(options: NormalisedSeriesOptions<TOpts>, diff?: DeepPartial<NormalisedSeriesOptions<TOpts>>) {
         this.options = options;
         this.glowByState = undefined;
+        this.anyGlow = undefined;
         this.legendItemName =
             'legendItemName' in options && typeof options.legendItemName === 'string'
                 ? options.legendItemName
@@ -1018,6 +1019,18 @@ export abstract class Series<
         return glow ?? undefined;
     }
 
+    /** Whether any highlight state sets an enabled `glow`; when none does, the shadow is never resolved per datum. */
+    private anyGlow?: boolean;
+
+    private hasAnyGlow(): boolean {
+        this.anyGlow ??=
+            this.getStateGlow(HighlightState.Item) != null ||
+            this.getStateGlow(HighlightState.Series) != null ||
+            this.getStateGlow(HighlightState.OtherSeries) != null ||
+            this.getStateGlow(HighlightState.OtherItem) != null;
+        return this.anyGlow;
+    }
+
     /**
      * The shadow to draw on one copy of an item. A hovered item is drawn twice: in place, and again by the highlight
      * layer on top of it. The highlight layer's copy casts only the `glow` of the hovered item, centred on it and above
@@ -1032,6 +1045,7 @@ export abstract class Series<
         datumIndex?: DatumIndex,
         highlightState?: HighlightState
     ): NormalisedDropShadowOptions | undefined {
+        if (!this.hasAnyGlow()) return isHighlight ? undefined : shadow;
         if (isHighlight) return this.getStateGlow(HighlightState.Item);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
@@ -1721,11 +1735,13 @@ export abstract class Series<
             isHighlight?: boolean;
             /** With `isHighlight`, picks the `glow` of the highlight state this marker is drawn in. */
             datumIndex?: DatumIndex;
+            /** The marker's highlight state when the caller has already resolved it. */
+            highlightState?: HighlightState;
         }
     ) {
         const { shape, size = 0, strokeWidth = 0 } = style;
         const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
-        const shadow = this.resolveItemShadow(opts.shadow, opts.isHighlight, opts.datumIndex);
+        const shadow = this.resolveItemShadow(opts.shadow, opts.isHighlight, opts.datumIndex, opts.highlightState);
         const visible =
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));

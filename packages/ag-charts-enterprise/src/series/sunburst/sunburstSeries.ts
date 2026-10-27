@@ -263,16 +263,12 @@ export class SunburstSeries extends HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => node.datumIndex);
     }
 
-    /** The glow of the node's highlight state as a shadow; none when the series' highlight is off. */
-    private getNodeGlow(isHighlight: boolean, highlightedNode: SunburstNode | undefined, nodeDatum: SunburstNode) {
-        const { highlight } = this.options;
-        if (!highlight.enabled) return;
-
-        const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
-        return glowToShadow(this.getHierarchyHighlightStyles(highlightState, highlight)?.glow);
+    protected getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
+        return this.getItemStyleAndGlow(nodeDatum, isHighlight).style;
     }
 
-    protected getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
+    /** The node's style, and the glow of its highlight state as a shadow, from the one highlight resolution. */
+    private getItemStyleAndGlow(nodeDatum: SunburstNode, isHighlight: boolean) {
         const { options, colorScale } = this;
 
         const { itemStyler, colorKey } = options;
@@ -282,6 +278,7 @@ export class SunburstSeries extends HierarchySeries<
         const highlightedNode = this.getActiveHighlightNode();
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
         const highlightStyles = this.getHierarchyHighlightStyles(highlightState, this.options.highlight);
+        const glow = this.options.highlight.enabled ? glowToShadow(highlightStyles?.glow) : undefined;
         const selectionState = this.getSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(selectionState, highlightStyles, this.itemStyle(rootIndex));
 
@@ -314,7 +311,7 @@ export class SunburstSeries extends HierarchySeries<
             }
         }
 
-        return style;
+        return { style, glow };
     }
 
     private itemStyle(index: number): ItemStyle {
@@ -522,20 +519,14 @@ export class SunburstSeries extends HierarchySeries<
 
             sector.visible = true;
 
-            const style = this.getItemStyle(nodeDatum, highlighted);
+            const { style, glow } = this.getItemStyleAndGlow(nodeDatum, highlighted);
 
             const fill = style.fill;
             const strokeWidth = style.strokeWidth;
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = this.resolveNodeShadow(
-                shadow,
-                this.getNodeGlow(highlighted, highlightedNode, nodeDatum),
-                highlighted,
-                highlightedNode,
-                nodeDatum
-            );
+            sector.fillShadow = this.resolveNodeShadow(shadow, glow, highlighted, highlightedNode, nodeDatum);
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
