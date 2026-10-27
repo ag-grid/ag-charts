@@ -36,6 +36,7 @@ import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expect
 import { removeUnregisteredModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { __clearChartThemeCacheForTests } from '../chart/mapping/themes';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
+import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import * as examples from '../chart/test/examples';
 import { setAgChartsDebug } from '../chart/test/seriesAccessors';
 import { captureUncaught } from '../chart/test/utils';
@@ -62,6 +63,20 @@ const moduleMessages = () =>
     (console.error as Mock).mock.calls
         .map(([m]) => String(m))
         .filter((m) => m.includes('required modules are not registered'));
+
+// Restore exactly what was registered: the stacking/grouping suite below registers its own
+// ad-hoc series definitions at collection time, which re-registering the bundle would drop.
+function prepareOptionsWithOnly(modules: ModuleDefinition[], userOptions: AgChartOptions) {
+    const registeredModules = [...ModuleRegistry.listModules()];
+    ModuleRegistry.reset();
+    ModuleRegistry.registerModules(modules);
+    try {
+        return prepareOptions(userOptions);
+    } finally {
+        ModuleRegistry.reset();
+        ModuleRegistry.registerModules(registeredModules);
+    }
+}
 
 function runtimeFor(logger?: Logger) {
     return logger == null ? undefined : createProvisionalRuntime(logger);
@@ -571,20 +586,6 @@ describe('ChartOptions', () => {
             expect(message).toContain('Option `series[0].type` is required and has not been provided');
             expect(message).toContain("'line'");
         });
-
-        // Restore exactly what was registered: the stacking/grouping suite below registers its own
-        // ad-hoc series definitions at collection time, which re-registering the bundle would drop.
-        function prepareOptionsWithOnly(modules: ModuleDefinition[], userOptions: AgChartOptions) {
-            const registeredModules = [...ModuleRegistry.listModules()];
-            ModuleRegistry.reset();
-            ModuleRegistry.registerModules(modules);
-            try {
-                return prepareOptions(userOptions);
-            } finally {
-                ModuleRegistry.reset();
-                ModuleRegistry.registerModules(registeredModules);
-            }
-        }
 
         it('defaults to a registered series type when no series are provided', () => {
             const options = prepareOptionsWithOnly([BarSeriesModule, CategoryAxisModule, NumberAxisModule], {
@@ -5822,6 +5823,17 @@ describe('ChartOptions', () => {
                         ),
                     ]);
                     expect(optionAt(processed, 'listeners.axisDoubleClick')).toBeUndefined();
+                });
+
+                it('reports unregistered community axes from enterprise when a chart-level listener needs them', () => {
+                    prepareOptionsWithOnly([LineSeriesModule], {
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        axes: { x: { type: 'category' }, y: { type: 'number' } },
+                        listeners: { axisClick: () => {} },
+                    } as AgChartOptions);
+
+                    expect(moduleMessages()).toEqual([expect.stringContaining("from 'ag-charts-enterprise'")]);
+                    expect(moduleMessages()).toEqual([expect.not.stringContaining("from 'ag-charts-community'")]);
                 });
 
                 it('strips the listener from a non-cartesian chart as unsupported rather than as a missing module', () => {

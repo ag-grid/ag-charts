@@ -89,6 +89,27 @@ export const AllEnterpriseModule: ModuleDefinition[] = [
     RangeBarSeriesModule,
     WaterfallSeriesModule,
 
+    // Cartesian features, ahead of series whose dependencies would register them out of order (organization → zoom)
+    AnimationModule,
+    AnnotationsModule,
+    AxisInteractionModule,
+    BandHighlightModule,
+    ChartToolbarModule,
+    ContextMenuModule,
+    CrosshairModule,
+    DataSourceModule,
+    ErrorBarsModule,
+    FlashOnUpdateModule,
+    GradientLegendModule,
+    NavigatorModule,
+    RangesModule,
+    ScrollbarModule,
+    SelectionModule,
+    BackgroundRegionsModule,
+    StatusBarModule,
+    SyncModule,
+    ZoomModule,
+
     // Polar axes
     AngleNumberAxisModule,
     AngleCategoryAxisModule,
@@ -114,6 +135,10 @@ export const AllEnterpriseModule: ModuleDefinition[] = [
     LinearGaugeModule,
     RadialGaugeModule,
 
+    // Presets
+    FinancialChartModule,
+    QuadrantChartModule,
+
     // Other series
     ChordSeriesModule,
     OrganizationSeriesModule,
@@ -121,29 +146,4 @@ export const AllEnterpriseModule: ModuleDefinition[] = [
     SankeySeriesModule,
     SunburstSeriesModule,
     TreemapSeriesModule,
-
-    // Features
-    AnimationModule,
-    AnnotationsModule,
-    AxisInteractionModule,
-    BackgroundRegionsModule,
-    BandHighlightModule,
-    ChartToolbarModule,
-    ContextMenuModule,
-    CrosshairModule,
-    DataSourceModule,
-    ErrorBarsModule,
-    FlashOnUpdateModule,
-    GradientLegendModule,
-    NavigatorModule,
-    RangesModule,
-    ScrollbarModule,
-    SelectionModule,
-    StatusBarModule,
-    SyncModule,
-    ZoomModule,
-
-    // Presets
-    FinancialChartModule,
-    QuadrantChartModule,
 ].flat();

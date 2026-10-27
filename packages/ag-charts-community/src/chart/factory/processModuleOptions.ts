@@ -292,6 +292,8 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
         if (missing == null) {
             missing = { module, features: [] };
             missingModules.set(module.moduleId, missing);
+        } else if (module.enterprise && !missing.module.enterprise) {
+            missing.module = module;
         }
         if (feature != null && !missing.features.includes(feature)) {
             missing.features.push(feature);
