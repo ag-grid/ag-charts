@@ -132,6 +132,17 @@ async function performRedraw(chartOptions: AgCartesianChartOptions): Promise<num
     return performance.now() - start;
 }
 
+// Redraws with new data for the first series only, so that the shadows of the others are unchanged.
+/** inScope */
+async function performRedrawFirstSeries(chartOptions: AgCartesianChartOptions): Promise<number> {
+    const [first, ...others] = chartOptions.series ?? [];
+    const data = (chartOptions.data ?? []).map((row) => ({ ...row }));
+
+    const start = performance.now();
+    await chartRef.current!.update({ ...chartOptions, series: [{ ...first, data }, ...others] });
+    return performance.now() - start;
+}
+
 /** inScope */
 function variantsOf(scenario: Scenario, operations: Record<string, (o: AgCartesianChartOptions) => Promise<number>>) {
     const variants: Variants = [];
@@ -174,6 +185,11 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'many-markers',
                 label: '20 series x 1,000 points, marker shadows',
                 variants: variantsOf('many-markers', { 'Chart Create': create, 'Chart Redraw': performRedraw }),
+            },
+            {
+                id: 'one-series',
+                label: 'One of 20 series updated, marker shadows',
+                variants: variantsOf('many-markers', { 'Chart Redraw': performRedrawFirstSeries }),
             },
         ],
         config: {

@@ -25,6 +25,7 @@ import {
     clickAction,
     compareImageSnapshot,
     createSceneGeometrySampler,
+    deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectMonotonic,
     expectPixelIdenticalAcrossMagnitude,
@@ -46,11 +47,23 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { Transformable } from 'ag-charts-core';
+import { Group, Transformable } from 'ag-charts-core';
 
 import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 import type { RangeAreaMarkerDatum } from './rangeAreaUtil';
+
+const RED = [255, 0, 0];
+const HALF_BLACK = [128, 128, 128];
+
+// A shadow with no blur, so that the colour of a pixel is the strength of the shadows cast on it.
+const shadowAt = (xOffset: number, yOffset = 0) => ({
+    enabled: true,
+    color: 'rgba(0, 0, 0, 0.5)',
+    xOffset,
+    yOffset,
+    blur: 0,
+});
 
 // The test data rows are keyed by `month`; the datum type keeps its row opaque.
 type ClickableMarkerDatum = RangeAreaMarkerDatum & { datum: { month: string | Date } };
@@ -1809,6 +1822,106 @@ describe('RangeAreaSeries', () => {
                     ])
                 )
             );
+        });
+    });
+
+    describe('shadow root', () => {
+        const FILLS = { fillOpacity: 1, strokeWidth: 0, marker: { enabled: false } };
+        const data = [
+            { x: 1, lowA: 2, highA: 8, lowB: 3, highB: 6 },
+            { x: 4, lowA: 2, highA: 8, lowB: 3, highB: 6 },
+        ];
+
+        const options = (series: AgRangeAreaSeriesOptions[]): AgCartesianChartOptions => ({
+            data,
+            axes: {
+                x: { ...STRIPPED_NUMBER_AXES.x, type: 'number' },
+                y: { ...STRIPPED_NUMBER_AXES.y, type: 'number' },
+            },
+            series,
+        });
+        const rangeArea = (suffix: 'A' | 'B', extra: Partial<AgRangeAreaSeriesOptions>): AgRangeAreaSeriesOptions => ({
+            type: 'range-area',
+            xKey: 'x',
+            yLowKey: `low${suffix}`,
+            yHighKey: `high${suffix}`,
+            ...FILLS,
+            ...extra,
+        });
+
+        /** The number of pixels of the canvas whose colour is `[red, green, blue]`, give or take a channel. */
+        const countPixels = (colour: number[]) => {
+            const { scene } = deproxy(chart).ctx;
+            const { width, height } = scene.canvas;
+            const { data: pixels } = scene.canvas.context.getImageData(0, 0, width, height);
+            let count = 0;
+            for (let i = 0; i < pixels.length; i += 4) {
+                if (colour.every((channel, c) => Math.abs(pixels[i + c] - channel) <= 2)) count++;
+            }
+            return count;
+        };
+
+        /** Creates the chart with the root unable to cast, if `rootCasts` is false, so that each series casts its own. */
+        const render = async (series: AgRangeAreaSeriesOptions[], rootCasts: boolean) => {
+            if (!rootCasts) vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
+            chart = await createEnterpriseChart(options(series));
+        };
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        it('should not draw the shadow of a later range-area over an earlier one', async () => {
+            // The shadow of the later area falls up, onto the part of the earlier area that shows above it.
+            const series = [
+                rangeArea('A', { fill: 'red' }),
+                rangeArea('B', { fill: 'blue', shadow: shadowAt(0, -30) }),
+            ];
+            const DARKENED_RED = [128, 0, 0];
+
+            await render(series, true);
+            expect(countPixels(RED)).toBeGreaterThan(0);
+            expect(countPixels(DARKENED_RED)).toBe(0);
+
+            chart = destroyChart(chart);
+            await render(series, false);
+            expect(countPixels(DARKENED_RED)).toBeGreaterThan(0);
+        });
+
+        it('should cast the shadow once where the shadows of two range-areas overlap, not stack them', async () => {
+            // To the right of both areas, the shadows of the two overlap over the lower part of the taller one.
+            const series = [
+                rangeArea('A', { fill: 'red', shadow: shadowAt(40) }),
+                rangeArea('B', { fill: 'blue', shadow: shadowAt(40) }),
+            ];
+            const STACKED = [64, 64, 64];
+
+            await render(series, true);
+            expect(countPixels(HALF_BLACK)).toBeGreaterThan(0);
+            expect(countPixels(STACKED)).toBe(0);
+
+            chart = destroyChart(chart);
+            await render(series, false);
+            expect(countPixels(STACKED)).toBeGreaterThan(0);
+        });
+
+        it('should draw the shadows of its markers over its own fill, not beneath it', async () => {
+            // Half black over a fill of 0.8 red is [128, 26, 26]; beneath it, the fill leaves [230, 26, 26].
+            const series = [
+                rangeArea('A', {
+                    fill: 'red',
+                    fillOpacity: 0.8,
+                    marker: { enabled: true, size: 8, fill: 'blue', shadow: shadowAt(0, 20) },
+                }),
+            ];
+            const SHADOW_OVER_FILL = [128, 26, 26];
+
+            await render(series, true);
+            expect(countPixels(SHADOW_OVER_FILL)).toBeGreaterThan(0);
+
+            chart = destroyChart(chart);
+            await render(series, false);
+            expect(countPixels(SHADOW_OVER_FILL)).toBeGreaterThan(0);
         });
     });
 });

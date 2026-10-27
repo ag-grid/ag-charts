@@ -467,9 +467,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 counts.groups += childCounts.groups;
                 counts.nonGroups += childCounts.nonGroups;
                 counts.complexity += childCounts.complexity;
-                if (!child.visible) continue;
-                if (countCasters && getBatchedShadow(child) != null) casters++;
-                if (child instanceof Group) sharedBelow += child.getSharedCasterCount();
+                if (countCasters && child.visible && getBatchedShadow(child) != null) casters++;
+                // Only a group has groups in its counts, so a datum is not tested.
+                if (childCounts.groups > 0 && child.visible && child instanceof Group) {
+                    sharedBelow += child.getSharedCasterCount();
+                }
             }
             this.shadowCasterCount = casters;
             this.sharedCasterCount = (this.sharesShadows() ? casters : 0) + sharedBelow;
@@ -642,10 +644,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     protected renderInContext(childRenderCtx: RenderContext) {
         const { ctx } = childRenderCtx;
 
-        if (this.dirtyZIndex) {
-            this.sortChildren(Group.compareChildren);
-            this.dirtyZIndex = false;
-        }
+        this.sortChildrenIfDirty();
 
         ctx.save();
 
@@ -750,10 +749,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     gatherShadowChildren(collector: ShadowCollector): void {
-        if (this.dirtyZIndex) {
-            this.sortChildren(Group.compareChildren);
-            this.dirtyZIndex = false;
-        }
+        this.sortChildrenIfDirty();
 
         // A group with no caster below it is not visited, so the root costs the groups that cast through it.
         if (this.sharesShadows() && this.countShadowCasters() > 0) collector.addFrame(this, this.shadowVersion);
@@ -830,17 +826,19 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         return this.shadowCasterCount;
     }
 
+    private collectChildGroups(): readonly Group[] {
+        let groups: Group[] | undefined;
+        for (const child of this.children()) {
+            if (!(child instanceof Group)) continue;
+            groups ??= [];
+            groups.push(child);
+        }
+        return groups ?? NO_GROUPS;
+    }
+
     /** The children that are groups, in the order that they are drawn, which is cached until the group is next marked dirty. */
     private getChildGroups(): readonly Group[] {
-        if (this.childGroups == null) {
-            let groups: Group[] | undefined;
-            for (const child of this.children()) {
-                if (!(child instanceof Group)) continue;
-                groups ??= [];
-                groups.push(child);
-            }
-            this.childGroups = groups ?? NO_GROUPS;
-        }
+        this.childGroups ??= this.childNodeCounts.groups === 1 ? NO_GROUPS : this.collectChildGroups();
         return this.childGroups;
     }
 
@@ -854,6 +852,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             this.sharedCasterCount = count;
         }
         return this.sharedCasterCount;
+    }
+
+    private sortChildrenIfDirty() {
+        if (!this.dirtyZIndex) return;
+
+        this.sortChildren(Group.compareChildren);
+        this.dirtyZIndex = false;
     }
 
     private sortChildren(compareFn?: (a: Node, b: Node) => number) {
