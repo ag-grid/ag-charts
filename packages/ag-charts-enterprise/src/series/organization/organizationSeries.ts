@@ -22,12 +22,14 @@ import {
     type BoxBounds,
     type CallbackParamRules,
     ChartUpdateType,
+    type DeepPartial,
     type DeepRequired,
     type DynamicContext,
     type Normalised,
     type NormalisedColorType,
     type NormalisedOrganizationSeriesNodeTextOptions,
     type NormalisedOrganizationSeriesOwnOptions,
+    type NormalisedSeriesOptions,
     type NormalisedTextOrSegments,
     Transformable,
     Vertex,
@@ -70,6 +72,18 @@ const MIN_DETAIL_CARD_HEIGHT = 20;
 // Shared so a series with no label tiers allocates nothing per node.
 const NO_LABEL_TIERS: NormalisedOrganizationSeriesNodeTextOptions[] = [];
 
+// What a card was last styled from; an update whose inputs match it can leave the card as it is.
+interface AppliedStyleInputs {
+    vertex: Vertex<OrganizationVertex, OrganizationEdge>;
+    epoch: number;
+    isRtl: boolean;
+    direction: AgNetworkSeriesTreeLayoutDirection;
+    isCollapsed: boolean;
+    isHighlight: boolean;
+    highlightState: _ModuleSupport.HighlightState | undefined;
+    isExpanderHovered: boolean;
+}
+
 interface DatumCallbackState {
     allChildren: number;
     depth: number;
@@ -103,6 +117,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private hasAnyKeyedValue = false;
 
     private detailHidden = false;
+
+    private readonly appliedStyleInputs = new WeakMap<OrganizationNode, AppliedStyleInputs>();
+    // Bumped by anything that restyles every card, so no card's recorded inputs can match afterwards.
+    private styleEpoch = 0;
 
     // Source-data indices of the nodes whose highlight changed since the last update.
     private readonly changedHighlightDatumIndices = new Set<number>();
@@ -143,6 +161,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     async processData(dataController: _ModuleSupport.DataController) {
         this.hasAnyKeyedValue = false;
+        this.styleEpoch++;
 
         const { data } = this;
         if (data == null) return;
@@ -249,23 +268,25 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     updateDatumNodes(datumSelection: Selection<OrganizationDatum, OrganizationNode>) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        const reuseStyles = !this.hasItemStylers();
 
-        datumSelection.each((node, datum) => this.updateDatumNode(node, datum, highlightedDatum));
+        datumSelection.each((node, datum) => this.updateDatumNode(node, datum, highlightedDatum, reuseStyles));
     }
 
+    // OPTIMIZATION: a toggle leaves almost every card as it was, so a card whose inputs match the ones it was last
+    // styled from is not restyled. Item stylers and selection can read state outside those inputs, so they restyle all.
     private updateDatumNode(
         node: OrganizationNode,
         datum: OrganizationDatum,
-        highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined
+        highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined,
+        reuseStyles: boolean
     ) {
         const { collapsedByAncestor } = datum;
         node.visible = !collapsedByAncestor;
         if (collapsedByAncestor) return;
 
         const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
-        const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
         const allChildren = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
-        const directChildren = this.graph.neighboursWithEdgeValue(datum.vertex, 'child')?.length ?? 0;
 
         const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
         const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
@@ -273,6 +294,27 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         // would mislead styler consumers about the rendered tree state.
         const isCollapsed =
             allChildren > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
+        const isExpanderHovered = this.hoveredExpanderDatumIndex === datumIndex;
+        const isRtl = this.ctx.domManager.isRtl;
+        const direction = this.getNetworkTreeLayoutDirection();
+
+        const applied = this.appliedStyleInputs.get(node);
+        if (
+            reuseStyles &&
+            applied?.vertex === datum.vertex &&
+            applied.epoch === this.styleEpoch &&
+            applied.isRtl === isRtl &&
+            applied.direction === direction &&
+            applied.isCollapsed === isCollapsed &&
+            applied.isHighlight === isHighlight &&
+            applied.highlightState === highlightState &&
+            applied.isExpanderHovered === isExpanderHovered
+        ) {
+            return;
+        }
+
+        const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
+        const directChildren = this.graph.neighboursWithEdgeValue(datum.vertex, 'child')?.length ?? 0;
 
         const datumState: DatumCallbackState = {
             depth,
@@ -280,8 +322,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             directChildren,
             isCollapsed,
         };
-
-        const isExpanderHovered = this.hoveredExpanderDatumIndex === datumIndex;
 
         const styles = this.getNodeStyle(datumIndex, isHighlight, highlightState, datumState, isExpanderHovered);
         node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
@@ -311,10 +351,28 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             allChildren,
             styles,
             isCollapsed,
-            this.ctx.domManager.isRtl,
-            this.getNetworkTreeLayoutDirection()
+            isRtl,
+            direction
         );
         node.setDetailVisible(!this.detailHidden);
+
+        this.appliedStyleInputs.set(node, {
+            vertex: datum.vertex,
+            epoch: this.styleEpoch,
+            isRtl,
+            direction,
+            isCollapsed,
+            isHighlight,
+            highlightState,
+            isExpanderHovered,
+        });
+    }
+
+    protected override syncOptionDerivedState(
+        optionsDiff: DeepPartial<NormalisedSeriesOptions<NormalisedOrganizationSeriesOwnOptions>> | undefined
+    ) {
+        super.syncOptionDerivedState(optionsDiff);
+        this.styleEpoch++;
     }
 
     protected override onChangeHighlight(event: _ModuleSupport.HighlightChangeEvent) {
@@ -359,7 +417,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             const node = nodeDatumIndex == null ? undefined : this.datumSelection.at(nodeDatumIndex);
             if (node?.datum == null) continue;
 
-            this.updateDatumNode(node, node.datum, highlightedDatum);
+            this.updateDatumNode(node, node.datum, highlightedDatum, false);
             // Updating the node resets the card to its intrinsic size, which the layout pass would clamp.
             this.positionDatumNode(node, new BBox(node.translationX, node.translationY, 0, 0), regularBBox);
         }

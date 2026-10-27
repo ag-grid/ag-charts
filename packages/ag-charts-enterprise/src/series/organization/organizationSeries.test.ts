@@ -51,7 +51,7 @@ import {
     getSeriesInstance,
 } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
-import { OrganizationNodeTag } from './organizationNode';
+import { OrganizationNode, OrganizationNodeTag } from './organizationNode';
 import { OrganizationSeries } from './organizationSeries';
 import type { OrganizationDatum } from './organizationTypes';
 
@@ -1779,6 +1779,60 @@ describe('OrganizationSeries', () => {
             await hoverItem('cto');
 
             expect(layoutUpdate).toHaveBeenCalled();
+        });
+    });
+
+    describe('collapse updates', () => {
+        // A square card makes the card and expander pill hit-testable in JSDOM (see .claude/rules/testing.md).
+        const buildOptions = (nodeOverrides: Record<string, unknown> = {}): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: { title: { key: 'name' }, subtitle: { key: 'job' }, cornerRadius: 0, ...nodeOverrides },
+                },
+            ],
+        });
+
+        const visibleCardCount = () =>
+            getOrganizationCards(chart).filter(({ datum }) => !datum.collapsedByAncestor).length;
+
+        function restyledItemIds(restyled: { mock: { contexts: unknown[] } }) {
+            const ids = new Map(getOrganizationCards(chart).map(({ node, datum }) => [node, datum.itemId]));
+            return restyled.mock.contexts.map((node) => ids.get(node as OrganizationNode));
+        }
+
+        it('should restyle only the card whose collapsed state changed', async () => {
+            chart = await createEnterpriseChart(buildOptions());
+            const restyled = vi.spyOn(OrganizationNode.prototype, 'update');
+
+            await clickItem('cto', OrganizationNodeTag.Expander);
+            expect(restyledItemIds(restyled)).toEqual(['cto']);
+
+            restyled.mockClear();
+            await clickItem('cto', OrganizationNodeTag.Expander);
+            expect(restyledItemIds(restyled)).toEqual(['cto']);
+        });
+
+        it('should restyle every visible card when a styler can restyle any of them', async () => {
+            chart = await createEnterpriseChart(buildOptions({ itemStyler: () => ({}) }));
+            const restyled = vi.spyOn(OrganizationNode.prototype, 'update');
+
+            await clickItem('cto', OrganizationNodeTag.Expander);
+
+            expect(restyled).toHaveBeenCalledTimes(visibleCardCount());
+        });
+
+        it('should restyle every visible card when the options change', async () => {
+            chart = await createEnterpriseChart(buildOptions());
+            const restyled = vi.spyOn(OrganizationNode.prototype, 'update');
+
+            await chart.update(prepareEnterpriseTestOptions(buildOptions({ fill: 'red' })));
+            await waitForChartStability(chart);
+
+            expect(restyled).toHaveBeenCalledTimes(visibleCardCount());
         });
     });
 
