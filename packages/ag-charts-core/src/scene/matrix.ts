@@ -1,6 +1,16 @@
 import { isNumberEqual } from '../data/numbers';
 import { BBox } from './bbox';
 
+/** The elements of a 2D affine matrix, as a `DOMMatrix` names them. */
+export interface MatrixFrame {
+    a: number;
+    b: number;
+    c: number;
+    d: number;
+    e: number;
+    f: number;
+}
+
 export const IDENTITY_MATRIX_ELEMENTS: readonly number[] = [1, 0, 0, 1, 0, 0];
 
 /**
@@ -99,6 +109,18 @@ export class Matrix {
         this.AxB(this.elements, other.elements);
 
         return this;
+    }
+
+    /** Writes `parent` followed by this matrix into `out`, without allocating. */
+    composeAfter(parent: Readonly<MatrixFrame>, out: MatrixFrame) {
+        const { a, b, c, d, e, f } = parent;
+        const m = this.elements;
+        out.a = a * m[0] + c * m[1];
+        out.b = b * m[0] + d * m[1];
+        out.c = a * m[2] + c * m[3];
+        out.d = b * m[2] + d * m[3];
+        out.e = a * m[4] + c * m[5] + e;
+        out.f = b * m[4] + d * m[5] + f;
     }
 
     /**

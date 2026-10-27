@@ -40,6 +40,7 @@ import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
+import type { MatrixFrame } from '../matrix';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
 import { shadowPass } from '../shadowPass';
@@ -116,6 +117,16 @@ interface SpreadBounds {
 /** The device-space bounds of a silhouette that was just measured, reused to avoid a per-shape allocation. */
 const silhouetteBounds = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 
+const silhouetteFrame: MatrixFrame = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+
+/** Device-space bounds, as {@link Shape.getShadowSilhouetteBounds} writes them. */
+export interface SilhouetteBounds {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+}
+
 /** The device-space bounds of the shape whose spread shadow is being drawn, reused to avoid a per-shape allocation. */
 const spreadBounds: SpreadBounds = {
     minX: 0,
@@ -181,7 +192,10 @@ function hasCanvas(ctx: CanvasContext): ctx is CanvasContext & { canvas: { width
 }
 
 /** Nodes with their own transform matrix, whose `getBBox()` is in parent space rather than the space they draw in. */
-function hasLocalTransform(node: Node): node is Node & { computeBBoxWithoutTransforms(): BBox | undefined } {
+function hasLocalTransform(node: Node): node is Node & {
+    computeBBoxWithoutTransforms(): BBox | undefined;
+    composeTransform(parent: Readonly<MatrixFrame>, out: MatrixFrame): void;
+} {
     return 'computeBBoxWithoutTransforms' in node;
 }
 
@@ -659,7 +673,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * Measures, into {@link silhouetteBounds}, the device-space bounds of what the shape casts a shadow from, through
      * `matrix`. Returns false when the shape has no bounds to measure.
      */
-    private measureSilhouette(matrix: DOMMatrix, spread: number, bboxOverride?: BBox): boolean {
+    private measureSilhouette(matrix: Readonly<MatrixFrame>, spread: number, bboxOverride?: BBox): boolean {
         const localBBox: BBox | undefined =
             bboxOverride ?? (hasLocalTransform(this) ? this.computeBBoxWithoutTransforms() : this.getBBox());
         if (localBBox == null) return false;
@@ -732,6 +746,26 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private hasVisibleStroke(): boolean {
         const { __stroke: stroke, __strokeWidth: strokeWidth = 0, __strokeOpacity: strokeOpacity = 1 } = this;
         return stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0;
+    }
+
+    /**
+     * Writes into `out` the device-space bounds of what the shape casts a shadow from, drawn in a parent whose transform is
+     * `parent`: the same measurement the shadow's mask is cleared by. Returns false if the bounds can't be told, or are
+     * not fixed by the shape and its transform.
+     */
+    getShadowSilhouetteBounds(parent: Readonly<MatrixFrame>, spread: number, out: SilhouetteBounds): boolean {
+        let frame = parent;
+        if (hasLocalTransform(this)) {
+            this.composeTransform(parent, silhouetteFrame);
+            frame = silhouetteFrame;
+        }
+        if (!this.measureSilhouette(frame, spread)) return false;
+
+        out.minX = silhouetteBounds.minX;
+        out.minY = silhouetteBounds.minY;
+        out.maxX = silhouetteBounds.maxX;
+        out.maxY = silhouetteBounds.maxY;
+        return true;
     }
 
     /** How far the pre-pass's strokes reach past the shape's bounds, in the shape's own units. */

@@ -5,7 +5,7 @@ import { type SpreadCanvas, allocateCanvas, disposeCanvas, releaseSpreadCanvas }
 import type { Node, RenderContext } from './node';
 import { shadowPass } from './shadowPass';
 import { Path } from './shape/path';
-import { Shape } from './shape/shape';
+import { Shape, type SilhouetteBounds } from './shape/shape';
 import type { TranslatableType } from './transformable';
 import { compareZIndex } from './zIndex';
 
@@ -24,7 +24,7 @@ const MAX_MASK_AREA = 4096 * 4096;
 /** How many casts of one user keep their shadows between redraws. Further casts of it blur every time. */
 const MAX_CACHED_CASTS = 4;
 
-/** The most pixels that the kept shadows of a scene hold between them: 16 MB, one layer of a 1200 x 800 chart at 2x. */
+/** The most pixels that the kept shadows of a scene hold between them: about 16 MB, or one 1200 x 800 layer at 2x (3.84M). */
 const MAX_CACHED_AREA = MAX_MASK_AREA / 4;
 
 /** The pixels that a kept shadow may reach past what the blur's Gaussian covers, for the rounding of its edge. */
@@ -304,16 +304,11 @@ interface Extent {
     readonly height: number;
 }
 
-/** How far a caster's silhouette reaches past its bounds in the mask, in its own units: its stroke, joins and spread. */
-function getSilhouetteReach(caster: ShadowCaster, spread: number) {
-    const lineWidth = (caster.__strokeWidth ?? 0) + Math.max(0, spread) * 2;
-    const join = caster.__lineJoin ?? 'miter';
-    return lineWidth * Math.max(0.75, join === 'miter' ? (caster.__miterLimit ?? 10) / 2 : 0.5);
-}
+const silhouette: SilhouetteBounds = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 
 /**
- * The part of the layer that the shadows of the keys can land on, in device pixels, or the whole layer if a caster has
- * no bounds to tell. It errs wide: a kept cast that is too small would cut its shadows off.
+ * The part of the layer that the shadows of the keys can land on, in device pixels, or the whole layer if a caster's
+ * silhouette can't be bounded. It is measured as the mask is cleared, so a kept cast holds every pixel a direct one draws.
  */
 function getShadowExtent(
     keys: readonly ShadowKey[],
@@ -322,9 +317,6 @@ function getShadowExtent(
     width: number,
     height: number
 ): Extent {
-    const layer = { x: 0, y: 0, width, height };
-    const { a, b, c, d, e, f } = transform;
-    const scale = Math.max(Math.hypot(a, b), Math.hypot(c, d));
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
@@ -336,30 +328,17 @@ function getShadowExtent(
         const offsetY = shadow.yOffset * devicePixelRatio;
         const blurReach = Math.ceil(shadow.blur * devicePixelRatio * SHADOW_BLUR_REACH) + CACHED_EXTENT_MARGIN;
         for (const caster of casters) {
-            const bbox = caster.getBBox() as { x: number; y: number; width: number; height: number } | undefined;
-            if (bbox == null) return layer;
+            if (!caster.getShadowSilhouetteBounds(transform, spread, silhouette)) return { x: 0, y: 0, width, height };
 
-            const reach = getSilhouetteReach(caster, spread) * scale + blurReach;
-            const left = bbox.x;
-            const top = bbox.y;
-            const right = bbox.x + bbox.width;
-            const bottom = bbox.y + bbox.height;
-            for (const [x, y] of [
-                [left, top],
-                [right, top],
-                [right, bottom],
-                [left, bottom],
-            ]) {
-                const deviceX = a * x + c * y + e + offsetX;
-                const deviceY = b * x + d * y + f + offsetY;
-                minX = Math.min(minX, deviceX - reach);
-                maxX = Math.max(maxX, deviceX + reach);
-                minY = Math.min(minY, deviceY - reach);
-                maxY = Math.max(maxY, deviceY + reach);
-            }
+            minX = Math.min(minX, silhouette.minX + offsetX - blurReach);
+            maxX = Math.max(maxX, silhouette.maxX + offsetX + blurReach);
+            minY = Math.min(minY, silhouette.minY + offsetY - blurReach);
+            maxY = Math.max(maxY, silhouette.maxY + offsetY + blurReach);
         }
     }
-    if (!(isFiniteNumber(minX) && isFiniteNumber(minY) && isFiniteNumber(maxX) && isFiniteNumber(maxY))) return layer;
+    if (!(isFiniteNumber(minX) && isFiniteNumber(minY) && isFiniteNumber(maxX) && isFiniteNumber(maxY))) {
+        return { x: 0, y: 0, width, height };
+    }
 
     const x = Math.min(width - 1, Math.max(0, Math.floor(minX)));
     const y = Math.min(height - 1, Math.max(0, Math.floor(minY)));
