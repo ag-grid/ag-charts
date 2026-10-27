@@ -51,8 +51,7 @@ const options: AgCartesianChartOptions = {
 type Scenario = 'bars' | 'areas' | 'highlight' | 'many-markers';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
-// What each scenario draws, so that the shadows of the series overlap. The shadow is off in the first variant of each, to
-// show what it costs. Builds from before shadows reached these series, or before `spread`, ignore the options.
+// Each scenario overlaps the shadows of its series, with the shadow off in the first variant. Older builds ignore the options.
 // `many-markers` is 1,400px wide, as a line series draws no markers when its points are under 1px apart.
 /** inScope */
 function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOptions {

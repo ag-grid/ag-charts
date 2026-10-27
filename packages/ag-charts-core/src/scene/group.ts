@@ -461,14 +461,18 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
             const countCasters = this.batchShadows !== false;
             let casters = 0;
+            let sharedBelow = 0;
             for (const child of this.children()) {
                 const childCounts = child.preRender(renderCtx);
                 counts.groups += childCounts.groups;
                 counts.nonGroups += childCounts.nonGroups;
                 counts.complexity += childCounts.complexity;
-                if (countCasters && child.visible && getBatchedShadow(child) != null) casters++;
+                if (!child.visible) continue;
+                if (countCasters && getBatchedShadow(child) != null) casters++;
+                if (child instanceof Group) sharedBelow += child.getSharedCasterCount();
             }
             this.shadowCasterCount = casters;
+            this.sharedCasterCount = (this.sharesShadows() ? casters : 0) + sharedBelow;
             if (casters === 0 && !this.shadowRoot) {
                 // Nothing to batch, so the group gives up the scene's scratch canvas and the shadows its casts kept.
                 releaseShadowScratch(this.scene, this);
@@ -751,8 +755,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             this.dirtyZIndex = false;
         }
 
-        // A group with no caster has no frame, and one with none below it is not visited, so the root costs the groups that
-        // cast through it, and not the groups or the items that do not.
+        // A group with no caster below it is not visited, so the root costs the groups that cast through it.
         if (this.sharesShadows() && this.countShadowCasters() > 0) collector.addFrame(this, this.shadowVersion);
 
         for (const child of this.getChildGroups()) {
@@ -830,11 +833,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     /** The children that are groups, in the order that they are drawn, which is cached until the group is next marked dirty. */
     private getChildGroups(): readonly Group[] {
         if (this.childGroups == null) {
-            const groups: Group[] = [];
+            let groups: Group[] | undefined;
             for (const child of this.children()) {
-                if (child instanceof Group) groups.push(child);
+                if (!(child instanceof Group)) continue;
+                groups ??= [];
+                groups.push(child);
             }
-            this.childGroups = groups.length > 0 ? groups : NO_GROUPS;
+            this.childGroups = groups ?? NO_GROUPS;
         }
         return this.childGroups;
     }

@@ -1,3 +1,4 @@
+import { arraysEqual } from '../data/arrays';
 import { isFiniteNumber } from '../data/typeGuards';
 import { Color } from '../format/color';
 import type { NormalisedDropShadowOptions } from '../options/normalised/normalisedCommonOptions';
@@ -47,13 +48,8 @@ export type { ShadowClip, ShadowFrame, ShadowRegion } from './shadowCollector';
 export type ShadowCaster = Shape & { __fillShadow: NormalisedDropShadowOptions };
 
 /**
- * How far a cast reaches. Casters are cast together where they are adjacent and share their shadow options and clip.
- *
- * - `run`: a cast ends only where the next node doesn't cast, or casts another shadow or to another clip.
- * - `layer`: a cast also ends at a change of `zIndex`, so that the shadow of an upper layer still lands on the lower one,
- *   as the depths of a treemap do.
- * - `root`: a cast gathers the casters of every group below a shadow root, whatever lies between them, so that the shadows of
- *   all of them sit beneath all of their items. Each caster then has a {@link ShadowFrame} of its own.
+ * How far a cast reaches: `run` ends it where adjacent casters stop sharing shadow and clip, `layer` also at a `zIndex`, and
+ * `root` gathers the casters of every group below a shadow root, each with a {@link ShadowFrame}.
  */
 export type ShadowScope = 'run' | 'layer' | 'root';
 
@@ -63,7 +59,7 @@ export interface ShadowKey {
     /** The clip of a local key, in the coordinates of the group. A `root` key has {@link clips} instead. */
     readonly clip: ShadowClip | undefined;
     readonly casters: ShadowCaster[];
-    /** The frame of each caster, in the order of {@link casters}, for a `root` key: the casters of one group share one. */
+    /** The frame of each caster, in the order of {@link casters}, for a `root` key. */
     readonly frames?: ShadowFrame[];
     /** All that clips every caster of a `root` key, in device pixels: the clips of its frames, and of a path. */
     readonly clips?: readonly ShadowRegion[];
@@ -107,11 +103,7 @@ function sameClip(a: ShadowClip | undefined, b: ShadowClip | undefined) {
 
 function sameRegions(a: readonly ShadowRegion[] | undefined, b: readonly ShadowRegion[] | undefined) {
     if (a === b) return true;
-    if (a == null || a.length !== b?.length) return false;
-    return a.every(
-        (region, i) =>
-            region === b[i] || (region.length === b[i].length && region.every((c, j) => sameClip(c, b[i][j])))
-    );
+    return a != null && b != null && arraysEqual(a, b);
 }
 
 function sameLayer(a: Node, b: Node) {
@@ -131,10 +123,7 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
     );
 }
 
-/**
- * Whether `next`, which casts `shadow` to `clip`, is cast with the casters of `key` rather than starting another key. A
- * `root` key is clipped by `clips` in device pixels, instead of `clip`, and is joined by any caster that is, whatever its place.
- */
+/** Whether `next`, which casts `shadow` to `clip`, joins the casters of `key`. A `root` key is clipped by `clips` instead. */
 export function joinsShadowKey(
     key: ShadowKey,
     next: Node,
@@ -285,10 +274,7 @@ function putSignature(cache: ShadowCache, value: number | string) {
     cache.cursor = cursor + 1;
 }
 
-/**
- * Overwrites the signature with what the cast reads, and returns whether it held that already. With `unchanged`, the keys
- * are those that the signature was last made from, so only what of the layer it holds is read, and not every caster.
- */
+/** Overwrites the signature with what the cast reads, and returns whether it held that already. */
 function matchSignature(
     cache: ShadowCache,
     keys: readonly ShadowKey[],
@@ -339,7 +325,7 @@ function matchSignature(
             const caster = casters[i];
             putSignature(cache, caster.serialNumber);
             putSignature(cache, caster.revision);
-            // The casters of a frame follow one another, so it is read when it changes.
+            // The casters of a frame follow one another.
             const next = frames?.[i];
             if (next != null && next !== frame) {
                 frame = next;
@@ -387,8 +373,7 @@ function getShadowExtent(
         const offsetX = shadow.xOffset * devicePixelRatio;
         const offsetY = shadow.yOffset * devicePixelRatio;
         const blurReach = getBlurReach(shadow.blur * devicePixelRatio) + CACHED_EXTENT_MARGIN;
-        // A `root` key has a matrix for each caster's group, and a local key has the one transform. The casters of a frame
-        // follow one another.
+        // A `root` key has a matrix for each frame, and a local key has the one transform.
         let frame: ShadowFrame | undefined;
         let frameTransform: MatrixFrame = transform;
         for (let i = 0; i < casters.length; i++) {
@@ -516,11 +501,7 @@ export function renderShadowless(casters: readonly Node[], renderCtx: RenderCont
     renderPass(casters, renderCtx, 'suppress');
 }
 
-/**
- * The strength that every caster of a `spread` key casts at, 0 if none of them casts, or undefined if they differ or one
- * draws its silhouette another way. The key then draws the silhouettes solid and casts its one shadow at that strength,
- * which avoids a pass over the layer per translucent shape.
- */
+/** The strength all casters of a `spread` key cast at (0 if none), or undefined if they differ or one draws another way. */
 function getUniformSpreadStrength({ casters, frames }: ShadowKey): number | undefined {
     let uniform = 0;
     for (let i = 0; i < casters.length; i++) {
@@ -548,7 +529,7 @@ function scaleColourAlpha(colour: string, scale: number): string | undefined {
 }
 
 /** How a key casts its shadow: where its mask goes, and how it is blurred. */
-interface KeyPlan {
+interface MaskPlan {
     readonly key: ShadowKey;
     readonly blur: number;
     readonly offsetX: number;
@@ -557,12 +538,16 @@ interface KeyPlan {
     readonly padTop: number;
     readonly maskWidth: number;
     readonly maskHeight: number;
+    readonly colour: string;
+    readonly opaque: boolean;
+}
+
+/** A {@link MaskPlan} with the canvas that its mask is drawn on, which is the mask at the resolution of the cast. */
+interface KeyPlan extends MaskPlan {
     readonly canvasWidth: number;
     readonly canvasHeight: number;
     readonly scaleX: number;
     readonly scaleY: number;
-    readonly colour: string;
-    readonly opaque: boolean;
 }
 
 /** Plans a key, or returns 'empty' if its casters all cast nothing, or 'unusable' if the layer or the shadow is. */
@@ -571,7 +556,7 @@ function planKey(
     renderCtx: RenderContext,
     width: number,
     height: number
-): KeyPlan | 'empty' | 'unusable' {
+): MaskPlan | 'empty' | 'unusable' {
     const { ctx, devicePixelRatio } = renderCtx;
     const { shadow } = key;
 
@@ -595,16 +580,10 @@ function planKey(
     const padTop = Math.min(Math.ceil(Math.max(0, offsetY)) + reach, MAX_MASK_PAD);
     const padBottom = Math.min(Math.ceil(Math.max(0, -offsetY)) + reach, MAX_MASK_PAD);
 
-    // A canvas of more pixels than a browser can allocate would give no context, so a mask that is too large is drawn at a
-    // lower resolution, which is blitted back up to its size.
     const maskWidth = width + padLeft + padRight;
     const maskHeight = height + padTop + padBottom;
-    const resolution = fitMask(maskWidth, maskHeight);
-    const canvasWidth = Math.max(1, Math.floor(maskWidth * resolution));
-    const canvasHeight = Math.max(1, Math.floor(maskHeight * resolution));
 
-    // A key of casters at one translucent strength draws them solid, and casts the shadow at that strength. The frames of a
-    // `root` key hold the alpha of the layer already.
+    // Casters at one translucent strength are drawn solid, with the shadow cast at that strength. A `root` key's frames hold the layer alpha.
     const layerAlpha = key.frames == null ? ctx.globalAlpha : 1;
     let colour = shadow.color;
     let opaque = false;
@@ -625,10 +604,6 @@ function planKey(
         padTop,
         maskWidth,
         maskHeight,
-        canvasWidth,
-        canvasHeight,
-        scaleX: canvasWidth / maskWidth,
-        scaleY: canvasHeight / maskHeight,
         colour,
         opaque,
     };
@@ -652,11 +627,7 @@ function clipToRegions(target: RenderContext['ctx'], regions: readonly ShadowReg
     }
 }
 
-/**
- * Casts a planned key onto `target`, whose top left is `origin` on the layer: its casters draw their silhouettes into
- * `scratch`, and that mask is blurred once as it is blitted. `transform` is the group's, which the clip of the key is in,
- * unless the key has a frame for each caster. Returns whether every caster drew.
- */
+/** Casts a planned key onto `target`, whose top left is `origin` on the layer. Returns whether every caster drew. */
 function castPlan(
     plan: KeyPlan,
     scratch: SpreadCanvas,
@@ -784,17 +755,11 @@ export interface ShadowCast {
     readonly keys: readonly ShadowKey[];
     /** Which of the user's casts of this frame this is, to match it with the same cast of the last frame. */
     readonly index: number;
-    /**
-     * Whether the keys are those of this user's last cast of this index, as they were then: no caster, shadow or clip of
-     * them has changed. The cast then skips reading every caster to tell whether it can blit what it kept.
-     */
+    /** Whether the keys are those of the last cast of this index, unchanged, so the cast need not read every caster. */
     readonly unchanged?: boolean;
 }
 
-/**
- * Casts the shadows of the keys onto `renderCtx.ctx`, now. Returns false, having drawn nothing, if the layer or a shadow is
- * unusable, or the browser can't allocate the scratch canvas, in which case the casters cast for themselves.
- */
+/** Casts the shadows of the keys now. Returns false, having drawn nothing, if they can't be cast, so casters cast their own. */
 export function castShadows({ scene, user, keys, index, unchanged }: ShadowCast, renderCtx: RenderContext): boolean {
     const { ctx } = renderCtx;
     const width = Math.ceil(ctx.canvas.width);
@@ -819,21 +784,35 @@ export function castShadows({ scene, user, keys, index, unchanged }: ShadowCast,
     }
 
     // Every key is planned before any is drawn, so that a cast that can't be made is not half made.
-    const plans: KeyPlan[] = [];
+    const masks: MaskPlan[] = [];
+    let maskWidth = 0;
+    let maskHeight = 0;
     for (const key of keys) {
         const plan = planKey(key, renderCtx, width, height);
         if (plan === 'unusable') return false;
-        if (plan !== 'empty') plans.push(plan);
-    }
-    if (plans.length === 0) return true;
+        if (plan === 'empty') continue;
 
-    let scratchWidth = 0;
-    let scratchHeight = 0;
-    for (const { canvasWidth, canvasHeight } of plans) {
-        scratchWidth = Math.max(scratchWidth, canvasWidth);
-        scratchHeight = Math.max(scratchHeight, canvasHeight);
+        masks.push(plan);
+        maskWidth = Math.max(maskWidth, plan.maskWidth);
+        maskHeight = Math.max(maskHeight, plan.maskHeight);
     }
-    if (scratchWidth * scratchHeight > MAX_MASK_AREA) return false;
+    if (masks.length === 0) return true;
+
+    // The masks share a scratch canvas as wide as the widest and as tall as the tallest, so they share a resolution that fits it.
+    const resolution = fitMask(maskWidth, maskHeight);
+    const scratchWidth = Math.max(1, Math.floor(maskWidth * resolution));
+    const scratchHeight = Math.max(1, Math.floor(maskHeight * resolution));
+    const plans = masks.map((mask): KeyPlan => {
+        const canvasWidth = Math.max(1, Math.floor(mask.maskWidth * resolution));
+        const canvasHeight = Math.max(1, Math.floor(mask.maskHeight * resolution));
+        return {
+            ...mask,
+            canvasWidth,
+            canvasHeight,
+            scaleX: canvasWidth / mask.maskWidth,
+            scaleY: canvasHeight / mask.maskHeight,
+        };
+    });
     const scratch = acquireShadowScratch(scene, user, scratchWidth, scratchHeight);
     if (scratch == null) return false;
 

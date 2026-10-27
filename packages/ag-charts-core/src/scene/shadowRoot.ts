@@ -1,6 +1,7 @@
+import { arraysEqual } from '../data/arrays';
 import type { NormalisedDropShadowOptions } from '../options/normalised/normalisedCommonOptions';
 import type { Node, RenderContext } from './node';
-import { type CollectedFrame, type ShadowFrame, type ShadowRegion, transformCorners } from './shadowCollector';
+import { type CollectedFrame, type ShadowFrame, transformCorners } from './shadowCollector';
 import {
     type ShadowCaster,
     type ShadowClip,
@@ -27,36 +28,14 @@ interface RootMemo {
 
 const memos = new WeakMap<object, RootMemo>();
 
-function sameRegions(a: readonly ShadowRegion[], b: readonly ShadowRegion[]): boolean {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-        if (a[i].length !== b[i].length) return false;
-        for (let j = 0; j < a[i].length; j++) {
-            if (!sameNumbers(a[i][j], b[i][j])) return false;
-        }
-    }
-    return true;
-}
-
-function sameNumbers(a: readonly number[], b: readonly number[]): boolean {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-        if (a[i] !== b[i]) return false;
-    }
-    return true;
-}
-
-/**
- * Whether the frames are those of the memo, group for group, with no group marked dirty since. A caster that changed has
- * marked its group, so the keys of the memo are then the keys of the frames, without reading a caster to know.
- */
+/** Whether the frames are the memo's with no group marked dirty since, so its keys are still theirs. */
 function matchesMemo(memo: RootMemo, frames: readonly CollectedFrame[]): boolean {
     if (memo.frames.length !== frames.length) return false;
     for (let i = 0; i < frames.length; i++) {
         const a = memo.frames[i];
         const b = frames[i];
         if (a.source !== b.source || a.version !== b.version || a.alpha !== b.alpha) return false;
-        if (!sameNumbers(a.matrix, b.matrix) || !sameRegions(a.clips, b.clips)) return false;
+        if (!arraysEqual(a.matrix, b.matrix) || !arraysEqual(a.clips, b.clips)) return false;
     }
     return true;
 }

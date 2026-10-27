@@ -512,23 +512,54 @@ describe('Shadow root', () => {
     });
 
     describe('canvas size', () => {
-        it('should cast beneath the items of an earlier group on a canvas that a cache would not hold', () => {
+        // A layer over what a cache holds, and whose masks together are over what a browser can allocate.
+        const LARGE_WIDTH = 4200;
+        const LARGE_HEIGHT = 4000;
+        const DOWN = { ...RED_HALF, xOffset: 0, yOffset: 60 };
+
+        setupMockCanvas({ width: LARGE_WIDTH, height: LARGE_HEIGHT });
+
+        const drawLarge = (series: readonly Group[], renders = 1) => {
             const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
-            root.appendChild(group('shared', [square(120, 40, { fillShadow: RED_HALF })], { zIndex: 1 }));
-            root.appendChild(group('shared', [square(40, 40, { fillShadow: RED_HALF })], { zIndex: 2 }));
+            for (const child of series) root.appendChild(child);
             const scene = new Scene({ canvasElement: document.createElement('canvas'), pixelRatio: 1 });
-            scene.resize(4200, 4000, 1);
+            scene.resize(LARGE_WIDTH, LARGE_HEIGHT, 1);
             scene.setRoot(root);
             scenes.push(scene);
-
-            // A repeated cast is the one that would keep its shadows on a canvas of its own.
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < renders; i++) {
                 root.markDirty();
                 scene.render();
             }
+            return scene;
+        };
+
+        it('should cast beneath the items of an earlier group on a canvas that a cache would not hold', () => {
+            const scene = drawLarge(
+                [
+                    group('shared', [square(120, 40, { fillShadow: RED_HALF })], { zIndex: 1 }),
+                    group('shared', [square(40, 40, { fillShadow: RED_HALF })], { zIndex: 2 }),
+                ],
+                // A repeated cast is the one that would keep its shadows on a canvas of its own.
+                3
+            );
+
+            expect(scene.canvas.context.canvas.width * scene.canvas.context.canvas.height).toBeGreaterThan(4096 * 4096);
+            expect(at(scene, 130, 70)).toEqual(BLACK);
+            expect(isHalfRed(at(scene, 105, 70))).toBe(true);
+        });
+
+        it('should cast beneath the items of an earlier group when the masks of its keys differ in shape', () => {
+            // One key's mask is wider than the layer and the other's taller, so that together they are over the most pixels
+            // that a scratch canvas has, though each is within it.
+            const scene = drawLarge([
+                group('shared', [square(120, 40, { fillShadow: RED_HALF })], { zIndex: 1 }),
+                group('shared', [square(40, 40, { fillShadow: RED_HALF })], { zIndex: 2 }),
+                group('shared', [square(300, 40, { fillShadow: DOWN })], { zIndex: 3 }),
+            ]);
 
             expect(at(scene, 130, 70)).toEqual(BLACK);
             expect(isHalfRed(at(scene, 105, 70))).toBe(true);
+            expect(isHalfRed(at(scene, 320, 130))).toBe(true);
         });
     });
 
