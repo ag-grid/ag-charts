@@ -222,3 +222,13 @@
     padding-right: 0;
     width: var(--toolbar-button-size);
 }
+
+.ag-charts-toolbar__button--sized .ag-charts-toolbar__icon,
+.ag-charts-floating-toolbar__drag-handle--sized .ag-charts-toolbar__icon {
+    height: var(--toolbar-icon-size);
+    width: var(--toolbar-icon-size);
+}
+
+.ag-charts-floating-toolbar__drag-handle--sized {
+    min-width: min(24px, var(--toolbar-button-size));
+}

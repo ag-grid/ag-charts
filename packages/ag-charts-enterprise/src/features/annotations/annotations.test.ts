@@ -19,6 +19,7 @@ import {
     findSceneNodes,
     getAnnotationAxisButtonElement,
     getAnnotationOptionsToolbarButtons,
+    getAnnotationOptionsToolbarDragHandle,
     getAnnotationToolbarsEnabled,
     getAnnotationYAxisDomain,
     hasAnnotationAxisButton,
@@ -940,6 +941,8 @@ describe('Annotations', () => {
         describe('buttonSize', () => {
             const sizeOf = (element: Element) =>
                 (element as HTMLElement).style.getPropertyValue('--toolbar-button-size');
+            const iconSizeOf = (element: Element) =>
+                (element as HTMLElement).style.getPropertyValue('--toolbar-icon-size');
             const sharedButtons = () =>
                 Array.from(document.querySelectorAll('.ag-charts-shared-toolbar .ag-charts-toolbar__button'));
             const sizedOptions = (chartToolbarEnabled: boolean): AgCartesianChartOptions => ({
@@ -952,9 +955,11 @@ describe('Annotations', () => {
 
                 const [chartToolbarButton, ...annotationButtons] = sharedButtons();
                 expect(sizeOf(chartToolbarButton)).toBe('40px');
+                expect(iconSizeOf(chartToolbarButton)).toBe('24px');
                 expect(annotationButtons.length).toBeGreaterThan(0);
                 for (const button of annotationButtons) {
                     expect(sizeOf(button)).toBe('44px');
+                    expect(iconSizeOf(button)).toBe('26px');
                     expect(button.classList).toContain('ag-charts-toolbar__button--sized');
                 }
             });
@@ -983,6 +988,7 @@ describe('Annotations', () => {
                 expect(buttons.length).toBeGreaterThan(0);
                 for (const button of buttons) {
                     expect(sizeOf(button)).toBe('');
+                    expect(iconSizeOf(button)).toBe('');
                     expect(button.classList).not.toContain('ag-charts-toolbar__button--sized');
                 }
             });
@@ -998,13 +1004,19 @@ describe('Annotations', () => {
                             },
                         ],
                     },
-                    withAnnotations({ enabled: true, optionsToolbar: { buttonSize: 44 } })
+                    withAnnotations({ enabled: true, optionsToolbar: { buttonSize: 10 } })
                 );
                 const buttons = getAnnotationOptionsToolbarButtons(chart);
                 expect(buttons.length).toBeGreaterThan(0);
                 for (const button of buttons) {
-                    expect(sizeOf(button)).toBe('44px');
+                    expect(sizeOf(button)).toBe('10px');
+                    expect(iconSizeOf(button)).toBe('6px');
                 }
+
+                const dragHandle = getAnnotationOptionsToolbarDragHandle(chart);
+                expect(dragHandle.classList).toContain('ag-charts-floating-toolbar__drag-handle--sized');
+                expect(sizeOf(dragHandle)).toBe('10px');
+                expect(iconSizeOf(dragHandle)).toBe('6px');
             });
         });
 
