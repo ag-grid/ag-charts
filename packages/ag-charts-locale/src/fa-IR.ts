@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaLabelColorPickerHue: 'رنگ',
     ariaLabelColorPickerMultiColor: 'چند رنگ',
     ariaLabelColorPickerPalette: 'پالت',
+    ariaLabelCrossLine: '${label}، خط متقاطع ${index}[number] از ${count}[number]',
     ariaLabelFinancialCharts: 'نمودارهای مالی',
     ariaLabelGaugeTarget: 'هدف',
     ariaLabelGaugeValue: 'مقدار',

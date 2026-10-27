@@ -41,6 +41,7 @@ export const AG_CHARTS_LOCALE_LT_LT: Record<string, string> = {
     ariaLabelColorPickerHue: 'Atspalvis',
     ariaLabelColorPickerMultiColor: 'Daugiaspalvis',
     ariaLabelColorPickerPalette: 'Paletė',
+    ariaLabelCrossLine: '${label}, kryžminė linija ${index}[number] iš ${count}[number]',
     ariaLabelFinancialCharts: 'Finansinės diagramos',
     ariaLabelGaugeTarget: 'Tikslas',
     ariaLabelGaugeValue: 'Reikšmė',

@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaLabelColorPickerHue: 'Колірний тон',
     ariaLabelColorPickerMultiColor: 'Кілька кольорів',
     ariaLabelColorPickerPalette: 'Палітра',
+    ariaLabelCrossLine: '${label}, Перетинна лінія ${index}[number] з ${count}[number]',
     ariaLabelFinancialCharts: 'Фінансові діаграми',
     ariaLabelGaugeTarget: 'Ціль',
     ariaLabelGaugeValue: 'Значення',
