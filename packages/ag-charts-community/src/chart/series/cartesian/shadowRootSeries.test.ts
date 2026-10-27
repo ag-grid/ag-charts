@@ -205,33 +205,44 @@ describe('cartesian series shadow root', () => {
             expect(isHalfBlack(besideBothAreas())).toBe(true);
         });
 
-        it('should not draw the shadow of a later area over an earlier area', async () => {
-            // The shadow of the upper area falls on the lower area, to the left of its own edge.
-            const options = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
+        describe('an opaque later area whose shadow falls on an earlier area', () => {
+            // The earlier area is the taller, so it shows above the top of the later one, where the later shadow falls.
+            const overlapping = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
                 ...areas,
                 series: [
+                    { type: 'area', xKey: 'x', yKey: 'high', fill: 'red', fillOpacity: 1, strokeWidth: 0 },
                     {
                         type: 'area',
                         xKey: 'x',
                         yKey: 'low',
-                        fill: 'red',
+                        fill: 'blue',
                         fillOpacity: 1,
                         strokeWidth: 0,
                         marker: { enabled: true },
+                        shadow,
                     },
-                    { type: 'area', xKey: 'x', yKey: 'high', fill: 'blue', fillOpacity: 0, strokeWidth: 0, shadow },
                 ],
             });
-            await create(options(undefined));
-            const [start] = itemCentres(0);
-            const last = itemCentres(0).at(-1)!;
-            const inside = { x: (start.x + last.x) / 2, y: last.y + 40 };
 
-            await create(options({ ...shadowAt(0, 0) }));
-            expect(pixelAt(inside.x, inside.y)).toEqual(RED);
-            // A shadow of the same size that lands on the red area, with the area above it drawn first or last.
-            await create(options(shadowAt(0, 20)));
-            expect(pixelAt(inside.x, inside.y)).toEqual(RED);
+            /** A pixel of the earlier area, between the line of the later area and the end of its shadow. */
+            const onEarlierArea = () => {
+                const [start, end] = itemCentres(1);
+                return pixelAt((start.x + end.x) / 2, start.y - 10);
+            };
+
+            it('should not draw the shadow over the earlier area', async () => {
+                await create(overlapping(shadowAt(0, -30)));
+
+                expect(onEarlierArea()).toEqual(RED);
+            });
+
+            it('should draw the shadow over the earlier area when the root cannot cast, as before', async () => {
+                withoutRoot();
+                await create(overlapping(shadowAt(0, -30)));
+
+                expect(onEarlierArea()).not.toEqual(RED);
+                expect(onEarlierArea()[0]).toBeLessThan(RED[0]);
+            });
         });
 
         it('should stack the shadows when the root cannot cast, as before', async () => {
