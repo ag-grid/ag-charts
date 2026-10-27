@@ -1958,7 +1958,6 @@ export class DonutSeries extends PolarSeries<
         ]);
     }
 
-    /** Whether a callout label can be drawn at all, before any overflow or placement check. */
     private hasCalloutLabel(datum: PieDonutNodeDatum): datum is Has<'calloutLabel', PieDonutNodeDatum> {
         const label = datum.calloutLabel;
         const outerRadius = Math.max(0, this.radiusScale.convert(datum.radius));
