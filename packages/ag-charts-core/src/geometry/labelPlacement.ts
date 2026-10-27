@@ -2392,12 +2392,14 @@ function shrinkToClear(d: PointLabelDatum, pass: () => PlacedLabel | undefined):
         // and the ladder has to be walked down rather than bisected.
         return findLargestFontSizeDescending(floor, fontSize, function trialFontSize(size, atFloor) {
             candidateTrialFontSize = size;
+            trialFitCount = 0;
             if (atFloor) beginFloorFallback();
             return pass();
         });
     } finally {
         // A styler throwing mid-trial would otherwise leave every later label sized at the trial size.
         candidateTrialFontSize = undefined;
+        trialFitCount = 0;
         endFloorFallback();
     }
 }
@@ -2489,6 +2491,8 @@ let positionedResolve: PositionedCandidateResolver | undefined;
 let positionedFitSource: { width: number; height: number } | undefined;
 // A candidate turned away by an obstacle or its region: the only failure a smaller font can answer.
 let positionedBlocked = false;
+// Candidates (by index) whose text the fit erased at the configured size.
+const positionedFitFailed: boolean[] = [];
 // Glyph budget of a never-drop label's last resort: its container, at least one line tall at its floor size.
 const keptLineContainer = { width: 0, height: 0 };
 
@@ -2534,6 +2538,7 @@ function placeFromPositionedCandidates(
     positionedBounds = bounds;
     positionedResolve = resolveCandidate;
     positionedBlocked = false;
+    positionedFitFailed.length = 0;
 
     const placed = positionedCandidatesPass();
     if (placed != null) return placed;
@@ -2557,6 +2562,9 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
     const trial = candidateTrialFontSize != null;
     const recordBest = !trial || floorRecordsKept;
     for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
+        // The configured-size fit searches every size down to the floor, so a candidate it erased fits at no
+        // trial size either.
+        if (trial && positionedFitFailed[ci] === true) continue;
         // Resolved here rather than when the list was built: the styler runs for the candidates the
         // cascade reaches and no others, so a fallback the label never needed never invokes it.
         const c = positionedResolve == null ? candidates[ci] : positionedResolve(d, candidates[ci]);
@@ -2587,7 +2595,10 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         } else if (fit != null && c.fitTo != null) {
             const font = candidateFontAt(c.fitTo.font ?? fit.font);
             const source = c.fitTo.font == null && !trial ? positionedFitSource : styledFitSource(fit, font);
-            if (!fitPositionedCandidate(d, fit, c.fitTo, font, source, threshold)) continue;
+            if (!fitPositionedCandidate(d, fit, c.fitTo, font, source, threshold)) {
+                if (!trial) positionedFitFailed[ci] = true;
+                continue;
+            }
             ({ text, dropped, shrink } = fittedLabel);
             writeCandidateLabel(c.fitTo.padding, font);
             ({ width, height } = candidateLabel);
@@ -2727,8 +2738,140 @@ function tryNudge(shift: number, region: BoxBounds, inflate: number): boolean {
     return false;
 }
 
+interface TrialFit {
+    fontSize: number;
+    fontStyle: FontOptions['fontStyle'];
+    fontWeight: FontOptions['fontWeight'];
+    fontFamily: FontOptions['fontFamily'];
+    lineHeight: number | undefined;
+    hasContainer: boolean;
+    containerWidth: number;
+    containerHeight: number;
+    ownShape: boolean;
+    shape: FitRegion | undefined;
+    shapeAlign: RegionAlign | undefined;
+    fitted: boolean;
+    text: NormalisedTextOrSegments;
+    width: number;
+    height: number;
+    dropped: number;
+    shrink: number;
+    sizedTo: number | undefined;
+    maxWidth: number;
+    maxHeight: number;
+}
+
+// Fits at the current trial size, so candidates sharing a fit target are fitted once. Keyed by font, container
+// and shape: the datum, fit policy and threshold are fixed within a ladder.
+const trialFits: TrialFit[] = [];
+let trialFitCount = 0;
+
+function newTrialFit(): TrialFit {
+    return {
+        fontSize: 0,
+        fontStyle: undefined,
+        fontWeight: undefined,
+        fontFamily: undefined,
+        lineHeight: undefined,
+        hasContainer: false,
+        containerWidth: 0,
+        containerHeight: 0,
+        ownShape: true,
+        shape: undefined,
+        shapeAlign: undefined,
+        fitted: false,
+        text: '',
+        width: 0,
+        height: 0,
+        dropped: 0,
+        shrink: 0,
+        sizedTo: undefined,
+        maxWidth: Infinity,
+        maxHeight: Infinity,
+    };
+}
+
+function findTrialFit(font: FontOptions, fitTo: CandidateFitTarget): TrialFit | undefined {
+    const { container, shape, shapeAlign } = fitTo;
+    const ownShape = fitTo.ownShape !== false;
+    for (let i = 0; i < trialFitCount; i++) {
+        const t = trialFits[i];
+        if (
+            t.fontSize === font.fontSize &&
+            t.fontFamily === font.fontFamily &&
+            t.fontWeight === font.fontWeight &&
+            t.fontStyle === font.fontStyle &&
+            t.lineHeight === font.lineHeight &&
+            t.hasContainer === (container != null) &&
+            t.containerWidth === (container?.width ?? 0) &&
+            t.containerHeight === (container?.height ?? 0) &&
+            t.ownShape === ownShape &&
+            t.shape === shape &&
+            t.shapeAlign === shapeAlign
+        ) {
+            return t;
+        }
+    }
+    return undefined;
+}
+
+function storeTrialFit(font: FontOptions, fitTo: CandidateFitTarget, fitted: boolean) {
+    const { container } = fitTo;
+    let t = trialFits[trialFitCount++];
+    if (t == null) {
+        t = newTrialFit();
+        trialFits.push(t);
+    }
+    t.fontSize = font.fontSize;
+    t.fontStyle = font.fontStyle;
+    t.fontWeight = font.fontWeight;
+    t.fontFamily = font.fontFamily;
+    t.lineHeight = font.lineHeight;
+    t.hasContainer = container != null;
+    t.containerWidth = container?.width ?? 0;
+    t.containerHeight = container?.height ?? 0;
+    t.ownShape = fitTo.ownShape !== false;
+    t.shape = fitTo.shape;
+    t.shapeAlign = fitTo.shapeAlign;
+    t.fitted = fitted;
+    t.text = fittedLabel.text;
+    t.width = fittedLabel.width;
+    t.height = fittedLabel.height;
+    t.dropped = fittedLabel.dropped;
+    t.shrink = fittedLabel.shrink;
+    t.sizedTo = fittedLabel.fontSize;
+    t.maxWidth = fittedLabel.maxWidth;
+    t.maxHeight = fittedLabel.maxHeight;
+}
+
 /** Fits into {@link fittedLabel}; `false` when nothing is left to draw, after a never-drop label's floor fallback. */
 function fitPositionedCandidate(
+    d: PointLabelDatum,
+    fit: LabelFitDescriptor,
+    fitTo: CandidateFitTarget,
+    font: FontOptions,
+    source: { width: number; height: number } | undefined,
+    threshold: number
+): boolean {
+    if (candidateTrialFontSize == null) return fitPositionedCandidateAt(d, fit, fitTo, font, source, threshold);
+    const hit = findTrialFit(font, fitTo);
+    if (hit == null) {
+        const fitted = fitPositionedCandidateAt(d, fit, fitTo, font, source, threshold);
+        storeTrialFit(font, fitTo, fitted);
+        return fitted;
+    }
+    fittedLabel.text = hit.text;
+    fittedLabel.width = hit.width;
+    fittedLabel.height = hit.height;
+    fittedLabel.dropped = hit.dropped;
+    fittedLabel.shrink = hit.shrink;
+    fittedLabel.fontSize = hit.sizedTo;
+    fittedLabel.maxWidth = hit.maxWidth;
+    fittedLabel.maxHeight = hit.maxHeight;
+    return hit.fitted;
+}
+
+function fitPositionedCandidateAt(
     d: PointLabelDatum,
     fit: LabelFitDescriptor,
     fitTo: CandidateFitTarget,
