@@ -211,6 +211,8 @@ export interface PositionedLabelCandidate {
     readonly slideAxis?: 'x' | 'y';
     /** Render rotation in degrees (engine convention, matching {@link PlacedLabel.rotation}); `0`/unset is upright. */
     readonly rotation?: number;
+    /** Collides as its rotated rectangle rather than that rectangle's axis-aligned footprint. */
+    readonly orientedCollision?: boolean;
     /** Fit inputs for this candidate; used only when the datum carries a {@link PointLabelDatum.fit}. */
     readonly fitTo?: CandidateFitTarget;
     /**
@@ -982,9 +984,10 @@ function obstacleOverlapsCandidateRect(o: LabelObstacle, testBox: BoxBounds): bo
     }
 }
 
-/** A label fitted inside its own shape collides by its rotated rectangle, not its wider axis-aligned box. */
+/** A rotated label fitted inside its own shape, or opting in, collides by its rotated rectangle, not its axis-aligned box. */
 function collidesByRotatedRect(candidate: PositionedLabelCandidate | undefined, rotation: number | undefined) {
-    return candidate?.fitTo?.shape != null && rotation != null && rotation % 90 !== 0;
+    if (rotation == null || rotation % 90 === 0) return false;
+    return candidate?.orientedCollision === true || candidate?.fitTo?.shape != null;
 }
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {

@@ -21,6 +21,7 @@ import {
     expectNoAnimation,
     getSeriesAt,
     getSeriesContextNodeData,
+    getVisibleLabelNodes,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -594,6 +595,22 @@ describe('ChordSeries', () => {
         };
 
         chart = await createEnterpriseChart(options);
+        await compare();
+    });
+
+    it('hides node labels that would overlap a neighbour', async () => {
+        const count = 60;
+        const data = Array.from({ length: count }, (_, i) => ({
+            from: `Node ${i}`,
+            to: `Node ${(i + 1) % count}`,
+            size: i % 5 === 0 ? 12 : 1,
+        }));
+        chart = await createEnterpriseChart({
+            data,
+            series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+        } as AgChartOptions);
+
+        expect(getVisibleLabelNodes(chart)).toHaveLength(48);
         await compare();
     });
 

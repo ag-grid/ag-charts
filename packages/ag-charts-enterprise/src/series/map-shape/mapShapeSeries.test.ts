@@ -17,6 +17,7 @@ import {
     deproxy,
     expectWarningMessages,
     expectWarningsCalls,
+    getVisibleLabelNodes,
     hoverAction,
     resetMockConsole,
     setupMockCanvas,
@@ -266,6 +267,42 @@ describe('MapShapeSeries', () => {
     });
 
     describe('Labels', () => {
+        it('leaves marker labels free to overlap region labels', async () => {
+            const markers = Array.from({ length: 24 }, (_, i) => ({
+                name: `Marker ${i}`,
+                lat: 50.5 + (i % 6) * 1.3,
+                lon: -5.5 + Math.floor(i / 6) * 1.6,
+            }));
+            const visibleMarkerLabels = async (regionLabelKey: string | undefined) => {
+                chart = await createEnterpriseChart({
+                    data: ukData,
+                    topology: ukTopology,
+                    series: [
+                        { type: 'map-shape', idKey: 'name', labelKey: regionLabelKey },
+                        {
+                            type: 'map-marker',
+                            data: markers,
+                            latitudeKey: 'lat',
+                            longitudeKey: 'lon',
+                            labelKey: 'name',
+                            label: { enabled: true },
+                            size: 4,
+                        },
+                    ],
+                } as AgChartOptions);
+                const regionLabels = getVisibleLabelNodes(chart, 0).length;
+                const markerLabels = getVisibleLabelNodes(chart, 1).map(({ text, x, y }) => ({ text, x, y }));
+                chart.destroy();
+                return { regionLabels, markerLabels };
+            };
+
+            const alone = await visibleMarkerLabels(undefined);
+            const withRegionLabels = await visibleMarkerLabels('name');
+            expect(alone.regionLabels).toBe(0);
+            expect(withRegionLabels.regionLabels).toBeGreaterThan(0);
+            expect(withRegionLabels.markerLabels).toEqual(alone.markerLabels);
+        });
+
         it.each([12, 18, 24])('should render short labels at font size %s', async (fontSize) => {
             const options: AgChartOptions = {
                 data: usData,
