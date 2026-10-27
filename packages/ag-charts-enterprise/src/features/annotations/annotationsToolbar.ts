@@ -278,7 +278,7 @@ export class AnnotationsToolbar {
             onHide: this.onMenuHide,
         });
 
-        // `show()` hides any previously open menu, whose hide callbacks would clear this button.
+        // Must run after `show()`, which hides the previous menu and so clears the active button.
         this.menuItemPicked = false;
         const index = this.buttons.findIndex((button) => button.value === menu);
         this.toolbar.toggleActiveButtonByIndex(index);
