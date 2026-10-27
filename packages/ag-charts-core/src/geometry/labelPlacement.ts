@@ -9,7 +9,6 @@ import {
     graphemeSegments,
     lineHeightAtSize,
     splitAtBreakSpaces,
-    toFontString,
     toTextString,
     trimBreakSpacesEnd,
 } from '../text/textUtil';
@@ -811,10 +810,14 @@ let cascadeFlushToRegion = false;
 let cascadeKeepBest = false;
 // Glyph budget of the candidate being fitted, refilled per candidate on the compass path.
 const candidateContainer = { width: 0, height: 0 };
-// The datum's source text measured under one candidate font, keyed by that font, so the common case of one
-// font per datum measures once. The key is cleared at the start of each datum's cascade.
+// The datum's source text measured under one candidate font, keyed by that font's size, style, weight and
+// family, so the common case of one font per datum measures once. The key is cleared at the start of each
+// datum's cascade.
 const styledSource = { width: 0, height: 0 };
-let styledSourceFont = '';
+let styledSourceSize = Number.NaN;
+let styledSourceStyle: FontOptions['fontStyle'];
+let styledSourceWeight: FontOptions['fontWeight'];
+let styledSourceFamily: FontOptions['fontFamily'];
 // Drawn-box centre of a positioned candidate whose box a re-fit resized.
 const boxCentre: Point = { x: 0, y: 0 };
 // Rotated axis-aligned footprint, written per candidate to keep the rotation loop allocation-free.
@@ -1650,16 +1653,33 @@ function insideMarkerCandidateContainer(
     return candidateContainer;
 }
 
-/** The datum's source text measured under `font`, reused for as long as the candidate font is unchanged. */
+/**
+ * The datum's source text measured under `font`, reused for as long as the candidate font is unchanged.
+ * Compares the fields a font string is built from rather than building one, as this runs per candidate per
+ * ladder trial. Like the font string it ignores `lineHeight`, so the reuse is unchanged.
+ */
 function styledFitSource(fit: LabelFitDescriptor, font: FontOptions) {
-    const key = toFontString(font);
-    if (key !== styledSourceFont) {
+    const { fontSize, fontStyle, fontWeight, fontFamily } = font;
+    if (
+        fontSize !== styledSourceSize ||
+        fontStyle !== styledSourceStyle ||
+        fontWeight !== styledSourceWeight ||
+        fontFamily !== styledSourceFamily
+    ) {
         const { width, height } = measureLabelText(fit.text, font);
         styledSource.width = width;
         styledSource.height = height;
-        styledSourceFont = key;
+        styledSourceSize = fontSize;
+        styledSourceStyle = fontStyle;
+        styledSourceWeight = fontWeight;
+        styledSourceFamily = fontFamily;
     }
     return styledSource;
+}
+
+function resetStyledSource() {
+    // NaN matches no size, so the next lookup measures.
+    styledSourceSize = Number.NaN;
 }
 
 // Drawn-box size of the candidate being tested, written by `sizeCandidateLabel`. `width`/`height` are the
@@ -2064,7 +2084,7 @@ function tryPlaceLabel(
         const placement = candidateAt(placements, d.placement, 0);
         const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
         const rotation = orientation == null ? 0 : orientationAngles[orientation];
-        styledSourceFont = '';
+        resetStyledSource();
         const style = resolveCandidateStyle?.(d, placement, orientation);
         if (style?.hidden === true) return undefined;
         if (!sizeCandidateLabel(d, style, placement, rotation, threshold, d.region, undefined)) return undefined;
@@ -2439,7 +2459,7 @@ function placeAvoidingLabel(
     // label instead re-measures whenever its resolved font changes (see `styledFitSource`).
     const styled = resolveCandidateStyle != null;
     cascadeFitSource = fit == null || styled ? undefined : measureLabelText(fit.text, fit.font);
-    styledSourceFont = '';
+    resetStyledSource();
     cascadeMinRefitWidth = undefined;
     cascadeMeasurer = fit == null ? undefined : cachedTextMeasurer(fit.font);
     cascadeDatum = d;
@@ -2531,7 +2551,7 @@ function placeFromPositionedCandidates(
     // Measured once here rather than per candidate: every candidate refits the same source text. A
     // candidate carrying its own styled font re-measures under it instead (see `styledFitSource`).
     positionedFitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
-    styledSourceFont = '';
+    resetStyledSource();
     positionedDatum = d;
     positionedIndex = index;
     candidateLargestFontSize = 0;
@@ -2562,8 +2582,8 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
     const trial = candidateTrialFontSize != null;
     const recordBest = !trial || floorRecordsKept;
     for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
-        // The configured-size fit searches every size down to the floor, so a candidate it erased fits at no
-        // trial size either.
+        // The configured-size fit also tried the floor, which no trial goes below, so a candidate it erased fits
+        // at no trial size: a fit only improves as the font shrinks.
         if (trial && positionedFitFailed[ci] === true) continue;
         // Resolved here rather than when the list was built: the styler runs for the candidates the
         // cascade reaches and no others, so a fallback the label never needed never invokes it.
@@ -2750,6 +2770,9 @@ interface TrialFit {
     ownShape: boolean;
     shape: FitRegion | undefined;
     shapeAlign: RegionAlign | undefined;
+    hasSource: boolean;
+    sourceWidth: number;
+    sourceHeight: number;
     fitted: boolean;
     text: NormalisedTextOrSegments;
     width: number;
@@ -2761,8 +2784,9 @@ interface TrialFit {
     maxHeight: number;
 }
 
-// Fits at the current trial size, so candidates sharing a fit target are fitted once. Keyed by font, container
-// and shape: the datum, fit policy and threshold are fixed within a ladder.
+// Fits at the current trial size, so candidates sharing a fit target are fitted once. Keyed by font, container,
+// shape and source measurement: the datum, fit policy and threshold are fixed within a ladder. The source is
+// keyed by its measured size, not the font, as the styled source's reuse ignores `lineHeight`.
 const trialFits: TrialFit[] = [];
 let trialFitCount = 0;
 
@@ -2779,6 +2803,9 @@ function newTrialFit(): TrialFit {
         ownShape: true,
         shape: undefined,
         shapeAlign: undefined,
+        hasSource: false,
+        sourceWidth: 0,
+        sourceHeight: 0,
         fitted: false,
         text: '',
         width: 0,
@@ -2791,7 +2818,11 @@ function newTrialFit(): TrialFit {
     };
 }
 
-function findTrialFit(font: FontOptions, fitTo: CandidateFitTarget): TrialFit | undefined {
+function findTrialFit(
+    font: FontOptions,
+    fitTo: CandidateFitTarget,
+    source: { width: number; height: number } | undefined
+): TrialFit | undefined {
     const { container, shape, shapeAlign } = fitTo;
     const ownShape = fitTo.ownShape !== false;
     for (let i = 0; i < trialFitCount; i++) {
@@ -2807,7 +2838,10 @@ function findTrialFit(font: FontOptions, fitTo: CandidateFitTarget): TrialFit | 
             t.containerHeight === (container?.height ?? 0) &&
             t.ownShape === ownShape &&
             t.shape === shape &&
-            t.shapeAlign === shapeAlign
+            t.shapeAlign === shapeAlign &&
+            t.hasSource === (source != null) &&
+            t.sourceWidth === (source?.width ?? 0) &&
+            t.sourceHeight === (source?.height ?? 0)
         ) {
             return t;
         }
@@ -2815,7 +2849,12 @@ function findTrialFit(font: FontOptions, fitTo: CandidateFitTarget): TrialFit | 
     return undefined;
 }
 
-function storeTrialFit(font: FontOptions, fitTo: CandidateFitTarget, fitted: boolean) {
+function storeTrialFit(
+    font: FontOptions,
+    fitTo: CandidateFitTarget,
+    source: { width: number; height: number } | undefined,
+    fitted: boolean
+) {
     const { container } = fitTo;
     let t = trialFits[trialFitCount++];
     if (t == null) {
@@ -2833,6 +2872,9 @@ function storeTrialFit(font: FontOptions, fitTo: CandidateFitTarget, fitted: boo
     t.ownShape = fitTo.ownShape !== false;
     t.shape = fitTo.shape;
     t.shapeAlign = fitTo.shapeAlign;
+    t.hasSource = source != null;
+    t.sourceWidth = source?.width ?? 0;
+    t.sourceHeight = source?.height ?? 0;
     t.fitted = fitted;
     t.text = fittedLabel.text;
     t.width = fittedLabel.width;
@@ -2854,10 +2896,10 @@ function fitPositionedCandidate(
     threshold: number
 ): boolean {
     if (candidateTrialFontSize == null) return fitPositionedCandidateAt(d, fit, fitTo, font, source, threshold);
-    const hit = findTrialFit(font, fitTo);
+    const hit = findTrialFit(font, fitTo, source);
     if (hit == null) {
         const fitted = fitPositionedCandidateAt(d, fit, fitTo, font, source, threshold);
-        storeTrialFit(font, fitTo, fitted);
+        storeTrialFit(font, fitTo, source, fitted);
         return fitted;
     }
     fittedLabel.text = hit.text;

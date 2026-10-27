@@ -3171,6 +3171,41 @@ describe('placeLabels positioned shrink ladder', () => {
             expect(placed).toEqual([AT_SEVEN]);
         });
 
+        it('is sized from the source measured for the last font with the same size and family', () => {
+            // The styled source is reused across candidates whose fonts share a size, style, weight and family,
+            // so a later candidate differing only in `lineHeight` is fitted to the earlier one's measurement.
+            // Only the last candidate clears, and the shared-source fit of the first must not stand in for it.
+            const serif = (lineHeight: number) => ({ fontSize: 12, fontFamily: 'serif', lineHeight });
+            const fonts = new Map([
+                [90, serif(16)],
+                [130, { fontSize: 12, fontFamily: 'monospace' }],
+                [170, serif(8)],
+                [210, serif(16)],
+            ]);
+            const resolveCandidate: PositionedCandidateResolver = (_d, c) => ({
+                ...c,
+                fitTo: { ...c.fitTo!, font: fonts.get(c.box.y) },
+            });
+            const blocksFirstThree: LabelObstacle = {
+                kind: 'rect',
+                box: { x: 0, y: 80, width: 200, height: 120 },
+                category: 'label',
+            };
+            const wide = { width: 40, height: 60 };
+            const candidates = [100, 140, 180, 220].map((y) => candidate(y, wide));
+            const placed = place(candidates, [EDGE, blocksFirstThree], { resolveCandidate });
+            expect(placed).toEqual([
+                {
+                    text: TEXT,
+                    fontSize: 7,
+                    x: 85.41666666666667,
+                    y: 217.66666666666666,
+                    width: 29.166666666666668,
+                    height: 4.666666666666667,
+                },
+            ]);
+        });
+
         it('is the label at its floor when it is kept and no size clears', () => {
             const placed = place([candidate(100, shared), candidate(140, shared)], [WALL], { alwaysShow: true });
             expect(placed).toEqual([{ text: TEXT, fontSize: 6, x: 87.5, y: 95, width: 25, height: 10 }]);
