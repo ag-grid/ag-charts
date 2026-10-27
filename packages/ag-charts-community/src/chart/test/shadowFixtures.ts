@@ -1,4 +1,4 @@
-import type { AgDropShadowOptions, AgMarkerShapeFn } from 'ag-charts-types';
+import type { AgDropShadowOptions, AgGlowOptions, AgMarkerShapeFn } from 'ag-charts-types';
 
 /** The shadow the marker shadow tests turn on. */
 export const MARKER_SHADOW: AgDropShadowOptions = { enabled: true, color: '#000000', xOffset: 4, yOffset: 4, blur: 6 };
@@ -11,6 +11,9 @@ export const SERIES_SHADOW: AgDropShadowOptions = {
     yOffset: 4,
     blur: 6,
 };
+
+/** The glow the highlight tests turn on, distinct from `SERIES_SHADOW` in every field. */
+export const HIGHLIGHT_GLOW: AgGlowOptions = { enabled: true, color: '#00aa00', blur: 3, spread: 2 };
 
 /** A custom marker shape (a triangle), which the out-of-the-box marker shadow must not apply to. */
 export const customMarkerShape: AgMarkerShapeFn = ({ path, x, y, size }) => {
