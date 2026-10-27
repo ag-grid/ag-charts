@@ -32,9 +32,6 @@ const CLICK_SEARCH_RADIUS = 200;
 const CLICK_SEARCH_STEP = 2;
 // Fraction of the chart kept in view, sized so a few columns of cards are large enough to hover.
 const HOVER_WINDOW: Record<number, number> = { 1_000: 0.3, 10_000: 0.1 };
-const COLLAPSE_TARGETS = ['One director', 'All directors'] as const;
-
-type CollapseTarget = (typeof COLLAPSE_TARGETS)[number];
 
 const baseOptions: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
@@ -265,32 +262,6 @@ async function performHover(nodes: number): Promise<number> {
     return performance.now() - start;
 }
 
-/** inScope */
-function collapseIds(nodes: number, target: CollapseTarget): string[] {
-    const data = dataFor(nodes);
-    const ceo = data.find((datum) => datum.parentId == null)!;
-    const vpIds = new Set(data.filter((datum) => datum.parentId === ceo.id).map((datum) => datum.id));
-    const directors = data.filter((datum) => datum.parentId != null && vpIds.has(datum.parentId));
-    return target === 'One director' ? [directors[0].id] : directors.map((datum) => datum.id);
-}
-
-/** inScope */
-async function performToggle(nodes: number, target: CollapseTarget, operation: 'Collapse' | 'Expand'): Promise<number> {
-    await ensureChart(nodes);
-    const chart = chartRef.current!;
-    const ids = collapseIds(nodes, target);
-
-    // Start from the opposite state, outside the timing.
-    await chart.setState({ ...chart.getState(), collapsed: operation === 'Collapse' ? [] : ids });
-    await chart.waitForUpdate();
-
-    const state = chart.getState();
-    const start = performance.now();
-    await chart.setState({ ...state, collapsed: operation === 'Collapse' ? ids : [] });
-    await chart.waitForUpdate();
-    return performance.now() - start;
-}
-
 type ChartState = ReturnType<AgChartInstance['getState']>;
 
 interface ClickToggleTarget {
@@ -459,7 +430,7 @@ async function performClickToggle(nodes: number, operation: 'Collapse' | 'Expand
 
     let target = clickToggleTargets.get(nodes);
     if (target == null) {
-        target = await findClickToggleTarget(nodes);
+        target = await findClickToggleTarget();
         clickToggleTargets.set(nodes, target);
     }
 
@@ -515,18 +486,6 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'hover',
                 label: 'Hover',
                 variants: variants(performHover, { Hovers: String(HOVER_STEPS) }),
-            },
-            {
-                id: 'collapse',
-                label: 'Collapse And Expand',
-                variants: (['Collapse', 'Expand'] as const).flatMap((operation) =>
-                    COLLAPSE_TARGETS.flatMap((target) =>
-                        variants((nodes) => performToggle(nodes, target, operation), {
-                            Operation: operation,
-                            Target: target,
-                        })
-                    )
-                ),
             },
             {
                 id: 'click-toggle',
