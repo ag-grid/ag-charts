@@ -103,6 +103,7 @@ describe('series that cast their shadows through the shadow root', () => {
     const allRed = (fills: boolean[]) => fills.every(Boolean);
 
     // A batch of its own and the root blend a shadow over the strokes of the shapes around it a channel value apart.
+    // The root casts a translucent fill at one strength, so the shapes compared this way have opaque fills.
     const same = async (options: AgChartOptions, tolerance = 0) => {
         await create(options);
         const through = pixels();
@@ -413,7 +414,7 @@ describe('series that cast their shadows through the shadow root', () => {
                             fromKey: 'from',
                             toKey: 'to',
                             sizeKey: 'size',
-                            link: { shadow: SHADOW },
+                            link: { fillOpacity: 1, shadow: SHADOW },
                         },
                     ],
                 } as AgChartOptions)
@@ -428,7 +429,7 @@ describe('series that cast their shadows through the shadow root', () => {
         it('should draw a radar area the same through the root as through its own batch', () =>
             same({
                 data: RADAR_DATA,
-                series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'a', shadow: SHADOW }],
+                series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'a', fillOpacity: 1, shadow: SHADOW }],
             } as AgChartOptions));
 
         it('should draw a polar series the same through the root as through its own batch', () =>
