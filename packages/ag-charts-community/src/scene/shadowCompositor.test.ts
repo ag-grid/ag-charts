@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    BBox,
     Group,
     Logger,
     Path,
+    RadialColumnShape,
     Rect,
     Scalable,
     Scene,
@@ -2255,6 +2257,140 @@ describe('Group shadow compositor', () => {
                 expect(casts).toEqual([]);
                 expect(paintedPixels()).toBeGreaterThan(0);
                 expectSamePixels(actual, expected);
+            });
+        });
+
+        // A cast keeps the shadows within its casters' bounds, so a caster that draws past them must keep the whole layer.
+        describe('a caster that draws past its bounds', () => {
+            // The path of a bevelled column starts its inner arc closer to the centre than the bounds that its radii give.
+            const TranslatableColumn = Translatable(RadialColumnShape);
+
+            const column = (x: number, mixin: Partial<RadialColumnShape> = {}) => {
+                const node = new TranslatableColumn();
+                Object.assign(node, {
+                    translationX: x,
+                    translationY: 200,
+                    // Pointing up, with an inner radius of 100 and a column 160 wide, so its inner corners are 40 above the arc's ends.
+                    startAngle: -Math.PI / 2 - 0.1,
+                    endAngle: -Math.PI / 2 + 0.1,
+                    columnWidth: 160,
+                    innerRadius: 100,
+                    outerRadius: 150,
+                    axisInnerRadius: 100,
+                    axisOuterRadius: 150,
+                    fill: 'black',
+                    stroke: undefined,
+                    strokeWidth: 0,
+                    fillShadow: { ...SHADOW, xOffset: 0, yOffset: 30, blur: 2 },
+                    ...mixin,
+                });
+                return node;
+            };
+
+            // Its bounds are a 10px corner of a path that is 100px across.
+            class Overhang extends Path {
+                protected override computeBBox() {
+                    return new BBox(20, 40, 10, 10);
+                }
+
+                protected override hasBoundedSilhouette() {
+                    return false;
+                }
+            }
+
+            const overhang = (x: number) => {
+                const node = new Overhang();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: undefined,
+                    strokeWidth: 0,
+                    fillShadow: { ...SHADOW, xOffset: 0, yOffset: 30, blur: 2 },
+                });
+                node.path.rect(x, 40, 100, 100);
+                return node;
+            };
+
+            const makeColumn = () => createGroup([column(120), column(300, { columnWidth: 100 })]);
+            const makeOverhang = () => createGroup([overhang(20), overhang(200)]);
+
+            it.each([
+                ['a bevelled radial column touching the inner radius', makeColumn],
+                ['a caster whose path is not bounded by its bounds', makeOverhang],
+            ])('should draw the same shadows of %s from what it kept as it drew at first', (_name, make) => {
+                const group = kept(make);
+                const expected = direct(make, nothing);
+                expect(paintedPixels()).toBeGreaterThan(0);
+
+                const { pixels: actual, masked: casts } = redraw(group);
+
+                expect(casts).toEqual([]);
+                expectSamePixels(actual, expected);
+            });
+
+            it('should draw the same shadows of a column from what it kept after it changed, as at first', () => {
+                const change = (target: Group) => {
+                    ([...target.children()][0] as RadialColumnShape).outerRadius = 140;
+                };
+                const group = kept(makeColumn);
+                change(group);
+                redraw(group);
+                redraw(group);
+
+                const { pixels: actual } = redraw(group);
+
+                expectSamePixels(actual, direct(makeColumn, change));
+            });
+        });
+
+        // A cast that was refused room does not measure its casters, or ask for a canvas, until it could be given one.
+        describe('a cast that was refused room', () => {
+            const SIZE = 2000;
+            // Each caster is as large as the layer, so that the kept shadows of one fill most of the budget and a second would not fit.
+            // They differ in x, which is how a cast that blurred again shows itself.
+            const makeLayers = () => {
+                const casters = [20, 21].map((x, i) => caster(x, { width: SIZE, height: SIZE, zIndex: i }));
+                const measures = casters.map((node) => vi.spyOn(node, 'getShadowSilhouetteBounds'));
+                return { group: createGroup(casters, 'by-layer'), casters, measures };
+            };
+
+            const drawLayer = (group: Group, layer: OffscreenCanvas) => {
+                masked = [];
+                const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                layerCtx.clearRect(0, 0, SIZE, SIZE);
+                drawOnLayer(group, layer);
+                return { masked, alpha: layerCtx.getImageData(300, 60, 1, 1).data[3] };
+            };
+
+            it('should not measure the casters of a cast that did not fit again, and keep its shadows once it does', () => {
+                const { group, casters, measures } = makeLayers();
+                const [first, second] = measures;
+                const layer = new OffscreenCanvas(SIZE, SIZE);
+
+                drawLayer(group, layer);
+                expect(first).not.toHaveBeenCalled();
+                const repeated = drawLayer(group, layer);
+                // Both casts repeat, so both measure what they would keep, and the second finds no room for it.
+                expect(first).toHaveBeenCalledTimes(1);
+                expect(second).toHaveBeenCalledTimes(1);
+                expect(repeated.masked).toEqual([20, 21]);
+                expect(repeated.alpha).toBeGreaterThan(0);
+
+                // The first blits what it kept, and the second, which could not keep any, casts again without measuring.
+                const refused = drawLayer(group, layer);
+                expect(first).toHaveBeenCalledTimes(1);
+                expect(second).toHaveBeenCalledTimes(1);
+                expect(refused.masked).toEqual([21]);
+                expect(refused.alpha).toEqual(repeated.alpha);
+
+                // The first casts again once it moves, which frees what it held, so the second measures and keeps its shadows.
+                casters[0].x = 22;
+                const freed = drawLayer(group, layer);
+                expect(second).toHaveBeenCalledTimes(2);
+                expect(freed.masked).toEqual([22, 21]);
+                const blitted = drawLayer(group, layer);
+                expect(second).toHaveBeenCalledTimes(2);
+                expect(blitted.masked).not.toContain(21);
+                expect(blitted.alpha).toBeGreaterThan(0);
             });
         });
 
