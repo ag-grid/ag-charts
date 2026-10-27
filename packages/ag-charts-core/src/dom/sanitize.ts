@@ -12,3 +12,16 @@ export function sanitizeHtml(text: NormalisedTextOrSegments): string {
     element.textContent = plainText;
     return element.innerHTML.replaceAll('\n', '<br>');
 }
+
+const HTML_ESCAPES: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+};
+
+/** Escapes markup characters so `text` displays literally when inserted as HTML. Newlines are left as-is. */
+export function escapeHtml(text: string): string {
+    return text.replaceAll(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
+}
