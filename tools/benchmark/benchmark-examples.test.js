@@ -192,6 +192,19 @@ test('the checked-in cost table is valid and spreads the real examples better th
     }
 });
 
+test('every runnable example has an entry in the checked-in cost table', () => {
+    const costs = loadCosts();
+    const missing = discoverExamples().filter((name) => costs[name] === undefined);
+    assert.deepEqual(
+        missing,
+        [],
+        `benchmark-costs.json has no cost for: ${missing.join(', ')}. Sharding would price each at the table ` +
+            'median and can overload one shard. Add an estimated cost (seconds across a full shard job, e.g. from ' +
+            'a local run or a similar example) to tools/benchmark/benchmark-costs.json until a nightly refresh ' +
+            'measures it with tools/benchmark/update-benchmark-costs.js.'
+    );
+});
+
 test('loadCosts rejects a missing, zero, negative or non-numeric cost', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'costs-'));
     try {
