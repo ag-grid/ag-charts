@@ -1,5 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, ChartAxisDirection, type DynamicContext } from 'ag-charts-core';
+import { AbstractModuleInstance, type AxisID, ChartAxisDirection, type DynamicContext } from 'ag-charts-core';
 import type { WheelWidgetEvent } from 'ag-charts-core';
 
 import { ZoomWheelSequencer, type ZoomWheelSequencerCbResult } from './zoomWheelSequencer';
@@ -25,7 +25,12 @@ export class ZoomInteraction extends AbstractModuleInstance {
         );
     }
 
+    private isZoomableAxis(axisId: AxisID) {
+        return this.ctx.zoomManager?.getAxes().some((axis) => axis.id === axisId) ?? true;
+    }
+
     private onAxisMouseEnter(event: _ModuleSupport.AxisInteractionMouseEnterEvent) {
+        if (!this.isZoomableAxis(event.axisId)) return;
         this.processEvent('axis-mouseenter', event);
     }
 
@@ -34,18 +39,22 @@ export class ZoomInteraction extends AbstractModuleInstance {
     }
 
     private onAxisDragStart(event: _ModuleSupport.AxisInteractionDragEvent<'drag-start'>) {
+        if (!this.isZoomableAxis(event.axisId)) return;
         this.processEvent('axis-drag-start', event);
     }
 
     private onAxisDragMove(event: _ModuleSupport.AxisInteractionDragEvent<'drag-move'>) {
+        if (!this.isZoomableAxis(event.axisId)) return;
         this.processEvent('axis-drag-move', event);
     }
 
     private onAxisDragEnd(event: _ModuleSupport.AxisInteractionDragEvent<'drag-end'>) {
+        if (!this.isZoomableAxis(event.axisId)) return;
         this.processEvent('axis-drag-end', event);
     }
 
     private onAxisDoubleClick(event: _ModuleSupport.AxisInteractionMouseEvent<'dblclick'>) {
+        if (!this.isZoomableAxis(event.axisId)) return;
         this.processEvent('axis-dblclick', event);
     }
 
@@ -53,7 +62,8 @@ export class ZoomInteraction extends AbstractModuleInstance {
         this.wheelSequencer.onWheel(event, () => this.handleWheelSequencer('wheel', { event }));
     }
 
-    private onAxisWheel({ event, direction }: _ModuleSupport.AxisInteractionWheelEvent) {
+    private onAxisWheel({ axisId, event, direction }: _ModuleSupport.AxisInteractionWheelEvent) {
+        if (!this.isZoomableAxis(axisId)) return;
         this.wheelSequencer.onWheel(event, () => this.handleWheelSequencer('axis-wheel', { event, direction }));
     }
 
