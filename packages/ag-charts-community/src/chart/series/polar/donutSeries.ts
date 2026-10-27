@@ -1342,8 +1342,10 @@ export class DonutSeries extends PolarSeries<
 
         // The labels resolve legend-linked highlights the same way the sectors do, so a label on a series that
         // does not own the hovered legend item is lit with its sector rather than dimmed as another series.
-        this.updateCalloutLineNodes(legendItemValues);
-        this.updateCalloutLabelNodes(seriesRect, legendItemValues);
+        if (!this.usesPlacedLabels) {
+            this.updateCalloutLineNodes(legendItemValues);
+            this.updateCalloutLabelNodes(seriesRect, legendItemValues);
+        }
         this.updateSectorLabelNodes(legendItemValues);
         this.updateInnerLabelNodes();
         this.updateZerosumRings();

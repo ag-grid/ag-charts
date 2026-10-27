@@ -2302,8 +2302,7 @@ describe('DonutSeries', () => {
         it('registers each shown label with the label solve where it is drawn', async () => {
             chart = deproxy(await createChart(polarExamples.PIE_CALLOUT_LABELS_COLLISIONS));
             const [series] = calloutSeries(chart);
-            const shown = series['calloutLabelSelection']
-                .selectByTag<Text>(DonutNodeTag.CalloutLabel)
+            const shown = getSeriesCalloutNodes<Text>(chart, DonutNodeTag.CalloutLabel)
                 .filter((node) => node.visible)
                 .map((node) => node.getBBox().clone().translate(series.centerX, series.centerY));
             const registered = series
@@ -2337,9 +2336,7 @@ describe('DonutSeries', () => {
                     ],
                 })
             );
-            const [series] = calloutSeries(chart);
-            const drawn = series['calloutLabelSelection']
-                .selectByTag<Text>(DonutNodeTag.CalloutLabel)
+            const drawn = getSeriesCalloutNodes<Text>(chart, DonutNodeTag.CalloutLabel)
                 .filter((node) => node.visible)
                 .map((node) => node.text);
 
