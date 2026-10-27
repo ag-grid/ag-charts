@@ -119,10 +119,8 @@ function renderFeatureMatrix(heading: string, sections: FeatureSection[], siteRo
     return parts.join('\n\n');
 }
 
-// The page sits under the hosting site's base path (/charts/ on the Charts site), so apply it before
-// adding the origin.
 function getContactUrl(siteRoot?: string): string {
-    return toAbsoluteUrl(`${urlWithBaseUrl('/license-pricing/')}#${PRICING_ANCHORS.contact}`, siteRoot);
+    return toAbsoluteUrl(urlWithBaseUrl(`/license-pricing/#${PRICING_ANCHORS.contact}`), siteRoot);
 }
 
 function renderProducts(siteRoot?: string): string {

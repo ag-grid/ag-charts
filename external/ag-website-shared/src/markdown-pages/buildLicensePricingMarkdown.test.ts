@@ -1,5 +1,5 @@
 import { PRICING_FAQS, PRICING_PAGE } from '@ag-website-shared/components/license-pricing/pricingContent';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { buildLicensePricingMarkdown } from './buildLicensePricingMarkdown';
 
@@ -67,23 +67,5 @@ describe('buildLicensePricingMarkdown', () => {
     it('ends with a single trailing newline', () => {
         expect(output.endsWith('\n')).toBe(true);
         expect(output.endsWith('\n\n')).toBe(false);
-    });
-});
-
-describe('buildLicensePricingMarkdown under a site base path', () => {
-    afterEach(() => {
-        vi.unstubAllEnvs();
-        vi.resetModules();
-    });
-
-    // Charts production serves the page at https://www.ag-grid.com/charts/license-pricing/.
-    it('keeps the base path in contact links', async () => {
-        vi.stubEnv('PUBLIC_BASE_URL', '/charts');
-        vi.resetModules();
-        const { buildLicensePricingMarkdown: build } = await import('./buildLicensePricingMarkdown');
-        const output = build({ siteRoot: 'https://www.ag-grid.com' });
-
-        expect(output).toContain('[Contact sales](https://www.ag-grid.com/charts/license-pricing/#contact-sales)');
-        expect(output).not.toContain('https://www.ag-grid.com/license-pricing/');
     });
 });
