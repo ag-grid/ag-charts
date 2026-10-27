@@ -41,6 +41,7 @@ import {
     barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
+    drawnItemColor,
     findMinMax,
     fontWithSize,
     insideBarContainer,
@@ -1557,6 +1558,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         }
 
         return super.getHighlightLabelData(labelData, highlightedItem);
+    }
+
+    datumColor(datumIndex: number): string | undefined {
+        return drawnItemColor(this.getItemStyle(datumIndex, false, undefined, undefined, undefined));
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {

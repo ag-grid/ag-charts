@@ -22,6 +22,7 @@ import type {
 import {
     ChartAxisDirection,
     deepClone,
+    drawnItemColor,
     isNumericValue,
     mergeDefaults,
     toNumber,
@@ -543,6 +544,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 hideInLegend: showInLegend === false,
             },
         ];
+    }
+
+    datumColor(datumIndex: number): string | undefined {
+        return drawnItemColor(this.getItemStyle(datumIndex, false, undefined, undefined, undefined));
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {

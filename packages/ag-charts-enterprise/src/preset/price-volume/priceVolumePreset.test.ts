@@ -96,12 +96,12 @@ describe('priceVolumePreset', () => {
 
     // Minimal view of the (private) StatusBar label structure read by the status-bar text accessor.
     interface StatusBarLabels {
-        labels: Array<{ title?: { text?: string }; value: { text?: string } }>;
+        financialView?: { labels: Array<{ title?: { text?: string }; value: { text?: string } }> };
     }
 
     const statusBarLabelText = (instance: AgChartInstance<AgFinancialChartOptions>, title: string) => {
         const statusBar = deproxy(instance).modulesManager.getModule<StatusBarLabels>('statusBar');
-        return statusBar?.labels.find((label) => label.title?.text === title)?.value.text;
+        return statusBar?.financialView?.labels.find((label) => label.title?.text === title)?.value.text;
     };
 
     it.each([
@@ -425,8 +425,10 @@ describe('priceVolumePreset', () => {
         }
 
         interface StatusBarState {
-            bandLabels: Array<{ title: Measurable; value: Measurable }>;
-            backgroundNode: { width: number };
+            financialView: {
+                bandLabels: Array<{ title: Measurable; value: Measurable }>;
+                backgroundNode: { width: number };
+            };
         }
 
         interface NodeDatum {
@@ -501,7 +503,7 @@ describe('priceVolumePreset', () => {
             await hoverCandleAtLevel(50, LEVEL_200);
 
             const { bandLabels, backgroundNode } =
-                deproxy(chart).modulesManager.getModule<StatusBarState>('statusBar')!;
+                deproxy(chart).modulesManager.getModule<StatusBarState>('statusBar')!.financialView;
             expect(bandLabels.map(({ value }) => value.text)).toEqual([
                 '198.75-201.25',
                 '600.00K',

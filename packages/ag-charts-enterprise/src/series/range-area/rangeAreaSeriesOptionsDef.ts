@@ -9,6 +9,7 @@ import type {
 import {
     type OptionsDefs,
     boolean,
+    callback,
     callbackDefs,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -64,6 +65,7 @@ const rangeAreaSeriesLineStyleDef: OptionsDefs<AgRangeAreaSeriesLineStyle> = {
 
 export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesThemeableOptions> = {
     showInMiniChart: boolean,
+    collector: callback,
     connectMissingData: boolean,
     interpolation: interpolationOptionsDefs,
     label: {

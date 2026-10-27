@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     boolean,
+    callback,
     callbackDefs,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -35,6 +36,7 @@ const areaStyler = callbackDefs<AgAreaSeriesStylerResult>({
 
 export const areaSeriesThemeableOptionsDef: OptionsDefs<AgAreaSeriesThemeableOptions> = {
     showInMiniChart: boolean,
+    collector: callback,
     connectMissingData: boolean,
     interpolation: interpolationOptionsDefs,
     label: placedSeriesLabelOptionsDefs,

@@ -38,6 +38,7 @@ import {
     clamp,
     configureColorScale,
     dateToNumber,
+    drawnItemColor,
     extent,
     findDiscreteColorBinLabel,
     formatValue,
@@ -1607,6 +1608,24 @@ export abstract class BubbleScatterSeries<
             colorName,
             legendItemName,
         } satisfies RequireOptional<AgBubbleSeriesLabelFormatterParams>;
+    }
+
+    datumColor(datumIndex: number): string | undefined {
+        const { dataModel, processedData, options, marker, colorScale } = this;
+        if (dataModel == null || processedData == null) return;
+        const { xKey, yKey, sizeKey, labelKey, colorKey, colorScale: colorScaleOptions } = options;
+        const style = this.getMarkerStyle<BubbleScatterMarkerParams>(
+            marker,
+            { datum: this.datumAt(datumIndex), datumIndex },
+            { xKey, yKey, sizeKey, labelKey, colorKey },
+            { resolveMarkerSubPath: [] }
+        );
+        if (colorKey != null && colorScaleOptions != null && this.isColorScaleValid()) {
+            const colorValue = dataModel.resolveColumnById(this, 'colorValue', processedData, 'number')[datumIndex];
+            const colorFill = colorValue == null ? colorScaleOptions.missingDataFill : colorScale.convert(colorValue);
+            if (colorFill != null) style.fill = colorFill;
+        }
+        return drawnItemColor(style);
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {

@@ -16,7 +16,7 @@ export type FormatterPropertyType =
     | 'sectorLabel'
     | 'legendItem';
 
-export type SeriesFormatterSource = 'tooltip' | 'series-label';
+export type SeriesFormatterSource = 'tooltip' | 'series-label' | 'status-bar';
 export type ChartFormatterSource = 'axis-label' | 'gradient-legend' | 'legend-label' | 'crosshair' | 'annotation-label';
 export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
 

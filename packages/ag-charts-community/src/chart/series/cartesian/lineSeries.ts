@@ -23,6 +23,7 @@ import {
     DebugMetrics,
     PointerEvents,
     applyStyledMarkerSize,
+    drawnItemColor,
     extent,
     isDefined,
     markerRebuildNeeded,
@@ -1144,6 +1145,30 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgLineSeriesLabelFormatterParams>;
     }
 
+    datumColor(datumIndex: number): string | undefined {
+        const { dataModel, processedData, options } = this;
+        if (dataModel == null || processedData == null) return;
+        if (!options.marker.enabled) return drawnItemColor(this.getStyle(undefined));
+        return drawnItemColor(this.datumMarkerStyle(dataModel, processedData, datumIndex, this.datumAt(datumIndex)));
+    }
+
+    private datumMarkerStyle(
+        dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number,
+        datum: unknown
+    ) {
+        const stylerStyle = this.getStyle(undefined);
+        const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
+        return this.getMarkerStyle(
+            this.options.marker,
+            { datumIndex, datum },
+            params,
+            { isHighlight: false },
+            stylerStyle.marker
+        ) as RequireOptional<NormalisedSeriesMarkerStyle>;
+    }
+
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, options } = this;
         const { xKey, xName, yKey, yName, tooltip, legendItemName } = options;
@@ -1159,16 +1184,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
         if (xValue === undefined && !allowNullKeys) return;
 
-        const stylerStyle = this.getStyle(undefined);
-        const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
-
-        const format = this.getMarkerStyle(
-            this.options.marker,
-            { datumIndex, datum },
-            params,
-            { isHighlight: false },
-            stylerStyle.marker
-        ) as RequireOptional<NormalisedSeriesMarkerStyle>;
+        const format = this.datumMarkerStyle(dataModel, processedData, datumIndex, datum);
 
         return this.formatTooltipWithContext(
             tooltip,

@@ -29,6 +29,8 @@ import {
     isPatternFill,
     isTextTruncated,
     objectsEqual,
+    placementOffset,
+    placementSide,
     toPlainText,
     toTextString,
     truncateLine,
@@ -1302,81 +1304,14 @@ export class Legend {
         const legendBBox = this.computePagedBBox();
 
         if (this.visible) {
-            let translationX: number;
-            let translationY: number;
-            switch (placement) {
-                case 'top':
-                    translationX = (width - legendBBox.width) / 2;
-                    translationY = 0;
-                    break;
-                case 'bottom':
-                    translationX = (width - legendBBox.width) / 2;
-                    translationY = height - legendBBox.height;
-                    break;
-                case 'right':
-                    translationX = width - legendBBox.width;
-                    translationY = (height - legendBBox.height) / 2;
-                    break;
-                case 'left':
-                    translationX = 0;
-                    translationY = (height - legendBBox.height) / 2;
-                    break;
-                case 'top-right':
-                case 'right-top':
-                    translationX = width - legendBBox.width;
-                    translationY = 0;
-                    break;
-                case 'top-left':
-                case 'left-top':
-                    translationX = 0;
-                    translationY = 0;
-                    break;
-                case 'bottom-right':
-                case 'right-bottom':
-                    translationX = width - legendBBox.width;
-                    translationY = height - legendBBox.height;
-                    break;
-                case 'bottom-left':
-                case 'left-bottom':
-                    translationX = 0;
-                    translationY = height - legendBBox.height;
-                    break;
-                default:
-                    unreachable(placement);
-            }
+            const offset = placementOffset(placement, width, height, legendBBox.width, legendBBox.height);
+            let translationX = offset.x;
+            let translationY = offset.y;
 
             if (!floating) {
-                let shrinkAmount: number;
-                let shrinkDirection: NonNullable<Parameters<BBox['shrink']>[1]>;
-                switch (placement) {
-                    case 'top':
-                    case 'top-right':
-                    case 'top-left':
-                        shrinkAmount = legendBBox.height + spacing;
-                        shrinkDirection = 'top';
-                        break;
-                    case 'bottom':
-                    case 'bottom-right':
-                    case 'bottom-left':
-                        shrinkAmount = legendBBox.height + spacing;
-                        shrinkDirection = 'bottom';
-                        break;
-                    case 'left':
-                    case 'left-top':
-                    case 'left-bottom':
-                        shrinkAmount = legendBBox.width + spacing;
-                        shrinkDirection = 'left';
-                        break;
-                    case 'right':
-                    case 'right-top':
-                    case 'right-bottom':
-                        shrinkAmount = legendBBox.width + spacing;
-                        shrinkDirection = 'right';
-                        break;
-                    default:
-                        unreachable(placement);
-                }
-                layoutBox.shrink(shrinkAmount, shrinkDirection);
+                const side = placementSide(placement);
+                const extent = side === 'top' || side === 'bottom' ? legendBBox.height : legendBBox.width;
+                layoutBox.shrink(extent + spacing, side);
             }
 
             translationX += xOffset;

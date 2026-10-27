@@ -28,6 +28,7 @@ import {
     PointerEvents,
     type RequireOptional,
     clamp,
+    drawnItemColor,
     extent,
     findMinMax,
     isContinuous,
@@ -1231,6 +1232,31 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         return { xKey, highKey, lowKey, closeKey, itemType };
     }
 
+    datumColor(datumIndex: number, key: string): string | undefined {
+        const { highKey, lowKey } = this.options;
+        let itemType: AgHlcSeriesItemType = 'close';
+        if (key === highKey) itemType = 'high';
+        if (key === lowKey) itemType = 'low';
+        const stylerStyle = this.getStyle(undefined);
+        if (!this.itemMarkers[itemType].enabled) return drawnItemColor(stylerStyle.item[itemType]);
+        return drawnItemColor(this.itemMarkerStyle(datumIndex, this.datumAt(datumIndex), itemType, stylerStyle));
+    }
+
+    private itemMarkerStyle(
+        datumIndex: number,
+        datum: unknown,
+        itemType: AgHlcSeriesItemType,
+        stylerStyle: ReturnType<typeof this.getStyle>
+    ) {
+        return this.getMarkerStyle(
+            this.itemMarkers[itemType],
+            { datumIndex, datum },
+            this.makeItemStylerParams(itemType),
+            { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
+            stylerStyle.item[itemType].marker
+        ) as RequireOptional<AgSeriesMarkerStyle>;
+    }
+
     override getTooltipContent(
         datumIndex: number,
         removeThisDatum: HlcMarkerDatum | undefined
@@ -1260,13 +1286,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const stylerStyle = this.getStyle(undefined);
-        const format = this.getMarkerStyle(
-            this.itemMarkers[itemType],
-            { datumIndex, datum },
-            this.makeItemStylerParams(itemType),
-            { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
-            stylerStyle.item[itemType].marker
-        ) as RequireOptional<AgSeriesMarkerStyle>;
+        const format = this.itemMarkerStyle(datumIndex, datum, itemType, stylerStyle);
 
         const row = (
             type: AgHlcSeriesItemType,

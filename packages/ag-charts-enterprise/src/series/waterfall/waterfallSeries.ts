@@ -40,6 +40,7 @@ import {
     barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
+    drawnItemColor,
     easeOut,
     firstCandidate,
     fontWithSize,
@@ -1390,6 +1391,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 }
             );
         });
+    }
+
+    datumColor(datumIndex: number): string | undefined {
+        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
+        return drawnItemColor(this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType));
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {

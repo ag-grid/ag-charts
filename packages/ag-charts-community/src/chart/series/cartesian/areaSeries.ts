@@ -26,6 +26,7 @@ import {
     PointerEvents,
     SeriesContentZIndexMap,
     SeriesZIndexMap,
+    drawnItemColor,
     extent,
     isContinuous,
     isDefined,
@@ -1703,6 +1704,30 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgAreaSeriesLabelFormatterParams>;
     }
 
+    datumColor(datumIndex: number): string | undefined {
+        const { dataModel, processedData, options } = this;
+        if (dataModel == null || processedData == null) return;
+        if (!options.marker.enabled) return drawnItemColor(this.getStyle(undefined));
+        return drawnItemColor(this.datumMarkerStyle(dataModel, processedData, datumIndex, this.datumAt(datumIndex)));
+    }
+
+    private datumMarkerStyle(
+        dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number,
+        datum: unknown
+    ) {
+        const stylerStyle = this.getStyle(undefined);
+        const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
+        return this.getMarkerStyle<NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
+            this.options.marker,
+            { datumIndex, datum },
+            params,
+            { isHighlight: false },
+            stylerStyle.marker
+        ) as RequireOptional<NormalisedSeriesMarkerStyle>;
+    }
+
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, options } = this;
         const { xKey, xName, yKey, yName, tooltip, legendItemName } = options;
@@ -1719,16 +1744,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return;
 
-        const stylerStyle = this.getStyle(undefined);
-        const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
-
-        const format = this.getMarkerStyle<NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
-            this.options.marker,
-            { datumIndex, datum },
-            params,
-            { isHighlight: false },
-            stylerStyle.marker
-        ) as RequireOptional<NormalisedSeriesMarkerStyle>;
+        const format = this.datumMarkerStyle(dataModel, processedData, datumIndex, datum);
 
         return this.formatTooltipWithContext(
             tooltip,

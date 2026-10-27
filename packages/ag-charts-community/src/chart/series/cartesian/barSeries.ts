@@ -45,6 +45,7 @@ import {
     barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
+    drawnItemColor,
     fontWithSize,
     isContinuous,
     isFiniteNumber,
@@ -2047,6 +2048,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 { placement, orientation: barLabelOrientation(datum.label?.rotation ?? 0) }
             );
         });
+    }
+
+    datumColor(datumIndex: number): string | undefined {
+        return drawnItemColor(this.getItemStyle(datumIndex, false, undefined, undefined, undefined));
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {

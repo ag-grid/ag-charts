@@ -517,6 +517,7 @@ type ModuleOwnedChartOptions =
     | 'ranges'
     | 'scrollbar'
     | 'selection'
+    | 'statusBar'
     | 'sync'
     | 'zoom';
 
@@ -621,7 +622,6 @@ export const commonChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBas
     enableRtl: boolean,
     enableShadowDom: boolean,
     ...undocumentedDefs({
-        statusBar: defined,
         foreground: {
             visible: boolean,
             text: string,

@@ -2,6 +2,7 @@ import {
     type OptionsDefs,
     arrayOf,
     boolean,
+    callback,
     callbackDefs,
     callbackOf,
     commonSeriesOptionsDefs,
@@ -41,6 +42,7 @@ const histogramStyler = callbackDefs<AgHistogramSeriesStyle>({
 
 export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesThemeableOptions> = {
     showInMiniChart: boolean,
+    collector: callback,
     cornerRadius: positiveNumber,
     styler: histogramStyler,
     itemStyler: histogramStyler,

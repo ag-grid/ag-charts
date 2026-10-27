@@ -40,6 +40,7 @@ import {
     createBigIntTickBins,
     createTicks,
     deepClone,
+    drawnItemColor,
     findMinMax,
     fontWithSize,
     isBigInt,
@@ -1208,6 +1209,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         return findQuadtreeMatch(this, point);
+    }
+
+    datumColor(datumIndex: number): string | undefined {
+        return drawnItemColor(this.getItemStyle(datumIndex, false));
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {

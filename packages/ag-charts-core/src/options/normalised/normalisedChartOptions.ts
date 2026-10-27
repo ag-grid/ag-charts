@@ -2,6 +2,7 @@ import type {
     AgAnimationOptions,
     AgAnnotationsOptions,
     AgChartBackground,
+    AgChartLegendPosition,
     AgChartOptions,
     AgChartOverlayOptions,
     AgChartSyncOptions,
@@ -22,14 +23,19 @@ import type {
     AgScrollbarTrackStyle,
     AgScrollbarVerticalOrientationOptions,
     AgSeriesAreaOptions,
+    AgStatusBarInactiveMode,
+    AgStatusBarOptions,
     AgTouchOptions,
     FontStyle,
     FontWeight,
+    Padding,
+    TextWrap,
 } from 'ag-charts-types';
 
 import type { NormalisedChartCaptionOptions } from './normalisedChartCaptionOptions';
 import type {
     NormalisedBorderOptions,
+    NormalisedColorType,
     NormalisedPaddingOptions,
     NormalisedTextOrSegments,
 } from './normalisedCommonOptions';
@@ -205,6 +211,22 @@ export type ResolvedChartOptions = Omit<
 
 export type NormalisedStatusBarOptions = {
     enabled: boolean;
+    position?: AgChartLegendPosition;
+    maxWidth?: number;
+    maxHeight?: number;
+    fill?: NormalisedColorType;
+    fillOpacity?: number;
+    border?: NormalisedBorderOptions;
+    cornerRadius?: number;
+    padding?: Padding;
+    label: NormalisedStatusBarLabelOptions;
+    value: NormalisedStatusBarFontOptions;
+    wrapping: TextWrap;
+    truncate: boolean;
+    inactive: AgStatusBarInactiveMode;
+    renderer?: AgStatusBarOptions['renderer'];
+    // Financial Charts preset only.
+    layoutStyle?: 'block' | 'overlay';
     openKey?: string;
     highKey?: string;
     lowKey?: string;
@@ -215,14 +237,13 @@ export type NormalisedStatusBarOptions = {
         priceAxisKey: string;
         levels: { priceLow: number; priceHigh: number; up: number; down: number; total: number }[];
     };
-    layoutStyle: 'block' | 'overlay';
-    title: NormalisedStatusBarLabelOptions;
     positive: NormalisedStatusBarLabelOptions;
     negative: NormalisedStatusBarLabelOptions;
     neutral: NormalisedStatusBarLabelOptions;
     altNeutral: NormalisedStatusBarLabelOptions;
-    background: { fill: string; fillOpacity: number };
 };
+
+export type NormalisedStatusBarFontOptions = Omit<NormalisedStatusBarLabelOptions, 'color'>;
 
 export type NormalisedStatusBarLabelOptions = {
     color: string;

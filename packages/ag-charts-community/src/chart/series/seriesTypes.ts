@@ -7,6 +7,7 @@ import type {
     Group,
     LabelObstacle,
     Node,
+    NormalisedTextOrSegments,
     PlacedLabel,
     Point,
     PointLabelDatum,
@@ -21,7 +22,9 @@ import type {
     AgNodeClickParams,
     AgNodeContextMenuActionEvent,
     AgNumericValue,
+    AgSeriesCollector,
     SelectionState as PublicSelectionState,
+    SeriesFormatterSource,
 } from 'ag-charts-types';
 
 import type { ProcessedData } from '../data/dataModelTypes';
@@ -128,6 +131,7 @@ export interface ISeriesOptions {
     yKey?: string;
     context?: unknown;
     tooltip?: { enabled?: boolean };
+    collector?: AgSeriesCollector<unknown, unknown>;
 }
 
 export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISeriesOptions, TLabel = TDatum> {
@@ -208,6 +212,18 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
         minVisibleItems: number
     ): number;
     dataCount(): number;
+    /** The source datum at `datumIndex`, for series backed by a data model. */
+    datumAt?(datumIndex: DatumIndex): unknown;
+    readDatumKey?(datum: unknown, key: string): unknown;
+    /** The colour the series draws the datum's `key` with, after any `itemStyler`. */
+    datumColor?(datumIndex: number, key: string): string | undefined;
+    formatDatumValue(
+        direction: ChartAxisDirection,
+        value: unknown,
+        datum: unknown,
+        key: string,
+        source: SeriesFormatterSource
+    ): NormalisedTextOrSegments | undefined;
     shouldFlipXY?: () => boolean;
     getKeyAxis(direction: ChartAxisDirection): string | undefined;
     getKeys(direction: ChartAxisDirection): string[];

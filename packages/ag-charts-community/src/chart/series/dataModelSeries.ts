@@ -2,6 +2,7 @@ import type { BBox, Path, Scale } from 'ag-charts-core';
 import { ChartAxisDirection, ContinuousScale, type Point, clamp, objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
+import { createPathAccessor, getPathComponents } from '../data/data-model/utils/helpers';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
 import type { PropertyDefinition } from '../data/dataModelTypes';
@@ -53,6 +54,20 @@ export abstract class DataModelSeries<
 
     dataCount() {
         return this.processedData?.dataSources?.get(this.id)?.data?.length ?? 0;
+    }
+
+    datumAt(datumIndex: number): unknown {
+        return this.processedData?.dataSources?.get(this.id)?.data?.[datumIndex];
+    }
+
+    /** Reads `key` from `datum` with the same path rules the data model applies to series keys. */
+    readDatumKey(datum: unknown, key: string): unknown {
+        if (datum == null || typeof datum !== 'object') return;
+        if (key in datum || this.ctx.chartState.getValue('options', 'suppressFieldDotNotation')) {
+            return Reflect.get(datum, key);
+        }
+        const components = getPathComponents(key);
+        return components == null ? undefined : createPathAccessor(components)(datum);
     }
 
     invalidDataCount() {

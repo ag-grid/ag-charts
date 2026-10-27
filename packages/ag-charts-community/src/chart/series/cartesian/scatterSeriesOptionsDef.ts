@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     boolean,
+    callback,
     callbackDefs,
     colorScaleOptionsDef,
     commonSeriesOptionsDefs,
@@ -29,6 +30,7 @@ import type {
 export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemeableOptions> = {
     title: string,
     showInMiniChart: boolean,
+    collector: callback,
     label: placedSeriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     errorBar: errorBarThemeableOptionsDefs,

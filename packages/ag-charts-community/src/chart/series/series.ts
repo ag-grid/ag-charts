@@ -68,6 +68,7 @@ import type {
     Listener,
     HighlightState as PublicHighlightState,
     SelectionState as PublicSelectionState,
+    SeriesFormatterSource,
     SeriesType,
 } from 'ag-charts-types';
 
@@ -1568,9 +1569,22 @@ export abstract class Series<
         return this.moduleContext;
     }
 
+    /** Formats a datum value as the axis in `direction` formats it, or `undefined` without one. */
+    formatDatumValue(
+        direction: ChartAxisDirection,
+        value: unknown,
+        datum: unknown,
+        key: string,
+        source: SeriesFormatterSource
+    ): NormalisedTextOrSegments | undefined {
+        const axis = this.axes[direction];
+        if (axis == null) return;
+        return this.getAxisValueText(axis, source, value, datum, key, this.legendItemName);
+    }
+
     protected getAxisValueText(
         axis: ChartAxis,
-        source: 'tooltip',
+        source: SeriesFormatterSource,
         value: any,
         datum: any,
         key: string,

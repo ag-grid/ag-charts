@@ -28,6 +28,7 @@ import {
     type Scale,
     type Selection,
     type Text,
+    drawnItemColor,
     mergeDefaults,
     toNumber,
 } from 'ag-charts-core';
@@ -904,6 +905,10 @@ export abstract class OhlcSeriesBase<
         }
 
         return params;
+    }
+
+    datumColor(datumIndex: number): string | undefined {
+        return drawnItemColor(this.getItemStyle(datumIndex, false));
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {

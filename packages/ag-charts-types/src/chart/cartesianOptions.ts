@@ -33,6 +33,7 @@ import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from 
 import type { AgNumericValue, AgTimeValue } from './dataValues';
 import type { AgAxesChartListeners, AgAxisListeners } from './eventOptions';
 import type { AgChartLabelAutoFontSizeOptions, AgChartLabelFitOptions, AgChartLabelStyleOptions } from './labelOptions';
+import type { AgStatusBarOptions } from './statusBarOptions';
 import type {
     AxisValue,
     ContextDefault,
@@ -234,6 +235,8 @@ export interface AgBaseCartesianChartOptions<TDatum = DatumDefault, TContext = C
     series?: AgCartesianSeriesOptions<TDatum, TContext>[];
     /** Annotations configurations. */
     annotations?: AgAnnotationsOptions;
+    /** Configuration for the status bar, which shows the values of the hovered datum. */
+    statusBar?: AgStatusBarOptions<TDatum, TContext>;
 }
 
 export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> extends Pick<
@@ -542,6 +545,8 @@ export interface AgBaseCartesianThemeOptions<
     seriesArea?: AgCartesianSeriesAreaThemableOptions;
     /** A map of event names to event listeners. */
     listeners?: AgAxesChartListeners<TDatum, TContext>;
+    /** Configuration for the status bar, which shows the values of the hovered datum. */
+    statusBar?: AgStatusBarOptions<TDatum, TContext>;
 }
 
 export interface AgCartesianSeriesAreaThemableOptions extends AgSeriesAreaOptions {

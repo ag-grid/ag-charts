@@ -1,602 +1,241 @@
-import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgCollectedValue,
+    type AgStatusBarRendererItem,
+    type NormalisedTextOrSegments,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     AbstractModuleInstance,
-    ChartAxisDirection,
     ChartUpdateType,
+    CleanupRegistry,
     type DynamicContext,
     Group,
     type NormalisedStatusBarOptions,
-    Rect,
-    Text,
-    TranslatableGroup,
     ZIndexMap,
-    cachedTextMeasurer,
-    drawnLineHeight,
-    isFiniteNumber,
-    isNumericValue,
+    callWithContext,
+    isArray,
+    isObjectWithProperty,
+    toTextString,
 } from 'ag-charts-core';
 
-import { findBandLevel } from './findBandLevel';
+import { FinancialStatusBarView } from './financialStatusBarView';
+import { type StatusBarAnchor, collectAnchoredValues, collectFallbackValues } from './statusBarCollection';
+import { StatusBarItemsView } from './statusBarItemsView';
 
 const { LayoutElement } = _ModuleSupport;
-enum LabelConfiguration {
-    Open = 2, // 1 << 1
-    Close = 4, // 1 << 2
-    Low = 8, // 1 << 3
-    High = 16, // 1 << 4
-    Volume = 32, // 1 << 5
-    UnlabelledClose = 64, // 1 << 6
-    NeutralClose = 128, // 1 << 7
-    NeutralHigh = 256, // 1 << 8
-    NeutralLow = 512, // 1 << 9
+
+type StatusBarMode = 'items' | 'financial';
+
+interface RecentAnchor {
+    readonly seriesId: string;
+    readonly datumIndex: number;
 }
 
-const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = {
-    ohlc:
-        LabelConfiguration.Open |
-        LabelConfiguration.Close |
-        LabelConfiguration.Low |
-        LabelConfiguration.High |
-        LabelConfiguration.Volume,
-    candlestick:
-        LabelConfiguration.Open |
-        LabelConfiguration.Close |
-        LabelConfiguration.Low |
-        LabelConfiguration.High |
-        LabelConfiguration.Volume,
-    'hollow-candlestick':
-        LabelConfiguration.Open |
-        LabelConfiguration.Close |
-        LabelConfiguration.Low |
-        LabelConfiguration.High |
-        LabelConfiguration.Volume,
-    line: LabelConfiguration.UnlabelledClose | LabelConfiguration.Volume,
-    'step-line': LabelConfiguration.UnlabelledClose | LabelConfiguration.Volume,
-    hlc: LabelConfiguration.NeutralClose | LabelConfiguration.Low | LabelConfiguration.High | LabelConfiguration.Volume,
-    'high-low': LabelConfiguration.NeutralLow | LabelConfiguration.NeutralHigh | LabelConfiguration.Volume,
-};
+interface ResolvedAnchor {
+    readonly anchor?: StatusBarAnchor;
+    /** Whether the anchor is the hovered datum, rather than the `inactive` fallback. */
+    readonly active: boolean;
+}
 
-// Shared with the Volume Profile fields, so a hovered level reads like the candle beside it.
-const createPriceFormatter = () =>
-    new Intl.NumberFormat('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
+interface RenderedItems {
+    readonly key: string;
+    readonly items: AgStatusBarRendererItem[];
+}
 
-const createVolumeFormatter = () =>
-    new Intl.NumberFormat('en-US', {
-        notation: 'compact',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
+export class StatusBar extends AbstractModuleInstance {
+    private readonly layer = new Group({ name: 'StatusBar', zIndex: ZIndexMap.STATUS_BAR });
+    private readonly enabledCleanup = new CleanupRegistry();
+    private mode?: StatusBarMode;
+    private financialView?: FinancialStatusBarView;
+    private itemsView?: StatusBarItemsView;
 
-type BandValues = NonNullable<NormalisedStatusBarOptions['volumeProfile']>['levels'][number];
+    private recent?: RecentAnchor;
+    private rendered?: RenderedItems;
 
-const itemIdMap: Record<string, 'positive' | 'negative' | 'neutral' | 'altNeutral'> = {
-    up: 'positive',
-    down: 'negative',
-};
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+        super();
 
-const neutralColorMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNeutral'>> = {
-    hlc: 'altNeutral',
-};
+        this.cleanup.register(
+            ctx.scene.attachNode(this.layer),
+            ctx.chartState.observe((get) => {
+                if (get('options', 'statusBar.enabled') !== true) return this.setMode(undefined);
+                this.setMode(get('options', 'statusBar.closeKey') == null ? 'items' : 'financial');
+            }),
+            () => this.teardown()
+        );
+    }
 
-export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.ScopeProvider {
     private get opts(): NormalisedStatusBarOptions {
         return this.ctx.chartState.getValue('options', 'statusBar')!;
     }
 
-    readonly id = 'status-bar';
+    private setMode(mode: StatusBarMode | undefined) {
+        if (mode === this.mode) return;
+        this.teardown();
+        this.mode = mode;
+        if (mode == null) return;
 
-    private chartData?: _ModuleSupport.DataSet<any>;
-    private readonly layer = new Group({
-        name: 'StatusBar',
-        zIndex: ZIndexMap.STATUS_BAR,
-    });
-    private readonly labelGroup = this.layer.appendChild(new TranslatableGroup());
-    private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
-    private readonly labels = [
-        {
-            label: 'O',
-            configuration: LabelConfiguration.Open,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            id: 'openValue' as const,
-            key: 'openKey' as const,
-            domain: undefined as number[] | undefined,
-            formatter: createPriceFormatter(),
-        },
-        {
-            label: 'H',
-            configuration: LabelConfiguration.High,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            id: 'highValue' as const,
-            key: 'highKey' as const,
-            domain: undefined as number[] | undefined,
-            formatter: createPriceFormatter(),
-        },
-        {
-            label: 'H',
-            configuration: LabelConfiguration.NeutralHigh,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            style: 'neutral' as const,
-            id: 'highValue' as const,
-            key: 'highKey' as const,
-            domain: undefined as number[] | undefined,
-            formatter: createPriceFormatter(),
-        },
-        {
-            label: 'L',
-            configuration: LabelConfiguration.Low,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            id: 'lowValue' as const,
-            key: 'lowKey' as const,
-            domain: undefined as number[] | undefined,
-            formatter: createPriceFormatter(),
-        },
-        {
-            label: 'L',
-            configuration: LabelConfiguration.NeutralLow,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            style: 'neutral' as const,
-            id: 'lowValue' as const,
-            key: 'lowKey' as const,
-            domain: undefined as number[] | undefined,
-            formatter: createPriceFormatter(),
-        },
-        {
-            label: 'C',
-            configuration: LabelConfiguration.Close,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            id: 'closeValue' as const,
-            key: 'closeKey' as const,
-            domain: undefined as number[] | undefined,
-            formatter: createPriceFormatter(),
-        },
-        {
-            label: 'C',
-            configuration: LabelConfiguration.NeutralClose,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            id: 'closeValue' as const,
-            key: 'closeKey' as const,
-            style: 'neutral' as const,
-            domain: undefined as number[] | undefined,
-            formatter: createPriceFormatter(),
-        },
-        {
-            label: '',
-            configuration: LabelConfiguration.UnlabelledClose,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            style: 'neutral' as const,
-            id: 'closeValue' as const,
-            key: 'closeKey' as const,
-            domain: undefined as number[] | undefined,
-            formatter: createVolumeFormatter(),
-        },
-        {
-            label: 'Vol',
-            configuration: LabelConfiguration.Volume,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            id: 'volumeValue' as const,
-            key: 'volumeKey' as const,
-            domain: undefined as number[] | undefined,
-            formatter: createVolumeFormatter(),
-        },
-    ];
+        const { ctx } = this;
+        if (mode === 'items') {
+            const view = new StatusBarItemsView();
+            this.itemsView = view;
+            this.layer.appendChild(view.group);
+            this.enabledCleanup.register(
+                ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.layoutItems(view, e)),
+                ctx.eventsHub.on('layout:complete', (e) => view.onLayoutComplete(e.series.rect, this.opts)),
+                ctx.eventsHub.on('update:process-data', () => this.invalidate()),
+                ctx.chartState.observe((get) => {
+                    get('options');
+                    this.invalidate();
+                }),
+                ctx.chartState.observe((get) => this.onHighlight(get('highlight')))
+            );
+            return;
+        }
 
-    // The hovered Volume Profile level, appended after the candle fields and shown only while a level is hovered.
-    private readonly bandSeparator = this.labelGroup.appendChild(new Text());
-    private readonly bandLabels = [
-        {
-            labelKey: 'statusBarVolumeProfilePrice' as const,
-            style: 'neutral' as const,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            formatter: createPriceFormatter(),
-            text: (band: BandValues, format: (value: number) => string) =>
-                `${format(band.priceLow)}-${format(band.priceHigh)}`,
-        },
-        {
-            labelKey: 'statusBarVolumeProfileUp' as const,
-            style: 'positive' as const,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            formatter: createVolumeFormatter(),
-            text: (band: BandValues, format: (value: number) => string) => format(band.up),
-        },
-        {
-            labelKey: 'statusBarVolumeProfileDown' as const,
-            style: 'negative' as const,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            formatter: createVolumeFormatter(),
-            text: (band: BandValues, format: (value: number) => string) => format(band.down),
-        },
-        {
-            labelKey: 'statusBarVolumeProfileTotal' as const,
-            style: 'neutral' as const,
-            title: this.labelGroup.appendChild(new Text()),
-            value: this.labelGroup.appendChild(new Text()),
-            formatter: createVolumeFormatter(),
-            text: (band: BandValues, format: (value: number) => string) => format(band.total),
-        },
-    ];
-
-    // The background spans the candle fields alone until the pointer is over a Volume Profile level, which moves to a
-    // second line when it does not fit beside them.
-    private candleWidth = 0;
-    private bandWidth = 0;
-    private candleHeight = 0;
-    private bandHeight = 0;
-    private wrapped = false;
-    private seriesTop = 0;
-    private pointerY: number | undefined;
-    private band: BandValues | undefined;
-
-    public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
-        super();
-
-        this.labelGroup.visible = false;
-
-        this.cleanup.register(
-            ctx.scene.attachNode(this.layer),
-            ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
-            ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.chartState.observe((get) => {
-                const highlight = get('highlight');
-                this.updateHighlight(highlight);
-            }),
+        const view = new FinancialStatusBarView(ctx);
+        this.financialView = view;
+        this.layer.appendChild(view.labelGroup);
+        this.enabledCleanup.register(
+            ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => view.performLayout(e)),
+            ctx.eventsHub.on('layout:complete', (e) => view.onLayoutComplete(e)),
+            ctx.chartState.observe((get) => view.updateHighlight(get('highlight'))),
             ctx.eventsHub.on('data:update', (data) => {
-                this.chartData = data;
+                view.chartData = data;
             }),
             ctx.eventsHub.on('series-area:hover', ({ canvasY }) => this.onPointerMove(canvasY)),
             ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onPointerMove(undefined))
         );
     }
 
-    private updateDomainsFromSeries() {
-        const opts = this.opts;
-        if (!opts?.enabled) return;
+    private teardown() {
+        this.enabledCleanup.flush();
+        this.layer.clear();
+        this.mode = undefined;
+        this.financialView = undefined;
+        this.itemsView = undefined;
+        this.recent = undefined;
+        this.rendered = undefined;
+    }
 
-        const series = this.ctx.chartService.series;
-        if (series.length === 0) return;
+    private invalidate() {
+        this.rendered = undefined;
+    }
 
-        // Find the main price series (candlestick, ohlc, etc.) and volume series (bar).
-        // The price series provides domains for OHLC values, the volume series for volume.
-        let priceDomain: number[] | undefined;
-        let volumeDomain: number[] | undefined;
-
-        for (const s of series) {
-            // getDomain returns { domain: [...] } with DomainWithMetadata wrapper
-            const domainResult = s.getDomain(ChartAxisDirection.Y);
-            const yDomain = domainResult?.domain;
-            if (!Array.isArray(yDomain) || yDomain.length < 2) continue;
-
-            // The volume series is the bar series on the volume key; the Volume Profile bars are bar series too.
-            if (s.type === 'bar') {
-                if (s.options.yKey !== opts.volumeKey) continue;
-                volumeDomain = [yDomain[0] as number, yDomain.at(-1) as number];
-            } else {
-                // Price series (candlestick, ohlc, hlc, range-bar, line)
-                priceDomain = [yDomain[0] as number, yDomain.at(-1) as number];
-            }
-        }
-
-        // Apply domains to labels based on their key type
-        for (const label of this.labels) {
-            const key = opts[label.key];
-            if (key == null) {
-                label.domain = undefined;
-                continue;
-            }
-
-            // Volume label uses volume domain, all others use price domain
-            label.domain = label.key === 'volumeKey' ? volumeDomain : priceDomain;
+    private onPointerMove(canvasY: number | undefined) {
+        if (this.financialView?.onPointerMove(canvasY)) {
+            this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
         }
     }
 
-    private startPerformLayout({ layoutBox }: _ModuleSupport.LayoutContext) {
-        this.labelGroup.translationX = 0;
-        this.labelGroup.translationY = 0;
-
-        const opts = this.opts;
-        if (!opts?.enabled) {
-            this.labelGroup.visible = false;
-            return;
-        }
-
-        // Update domains from series - at layout time, series have already processed
-        // their data and computed domains, so we can reuse them without re-scanning data.
-        this.updateDomainsFromSeries();
-
-        const innerSpacing = 4;
-        const outerSpacing = 12;
-        const spacingAbove = 0;
-        const spacingBelow = 8;
-
-        this.labelGroup.translationY = layoutBox.y + spacingAbove;
-
-        const fonts = [opts.title, opts.positive, opts.negative];
-        const fontMetrics = fonts.map((font) => cachedTextMeasurer(font).measureText(''));
-        const ascent = Math.max(...fontMetrics.map((metrics) => metrics.ascent));
-        const lineHeight = fonts.some((font) => font.lineHeight != null)
-            ? Math.max(...fonts.map((font) => drawnLineHeight(font)))
-            : ascent + Math.max(...fontMetrics.map((metrics) => metrics.descent));
-
-        const labelConfigurations = chartConfigurations[this.getChartType()] ?? 0;
-
-        let left = 0;
-        let offsetTop: number;
-        let textVAlign: CanvasTextBaseline = 'alphabetic';
-        if (opts.layoutStyle === 'block') {
-            offsetTop = ascent;
-        } else {
-            const { title } = this.ctx.chartService;
-            textVAlign = 'top';
-            offsetTop = spacingAbove + title.padding;
-            if (title.enabled) {
-                const titleBox = title.node.getBBox();
-                left = titleBox.x + titleBox.width + outerSpacing;
-            } else {
-                left = title.padding;
-            }
-        }
-
-        const lineStart = left;
-        for (const { label, configuration, title, value, domain, formatter } of this.labels) {
-            if (domain == null || (labelConfigurations & configuration) === 0) {
-                title.visible = false;
-                value.visible = false;
-                continue;
-            }
-
-            const positiveTextMeasurer = cachedTextMeasurer(opts.positive);
-            const negativeTextMeasurer = cachedTextMeasurer(opts.negative);
-
-            const maxValueWidth = Math.max(
-                positiveTextMeasurer.textWidth(formatter.format(domain[0])),
-                positiveTextMeasurer.textWidth(formatter.format(domain[1])),
-                negativeTextMeasurer.textWidth(formatter.format(domain[0])),
-                negativeTextMeasurer.textWidth(formatter.format(domain[1]))
-            );
-
-            title.visible = true;
-            value.visible = true;
-
-            const titleMetrics = cachedTextMeasurer(opts.title).measureLines(label);
-            title.setFont(opts.title);
-            title.fill = opts.title.color;
-            title.text = label;
-            title.textAlign = 'left';
-            title.textBaseline = textVAlign;
-            title.y = offsetTop;
-            title.x = left;
-
-            left += titleMetrics.width + innerSpacing;
-
-            value.textAlign = 'left';
-            value.textBaseline = textVAlign;
-            value.y = offsetTop;
-            value.x = left;
-
-            left += maxValueWidth + outerSpacing;
-        }
-
-        this.candleWidth = left - outerSpacing;
-        const { wrapped, end } = this.layoutBandLabels({
-            start: left,
-            lineStart,
-            availableWidth: layoutBox.width,
-            offsetTop,
-            lineHeight,
-            textVAlign,
-            innerSpacing,
-            outerSpacing,
-        });
-        this.wrapped = wrapped;
-        this.bandWidth = wrapped ? Math.max(this.candleWidth, end) : end;
-        this.candleHeight = lineHeight + spacingAbove + spacingBelow;
-        this.bandHeight = (wrapped ? 2 : 1) * lineHeight + spacingAbove + spacingBelow;
-
-        // The second line is reserved whether or not a level is shown, so the chart does not move as the pointer does.
-        if (opts.layoutStyle === 'block') layoutBox.shrink(this.bandHeight, 'top');
-
-        this.backgroundNode.x = 0;
-        this.backgroundNode.y = 0;
-        this.backgroundNode.width = this.candleWidth;
-        this.backgroundNode.height = this.candleHeight;
-        this.backgroundNode.fill = opts.background.fill;
-        this.backgroundNode.fillOpacity = opts.background.fillOpacity;
+    private layoutItems(view: StatusBarItemsView, layout: _ModuleSupport.LayoutContext) {
+        const { opts } = this;
+        const resolved = this.resolveAnchor(this.ctx.chartState.getValue('highlight'));
+        const items = this.renderItems(resolved);
+        const shown = isHidden(resolved, opts) ? [] : items;
+        // Sized from the default items when the renderer shows nothing, so that hover content still has room.
+        const sizing = items.length > 0 ? items : defaultItems(collectFallbackValues(this.ctx, lastDatumIndex));
+        view.performLayout(layout, opts, sizing);
+        if (shown !== sizing) view.update(opts, shown);
     }
 
-    // Measured while hidden, so the bar's size does not change when a level appears.
-    private layoutBandLabels(params: {
-        start: number;
-        lineStart: number;
-        availableWidth: number;
-        offsetTop: number;
-        lineHeight: number;
-        textVAlign: CanvasTextBaseline;
-        innerSpacing: number;
-        outerSpacing: number;
-    }) {
-        const { start, lineStart, availableWidth, offsetTop, lineHeight, textVAlign, innerSpacing, outerSpacing } =
-            params;
-        const { opts, bandSeparator, bandLabels } = this;
-        const band = opts.volumeProfile;
+    private onHighlight(highlight: _ModuleSupport.HighlightNodeDatum | undefined) {
+        const { itemsView, rendered } = this;
+        if (itemsView == null) return;
 
-        bandSeparator.visible = false;
-        for (const { title, value } of bandLabels) {
-            title.visible = false;
-            value.visible = false;
-        }
-        if (band == null) return { wrapped: false, end: start - outerSpacing };
+        const resolved = this.resolveAnchor(highlight);
+        if (rendered?.key === renderKey(this.ctx.chartService.series, resolved)) return;
 
-        const fields = bandLabels.map((field) => {
-            const label = this.ctx.localeManager.t(field.labelKey);
-            const titleWidth = cachedTextMeasurer(opts.title).measureLines(label).width;
-            const measurer = cachedTextMeasurer(opts[field.style]);
-            const format = (n: number) => field.formatter.format(n);
-            let valueWidth = 0;
-            for (const level of band.levels) {
-                if (level.total > 0) valueWidth = Math.max(valueWidth, measurer.textWidth(field.text(level, format)));
-            }
-            return { ...field, label, titleWidth, valueWidth };
-        });
-
-        const separatorWidth = cachedTextMeasurer(opts.title).measureLines('|').width + outerSpacing;
-        let fieldsWidth = 0;
-        for (const { titleWidth, valueWidth } of fields) {
-            fieldsWidth += titleWidth + innerSpacing + valueWidth + outerSpacing;
-        }
-
-        const wrapped = start + separatorWidth + fieldsWidth - outerSpacing > availableWidth;
-        const y = wrapped ? offsetTop + lineHeight : offsetTop;
-        let left = wrapped ? lineStart : start;
-
-        if (!wrapped) {
-            bandSeparator.setFont(opts.title);
-            bandSeparator.fill = opts.title.color;
-            bandSeparator.text = '|';
-            bandSeparator.textAlign = 'left';
-            bandSeparator.textBaseline = textVAlign;
-            bandSeparator.x = left;
-            bandSeparator.y = y;
-            left += separatorWidth;
-        }
-
-        for (const { label, title, value, titleWidth, valueWidth } of fields) {
-            title.setFont(opts.title);
-            title.fill = opts.title.color;
-            title.text = label;
-            title.textAlign = 'left';
-            title.textBaseline = textVAlign;
-            title.x = left;
-            title.y = y;
-
-            left += titleWidth + innerSpacing;
-
-            value.textAlign = 'left';
-            value.textBaseline = textVAlign;
-            value.x = left;
-            value.y = y;
-
-            left += valueWidth + outerSpacing;
-        }
-
-        return { wrapped, end: left - outerSpacing };
-    }
-
-    private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
-        this.labelGroup.translationX = opts.series.rect.x;
-        this.seriesTop = opts.series.rect.y;
-
-        this.updateHighlight(this.ctx.chartState.getValue('highlight'));
-    }
-
-    private updateHighlight(activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined) {
-        const opts = this.opts;
-        if (!opts.enabled) return;
-
-        // Get fallback from chart data when nothing is highlighted
-        const datum = activeHighlight?.datum ?? this.chartData?.data?.at(-1);
-
-        if (datum == null) {
-            this.labelGroup.visible = false;
-            return;
-        }
-
-        this.labelGroup.visible = true;
-
-        const itemId = activeHighlight?.itemId;
-
-        let baseStyle = itemId == null ? undefined : itemIdMap[itemId];
-        if (baseStyle == null && opts.openKey != null && opts.closeKey != null) {
-            // Fallback for series without distinct positive/negative items.
-            if (datum[opts.openKey] < datum[opts.closeKey]) {
-                baseStyle = 'positive';
-            } else {
-                baseStyle = 'negative';
-            }
-        }
-
-        for (const { domain, value, key, formatter, style } of this.labels) {
-            if (domain == null) continue;
-            let labelStyle = style ?? baseStyle ?? 'neutral';
-
-            if (labelStyle === 'neutral') {
-                labelStyle = neutralColorMap[this.getChartType()] ?? labelStyle;
-            }
-
-            const datumKey = opts[key];
-            const datumValue = datumKey == null ? undefined : datum?.[datumKey];
-
-            value.setFont(opts[labelStyle]);
-            value.fill = opts[labelStyle].color;
-            // Intl.NumberFormat.format accepts bigint natively, so a bigint OHLC/volume renders full-precision.
-            value.text = isNumericValue(datumValue) ? formatter.format(datumValue) : '';
-        }
-
-        this.updateBandLabels(this.findHoveredBand());
-    }
-
-    private onPointerMove(pointerY: number | undefined) {
-        if (!this.opts.enabled) return;
-
-        this.pointerY = pointerY;
-        if (this.findHoveredBand() === this.band) return;
-
-        this.updateHighlight(this.ctx.chartState.getValue('highlight'));
+        const items = this.renderItems(resolved);
+        itemsView.update(this.opts, isHidden(resolved, this.opts) ? [] : items);
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
-    // The level under the pointer, as long as it holds volume; levels run from the highest price down.
-    private findHoveredBand(): BandValues | undefined {
-        const { pointerY } = this;
-        const band = this.opts.volumeProfile;
-        if (pointerY == null || band == null) return undefined;
-
-        const axis = this.ctx.axisManager
-            .getAxisContext(ChartAxisDirection.Y)
-            .find((a) => a.userAxisId === band.priceAxisKey);
-        const price = axis?.scaleInvert(pointerY - this.seriesTop);
-        if (!isFiniteNumber(price)) return undefined;
-
-        return findBandLevel(band.levels, price);
-    }
-
-    private updateBandLabels(band: BandValues | undefined) {
-        const { opts, bandSeparator, bandLabels } = this;
-
-        this.band = band;
-        bandSeparator.visible = band != null && !this.wrapped;
-        this.backgroundNode.width = band == null ? this.candleWidth : this.bandWidth;
-        this.backgroundNode.height = band == null ? this.candleHeight : this.bandHeight;
-
-        for (const { style, title, value, formatter, text } of bandLabels) {
-            title.visible = band != null;
-            value.visible = band != null;
-            if (band == null) continue;
-
-            value.setFont(opts[style]);
-            value.fill = opts[style].color;
-            value.text = text(band, (n) => formatter.format(n));
+    private resolveAnchor(highlight: _ModuleSupport.HighlightNodeDatum | undefined): ResolvedAnchor {
+        const { series } = this.ctx.chartService;
+        // Legend items highlight a whole series, with no datum to anchor to.
+        const hovered =
+            highlight == null || !Number.isFinite(highlight.datumIndex)
+                ? undefined
+                : series.find((s) => s === highlight.series);
+        if (hovered != null && highlight != null) {
+            this.recent = { seriesId: hovered.id, datumIndex: highlight.datumIndex };
+            return { anchor: { series: hovered, datumIndex: highlight.datumIndex }, active: true };
         }
+
+        const { recent } = this;
+        if (this.opts.inactive !== 'recent' || recent == null) return { active: false };
+        const recentSeries = series.find((s) => s.id === recent.seriesId);
+        if (recentSeries == null || recentSeries.dataCount() === 0) return { active: false };
+        const datumIndex = Math.min(recent.datumIndex, recentSeries.dataCount() - 1);
+        return { anchor: { series: recentSeries, datumIndex }, active: false };
     }
 
-    private getChartType() {
-        let chartType = (this.ctx.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
-        if (chartType == null || chartConfigurations[chartType] == null) {
-            chartType = 'candlestick';
-        }
-        return chartType;
+    private renderItems(resolved: ResolvedAnchor): AgStatusBarRendererItem[] {
+        const { ctx, opts } = this;
+        const key = renderKey(ctx.chartService.series, resolved);
+        if (this.rendered?.key === key) return this.rendered.items;
+
+        const { anchor, active } = resolved;
+        const values = anchor == null ? collectFallbackValues(ctx, lastDatumIndex) : collectAnchoredValues(ctx, anchor);
+        const items = applyRenderer(ctx, opts, values, active) ?? defaultItems(values);
+        this.rendered = { key, items };
+        return items;
     }
+}
+
+function applyRenderer(
+    ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
+    opts: NormalisedStatusBarOptions,
+    values: AgCollectedValue[],
+    active: boolean
+): AgStatusBarRendererItem[] | undefined {
+    const { renderer } = opts;
+    if (renderer == null) return;
+
+    let result: ReturnType<typeof renderer>;
+    try {
+        result = callWithContext(ctx.chartService, renderer, { values, active });
+    } catch (e) {
+        ctx.logger.warnOnce('User callback errored, ignoring', e);
+        return;
+    }
+    if (result == null) return;
+    if (!isArray(result)) return [{ value: toTextString(result) }];
+
+    const items = result.filter((item) => isObjectWithProperty(item, 'value'));
+    if (items.length < result.length) ctx.logger.warnOnce('Status bar `renderer` items must have a `value`, ignoring');
+    return items;
+}
+
+function renderKey(series: readonly StatusBarAnchor['series'][], { anchor, active }: ResolvedAnchor) {
+    let key = anchor == null ? 'fallback' : `${anchor.series.id}:${anchor.datumIndex}:${active}`;
+    for (const s of series) {
+        if (s.isEnabled()) key += `|${s.id}`;
+    }
+    return key;
+}
+
+function isHidden({ anchor }: ResolvedAnchor, opts: NormalisedStatusBarOptions) {
+    return anchor == null && opts.inactive === 'hidden';
+}
+
+function lastDatumIndex(series: StatusBarAnchor['series']) {
+    const count = series.dataCount();
+    return count > 0 ? count - 1 : undefined;
+}
+
+function defaultItems(values: readonly AgCollectedValue[]): AgStatusBarRendererItem[] {
+    const items: AgStatusBarRendererItem[] = [];
+    for (const { label, value, formattedValue, color } of values) {
+        if (formattedValue == null && value == null) continue;
+        items.push({ label, value: withColor(formattedValue ?? String(value), color) });
+    }
+    return items;
+}
+
+function withColor(text: NormalisedTextOrSegments, color: string | undefined): NormalisedTextOrSegments {
+    if (color == null) return text;
+    if (!isArray(text)) return [{ text, color }];
+    return text.map((segment) => (segment.type === 'image' || segment.color != null ? segment : { ...segment, color }));
 }

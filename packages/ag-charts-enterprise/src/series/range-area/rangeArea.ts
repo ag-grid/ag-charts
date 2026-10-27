@@ -41,6 +41,7 @@ import {
     type SizedPoint,
     type Writeable,
     cachedTextMeasurer,
+    drawnItemColor,
     extent,
     findMinMax,
     isContinuous,
@@ -1620,6 +1621,29 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         return { xKey, yLowKey, yHighKey, itemType };
     }
 
+    datumColor(datumIndex: number, key: string): string | undefined {
+        const { yLowKey } = this.options;
+        const itemType: AgRangeAreaSeriesItemType = key === yLowKey ? 'low' : 'high';
+        const stylerStyle = this.getStyle(undefined);
+        if (!this.itemMarkers[itemType].enabled) return drawnItemColor(stylerStyle.item[itemType]);
+        return drawnItemColor(this.itemMarkerStyle(datumIndex, this.datumAt(datumIndex), itemType, stylerStyle));
+    }
+
+    private itemMarkerStyle(
+        datumIndex: number,
+        datum: unknown,
+        itemType: AgRangeAreaSeriesItemType,
+        stylerStyle: ReturnType<typeof this.getStyle>
+    ) {
+        return this.getMarkerStyle(
+            this.itemMarkers[itemType],
+            { datumIndex, datum },
+            this.makeItemStylerParams(itemType),
+            { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
+            stylerStyle.item[itemType].marker
+        ) as RequireOptional<AgSeriesMarkerStyle>;
+    }
+
     override getTooltipContent(
         datumIndex: number,
         removeThisDatum: RangeAreaMarkerDatum | undefined
@@ -1642,15 +1666,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const allowNullKeys = this.options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const stylerStyle = this.getStyle(undefined);
-        const params = this.makeItemStylerParams(itemType);
-        const format = this.getMarkerStyle(
-            this.itemMarkers[itemType],
-            { datumIndex, datum },
-            params,
-            { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
-            stylerStyle.item[itemType].marker
-        ) as RequireOptional<AgSeriesMarkerStyle>;
+        const format = this.itemMarkerStyle(datumIndex, datum, itemType, this.getStyle(undefined));
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(

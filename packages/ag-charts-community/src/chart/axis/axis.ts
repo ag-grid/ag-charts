@@ -66,6 +66,7 @@ import type {
     DateFormatterStyle,
     FormatterParams,
     FormatterPropertyType,
+    SeriesFormatterSource,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
@@ -1138,7 +1139,7 @@ export abstract class Axis<
     formatDatum(
         contextProvider: { context?: unknown },
         value: any,
-        source: 'tooltip' | 'series-label',
+        source: SeriesFormatterSource,
         seriesId: string,
         legendItemName: string | undefined,
         datum: any,
@@ -1200,6 +1201,7 @@ export abstract class Axis<
                 inputFractionDigits = 2;
                 break;
             case 'tooltip':
+            case 'status-bar':
                 inputFractionDigits = 3;
                 break;
             case 'legend-label':

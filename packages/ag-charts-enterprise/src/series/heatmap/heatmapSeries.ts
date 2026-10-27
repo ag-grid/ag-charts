@@ -35,6 +35,7 @@ import {
     type SizedPoint,
     arraysEqual,
     configureColorScale,
+    drawnItemColor,
     extent,
     findDiscreteColorBinLabel,
     formatValue,
@@ -1266,6 +1267,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 font,
             },
         };
+    }
+
+    datumColor(datumIndex: number): string | undefined {
+        const { dataModel, processedData, options } = this;
+        if (dataModel == null || processedData == null) return;
+        const colorValue =
+            options.colorKey == null
+                ? undefined
+                : dataModel.resolveColumnById(this, `colorValue`, processedData, 'number')[datumIndex];
+        return drawnItemColor(this.getItemStyle({ datumIndex, datum: this.datumAt(datumIndex), colorValue }, false));
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
