@@ -18,7 +18,6 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../chart/test/utils';
-import { locateChartWrapper } from '../dom/test/testUtils';
 import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
 import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
 import { invalidOption } from '../module/test/moduleAccessors';
@@ -424,25 +423,6 @@ describe('AgCharts', () => {
             ]);
         });
     });
-    describe('enableShadowDom', () => {
-        // Bespoke: the chart must render into the per-test `container`, which `createChart` would override.
-        it('moves the chart into a shadow root of its own and back as the option changes', async () => {
-            const options: AgChartOptions = {
-                data: [{ x: 'a', y: 1 }],
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                enableShadowDom: true,
-            };
-            prepareTestOptions(options, container);
-            chart = AgCharts.create(options);
-            await chart.waitForUpdate();
-            expect(locateChartWrapper(container)).toBe('shadow-root');
-
-            await chart.update({ ...options, enableShadowDom: false });
-            await chart.waitForUpdate();
-            expect(locateChartWrapper(container)).toBe('light-dom');
-        });
-    });
-
     describe('invalid options', () => {
         const expectedError =
             /^AG Charts - AgCharts\.create\(\) requires a non-empty options object; a minimal chart specifies a `container` and `series` \(or `data`\)\./;

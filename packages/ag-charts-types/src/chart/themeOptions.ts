@@ -387,7 +387,6 @@ export type AgBaseGaugePresetThemeOptions<TDatum = DatumDefault, TContext = Cont
     | 'background'
     | 'contextMenu'
     | 'context'
-    | 'enableShadowDom'
     | 'footnote'
     | 'height'
     | 'listeners'

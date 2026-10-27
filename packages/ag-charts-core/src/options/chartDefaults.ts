@@ -619,7 +619,6 @@ export const commonChartOptionsDefs: OptionsDefs<WithoutModuleOwnedOptions<AgBas
     styleNonce: string,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
     enableRtl: boolean,
-    enableShadowDom: boolean,
     ...undocumentedDefs({
         statusBar: defined,
         foreground: {

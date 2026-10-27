@@ -6,6 +6,7 @@ import {
     SELECTORS,
     gotoExample,
     setupIntrinsicAssertions,
+    toExamplePageUrl,
     toExamplePageUrls,
     waitForAllChartUpdates,
     waitForChartUpdate,
@@ -244,4 +245,58 @@ test.describe('legend', () => {
             });
         });
     }
+
+    test('proxy buttons stay invisible under host button styles', async ({ page }) => {
+        // `:not()` with an ID argument outranks every proxy selector.
+        const hostButtonCss = `
+            button:not(#host-toolbar button) {
+                background: rgb(255, 0, 0);
+                border: 3px solid rgb(0, 0, 255);
+                color: rgb(0, 0, 0);
+                padding: 8px 16px;
+                text-shadow: 1px 1px rgb(0, 0, 0);
+            }
+        `;
+        await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
+        await page.addStyleTag({ content: hostButtonCss });
+
+        const style = await page
+            .locator(SELECTORS.legendItems)
+            .first()
+            .evaluate((el) => {
+                const computed = getComputedStyle(el);
+                return {
+                    backgroundColor: computed.backgroundColor,
+                    borderTopStyle: computed.borderTopStyle,
+                    color: computed.color,
+                    padding: computed.padding,
+                    textShadow: computed.textShadow,
+                };
+            });
+
+        expect(style).toEqual({
+            backgroundColor: 'rgba(0, 0, 0, 0)',
+            borderTopStyle: 'none',
+            color: 'rgba(0, 0, 0, 0)',
+            padding: '0px',
+            textShadow: 'none',
+        });
+    });
+
+    test('scrollbar thumb keeps its focus border under the proxy style reset', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('scrollbar', 'scrollbar-visibility', 'vanilla').url);
+
+        const slider = page.locator('.ag-charts-proxy-scrollbar-horizontal .ag-charts-proxy-scrollbar-slider');
+        const thumbFocus = page.locator('.ag-charts-proxy-scrollbar-horizontal .ag-charts-proxy-scrollbar-thumb-focus');
+
+        await slider.focus();
+        await expect(thumbFocus).toHaveCSS('opacity', '1');
+
+        const border = await thumbFocus.evaluate((el) => {
+            const computed = getComputedStyle(el);
+            return { style: computed.borderTopStyle, width: computed.borderTopWidth };
+        });
+        expect(border.style).toBe('solid');
+        expect(parseFloat(border.width)).toBeGreaterThan(0);
+    });
 });
