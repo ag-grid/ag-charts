@@ -3171,10 +3171,8 @@ describe('placeLabels positioned shrink ladder', () => {
             expect(placed).toEqual([AT_SEVEN]);
         });
 
-        it('is sized from the source measured for the last font with the same size and family', () => {
-            // The styled source is reused across candidates whose fonts share a size, style, weight and family,
-            // so a later candidate differing only in `lineHeight` is fitted to the earlier one's measurement.
-            // Only the last candidate clears, and the shared-source fit of the first must not stand in for it.
+        it('is sized from the source measured under the candidate own font, including its line height', () => {
+            // Only the last candidate clears, and the fit of the first, in the same font, must not stand in for it.
             const serif = (lineHeight: number) => ({ fontSize: 12, fontFamily: 'serif', lineHeight });
             const fonts = new Map([
                 [90, serif(16)],
@@ -3199,9 +3197,9 @@ describe('placeLabels positioned shrink ladder', () => {
                     text: TEXT,
                     fontSize: 7,
                     x: 85.41666666666667,
-                    y: 217.66666666666666,
+                    y: 215.33333333333334,
                     width: 29.166666666666668,
-                    height: 4.666666666666667,
+                    height: 9.333333333333334,
                 },
             ]);
         });
@@ -3247,6 +3245,28 @@ describe('placeLabels positioned shrink ladder', () => {
             const fits = trialFits();
             expect(fits.length).toBeGreaterThan(0);
             expect(fits.filter(([, maxWidth]) => maxWidth === 2)).toEqual([]);
+        });
+
+        it('sizes a later candidate from its own line height, not an erased candidate in the same font', () => {
+            const serif = (lineHeight: number) => ({ fontSize: 12, fontFamily: 'serif', lineHeight });
+            const resolveCandidate: PositionedCandidateResolver = (_d, c) => ({
+                ...c,
+                fitTo: { ...c.fitTo!, font: serif(c.box.y === 90 ? 16 : 8) },
+            });
+            const viable = candidate(140, { width: 30, height: 60 });
+            const alone = place([viable], [EDGE], { resolveCandidate });
+            const placed = place([candidate(100, { width: 2, height: 60 }), viable], [EDGE], { resolveCandidate });
+            expect(placed).toEqual(alone);
+            expect(placed).toEqual([
+                {
+                    text: TEXT,
+                    fontSize: 7,
+                    x: 85.41666666666667,
+                    y: 137.66666666666666,
+                    width: 29.166666666666668,
+                    height: 4.666666666666667,
+                },
+            ]);
         });
 
         it('still tries a candidate whose box only fits its region at a smaller size', () => {

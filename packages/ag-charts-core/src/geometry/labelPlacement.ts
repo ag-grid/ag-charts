@@ -810,14 +810,14 @@ let cascadeFlushToRegion = false;
 let cascadeKeepBest = false;
 // Glyph budget of the candidate being fitted, refilled per candidate on the compass path.
 const candidateContainer = { width: 0, height: 0 };
-// The datum's source text measured under one candidate font, keyed by that font's size, style, weight and
-// family, so the common case of one font per datum measures once. The key is cleared at the start of each
-// datum's cascade.
+// The datum's source text measured under one candidate font, keyed by that font, so the common case of one
+// font per datum measures once. The key is cleared at the start of each datum's cascade.
 const styledSource = { width: 0, height: 0 };
 let styledSourceSize = Number.NaN;
 let styledSourceStyle: FontOptions['fontStyle'];
 let styledSourceWeight: FontOptions['fontWeight'];
 let styledSourceFamily: FontOptions['fontFamily'];
+let styledSourceLineHeight: FontOptions['lineHeight'];
 // Drawn-box centre of a positioned candidate whose box a re-fit resized.
 const boxCentre: Point = { x: 0, y: 0 };
 // Rotated axis-aligned footprint, written per candidate to keep the rotation loop allocation-free.
@@ -1653,18 +1653,15 @@ function insideMarkerCandidateContainer(
     return candidateContainer;
 }
 
-/**
- * The datum's source text measured under `font`, reused for as long as the candidate font is unchanged.
- * Compares the fields a font string is built from rather than building one, as this runs per candidate per
- * ladder trial. Like the font string it ignores `lineHeight`, so the reuse is unchanged.
- */
+/** The datum's source text measured under `font`; compares fields, as this runs per candidate per trial. */
 function styledFitSource(fit: LabelFitDescriptor, font: FontOptions) {
-    const { fontSize, fontStyle, fontWeight, fontFamily } = font;
+    const { fontSize, fontStyle, fontWeight, fontFamily, lineHeight } = font;
     if (
         fontSize !== styledSourceSize ||
         fontStyle !== styledSourceStyle ||
         fontWeight !== styledSourceWeight ||
-        fontFamily !== styledSourceFamily
+        fontFamily !== styledSourceFamily ||
+        lineHeight !== styledSourceLineHeight
     ) {
         const { width, height } = measureLabelText(fit.text, font);
         styledSource.width = width;
@@ -1673,6 +1670,7 @@ function styledFitSource(fit: LabelFitDescriptor, font: FontOptions) {
         styledSourceStyle = fontStyle;
         styledSourceWeight = fontWeight;
         styledSourceFamily = fontFamily;
+        styledSourceLineHeight = lineHeight;
     }
     return styledSource;
 }
@@ -2785,8 +2783,7 @@ interface TrialFit {
 }
 
 // Fits at the current trial size, so candidates sharing a fit target are fitted once. Keyed by font, container,
-// shape and source measurement: the datum, fit policy and threshold are fixed within a ladder. The source is
-// keyed by its measured size, not the font, as the styled source's reuse ignores `lineHeight`.
+// shape and source measurement: the datum, fit policy and threshold are fixed within a ladder.
 const trialFits: TrialFit[] = [];
 let trialFitCount = 0;
 
