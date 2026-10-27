@@ -274,6 +274,7 @@ export * from './chart/markerShapes';
 export * from './chart/markerUtil';
 export * from './chart/polarAxisLayout';
 export * from './chart/polarLabels';
+export * from './chart/sectorLabelFit';
 export * from './chart/scale/abstractScale';
 export * from './chart/scale/bandScale';
 export * from './chart/scale/categoryScale';

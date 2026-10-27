@@ -2426,6 +2426,44 @@ describe('placeLabels per-candidate fit', () => {
             expect(placed.y).toBe(140);
         });
 
+        it("draws a placer's text where it says, after one that turned its candidate away", () => {
+            const box = { x: 25, y: 40, width: 50, height: 20 };
+            const placed = placeLabels(
+                new Map([
+                    [
+                        's',
+                        seriesLabels([
+                            buildBarPositionedLabelDatum(
+                                TEXT,
+                                50,
+                                20,
+                                [
+                                    { box, unbounded: true, fitTo: { anchor, padding, place: () => undefined } },
+                                    {
+                                        box,
+                                        unbounded: true,
+                                        fitTo: { anchor, padding, place: () => ({ text: 'WW…', x: 60, y: 70 }) },
+                                    },
+                                ],
+                                target(),
+                                { x: 20, y: 20, width: 60, height: 60 },
+                                true,
+                                {},
+                                0,
+                                false,
+                                { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
+                            ),
+                        ]),
+                    ],
+                ]),
+                bounds,
+                0
+            ).get('s')![0];
+            expect(placed.text).toBe('WW…');
+            expect([placed.offsetX, placed.offsetY]).toEqual([10, 20]);
+            expect([placed.x + placed.width / 2, placed.y + placed.height / 2]).toEqual([60, 70]);
+        });
+
         it('shrinks a floating candidate to the room a neighbouring label leaves', () => {
             // The fallback candidate offers no container, so only an obstacle can bound its text. Shrinking
             // clear of the neighbour costs it one character, where truncating into the first candidate's

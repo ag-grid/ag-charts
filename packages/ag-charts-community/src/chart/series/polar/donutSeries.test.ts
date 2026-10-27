@@ -1,5 +1,5 @@
 import { loadImage as skiaLoadImage } from 'skia-canvas';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 
 import { Transformable, boxOverlapsSector } from 'ag-charts-core';
 import type { BBox, Line, Sector, Shape, Text } from 'ag-charts-core';
@@ -1457,6 +1457,31 @@ describe('DonutSeries', () => {
             const labels = await drawnLabels({ fontSize: 12, lineHeight: 60, minimumFontSize: 6 });
             expect(labels).toHaveLength(6);
             expect(Math.max(...labels.map((node) => node.fontSize))).toBeLessThanOrEqual(8);
+        });
+    });
+
+    describe('sectorLabel layout', () => {
+        const layoutOptions: AgChartOptions = {
+            data: Array.from({ length: 4 }, (_, i) => ({ name: `Item ${i}`, size: 1 + i })),
+            series: [{ type: 'donut', angleKey: 'size', sectorLabelKey: 'name' }],
+        };
+        const labelPositions = (target: Chart) => getVisibleLabelTextNodes(target).map(({ x, y }) => [x, y]);
+
+        it('re-places sector labels when the chart resizes without new data', async () => {
+            const proxy = await createChart(layoutOptions);
+            chart = deproxy(proxy);
+            const before = labelPositions(chart);
+            await proxy.updateDelta({ width: 350 });
+            await waitForChartStability(chart);
+            const resized = labelPositions(chart);
+
+            // New data rebuilds the node data, so it places the labels afresh at the new size.
+            await proxy.updateDelta({ data: structuredClone(layoutOptions.data) });
+            await waitForChartStability(chart);
+
+            expect(resized).toHaveLength(4);
+            expect(resized).not.toEqual(before);
+            expect(resized).toEqual(labelPositions(chart));
         });
     });
 
