@@ -56,6 +56,7 @@ export class AnnotationsToolbar {
     private readonly cleanup = new CleanupRegistry();
     private readonly menuMargin: number = 6;
     private menuItemPicked = false;
+    private menuHideRegistered = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('annotations');
@@ -275,8 +276,10 @@ export class AnnotationsToolbar {
             class: 'ag-charts-annotations__toolbar-menu',
             sourceEvent: event.sourceEvent,
             onPress: this.onButtonPressMenuCreateAnnotation.bind(this, menu),
-            onHide: this.onMenuHide,
+            // `Popover` keeps every `onHide` for its lifetime, so register ours once.
+            onHide: this.menuHideRegistered ? undefined : this.onMenuHide,
         });
+        this.menuHideRegistered = true;
 
         // Must run after `show()`, which hides the previous menu and so clears the active button.
         this.menuItemPicked = false;
@@ -284,7 +287,7 @@ export class AnnotationsToolbar {
         this.toolbar.toggleActiveButtonByIndex(index);
     }
 
-    // Registered on every `show()`, so must be idempotent. Picking an item keeps the button active while drawing.
+    // Picking an item keeps the button active while drawing.
     private readonly onMenuHide = () => {
         if (!this.menuItemPicked) {
             this.toolbar.clearActiveButton();
