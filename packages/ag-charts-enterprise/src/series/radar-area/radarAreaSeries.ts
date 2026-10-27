@@ -22,7 +22,7 @@ export class RadarAreaSeries extends RadarSeries<AgRadarAreaSeriesStyle, Normali
     static readonly type = 'radar-area' as const;
 
     private readonly areaGroup = this.contentGroup.appendChild(
-        new Group<boolean>({ name: 'radar-area', batchShadows: true })
+        new Group<boolean>({ name: 'radar-area', batchShadows: 'shared' })
     );
     protected areaSelection = Selection.select<Path<boolean>>(this.areaGroup, Path<boolean>);
 

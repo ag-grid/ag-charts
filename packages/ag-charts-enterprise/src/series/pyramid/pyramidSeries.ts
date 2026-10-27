@@ -174,7 +174,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     override readonly navigatesWithinSeries = true;
 
-    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup', batchShadows: true }));
+    private readonly itemGroup = this.contentGroup.appendChild(
+        new Group({ name: 'itemGroup', batchShadows: 'shared' })
+    );
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
     private readonly stageLabelGroup = this.contentGroup.appendChild(new Group({ name: 'stageLabelGroup' }));
 
