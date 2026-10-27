@@ -161,13 +161,13 @@ export function getSelectionStyle<TStyle extends object>(
 
 /**
  * Whether a highlight/selection bucket carries any overrides of how an item is drawn in place; an absent bucket
- * carries none. A `glow` is no such override, as only the highlight layer's copy of the hovered item casts it.
+ * carries none. A `glow` that is off is no such override.
  */
 export function hasStateStyle(bucket: object | undefined): boolean {
     if (bucket == null) return false;
 
     for (const key in bucket) {
-        if (key !== 'glow') return true;
+        if (key !== 'glow' || (bucket as { glow?: { enabled?: boolean } }).glow?.enabled === true) return true;
     }
     return false;
 }

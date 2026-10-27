@@ -557,6 +557,7 @@ export abstract class RadarSeries<
                 pickInflation,
                 shadow,
                 isHighlight,
+                datumIndex: datum.datumIndex,
             });
 
             node.drawingMode = drawingMode;

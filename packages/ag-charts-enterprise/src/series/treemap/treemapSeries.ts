@@ -12,6 +12,7 @@ import {
     BBox,
     type BoxBounds,
     type CallbackParamRules,
+    type DeepPartial,
     type FittedLabelStack,
     type FontOptions,
     Group,
@@ -52,7 +53,7 @@ import {
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
-import type { PaddingOptions } from 'ag-charts-types';
+import type { AgGlowOptions, PaddingOptions } from 'ag-charts-types';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 import {
@@ -157,7 +158,7 @@ enum TextNodeTag {
 
 type ItemStyle = Pick<NormalisedTreemapSeriesStyle, 'fill' | 'stroke'> &
     Omit<Required<NormalisedTreemapSeriesStyle>, 'fill' | 'stroke'>;
-type HighlightStyle = Partial<ItemStyle> & { opacity?: number };
+type HighlightStyle = Partial<ItemStyle> & { opacity?: number; glow?: DeepPartial<AgGlowOptions> };
 
 function nodeSize(node: TreemapNode) {
     return node.children.length > 0 ? node.sumSize - node.sizeValue : node.sizeValue;
@@ -628,14 +629,19 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         return this.isNodeHighlightable(highlightedNode) ? highlightedNode : undefined;
     }
 
-    /** Tile and group highlights sit under `tile.highlight` and `group.highlight`, not the series' `highlight`. */
-    private getHighlightedGlow(isLeaf: boolean) {
-        const { highlight } = isLeaf ? this.options.tile : this.options.group;
-        if (!highlight.enabled) return;
-
-        return isLeaf
-            ? this.getHierarchyHighlightStyles(HierarchyHighlightState.Item, this.options.tile.highlight)?.glow
-            : highlight.highlightedItem?.glow;
+    /** The glow of the node's highlight state as a shadow. Tile and group highlights sit under `tile.highlight` and `group.highlight`. */
+    private getNodeGlow(
+        isLeaf: boolean,
+        isHighlight: boolean,
+        highlightedNode: TreemapNode | undefined,
+        nodeDatum: Pick<TreemapNode, 'path' | 'datumIndex' | 'depth' | 'children'>
+    ) {
+        const tileHighlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
+        const groupHighlightState = this.getGroupHighlightState(isHighlight, highlightedNode, nodeDatum);
+        const highlightStyle = isLeaf
+            ? this.getTileHighlightStyle(tileHighlightState, groupHighlightState, highlightedNode)
+            : this.getGroupHighlightStyle(groupHighlightState);
+        return glowToShadow(highlightStyle?.glow);
     }
 
     private isNodeHighlightable(node: TreemapNode | undefined) {
@@ -735,6 +741,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             axis: new BBox(0, 0, width, height),
         };
 
+        const highlightedNode = this.getActiveHighlightNode();
         const updateRectFn = (node: TreemapNode, rect: Rect, isHighlight: boolean) => {
             const { bbox } = node;
             if (bbox == null) {
@@ -751,9 +758,13 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
             rect.setStyleProperties(style, fillBBox);
 
-            rect.fillShadow = isHighlight
-                ? glowToShadow(this.getHighlightedGlow(isLeaf))
-                : (isLeaf ? tile : group).shadow;
+            rect.fillShadow = this.resolveNodeShadow(
+                (isLeaf ? tile : group).shadow,
+                this.getNodeGlow(isLeaf, isHighlight, highlightedNode, node),
+                isHighlight,
+                highlightedNode,
+                node
+            );
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];
 

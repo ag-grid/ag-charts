@@ -41,12 +41,7 @@ import {
 import type { Path } from 'ag-charts-core';
 import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight, PaddingOptions } from 'ag-charts-types';
 
-import {
-    HierarchyHighlightState,
-    HierarchyNode,
-    HierarchySeries,
-    toHierarchyHighlightString,
-} from '../hierarchy/hierarchySeries';
+import { HierarchyNode, HierarchySeries, toHierarchyHighlightString } from '../hierarchy/hierarchySeries';
 import { autoSizedLabelFit, labelPairBlocks, styledLabelFont } from '../util/autoSizedLabelFit';
 
 const { fromToMotion, createDatumId, expandLabelBoxExtent, fitLabelToContainer, getLabelStyles, glowToShadow } =
@@ -268,11 +263,13 @@ export class SunburstSeries extends HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => node.datumIndex);
     }
 
-    private getHighlightedGlow() {
+    /** The glow of the node's highlight state as a shadow; none when the series' highlight is off. */
+    private getNodeGlow(isHighlight: boolean, highlightedNode: SunburstNode | undefined, nodeDatum: SunburstNode) {
         const { highlight } = this.options;
-        return highlight.enabled
-            ? this.getHierarchyHighlightStyles(HierarchyHighlightState.Item, highlight)?.glow
-            : undefined;
+        if (!highlight.enabled) return;
+
+        const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
+        return glowToShadow(this.getHierarchyHighlightStyles(highlightState, highlight)?.glow);
     }
 
     protected getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
@@ -515,6 +512,7 @@ export class SunburstSeries extends HierarchySeries<
             });
         }
 
+        const highlightedNode = this.getActiveHighlightNode();
         const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean) => {
             const { depth, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
@@ -531,7 +529,13 @@ export class SunburstSeries extends HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = highlighted ? glowToShadow(this.getHighlightedGlow()) : shadow;
+            sector.fillShadow = this.resolveNodeShadow(
+                shadow,
+                this.getNodeGlow(highlighted, highlightedNode, nodeDatum),
+                highlighted,
+                highlightedNode,
+                nodeDatum
+            );
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;

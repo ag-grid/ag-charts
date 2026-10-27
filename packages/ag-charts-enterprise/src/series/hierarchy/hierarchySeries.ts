@@ -4,6 +4,7 @@ import type {
     ChartAnimationPhase,
     DynamicContext,
     Node,
+    NormalisedDropShadowOptions,
     NormalisedHierarchySeriesKeys,
     Path,
     Selection,
@@ -575,6 +576,23 @@ export abstract class HierarchySeries<
             default:
                 return undefined;
         }
+    }
+
+    /**
+     * The shadow to draw on one copy of a node. The highlight layer's copy casts only its `glow`. An in-place copy casts
+     * the glow of its highlight state, in the base pass that keeps it behind every series, except for the hovered
+     * node's own in-place copy, which keeps its `shadow` beneath the highlight layer's copy.
+     */
+    protected resolveNodeShadow(
+        shadow: NormalisedDropShadowOptions | undefined,
+        glow: NormalisedDropShadowOptions | undefined,
+        isHighlight: boolean,
+        highlightedNode: TNodeClass | undefined,
+        nodeDatum: Pick<TNodeClass, 'datumIndex'>
+    ): NormalisedDropShadowOptions | undefined {
+        if (isHighlight) return glow;
+        if (highlightedNode?.datumIndex === nodeDatum.datumIndex) return shadow;
+        return glow ?? shadow;
     }
 
     public override getHighlightStateString(

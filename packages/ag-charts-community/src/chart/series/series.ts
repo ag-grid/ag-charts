@@ -412,7 +412,7 @@ export abstract class Series<
     /** Replaces the series options; `diff` holds only the changed keys, `undefined` on the initial apply. */
     applyOptions(options: NormalisedSeriesOptions<TOpts>, diff?: DeepPartial<NormalisedSeriesOptions<TOpts>>) {
         this.options = options;
-        this.highlightedItemGlow = undefined;
+        this.glowByState = undefined;
         this.legendItemName =
             'legendItemName' in options && typeof options.legendItemName === 'string'
                 ? options.legendItemName
@@ -956,7 +956,13 @@ export abstract class Series<
         // Check if there are any itemStylers that might need to react to highlight changes
         const hasItemStylers = this.hasItemStylers();
 
-        if (!hasItemStylers && currentHighlightState === previousHighlightState) {
+        // The hovered item's in-place copy keeps its own shadow while the others cast the glow of their state (see
+        // `resolveItemShadow`), so the in-place nodes redraw whenever the hovered item changes.
+        const glowSwapped =
+            currentHighlightedDatum?.datumIndex !== previousHighlightedDatum?.datumIndex &&
+            this.getStateGlow(HighlightState.OtherItem) != null;
+
+        if (!hasItemStylers && !glowSwapped && currentHighlightState === previousHighlightState) {
             // Datum-level and series-level highlights both report HighlightState.Series here, yet dim
             // the series' other items differently, so a transition between them still needs a redraw.
             const datumLevelnessChanged =
@@ -978,6 +984,7 @@ export abstract class Series<
 
         this.hasChangesOnHighlight =
             hasItemStylers ||
+            glowSwapped ||
             hasStateStyle(highlight?.highlightedSeries) ||
             hasStateStyle(highlight?.unhighlightedItem) ||
             hasStateStyle(highlight?.unhighlightedSeries);
@@ -998,23 +1005,51 @@ export abstract class Series<
         return highlightedDatum?.series === this;
     }
 
-    /** The glow of the hovered item as a shadow, which `applyOptions` drops. `null` once resolved to none. */
-    private highlightedItemGlow?: NormalisedDropShadowOptions | null;
+    /** The `glow` of each highlight state as a shadow, which `applyOptions` drops. `null` once resolved to none. */
+    private glowByState?: Array<NormalisedDropShadowOptions | null | undefined>;
+
+    private getStateGlow(highlightState: HighlightState): NormalisedDropShadowOptions | undefined {
+        this.glowByState ??= [];
+        let glow = this.glowByState[highlightState];
+        if (glow === undefined) {
+            glow = glowToShadow(this.getHighlightStyle(true, undefined, highlightState).glow) ?? null;
+            this.glowByState[highlightState] = glow;
+        }
+        return glow ?? undefined;
+    }
 
     /**
      * The shadow to draw on one copy of an item. A hovered item is drawn twice: in place, and again by the highlight
-     * layer on top of it. The in-place copy casts the item's own `shadow`, in the base pass that keeps it behind every
-     * series. The highlight layer's copy casts only the `glow` of the hovered item, centred on it and above the series.
+     * layer on top of it. The highlight layer's copy casts only the `glow` of the hovered item, centred on it and above
+     * every series. Every in-place copy, the hovered item's included, casts the item's own `shadow` in the base pass
+     * that keeps it behind every series, except where its highlight state sets a `glow`: an item other than the
+     * hovered one casts that glow in its place, and so also stays behind every series. An item has one shadow slot, so
+     * an enabled glow replaces the item's own shadow while the item is in that state.
      */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
-        isHighlight: boolean | undefined
+        isHighlight: boolean | undefined,
+        datumIndex?: DatumIndex,
+        highlightState?: HighlightState
     ): NormalisedDropShadowOptions | undefined {
-        if (!isHighlight) return shadow;
+        if (isHighlight) return this.getStateGlow(HighlightState.Item);
 
-        this.highlightedItemGlow ??=
-            glowToShadow(this.getHighlightStyle(true, undefined, HighlightState.Item).glow) ?? null;
-        return this.highlightedItemGlow ?? undefined;
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        if (highlightedDatum == null) return shadow;
+
+        highlightState ??= this.getHighlightState(highlightedDatum, false, datumIndex);
+        if (highlightState === HighlightState.None) return shadow;
+
+        // The hovered item's in-place copy lies beneath the highlight layer's copy, which casts the glow.
+        if (
+            highlightState === HighlightState.OtherItem &&
+            datumIndex != null &&
+            highlightedDatum.datumIndex === datumIndex
+        ) {
+            return shadow;
+        }
+
+        return this.getStateGlow(highlightState) ?? shadow;
     }
 
     protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datumIndex?: DatumIndex) {
@@ -1684,11 +1719,13 @@ export abstract class Series<
             shadow?: NormalisedDropShadowOptions;
             /** Whether this is the highlight layer's copy, which casts the hovered item's `glow` instead of the `shadow`. */
             isHighlight?: boolean;
+            /** With `isHighlight`, picks the `glow` of the highlight state this marker is drawn in. */
+            datumIndex?: DatumIndex;
         }
     ) {
         const { shape, size = 0, strokeWidth = 0 } = style;
         const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
-        const shadow = this.resolveItemShadow(opts.shadow, opts.isHighlight);
+        const shadow = this.resolveItemShadow(opts.shadow, opts.isHighlight, opts.datumIndex);
         const visible =
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));

@@ -1347,6 +1347,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 pickInflation,
                 shadow: shadows[itemType],
                 isHighlight,
+                datumIndex: datum.datumIndex,
             });
             node.drawingMode = drawingMode;
         });
