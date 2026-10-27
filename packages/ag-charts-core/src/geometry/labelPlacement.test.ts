@@ -3137,7 +3137,7 @@ describe('placeLabels positioned shrink ladder', () => {
     });
 
     describe('result', () => {
-        // Values recorded from the ladder before fits were shared between candidates and hopeless ones skipped.
+        // Expected values are the base ladder's output.
         const AT_SEVEN = {
             text: TEXT,
             fontSize: 7,
@@ -3247,26 +3247,36 @@ describe('placeLabels positioned shrink ladder', () => {
             expect(fits.filter(([, maxWidth]) => maxWidth === 2)).toEqual([]);
         });
 
-        it('sizes a later candidate from its own line height, not an erased candidate in the same font', () => {
+        describe('line height of a later candidate in the same font as an erased one', () => {
             const serif = (lineHeight: number) => ({ fontSize: 12, fontFamily: 'serif', lineHeight });
             const resolveCandidate: PositionedCandidateResolver = (_d, c) => ({
                 ...c,
-                fitTo: { ...c.fitTo!, font: serif(c.box.y === 90 ? 16 : 8) },
+                fitTo: { ...c.fitTo!, font: serif(c.box.y === 90 ? 4 : 16) },
             });
-            const viable = candidate(140, { width: 30, height: 60 });
-            const alone = place([viable], [EDGE], { resolveCandidate });
-            const placed = place([candidate(100, { width: 2, height: 60 }), viable], [EDGE], { resolveCandidate });
-            expect(placed).toEqual(alone);
-            expect(placed).toEqual([
-                {
-                    text: TEXT,
-                    fontSize: 7,
-                    x: 85.41666666666667,
-                    y: 137.66666666666666,
-                    width: 29.166666666666668,
-                    height: 4.666666666666667,
-                },
-            ]);
+            const erased = candidate(100, { width: 2, height: 60 });
+
+            it('is its own when the label places at the configured size', () => {
+                const viable = candidate(140, { width: 60, height: 60 });
+                const alone = place([viable], [], { resolveCandidate });
+                expect(place([erased, viable], [], { resolveCandidate })).toEqual(alone);
+                expect(alone).toEqual([{ text: TEXT, fontSize: undefined, x: 75, y: 132, width: 50, height: 16 }]);
+            });
+
+            it('is its own when the label places on the ladder', () => {
+                const viable = candidate(140, { width: 40, height: 60 });
+                const alone = place([viable], [EDGE], { resolveCandidate });
+                expect(place([erased, viable], [EDGE], { resolveCandidate })).toEqual(alone);
+                expect(alone).toEqual([
+                    {
+                        text: TEXT,
+                        fontSize: 7,
+                        x: 85.41666666666667,
+                        y: 135.33333333333334,
+                        width: 29.166666666666668,
+                        height: 9.333333333333334,
+                    },
+                ]);
+            });
         });
 
         it('still tries a candidate whose box only fits its region at a smaller size', () => {
