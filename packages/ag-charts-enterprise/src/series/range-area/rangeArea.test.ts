@@ -1833,6 +1833,7 @@ describe('RangeAreaSeries', () => {
         ];
 
         const options = (series: AgRangeAreaSeriesOptions[]): AgCartesianChartOptions => ({
+            legend: { enabled: false },
             data,
             axes: {
                 x: { ...STRIPPED_NUMBER_AXES.x, type: 'number' },
@@ -1903,6 +1904,22 @@ describe('RangeAreaSeries', () => {
             chart = destroyChart(chart);
             await render(series, false);
             expect(countPixels(STACKED)).toBeGreaterThan(0);
+        });
+
+        it('should cast the shadow of translucent range-areas once where they overlap, as it is cast for one of them', async () => {
+            // The second is within the first, so its shadow adds nothing to that of the first.
+            const translucent = { fillOpacity: 0.8 };
+            const first = rangeArea('A', { fill: 'red', shadow: shadowAt(40), ...translucent });
+            const second = rangeArea('B', { fill: 'blue', shadow: shadowAt(40), ...translucent });
+            // Half black at an opacity of 0.8 over white.
+            const SHADOW_ONLY = [153, 153, 153];
+
+            await render([first, second], true);
+            const both = countPixels(SHADOW_ONLY);
+            chart = destroyChart(chart);
+            await render([first], true);
+
+            expect(countPixels(SHADOW_ONLY)).toBe(both);
         });
 
         it('should draw the shadows of its markers over its own fill, not beneath it', async () => {

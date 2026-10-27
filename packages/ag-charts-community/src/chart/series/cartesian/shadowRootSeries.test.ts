@@ -212,11 +212,29 @@ describe('cartesian series shadow root', () => {
             expect(isHalfBlack(besideBothAreas())).toBe(true);
         });
 
+        it('should cast the shadow of translucent areas once where they overlap, as it is cast for one of them', async () => {
+            const translucent = (series: AgCartesianChartOptions['series']): AgCartesianChartOptions => ({
+                ...areas,
+                series: series!.map((item) => ({ ...item, fillOpacity: 0.8 })) as AgCartesianChartOptions['series'],
+            });
+            // The shadow of the lower area is within that of the taller one, so the second adds nothing to it.
+            await create(translucent(areas.series));
+            const last = itemCentres(0).at(-1)!;
+            const [x, y] = [last.x + 15, last.y + 30];
+            const both = pixelAt(x, y);
+            expect(both[3]).toBeGreaterThan(0);
+
+            await create(translucent([areas.series![1]]));
+
+            expect(both).toEqual(pixelAt(x, y));
+        });
+
         it('should not stack the shadow, whatever the number of areas', async () => {
             const copies = Array.from({ length: 6 }, (_, i) => ({
                 type: 'area' as const,
                 xKey: 'x',
                 yKey: i % 2 === 0 ? 'low' : 'high',
+                fillOpacity: 1,
                 ...(i === 0 ? { marker: { enabled: true } } : {}),
                 shadow: SHADOW,
             }));

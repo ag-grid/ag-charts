@@ -501,7 +501,7 @@ export function renderShadowless(casters: readonly Node[], renderCtx: RenderCont
     renderPass(casters, renderCtx, 'suppress');
 }
 
-/** The strength all casters of a `spread` key cast at (0 if none), or undefined if they differ or one draws another way. */
+/** The strength all casters of a key cast at (0 if none), or undefined if they differ or one draws another way. */
 function getUniformSpreadStrength({ casters, frames }: ShadowKey): number | undefined {
     let uniform = 0;
     for (let i = 0; i < casters.length; i++) {
@@ -560,9 +560,10 @@ function planKey(
     const { ctx, devicePixelRatio } = renderCtx;
     const { shadow } = key;
 
-    // A key whose casters all cast nothing, such as one fading in from zero opacity, has no mask or blur to draw.
+    // A root key merges the casters of many series, whose overlaps would otherwise add up, with or without a spread.
     const spread = shadow.spread ?? 0;
-    const strength = spread > 0 ? getUniformSpreadStrength(key) : undefined;
+    const strength = spread > 0 || key.frames != null ? getUniformSpreadStrength(key) : undefined;
+    // A key whose casters all cast nothing, such as one fading in from zero opacity, has no mask or blur to draw.
     if (strength === 0) return 'empty';
 
     const blur = shadow.blur * devicePixelRatio;

@@ -512,7 +512,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const drawsStroke = this.castsShadowFromStroke();
         const hasExtras = this.castsShadowFromExtras();
 
-        if (spread > 0 && path != null) {
+        if ((spread > 0 || shadowPass.opaque) && path != null) {
             this.renderSpreadMask(ctx, path, spread, drawsFill, drawsStroke, hasExtras, bboxOverride);
             return;
         }
@@ -580,20 +580,22 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
-     * The strength that this shape casts its spread shadow at in a layer shadow batch's mask, before the alpha of the layer,
-     * or 0 if it casts none. Returns undefined if the shape draws its silhouette some other way, which does not follow this
+     * The strength that this shape casts its shadow at in a layer shadow batch's mask, before the alpha of the layer, or 0
+     * if it casts none. Returns undefined if the shape draws its silhouette some other way, which does not follow this
      * strength. A batch whose casters all share a strength draws their silhouettes solid, and casts its one shadow at that
-     * strength, rather than each caster adding its silhouette at its own.
+     * strength, rather than each caster adding its silhouette at its own. Without a `spread` that is only so for a shape
+     * that casts from its fill alone, as a stroke or extras drawn over the fill add to it.
      */
     getSpreadMaskStrength(): number | undefined {
         const shadow = this.__fillShadow;
-        if (shadow?.enabled !== true || (shadow.spread ?? 0) <= 0 || !this.hasSpreadMaskPath()) return;
+        if (shadow?.enabled !== true || !this.hasSpreadMaskPath()) return;
 
-        const strength = this.getSpreadStrength(
-            this.castsShadowFromFill(),
-            this.castsShadowFromStroke(),
-            this.castsShadowFromExtras()
-        );
+        const drawsFill = this.castsShadowFromFill();
+        const drawsStroke = this.castsShadowFromStroke();
+        const hasExtras = this.castsShadowFromExtras();
+        if ((shadow.spread ?? 0) <= 0 && (drawsStroke || hasExtras)) return;
+
+        const strength = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras);
         return isFiniteNumber(strength) ? strength : undefined;
     }
 
@@ -739,10 +741,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             } finally {
                 this.shadowStrokeGrowth = 0;
             }
-        } else if (drawsFill) {
+        } else if (drawsFill && spread > 0) {
             this.dilateFill(ctx, path);
         }
-        if (this.__shadowMode !== 'fill') {
+        if (this.__shadowMode !== 'fill' && spread > 0) {
             this.dilateSilhouetteExtras(ctx, spread * 2);
         }
     }
