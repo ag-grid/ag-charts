@@ -79,7 +79,8 @@ export function polarLabelData(
             anchor: undefined,
             placement: undefined,
             collideWith: FIXED_LABEL_COLLISIONS,
-            neverDrop: true,
+            // A never-drop fit refuses a bare ellipsis, which a fixed label should still draw.
+            neverDrop: labelFit == null,
             positionedCandidates: [{ box, unbounded: true, fitTo: labelFit && { anchor, padding } }],
         });
     }
