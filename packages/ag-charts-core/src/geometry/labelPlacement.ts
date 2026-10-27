@@ -314,8 +314,6 @@ export interface PointLabelDatum {
     readonly neverDrop?: boolean;
     /** When `false`, the placed label is not an obstacle for the labels resolved after it. */
     readonly obstacle?: boolean;
-    /** Only labels opting in to {@link CollideWith.backgroundLabel} treat the placed label as an obstacle. */
-    readonly background?: boolean;
     /** Placed labels sharing a group never block one another. */
     readonly labelGroup?: string;
     /** Gives way only to placed labels and obstacles that {@link outranks outrank} it. */
@@ -349,7 +347,7 @@ export interface PointLabelDatum {
     readonly stack?: LabelStack;
 }
 
-export type ObstacleCategory = 'marker' | 'label' | 'seriesItem' | 'axisLabel' | 'backgroundLabel';
+export type ObstacleCategory = 'marker' | 'label' | 'seriesItem' | 'axisLabel';
 
 /** Per-category toggle: `false` disables avoidance of that obstacle category. */
 export interface CollideWith {
@@ -360,8 +358,6 @@ export interface CollideWith {
     readonly seriesArea?: boolean;
     /** Opt-in, unlike the other categories: only `true` makes axis tick labels obstacles. */
     readonly axisLabel?: boolean;
-    /** Opt-in like {@link axisLabel}: only `true` makes {@link PointLabelDatum.background} labels obstacles. */
-    readonly backgroundLabel?: boolean;
 }
 
 /**
@@ -942,7 +938,7 @@ function obstacleExcluded(o: LabelObstacle): boolean {
 
     if (o.overlay === true) return false;
     const enabled = candidateCollideWith?.[category];
-    return category === 'axisLabel' || category === 'backgroundLabel' ? enabled !== true : enabled === false;
+    return category === 'axisLabel' ? enabled !== true : enabled === false;
 }
 
 /**
@@ -1466,22 +1462,20 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
 function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     const box = labelObstacleBox(placed);
-    const { labelGroup, outranks, background } = placed.datum;
-    const category = background === true ? 'backgroundLabel' : 'label';
+    const { labelGroup, outranks } = placed.datum;
     let obstacle = labelObstaclePool[count];
     if (obstacle == null) {
         obstacle = {
             kind: 'rect',
             box,
             rect: { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 },
-            category,
+            category: 'label',
             labelGroup,
             outranks,
         };
         labelObstaclePool.push(obstacle);
     } else {
         obstacle.box = box;
-        obstacle.category = category;
         obstacle.labelGroup = labelGroup;
         obstacle.outranks = outranks;
     }

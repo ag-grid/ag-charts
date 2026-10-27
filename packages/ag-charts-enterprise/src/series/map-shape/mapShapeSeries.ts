@@ -123,7 +123,7 @@ function placedLabelDatum(placed: PlacedLabel<unknown>): MapShapePlacedLabelDatu
     return placed.datum as MapShapePlacedLabelDatum;
 }
 
-// Shape labels hold their fitted position, and only labels opting in to background labels avoid them.
+// Shape labels hold their fitted position and leave other labels free to sit over them.
 const SHAPE_LABEL_COLLISIONS: CollideWith = {
     marker: false,
     label: false,
@@ -593,8 +593,9 @@ export class MapShapeSeries
                 fit: { text, policy, font, boxPadding: padding, boundByRegion: false },
                 anchor: undefined,
                 placement: undefined,
+                alwaysShow: true,
                 collideWith: SHAPE_LABEL_COLLISIONS,
-                background: true,
+                obstacle: false,
                 positionedCandidates: [
                     {
                         box: { x: x - width / 2, y: y - height / 2, width, height },

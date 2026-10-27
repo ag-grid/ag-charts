@@ -718,43 +718,6 @@ describe('placeLabels', () => {
         });
     });
 
-    describe('background labels', () => {
-        const backgroundLabel: PointLabelDatum = {
-            point: { x: 100, y: 100, size: 0 },
-            label: { text: 'Region', width: 60, height: 20 },
-            anchor: undefined,
-            placement: undefined,
-            background: true,
-            positionedCandidates: [{ box: { x: 70, y: 90, width: 60, height: 20 }, unbounded: true }],
-        };
-        const label = (collideWith?: PointLabelDatum['collideWith']): PointLabelDatum => ({
-            point: { x: 100, y: 100, size: 0 },
-            label: { text: 'X', width: 30, height: 12 },
-            anchor: undefined,
-            placement: 'inside',
-            placements: ['inside'],
-            collideWith,
-        });
-        const place = (datum: PointLabelDatum) =>
-            placeLabels(
-                new Map([
-                    ['shapes', seriesLabels([backgroundLabel])],
-                    ['s', seriesLabels([datum], { alwaysShow: false })],
-                ]),
-                bounds,
-                5
-            ).get('s')!;
-
-        it('are not obstacles unless the label opts in', () => {
-            expect(place(label())).toHaveLength(1);
-            expect(place(label({ marker: true, label: true, seriesItem: true }))).toHaveLength(1);
-        });
-
-        it('are avoided when collideWith enables them', () => {
-            expect(place(label({ backgroundLabel: true }))).toHaveLength(0);
-        });
-    });
-
     // Places `label` (series 's') against `marker` (a separate series) at the given threshold.
     const placeAgainstOtherMarker = (marker: PointLabelDatum, label: PointLabelDatum, threshold: number) =>
         placeLabels(
