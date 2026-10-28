@@ -1,0 +1,7 @@
+body {
+    --shadow-root-background: #ffffff;
+}
+
+#myChart {
+    height: 300px;
+}

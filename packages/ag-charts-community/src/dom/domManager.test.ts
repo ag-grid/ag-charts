@@ -920,7 +920,38 @@ describe('DOMManager', () => {
             dm.updateCSSVariableWatchers(cssVariables);
 
             expect(shadowWatchers(shadow)).toHaveLength(1);
+            expect(shadow.querySelectorAll('[data-variable-name]')).toHaveLength(1);
             expect(countRefreshes(() => transitionEnd(shadowWatchers(shadow)[0]))).toBe(1);
+        });
+
+        it('does not leave light-DOM CSS-variable watchers behind when moving into a shadow root', () => {
+            const lightContainer = newLightContainer();
+            const { shadow, container: shadowContainer } = buildShadowTree();
+            const dm = new DOMManager(eventsHub, undefined, doc, lightContainer);
+            dm.updateCSSVariableWatchers(cssVariables);
+
+            moveTo(dm, shadowContainer);
+            dm.updateCSSVariableWatchers(cssVariables);
+
+            // The light-DOM `<style>` and sensor travel with the chart, so they must be dropped, not just hidden.
+            expect(shadow.querySelectorAll('[data-variable-name]')).toHaveLength(1);
+            expect(dm.getParent('style-sensors').children).toHaveLength(1);
+            expect(countRefreshes(() => transitionEnd(dm.getParent('style-sensors').children[0]))).toBe(1);
+        });
+
+        it('keeps a single CSS-variable watcher through a round trip from the light DOM to a shadow root and back', () => {
+            const lightContainer = newLightContainer();
+            const { shadow, container: shadowContainer } = buildShadowTree();
+            const dm = new DOMManager(eventsHub, undefined, doc, lightContainer);
+            dm.updateCSSVariableWatchers(cssVariables);
+
+            moveTo(dm, shadowContainer);
+            moveTo(dm, lightContainer);
+            dm.updateCSSVariableWatchers(cssVariables);
+
+            expect(shadow.querySelectorAll('[data-variable-name]')).toHaveLength(0);
+            expect(lightContainer.querySelectorAll('[data-variable-name]')).toHaveLength(1);
+            expect(dm.getParent('style-sensors').children).toHaveLength(1);
         });
 
         it('removes the shadow-path CSS-variable watchers when moving to the light DOM', () => {

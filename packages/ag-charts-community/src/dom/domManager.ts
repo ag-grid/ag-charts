@@ -166,9 +166,10 @@ export class DOMManager extends BaseManager {
     private container?: HTMLElement = undefined;
     private shadowDocumentRoot?: HTMLElement = undefined;
     // OPTIMIZATION: mirrors the registered CSS-variable watchers so `updateCSSVariableWatchers`
-    // skips an O(children) DOM scan. Shadow-path watchers suit only the root they were made for, so
+    // skips an O(children) DOM scan. Both kinds suit only the root they were made for (an `@property`
+    // rule is ignored inside a shadow root, and a shadow-path watcher is not needed outside one), so
     // each maps to its removal, run when that root changes.
-    private readonly cssVariableWatchers = new Set<string>();
+    private readonly cssVariableWatchers = new Map<string, () => void>();
     private readonly shadowCssVariableWatchers = new Map<string, () => void>();
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
     private lastThemeParameterCount = 0;
@@ -331,7 +332,7 @@ export class DOMManager extends BaseManager {
             this.sizeMonitor.unobserve(this.container);
         }
         this.pendingContainer = undefined;
-        this.removeShadowCSSVariableWatchers();
+        this.removeCSSVariableWatchers();
 
         for (const el of Object.values(this.rootElements)) {
             for (const c of el.children.values()) {
@@ -781,10 +782,13 @@ export class DOMManager extends BaseManager {
     private updateShadowDocumentRoot(container: HTMLElement) {
         // A move within the same root keeps its shadow-path watchers.
         const previousShadowRoot = this.getShadowRoot();
-        const watchedProperties = new Set([...this.cssVariableWatchers, ...this.shadowCssVariableWatchers.keys()]);
+        const watchedProperties = new Set([
+            ...this.cssVariableWatchers.keys(),
+            ...this.shadowCssVariableWatchers.keys(),
+        ]);
         this.shadowDocumentRoot = this.getShadowDocumentRoot(container);
         if (this.getShadowRoot() !== previousShadowRoot) {
-            this.removeShadowCSSVariableWatchers();
+            this.removeCSSVariableWatchers();
             if (watchedProperties.size > 0) {
                 this.watchCSSVariables(watchedProperties);
             }
@@ -1120,7 +1124,6 @@ export class DOMManager extends BaseManager {
 
         for (const property of properties) {
             if (this.cssVariableWatchers.has(property)) continue;
-            this.cssVariableWatchers.add(property);
 
             const styleElement = createStyleElement(this.styleNonce);
             styleElement.dataset.variableName = property;
@@ -1135,7 +1138,7 @@ export class DOMManager extends BaseManager {
                 this.eventsHub.emit('chart:request-refresh', null);
             };
             sensorElement.addEventListener('transitionend', handleTransitionEnd);
-            this.cleanup.register(() => {
+            this.cssVariableWatchers.set(property, () => {
                 sensorElement.removeEventListener('transitionend', handleTransitionEnd);
                 sensorElement.remove();
                 styleElement.remove();
@@ -1171,11 +1174,13 @@ export class DOMManager extends BaseManager {
         }
     }
 
-    private removeShadowCSSVariableWatchers() {
-        for (const removeWatcher of this.shadowCssVariableWatchers.values()) {
-            removeWatcher();
+    private removeCSSVariableWatchers() {
+        for (const watchers of [this.cssVariableWatchers, this.shadowCssVariableWatchers]) {
+            for (const removeWatcher of watchers.values()) {
+                removeWatcher();
+            }
+            watchers.clear();
         }
-        this.shadowCssVariableWatchers.clear();
     }
 
     private updateContainerClassName() {

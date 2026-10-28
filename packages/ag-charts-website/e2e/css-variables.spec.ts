@@ -71,4 +71,68 @@ test.describe('css variables', () => {
         await waitForAllChartUpdates(page);
         await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'onto-color-changed.png');
     });
+    // The CSS-variable watchers belong to the root the chart sits in. Moving the chart between a shadow root
+    // and the light DOM must drop the old root's watchers, or one `var()` change refreshes the chart twice.
+    test('moving a chart out of and back into a shadow root keeps a single CSS-variable watcher', async ({ page }) => {
+        // `AgCharts` adds a `transitionend` listener per watcher, so counting the invocations
+        // counts the `chart:request-refresh` emissions caused by a transition.
+        await page.addInitScript(() => {
+            const win = window as unknown as { transitionEndCalls: number };
+            win.transitionEndCalls = 0;
+            const add: EventTarget['addEventListener'] = Reflect.get(EventTarget.prototype, 'addEventListener');
+            EventTarget.prototype.addEventListener = function (type, listener, options) {
+                if (type !== 'transitionend' || typeof listener !== 'function') {
+                    return add.call(this, type, listener, options);
+                }
+                return add.call(
+                    this,
+                    type,
+                    (event) => {
+                        win.transitionEndCalls++;
+                        return listener.call(this, event);
+                    },
+                    options
+                );
+            };
+        });
+
+        const { url } = toExamplePageUrl('themes-e2e', 'css-variables-shadow-root', 'vanilla');
+        await gotoExample(page, url);
+
+        const countWatchers = () =>
+            page.evaluate(
+                () => document.getElementById('shadowHost')!.shadowRoot!.querySelectorAll('[data-variable-name]').length
+            );
+        const countRefreshesPerChange = async () => {
+            const before = await page.evaluate(() => (window as any).transitionEndCalls as number);
+            await page.getByText('Change CSS variable').click();
+            await expect
+                .poll(() => page.evaluate(() => (window as any).transitionEndCalls as number))
+                .toBeGreaterThan(before);
+            // Let any further transition of the same change land before reading the total.
+            await page.evaluate(
+                () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+            );
+            return (await page.evaluate(() => (window as any).transitionEndCalls as number)) - before;
+        };
+
+        // The chart starts in the light DOM, where its watchers do not sit in the shadow root.
+        expect(await countWatchers()).toBe(0);
+
+        await page.getByText('Move to shadow root').click();
+        await expect(page.locator('#shadowHost canvas')).toBeVisible();
+        await waitForAllChartUpdates(page);
+        expect(await countWatchers()).toBe(1);
+        expect(await countRefreshesPerChange()).toBe(1);
+
+        await page.getByText('Move to light DOM').click();
+        await expect(page.locator('#myChart canvas')).toBeVisible();
+        expect(await countWatchers()).toBe(0);
+
+        await page.getByText('Move to shadow root').click();
+        await expect(page.locator('#shadowHost canvas')).toBeVisible();
+        await waitForAllChartUpdates(page);
+        expect(await countWatchers()).toBe(1);
+        expect(await countRefreshesPerChange()).toBe(1);
+    });
 });
