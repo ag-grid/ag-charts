@@ -52,7 +52,7 @@ import {
 } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { OrganizationNode, OrganizationNodeTag } from './organizationNode';
-import { OrganizationSeries } from './organizationSeries';
+import { MIN_DETAIL_CARD_HEIGHT, OrganizationSeries } from './organizationSeries';
 import type { OrganizationDatum } from './organizationTypes';
 
 const SIMPLE_ORG_CHART: AgChartOptions & { series: { type: 'organization' }[] } = {
@@ -3090,6 +3090,11 @@ describe('OrganizationSeries', () => {
         // which is when links are drawn. Placed so that some cards lie just outside the viewport, within the margin.
         const ZOOMED_IN = [0.38, 0.42, 0.48, 0.52] as const;
 
+        function isDetailHidden(c: ChartOrProxy<any>) {
+            const { height } = getOrganizationCards(c)[0].node.getShapeBBox();
+            return height * getNetworkViewport(c).scalingY < MIN_DETAIL_CARD_HEIGHT;
+        }
+
         /** The on-screen box that the cards of `nodes` take up together, and the margin a drawn card may lie outside it. */
         function getScreenFrame(c: ChartOrProxy<any>, nodes: OrganizationNode[]) {
             const seriesRect = getNetworkSeriesRect(c);
@@ -3161,7 +3166,53 @@ describe('OrganizationSeries', () => {
             setZoom(chart, ...ZOOMED_IN);
             await waitForChartStability(chart);
 
+            expect(isDetailHidden(chart)).toBe(false);
             expectDrawnWithinMargin(getLinksDrawing(chart));
+        });
+
+        it('should draw every link again once zooming out hides the detail, and cull them when zooming back in', async () => {
+            chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
+
+            setZoom(chart, ...ZOOMED_IN);
+            await waitForChartStability(chart);
+            expect(getLinksDrawing(chart).some(({ drawn }) => !drawn)).toBe(true);
+
+            setZoom(chart, 0, 1, 0, 1);
+            await waitForChartStability(chart);
+            expect(isDetailHidden(chart)).toBe(true);
+            expect(getLinksDrawing(chart).every(({ drawn }) => drawn)).toBe(true);
+
+            setZoom(chart, ...ZOOMED_IN);
+            await waitForChartStability(chart);
+            expect(isDetailHidden(chart)).toBe(false);
+            expectDrawnWithinMargin(getLinksDrawing(chart));
+        });
+
+        it('should keep the links of a collapsed card undrawn, and cull the rest, until it is expanded', async () => {
+            chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
+
+            setZoom(chart, ...ZOOMED_IN);
+            await waitForChartStability(chart);
+
+            const seriesRect = getNetworkSeriesRect(chart);
+            const collapsing = getLinksDrawing(chart).find(
+                ({ drawn, left, top, right, bottom }) =>
+                    drawn && left > 0 && top > 0 && right < seriesRect.width && bottom < seriesRect.height
+            );
+            expect(collapsing).toBeDefined();
+            const itemId = collapsing!.fromItemId;
+            const linksOf = () => getLinksDrawing(chart).filter(({ fromItemId }) => fromItemId === itemId);
+            const linksElsewhere = () => getLinksDrawing(chart).filter(({ fromItemId }) => fromItemId !== itemId);
+
+            await clickItem(itemId, OrganizationNodeTag.Expander);
+            expect(isDetailHidden(chart)).toBe(false);
+            expect(linksOf().length).toBeGreaterThan(0);
+            expect(linksOf().every(({ drawn }) => !drawn)).toBe(true);
+            expectDrawnWithinMargin(linksElsewhere());
+
+            await clickItem(itemId, OrganizationNodeTag.Expander);
+            expect(isDetailHidden(chart)).toBe(false);
+            expect(linksOf().map(({ drawn }) => drawn)).toEqual(linksOf().map(({ isBeyondMargin }) => !isBeyondMargin));
         });
 
         it('should draw the active item that setState pans into view', async () => {

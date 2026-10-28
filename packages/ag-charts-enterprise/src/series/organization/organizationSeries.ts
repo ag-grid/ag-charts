@@ -67,7 +67,7 @@ const { hasStateStyle, keyProperty, valueProperty } = _ModuleSupport;
 const EXPANDER_HIGHLIGHT_PART = 'expander';
 
 // Below this on-screen card height, in pixels, the card's text and image are unreadable and become bars.
-const MIN_DETAIL_CARD_HEIGHT = 20;
+export const MIN_DETAIL_CARD_HEIGHT = 20;
 
 // Shared so a series with no label tiers allocates nothing per node.
 const NO_LABEL_TIERS: NormalisedOrganizationSeriesNodeTextOptions[] = [];
