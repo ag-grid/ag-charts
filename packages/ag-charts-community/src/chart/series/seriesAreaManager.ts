@@ -162,7 +162,8 @@ function primaryContextMenuRegion(
     const primary = primaryRegions.find((region) => contexts[region] != null);
     if (primary != null) return primary;
     if (hasNode) return 'series-node';
-    return strictObjectKeys(contexts).at(0) ?? 'series-area';
+    if ('series-area' in contexts) return 'series-area';
+    return 'always';
 }
 
 function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
@@ -497,6 +498,10 @@ export class SeriesAreaManager extends BaseManager {
         this.clearAll();
 
         const contexts: ContextMenuRegionContexts = {};
+        if (this.chart.ctx.widgets.seriesWidget.containsTarget(event)) {
+            contexts['series-area'] = undefined;
+        }
+
         const nodeContexts = seriesNodeContexts(pickedNodes);
         if (nodeContexts.length > 0) {
             contexts['series-node'] = nodeContexts;
@@ -505,14 +510,10 @@ export class SeriesAreaManager extends BaseManager {
         // Ask the modules owning other regions whether they overlap this point (mirrors the hover/drag handoff).
         // They annotate rather than dispatch, so a single menu can offer every region at the point.
         const { primaryRegions } = this.collectContextMenuRegions(event, contexts);
-        const isSeriesArea = this.chart.ctx.widgets.seriesWidget.containsTarget(event);
-        const regions: AgContextMenuItemShowOn[] = isSeriesArea
-            ? ['series-area', ...strictObjectKeys(contexts)]
-            : [...strictObjectKeys(contexts)];
 
         this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
             primaryContextMenuRegion(contexts, directNodeHit, primaryRegions),
-            regions,
+            strictObjectKeys(contexts),
             contexts,
             event,
             position
