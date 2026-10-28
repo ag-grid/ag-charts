@@ -21,8 +21,8 @@ import { mapValues, mergeDefaults } from '../data/object';
 import { Color } from '../format/color';
 import type { DeepPartial } from '../types/global';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../types/themeConstants';
-import type { NormalisedDropShadowOptions } from './normalised/normalisedCommonOptions';
 import type {
+    NormalisedDropShadowOptions,
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,

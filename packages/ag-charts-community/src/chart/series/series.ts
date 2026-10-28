@@ -419,6 +419,7 @@ export abstract class Series<
     applyOptions(options: NormalisedSeriesOptions<TOpts>, diff?: DeepPartial<NormalisedSeriesOptions<TOpts>>) {
         this.options = options;
         this.glowByState = undefined;
+        this.highlightStyleByState = undefined;
         this.anyGlow = undefined;
         this.redrawnPass = undefined;
         this.legendItemName =
@@ -1020,7 +1021,7 @@ export abstract class Series<
         this.glowByState ??= [];
         let glow = this.glowByState[highlightState];
         if (glow === undefined) {
-            glow = glowToShadow(getHighlightGlow(this.options.highlight, highlightState)) ?? null;
+            glow = glowToShadow(this.getHighlightGlow(highlightState)) ?? null;
             this.glowByState[highlightState] = glow;
         }
         return glow ?? undefined;
@@ -1123,8 +1124,23 @@ export abstract class Series<
             const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
             highlightState = this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
         }
+        // OPTIMIZATION: callers style every datum, and the merged style of a state only changes with the options.
+        const cache = (this.highlightStyleByState ??= []);
+        cache[highlightState] ??= this.resolveHighlightStyle(highlightState);
+        return cache[highlightState] as ReturnType<typeof this.resolveHighlightStyle>;
+    }
+
+    /** The `glow` of a highlight state, which {@link getHighlightStyle} leaves out, through the same cascade. */
+    public getHighlightGlow(highlightState: HighlightState) {
+        return getHighlightGlow(this.options.highlight, highlightState);
+    }
+
+    private resolveHighlightStyle(highlightState: HighlightState) {
         return getHighlightStyle(this.options.highlight, highlightState);
     }
+
+    /** The merged highlight style of each state, which `applyOptions` drops. Callers must not modify it. */
+    private highlightStyleByState?: object[];
 
     public getSelectionStyle(
         datumIndex?: DatumIndex,

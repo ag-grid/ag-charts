@@ -483,8 +483,7 @@ describe('highlight glow', () => {
         };
 
         /** The glow the series resolves for an item in the bucket's highlight state, through its real cascade. */
-        const resolvedGlow = (bucket: (typeof BUCKETS)[number]) =>
-            getSeriesAt(chart).getHighlightStyle(true, undefined, STATES[bucket]).glow;
+        const resolvedGlow = (bucket: (typeof BUCKETS)[number]) => getSeriesAt(chart).getHighlightGlow(STATES[bucket]);
 
         it('puts the glow theme defaults on the series buckets only, so a series glow reaches the items', async () => {
             await createBar('ag-default');
