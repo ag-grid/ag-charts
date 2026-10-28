@@ -51,7 +51,12 @@ import {
 import { Group, type Shape, Transformable } from 'ag-charts-core';
 
 import { destroyChart } from '../../test/enterpriseSeriesAccessors';
-import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    createEnterpriseChart,
+    pixelAt,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
 import type { RangeAreaMarkerDatum } from './rangeAreaUtil';
 
 const RED = [255, 0, 0];
@@ -1970,6 +1975,9 @@ describe('RangeAreaSeries', () => {
             });
             const SOLID = { ...shadowAt(0, 20), color: 'black' };
 
+            // The mock canvas only backs the first chart a test creates, and this test compares two.
+            const chartCanvas = { getRenderContext2D: () => deproxy(chart).ctx.scene.canvas.context };
+
             /** The markers of the first series, once a highlight on the second has dimmed it, and a pixel beneath one. */
             const dim = async (shadow: ReturnType<typeof shadowAt>) => {
                 chart = await createEnterpriseChart(dimmed(shadow));
@@ -1984,21 +1992,17 @@ describe('RangeAreaSeries', () => {
                 await waitForChartStability(chart);
 
                 expect(markers.map((node) => node.drawingMode)).toContain('cutout');
-                return { x: x + width / 2, y: y + height / 2 };
+                return { x: Math.round(x + width / 2), y: Math.round(y + height / 2) };
             };
-
-            const pixelAt = (x: number, y: number) => [
-                ...deproxy(chart).ctx.scene.canvas.context.getImageData(Math.round(x), Math.round(y), 1, 1).data,
-            ];
 
             it('should draw the shadows of its markers beneath its own fill', async () => {
                 const { x, y } = await dim(SOLID);
-                const through = pixelAt(x, y + 20);
+                const through = pixelAt(chartCanvas, x, y + 20);
 
                 chart = destroyChart(chart);
                 vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
                 await dim(SOLID);
-                const local = pixelAt(x, y + 20);
+                const local = pixelAt(chartCanvas, x, y + 20);
 
                 // Beneath a translucent red fill, a black shadow lets more red through than the same shadow over it.
                 expect(through[0]).toBeLessThan(255);

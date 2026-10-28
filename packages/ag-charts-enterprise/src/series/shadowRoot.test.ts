@@ -12,7 +12,7 @@ import {
 import { Group, type Shape, Transformable } from 'ag-charts-core';
 
 import { type SeriesGroupName, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
-import { HIERARCHY_SHADOW_DATA, createEnterpriseChart } from '../test/utils';
+import { HIERARCHY_SHADOW_DATA, createEnterpriseChart, pixelAt } from '../test/utils';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
 
@@ -345,9 +345,8 @@ describe('series that cast their shadows through the shadow root', () => {
             const SOLID: AgDropShadowOptions = { ...SHADOW, color: 'black', xOffset: 0, yOffset: 20 };
             const ON_MARKER: AgDropShadowOptions = { ...SHADOW, color: 'black', xOffset: 0, yOffset: 0 };
 
-            const pixelAt = (x: number, y: number) => [
-                ...deproxy(chart!).ctx.scene.canvas.context.getImageData(Math.round(x), Math.round(y), 1, 1).data,
-            ];
+            // The mock canvas only backs the first chart a test creates, and these tests compare two.
+            const canvasCtx = { getRenderContext2D: () => deproxy(chart!).ctx.scene.canvas.context };
 
             /** Dims the first series by highlighting the second, and returns the centre of the first marker of the first. */
             const dim = async (shadow: AgDropShadowOptions) => {
@@ -362,16 +361,16 @@ describe('series that cast their shadows through the shadow root', () => {
                 await waitForChartStability(chart!);
 
                 expect(marker.drawingMode).toBe('cutout');
-                return { x: x + width / 2, y: y + height / 2 };
+                return { x: Math.round(x + width / 2), y: Math.round(y + height / 2) };
             };
 
             it('should draw the shadow of a marker beneath the fill of its radar area', async () => {
                 const { x, y } = await dim(SOLID);
-                const through = pixelAt(x, y + 20);
+                const through = pixelAt(canvasCtx, x, y + 20);
 
                 withoutRoot();
                 await dim(SOLID);
-                const local = pixelAt(x, y + 20);
+                const local = pixelAt(canvasCtx, x, y + 20);
 
                 // Red under a black shadow is darkened by it; beneath a fill that is red too, it shows through less.
                 expect(through[0]).toBeLessThan(RED[0]);
@@ -381,10 +380,10 @@ describe('series that cast their shadows through the shadow root', () => {
             it('should leave the shadow whole beneath a marker that cuts out the layer above it', async () => {
                 // The shadow of a marker falls on the marker itself, which erases the layer above the shadow.
                 const { x, y } = await dim(ON_MARKER);
-                const shadowed = pixelAt(x, y);
+                const shadowed = pixelAt(canvasCtx, x, y);
 
                 await dim({ ...ON_MARKER, enabled: false });
-                const plain = pixelAt(x, y);
+                const plain = pixelAt(canvasCtx, x, y);
 
                 expect(shadowed[0]).toBeLessThan(plain[0]);
             });
@@ -392,10 +391,10 @@ describe('series that cast their shadows through the shadow root', () => {
             it('should punch a hole in the shadow beneath the marker when the root cannot cast, so that the test tells them apart', async () => {
                 withoutRoot();
                 const { x, y } = await dim(ON_MARKER);
-                const shadowed = pixelAt(x, y);
+                const shadowed = pixelAt(canvasCtx, x, y);
 
                 await dim({ ...ON_MARKER, enabled: false });
-                const plain = pixelAt(x, y);
+                const plain = pixelAt(canvasCtx, x, y);
 
                 expect(shadowed[0]).toBe(plain[0]);
             });

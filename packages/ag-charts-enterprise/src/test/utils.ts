@@ -274,8 +274,11 @@ export function allWhite(canvasCtx: MockCanvas) {
     return leftEdgeIsWhite(canvasCtx, canvasCtx.nodeCanvas.width);
 }
 
-/** The RGBA of the device pixel at (`x`, `y`). */
-export function pixelAt(canvasCtx: MockCanvas, x: number, y: number) {
+/**
+ * The RGBA of the device pixel at (`x`, `y`). The mock canvas is the render target of the first chart a test creates,
+ * so a test that recreates its chart passes the canvas of the live chart instead.
+ */
+export function pixelAt(canvasCtx: Pick<MockCanvas, 'getRenderContext2D'>, x: number, y: number) {
     return [...canvasCtx.getRenderContext2D().getImageData(x, y, 1, 1).data];
 }
 
