@@ -7,7 +7,12 @@ import type { AgChartOptions } from 'ag-charts-types';
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
-import { getLegendItemNodes, getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
+import {
+    getLegendItemNodes,
+    getSeriesAt,
+    getSeriesHasChangesOnHighlight,
+    getSeriesNodeData,
+} from '../test/seriesAccessors';
 import { HIGHLIGHT_GLOW, SERIES_SHADOW, XY_DATA, glowShadow, shapesOf } from '../test/shadowFixtures';
 import {
     createChart,
@@ -187,10 +192,6 @@ describe('glow when the hover moves between series', () => {
         );
     };
 
-    // The flag that asks a series for a full redraw is protected on `Series`.
-    const hasChangesOnHighlight = (seriesIndex: number) =>
-        (getSeriesAt(chart, seriesIndex) as unknown as { hasChangesOnHighlight: boolean }).hasChangesOnHighlight;
-
     const hoverDatum = async (seriesIndex: number, datumIndex: number) => {
         chart.ctx.highlightManager.updateHighlight(
             chart.id,
@@ -207,9 +208,9 @@ describe('glow when the hover moves between series', () => {
         await hoverDatum(0, 0);
         await hoverDatum(0, 1);
 
-        expect(hasChangesOnHighlight(0)).toBe(true);
-        expect(hasChangesOnHighlight(1)).toBe(false);
-        expect(hasChangesOnHighlight(2)).toBe(false);
+        expect(getSeriesHasChangesOnHighlight(chart, 0)).toBe(true);
+        expect(getSeriesHasChangesOnHighlight(chart, 1)).toBe(false);
+        expect(getSeriesHasChangesOnHighlight(chart, 2)).toBe(false);
     });
 
     it('redraws the two series involved when the hover moves from one to the other', async () => {
@@ -220,9 +221,9 @@ describe('glow when the hover moves between series', () => {
         await hoverDatum(0, 0);
         await hoverDatum(1, 0);
 
-        expect(hasChangesOnHighlight(0)).toBe(true);
-        expect(hasChangesOnHighlight(1)).toBe(true);
-        expect(hasChangesOnHighlight(2)).toBe(false);
+        expect(getSeriesHasChangesOnHighlight(chart, 0)).toBe(true);
+        expect(getSeriesHasChangesOnHighlight(chart, 1)).toBe(true);
+        expect(getSeriesHasChangesOnHighlight(chart, 2)).toBe(false);
     });
 });
 
