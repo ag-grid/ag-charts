@@ -375,6 +375,38 @@ drag the background to pan across the hierarchy.
 See the [Zoom](./zoom/) page for the full range of
 zoom options.
 
+## Large Datasets
+
+Organisation Charts stay responsive with large hierarchies. This example has 1,000 nodes: zoom in to read the cards and zoom out to see the whole organisation.
+
+{% chartExampleRunner title="Large Dataset" name="org-chart-large-dataset" type="generated" /%}
+
+The configuration that suits a large hierarchy is:
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            layout: {
+                type: 'stacked',
+                stackFromDepth: 4,
+            },
+            node: {
+                clickToExpand: true,
+            },
+        },
+    ],
+}
+```
+
+In this example:
+
+- Zooming and panning reuse the existing layout, so they stay smooth as the hierarchy grows.
+- When zoomed out until a card is below 20 pixels high, its text and image are replaced by placeholder bars, and the expanders and [connectors](#connectors) are hidden. They return as you zoom back in.
+- Enable `node.clickToExpand` so users can still collapse and expand nodes while the expanders are hidden, by clicking the card. It is on by default unless the node has a [click listener](./events/#seriesnodeclick-and-seriesnodedoubleclick) or [Data Selection](./selection/) is enabled. See [Collapse and Expand](#collapse-and-expand).
+- `layout.stackFromDepth` lists the reports at and below the given depth in columns, which keeps a hierarchy with many nodes per level compact. See [Stacked Layout](#stacked-layout).
+
 ## Accessibility
 
 Organisation Charts support full keyboard navigation and screen readers.
