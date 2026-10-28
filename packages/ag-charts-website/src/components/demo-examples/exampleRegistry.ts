@@ -37,6 +37,7 @@ export const DEMO_EXAMPLES: DemoExample[] = [
         path: './examples-procurement/',
         description: 'Spend, supplier and delivery charts for a procurement manager workspace.',
         demoAppId: 'procurement',
+        image: '/images/demos/procurement.webp',
     },
     // Uncomment once the real-time demo app exists, restoring `src/pages/examples-real-time.astro`
     // and its `.md.ts` twin alongside it. Its copy is still in DEMO_PAGE_CONTENT.
