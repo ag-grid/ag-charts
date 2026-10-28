@@ -74,7 +74,7 @@ import {
     sanitizeThemeModules,
 } from '../chart/factory/processModuleOptions';
 import { getChartTheme } from '../chart/mapping/themes';
-import { detectChartType, resolveDefaultSeriesType } from '../chart/mapping/types';
+import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import {
     type ChartValidations,
@@ -947,20 +947,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const seriesCount = options.series?.length ?? 0;
         const missingModules: ModulePlaceholder[] = [];
 
-        if (seriesCount === 0) {
-            // With no `series` the default series type is one in scope, so it can only be missing when no series
-            // module is in scope — the same defect as the explicit mismatch below. Presets supply their own.
-            const defaultType = this.optionsType(options);
-            const defaultPlaceholder = ExpectedModules.get(defaultType);
-            if (
-                this.optionMetadata.presetType == null &&
-                this.moduleRegistry.getSeriesModule(defaultType) == null &&
-                defaultPlaceholder?.type === ModuleType.Series
-            ) {
-                missingModules.push(defaultPlaceholder);
-            }
-        }
-
         let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {
             const keyPath = `series[${index}]`;
@@ -1100,7 +1086,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private optionsType(options: Partial<T>) {
-        return options.series?.[0]?.type ?? resolveDefaultSeriesType(this.moduleRegistry);
+        return options.series?.[0]?.type;
     }
 
     private processSeriesOptions(options: T) {
@@ -1541,12 +1527,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * algorithm.
      */
     private predictAxes(
-        seriesType: SeriesType,
+        seriesType: SeriesType | undefined,
         directions: ChartAxisDirection[],
         userSeriesOptions?: any,
         data?: DatumDefault[]
     ): Record<string, PlainObject> | undefined {
-        if (!userSeriesOptions) return;
+        if (!userSeriesOptions || seriesType == null) return;
 
         const seriesData: DatumDefault[] = userSeriesOptions?.data ?? data;
         if (seriesData == null || seriesData.length === 0) return;
@@ -1598,9 +1584,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return Object.fromEntries(axes) as Record<string, PlainObject>;
     }
 
-    private cloneDefaultAxes(seriesType: SeriesType) {
-        const seriesModule = this.moduleRegistry.getSeriesModule(seriesType);
-        return seriesModule?.defaultAxes ? deepClone(seriesModule.defaultAxes) : {};
+    private cloneDefaultAxes(seriesType: SeriesType | undefined) {
+        let defaultAxes = this.chartDef?.defaultAxes;
+        if (seriesType != null) {
+            const seriesModule = this.moduleRegistry.getSeriesModule(seriesType);
+            defaultAxes =
+                seriesModule == null
+                    ? undefined
+                    : (seriesModule.defaultAxes ??
+                      this.moduleRegistry.getChartModule(seriesModule.chartType)?.defaultAxes);
+        }
+        return defaultAxes ? deepClone(defaultAxes) : {};
     }
 
     private predictAxesMissingTypesAndPositions(
@@ -1888,7 +1882,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const isSolo = (seriesType: string) => this.moduleRegistry.getSeriesModule(seriesType)?.solo ?? false;
         const allSeries: SeriesOptionsTypes[] | undefined = options.series;
         if (allSeries && allSeries.length > 1 && allSeries.some((series) => isSolo(series.type))) {
-            const mainSeriesType = this.optionsType(options);
+            const mainSeriesType = allSeries[0].type;
             if (isSolo(mainSeriesType)) {
                 this.logger.warn(
                     `series[0] of type '${mainSeriesType}' is incompatible with other series types. Only processing series[0]`

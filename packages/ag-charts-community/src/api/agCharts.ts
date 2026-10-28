@@ -5,6 +5,7 @@ import {
     MementoCaretaker,
     ModuleRegistry,
     type ModuleScope,
+    ModuleType,
     Pool,
     deepClone,
     deepFreeze,
@@ -345,10 +346,12 @@ class AgChartsInternal {
 
         const moduleScope =
             proxy?.chart?.chartOptions.moduleRegistry ?? resolveInstanceModuleScope(optionsMetadata.modules);
-        if (moduleScope.listModules().next().done) {
+        if (moduleScope.listModulesByType(ModuleType.Chart).next().done) {
             throw new Error(
                 [
-                    'AG Charts - No modules have been registered.',
+                    moduleScope.listModules().next().done
+                        ? 'AG Charts - No modules have been registered.'
+                        : 'AG Charts - No series modules have been registered.',
                     '',
                     'Call ModuleRegistry.registerModules(...) with the modules you need before using AgCharts.create(),',
                     'or pass them to the chart with AgCharts.create(options, { modules: [...] }).',

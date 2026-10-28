@@ -35,6 +35,7 @@ export interface LayoutState {
 export enum LayoutElement {
     Caption,
     Legend,
+    GradientLegend,
     ToolbarLeft,
     ToolbarBottom,
     Scrollbar,

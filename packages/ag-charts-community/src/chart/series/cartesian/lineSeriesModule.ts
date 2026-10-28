@@ -1,7 +1,5 @@
 import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
-    CARTESIAN_AXIS_TYPE,
-    CARTESIAN_POSITION,
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
@@ -84,16 +82,6 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = /* 
 
     themeOptions: lineSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
-    defaultAxes: {
-        y: {
-            type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: CARTESIAN_POSITION.LEFT,
-        },
-        x: {
-            type: CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: CARTESIAN_POSITION.BOTTOM,
-        },
-    },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate,
 

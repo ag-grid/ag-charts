@@ -1,8 +1,16 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import type { AgChartInstance } from 'ag-charts-community';
+import {
+    type AgChartInstance,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+} from 'ag-charts-community';
 import { getTabStopGroups, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import { type ModuleDefinition, ModuleRegistry } from 'ag-charts-core';
 
+import { AnnotationsModule, ZoomModule } from './main';
 import { createEnterpriseChart } from './test/utils';
 
 describe('keyboard tab order', () => {
@@ -65,5 +73,67 @@ describe('keyboard tab order', () => {
             'ag-charts-proxy-cross-lines',
             'ag-charts-proxy-legend-toolbar',
         ]);
+    });
+});
+
+describe('registration order', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    const MODULES: ModuleDefinition[] = [
+        AnnotationsModule,
+        BarSeriesModule,
+        CategoryAxisModule,
+        LegendModule,
+        NumberAxisModule,
+        ZoomModule,
+    ];
+
+    let chart: AgChartInstance | undefined;
+    let registeredModules: ModuleDefinition[];
+
+    beforeEach(() => {
+        registeredModules = [...ModuleRegistry.listModules()];
+    });
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+        ModuleRegistry.reset();
+        ModuleRegistry.registerModules(registeredModules);
+    });
+
+    async function overlayAndTabOrder(modules: ModuleDefinition[]) {
+        ModuleRegistry.reset();
+        ModuleRegistry.registerModules(modules);
+        chart = await createEnterpriseChart({
+            data: [
+                { month: 'Jan', revenue: 2 },
+                { month: 'Feb', revenue: 8 },
+            ],
+            series: [{ type: 'bar', xKey: 'month', yKey: 'revenue' }],
+            annotations: { enabled: true },
+            zoom: { enabled: true },
+        });
+        const overlay = Array.from(document.querySelectorAll('.ag-charts-canvas-overlay > *'), (el) => el.className);
+        const tabStops = Array.from(document.querySelectorAll<HTMLElement>('.ag-charts-wrapper *'))
+            .filter((el) => el.tabIndex >= 0)
+            .map(
+                (el) =>
+                    el.closest('.ag-charts-canvas-overlay > *, .ag-charts-proxy-container, .ag-charts-series-area')
+                        ?.className
+            );
+        const result = { overlay, tabStops };
+        chart.destroy();
+        chart = undefined;
+        return result;
+    }
+
+    it('does not depend on the order modules were registered in', async () => {
+        const forwards = await overlayAndTabOrder(MODULES);
+        const backwards = await overlayAndTabOrder(MODULES.toReversed());
+
+        expect(forwards.overlay.length).toBeGreaterThan(1);
+        expect(backwards).toEqual(forwards);
     });
 });
