@@ -955,7 +955,6 @@ export class Legend {
 
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
-        const { sourceEvent } = widgetEvent;
         const legendItem: CategoryLegendDatum = node.unsafeNonNullDatum;
 
         this.clearHighlight();
@@ -974,10 +973,7 @@ export class Legend {
             this.ctx.chartService.series[0]?.getLegendData('category')[0]?.hideToggleOtherSeries !== true;
         const action = toggleOtherSeriesVisible ? 'show' : 'hide';
         this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
-
-        const { offsetX, offsetY } = sourceEvent;
-        const { canvasX, canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
-        this.ctx.contextMenuRegistry?.dispatchContext('legend-item', { widgetEvent, canvasX, canvasY }, { legendItem });
+        this.ctx.contextMenuRegistry?.dispatchContext('legend-item', widgetEvent, { legendItem });
     }
 
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget) {
