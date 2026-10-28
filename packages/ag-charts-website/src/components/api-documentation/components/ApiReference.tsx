@@ -86,6 +86,8 @@ export const queryOptions = {
 export interface ApiReferenceConfig {
     prioritise?: string[];
     include?: string[];
+    /** List the `include`d members in the order `include` names them, not in declaration order. */
+    includeInOrder?: boolean;
     exclude?: string[];
     hideHeader?: boolean;
     hideRequired?: boolean;
@@ -117,6 +119,7 @@ interface ApiReferenceRowOptions {
 export function ApiReferenceWithContext({
     prioritise,
     include,
+    includeInOrder,
     exclude,
     hideHeader,
     hideRequired,
@@ -126,7 +129,7 @@ export function ApiReferenceWithContext({
     return (
         <QueryClientProvider client={queryClient}>
             <ApiReferenceConfigContext.Provider
-                value={{ prioritise, include, exclude, hideHeader, hideRequired, noExpand }}
+                value={{ prioritise, include, includeInOrder, exclude, hideHeader, hideRequired, noExpand }}
             >
                 <ApiReferenceWithReferenceContext {...props} />
             </ApiReferenceConfigContext.Provider>
@@ -306,7 +309,7 @@ export function ApiReference({
     // include / exclude / prioritise scope the top-level interface only; nested interfaces
     // and union variants must render their full member set.
     const nestedConfig = useMemo(
-        () => ({ ...config, include: undefined, exclude: undefined, prioritise: undefined }),
+        () => ({ ...config, include: undefined, includeInOrder: undefined, exclude: undefined, prioritise: undefined }),
         [config]
     );
 

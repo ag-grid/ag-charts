@@ -13,11 +13,12 @@ import styles from './Header.module.scss';
 
 interface Props {
     title: string;
-    framework: Framework;
+    /** Omit on a page that belongs to no framework: the framework name and selector are then left out. */
+    framework?: Framework;
     isEnterprise?: boolean;
     suppressFrameworkHeader?: boolean;
-    path: string;
-    menuItems: MenuItem[];
+    path?: string;
+    menuItems?: MenuItem[];
     version?: string;
     markdownHref?: string;
 }
@@ -36,8 +37,8 @@ export const Header: FunctionComponent<Props> = ({
     // Done here, because it's run on all docs pages
     useSyncFrameworkStoreState(framework);
 
-    const frameworkName = `${getFrameworkDisplayText(framework)} Charts`;
-    const hasLandingHub = isFrameworkLandingHub(framework);
+    const frameworkName = framework == null ? undefined : `${getFrameworkDisplayText(framework)} Charts`;
+    const hasLandingHub = framework != null && isFrameworkLandingHub(framework);
 
     return (
         <header className={styles.docsPageHeader}>
@@ -48,7 +49,7 @@ export const Header: FunctionComponent<Props> = ({
                     must stay outside it, or it would read as part of the heading. `data-page-title` is
                     how the Algolia indexer finds the page title within the heading. */}
                 <h1 className={styles.docsPageTitle}>
-                    {!suppressFrameworkHeader && (
+                    {!suppressFrameworkHeader && framework != null && (
                         <span className={styles.headerFramework}>
                             {hasLandingHub ? (
                                 <a className={styles.headerFrameworkLink} href={urlWithBaseUrl(`/${framework}/`)}>
@@ -68,13 +69,19 @@ export const Header: FunctionComponent<Props> = ({
 
                 <div className={styles.headerActions}>
                     {markdownHref != null && <MarkdownActions markdownHref={markdownHref} framework={framework} />}
-                    <div className={styles.frameworkSelectorSlot}>
-                        <FrameworkSelectorInsideDocs path={path} currentFramework={framework} menuItems={menuItems} />
-                    </div>
+                    {framework != null && path != null && menuItems != null && (
+                        <div className={styles.frameworkSelectorSlot}>
+                            <FrameworkSelectorInsideDocs
+                                path={path}
+                                currentFramework={framework}
+                                menuItems={menuItems}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {isEnterprise && (
+            {isEnterprise && framework != null && (
                 <a
                     className={styles.enterpriseLabel}
                     href={urlWithPrefix({ url: './community-vs-enterprise', framework })}

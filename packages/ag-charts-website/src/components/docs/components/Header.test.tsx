@@ -5,6 +5,9 @@ import { Header } from './Header';
 
 // The test environment resolves SVG imports to data URLs, which `Icon` cannot render as a tag.
 vi.mock('@ag-website-shared/components/icon/Icon', () => ({ Icon: () => null }));
+vi.mock('@ag-website-shared/components/markdown-actions/MarkdownActions', () => ({
+    MarkdownActions: () => <span>AI Options</span>,
+}));
 
 type HeaderProps = Parameters<typeof Header>[0];
 
@@ -70,5 +73,24 @@ describe('Header', () => {
 
     it('omits the Enterprise label on community pages', () => {
         expect(renderHeader()).not.toContain('community-vs-enterprise');
+    });
+
+    describe('on a page that belongs to no framework', () => {
+        const frameworkless = { framework: undefined, path: undefined, menuItems: undefined };
+
+        it('renders only the title in the h1', () => {
+            const headingHtml = getHeadingHtml(frameworkless);
+
+            expect(headingHtml).not.toContain('Charts');
+            expect(headingHtml).toContain('Quick Start');
+        });
+
+        it('keeps the version and the markdown actions but leaves out the framework selector', () => {
+            const html = renderHeader({ ...frameworkless, version: '14.1.0', markdownHref: '/quick-start.md' });
+
+            expect(html).toContain('Version 14.1.0');
+            expect(html).toContain('AI Options');
+            expect(html).not.toContain('frameworkSelector');
+        });
     });
 });

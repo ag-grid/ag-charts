@@ -51,7 +51,7 @@ export const getThemeParamDocs = () => themeParamDocs(getInterfacesReference());
  * An interface and everything it extends, ancestors first - so a parameter
  * redeclared further down keeps the comment nearest to it.
  */
-function interfaceChain(reference: ApiReferenceType, name: string): InterfaceNode[] {
+export function interfaceChain(reference: ApiReferenceType, name: string): InterfaceNode[] {
     const node = reference.get(name);
     if (node?.kind !== 'interface') {
         return [];

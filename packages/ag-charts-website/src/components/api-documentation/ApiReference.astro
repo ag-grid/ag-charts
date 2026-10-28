@@ -9,12 +9,12 @@ interface Props extends ApiReferenceConfig {
     id: string;
 }
 
-const { id, prioritise, include, exclude, hideHeader, hideRequired } = Astro.props;
+const { id, prioritise, include, includeInOrder, exclude, hideHeader, hideRequired } = Astro.props;
 
 // The same top-level scope the island applies, so crawlers see nothing a reader could not.
 const pageRef = getInterfacesReference().get(id);
 const interfaceRef = pageRef?.kind === 'interface' ? pageRef : undefined;
-const members = interfaceRef ? processMembers(interfaceRef, { prioritise, include, exclude }) : [];
+const members = interfaceRef ? processMembers(interfaceRef, { prioritise, include, includeInOrder, exclude }) : [];
 const description = interfaceRef && parseJsDocs(interfaceRef.docs);
 ---
 

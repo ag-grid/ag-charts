@@ -3,9 +3,15 @@ import type { ApiReferenceType, PageTitle } from '@components/api-documentation/
 import { getOptionsStaticPaths, parseJsDocs } from '@components/api-documentation/apiReferenceHelpers';
 import type { ApiReferenceTableLimits } from '@utils/markdoc/renderApiReferenceTable';
 import { buildApiReferenceTable } from '@utils/markdoc/renderApiReferenceTable';
+import type { ThemeParamRowGroup } from '@utils/server/getThemeParamRows';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
-import { OPTIONS_API_PAGE_CONTENT, THEMES_API_PAGE_CONTENT, apiReferencePageHeading } from './apiReferencePageContent';
+import {
+    OPTIONS_API_PAGE_CONTENT,
+    THEMES_API_PAGE_CONTENT,
+    THEME_PARAMETERS_API_PAGE_CONTENT,
+    apiReferencePageHeading,
+} from './apiReferencePageContent';
 import { buildChartsFrontmatter } from './chartsFrontmatter';
 
 /**
@@ -178,4 +184,45 @@ export function buildThemesApiOverrideMarkdown({
             `Part of the [AG Charts Themes API reference](${toAbsoluteUrl(urlWithBaseUrl('/themes-api/'), siteRoot)}).`,
         ],
     });
+}
+
+/** The `/theme-parameters-api/` page: one section per group, one entry per param. */
+export function buildThemeParametersApiMarkdown({
+    groups,
+    siteRoot,
+}: {
+    groups: ThemeParamRowGroup[];
+    siteRoot?: string;
+}): string {
+    const themesUrl = toAbsoluteUrl(urlWithBaseUrl('/r/themes/'), siteRoot);
+    const themeBuilderUrl = toAbsoluteUrl(urlWithBaseUrl('/theme-builder/'), siteRoot);
+
+    const sections = groups.flatMap(({ name, links, params }) => [
+        `## ${name}`,
+        ...(links.length > 0
+            ? [
+                  `See ${links
+                      .map(({ title, path }) => `[${title}](${toAbsoluteUrl(urlWithBaseUrl(path), siteRoot)})`)
+                      .join(', ')} for more information.`,
+              ]
+            : []),
+        ...params.map(({ name: param, type, defaultValue, description }) =>
+            [`### \`${param}\``, `Type: \`${type}\`  \nDefault: \`${defaultValue}\``, description]
+                .filter(Boolean)
+                .join('\n\n')
+        ),
+    ]);
+
+    const document = [
+        buildChartsFrontmatter({
+            pageUrl: '/theme-parameters-api/',
+            siteRoot,
+            ...THEME_PARAMETERS_API_PAGE_CONTENT,
+        }),
+        '# Theme Parameters',
+        `Theme parameters set styles across the whole chart in one place, and most inherit their default from a few root parameters. Set them with \`params\` in a [theme](${themesUrl}), or explore their effect in the [Theme Builder](${themeBuilderUrl}).`,
+        ...sections,
+    ];
+
+    return `${document.join('\n\n').trimEnd()}\n`;
 }
