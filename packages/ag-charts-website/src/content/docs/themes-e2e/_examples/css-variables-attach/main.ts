@@ -1,6 +1,7 @@
 // @ag-skip-fws
 import {
     AgCartesianChartOptions,
+    AgChartInstance,
     AgCharts,
     BarSeriesModule,
     CategoryAxisModule,
@@ -34,6 +35,7 @@ const options: AgCartesianChartOptions = {
 AgCharts.create(options);
 
 let detached: HTMLElement | undefined;
+let detachedChart: AgChartInstance | undefined;
 let theme: AgCartesianChartOptions['theme'];
 
 // The chart is created on a container that is not yet in the document, as a framework wrapper does while it mounts.
@@ -50,13 +52,18 @@ function createDetached(scenario: Scenario) {
     };
     theme = scenario === 'theme-no-fallback' ? { params: { backgroundColor: 'var(--attach-background)' } } : undefined;
 
-    AgCharts.create({
+    detachedChart = AgCharts.create({
         ...options,
         container,
         theme,
         title: { text: scenario },
         series: [{ type: 'bar', xKey: 'month', yKey: 'revenue', fill: fills[scenario] }],
     });
+}
+
+// A data-only update takes the fast path, which does not process the options' CSS variables again.
+function updateDetached() {
+    detachedChart!.updateDelta({ data: data.map((datum) => ({ ...datum, revenue: datum.revenue + 10 })) });
 }
 
 function attachTo(target: 'shadow' | 'light') {
@@ -74,6 +81,7 @@ function themeParams() {
 }
 
 (window as any).createDetached = createDetached;
+(window as any).updateDetached = updateDetached;
 (window as any).attachTo = attachTo;
 (window as any).changeCSSVariable = changeCSSVariable;
 (window as any).themeParams = themeParams;

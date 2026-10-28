@@ -5201,7 +5201,7 @@ describe('ChartOptions', () => {
             const attached = createOptions(container, theme);
 
             expect(warnedInvalidColour()).toBe(false);
-            expect(attached.deferredCSSVariables).toBeUndefined();
+            expect(attached.deferredCSSVariables).toEqual([]);
             expect(attached.processedCSSVariables).toEqual({ 'var(--onto)': '#00ff00' });
             expect(attached.themeParameters.foregroundColor).not.toBe('rgba(255, 0, 0, 0.5)');
         });
@@ -5215,7 +5215,7 @@ describe('ChartOptions', () => {
             const chartOptions = createOptions(container, createTheme());
 
             expect(warnedInvalidColour()).toBe(true);
-            expect(chartOptions.deferredCSSVariables).toBeUndefined();
+            expect(chartOptions.deferredCSSVariables).toEqual([]);
             expect(chartOptions.themeParameters.foregroundColor).toBe('rgba(255, 0, 0, 0.5)');
         });
 
@@ -5226,7 +5226,28 @@ describe('ChartOptions', () => {
             const chartOptions = createOptions(container, createTheme());
 
             expect(warnedInvalidColour()).toBe(true);
-            expect(chartOptions.deferredCSSVariables).toBeUndefined();
+            expect(chartOptions.deferredCSSVariables).toEqual([]);
+        });
+
+        it('reports no deferred variables on a fast-path pass, which does not process CSS variables', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const base = createOptions(container, createTheme());
+            expect(base.deferredCSSVariables).toEqual(['var(--onto)']);
+
+            const updated = new ChartOptions<AgChartOptions>(
+                base,
+                {} as AgChartOptions,
+                {},
+                {},
+                {},
+                {
+                    data: [{ x: 'b', y: 2 }],
+                }
+            );
+
+            expect(updated.revalidated).toBe(false);
+            expect(updated.deferredCSSVariables).toBeUndefined();
         });
 
         it('leaves a series option var() out without warning while detached', () => {

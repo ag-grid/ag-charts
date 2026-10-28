@@ -454,6 +454,25 @@ describe('DOMManager', () => {
                 expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(1);
             });
 
+            it('for a variable deferred while detached, after a pass that processed no CSS variables', () => {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-fast-path', doc, container);
+                dm.setDeferredCSSVariables(['var(--my-color)']);
+                // A fast-path update while still detached passes none.
+                dm.setDeferredCSSVariables();
+
+                expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(1);
+            });
+
+            it('not for a variable that a later pass resolved while detached', () => {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-resolved', doc, container);
+                dm.setDeferredCSSVariables(['var(--my-color)']);
+                dm.setDeferredCSSVariables([]);
+
+                expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(0);
+            });
+
             it('only when a variable is watched', () => {
                 const container = doc.createElement('div');
                 const dm = new DOMManager(eventsHub, 'late-refresh-none', doc, container);

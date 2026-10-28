@@ -1127,10 +1127,13 @@ export class DOMManager extends BaseManager {
 
     /**
      * Records that variables could not be resolved on a detached container. They are not watched, as registering one
-     * in the light DOM would give a variable nothing defines a value, but the attach re-resolves them.
+     * in the light DOM would give a variable nothing defines a value, but the attach re-resolves them. A pass that did not
+     * process CSS variables passes none, and leaves what an earlier pass deferred pending.
      */
     setDeferredCSSVariables(deferred?: readonly string[]) {
-        this.hasDeferredCSSVariables = deferred != null && deferred.length > 0;
+        if (deferred == null) return;
+
+        this.hasDeferredCSSVariables = deferred.length > 0;
     }
 
     private watchCSSVariables(properties: Iterable<string>) {

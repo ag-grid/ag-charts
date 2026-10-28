@@ -131,6 +131,7 @@ test.describe('css variables', () => {
             await waitForAllChartUpdates(page);
         };
         const changeVariable = (page: Page) => page.evaluate(() => (window as any).changeCSSVariable());
+        const updateData = (page: Page) => page.evaluate(() => (window as any).updateDetached());
 
         /** How many pixels of the attached chart's canvas are exactly `rgb`, or -1 if there is no canvas. */
         const countPixels = (page: Page, target: Target, rgb: readonly number[]) =>
@@ -222,6 +223,33 @@ test.describe('css variables', () => {
                 }) => {
                     await open(page);
                     await create(page, 'theme-no-fallback');
+                    await changeVariable(page);
+
+                    await attach(page, target);
+
+                    await expect.poll(() => cornerIs(page, target, YELLOW)).toBe(true);
+                });
+
+                test('a series var() with no fallback is applied after a data-only update while detached', async ({
+                    page,
+                }) => {
+                    await open(page);
+                    await create(page, 'series-no-fallback');
+                    await updateData(page);
+                    await changeVariable(page);
+
+                    await attach(page, target);
+
+                    await seriesIs(page, target, RED);
+                    await seriesIsNot(page, target, BLUE);
+                });
+
+                test('a theme param var() with no fallback is applied after a data-only update while detached', async ({
+                    page,
+                }) => {
+                    await open(page);
+                    await create(page, 'theme-no-fallback');
+                    await updateData(page);
                     await changeVariable(page);
 
                     await attach(page, target);

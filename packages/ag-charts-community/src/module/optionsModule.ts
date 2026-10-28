@@ -311,7 +311,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     };
     userDeltaKeys?: Set<string>;
     processedCSSVariables?: Record<string, string>;
-    /** The `var()` values that could not be resolved on a detached container, to be resolved once it is attached. */
+    /**
+     * The `var()` values that could not be resolved on a detached container, to be resolved once it is attached. Unset
+     * when the pass did not process CSS variables, as the fast path does not, so the previous pass's stand.
+     */
     deferredCSSVariables?: string[];
     /** The theme's params with the unresolvable `var()` values removed; unset when the theme's own are usable. */
     processedThemeParams?: PlainObject;
@@ -2137,7 +2140,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             processed = jsonWalk(params, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx, processed);
             this.processedThemeParams = ctx.removed ? params : undefined;
         }
-        this.deferredCSSVariables = deferred.size > 0 ? Array.from(deferred) : undefined;
+        this.deferredCSSVariables = Array.from(deferred);
         return processed;
     }
 
