@@ -67,10 +67,18 @@ const { hasStateStyle, keyProperty, valueProperty } = _ModuleSupport;
 const EXPANDER_HIGHLIGHT_PART = 'expander';
 
 // Below this on-screen card height, in pixels, the card's text and image are unreadable and become bars.
-const MIN_DETAIL_CARD_HEIGHT = 20;
+export const MIN_DETAIL_CARD_HEIGHT = 20;
 
 // Shared so a series with no label tiers allocates nothing per node.
 const NO_LABEL_TIERS: NormalisedOrganizationSeriesNodeTextOptions[] = [];
+
+// The range a card's top-left corner may lie in for the card to be drawn.
+interface CullBounds {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+}
 
 // What a card was last styled from; an update whose inputs match it can leave the card as it is.
 interface AppliedStyleInputs {
@@ -117,6 +125,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private hasAnyKeyedValue = false;
 
     private detailHidden = false;
+
+    private hasCulledLinks = false;
 
     private readonly appliedStyleInputs = new WeakMap<OrganizationNode, AppliedStyleInputs>();
     // Bumped by anything that restyles every card, so no card's recorded inputs can match afterwards.
@@ -282,7 +292,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         reuseStyles: boolean
     ) {
         const { collapsedByAncestor } = datum;
-        node.visible = !collapsedByAncestor;
+        node.visible = !collapsedByAncestor && !node.culled;
         if (collapsedByAncestor) return;
 
         const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
@@ -434,17 +444,77 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         );
     }
 
-    protected override onViewportScaleChange(scaling: number) {
+    protected override onViewportChange(scaling: number, viewport: BBox | undefined) {
         // Cards share one size, so any laid-out node stands for them all.
-        const cardHeight = this.datumSelection.at(0)?.getShapeBBox().height;
-        if (cardHeight == null) return;
+        const cardBBox = this.datumSelection.at(0)?.getShapeBBox();
+        if (cardBBox == null) return;
 
-        const detailHidden = cardHeight * scaling < MIN_DETAIL_CARD_HEIGHT;
+        this.updateDetailVisibility(cardBBox.height * scaling < MIN_DETAIL_CARD_HEIGHT);
+        if (!viewport) return;
+
+        // A card height of margin keeps the expander, which straddles the card's edge, from being clipped.
+        const margin = cardBBox.height;
+        const bounds: CullBounds = {
+            minX: viewport.x - margin - cardBBox.width,
+            maxX: viewport.x + viewport.width + margin,
+            minY: viewport.y - margin - cardBBox.height,
+            maxY: viewport.y + viewport.height + margin,
+        };
+        this.cullOffscreenCards(bounds);
+        this.cullOffscreenLinks(bounds);
+    }
+
+    private updateDetailVisibility(detailHidden: boolean) {
         if (detailHidden === this.detailHidden) return;
 
         this.detailHidden = detailHidden;
         this.linkGroup.visible = !detailHidden;
         this.datumSelection.each((node) => node.setDetailVisible(!detailHidden));
+    }
+
+    // OPTIMIZATION: zooming and panning only move the viewport, so drawing the cards that lie outside it is the bulk
+    // of a frame. The bounds are for a card's top-left corner, so they already allow for its size.
+    private cullOffscreenCards({ minX, maxX, minY, maxY }: CullBounds) {
+        this.datumSelection.each(function cullCard(node, datum) {
+            node.culled =
+                node.translationX < minX ||
+                node.translationX > maxX ||
+                node.translationY < minY ||
+                node.translationY > maxY;
+            const visible = !datum.collapsedByAncestor && !node.culled;
+            if (node.visible !== visible) node.visible = visible;
+        });
+    }
+
+    // A link stays within the cards it joins, so it is left undrawn when those, taken together, are out of view.
+    // Links are not drawn at all while the detail is hidden, so that is when there is nothing to cull.
+    private cullOffscreenLinks({ minX, maxX, minY, maxY }: CullBounds) {
+        if (this.detailHidden) {
+            if (this.hasCulledLinks) this.restoreCulledLinks();
+            return;
+        }
+        this.hasCulledLinks = true;
+
+        this.linkSelection.each(function cullLink(link) {
+            const { fromNode, toNode } = link;
+            link.culled =
+                fromNode != null &&
+                toNode != null &&
+                (Math.max(fromNode.translationX, toNode.translationX) < minX ||
+                    Math.min(fromNode.translationX, toNode.translationX) > maxX ||
+                    Math.max(fromNode.translationY, toNode.translationY) < minY ||
+                    Math.min(fromNode.translationY, toNode.translationY) > maxY);
+            const visible = !link.hidden && !link.culled;
+            if (link.visible !== visible) link.visible = visible;
+        });
+    }
+
+    private restoreCulledLinks() {
+        this.hasCulledLinks = false;
+        this.linkSelection.each(function restoreLink(link) {
+            link.culled = false;
+            link.visible = !link.hidden;
+        });
     }
 
     updateLinkNodes(linkSelection: Selection<OrganizationLinkDatum, NetworkLinkNode<OrganizationLinkDatum>>) {
@@ -457,7 +527,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 parentDatumIndex == null ? undefined : this.contextNodeData?.nodeData[parentDatumIndex].itemId;
             const visible = parentItemId == null || !this.ctx.collapsedManager.isCollapsed(parentItemId);
 
-            node.visible = visible;
+            const childDatumIndex = this.getNodeDatumIndex(datum.to);
+            node.fromNode = parentDatumIndex == null ? undefined : this.datumSelection.at(parentDatumIndex);
+            node.toNode = childDatumIndex == null ? undefined : this.datumSelection.at(childDatumIndex);
+            node.hidden = !visible;
+            node.visible = visible && !node.culled;
             if (visible) {
                 const styles = this.getLinkStyle(fromIndex, toIndex);
                 node.update(styles);

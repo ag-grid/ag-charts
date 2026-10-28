@@ -216,6 +216,9 @@ class OrganizationCardRect extends Rect {
 }
 
 export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
+    /** Whether the card lies outside the viewport, which the series leaves undrawn. */
+    culled = false;
+
     // Field initialisation order is the scene-graph z-order: card border below, `contentGroup`
     // above it, and the expander pill appended later in `updateExpanderNode` so it stays on top.
     private readonly shapeNode = this.appendChild(new OrganizationCardRect({ tag: OrganizationNodeTag.Card }));
