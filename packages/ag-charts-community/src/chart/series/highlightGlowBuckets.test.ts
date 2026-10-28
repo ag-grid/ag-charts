@@ -4,7 +4,10 @@ import { Rect } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../core/eventsHub';
+import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
+import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import { HIGHLIGHT_GLOW, SERIES_SHADOW, XY_DATA, glowShadow, shapesOf } from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
@@ -49,7 +52,7 @@ describe.each(SERIES)(
     ({ series, kind }) => {
         setupMockConsole();
         setupMockCanvas();
-        let chart: any;
+        let chart: Chart;
         afterEach(() => chart?.destroy());
 
         const hover = async (highlight: object, shadow?: object) => {
@@ -61,13 +64,16 @@ describe.each(SERIES)(
                     series: [series('v', shadow, highlight), series('w', shadow, highlight)],
                 } as AgChartOptions)
             );
-            chart.ctx.highlightManager.updateHighlight(chart.id, chart.series[0].getNodeData()[0]);
+            chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart)[0]);
             await waitForChartStability(chart);
-            const inPlace = (i: number) => shapesOf(chart.series[i].contentGroup, kind);
+            const inPlace = (i: number) => shapesOf(getSeriesAt(chart, i).contentGroup, kind);
             const highlighted = (i: number) =>
-                shapesOf(chart.series[i].highlightNodeGroup, kind).filter((r) => r.visible);
+                shapesOf(getSeriesAt(chart, i).highlightNodeGroup, kind).filter((r) => r.visible);
             const moveTo = async (datumIndex: number) => {
-                chart.ctx.highlightManager.updateHighlight(chart.id, chart.series[0].getNodeData()[datumIndex]);
+                chart.ctx.highlightManager.updateHighlight(
+                    chart.id,
+                    getSeriesNodeData<HighlightNodeDatum>(chart)[datumIndex]
+                );
                 await waitForChartStability(chart);
             };
             return { inPlace, highlighted, moveTo };
@@ -160,7 +166,7 @@ describe.each(SERIES)(
 describe('glow when the hover moves between series', () => {
     setupMockConsole();
     setupMockCanvas();
-    let chart: any;
+    let chart: Chart;
     afterEach(() => chart?.destroy());
 
     const create = async (seriesOptions: object[]) => {
@@ -174,8 +180,15 @@ describe('glow when the hover moves between series', () => {
         );
     };
 
+    // The flag that asks a series for a full redraw is protected on `Series`.
+    const hasChangesOnHighlight = (seriesIndex: number) =>
+        (getSeriesAt(chart, seriesIndex) as unknown as { hasChangesOnHighlight: boolean }).hasChangesOnHighlight;
+
     const hoverDatum = async (seriesIndex: number, datumIndex: number) => {
-        chart.ctx.highlightManager.updateHighlight(chart.id, chart.series[seriesIndex].getNodeData()[datumIndex]);
+        chart.ctx.highlightManager.updateHighlight(
+            chart.id,
+            getSeriesNodeData<HighlightNodeDatum>(chart, seriesIndex)[datumIndex]
+        );
         await waitForChartStability(chart);
     };
 
@@ -187,9 +200,9 @@ describe('glow when the hover moves between series', () => {
         await hoverDatum(0, 0);
         await hoverDatum(0, 1);
 
-        expect(chart.series[0].hasChangesOnHighlight).toBe(true);
-        expect(chart.series[1].hasChangesOnHighlight).toBe(false);
-        expect(chart.series[2].hasChangesOnHighlight).toBe(false);
+        expect(hasChangesOnHighlight(0)).toBe(true);
+        expect(hasChangesOnHighlight(1)).toBe(false);
+        expect(hasChangesOnHighlight(2)).toBe(false);
     });
 
     it('redraws the two series involved when the hover moves from one to the other', async () => {
@@ -200,8 +213,8 @@ describe('glow when the hover moves between series', () => {
         await hoverDatum(0, 0);
         await hoverDatum(1, 0);
 
-        expect(chart.series[0].hasChangesOnHighlight).toBe(true);
-        expect(chart.series[1].hasChangesOnHighlight).toBe(true);
-        expect(chart.series[2].hasChangesOnHighlight).toBe(false);
+        expect(hasChangesOnHighlight(0)).toBe(true);
+        expect(hasChangesOnHighlight(1)).toBe(true);
+        expect(hasChangesOnHighlight(2)).toBe(false);
     });
 });

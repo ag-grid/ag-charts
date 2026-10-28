@@ -2,10 +2,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Rect, Sector, Shape, Transformable } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
-import type { AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../core/eventsHub';
+import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
-import { getSeriesSelectionNodes } from '../test/seriesAccessors';
+import { getSeriesAt, getSeriesNodeData, getSeriesOptions, getSeriesSelectionNodes } from '../test/seriesAccessors';
 import {
     CATEGORY_DATA,
     HIGHLIGHT_GLOW,
@@ -109,11 +111,10 @@ describe('highlight glow', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: Chart;
 
     afterEach(() => {
         chart?.destroy();
-        chart = undefined;
         vi.restoreAllMocks();
     });
 
@@ -132,8 +133,8 @@ describe('highlight glow', () => {
         } as AgChartOptions;
         chart = deproxy(await createChart(options));
 
-        const [series] = chart.series;
-        const datum = series.getNodeData()[0];
+        const series = getSeriesAt(chart);
+        const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart);
         chart.ctx.highlightManager.updateHighlight(chart.id, datum);
         await waitForChartStability(chart);
 
@@ -246,7 +247,7 @@ describe('highlight glow', () => {
 
         it('moves the glow from one hovered item to the next and ends it with the hover', async () => {
             const { series } = await hoverFirstItem(testCase, undefined, { highlightedItem: { glow: HIGHLIGHT_GLOW } });
-            const [first, next] = series.getNodeData();
+            const [first, next] = getSeriesNodeData<HighlightNodeDatum>(chart);
             expect(next.datumIndex).not.toBe(first.datumIndex);
 
             chart.ctx.highlightManager.updateHighlight(chart.id, next);
@@ -316,7 +317,7 @@ describe('highlight glow', () => {
         ];
 
         const hoverSecond = async () => {
-            chart.ctx.highlightManager.updateHighlight(chart.id, chart.series[1].getNodeData()[0]);
+            chart.ctx.highlightManager.updateHighlight(chart.id, getSeriesNodeData<HighlightNodeDatum>(chart, 1)[0]);
             await waitForChartStability(chart);
         };
 
@@ -457,16 +458,16 @@ describe('highlight glow', () => {
 
         /** The glow the series resolves for an item in the bucket's highlight state, through its real cascade. */
         const resolvedGlow = (bucket: (typeof BUCKETS)[number]) =>
-            chart.series[0].getHighlightStyle(true, undefined, STATES[bucket]).glow;
+            getSeriesAt(chart).getHighlightStyle(true, undefined, STATES[bucket]).glow;
 
         it('puts the glow theme defaults on the series buckets only, so a series glow reaches the items', async () => {
             await createBar('ag-default');
-            const { highlight } = chart.series[0].options;
+            const { highlight } = getSeriesOptions<AgBarSeriesOptions>(chart);
 
-            expect(highlight.highlightedSeries?.glow).toBeDefined();
-            expect(highlight.unhighlightedSeries?.glow).toBeDefined();
-            expect(highlight.highlightedItem?.glow).toBeUndefined();
-            expect(highlight.unhighlightedItem?.glow).toBeUndefined();
+            expect(highlight?.highlightedSeries?.glow).toBeDefined();
+            expect(highlight?.unhighlightedSeries?.glow).toBeDefined();
+            expect(highlight?.highlightedItem?.glow).toBeUndefined();
+            expect(highlight?.unhighlightedItem?.glow).toBeUndefined();
         });
 
         it.each(BUCKETS)(
@@ -553,7 +554,7 @@ describe('highlight glow', () => {
                 highlight: { [bucket]: { shadow: SERIES_SHADOW } },
             });
 
-            expect(chart.series[0].options.highlight[bucket]).not.toHaveProperty('shadow');
+            expect(getSeriesOptions<AgBarSeriesOptions>(chart).highlight?.[bucket]).not.toHaveProperty('shadow');
             vi.mocked(console.warn).mockClear();
         });
 
