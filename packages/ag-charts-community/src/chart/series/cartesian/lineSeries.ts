@@ -23,6 +23,7 @@ import {
     DebugMetrics,
     PointerEvents,
     applyStyledMarkerSize,
+    datumValuesTooltipContent,
     drawnItemColor,
     extent,
     isDefined,
@@ -37,6 +38,7 @@ import {
     type AgLineSeriesLabelFormatterParams,
     type AgLineSeriesMarkerItemStylerParams,
     type AgLineSeriesStylerParams,
+    type SeriesFormatterSource,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -1145,33 +1147,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgLineSeriesLabelFormatterParams>;
     }
 
-    datumColor(datumIndex: number): string | undefined {
-        const { dataModel, processedData, options } = this;
-        if (dataModel == null || processedData == null) return;
-        if (!options.marker.enabled) return drawnItemColor(this.getStyle(undefined));
-        return drawnItemColor(this.datumMarkerStyle(dataModel, processedData, datumIndex, this.datumAt(datumIndex)));
-    }
-
-    private datumMarkerStyle(
-        dataModel: NonNullable<typeof this.dataModel>,
-        processedData: NonNullable<typeof this.processedData>,
-        datumIndex: number,
-        datum: unknown
-    ) {
-        const stylerStyle = this.getStyle(undefined);
-        const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
-        return this.getMarkerStyle(
-            this.options.marker,
-            { datumIndex, datum },
-            params,
-            { isHighlight: false },
-            stylerStyle.marker
-        ) as RequireOptional<NormalisedSeriesMarkerStyle>;
-    }
-
-    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, options } = this;
-        const { xKey, xName, yKey, yName, tooltip, legendItemName } = options;
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource) {
+        const { dataModel, processedData, axes, options } = this;
+        const { xKey, xName, yKey, yName, legendItemName } = options;
         const allowNullKeys = options.allowNullKeys ?? false;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -1184,22 +1162,58 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
         if (xValue === undefined && !allowNullKeys) return;
 
-        const format = this.datumMarkerStyle(dataModel, processedData, datumIndex, datum);
+        const stylerStyle = this.getStyle(undefined);
+        const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
+
+        const style = this.getMarkerStyle(
+            options.marker,
+            { datumIndex, datum },
+            params,
+            { isHighlight: false },
+            stylerStyle.marker
+        ) as RequireOptional<NormalisedSeriesMarkerStyle>;
+
+        return {
+            datum,
+            style,
+            values: [
+                {
+                    key: xKey,
+                    name: xName,
+                    value: xValue,
+                    formattedValue: this.getAxisValueText(
+                        xAxis,
+                        source,
+                        xValue,
+                        datum,
+                        xKey,
+                        legendItemName,
+                        allowNullKeys
+                    ),
+                    category: true,
+                },
+                {
+                    key: yKey,
+                    name: yName,
+                    value: yValue,
+                    formattedValue: this.getAxisValueText(yAxis, source, yValue, datum, yKey, legendItemName),
+                    missing: isTooltipValueMissing(yValue),
+                    color: options.marker.enabled ? undefined : drawnItemColor(stylerStyle),
+                },
+            ],
+        };
+    }
+
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
+        const { id: seriesId, options } = this;
+        const { xKey, xName, yKey, yName, tooltip } = options;
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip');
+        if (datumValues == null) return;
+        const { datum, style, values } = datumValues;
 
         return this.formatTooltipWithContext(
             tooltip,
-            {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
-                symbol: this.legendItemSymbol(),
-                data: [
-                    {
-                        label: yName,
-                        fallbackLabel: yKey,
-                        value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
-                        missing: isTooltipValueMissing(yValue),
-                    },
-                ],
-            },
+            { ...datumValuesTooltipContent(values), symbol: this.legendItemSymbol() },
             {
                 seriesId,
                 datum,
@@ -1208,7 +1222,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 xName,
                 yKey,
                 yName,
-                ...format,
+                ...style,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

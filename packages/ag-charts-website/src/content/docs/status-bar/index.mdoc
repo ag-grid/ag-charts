@@ -24,6 +24,7 @@ In this example:
 - Hovering the chart shows the value of every series at the hovered category.
 - Each value is labelled with the series' `yName` and formatted with the root `formatter`, as the axis formats it.
 - Each value is coloured as the series draws the datum, including any `itemStyler` colour.
+- A missing value is shown as a dash.
 - When nothing is hovered, the Status Bar shows the last datum of each series.
 
 ## Position and Inactive State
@@ -57,15 +58,20 @@ When the items exceed `maxWidth`, they wrap onto further lines according to `wra
 
 ## Renderer
 
-Use a `renderer` to choose the items the Status Bar shows. It receives the `values` collected from every series at the hovered category, and whether they come from a hovered datum (`active`). It returns a list of items, each with an optional `label` and a `value`, or a single text value. To colour a value, return it as text segments, for example `[{ text: formattedValue, color }]`.
+Use a `renderer` to choose the items the Status Bar shows. It receives the `values` collected from every series at the hovered category, and whether they come from a hovered datum (`active`). Values with `category` set, such as each series' `xKey` value, are not shown by default. It returns a list of items, each with an optional `label` and a `value`, or a single text value. To colour a value, return it as text segments, for example `[{ text: formattedValue, color }]`.
 
 ```js format="snippet"
 {
     statusBar: {
         enabled: true,
         renderer: ({ values, active }) => [
-            { label: active ? 'Month' : 'Latest', value: values[0]?.datum.month },
-            ...values.map(({ label, formattedValue }) => ({ label, value: formattedValue })),
+            {
+                label: active ? 'Month' : 'Latest',
+                value: values.find(({ category }) => category)?.formattedValue,
+            },
+            ...values
+                .filter(({ category }) => !category)
+                .map(({ label, formattedValue }) => ({ label, value: formattedValue })),
         ],
     },
 }
@@ -82,7 +88,7 @@ The `renderer` runs when the hovered datum changes, and when the chart's data or
 
 ## Series Collectors
 
-Each series collects the values it contributes to the Status Bar. By default, these are the series' value keys, such as `yKey`, labelled with their names, such as `yName`.
+Each series collects the values it contributes to the Status Bar. By default, these are the values its tooltip shows, such as its `xKey` and `yKey` values, labelled with their names, such as `yName`. Histogram bins and waterfall totals have no `datum`, so their values carry the bin or total instead.
 
 Use the series `collector` to change them. It receives the `datum` and the default `values`, and returns the values to use, or `undefined` to keep the defaults.
 
@@ -105,7 +111,7 @@ Use the series `collector` to change them. It receives the `datum` and the defau
 
 {% chartExampleRunner title="Series Collector" name="series-collector" type="generated" /%}
 
-A value bound to an axis is formatted as the axis formats it. Set `formattedValue` on any other value to control its text, and `color` to change its colour.
+A value bound to an axis is formatted as the axis formats it, with the `formatter` `source` set to `'status-bar'`. Set `formattedValue` on any other value to control its text, and `color` to change its colour.
 
 The `collector` runs only while the Status Bar is enabled, at the same times as the `renderer`.
 

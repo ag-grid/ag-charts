@@ -13,6 +13,8 @@ export interface AgSeriesCollectedValue {
     formattedValue?: NormalisedTextOrSegments;
     /** The colour of the value. When not set, the colour the series draws the datum with. */
     color?: CssColor;
+    /** Whether the value is the datum's category, such as its `xKey` value. Category values are not shown by default. */
+    category?: boolean;
 }
 
 /** A value collected from a series. */
@@ -27,16 +29,18 @@ export interface AgCollectedValue<TDatum = DatumDefault> {
     readonly value: unknown;
     /** The value formatted as the series' axis formats it, when the key is bound to an axis. */
     readonly formattedValue?: NormalisedTextOrSegments;
-    /** The colour the series draws the datum with, after any `itemStyler`. */
+    /** The colour the series draws the value with, after any `itemStyler`. */
     readonly color?: CssColor;
-    /** The datum the value was collected from. */
+    /** Whether the value is the datum's category, such as its `xKey` value. Category values are not shown by default. */
+    readonly category?: boolean;
+    /** The datum the value was collected from. `undefined` for histogram bins and waterfall totals. */
     readonly datum: TDatum;
 }
 
 export interface AgSeriesCollectorParams<TDatum = DatumDefault, TContext = ContextDefault> {
     /** The ID of the series. */
     readonly seriesId: string;
-    /** The datum to collect values from. */
+    /** The datum to collect values from. `undefined` for histogram bins and waterfall totals. */
     readonly datum: TDatum;
     /** The values the series collects by default. */
     readonly values: readonly AgCollectedValue<TDatum>[];

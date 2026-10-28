@@ -32,11 +32,12 @@ const options: AgCartesianChartOptions = {
     statusBar: {
         enabled: true,
         renderer: ({ values, active }) => {
-            const temperatures = values.map(({ value }) => Number(value));
-            const average = temperatures.reduce((sum, value) => sum + value, 0) / temperatures.length;
+            const month = values.find(({ category }) => category);
+            const cities = values.filter(({ category }) => !category);
+            const average = cities.reduce((sum, { value }) => sum + Number(value), 0) / cities.length;
             return [
-                { label: active ? 'Month' : 'Latest', value: String(values[0]?.datum.month ?? '') },
-                ...values.map(({ label, formattedValue, value }) => ({
+                { label: active ? 'Month' : 'Latest', value: month?.formattedValue ?? '' },
+                ...cities.map(({ label, formattedValue, value }) => ({
                     label,
                     value: formattedValue ?? String(value),
                 })),

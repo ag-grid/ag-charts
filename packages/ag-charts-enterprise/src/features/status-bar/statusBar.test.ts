@@ -14,6 +14,7 @@ import { toPlainText } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
+    AgCollectedValue,
     AgStatusBarRendererParams,
     NormalisedTextOrSegments,
 } from 'ag-charts-types';
@@ -38,6 +39,8 @@ const DATA = [
     { quarter: 'Q3', revenue: 170, costs: 110 },
     { quarter: 'Q4', revenue: 210, costs: 130 },
 ];
+
+const shownValues = (values: readonly AgCollectedValue[]) => values.filter(({ category }) => !category);
 
 const OPTIONS: AgCartesianChartOptions = {
     data: DATA,
@@ -129,7 +132,12 @@ describe('StatusBar', () => {
     it('runs the collector and renderer once per hovered datum', async () => {
         const collector = vi.fn(() => undefined);
         const renderer = vi.fn(({ values, active }: AgStatusBarRendererParams) => [
-            { label: active ? 'Hovered' : 'Latest', value: values.map(({ value }) => String(value)).join('/') },
+            {
+                label: active ? 'Hovered' : 'Latest',
+                value: shownValues(values)
+                    .map(({ value }) => String(value))
+                    .join('/'),
+            },
         ]);
         chart = await createEnterpriseChart({
             ...OPTIONS,
@@ -197,7 +205,7 @@ describe('StatusBar', () => {
                 enabled: true,
                 inactive: 'recent',
                 renderer: ({ values, active }) => [
-                    { label: active ? 'Hovered' : 'Recent', value: String(values[0]?.value) },
+                    { label: active ? 'Hovered' : 'Recent', value: String(shownValues(values)[0]?.value) },
                 ],
             },
         });
@@ -214,7 +222,7 @@ describe('StatusBar', () => {
             statusBar: {
                 enabled: true,
                 renderer: ({ values, active }) =>
-                    active ? values.map(({ label, value }) => ({ label, value: String(value) })) : [],
+                    active ? shownValues(values).map(({ label, value }) => ({ label, value: String(value) })) : [],
             },
         });
         expect(shownItems()).toEqual([]);
@@ -239,6 +247,134 @@ describe('StatusBar', () => {
         });
         expect(shownItems()).toEqual(['Revenue 210']);
         expectWarningsCalls().toEqual([['AG Charts - Series `collector` must return an array of values, ignoring']]);
+    });
+
+    describe('series values', () => {
+        it.each<[string, AgCartesianChartOptions, string[]]>([
+            [
+                'histogram bins',
+                {
+                    data: [{ v: 1 }, { v: 2 }, { v: 3 }, { v: 8 }],
+                    series: [
+                        {
+                            type: 'histogram',
+                            xKey: 'v',
+                            yKey: 'v',
+                            yName: 'V',
+                            aggregation: 'sum',
+                            bins: [
+                                [0, 5],
+                                [5, 10],
+                            ],
+                        },
+                    ],
+                },
+                ['Frequency 1', 'V (sum) 8'],
+            ],
+            [
+                'waterfall totals',
+                {
+                    data: [
+                        { q: 'A', v: 10 },
+                        { q: 'B', v: -3 },
+                    ],
+                    series: [
+                        {
+                            type: 'waterfall',
+                            xKey: 'q',
+                            yKey: 'v',
+                            yName: 'Amount',
+                            totals: [{ totalType: 'total', index: 1, axisLabel: 'Total' }],
+                        },
+                    ],
+                },
+                ['Amount 7'],
+            ],
+            [
+                'heatmap colour values',
+                {
+                    data: [{ x: 'a', y: 'b', c: 5 }],
+                    series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'c', colorName: 'Score' }],
+                },
+                ['Score 5'],
+            ],
+            [
+                'ohlc prices in reading order',
+                {
+                    data: [{ d: 'A', o: 1, h: 4, l: 0.5, c: 3 }],
+                    series: [{ type: 'ohlc', xKey: 'd', openKey: 'o', highKey: 'h', lowKey: 'l', closeKey: 'c' }],
+                },
+                ['o 1', 'h 4', 'l 0.5', 'c 3'],
+            ],
+            [
+                'range-area low and high',
+                {
+                    data: [{ x: 'A', lo: 1, hi: 5 }],
+                    series: [{ type: 'range-area', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
+                },
+                ['lo 1', 'hi 5'],
+            ],
+            [
+                'box-plot quartiles',
+                {
+                    data: [{ x: 'A', mn: 1, q1: 2, md: 3, q3: 4, mx: 5 }],
+                    series: [
+                        {
+                            type: 'box-plot',
+                            xKey: 'x',
+                            minKey: 'mn',
+                            q1Key: 'q1',
+                            medianKey: 'md',
+                            q3Key: 'q3',
+                            maxKey: 'mx',
+                        },
+                    ],
+                },
+                ['mn 1', 'q1 2', 'md 3', 'q3 4', 'mx 5'],
+            ],
+            [
+                'bubble positions and sizes',
+                {
+                    data: [{ x: 3, y: 4, s: 5 }],
+                    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's' }],
+                },
+                ['x 3', 'y 4', 's 5'],
+            ],
+            [
+                'missing values',
+                {
+                    data: [{ quarter: 'Q1', revenue: undefined }],
+                    series: [{ type: 'line', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }],
+                },
+                ['Revenue —'],
+            ],
+        ])('shows %s', async (_name, options, expected) => {
+            chart = await createEnterpriseChart({
+                ...options,
+                legend: { enabled: false },
+                statusBar: { enabled: true },
+            });
+            expect(shownItems()).toEqual(expected);
+        });
+
+        it('colours each hlc value as its item is drawn', async () => {
+            chart = await createEnterpriseChart({
+                data: [{ d: 'A', h: 4, l: 1, c: 3 }],
+                series: [
+                    {
+                        type: 'hlc',
+                        xKey: 'd',
+                        highKey: 'h',
+                        lowKey: 'l',
+                        closeKey: 'c',
+                        item: { high: { fill: 'green' }, low: { fill: 'red' }, close: { stroke: 'blue' } },
+                    },
+                ],
+                legend: { enabled: false },
+                statusBar: { enabled: true },
+            });
+            expect(shownColors()).toEqual(['green', 'red', 'blue']);
+        });
     });
 
     describe('image snapshots', () => {
@@ -274,7 +410,7 @@ describe('StatusBar', () => {
                     wrapping: 'never',
                     truncate: false,
                     renderer: ({ values }) =>
-                        values.flatMap(({ label, formattedValue }) =>
+                        shownValues(values).flatMap(({ label, formattedValue }) =>
                             ['', ' (prior year)', ' (two years ago)', ' (forecast)'].map((suffix) => ({
                                 label: `${label}${suffix}`,
                                 value: formattedValue ?? '',
@@ -296,7 +432,7 @@ describe('StatusBar', () => {
                     fill: '#ffffff',
                     fillOpacity: 0.8,
                     renderer: ({ values }) =>
-                        values.flatMap(({ label, formattedValue }) => [
+                        shownValues(values).flatMap(({ label, formattedValue }) => [
                             { label, value: formattedValue ?? '' },
                             { label: `${label} (prior year)`, value: formattedValue ?? '' },
                         ]),

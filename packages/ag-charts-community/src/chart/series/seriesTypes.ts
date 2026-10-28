@@ -12,6 +12,7 @@ import type {
     Point,
     PointLabelDatum,
     PositionedCandidateResolver,
+    SeriesDatumValues,
     SeriesLabelDefaults,
     SizedPoint,
 } from 'ag-charts-core';
@@ -212,11 +213,8 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
         minVisibleItems: number
     ): number;
     dataCount(): number;
-    /** The source datum at `datumIndex`, for series backed by a data model. */
-    datumAt?(datumIndex: DatumIndex): unknown;
-    readDatumKey?(datum: unknown, key: string): unknown;
-    /** The colour the series draws the datum's `key` with, after any `itemStyler`. */
-    datumColor?(datumIndex: number, key: string): string | undefined;
+    getDatumValues?(datumIndex: DatumIndex, source: SeriesFormatterSource): SeriesDatumValues | undefined;
+    clampDatumIndex?(datumIndex: DatumIndex): DatumIndex;
     formatDatumValue(
         direction: ChartAxisDirection,
         value: unknown,

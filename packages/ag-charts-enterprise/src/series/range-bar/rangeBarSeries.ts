@@ -3,6 +3,7 @@ import {
     type AgRangeBarSeriesLabelFormatterParams,
     type AgRangeBarSeriesStyle,
     type AgRangeBarSeriesStylerParams,
+    type SeriesFormatterSource,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -41,7 +42,6 @@ import {
     barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
-    drawnItemColor,
     findMinMax,
     fontWithSize,
     insideBarContainer,
@@ -1560,13 +1560,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         return super.getHighlightLabelData(labelData, highlightedItem);
     }
 
-    datumColor(datumIndex: number): string | undefined {
-        return drawnItemColor(this.getItemStyle(datumIndex, false, undefined, undefined, undefined));
-    }
-
-    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, options } = this;
-        const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip, legendItemName } = options;
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource) {
+        const { dataModel, processedData, options } = this;
+        const { xKey, xName, yLowKey, yHighKey, yLowName, yHighName, legendItemName } = options;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -1581,21 +1577,57 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const allowNullKeys = this.options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const format = this.getItemStyle(datumIndex, false, undefined, undefined, undefined);
-        const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
+        return {
+            datum,
+            style: this.getItemStyle(datumIndex, false, undefined, undefined, undefined),
+            values: [
+                {
+                    key: xKey,
+                    name: xName,
+                    value: xValue,
+                    formattedValue: this.getAxisValueText(xAxis, source, xValue, datum, xKey, legendItemName),
+                    category: true,
+                },
+                {
+                    key: yLowKey,
+                    name: yLowName,
+                    value: yLowValue,
+                    formattedValue: this.getAxisValueText(yAxis, source, yLowValue, datum, yLowKey, legendItemName),
+                    missing: _ModuleSupport.isTooltipValueMissing(yLowValue),
+                },
+                {
+                    key: yHighKey,
+                    name: yHighName,
+                    value: yHighValue,
+                    formattedValue: this.getAxisValueText(yAxis, source, yHighValue, datum, yHighKey, legendItemName),
+                    missing: _ModuleSupport.isTooltipValueMissing(yHighValue),
+                },
+            ],
+        };
+    }
+
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
+        const { id: seriesId, options } = this;
+        const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip, legendItemName } = options;
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip');
+        if (datumValues == null) return;
+        const {
+            datum,
+            style,
+            values: [x, low, high],
+        } = datumValues;
+
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                heading: x.formattedValue,
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
                         label: yName,
                         fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
-                        value,
-                        missing:
-                            _ModuleSupport.isTooltipValueMissing(yHighValue) &&
-                            _ModuleSupport.isTooltipValueMissing(yLowValue),
+                        value: `${low.formattedValue} - ${high.formattedValue}`,
+                        missing: low.missing && high.missing,
                     },
                 ],
             },
@@ -1611,7 +1643,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 yLowName,
                 yHighName,
                 legendItemName,
-                ...format,
+                ...style,
             }
         );
     }

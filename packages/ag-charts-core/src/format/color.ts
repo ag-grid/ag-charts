@@ -832,13 +832,15 @@ export class Color implements IColor {
     ]);
 }
 
-/** The colour an item is drawn with: its fill when visible, otherwise its stroke. */
-export function drawnItemColor(style: {
+export interface DrawnItemStyle {
     fill?: unknown;
     fillOpacity?: number;
     stroke?: unknown;
     strokeWidth?: number;
-}): string | undefined {
+}
+
+/** The colour an item is drawn with: its fill when visible, otherwise its stroke. */
+export function drawnItemColor(style: DrawnItemStyle): string | undefined {
     if ((style.fillOpacity ?? 1) > 0 && isVisibleColor(style.fill)) return style.fill;
     if ((style.strokeWidth ?? 1) > 0 && isVisibleColor(style.stroke)) return style.stroke;
 }

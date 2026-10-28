@@ -3,6 +3,7 @@ import type {
     AgWaterfallSeriesItemType,
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesStyle,
+    SeriesFormatterSource,
     WaterfallSeriesTotalMeta,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -40,7 +41,7 @@ import {
     barLabelUsesPositionedCandidates,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
-    drawnItemColor,
+    datumValuesTooltipContent,
     easeOut,
     firstCandidate,
     fontWithSize,
@@ -1393,14 +1394,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         });
     }
 
-    datumColor(datumIndex: number): string | undefined {
-        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
-        return drawnItemColor(this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType));
-    }
-
-    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, options } = this;
-        const { xKey, xName, yKey, yName, tooltip, legendItemName } = options;
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource) {
+        const { dataModel, processedData, options } = this;
+        const { xKey, xName, yKey, yName, legendItemName } = options;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -1430,7 +1426,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const isPositive = (yValue ?? 0) >= 0;
 
-        const seriesItemType = this.getSeriesItemType(isPositive, datumType);
+        const itemType = this.getSeriesItemType(isPositive, datumType);
 
         let total: AgNumericValue;
         if (this.isTotal(datumType)) {
@@ -1448,38 +1444,57 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         }
 
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
-        const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
+
+        return {
+            datum,
+            style: this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType),
+            itemType,
+            values: [
+                {
+                    key: xKey,
+                    name: xName,
+                    value: xValue,
+                    formattedValue: this.getAxisValueText(xAxis, source, xValue, datum, xKey, legendItemName),
+                    category: true,
+                },
+                {
+                    key: yKey,
+                    name: yName,
+                    value: total,
+                    formattedValue: this.getAxisValueText(yAxis, source, total, datum, yKey, legendItemName),
+                    missing: _ModuleSupport.isTooltipValueMissing(total),
+                },
+            ],
+        };
+    }
+
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
+        const { id: seriesId, options } = this;
+        const { xKey, xName, yKey, yName, tooltip } = options;
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip');
+        if (datumValues == null) return;
+        const { datum, style, itemType, values } = datumValues;
+        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
 
         // Override only the renderer; other tooltip fields are read directly off `series.options.tooltip` upstream.
-        const itemTooltipRenderer = this.getItemConfig(seriesItemType).tooltip?.renderer;
+        const itemTooltipRenderer = this.getItemConfig(itemType).tooltip?.renderer;
         const effectiveTooltip = itemTooltipRenderer == null ? tooltip : { ...tooltip, renderer: itemTooltipRenderer };
 
         return this.formatTooltipWithContext(
             effectiveTooltip,
-            {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
-                symbol: this.legendItemSymbol(seriesItemType),
-                data: [
-                    {
-                        label: yName,
-                        fallbackLabel: yKey,
-                        value: this.getAxisValueText(yAxis, 'tooltip', total, datum, yKey, legendItemName),
-                        missing: _ModuleSupport.isTooltipValueMissing(total),
-                    },
-                ],
-            },
+            { ...datumValuesTooltipContent(values), symbol: this.legendItemSymbol(itemType) },
             {
                 seriesId,
                 datum,
                 title: yName,
-                itemType: seriesItemType,
+                itemType,
                 totalValue: nodeDatum?.totalValue,
                 itemId: nodeDatum ? getItemId(nodeDatum, this.data?.dataIdKey) : datumIndex,
                 xKey,
                 xName,
                 yKey,
                 yName,
-                ...format,
+                ...style,
             }
         );
     }

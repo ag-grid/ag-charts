@@ -17,6 +17,7 @@ import type {
     QuadtreeNearest,
     RequireOptional,
     Selection,
+    SeriesDatumValue,
     Text,
 } from 'ag-charts-core';
 import {
@@ -39,8 +40,8 @@ import {
     createBigIntBins,
     createBigIntTickBins,
     createTicks,
+    datumValueTooltipRow,
     deepClone,
-    drawnItemColor,
     findMinMax,
     fontWithSize,
     isBigInt,
@@ -62,6 +63,7 @@ import type {
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesStylerParams,
     AgNumericValue,
+    SeriesFormatterSource,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -104,7 +106,7 @@ import {
 import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
-import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
+import type { TooltipContent } from '../../tooltip/tooltip';
 import type { PickFocusInputs, SeriesNodePickMatch } from '../pickTypes';
 import { SeriesNodePickMode } from '../pickTypes';
 import type { SeriesNodeStyleContext } from '../series';
@@ -1211,72 +1213,79 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         return findQuadtreeMatch(this, point);
     }
 
-    datumColor(datumIndex: number): string | undefined {
-        return drawnItemColor(this.getItemStyle(datumIndex, false));
-    }
-
-    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource) {
         const {
-            id: seriesId,
             dataModel,
             processedData,
             axes,
             options,
             ctx: { localeManager },
         } = this;
-        const { xKey, xName, yKey, yName, tooltip, legendItemName } = options;
+        const { xKey, xName, yKey, yName, legendItemName } = options;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || processedData?.type !== 'grouped' || !xAxis || !yAxis) {
-            return;
-        }
+        if (!dataModel || processedData?.type !== 'grouped' || !xAxis || !yAxis) return;
 
         const bin = this.calculatedBins[datumIndex];
-        if (bin == null) {
-            return;
-        }
-        const { frequency, aggregatedValue, datum } = bin;
-        const binRange = bin.domain;
-        const [rangeMin, rangeMax]: AgNumericValue[] = binRange;
+        if (bin == null) return;
 
-        const data: TooltipContentDataRow[] = [
+        const { frequency, aggregatedValue, datum } = bin;
+        const [rangeMin, rangeMax]: AgNumericValue[] = bin.domain;
+
+        const values: SeriesDatumValue[] = [
             {
-                label: xName,
-                fallbackLabel: xKey,
-                value: `${this.getAxisValueText(xAxis, 'tooltip', rangeMin, datum, xKey, legendItemName)} - ${this.getAxisValueText(xAxis, 'tooltip', rangeMax, datum, xKey, legendItemName)}`,
+                key: xKey,
+                name: xName,
+                value: bin.domain,
+                formattedValue: `${this.getAxisValueText(xAxis, source, rangeMin, datum, xKey, legendItemName)} - ${this.getAxisValueText(xAxis, source, rangeMax, datum, xKey, legendItemName)}`,
+                category: true,
             },
             {
-                label: localeManager.t('seriesHistogramTooltipFrequency'),
-                value: this.getAxisValueText(yAxis, 'tooltip', frequency, datum, yKey!, legendItemName),
+                key: 'frequency',
+                name: localeManager.t('seriesHistogramTooltipFrequency'),
+                value: frequency,
+                formattedValue: this.getAxisValueText(yAxis, source, frequency, datum, yKey!, legendItemName),
             },
         ];
 
         if (yKey != null) {
-            let label: string;
+            let name: string;
             switch (options.aggregation) {
                 case 'sum':
-                    label = localeManager.t('seriesHistogramTooltipSum', { yName: yName ?? yKey });
+                    name = localeManager.t('seriesHistogramTooltipSum', { yName: yName ?? yKey });
                     break;
                 case 'mean':
-                    label = localeManager.t('seriesHistogramTooltipMean', { yName: yName ?? yKey });
+                    name = localeManager.t('seriesHistogramTooltipMean', { yName: yName ?? yKey });
                     break;
                 case 'count':
-                    label = localeManager.t('seriesHistogramTooltipCount', { yName: yName ?? yKey });
+                    name = localeManager.t('seriesHistogramTooltipCount', { yName: yName ?? yKey });
                     break;
             }
 
-            data.push({
-                label,
-                value: this.getAxisValueText(yAxis, 'tooltip', aggregatedValue, datum, yKey, legendItemName),
+            values.push({
+                key: yKey,
+                name,
+                value: aggregatedValue,
+                formattedValue: this.getAxisValueText(yAxis, source, aggregatedValue, datum, yKey, legendItemName),
             });
         }
+
+        return { datum: undefined, style: this.getItemStyle(datumIndex, false), values };
+    }
+
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
+        const { id: seriesId, options } = this;
+        const { xKey, xName, yKey, yName, tooltip } = options;
+        const bin = this.calculatedBins[datumIndex];
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip');
+        if (bin == null || datumValues == null) return;
 
         return this.formatTooltipWithContext(
             tooltip,
             {
                 symbol: this.legendItemSymbol(),
-                data,
+                data: datumValues.values.map(datumValueTooltipRow),
             },
             {
                 seriesId,
@@ -1286,7 +1295,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 yKey: yKey as any, // HistogramSeries is an outlier since it's callbacks don't use TDatum.
                 yName,
                 ...this.binParams(bin),
-                ...this.getItemStyle(datumIndex, false),
+                ...datumValues.style,
             }
         );
     }
@@ -1380,7 +1389,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     // Each node's datumIndex is its bin index rather than a data-row index, so clamp to the number of bins: the
     // default clamp to dataCount() would stop keyboard navigation early when there are more bins than rows.
-    protected override clampDatumIndex(datumIndex: number): number {
+    override clampDatumIndex(datumIndex: number): number {
         return clamp(0, datumIndex, this.calculatedBins.length - 1);
     }
 

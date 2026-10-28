@@ -19,7 +19,7 @@ import {
 } from 'ag-charts-core';
 
 import { FinancialStatusBarView } from './financialStatusBarView';
-import { type StatusBarAnchor, collectAnchoredValues, collectFallbackValues } from './statusBarCollection';
+import { type StatusBarAnchor, collectAnchoredValues, collectValues } from './statusBarCollection';
 import { StatusBarItemsView } from './statusBarItemsView';
 
 const { LayoutElement } = _ModuleSupport;
@@ -134,7 +134,7 @@ export class StatusBar extends AbstractModuleInstance {
         const items = this.renderItems(resolved);
         const shown = isHidden(resolved, opts) ? [] : items;
         // Sized from the default items when the renderer shows nothing, so that hover content still has room.
-        const sizing = items.length > 0 ? items : defaultItems(collectFallbackValues(this.ctx, lastDatumIndex));
+        const sizing = items.length > 0 ? items : defaultItems(collectValues(this.ctx, lastDatumIndex));
         view.performLayout(layout, opts, sizing);
         if (shown !== sizing) view.update(opts, shown);
     }
@@ -177,7 +177,7 @@ export class StatusBar extends AbstractModuleInstance {
         if (this.rendered?.key === key) return this.rendered.items;
 
         const { anchor, active } = resolved;
-        const values = anchor == null ? collectFallbackValues(ctx, lastDatumIndex) : collectAnchoredValues(ctx, anchor);
+        const values = anchor == null ? collectValues(ctx, lastDatumIndex) : collectAnchoredValues(ctx, anchor);
         const items = applyRenderer(ctx, opts, values, active) ?? defaultItems(values);
         this.rendered = { key, items };
         return items;
@@ -221,14 +221,14 @@ function isHidden({ anchor }: ResolvedAnchor, opts: NormalisedStatusBarOptions) 
 }
 
 function lastDatumIndex(series: StatusBarAnchor['series']) {
-    const count = series.dataCount();
-    return count > 0 ? count - 1 : undefined;
+    if (series.dataCount() === 0) return;
+    return series.clampDatumIndex?.(Infinity);
 }
 
 function defaultItems(values: readonly AgCollectedValue[]): AgStatusBarRendererItem[] {
     const items: AgStatusBarRendererItem[] = [];
-    for (const { label, value, formattedValue, color } of values) {
-        if (formattedValue == null && value == null) continue;
+    for (const { label, value, formattedValue, color, category } of values) {
+        if (category || (formattedValue == null && value == null)) continue;
         items.push({ label, value: withColor(formattedValue ?? String(value), color) });
     }
     return items;

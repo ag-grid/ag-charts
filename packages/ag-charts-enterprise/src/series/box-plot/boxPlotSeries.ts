@@ -4,6 +4,7 @@ import {
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
     type AgBoxPlotWhiskerOptions,
+    type SeriesFormatterSource,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type {
@@ -17,12 +18,13 @@ import type {
     NormalisedBoxPlotSeriesOwnOptions,
     RequireOptional,
     Selection,
+    SeriesDatumValue,
     Text,
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
+    datumValuesTooltipContent,
     deepClone,
-    drawnItemColor,
     isNumericValue,
     mergeDefaults,
     toNumber,
@@ -546,12 +548,68 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         ];
     }
 
-    datumColor(datumIndex: number): string | undefined {
-        return drawnItemColor(this.getItemStyle(datumIndex, false, undefined, undefined, undefined));
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource) {
+        const { dataModel, processedData, options } = this;
+        const {
+            xKey,
+            xName,
+            medianKey,
+            medianName,
+            q1Key,
+            q1Name,
+            q3Key,
+            q3Name,
+            minKey,
+            minName,
+            maxKey,
+            maxName,
+            legendItemName,
+        } = options;
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
+
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
+
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        const allowNullKeys = this.options.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
+
+        const yValue = (id: string, key: string, name: string | undefined): SeriesDatumValue => {
+            const value = dataModel.resolveColumnById(this, id, processedData, 'mixed-numeric')[datumIndex];
+            return {
+                key,
+                name,
+                value,
+                formattedValue: this.getAxisValueText(yAxis, source, value, datum, key, legendItemName),
+                missing: _ModuleSupport.isTooltipValueMissing(value),
+            };
+        };
+
+        return {
+            datum,
+            style: this.getItemStyle(datumIndex, false, undefined, undefined, undefined),
+            values: [
+                {
+                    key: xKey,
+                    name: xName,
+                    value: xValue,
+                    formattedValue: this.getAxisValueText(xAxis, source, xValue, datum, xKey, legendItemName),
+                    category: true,
+                },
+                yValue(`minValue`, minKey, minName),
+                yValue(`q1Value`, q1Key, q1Name),
+                yValue(`medianValue`, medianKey, medianName),
+                yValue(`q3Value`, q3Key, q3Name),
+                yValue(`maxValue`, maxKey, maxName),
+            ],
+        };
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, options } = this;
+        const { id: seriesId, options } = this;
         const {
             xKey,
             xName,
@@ -569,67 +627,16 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             legendItemName,
             tooltip,
         } = options;
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!dataModel || !processedData || !xAxis || !yAxis) return;
-
-        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
-        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const minValue = dataModel.resolveColumnById(this, `minValue`, processedData, 'mixed-numeric')[datumIndex];
-        const q1Value = dataModel.resolveColumnById(this, `q1Value`, processedData, 'mixed-numeric')[datumIndex];
-        const medianValue = dataModel.resolveColumnById(this, `medianValue`, processedData, 'mixed-numeric')[
-            datumIndex
-        ];
-        const q3Value = dataModel.resolveColumnById(this, `q3Value`, processedData, 'mixed-numeric')[datumIndex];
-        const maxValue = dataModel.resolveColumnById(this, `maxValue`, processedData, 'mixed-numeric')[datumIndex];
-
-        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        const allowNullKeys = this.options.allowNullKeys ?? false;
-        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
-
-        const format = this.getItemStyle(datumIndex, false, undefined, undefined, undefined);
-
-        const data: _ModuleSupport.TooltipContentDataRow[] = [
-            {
-                label: minName,
-                fallbackLabel: minKey,
-                value: this.getAxisValueText(yAxis, 'tooltip', minValue, datum, minKey, legendItemName),
-                missing: _ModuleSupport.isTooltipValueMissing(minValue),
-            },
-            {
-                label: q1Name,
-                fallbackLabel: q1Key,
-                value: this.getAxisValueText(yAxis, 'tooltip', q1Value, datum, q1Key, legendItemName),
-                missing: _ModuleSupport.isTooltipValueMissing(q1Value),
-            },
-            {
-                label: medianName,
-                fallbackLabel: medianKey,
-                value: this.getAxisValueText(yAxis, 'tooltip', medianValue, datum, medianKey, legendItemName),
-                missing: _ModuleSupport.isTooltipValueMissing(medianValue),
-            },
-            {
-                label: q3Name,
-                fallbackLabel: q3Key,
-                value: this.getAxisValueText(yAxis, 'tooltip', q3Value, datum, q3Key, legendItemName),
-                missing: _ModuleSupport.isTooltipValueMissing(q3Value),
-            },
-            {
-                label: maxName,
-                fallbackLabel: maxKey,
-                value: this.getAxisValueText(yAxis, 'tooltip', maxValue, datum, maxKey, legendItemName),
-                missing: _ModuleSupport.isTooltipValueMissing(maxValue),
-            },
-        ];
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip');
+        if (datumValues == null) return;
+        const { datum, style, values } = datumValues;
 
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                ...datumValuesTooltipContent(values),
                 title: legendItemName ?? yName,
                 symbol: this.legendItemSymbol(),
-                data: data,
             },
             {
                 seriesId,
@@ -648,7 +655,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 minName,
                 maxKey,
                 maxName,
-                ...format,
+                ...style,
             }
         );
     }

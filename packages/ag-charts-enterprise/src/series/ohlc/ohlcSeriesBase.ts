@@ -7,7 +7,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { AgOhlcSeriesItemStylerParams } from 'ag-charts-community';
+import type { AgOhlcSeriesItemStylerParams, SeriesFormatterSource } from 'ag-charts-community';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -27,8 +27,9 @@ import {
     type Point,
     type Scale,
     type Selection,
+    type SeriesDatumValue,
     type Text,
-    drawnItemColor,
+    datumValuesTooltipContent,
     mergeDefaults,
     toNumber,
 } from 'ag-charts-core';
@@ -907,16 +908,11 @@ export abstract class OhlcSeriesBase<
         return params;
     }
 
-    datumColor(datumIndex: number): string | undefined {
-        return drawnItemColor(this.getItemStyle(datumIndex, false));
-    }
-
-    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, options } = this;
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource) {
+        const { dataModel, processedData, options } = this;
         const {
             xKey,
             xName,
-            yName,
             openKey,
             openName,
             highKey,
@@ -926,7 +922,6 @@ export abstract class OhlcSeriesBase<
             closeKey,
             closeName,
             legendItemName,
-            tooltip,
         } = options;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -944,10 +939,55 @@ export abstract class OhlcSeriesBase<
         const allowNullKeys = options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const itemType = closeValue >= openValue ? 'up' : 'down';
-        const item = options.item[itemType];
+        const yValue = (key: string, name: string | undefined, value: AgNumericValue): SeriesDatumValue => ({
+            key,
+            name,
+            value,
+            formattedValue: this.getAxisValueText(yAxis, source, value, datum, key, legendItemName),
+            missing: _ModuleSupport.isTooltipValueMissing(value),
+        });
 
-        const format = this.getItemStyle(datumIndex, false);
+        return {
+            datum,
+            style: this.getItemStyle(datumIndex, false),
+            itemType: closeValue >= openValue ? ('up' as const) : ('down' as const),
+            values: [
+                {
+                    key: xKey,
+                    name: xName,
+                    value: xValue,
+                    formattedValue: this.getAxisValueText(xAxis, source, xValue, datum, xKey, legendItemName),
+                    category: true,
+                },
+                yValue(openKey, openName, openValue),
+                yValue(highKey, highName, highValue),
+                yValue(lowKey, lowName, lowValue),
+                yValue(closeKey, closeName, closeValue),
+            ],
+        };
+    }
+
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
+        const { id: seriesId, options } = this;
+        const {
+            xKey,
+            xName,
+            yName,
+            openKey,
+            openName,
+            highKey,
+            highName,
+            lowKey,
+            lowName,
+            closeKey,
+            closeName,
+            legendItemName,
+            tooltip,
+        } = options;
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip');
+        if (datumValues == null) return;
+        const { datum, style, itemType, values } = datumValues;
+        const item = options.item[itemType];
 
         const marker = {
             fill: item.fill ?? item.stroke,
@@ -962,37 +1002,11 @@ export abstract class OhlcSeriesBase<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                ...datumValuesTooltipContent(values),
                 title: legendItemName,
                 symbol: {
                     marker,
                 },
-                data: [
-                    {
-                        label: openName,
-                        fallbackLabel: openKey,
-                        value: this.getAxisValueText(yAxis, 'tooltip', openValue, datum, openKey, legendItemName),
-                        missing: _ModuleSupport.isTooltipValueMissing(openValue),
-                    },
-                    {
-                        label: highName,
-                        fallbackLabel: highKey,
-                        value: this.getAxisValueText(yAxis, 'tooltip', highValue, datum, highKey, legendItemName),
-                        missing: _ModuleSupport.isTooltipValueMissing(highValue),
-                    },
-                    {
-                        label: lowName,
-                        fallbackLabel: lowKey,
-                        value: this.getAxisValueText(yAxis, 'tooltip', lowValue, datum, lowKey, legendItemName),
-                        missing: _ModuleSupport.isTooltipValueMissing(lowValue),
-                    },
-                    {
-                        label: closeName,
-                        fallbackLabel: closeKey,
-                        value: this.getAxisValueText(yAxis, 'tooltip', closeValue, datum, closeKey, legendItemName),
-                        missing: _ModuleSupport.isTooltipValueMissing(closeValue),
-                    },
-                ],
             },
             {
                 seriesId,
@@ -1010,7 +1024,7 @@ export abstract class OhlcSeriesBase<
                 lowName,
                 closeKey,
                 closeName,
-                ...format,
+                ...style,
             } as const
         );
     }

@@ -269,6 +269,7 @@ export * from './chart/cartesianSeriesUtil';
 export * from './chart/circleLayout';
 export * from './chart/crossLine';
 export * from './chart/legendUtil';
+export * from './chart/seriesDatumValues';
 export * from './chart/markerShapes';
 export * from './chart/markerUtil';
 export * from './chart/polarAxisLayout';
