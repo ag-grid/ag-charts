@@ -65,12 +65,17 @@ export interface ShadowKey {
     readonly clips?: readonly ShadowRegion[];
 }
 
-/** The shadow options that a node casts through the engine, or undefined if it casts none. */
-export function getBatchedShadow(node: Node): NormalisedDropShadowOptions | undefined {
+/** The shadow options that a node casts through a shadow root, which a cutout may, or undefined if it casts none. */
+export function getRootShadow(node: Node): NormalisedDropShadowOptions | undefined {
     if (!(node instanceof Shape)) return;
     const shadow = node.__fillShadow;
+    return shadow?.enabled === true ? shadow : undefined;
+}
+
+/** The shadow options that a node casts through the engine, or undefined if it casts none. */
+export function getBatchedShadow(node: Node): NormalisedDropShadowOptions | undefined {
     // A cutout erases the layer beneath it, and so also what the engine's shadow put there. It casts for itself.
-    return shadow?.enabled === true && node.__drawingMode !== 'cutout' ? shadow : undefined;
+    return node instanceof Shape && node.__drawingMode === 'cutout' ? undefined : getRootShadow(node);
 }
 
 export function getShadowClip(node: Node): ShadowClip | undefined {

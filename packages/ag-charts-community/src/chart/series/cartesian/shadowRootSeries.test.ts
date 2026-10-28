@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Group, Transformable } from 'ag-charts-core';
-import type { Node } from 'ag-charts-core';
+import type { Node, Shape } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
 import { expectSamePixels } from '../../test/expectSamePixels';
-import { getSeriesSelectionNodes } from '../../test/seriesAccessors';
+import { getSeriesNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
 import {
     type Chart,
     createChart,
@@ -94,6 +95,19 @@ describe('cartesian series shadow root', () => {
     const withoutRoot = () => {
         vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
     };
+
+    /** Raises the highlight on the first item of a series, as the pointer would, which dims the other series. */
+    const hoverSeries = async (seriesIndex: number) => {
+        const [datum] = getSeriesNodeData<HighlightNodeDatum>(chart!, seriesIndex);
+        chart!.ctx.highlightManager.updateHighlight(chart!.id, datum);
+        await waitForChartStability(chart!);
+    };
+
+    /** How the markers of a series that are drawn are drawing, which is `cutout` while a highlight dims their series. */
+    const drawingModes = (seriesIndex: number) =>
+        getSeriesSelectionNodes<Shape>(chart!, 'datumSelection', seriesIndex)
+            .filter((node) => node.visible)
+            .map((node) => node.drawingMode);
 
     /** Builds the chart through the root, and then again with the root unable to cast, and returns the canvas of each. */
     const renderBothWays = async (build: () => Promise<unknown>) => {
@@ -280,6 +294,7 @@ describe('cartesian series shadow root', () => {
         });
 
         describe('markers whose shadows fall on the fill of their own area', () => {
+            // An opaque fill, so that a shadow beneath it can't show, and one over it darkens the fill.
             const withMarkerShadows: AgCartesianChartOptions = {
                 ...areas,
                 series: [
@@ -288,7 +303,7 @@ describe('cartesian series shadow root', () => {
                         xKey: 'x',
                         yKey: 'high',
                         fill: 'red',
-                        fillOpacity: 0.8,
+                        fillOpacity: 1,
                         strokeWidth: 0,
                         marker: { enabled: true, size: 8, fill: 'blue', shadow: shadowAt(0, 20) },
                     },
@@ -302,17 +317,87 @@ describe('cartesian series shadow root', () => {
                 return { x, y: y + 20 };
             };
 
-            it('should draw the shadow over the fill, not beneath it', async () => {
+            it('should not draw the shadow over the fill', async () => {
                 const { x, y } = await belowMarker();
 
-                // Half black over a fill of 0.8 red darkens the red channel; beneath it, the channel stays above 200.
-                expect(pixelAt(x, y)[0]).toBeLessThan(140);
+                expect(pixelAt(x, y)).toEqual(RED);
             });
 
-            it('should draw the same through the root as when the root cannot cast', async () => {
-                const { through, local } = await renderBothWays(() => create(withMarkerShadows));
+            it('should draw the shadow over the fill when the root cannot cast, so that the test tells them apart', async () => {
+                withoutRoot();
+                const { x, y } = await belowMarker();
 
-                expectSamePixels(through, local);
+                expect(pixelAt(x, y)).not.toEqual(RED);
+                expect(pixelAt(x, y)[0]).toBeLessThan(RED[0]);
+            });
+
+            it('should still cast the shadow where nothing else is drawn', async () => {
+                await create({
+                    ...withMarkerShadows,
+                    series: [
+                        {
+                            ...(withMarkerShadows.series![0] as object),
+                            marker: { enabled: true, size: 8, fill: 'blue', shadow: shadowAt(-30) },
+                        },
+                    ],
+                } as AgCartesianChartOptions);
+                const [{ x, y }] = itemCentres(0);
+
+                // Left of the first point of the area, there is neither fill nor marker to cover it.
+                expect(isHalfBlack(pixelAt(x - 30, y))).toBe(true);
+            });
+        });
+
+        describe('while a highlight dims the area', () => {
+            // The shadow is opaque, but dimmed to the strength of the markers that cast it, so what it lets through
+            // of the area's fill, which is translucent while it is dimmed, depends on whether it falls beneath or over it.
+            const dimmed = (shadow: AgDropShadowOptions): AgCartesianChartOptions => ({
+                ...areas,
+                highlight: { drawingMode: 'cutout' },
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'high',
+                        fill: 'red',
+                        fillOpacity: 1,
+                        strokeWidth: 0,
+                        marker: { enabled: true, size: 8, fill: 'blue', fillOpacity: 1, shadow },
+                    },
+                    { type: 'line', xKey: 'x', yKey: 'low' },
+                ],
+            });
+            const SOLID = { ...shadowAt(0, 20), color: 'black' };
+
+            const dim = async (shadow: AgDropShadowOptions) => {
+                await create(dimmed(shadow));
+                const [{ x, y }] = itemCentres(0);
+                await hoverSeries(1);
+                expect(drawingModes(0)).toEqual(['cutout', 'cutout']);
+                return { x, y };
+            };
+
+            it('should draw the shadow of a marker beneath the fill of its area', async () => {
+                const { x, y } = await dim(SOLID);
+                const through = pixelAt(x, y + 20);
+
+                withoutRoot();
+                await dim(SOLID);
+                const local = pixelAt(x, y + 20);
+
+                // Red under a black shadow is darkened by it; beneath a fill that is red too, it shows through less.
+                expect(through[0]).toBeLessThan(RED[0]);
+                expect(through[0]).toBeGreaterThan(local[0]);
+            });
+
+            it('should leave the shadow whole beneath a marker that cuts out the layer above it', async () => {
+                // The shadow of a marker falls on the marker itself, which erases the layer above the shadow.
+                const { x, y } = await dim(shadowAt(0, 0));
+                const shadowed = pixelAt(x, y);
+
+                await dim({ ...shadowAt(0, 0), enabled: false });
+
+                expect(shadowed[0]).toBeLessThan(pixelAt(x, y)[0]);
             });
         });
 
@@ -473,6 +558,74 @@ describe('cartesian series shadow root', () => {
                 await create(build(shadow));
 
                 expect(pixelAt(first.x, first.y)).not.toEqual(RED);
+            });
+        });
+    });
+
+    describe('marker shadows while a highlight dims the series', () => {
+        const data = [
+            { x: 3, y: 5, z: 0, w: 9 },
+            { x: 6, y: 0, z: 5, w: 9 },
+        ];
+        const square = { shape: 'square' as const, size: 20, fill: 'red', fillOpacity: 1, strokeWidth: 0 };
+        // Solid, so that a shadow beneath a translucent marker is plainly apart from one over it.
+        const SOLID = 'black';
+
+        const lines = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
+            data,
+            axes: AXES,
+            highlight: { drawingMode: 'cutout' },
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 0, marker: { enabled: true, ...square } },
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'z',
+                    strokeWidth: 0,
+                    marker: { enabled: true, ...square, fill: 'blue', shadow },
+                },
+                { type: 'line', xKey: 'x', yKey: 'w', strokeWidth: 0, marker: { enabled: true, ...square } },
+            ],
+        });
+
+        describe('line markers', () => {
+            /** Dims the first two series by raising the highlight on the third, and returns the marker that the shadow falls on. */
+            const dim = async (shadow?: AgDropShadowOptions) => {
+                await create(lines(undefined));
+                const [first] = itemCentres(0);
+                const [second] = itemCentres(1);
+                const cast = shadow ?? {
+                    ...shadowAt(Math.round(first.x - second.x), Math.round(first.y - second.y)),
+                    color: SOLID,
+                };
+                await create(lines(cast));
+                await hoverSeries(2);
+                expect(drawingModes(1)).toEqual(['cutout', 'cutout']);
+                return first;
+            };
+
+            it('should cast the shadow beneath the markers of an earlier series', async () => {
+                const first = await dim();
+                const through = pixelAt(first.x, first.y);
+
+                withoutRoot();
+                await dim();
+                const local = pixelAt(first.x, first.y);
+
+                // Red is darkened by a black shadow over it, and shows through a translucent marker above one.
+                expect(through[0]).toBeLessThan(RED[0]);
+                expect(through[0]).toBeGreaterThan(local[0]);
+            });
+
+            it('should still cast the shadow where it falls on nothing', async () => {
+                await create(lines(undefined));
+                const [second] = itemCentres(1);
+                await create(lines({ ...shadowAt(0, 40), color: SOLID }));
+                await hoverSeries(2);
+                expect(drawingModes(1)).toEqual(['cutout', 'cutout']);
+
+                // Below the marker that casts it, a cutout erases nothing that the root drew.
+                expect(pixelAt(second.x, second.y + 40)[0]).toBeLessThan(WHITE[0]);
             });
         });
     });

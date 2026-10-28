@@ -342,8 +342,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         });
         // The fill is the only caster among the paths, so the group casts it through the chart-wide shadow root.
         this.contentGroup.batchShadows = 'shared';
-        // The marker shadows stay above the fill, which the root draws beneath everything.
-        this.dataNodeGroup.batchShadows = true;
     }
 
     override renderToOffscreenCanvas(): boolean {

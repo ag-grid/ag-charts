@@ -31,8 +31,6 @@ export class RadarAreaSeries extends RadarSeries<AgRadarAreaSeriesStyle, Normali
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx);
         this.areaGroup.zIndex = -1;
-        // The fill casts through the root, which draws beneath everything; the marker shadows must stay above the fill.
-        this.itemGroup.batchShadows = true;
     }
 
     protected override updatePathSelections() {

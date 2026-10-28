@@ -130,7 +130,7 @@ export const commonChartThemeTemplate = {
                         hasUserOptionLessThan1('marker/fillOpacity'),
                     ],
                 },
-                'overlap',
+                'overlay',
                 'cutout',
             ],
         },
