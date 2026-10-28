@@ -1,8 +1,15 @@
 import { type MockInstance, afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, AgDropShadowOptions } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
-import { Group } from 'ag-charts-core';
+import {
+    deproxy,
+    getSeriesNodeData,
+    getSeriesSelectionNodes,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
+import { Group, type Shape, Transformable } from 'ag-charts-core';
 
 import { type SeriesGroupName, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
 import { HIERARCHY_SHADOW_DATA, createEnterpriseChart } from '../test/utils';
@@ -304,6 +311,94 @@ describe('series that cast their shadows through the shadow root', () => {
             withoutRoot();
 
             expect(allRed(await fillPixelsAfterCasting(radarMarkers))).toBe(false);
+        });
+
+        describe('while a highlight dims a radar area', () => {
+            // The shadow is opaque, but dimmed to the strength of the markers that cast it, so what it lets through
+            // of the fill, which is translucent while it is dimmed, depends on whether it falls beneath or over it.
+            const dimmed = (shadow: AgDropShadowOptions): AgChartOptions =>
+                ({
+                    data: RADAR_DATA,
+                    highlight: { drawingMode: 'cutout' },
+                    series: [
+                        {
+                            type: 'radar-area',
+                            angleKey: 'subject',
+                            radiusKey: 'a',
+                            fill: 'red',
+                            fillOpacity: 1,
+                            strokeWidth: 0,
+                            marker: { enabled: true, size: 24, fill: 'blue', fillOpacity: 1, shadow },
+                        },
+                        {
+                            type: 'radar-area',
+                            angleKey: 'subject',
+                            radiusKey: 'b',
+                            fillOpacity: 0,
+                            strokeWidth: 0,
+                            marker: { enabled: false },
+                        },
+                    ],
+                }) as AgChartOptions;
+
+            // The first datum is at the top of the chart, so a shadow that falls below its marker is inside the area.
+            const SOLID: AgDropShadowOptions = { ...SHADOW, color: 'black', xOffset: 0, yOffset: 20 };
+            const ON_MARKER: AgDropShadowOptions = { ...SHADOW, color: 'black', xOffset: 0, yOffset: 0 };
+
+            const pixelAt = (x: number, y: number) => [
+                ...deproxy(chart!).ctx.scene.canvas.context.getImageData(Math.round(x), Math.round(y), 1, 1).data,
+            ];
+
+            /** Dims the first series by highlighting the second, and returns the centre of the first marker of the first. */
+            const dim = async (shadow: AgDropShadowOptions) => {
+                await create(dimmed(shadow));
+                const [marker] = getSeriesSelectionNodes<Shape>(chart!, 'itemSelection', 0).filter(
+                    (node) => node.visible
+                );
+                const { x, y, width, height } = Transformable.toCanvas(marker);
+
+                const [datum] = getSeriesNodeData(chart!, 1);
+                deproxy(chart!).ctx.highlightManager.updateHighlight(deproxy(chart!).id, datum);
+                await waitForChartStability(chart!);
+
+                expect(marker.drawingMode).toBe('cutout');
+                return { x: x + width / 2, y: y + height / 2 };
+            };
+
+            it('should draw the shadow of a marker beneath the fill of its radar area', async () => {
+                const { x, y } = await dim(SOLID);
+                const through = pixelAt(x, y + 20);
+
+                withoutRoot();
+                await dim(SOLID);
+                const local = pixelAt(x, y + 20);
+
+                // Red under a black shadow is darkened by it; beneath a fill that is red too, it shows through less.
+                expect(through[0]).toBeLessThan(RED[0]);
+                expect(through[0]).toBeGreaterThan(local[0]);
+            });
+
+            it('should leave the shadow whole beneath a marker that cuts out the layer above it', async () => {
+                // The shadow of a marker falls on the marker itself, which erases the layer above the shadow.
+                const { x, y } = await dim(ON_MARKER);
+                const shadowed = pixelAt(x, y);
+
+                await dim({ ...ON_MARKER, enabled: false });
+                const plain = pixelAt(x, y);
+
+                expect(shadowed[0]).toBeLessThan(plain[0]);
+            });
+
+            it('should punch a hole in the shadow beneath the marker when the root cannot cast, so that the test tells them apart', async () => {
+                withoutRoot();
+                const { x, y } = await dim(ON_MARKER);
+                const shadowed = pixelAt(x, y);
+
+                await dim({ ...ON_MARKER, enabled: false });
+                const plain = pixelAt(x, y);
+
+                expect(shadowed[0]).toBe(plain[0]);
+            });
         });
 
         // The inner circle covers the sector shadows that fall in the hole of the donut.
