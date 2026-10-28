@@ -51,6 +51,7 @@ export class StatusBar extends AbstractModuleInstance {
 
     private recent?: RecentAnchor;
     private rendered?: RenderedItems;
+    private sizing?: RenderedItems;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -116,10 +117,12 @@ export class StatusBar extends AbstractModuleInstance {
         this.itemsView = undefined;
         this.recent = undefined;
         this.rendered = undefined;
+        this.sizing = undefined;
     }
 
     private invalidate() {
         this.rendered = undefined;
+        this.sizing = undefined;
     }
 
     private onPointerMove(canvasY: number | undefined) {
@@ -134,7 +137,7 @@ export class StatusBar extends AbstractModuleInstance {
         const items = this.renderItems(resolved);
         const shown = isHidden(resolved, opts) ? [] : items;
         // Sized from the default items when the renderer shows nothing, so that hover content still has room.
-        const sizing = items.length > 0 ? items : defaultItems(collectValues(this.ctx, lastDatumIndex));
+        const sizing = items.length > 0 ? items : this.sizingItems();
         view.performLayout(layout, opts, sizing);
         if (shown !== sizing) view.update(opts, shown);
     }
@@ -167,8 +170,17 @@ export class StatusBar extends AbstractModuleInstance {
         if (this.opts.inactive !== 'recent' || recent == null) return { active: false };
         const recentSeries = series.find((s) => s.id === recent.seriesId);
         if (recentSeries == null || recentSeries.dataCount() === 0) return { active: false };
-        const datumIndex = Math.min(recent.datumIndex, recentSeries.dataCount() - 1);
+        const datumIndex = recentSeries.clampDatumIndex?.(recent.datumIndex);
+        if (datumIndex == null) return { active: false };
         return { anchor: { series: recentSeries, datumIndex }, active: false };
+    }
+
+    private sizingItems() {
+        const key = renderKey(this.ctx.chartService.series, { active: false });
+        if (this.sizing?.key !== key) {
+            this.sizing = { key, items: defaultItems(collectValues(this.ctx, lastDatumIndex)) };
+        }
+        return this.sizing.items;
     }
 
     private renderItems(resolved: ResolvedAnchor): AgStatusBarRendererItem[] {

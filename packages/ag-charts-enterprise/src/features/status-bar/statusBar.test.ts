@@ -83,9 +83,9 @@ describe('StatusBar', () => {
         });
     }
 
-    async function hoverCategory(index: number) {
+    async function hoverCategory(index: number, count = DATA.length) {
         const { seriesRect } = deproxy(chart!);
-        const x = seriesRect!.x + (seriesRect!.width * (index + 0.5)) / DATA.length - 10;
+        const x = seriesRect!.x + (seriesRect!.width * (index + 0.5)) / count - 10;
         const y = seriesRect!.y + seriesRect!.height - 5;
         await hoverAction(x, y)(deproxy(chart!));
         await waitForChartStability(chart!);
@@ -214,6 +214,39 @@ describe('StatusBar', () => {
 
         await hoverAction(1, 1)(deproxy(chart));
         await vi.waitFor(() => expect(shownItems()).toEqual(['Recent 170']));
+    });
+
+    it('keeps the last hovered histogram bin when there are more bins than rows', async () => {
+        chart = await createEnterpriseChart({
+            data: [{ v: 1 }, { v: 12 }],
+            series: [
+                {
+                    type: 'histogram',
+                    xKey: 'v',
+                    yKey: 'v',
+                    yName: 'V',
+                    aggregation: 'sum',
+                    bins: [
+                        [0, 5],
+                        [5, 10],
+                        [10, 15],
+                        [15, 20],
+                    ],
+                },
+            ],
+            statusBar: {
+                enabled: true,
+                inactive: 'recent',
+                renderer: ({ values, active }) => [
+                    { label: active ? 'Hovered' : 'Recent', value: String(shownValues(values).at(-1)?.value) },
+                ],
+            },
+        });
+        await hoverCategory(2, 4);
+        expect(shownItems()).toEqual(['Hovered 12']);
+
+        await hoverAction(1, 1)(deproxy(chart));
+        await vi.waitFor(() => expect(shownItems()).toEqual(['Recent 12']));
     });
 
     it('has room for hover content when the renderer shows nothing until hovered', async () => {
