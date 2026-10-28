@@ -220,7 +220,7 @@ export function buildThemeParametersApiMarkdown({
             ...THEME_PARAMETERS_API_PAGE_CONTENT,
         }),
         '# Theme Parameters',
-        `Theme parameters set styles across the whole chart in one place, and most inherit their default from a few root parameters. Set them with \`params\` in a [theme](${themesUrl}), or explore their effect in the [Theme Builder](${themeBuilderUrl}).`,
+        `Theme parameters set styles across the whole chart in one place, and most inherit their default from a few foundation parameters. Set them with \`params\` in a [theme](${themesUrl}), or explore their effect in the [Theme Builder](${themeBuilderUrl}).`,
         ...sections,
     ];
 
