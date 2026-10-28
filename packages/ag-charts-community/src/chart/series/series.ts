@@ -1074,6 +1074,11 @@ export abstract class Series<
     /** The redrawn index of the active highlight, read once per highlight rather than per datum. */
     private redrawnPass?: { highlightedDatum: HighlightNodeDatum; redrawnIndex: DatumIndex | undefined };
 
+    /** For a series whose `getRedrawnDatumIndex` reads state that changes between updates, such as its data. */
+    protected resetRedrawnIndex() {
+        this.redrawnPass = undefined;
+    }
+
     private getRedrawnIndex(highlightedDatum: HighlightNodeDatum): DatumIndex | undefined {
         if (this.redrawnPass?.highlightedDatum !== highlightedDatum) {
             this.redrawnPass = { highlightedDatum, redrawnIndex: this.getRedrawnDatumIndex(highlightedDatum) };

@@ -1,15 +1,22 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Rect } from 'ag-charts-core';
+import { Rect, Sector, Transformable } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
-import { getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
+import { getLegendItemNodes, getSeriesAt, getSeriesNodeData } from '../test/seriesAccessors';
 import { HIGHLIGHT_GLOW, SERIES_SHADOW, XY_DATA, glowShadow, shapesOf } from '../test/shadowFixtures';
-import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
+import {
+    createChart,
+    deproxy,
+    hoverAction,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 
 const GLOW_SHADOW = glowShadow(HIGHLIGHT_GLOW);
 
@@ -217,4 +224,76 @@ describe('glow when the hover moves between series', () => {
         expect(hasChangesOnHighlight(1)).toBe(true);
         expect(hasChangesOnHighlight(2)).toBe(false);
     });
+});
+
+describe('glow on rings linked through legendItemKey', () => {
+    setupMockConsole();
+    setupMockCanvas();
+    let chart: Chart;
+    afterEach(() => chart?.destroy());
+
+    const RING_DATA = [
+        { browser: 'Chrome', share: 0.6 },
+        { browser: 'Safari', share: 0.3 },
+        { browser: 'Other', share: 0.1 },
+    ];
+
+    const hoverFirstLegendItem = async (highlight: object) => {
+        chart = deproxy(
+            await createChart({
+                animation: { enabled: false },
+                series: [
+                    {
+                        type: 'donut',
+                        data: RING_DATA,
+                        angleKey: 'share',
+                        legendItemKey: 'browser',
+                        outerRadiusRatio: 0.5,
+                        shadow: SERIES_SHADOW,
+                        highlight,
+                    },
+                    {
+                        type: 'donut',
+                        data: RING_DATA,
+                        angleKey: 'share',
+                        legendItemKey: 'browser',
+                        innerRadiusRatio: 0.6,
+                        shadow: SERIES_SHADOW,
+                        showInLegend: false,
+                        highlight,
+                    },
+                ],
+            } as AgChartOptions)
+        );
+        const { x, y } = Transformable.toCanvas(getLegendItemNodes(chart)[0]).computeCenter();
+        await hoverAction(x, y)(chart);
+        await waitForChartStability(chart);
+    };
+
+    const sectorShadow = (seriesIndex: number, group: 'contentGroup' | 'highlightNodeGroup', datumIndex: number) =>
+        shapesOf(getSeriesAt(chart, seriesIndex)[group], Sector).find(
+            (sector) => (sector.datum as { datumIndex: number } | undefined)?.datumIndex === datumIndex
+        )?.fillShadow;
+
+    // The highlight layer's copy casts the glow of the `Item` state, which `highlightedSeries.glow` falls back to.
+    it.each([
+        ['highlightedSeries', { highlightedSeries: { glow: HIGHLIGHT_GLOW } }, GLOW_SHADOW],
+        ['unhighlightedItem', { unhighlightedItem: { glow: HIGHLIGHT_GLOW } }, undefined],
+    ])(
+        "keeps the linked ring's in-place sector shadow beneath its highlight copy with %s.glow",
+        async (_name, highlight, copyShadow) => {
+            await hoverFirstLegendItem(highlight);
+
+            // Both rings redraw their sector 0 on the highlight layer, so neither in-place copy gives up its shadow.
+            for (const seriesIndex of [0, 1]) {
+                expect(sectorShadow(seriesIndex, 'contentGroup', 0)).toMatchObject(SERIES_SHADOW);
+                const copy = sectorShadow(seriesIndex, 'highlightNodeGroup', 0);
+                if (copyShadow) {
+                    expect(copy).toMatchObject(copyShadow);
+                } else {
+                    expect(copy?.enabled).not.toBe(true);
+                }
+            }
+        }
+    );
 });
