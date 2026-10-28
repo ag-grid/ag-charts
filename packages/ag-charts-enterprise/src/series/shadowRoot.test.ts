@@ -159,13 +159,13 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('areaGroup')).toBe('shared');
         });
 
-        it('should keep the marker shadows of a radar area out of the root, so that they stay above its fill', async () => {
+        it('should cast the marker shadows of a radar area through the root, as it does its own', async () => {
             await create({
                 data: RADAR_DATA,
                 series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'a' }],
             } as AgChartOptions);
 
-            expect(batching('itemGroup')).toBe(true);
+            expect(batching('itemGroup')).toBe('shared');
         });
 
         it('should cast the shadows of a polar series through the root', async () => {
@@ -177,17 +177,37 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(batching('itemGroup')).toBe('shared');
         });
 
-        it.each(['donut', 'pie'])(
-            'should keep the sector shadows of a %s out of the root, so that they stay above its inner circle',
+        it.each(['donut', 'pie'])('should cast the sector shadows of a %s through the root', async (type) => {
+            await create({
+                data: NIGHTINGALE_DATA,
+                series: [{ type, angleKey: 'a' }],
+            } as AgChartOptions);
+
+            expect(batching('itemGroup')).toBe('shared');
+        });
+
+        it.each(['funnel', 'cone-funnel'])(
+            'should cast the stages and connectors of a %s through the root',
             async (type) => {
                 await create({
-                    data: NIGHTINGALE_DATA,
-                    series: [{ type, angleKey: 'a' }],
+                    data: STAGES,
+                    series: [{ type, stageKey: 'group', valueKey: 'value' }],
                 } as AgChartOptions);
 
-                expect(batching('itemGroup')).toBe(true);
+                expect(batching('dataNodeGroup')).toBe('shared');
+                expect(batching('connectorNodeGroup')).toBe('shared');
             }
         );
+
+        it('should cast the shadows of a map marker through the root', async () => {
+            await create({
+                data: ukData,
+                topology: ukTopology,
+                series: [{ type: 'map-marker', idKey: 'name' }],
+            } as AgChartOptions);
+
+            expect(batching('markerGroup')).toBe('shared');
+        });
 
         it('should cast the shadows of a map shape through the root', async () => {
             await create({
@@ -261,46 +281,141 @@ describe('series that cast their shadows through the shadow root', () => {
             expect(allRed(await fillPixelsAfterCasting(radar))).toBe(false);
         });
 
-        it('should draw the marker shadows of a radar area over its own fill', async () => {
-            const fills = await fillPixelsAfterCasting(
-                (shadow) =>
-                    ({
-                        data: RADAR_DATA,
-                        series: [
-                            {
-                                type: 'radar-area',
-                                angleKey: 'subject',
-                                radiusKey: 'a',
-                                fill: 'red',
-                                fillOpacity: 1,
-                                marker: { enabled: true, size: 24, fill: 'blue', stroke: 'blue', shadow },
-                            },
-                        ],
-                    }) as AgChartOptions
-            );
+        const radarMarkers = (shadow: AgDropShadowOptions | undefined): AgChartOptions =>
+            ({
+                data: RADAR_DATA,
+                series: [
+                    {
+                        type: 'radar-area',
+                        angleKey: 'subject',
+                        radiusKey: 'a',
+                        fill: 'red',
+                        fillOpacity: 1,
+                        marker: { enabled: true, size: 24, fill: 'blue', stroke: 'blue', shadow },
+                    },
+                ],
+            }) as AgChartOptions;
 
-            expect(allRed(fills)).toBe(false);
+        it('should not draw the marker shadows of a radar area over its own fill', async () => {
+            expect(allRed(await fillPixelsAfterCasting(radarMarkers))).toBe(true);
         });
 
-        it('should draw the sector shadows of a donut over its own inner circle', async () => {
-            const fills = await fillPixelsAfterCasting(
-                (shadow) =>
-                    ({
-                        data: NIGHTINGALE_DATA,
-                        series: [
-                            {
-                                type: 'donut',
-                                angleKey: 'a',
-                                innerRadiusRatio: 0.5,
-                                innerCircle: { fill: 'red', fillOpacity: 1 },
-                                fills: ['blue', 'green', 'orange', 'purple'],
-                                shadow,
-                            },
-                        ],
-                    }) as AgChartOptions
-            );
+        it('should draw the marker shadows of a radar area over its own fill when the root cannot cast, as before', async () => {
+            withoutRoot();
 
-            expect(allRed(fills)).toBe(false);
+            expect(allRed(await fillPixelsAfterCasting(radarMarkers))).toBe(false);
+        });
+
+        // The inner circle covers the sector shadows that fall in the hole of the donut.
+        const donutWithInnerCircle = (shadow: AgDropShadowOptions | undefined): AgChartOptions =>
+            ({
+                data: NIGHTINGALE_DATA,
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'a',
+                        innerRadiusRatio: 0.5,
+                        innerCircle: { fill: 'red', fillOpacity: 1 },
+                        fills: ['blue', 'green', 'orange', 'purple'],
+                        shadow,
+                    },
+                ],
+            }) as AgChartOptions;
+
+        it('should not draw the sector shadows of a donut over its own inner circle', async () => {
+            expect(allRed(await fillPixelsAfterCasting(donutWithInnerCircle))).toBe(true);
+        });
+
+        it('should draw the sector shadows of a donut over its own inner circle when the root cannot cast, as before', async () => {
+            withoutRoot();
+
+            expect(allRed(await fillPixelsAfterCasting(donutWithInnerCircle))).toBe(false);
+        });
+
+        // The inner ring is the later series, whose sectors cast onto the ring around it, which is the earlier.
+        const rings = (shadow: AgDropShadowOptions | undefined): AgChartOptions =>
+            ({
+                data: NIGHTINGALE_DATA,
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'a',
+                        outerRadiusRatio: 1,
+                        innerRadiusRatio: 0.7,
+                        fills: ['red'],
+                        fillOpacity: 1,
+                        strokeWidth: 0,
+                    },
+                    {
+                        type: 'donut',
+                        angleKey: 'b',
+                        outerRadiusRatio: 0.65,
+                        innerRadiusRatio: 0.3,
+                        fills: ['blue'],
+                        fillOpacity: 1,
+                        strokeWidth: 0,
+                        shadow,
+                    },
+                ],
+            }) as AgChartOptions;
+
+        it('should not draw the sector shadows of an inner donut ring over the ring around it', async () => {
+            expect(allRed(await fillPixelsAfterCasting(rings))).toBe(true);
+        });
+
+        it('should draw the sector shadows of an inner donut ring over the ring around it when the root cannot cast, as before', async () => {
+            withoutRoot();
+
+            expect(allRed(await fillPixelsAfterCasting(rings))).toBe(false);
+        });
+
+        // The connectors are drawn beneath the stages, and may cover the shadows that the stages cast onto them.
+        const connectors = (shadow: AgDropShadowOptions | undefined): AgChartOptions =>
+            ({
+                data: STAGES,
+                series: [
+                    {
+                        type: 'funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        fills: ['blue'],
+                        fillOpacity: 1,
+                        strokeWidth: 0,
+                        dropOff: { fill: 'red', fillOpacity: 1, strokeWidth: 0 },
+                        shadow,
+                    },
+                ],
+            }) as AgChartOptions;
+
+        it('should not draw the stage shadows of a funnel over its connectors', async () => {
+            expect(allRed(await fillPixelsAfterCasting(connectors))).toBe(true);
+        });
+
+        it('should draw the stage shadows of a funnel over its connectors when the root cannot cast, as before', async () => {
+            withoutRoot();
+
+            expect(allRed(await fillPixelsAfterCasting(connectors))).toBe(false);
+        });
+
+        // The markers are beneath the shapes of the map, so that most of the shadow of one is hidden.
+        const mapMarkers = (shadow: AgDropShadowOptions | undefined): AgChartOptions =>
+            ({
+                data: ukData,
+                topology: ukTopology,
+                series: [
+                    { type: 'map-shape', idKey: 'name', fill: 'red', fillOpacity: 1, stroke: 'transparent' },
+                    { type: 'map-marker', idKey: 'name', size: 24, fill: 'blue', shadow },
+                ],
+            }) as AgChartOptions;
+
+        it('should not draw the shadows of map markers over the shapes of the map', async () => {
+            expect(allRed(await fillPixelsAfterCasting(mapMarkers))).toBe(true);
+        });
+
+        it('should draw the shadows of map markers over the shapes of the map when the root cannot cast, as before', async () => {
+            withoutRoot();
+
+            expect(allRed(await fillPixelsAfterCasting(mapMarkers))).toBe(false);
         });
 
         const nightingale = (shadow: AgDropShadowOptions | undefined): AgChartOptions =>
@@ -447,47 +562,5 @@ describe('series that cast their shadows through the shadow root', () => {
                 } as AgChartOptions,
                 4
             ));
-    });
-
-    describe('series that keep their own batches', () => {
-        it.each(['funnel', 'cone-funnel'])(
-            'should batch the stages and connectors of a %s itself, not through the root',
-            async (type) => {
-                await create({
-                    data: STAGES,
-                    series: [{ type, stageKey: 'group', valueKey: 'value' }],
-                } as AgChartOptions);
-
-                expect(batching('dataNodeGroup')).toBe(true);
-                expect(batching('connectorNodeGroup')).toBe(true);
-            }
-        );
-
-        it('should batch the shadows of a map marker itself, layer by layer, not through the root', async () => {
-            await create({
-                data: ukData,
-                topology: ukTopology,
-                series: [{ type: 'map-marker', idKey: 'name' }],
-            } as AgChartOptions);
-
-            expect(batching('markerGroup')).toBe('by-layer');
-        });
-
-        // The shadow of a stage lands on the connector beside it, which a root would draw beneath it.
-        it('should draw a funnel with its stage shadows over its connectors, as when the root cannot cast', () =>
-            same({
-                data: STAGES,
-                series: [{ type: 'funnel', stageKey: 'group', valueKey: 'value', shadow: SHADOW }],
-            } as AgChartOptions));
-
-        it('should draw map marker shadows over a map background, as when the root cannot cast', () =>
-            same({
-                data: ukData,
-                topology: ukTopology,
-                series: [
-                    { type: 'map-shape-background' },
-                    { type: 'map-marker', idKey: 'name', shadow: SHADOW, size: 24 },
-                ],
-            } as AgChartOptions));
     });
 });

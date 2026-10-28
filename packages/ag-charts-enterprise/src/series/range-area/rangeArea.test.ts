@@ -35,6 +35,7 @@ import {
     getSeriesAt,
     getSeriesNodeData,
     getSeriesOptions,
+    getSeriesSelectionNodes,
     hoverAction,
     isoEpochPair,
     magnitudePair,
@@ -47,7 +48,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { Group, Transformable } from 'ag-charts-core';
+import { Group, type Shape, Transformable } from 'ag-charts-core';
 
 import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
@@ -1935,7 +1936,7 @@ describe('RangeAreaSeries', () => {
             expect(greys()).toEqual(both);
         });
 
-        it('should draw the shadows of its markers over its own fill, not beneath it', async () => {
+        it('should draw the shadows of its markers beneath its own fill, not over it', async () => {
             // Half black over a fill of 0.8 red is [128, 26, 26]; beneath it, the fill leaves [230, 26, 26].
             const series = [
                 rangeArea('A', {
@@ -1945,13 +1946,64 @@ describe('RangeAreaSeries', () => {
                 }),
             ];
             const SHADOW_OVER_FILL = [128, 26, 26];
+            const SHADOW_BENEATH_FILL = [230, 26, 26];
 
             await render(series, true);
-            expect(countPixels(SHADOW_OVER_FILL)).toBeGreaterThan(0);
+            expect(countPixels(SHADOW_BENEATH_FILL)).toBeGreaterThan(0);
+            expect(countPixels(SHADOW_OVER_FILL)).toBe(0);
 
             chart = destroyChart(chart);
             await render(series, false);
             expect(countPixels(SHADOW_OVER_FILL)).toBeGreaterThan(0);
+        });
+
+        describe('while a highlight dims the series', () => {
+            const dimmed = (shadow: ReturnType<typeof shadowAt>): AgCartesianChartOptions => ({
+                ...options([
+                    rangeArea('A', {
+                        fill: 'red',
+                        marker: { enabled: true, size: 8, fill: 'blue', fillOpacity: 1, shadow },
+                    }),
+                    rangeArea('B', { fill: 'green', marker: { enabled: false } }),
+                ]),
+                highlight: { drawingMode: 'cutout' },
+            });
+            const SOLID = { ...shadowAt(0, 20), color: 'black' };
+
+            /** The markers of the first series, once a highlight on the second has dimmed it, and a pixel beneath one. */
+            const dim = async (shadow: ReturnType<typeof shadowAt>) => {
+                chart = await createEnterpriseChart(dimmed(shadow));
+                await waitForChartStability(chart);
+                const markers = getSeriesSelectionNodes<Shape>(chart, 'datumSelection', 0).filter(
+                    (node) => node.visible
+                );
+                const [{ x, y, width, height }] = markers.map((node) => Transformable.toCanvas(node));
+
+                const [datum] = getSeriesNodeData(chart, 1);
+                deproxy(chart).ctx.highlightManager.updateHighlight(deproxy(chart).id, datum);
+                await waitForChartStability(chart);
+
+                expect(markers.map((node) => node.drawingMode)).toContain('cutout');
+                return { x: x + width / 2, y: y + height / 2 };
+            };
+
+            const pixelAt = (x: number, y: number) => [
+                ...deproxy(chart).ctx.scene.canvas.context.getImageData(Math.round(x), Math.round(y), 1, 1).data,
+            ];
+
+            it('should draw the shadows of its markers beneath its own fill', async () => {
+                const { x, y } = await dim(SOLID);
+                const through = pixelAt(x, y + 20);
+
+                chart = destroyChart(chart);
+                vi.spyOn(Group.prototype, 'gatherShadowChildren').mockImplementation(() => {});
+                await dim(SOLID);
+                const local = pixelAt(x, y + 20);
+
+                // Beneath a translucent red fill, a black shadow lets more red through than the same shadow over it.
+                expect(through[0]).toBeLessThan(255);
+                expect(through[0]).toBeGreaterThan(local[0]);
+            });
         });
     });
 });

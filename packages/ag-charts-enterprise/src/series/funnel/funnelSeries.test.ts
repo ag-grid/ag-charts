@@ -89,10 +89,10 @@ describe('FunnelSeries', () => {
     };
 
     describe('shadow layering', () => {
-        it('should batch the shadows of its stages itself, beneath its own connectors, and not through the shadow root', async () => {
+        it('should cast the shadows of its stages through the shadow root, as it does those of its connectors', async () => {
             chart = deproxy(await createEnterpriseChart({ ...FUNNEL_EXAMPLE, animation: { enabled: false } }));
 
-            expect(getSeriesDataNodeGroup(chart).batchShadows).toBe(true);
+            expect(getSeriesDataNodeGroup(chart).batchShadows).toBe('shared');
         });
     });
 
