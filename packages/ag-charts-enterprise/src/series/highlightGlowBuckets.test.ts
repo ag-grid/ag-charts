@@ -4,6 +4,7 @@ import type { AgChartInstance, AgChartOptions, AgGlowOptions } from 'ag-charts-c
 import {
     HIGHLIGHT_GLOW,
     deproxy,
+    getSeriesAt,
     getSeriesNodeData,
     getSeriesSelectionNodes,
     glowShadow,
@@ -16,7 +17,7 @@ import type { Group, Rect, Shape } from 'ag-charts-core';
 import { getFlowLinkData, getFlowNodeData, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
 import { SHADOW, collectShapes, createEnterpriseChart } from '../test/utils';
-import type { HierarchyNode } from './hierarchy/hierarchySeries';
+import { HierarchyHighlightState, type HierarchyNode } from './hierarchy/hierarchySeries';
 
 // Two top-level branches, so that hovering a leaf of A leaves B as the other branch.
 const TWO_BRANCH_DATA = [
@@ -191,6 +192,38 @@ describe('highlight glow on every hierarchy bucket', () => {
             expect(cast(inPlace)).toEqual([]);
         });
 
+        it('resolves the glow-free highlight style of each state once, until the options change', async () => {
+            const options: any = series('highlightedBranch', HIGHLIGHT_GLOW);
+            await hover(options);
+
+            const styles = () => {
+                const host = getSeriesAt(chart) as any;
+                const highlight = options.type === 'sunburst' ? host.options.highlight : host.options.tile.highlight;
+                return [
+                    HierarchyHighlightState.Item,
+                    HierarchyHighlightState.Branch,
+                    HierarchyHighlightState.OtherBranch,
+                ].map((state) => host.getHierarchyHighlightStyles(0, state, highlight));
+            };
+
+            const [item, branch, otherBranch] = styles();
+            expect(item).not.toHaveProperty('glow');
+            expect(branch).not.toHaveProperty('glow');
+            expect(otherBranch).not.toHaveProperty('glow');
+            const [itemAgain, branchAgain, otherBranchAgain] = styles();
+            expect(itemAgain).toBe(item);
+            expect(branchAgain).toBe(branch);
+            expect(otherBranchAgain).toBe(otherBranch);
+
+            const next = series('highlightedBranch', HIGHLIGHT_GLOW, undefined) as any;
+            const nextHighlight = next.type === 'sunburst' ? next.highlight : next.tile.highlight;
+            nextHighlight.unhighlightedBranch = { fillOpacity: 0.5 };
+            await chart.update({ data: TWO_BRANCH_DATA, series: [next] } as AgChartOptions);
+            await waitForChartStability(chart);
+            expect(styles()[2]).toMatchObject({ fillOpacity: 0.5 });
+            expect(styles()[2]).not.toBe(otherBranch);
+        });
+
         it(`${name} resolves the branch glow under a highlightedItem glow field by field`, async () => {
             const options: any = series('highlightedBranch', { ...HIGHLIGHT_GLOW, color: '#aa0000' });
             const target = options.type === 'sunburst' ? options.highlight : options.tile.highlight;
@@ -271,6 +304,20 @@ describe('highlight glow on treemap groups', () => {
         expect(castBy(highlighted)).toEqual(['A']);
         expect(highlighted.find((s) => s.fillShadow?.enabled)?.fillShadow).toMatchObject(GLOW_SHADOW);
         expect(castBy(inPlace)).toEqual([]);
+    });
+
+    it('resolves the glow-free group highlight style of each state once', async () => {
+        await hoverGroupA({
+            highlightedItem: { glow: HIGHLIGHT_GLOW },
+            unhighlightedItem: { glow: HIGHLIGHT_GLOW },
+        });
+
+        const host = getSeriesAt(chart) as any;
+        for (const state of [HierarchyHighlightState.Item, HierarchyHighlightState.OtherItem]) {
+            const style = host.getGroupHighlightStyle(state);
+            expect(style).not.toHaveProperty('glow');
+            expect(host.getGroupHighlightStyle(state)).toBe(style);
+        }
     });
 
     it('lets unhighlightedItem.glow replace the base shadow of the sibling groups only', async () => {

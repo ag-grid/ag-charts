@@ -106,9 +106,9 @@ interface TreemapLabelCandidate extends PositionedLabelCandidate {
     readonly anchor: OrientationAnchor;
 }
 
-/** The glow cache slots (see `HierarchySeries.getHierarchyGlow`), as tiles and groups resolve a state to different options. */
-const TILE_GLOW_SLOT = 0;
-const GROUP_GLOW_SLOT = 1;
+/** The highlight cache slots (see `HierarchySeries.getHierarchyGlow`), as tiles and groups resolve a state to different options. */
+const TILE_SLOT = 0;
+const GROUP_SLOT = 1;
 
 const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -581,14 +581,14 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             if (!this.options.group.highlight.enabled) return;
 
             const groupState = this.getGroupHighlightState(isHighlight, highlightedNode, node);
-            return this.getHierarchyGlow(GROUP_GLOW_SLOT, groupState, this.resolveGroupGlow);
+            return this.getHierarchyGlow(GROUP_SLOT, groupState, this.resolveGroupGlow);
         }
 
         // With a group highlighted, a tile inherits only the group's opacities (see `getTileHighlightStyle`).
         if (!this.options.tile.highlight.enabled || (highlightedNode?.children?.length ?? 0) > 0) return;
 
         const tileState = this.getHierarchyHighlightState(isHighlight, highlightedNode, node);
-        return this.getHierarchyGlow(TILE_GLOW_SLOT, tileState, this.resolveTileGlow);
+        return this.getHierarchyGlow(TILE_SLOT, tileState, this.resolveTileGlow);
     }
 
     private itemStyle(
@@ -1188,7 +1188,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             return undefined;
         }
 
-        return this.getHierarchyHighlightStyles(tileHighlightState, highlight);
+        return this.getHierarchyHighlightStyles(TILE_SLOT, tileHighlightState, highlight);
     }
 
     private getGroupHighlightBucket(highlightState: HierarchyHighlightState): HighlightStyle | undefined {
@@ -1206,10 +1206,12 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         }
     }
 
-    /** The group highlight style, without its `glow`, which {@link getGroupHighlightGlow} reads. */
+    /** The group highlight style, without its `glow`, which {@link getGroupHighlightGlow} reads. Callers must not modify it. */
     private getGroupHighlightStyle(highlightState: HierarchyHighlightState): HighlightStyle | undefined {
-        const bucket = this.getGroupHighlightBucket(highlightState);
-        return bucket && withoutGlow(bucket);
+        return this.getCachedHighlightStyle(GROUP_SLOT, highlightState, () => {
+            const bucket = this.getGroupHighlightBucket(highlightState);
+            return bucket && withoutGlow(bucket);
+        });
     }
 
     private getGroupHighlightGlow(highlightState: HierarchyHighlightState) {

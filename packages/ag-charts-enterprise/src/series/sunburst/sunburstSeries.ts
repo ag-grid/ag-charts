@@ -101,6 +101,9 @@ interface SunburstLabelCandidate extends PositionedLabelCandidate {
     readonly labelPlacement: LabelPlacement;
 }
 
+/** The highlight cache slot (see `HierarchySeries.getHierarchyGlow`). */
+const SUNBURST_SLOT = 0;
+
 const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
 /** A region whose width depends only on the height of the stack it holds, minus `padding` on every side. */
@@ -276,7 +279,7 @@ export class SunburstSeries extends HierarchySeries<
 
         const highlightedNode = this.getActiveHighlightNode();
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
-        const highlightStyles = this.getHierarchyHighlightStyles(highlightState, this.options.highlight);
+        const highlightStyles = this.getHierarchyHighlightStyles(SUNBURST_SLOT, highlightState, this.options.highlight);
         const selectionState = this.getSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(selectionState, highlightStyles, this.itemStyle(rootIndex));
 
@@ -320,7 +323,7 @@ export class SunburstSeries extends HierarchySeries<
         if (!this.options.highlight.enabled) return;
 
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
-        return this.getHierarchyGlow(0, highlightState, this.resolveGlow);
+        return this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow);
     }
 
     private itemStyle(index: number): ItemStyle {
@@ -821,7 +824,7 @@ export class SunburstSeries extends HierarchySeries<
             const highlightState = this.getHierarchyHighlightState(highlighted, highlightedNode, node);
 
             const { opacity: highlightOpacity } =
-                this.getHierarchyHighlightStyles(highlightState, this.options.highlight) ?? {};
+                this.getHierarchyHighlightStyles(SUNBURST_SLOT, highlightState, this.options.highlight) ?? {};
 
             const baseLabelStyle = primary ? this.options.label : this.options.secondaryLabel;
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();

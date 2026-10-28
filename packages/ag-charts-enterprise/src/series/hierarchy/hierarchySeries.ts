@@ -569,13 +569,39 @@ export abstract class HierarchySeries<
         return nodeRoot === highlightRoot ? HierarchyHighlightState.Branch : HierarchyHighlightState.OtherBranch;
     }
 
-    /** The highlight styles of a node, without their `glow`, which {@link getHierarchyHighlightGlow} reads. */
+    /**
+     * The highlight styles of a node, without their `glow`, which {@link getHierarchyHighlightGlow} reads. Resolved
+     * once per `slot` and highlight state, as every node of the state shares it. Callers must not modify it.
+     */
     protected getHierarchyHighlightStyles<TStyle extends Partial<FillOptions & StrokeOptions & { opacity?: number }>>(
+        slot: number,
         highlightState: HierarchyHighlightState,
         highlight: HierarchyHighlightBuckets<TStyle>
     ): TStyle | undefined {
-        const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
-        return style && withoutGlow(style);
+        return this.getCachedHighlightStyle(slot, highlightState, () => {
+            const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
+            return style && withoutGlow(style);
+        });
+    }
+
+    /**
+     * The glow-free style of a highlight state, which `syncOptionDerivedState` drops. `null` once there is none.
+     * OPTIMIZATION: styling runs per node while something is highlighted, and the style only changes with the options.
+     */
+    private highlightStyleBySlot: Array<Array<object | null> | undefined> = [];
+
+    protected getCachedHighlightStyle<TStyle extends object>(
+        slot: number,
+        highlightState: HierarchyHighlightState,
+        resolveStyle: () => TStyle | undefined
+    ): TStyle | undefined {
+        const styleByState = (this.highlightStyleBySlot[slot] ??= []);
+        let style = styleByState[highlightState];
+        if (style === undefined) {
+            style = resolveStyle() ?? null;
+            styleByState[highlightState] = style;
+        }
+        return (style as TStyle | null) ?? undefined;
     }
 
     /** The merged `glow` of the highlight styles of a node. */
@@ -609,6 +635,7 @@ export abstract class HierarchySeries<
     protected override syncOptionDerivedState(diff: DeepPartial<NormalisedSeriesOptions<TOptions>> | undefined) {
         super.syncOptionDerivedState(diff);
         this.glowBySlot = [];
+        this.highlightStyleBySlot = [];
     }
 
     /** The glow of a highlight state as a shadow, converted once per `slot` (tiles and groups resolve differently). */
