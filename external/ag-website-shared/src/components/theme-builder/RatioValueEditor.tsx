@@ -8,7 +8,13 @@ const parseRatio = (value: string) => {
 };
 
 /** A unitless multiplier such as a line height ratio, shown as the raw number (1.5) rather than a percentage. */
-export const RatioValueEditor = ({ value, onChange, icon, swipeAdjustmentDivisor = 175 }: ValueEditorProps<number>) => {
+export const RatioValueEditor = ({
+    value,
+    onChange,
+    icon,
+    swipeAdjustmentDivisor = 175,
+    label,
+}: ValueEditorProps<number>) => {
     return (
         <FormattedInput
             value={value == null ? '' : String(value)}
@@ -19,6 +25,7 @@ export const RatioValueEditor = ({ value, onChange, icon, swipeAdjustmentDivisor
                 }
             }}
             onClear={() => onChange(null)}
+            ariaLabel={label}
             validateEditingString={(editingString) => {
                 const ratio = parseRatio(editingString);
                 return ratio == null ? null : stripFloatingPointErrors(ratio);
