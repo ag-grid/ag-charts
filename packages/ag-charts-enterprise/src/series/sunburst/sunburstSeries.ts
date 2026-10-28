@@ -313,7 +313,7 @@ export class SunburstSeries extends HierarchySeries<
     }
 
     private readonly resolveGlow = (highlightState: HierarchyHighlightState) =>
-        this.getHierarchyHighlightStyles(highlightState, this.options.highlight)?.glow;
+        this.getHierarchyHighlightGlow(highlightState, this.options.highlight);
 
     /** The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. */
     private getNodeGlow(nodeDatum: SunburstNode, isHighlight: boolean, highlightedNode: SunburstNode | undefined) {

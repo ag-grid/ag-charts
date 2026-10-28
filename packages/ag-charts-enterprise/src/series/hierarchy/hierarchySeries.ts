@@ -21,12 +21,15 @@ import {
     arraysEqual,
     clamp,
     configureColorScale,
+    glowToShadow,
     isFiniteNumericValue,
     isNumericValue,
     mergeDefaults,
+    mergeGlow,
     toNumber,
+    withoutGlow,
 } from 'ag-charts-core';
-import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
+import type { AgActiveItemState, AgGlowOptions, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 
@@ -36,8 +39,14 @@ const {
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
     createDatumId,
-    glowToShadow,
 } = _ModuleSupport;
+
+interface HierarchyHighlightBuckets<TStyle> {
+    highlightedItem?: TStyle;
+    unhighlightedItem?: TStyle;
+    highlightedBranch?: TStyle;
+    unhighlightedBranch?: TStyle;
+}
 
 export enum HierarchyHighlightState {
     None,
@@ -560,14 +569,27 @@ export abstract class HierarchySeries<
         return nodeRoot === highlightRoot ? HierarchyHighlightState.Branch : HierarchyHighlightState.OtherBranch;
     }
 
+    /** The highlight styles of a node, without their `glow`, which {@link getHierarchyHighlightGlow} reads. */
     protected getHierarchyHighlightStyles<TStyle extends Partial<FillOptions & StrokeOptions & { opacity?: number }>>(
         highlightState: HierarchyHighlightState,
-        highlight: {
-            highlightedItem?: TStyle;
-            unhighlightedItem?: TStyle;
-            highlightedBranch?: TStyle;
-            unhighlightedBranch?: TStyle;
-        }
+        highlight: HierarchyHighlightBuckets<TStyle>
+    ): TStyle | undefined {
+        const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
+        return style && withoutGlow(style);
+    }
+
+    /** The merged `glow` of the highlight styles of a node. */
+    protected getHierarchyHighlightGlow<TStyle extends { glow?: DeepPartial<AgGlowOptions> }>(
+        highlightState: HierarchyHighlightState,
+        highlight: HierarchyHighlightBuckets<TStyle>
+    ): DeepPartial<AgGlowOptions> | undefined {
+        const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
+        return style && mergeGlow(style);
+    }
+
+    private getHierarchyHighlightBuckets<TStyle extends object>(
+        highlightState: HierarchyHighlightState,
+        highlight: HierarchyHighlightBuckets<TStyle>
     ): TStyle | undefined {
         switch (highlightState) {
             case HierarchyHighlightState.Item:

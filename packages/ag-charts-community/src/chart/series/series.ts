@@ -44,6 +44,7 @@ import {
     boxContains,
     callWithContext,
     createId,
+    glowToShadow,
     isGradientFill,
     isPatternFill,
     isSupportedMarkerShape,
@@ -103,9 +104,9 @@ import type {
 import { SeriesNodePickMode } from './pickTypes';
 import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 import {
+    getHighlightGlow,
     getHighlightStyle,
     getSelectionStyle,
-    glowToShadow,
     hasStateStyle,
     isUnselected,
     stagedSelectionState,
@@ -1019,7 +1020,7 @@ export abstract class Series<
         this.glowByState ??= [];
         let glow = this.glowByState[highlightState];
         if (glow === undefined) {
-            glow = glowToShadow(this.getHighlightStyle(true, undefined, highlightState).glow) ?? null;
+            glow = glowToShadow(getHighlightGlow(this.options.highlight, highlightState)) ?? null;
             this.glowByState[highlightState] = glow;
         }
         return glow ?? undefined;

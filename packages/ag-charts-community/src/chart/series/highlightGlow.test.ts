@@ -147,6 +147,32 @@ describe('highlight glow', () => {
     };
 
     describe.each(SERIES)('$name', (testCase) => {
+        it('gives the itemStyler params no glow, in any highlight state', async () => {
+            const params: object[] = [];
+            const itemStyler = (itemParams: object) => {
+                params.push(itemParams);
+                return {};
+            };
+            // Marker series take the styler on the marker, the others on the series.
+            const styled: SeriesCase = {
+                ...testCase,
+                series: (shadow, extra) => {
+                    const options = testCase.series(shadow, extra) as Record<string, any>;
+                    if ('marker' in options) return { ...options, marker: { ...options.marker, itemStyler } };
+                    return { ...options, itemStyler };
+                },
+            };
+            await hoverFirstItem(styled, undefined, {
+                highlightedItem: { glow: HIGHLIGHT_GLOW },
+                unhighlightedItem: { glow: HIGHLIGHT_GLOW },
+                highlightedSeries: { glow: HIGHLIGHT_GLOW },
+                unhighlightedSeries: { glow: HIGHLIGHT_GLOW },
+            });
+
+            expect(params.length).toBeGreaterThan(0);
+            for (const itemParams of params) expect(itemParams).not.toHaveProperty('glow');
+        });
+
         it.each(['cutout', 'overlay'] as const)(
             'casts only the highlightedItem glow from the hovered item in %s mode',
             async (drawingMode) => {

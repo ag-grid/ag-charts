@@ -1,5 +1,5 @@
-import type { AreExact, DeepPartial, NormalisedColorType, NormalisedDropShadowOptions } from 'ag-charts-core';
-import { mergeDefaults } from 'ag-charts-core';
+import type { AreExact, DeepPartial, NormalisedColorType } from 'ag-charts-core';
+import { mergeDefaults, mergeGlow, withoutGlow } from 'ag-charts-core';
 import type {
     AgGlowOptions,
     HighlightState as PublicHighlightState,
@@ -139,14 +139,27 @@ type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 
 export type SeriesItemHighlightStyle = HighlightOptions<object>;
 
-/** Merges the highlight-state buckets that apply to `highlightState`, earlier keys taking precedence. */
+/**
+ * Merges the highlight-state buckets that apply to `highlightState`, earlier keys taking precedence. The `glow` is left
+ * out, as the highlight layer casts it and no item style or styler takes it; {@link getHighlightGlow} reads it.
+ */
 export function getHighlightStyle<TStyle extends object>(
     highlight: { [K in HighlightStyleOptionKey]?: TStyle } | undefined,
     highlightState: HighlightState
 ): TStyle {
     const keys = getHighlightStyleOptionKeys(highlightState);
     if (highlight == null || keys.length === 0) return {} as TStyle;
-    return mergeDefaults<TStyle>(...keys.map((key) => highlight[key]));
+    return withoutGlow(mergeDefaults<TStyle>(...keys.map((key) => highlight[key])));
+}
+
+/** Merges the `glow` of the highlight-state buckets that apply to `highlightState`. */
+export function getHighlightGlow(
+    highlight: { [K in HighlightStyleOptionKey]?: { glow?: DeepPartial<AgGlowOptions> } } | undefined,
+    highlightState: HighlightState
+): DeepPartial<AgGlowOptions> | undefined {
+    const keys = getHighlightStyleOptionKeys(highlightState);
+    if (highlight == null || keys.length === 0) return;
+    return mergeGlow(...keys.map((key) => highlight[key]));
 }
 
 /** Merges the selection-state buckets that apply to `selectionState`, earlier keys taking precedence. */
@@ -170,17 +183,4 @@ export function hasStateStyle(bucket: object | undefined): boolean {
         if (key !== 'glow' || (bucket as { glow?: { enabled?: boolean } }).glow?.enabled === true) return true;
     }
     return false;
-}
-
-/**
- * The shadow that casts a `glow`: centred on the item, as a glow is the same blurred silhouette as a shadow with no
- * offset. A glow that is off, or has no colour or blur to cast, casts none.
- */
-export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
-    if (glow?.enabled !== true) return;
-
-    const { color, blur, spread } = glow;
-    if (color == null || blur == null) return;
-
-    return { enabled: true, color, xOffset: 0, yOffset: 0, blur, spread };
 }

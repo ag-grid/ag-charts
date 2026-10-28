@@ -152,6 +152,31 @@ const WATERFALL_DATA = [
     { x: 'Up again', y: 4 },
 ];
 
+/** Where a series takes its `itemStyler`: sankey and chord per part, waterfall per item kind, marker series on the marker. */
+function withItemStyler(series: AnySeriesOptions, itemStyler: (params: object) => object): AnySeriesOptions {
+    const options = { ...series } as Record<string, any>;
+    const addTo = (key: string) => (options[key] = { ...options[key], itemStyler });
+    switch (options.type) {
+        case 'sankey':
+        case 'chord':
+            for (const key of ['node', 'link']) if (key in options) addTo(key);
+            break;
+        case 'waterfall':
+            for (const key of ['positive', 'negative', 'total']) {
+                options.item[key] = { ...options.item[key], itemStyler };
+            }
+            break;
+        case 'radar-line':
+        case 'radar-area':
+        case 'range-area':
+            addTo('marker');
+            break;
+        default:
+            options.itemStyler = itemStyler;
+    }
+    return options as AnySeriesOptions;
+}
+
 const SERIES: SeriesCase[] = [
     {
         name: 'sankey nodes',
@@ -527,6 +552,25 @@ describe('highlight glow (enterprise series)', () => {
                 expect(highlighted.find(casts)?.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
             }
         );
+
+        it('gives the itemStyler params no glow, in any highlight state', async () => {
+            const params: object[] = [];
+            const itemStyler = (itemParams: object) => {
+                params.push(itemParams);
+                return {};
+            };
+            const styled: SeriesCase = {
+                ...testCase,
+                series: (shadow, highlight) => withItemStyler(testCase.series(shadow, highlight), itemStyler),
+            };
+            await hoverItem(styled, undefined, {
+                highlightedItem: { glow: HIGHLIGHT_GLOW },
+                unhighlightedItem: { glow: HIGHLIGHT_GLOW },
+            });
+
+            expect(params.length).toBeGreaterThan(0);
+            for (const itemParams of params) expect(itemParams).not.toHaveProperty('glow');
+        });
 
         it('casts no glow unless it is enabled', async () => {
             const { highlighted } = await hoverItem(testCase, undefined);

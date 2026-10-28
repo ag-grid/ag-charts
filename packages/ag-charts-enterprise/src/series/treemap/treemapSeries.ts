@@ -48,9 +48,11 @@ import {
     lineHeightAtSize,
     measureLabelText,
     mergeDefaults,
+    mergeGlow,
     resolveMinimumFontSize,
     resolveTextAlign,
     toPlainText,
+    withoutGlow,
     wrapText,
 } from 'ag-charts-core';
 import type { AgGlowOptions, PaddingOptions } from 'ag-charts-types';
@@ -560,10 +562,10 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     }
 
     private readonly resolveTileGlow = (highlightState: HierarchyHighlightState) =>
-        this.getHierarchyHighlightStyles(highlightState, this.options.tile.highlight)?.glow;
+        this.getHierarchyHighlightGlow(highlightState, this.options.tile.highlight);
 
     private readonly resolveGroupGlow = (highlightState: HierarchyHighlightState) =>
-        this.getGroupHighlightStyle(highlightState)?.glow;
+        this.getGroupHighlightGlow(highlightState);
 
     /**
      * The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. Tile
@@ -1189,7 +1191,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         return this.getHierarchyHighlightStyles(tileHighlightState, highlight);
     }
 
-    private getGroupHighlightStyle(highlightState: HierarchyHighlightState): HighlightStyle | undefined {
+    private getGroupHighlightBucket(highlightState: HierarchyHighlightState): HighlightStyle | undefined {
         const { highlight } = this.options.group;
         if (!highlight.enabled) {
             return undefined;
@@ -1202,6 +1204,16 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             default:
                 return undefined;
         }
+    }
+
+    /** The group highlight style, without its `glow`, which {@link getGroupHighlightGlow} reads. */
+    private getGroupHighlightStyle(highlightState: HierarchyHighlightState): HighlightStyle | undefined {
+        const bucket = this.getGroupHighlightBucket(highlightState);
+        return bucket && withoutGlow(bucket);
+    }
+
+    private getGroupHighlightGlow(highlightState: HierarchyHighlightState) {
+        return mergeGlow(this.getGroupHighlightBucket(highlightState));
     }
 
     public override isSelectionEnabled(): boolean {

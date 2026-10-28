@@ -143,7 +143,6 @@
     "getShapeStyle",
     "GradientLegendDatum",
     "GradientLegendNamedLabel",
-    "glowToShadow",
     "groupAccumulativeValueProperty",
     "hasStateStyle",
     "HighlightChangeEvent",

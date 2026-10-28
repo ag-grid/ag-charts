@@ -1,7 +1,7 @@
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
-    GLOW_THEME_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
@@ -13,6 +13,7 @@ import {
     cycledFillThemeTemplate,
     themeLineHeight,
     undocumentedThemeOptions,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -64,11 +65,12 @@ export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
         shadow: SHADOW_THEME_DEFAULTS,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
-            highlightedItem: { glow: GLOW_THEME_DEFAULTS },
-            unhighlightedItem: {
-                glow: GLOW_THEME_DEFAULTS,
-                opacity: 0.4,
-            },
+            ...withGlowThemeDefaults(
+                {
+                    unhighlightedItem: { opacity: 0.4 },
+                },
+                ITEM_GLOW_BUCKETS
+            ),
         },
     },
 };

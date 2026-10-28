@@ -3521,6 +3521,26 @@ describe('HeatmapSeries', () => {
                 expect(rectCellCount(chart)).toBe(0);
             });
 
+            it('leaves the batch only while a highlight is active when the other cells glow in place', async () => {
+                await create({
+                    highlight: { unhighlightedItem: { glow: { enabled: true } } },
+                    tooltip: { enabled: false },
+                });
+                expect(isBatched(chart)).toBe(true);
+                expect(rectCellCount(chart)).toBe(0);
+
+                await hoverDatumByIndex(chart, 0, 3);
+                expect(isBatched(chart)).toBe(false);
+                const glowing = cellShapes(chart).filter((shape) => shape.fillShadow?.enabled === true);
+                expect(glowing).toHaveLength(GRID.length - 1);
+
+                await hoverAction(1, 1)(chart);
+                await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+                expect(isBatched(chart)).toBe(true);
+                expect(rectCellCount(chart)).toBe(0);
+                expect(cellShapes(chart)).toHaveLength(GRID.length);
+            });
+
             it.each(Object.keys(ineligible))('paints every cell as a Rect for %s', async (name) => {
                 await create(ineligible[name]);
                 expect(isBatched(chart)).toBe(false);

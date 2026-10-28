@@ -2,14 +2,15 @@ import {
     CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
-    GLOW_THEME_DEFAULTS,
     SAFE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -41,14 +42,15 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
             bringToFront: true,
-            unhighlightedItem: {
-                opacity: 0.5,
-            },
-            highlightedSeries: { glow: GLOW_THEME_DEFAULTS },
-            unhighlightedSeries: {
-                glow: GLOW_THEME_DEFAULTS,
-                opacity: 0.1,
-            },
+            ...withGlowThemeDefaults(
+                {
+                    unhighlightedItem: {
+                        opacity: 0.5,
+                    },
+                    unhighlightedSeries: { opacity: 0.1 },
+                },
+                SERIES_GLOW_BUCKETS
+            ),
         },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,

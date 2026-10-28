@@ -3,6 +3,7 @@ import type {
     AgChartAllThemeParams,
     AgChartLabelFitOptions,
     AgChartLabelPlacementStyleOptions,
+    AgGlowOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
@@ -16,9 +17,11 @@ import type {
     WithThemeParams,
 } from 'ag-charts-types';
 
-import { mapValues } from '../data/object';
+import { mapValues, mergeDefaults } from '../data/object';
 import { Color } from '../format/color';
+import type { DeepPartial } from '../types/global';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../types/themeConstants';
+import type { NormalisedDropShadowOptions } from './normalised/normalisedCommonOptions';
 import type {
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
@@ -697,6 +700,37 @@ export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: r
         result[bucket] = { ...(result[bucket] as object | undefined), glow: GLOW_THEME_DEFAULTS };
     }
     return result as T;
+}
+
+/**
+ * The shadow that casts a `glow`: centred on the item, as a glow is the same blurred silhouette as a shadow with no
+ * offset. A glow that is off, or has no colour or blur to cast, casts none.
+ */
+export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
+    if (glow?.enabled !== true) return;
+
+    const { color, blur, spread } = glow;
+    if (color == null || blur == null) return;
+
+    return { enabled: true, color, xOffset: 0, yOffset: 0, blur, spread };
+}
+
+/**
+ * `style` without its `glow`, which the highlight layer casts and no item is drawn or styled by. A highlight style
+ * reaches item stylers and node styles through this, so the theme's disabled `glow` never appears in either.
+ */
+export function withoutGlow<T extends object>(style: T): T {
+    if (!('glow' in style)) return style;
+
+    const { glow: _glow, ...rest } = style;
+    return rest as T;
+}
+
+/** The `glow` of the highlight `buckets`, earlier buckets taking precedence. */
+export function mergeGlow(
+    ...buckets: Array<{ glow?: DeepPartial<AgGlowOptions> } | undefined>
+): DeepPartial<AgGlowOptions> | undefined {
+    return mergeDefaults<DeepPartial<AgGlowOptions>>(...buckets.map((bucket) => bucket?.glow));
 }
 
 type SeriesTooltipTheme = WithThemeParams<Pick<AgSeriesTooltip<never>, 'range' | 'position' | 'interaction'>>;
