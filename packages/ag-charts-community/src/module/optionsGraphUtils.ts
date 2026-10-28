@@ -39,6 +39,7 @@ export interface OptionsGraphInterface {
         edgeValue?: string
     ): unknown;
     graftConfig(target: VertexInterface, configPathArray: Array<string>, ignorePaths: Set<string>): void;
+    graftLeadConfig(target: VertexInterface, entryPathArray: Array<string>, ignorePaths: Set<string>): void;
     graftObject(
         target: VertexInterface,
         object: PlainObject,

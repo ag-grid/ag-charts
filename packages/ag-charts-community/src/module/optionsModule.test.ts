@@ -586,7 +586,7 @@ describe('ChartOptions', () => {
             }
         }
 
-        it('defaults to a registered series type when no series are provided', () => {
+        it('gives a series-less chart the cartesian default axes', () => {
             const options = prepareOptionsWithOnly([BarSeriesModule, CategoryAxisModule, NumberAxisModule], {
                 series: [],
             } as AgChartOptions);
@@ -599,15 +599,18 @@ describe('ChartOptions', () => {
             });
         });
 
-        it('reports the missing module for the default series type when no series type is registered', () => {
-            prepareOptionsWithOnly([CategoryAxisModule, NumberAxisModule], {} as AgChartOptions);
+        it('reports no series module for a series-less chart when none is registered', () => {
+            const options = prepareOptionsWithOnly([CategoryAxisModule, NumberAxisModule], {} as AgChartOptions);
 
-            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(optionAt(options, 'axes')).toMatchObject({
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            });
         });
 
-        it('stays silent when the default series type has a registered module', () => {
+        it('stays silent for a series-less chart with every module registered', () => {
             prepareOptions({} as AgChartOptions);
 
             expect(console.error).not.toHaveBeenCalled();

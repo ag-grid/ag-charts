@@ -16,7 +16,7 @@ import {
     without,
 } from 'ag-charts-core';
 
-import { resolveDefaultSeriesType } from '../chart/mapping/types';
+import { detectChartType } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { LocationOperation, type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
@@ -88,7 +88,8 @@ function resolveSeriesThemeDefaults(
         theme.isDark,
         cssVariables,
         undefined,
-        moduleRegistry
+        moduleRegistry,
+        theme.chartDefaults
     );
     const { series } = optionsGraph.resolve(undefined);
     optionsGraph.clearSafe();
@@ -111,7 +112,8 @@ export function resolveSeriesThemeOption(
         theme.isDark,
         undefined,
         undefined,
-        moduleRegistry
+        moduleRegistry,
+        theme.chartDefaults
     );
     const { series } = optionsGraph.resolve(undefined);
     optionsGraph.clearSafe();
@@ -168,7 +170,8 @@ export function createOptionsGraph(
             theme.isDark,
             cssVariables,
             presetOptions,
-            moduleRegistry
+            moduleRegistry,
+            theme.chartDefaults
         );
 
         return {
@@ -298,7 +301,10 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     private resolveFresh = false;
 
     // The primary series type, used to resolve series-namespaced theme overrides and defaults.
-    private readonly seriesType: string;
+    private readonly seriesType: string | undefined;
+
+    // The theme entry the chart-level defaults come from: the lead series type's, else the chart type's.
+    private readonly leadThemeEntry: PlainObject | undefined;
 
     constructor(
         private readonly config: PlainObject = {},
@@ -310,7 +316,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         public readonly isDark: boolean = false,
         private cssVariables: Record<string, string> = {},
         private readonly presetOptions: PlainObject = {},
-        public readonly moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
+        public readonly moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope(),
+        chartDefaults: PlainObject = {}
     ) {
         super({
             cachedNeighboursEdge: PATH_EDGE,
@@ -325,36 +332,37 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         this.paletteType = isObject(userOptions?.theme) ? paletteType(userOptions.theme?.palette) : 'inbuilt';
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
-        const seriesType = this.resolveSeriesType();
+        const seriesType: string | undefined = userOptions.series?.[0]?.type;
         this.seriesType = seriesType;
+        const chartType = detectChartType(userOptions, this.moduleRegistry);
+        const themeDefaults = (seriesType == null ? undefined : config[seriesType]) ?? chartDefaults[chartType];
+        this.leadThemeEntry = themeDefaults;
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
         debug('build user');
         this.buildGraphFromObject(this.root, USER_OPTIONS_EDGE, without(userOptions, ['theme']));
         debug('build defaults');
-        this.buildGraphFromObject(this.root, DEFAULTS_EDGE, without(config[seriesType], OptionsGraph.COMPLEX_KEYS));
+        this.buildGraphFromObject(this.root, DEFAULTS_EDGE, without(themeDefaults, OptionsGraph.COMPLEX_KEYS));
 
         // Build series overrides before common overrides as series take priority
-        const seriesConfig = config[seriesType];
-        const seriesOverrides = overrides
-            ? withoutPerItemOverrides(without(overrides[seriesType], OptionsGraph.COMPLEX_KEYS), seriesConfig)
-            : {};
+        const seriesOverrides =
+            overrides && seriesType != null
+                ? withoutPerItemOverrides(without(overrides[seriesType], OptionsGraph.COMPLEX_KEYS), themeDefaults)
+                : {};
         if (Object.keys(seriesOverrides).length > 0) {
             debug('build series overrides');
             this.buildGraphFromObject(this.root, OVERRIDES_EDGE, seriesOverrides);
         }
 
         const commonOverrides = overrides
-            ? withoutPerItemOverrides(without(overrides.common, OptionsGraph.COMPLEX_KEYS), seriesConfig)
+            ? withoutPerItemOverrides(without(overrides.common, OptionsGraph.COMPLEX_KEYS), themeDefaults)
             : {};
         if (Object.keys(commonOverrides).length > 0) {
             debug('build common overrides');
             this.buildGraphFromObject(
                 this.root,
                 OVERRIDES_EDGE,
-                this.moduleRegistry.getSeriesModule(seriesType)?.chartType === 'cartesian'
-                    ? commonOverrides
-                    : without(commonOverrides, ['zoom', 'navigator'])
+                chartType === 'cartesian' ? commonOverrides : without(commonOverrides, ['zoom', 'navigator'])
             );
         }
 
@@ -377,10 +385,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         if (axesVertex) {
             debug('build axes');
             this.buildGraphFromObject(axesVertex, DEFAULTS_EDGE, {
-                $applyTheme: [
-                    ['/$seriesType/axes/$axisType/$position', '/$seriesType/axes/$axisType'],
+                $applyLeadTheme: [
+                    ['/axes/$axisType/$position', '/axes/$axisType'],
                     {
-                        seriesType: { $path: ['/series/0/type', seriesType] },
                         axisType: { $path: ['./type', 'category'] },
                         position: { $path: ['./position'] },
                     },
@@ -396,10 +403,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
 
         // Build the annotations graphs by splitting the annotation types and options.
-        const annotationsTypeConfig = without(
-            config[seriesType]?.annotations ?? {},
-            OptionsGraph.ANNOTATIONS_OPTIONS_KEYS
-        );
+        const annotationsTypeConfig = without(themeDefaults?.annotations ?? {}, OptionsGraph.ANNOTATIONS_OPTIONS_KEYS);
         if (Object.keys(annotationsTypeConfig).length > 0) {
             debug('build annotations type config');
             this.buildGraphFromObject(this.annotations, DEFAULTS_EDGE, annotationsTypeConfig);
@@ -414,7 +418,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.buildGraphFromObject(this.annotations, OVERRIDES_EDGE, annotationsTypeOverrides);
         }
 
-        const annotationsConfig = pick(config[seriesType]?.annotations ?? {}, OptionsGraph.ANNOTATIONS_OPTIONS_KEYS);
+        const annotationsConfig = pick(themeDefaults?.annotations ?? {}, OptionsGraph.ANNOTATIONS_OPTIONS_KEYS);
         if (Object.keys(annotationsConfig).length > 0) {
             debug('build annotations config');
             this.buildGraphFromObject(this.root, DEFAULTS_EDGE, { annotations: annotationsConfig });
@@ -441,18 +445,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.annotations = undefined;
             debug('cleared');
         });
-    }
-
-    // The theme only has entries for registered series types; any registered type shares the chart-level defaults.
-    private resolveSeriesType(): string {
-        const seriesType = this.userOptions.series?.[0]?.type ?? resolveDefaultSeriesType(this.moduleRegistry);
-        if (seriesType in this.config) return seriesType;
-        const registeredTypes = Object.keys(this.config);
-        return (
-            registeredTypes.find((type) => this.moduleRegistry.getSeriesModule(type)?.chartType === 'cartesian') ??
-            registeredTypes[0] ??
-            seriesType
-        );
     }
 
     clearSafe() {
@@ -610,7 +602,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         if (path[0] === 'axes' && path.length > 1) {
             const axisType = this.getResolvedPath(['axes', path[1], 'type']) as string;
             return (
-                getPathSafe(this.overrides, [this.seriesType, 'axes', axisType, ...path.slice(2)]) ??
+                (this.seriesType == null
+                    ? undefined
+                    : getPathSafe(this.overrides, [this.seriesType, 'axes', axisType, ...path.slice(2)])) ??
                 getPathSafe(this.overrides, ['common', 'axes', axisType, ...path.slice(2)])
             );
         }
@@ -621,7 +615,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
 
         return (
-            getPathSafe(this.overrides, [this.seriesType, ...path]) ??
+            (this.seriesType == null ? undefined : getPathSafe(this.overrides, [this.seriesType, ...path])) ??
             getPathSafe(this.overrides, ['common', ...path]) ??
             getPathSafe(this.overrides, path)
         );
@@ -646,7 +640,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
 
         return (
-            hasTemplatePathSafe(this.overrides, [this.seriesType, ...path]) ||
+            (this.seriesType != null && hasTemplatePathSafe(this.overrides, [this.seriesType, ...path])) ||
             hasTemplatePathSafe(this.overrides, ['common', ...path]) ||
             hasPathSafe(this.overrides, path)
         );
@@ -750,7 +744,35 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
      * Graft a branch of the theme config onto the target vertex.
      */
     graftConfig(target: Vertex<unknown>, configPathArray: Array<string>, ignorePaths: Set<string>) {
-        const targetConfigObject = getPathSafe(this.config, configPathArray);
+        this.graftTheme(
+            target,
+            getPathSafe(this.config, configPathArray),
+            configPathArray,
+            configPathArray.slice(1),
+            ignorePaths
+        );
+    }
+
+    /**
+     * Graft a branch of the lead theme entry onto the target vertex.
+     */
+    graftLeadConfig(target: Vertex<unknown>, entryPathArray: Array<string>, ignorePaths: Set<string>) {
+        this.graftTheme(
+            target,
+            this.leadThemeEntry == null ? undefined : getPathSafe(this.leadThemeEntry, entryPathArray),
+            this.seriesType == null ? undefined : [this.seriesType, ...entryPathArray],
+            entryPathArray,
+            ignorePaths
+        );
+    }
+
+    private graftTheme(
+        target: Vertex<unknown>,
+        targetConfigObject: unknown,
+        overridesPathArray: Array<string> | undefined,
+        commonPathArray: Array<string>,
+        ignorePaths: Set<string>
+    ) {
         const targetPathArrayVertex = this.findNeighbour(target, PATH_ARRAY_EDGE);
 
         if (isObject(targetConfigObject)) {
@@ -765,7 +787,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
 
         if (this.overrides) {
-            const targetOverridesObject = getPathSafe(this.overrides, configPathArray);
+            const targetOverridesObject =
+                overridesPathArray == null ? undefined : getPathSafe(this.overrides, overridesPathArray);
             if (isPlainObject(targetOverridesObject)) {
                 this.buildGraphFromObject(
                     target,
@@ -777,7 +800,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
                 );
             }
 
-            const commonOverridesObject = getPathSafe(this.overrides, ['common', ...configPathArray.slice(1)]);
+            const commonOverridesObject = getPathSafe(this.overrides, ['common', ...commonPathArray]);
             if (isPlainObject(commonOverridesObject)) {
                 this.buildGraphFromObject(
                     target,

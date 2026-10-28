@@ -6,6 +6,7 @@ import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineO
 import { AgCharts } from '../api/agCharts';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
+import { ScatterSeriesModule } from '../chart/series/cartesian/scatterSeriesModule';
 import { PieSeriesModule } from '../chart/series/polar/pieSeriesModule';
 import { setAgChartsDebug } from '../chart/test/seriesAccessors';
 import {
@@ -659,7 +660,7 @@ describe('AgCharts', () => {
             expect(deproxy(chart).getChartType()).toBe('standalone');
         });
 
-        it('reports the implicit `line` default when no series type is registered', async () => {
+        it('renders a series-less chart without reporting a series module when none is registered', async () => {
             await withOnlyRegistered([CategoryAxisModule, NumberAxisModule], async () => {
                 expect(
                     () => (chart = AgCharts.create({ container, title: { text: 'Implicit' } } as AgChartOptions))
@@ -667,10 +668,33 @@ describe('AgCharts', () => {
                 await chart.waitForUpdate();
             });
 
-            // Only the report is asserted: a second, unrelated error is also logged when no series module is in scope.
-            const messages = takeErrorMessages();
-            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+            expectEmptyChartWithDefaults('Implicit');
+            expect(axisTypesByDirection()).toEqual({ x: 'category', y: 'number' });
+        });
+
+        it('gives a series-less chart the cartesian default axes whichever series modules are registered', async () => {
+            await withOnlyRegistered([ScatterSeriesModule, CategoryAxisModule, NumberAxisModule], async () => {
+                chart = AgCharts.create({ container, series: [] } as AgChartOptions);
+                await chart.waitForUpdate();
+            });
+
+            expect(console.error).not.toHaveBeenCalled();
+            expect(axisTypesByDirection()).toEqual({ x: 'category', y: 'number' });
+        });
+
+        it('applies only the common theme overrides to a series-less chart', async () => {
+            chart = AgCharts.create({
+                container,
+                series: [],
+                theme: {
+                    overrides: { common: { background: { fill: 'blue' } }, line: { background: { fill: 'red' } } },
+                },
+            } as AgChartOptions);
+            await chart.waitForUpdate();
+
+            expect(deproxy(chart).ctx.chartState.getValue('options', 'background').fill).toBe('blue');
         });
 
         it('reports an explicit series type with no module and renders an empty chart', async () => {

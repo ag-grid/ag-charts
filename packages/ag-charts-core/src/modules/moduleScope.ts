@@ -44,6 +44,7 @@ export function isModuleType<T extends ModuleType>(
 export class ModuleScope {
     private readonly modules = new Map<string, ModuleDefinition>();
     private revision = 0;
+    private sorted?: { modules: ModuleDefinition[]; revision: number };
     private contributions?: {
         table: ResolvedContribution<ModuleDefinition>[];
         byModule: Map<string, ResolvedContribution<ModuleDefinition>[]>;
@@ -141,13 +142,22 @@ export class ModuleScope {
     }
 
     *listModules(): Generator<ModuleDefinition> {
-        yield* this.modules.values();
+        yield* this.sortedModules();
         if (this.parent == null) return;
         for (const definition of this.parent.listModules()) {
             if (!this.modules.has(definition.name)) {
                 yield definition;
             }
         }
+    }
+
+    // Ordered by name so that the order modules are created in does not depend on the order they were registered in.
+    private sortedModules(): ModuleDefinition[] {
+        if (this.sorted?.revision !== this.revision) {
+            const modules = [...this.modules.values()].sort((a, b) => (a.name < b.name ? -1 : 1));
+            this.sorted = { modules, revision: this.revision };
+        }
+        return this.sorted.modules;
     }
 
     *listModulesByType<T extends ModuleType>(moduleType: T): Generator<ModuleTypeSwitch<T>> {

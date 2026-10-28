@@ -123,6 +123,7 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
     }
 
     const config = deepClone(theme.config);
+    const chartDefaults = deepClone(theme.chartDefaults);
     const overrides = deepClone(theme.overrides);
     const presets = deepClone(theme.presets);
 
@@ -132,6 +133,10 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
             continue;
         }
         pruneEntry(config[seriesType], false);
+    }
+
+    for (const chartType of Object.keys(chartDefaults)) {
+        pruneEntry(chartDefaults[chartType], false);
     }
 
     if (isObject(overrides)) {
@@ -161,6 +166,7 @@ function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleS
 
     return Object.create(theme, {
         config: { value: deepFreeze(config), enumerable: true },
+        chartDefaults: { value: deepFreeze(chartDefaults), enumerable: true },
         overrides: { value: isObject(overrides) ? deepFreeze(overrides) : overrides, enumerable: true },
         presets: { value: isObject(presets) ? deepFreeze(presets) : presets, enumerable: true },
     });

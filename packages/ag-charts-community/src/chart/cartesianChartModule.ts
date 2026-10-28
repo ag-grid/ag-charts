@@ -1,4 +1,6 @@
 import {
+    CARTESIAN_AXIS_TYPE,
+    CARTESIAN_POSITION,
     type CartesianChartDefOptions,
     type ChartModuleDefinition,
     ValidationError,
@@ -29,6 +31,11 @@ export const CartesianChartModule: ChartModuleDefinition<CartesianChartDefOption
     themeOptions: cartesianChartThemeOptionsDefs,
 
     themeTemplate: commonChartThemeTemplate,
+
+    defaultAxes: {
+        y: { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
+        x: { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
+    },
 
     create(options: ChartOptions, resources?: TransferableResources) {
         return new CartesianChart(options, resources);

@@ -1,7 +1,5 @@
 import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
-    CARTESIAN_AXIS_TYPE,
-    CARTESIAN_POSITION,
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_LINEAR_DEFAULTS,
@@ -100,16 +98,6 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = /* 
 
     themeOptions: areaSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
-    defaultAxes: {
-        y: {
-            type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: CARTESIAN_POSITION.LEFT,
-        },
-        x: {
-            type: CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: CARTESIAN_POSITION.BOTTOM,
-        },
-    },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate,
 
