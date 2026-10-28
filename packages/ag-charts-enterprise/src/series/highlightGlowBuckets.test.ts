@@ -4,7 +4,6 @@ import type { AgChartInstance, AgChartOptions, AgGlowOptions } from 'ag-charts-c
 import {
     HIGHLIGHT_GLOW,
     deproxy,
-    getSeriesAt,
     getSeriesNodeData,
     getSeriesSelectionNodes,
     glowShadow,
@@ -14,7 +13,13 @@ import {
 } from 'ag-charts-community-test';
 import type { Group, Rect, Shape } from 'ag-charts-core';
 
-import { getFlowLinkData, getFlowNodeData, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
+import {
+    getFlowLinkData,
+    getFlowNodeData,
+    getHierarchyHighlightStyle,
+    getSeriesGroup,
+    getTreemapGroupHighlightStyle,
+} from '../test/enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
 import { SHADOW, collectShapes, createEnterpriseChart } from '../test/utils';
 import { HierarchyHighlightState, type HierarchyNode } from './hierarchy/hierarchySeries';
@@ -196,15 +201,10 @@ describe('highlight glow on every hierarchy bucket', () => {
             const options: any = series('highlightedBranch', HIGHLIGHT_GLOW);
             await hover(options);
 
-            const styles = () => {
-                const host = getSeriesAt(chart) as any;
-                const highlight = options.type === 'sunburst' ? host.options.highlight : host.options.tile.highlight;
-                return [
-                    HierarchyHighlightState.Item,
-                    HierarchyHighlightState.Branch,
-                    HierarchyHighlightState.OtherBranch,
-                ].map((state) => host.getHierarchyHighlightStyles(0, state, highlight));
-            };
+            const styles = () =>
+                [HierarchyHighlightState.Item, HierarchyHighlightState.Branch, HierarchyHighlightState.OtherBranch].map(
+                    (state) => getHierarchyHighlightStyle(chart, state)
+                );
 
             const [item, branch, otherBranch] = styles();
             expect(item).not.toHaveProperty('glow');
@@ -312,11 +312,10 @@ describe('highlight glow on treemap groups', () => {
             unhighlightedItem: { glow: HIGHLIGHT_GLOW },
         });
 
-        const host = getSeriesAt(chart) as any;
         for (const state of [HierarchyHighlightState.Item, HierarchyHighlightState.OtherItem]) {
-            const style = host.getGroupHighlightStyle(state);
+            const style = getTreemapGroupHighlightStyle(chart, state);
             expect(style).not.toHaveProperty('glow');
-            expect(host.getGroupHighlightStyle(state)).toBe(style);
+            expect(getTreemapGroupHighlightStyle(chart, state)).toBe(style);
         }
     });
 
