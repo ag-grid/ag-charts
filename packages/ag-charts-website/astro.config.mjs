@@ -278,6 +278,7 @@ export default defineConfig({
                 'add-your-dependencies',
                 'set-up-your-application',
             ],
+            baselineFile: fileURLToPath(new URL('./testing/link-checker-baseline.json', import.meta.url)),
         }),
         agRedirectsChecker({
             skip: CHECK_REDIRECTS !== 'true',
