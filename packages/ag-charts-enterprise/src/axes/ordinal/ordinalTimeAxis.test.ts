@@ -17,6 +17,8 @@ import {
     mixinDerivedCases,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAxisPrimitiveDomainWalks,
+    spyOnAxisTickLayout,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -656,6 +658,45 @@ describe('Ordinal Time Axis Examples', () => {
         );
 
         expect(chart).toBeDefined();
+    });
+
+    // Zooming rebuilds the tick layout on every step, and nothing reads whether the domain holds only primitives there.
+    it('does not walk the domain for primitives while zooming a large dataset', async () => {
+        const largeData = Array.from({ length: 5000 }, (_, i) => ({
+            date: new Date(2023, 0, 1, 0, i),
+            open: 100 + Math.sin(i / 100) * 50,
+        }));
+        chart = await createEnterpriseChart({
+            width: 600,
+            height: 300,
+            data: largeData,
+            axes: { x: { type: 'ordinal-time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+            zoom: {},
+        });
+        const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+        const domainWalks = spyOnAxisPrimitiveDomainWalks(chart);
+        try {
+            for (const [start, end] of [
+                [0.2, 0.8],
+                [0.3, 0.6],
+                [0.4, 0.5],
+            ]) {
+                await chart.updateDelta({ initialState: { zoom: { ratioX: { start, end } } } });
+                await waitForChartStability(chart);
+            }
+
+            // Anti-vacuous: the zoom steps must have rebuilt the layout, or there was no write to avoid the walk on.
+            expect(xTickLayout).toHaveBeenCalled();
+
+            // Anti-vacuous: new data makes the number y axis, which can retain its layout across data, walk its domain.
+            await chart.updateDelta({ data: largeData.slice(0, 4999) });
+            await waitForChartStability(chart);
+            expect(domainWalks.walks('left')).toBeGreaterThan(0);
+            expect(domainWalks.walks('bottom')).toBe(0);
+        } finally {
+            domainWalks.restore();
+        }
     });
 
     it('fits a label bounded through an ordinal-time axis theme override', async () => {
