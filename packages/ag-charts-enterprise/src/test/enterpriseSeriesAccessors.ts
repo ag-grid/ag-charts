@@ -273,7 +273,14 @@ export type SeriesGroupName =
     | 'linkGroup'
     | 'highlightNodeGroup'
     | 'highlightLinkGroup'
-    | 'connectorNodeGroup';
+    | 'focusLinkGroup'
+    | 'focusNodeGroup'
+    | 'connectorNodeGroup'
+    | 'dataNodeGroup'
+    | 'itemGroup'
+    | 'areaGroup'
+    | 'rectGroup'
+    | 'markerGroup';
 
 /** A scene group the series keeps to itself. */
 export function getSeriesGroup(chartOrProxy: ChartOrProxy<any>, name: SeriesGroupName, index = 0): Group {
