@@ -4,6 +4,7 @@ import { type CanvasPoint, type Point } from '../types/scene';
 import type { BBox } from './bbox';
 import { IDENTITY_MATRIX_ELEMENTS, Matrix, type MatrixFrame } from './matrix';
 import { Node, type RenderContext } from './node';
+import type { ShadowCollector } from './shadowCollector';
 
 type Constructor<T> = new (...args: any[]) => T;
 
@@ -157,6 +158,25 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
                 if (performRestore) {
                     ctx.restore();
                 }
+            }
+        }
+
+        override gatherShadows(collector: ShadowCollector): void {
+            this.computeTransformMatrix();
+
+            const matrix = this[TRANSFORM_MATRIX];
+            if (matrix.identity) {
+                super.gatherShadows(collector);
+                return;
+            }
+
+            const { ctx } = collector;
+            ctx.save();
+            try {
+                matrix.toContext(ctx);
+                super.gatherShadows(collector);
+            } finally {
+                ctx.restore();
             }
         }
 

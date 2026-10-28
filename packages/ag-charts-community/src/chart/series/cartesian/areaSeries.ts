@@ -263,7 +263,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
         zIndex: SeriesZIndexMap.BACKGROUND,
-        batchShadows: true,
+        batchShadows: 'shared',
     });
 
     override get pickModeAxis() {
@@ -289,6 +289,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             },
             clipFocusBox: false,
         });
+        // The fill casts through the root, which draws beneath everything; the marker shadows must stay above the fill.
+        this.dataNodeGroup.batchShadows = true;
     }
 
     override renderToOffscreenCanvas(): boolean {

@@ -147,6 +147,16 @@ Exercise:
 
 {% chartExampleRunner title="Large Dataset (4x 100k series)" name="large-dataset" type="generated" initialLoadDeferred=true /%}
 
+## Shadow Layering Test
+
+Exercise:
+
+- Initial load and redraw time of series whose shadows overlap: grouped bars with a shadow `spread`, overlapping areas with marker shadows, and 20 lines of 1,000 markers with shadows.
+- Hover redraw time where the highlighted marker casts a shadow of its own.
+- Each is timed with the shadows off and on.
+
+{% chartExampleRunner title="Shadow Layering" name="shadow-root" type="generated" initialLoadDeferred=true /%}
+
 ## Data Selection at Scale
 
 Exercises the per-datum styling pipeline when `selection.enabled` is on across every series type that supports data selection. Two scenarios per series: zoom with no selection (cold path) and zoom with ~50% of datums selected (warm path). Each series family runs as a separate example to keep a benchmark run within a single page session's memory budget.

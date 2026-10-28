@@ -22,6 +22,7 @@ import {
 import type { RenderContext, ShadowCaster, ShadowKey, Shape } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
+import { BLACK, type Pixel, box, isHalfRed } from '../util/test/shadowPixels';
 
 const WIDTH = 400;
 const HEIGHT = 220;
@@ -31,24 +32,11 @@ const RED_HALF = { enabled: true, color: 'rgba(255, 0, 0, 0.5)', xOffset: 100, y
 const BLUE = { enabled: true, color: 'rgba(0, 0, 255, 1)', xOffset: 100, yOffset: 0, blur: 0 };
 const IN_PLACE = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
-const BLACK = [0, 0, 0, 255];
-
 const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
 
 const maxAlphaOf = (data: number[]) => data.reduce((max, value, i) => (i % 4 === 3 ? Math.max(max, value) : max), 0);
 const BLUE_PIXEL = [0, 0, 255, 255];
 const CLEAR = [0, 0, 0, 0];
-
-type Pixel = number[];
-
-const isHalfRed = (pixel: Pixel) =>
-    pixel[0] === 255 && pixel[1] === 0 && pixel[2] === 0 && Math.abs(pixel[3] - 128) <= 1;
-
-const box = (x: number, y: number, width: number, height: number, mixin: Partial<Rect> = {}) => {
-    const node = new Rect();
-    Object.assign(node, { x, y, width, height, fill: 'black', stroke: undefined, strokeWidth: 0, ...mixin });
-    return node;
-};
 
 // The stroke of a Rect is inset, but that of a Path is centred on its edge.
 const pathBox = (x: number, y: number, width: number, height: number, mixin: Partial<Path> = {}) => {

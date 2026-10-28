@@ -41,6 +41,7 @@
         "multi-series": 118,
         "resize": 45,
         "series-labels-collision": 39,
+        "shadow-root": 200,
         "simple-chart": 48,
         "simple-sparkline": 530
     }
