@@ -533,7 +533,7 @@ describe('SankeySeries', () => {
     });
 
     describe('shadow highlight', () => {
-        // The highlighted node is redrawn above the dimmed layer; only that copy casts the node's shadow.
+        // The highlighted node is redrawn above the dimmed layer; its in-place copy keeps casting the node's shadow.
         it('should render a highlighted node with shadows enabled', async () => {
             const options = flowProportionShadowOptions('sankey', {
                 link: SMALL_SHADOW,

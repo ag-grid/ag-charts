@@ -1,19 +1,28 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    BBox,
     Group,
     Logger,
     Path,
+    RadialColumnShape,
     Rect,
+    Scalable,
     Scene,
     SegmentedGroup,
     SegmentedPath,
+    Text,
+    TransformableGroup,
     Translatable,
+    castShadows,
+    joinsShadowKey,
     releaseShadowScratch,
+    shadowPass,
 } from 'ag-charts-core';
-import type { Shape } from 'ag-charts-core';
+import type { RenderContext, ShadowCaster, ShadowKey, Shape } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
+import { BLACK, type Pixel, box, isHalfRed } from '../util/test/shadowPixels';
 
 const WIDTH = 400;
 const HEIGHT = 220;
@@ -23,22 +32,11 @@ const RED_HALF = { enabled: true, color: 'rgba(255, 0, 0, 0.5)', xOffset: 100, y
 const BLUE = { enabled: true, color: 'rgba(0, 0, 255, 1)', xOffset: 100, yOffset: 0, blur: 0 };
 const IN_PLACE = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
-const BLACK = [0, 0, 0, 255];
+const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
 
 const maxAlphaOf = (data: number[]) => data.reduce((max, value, i) => (i % 4 === 3 ? Math.max(max, value) : max), 0);
 const BLUE_PIXEL = [0, 0, 255, 255];
 const CLEAR = [0, 0, 0, 0];
-
-type Pixel = number[];
-
-const isHalfRed = (pixel: Pixel) =>
-    pixel[0] === 255 && pixel[1] === 0 && pixel[2] === 0 && Math.abs(pixel[3] - 128) <= 1;
-
-const box = (x: number, y: number, width: number, height: number, mixin: Partial<Rect> = {}) => {
-    const node = new Rect();
-    Object.assign(node, { x, y, width, height, fill: 'black', stroke: undefined, strokeWidth: 0, ...mixin });
-    return node;
-};
 
 // The stroke of a Rect is inset, but that of a Path is centred on its edge.
 const pathBox = (x: number, y: number, width: number, height: number, mixin: Partial<Path> = {}) => {
@@ -77,7 +75,7 @@ describe('Group shadow compositor', () => {
     const createdSince = (before: Set<OffscreenCanvas>) =>
         canvasCtx.getActiveOffscreenCanvasInstances().filter((canvas) => !before.has(canvas));
 
-    const createGroup = (children: readonly Shape[], batchShadows = true) => {
+    const createGroup = (children: readonly Shape[], batchShadows: Group['batchShadows'] = true) => {
         const group = new Group({ name: 'shadow-group' });
         group.batchShadows = batchShadows;
         for (const child of children) group.appendChild(child);
@@ -92,11 +90,12 @@ describe('Group shadow compositor', () => {
         context: CanvasRenderingContext2D,
         width: number,
         height: number,
-        devicePixelRatio = 1
+        devicePixelRatio = 1,
+        direction: 'ltr' | 'rtl' = 'ltr'
     ) => {
         const renderCtx = {
             ctx: context,
-            direction: 'ltr' as const,
+            direction,
             width,
             height,
             devicePixelRatio,
@@ -107,11 +106,11 @@ describe('Group shadow compositor', () => {
         group.render(renderCtx);
     };
 
-    const renderGroup = (group: Group, devicePixelRatio = 1) => {
+    const renderGroup = (group: Group, devicePixelRatio = 1, direction: 'ltr' | 'rtl' = 'ltr') => {
         clearCanvas();
         ctx().save();
         ctx().scale(devicePixelRatio, devicePixelRatio);
-        drawGroup(group, ctx(), WIDTH, HEIGHT, devicePixelRatio);
+        drawGroup(group, ctx(), WIDTH, HEIGHT, devicePixelRatio, direction);
         ctx().restore();
     };
 
@@ -119,7 +118,7 @@ describe('Group shadow compositor', () => {
         drawGroup(group, layer.getContext('2d')! as unknown as CanvasRenderingContext2D, layer.width, layer.height);
 
     // Nodes draw in the order they were created, so the children must be created in the order they should draw.
-    const renderNodes = (children: readonly Shape[], batchShadows = true) => {
+    const renderNodes = (children: readonly Shape[], batchShadows: Group['batchShadows'] = true) => {
         const group = createGroup(children, batchShadows);
         renderGroup(group);
         return group;
@@ -1464,8 +1463,6 @@ describe('Group shadow compositor', () => {
             scene.setRoot(root);
         };
 
-        const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
-
         it('should keep the mask within what a browser can allocate, with a blur wider than the layer at 2x', () => {
             const before = offscreenCanvases();
             const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, blur: 3000 };
@@ -1610,13 +1607,13 @@ describe('Group shadow compositor', () => {
             // 300 across the tall one.
             expect(scratch.width).toBe(500);
             expect(scratch.height).toBe(400);
-            const created = createdSince(before).length;
 
             drawOnLayer(wide, wideLayer);
             drawOnLayer(tall, tallLayer);
 
-            expect(createdSince(before)).toHaveLength(created);
-            expect(inUse(createdSince(before))).toEqual([scratch]);
+            // A redraw that changed nothing keeps its shadows on canvases the size of the layer, but not on another scratch.
+            const scratches = inUse(createdSince(before)).filter(({ width }) => width === scratch.width);
+            expect(scratches).toEqual([scratch]);
         });
 
         it('should free the scratch canvas when shadows switch off', () => {
@@ -1667,6 +1664,902 @@ describe('Group shadow compositor', () => {
             first.destroy();
 
             expect(inUse(scratches)).toHaveLength(1);
+        });
+    });
+    describe('shadow cache', () => {
+        // The x of each caster that drew into a mask, which is how a cast that blurred again shows itself.
+        let masked: number[] = [];
+        let failing = false;
+
+        class TestRect extends Rect {
+            override isolatedRender(renderCtx: RenderContext) {
+                if (shadowPass.state === 'mask') masked.push(this.x);
+                return super.isolatedRender(renderCtx);
+            }
+
+            override render(renderCtx: RenderContext) {
+                if (failing && shadowPass.state === 'mask') throw new Error('mask failure');
+                super.render(renderCtx);
+            }
+        }
+
+        beforeEach(() => {
+            masked = [];
+            failing = false;
+            vi.spyOn(console, 'warn').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            vi.mocked(console.warn).mockRestore();
+        });
+
+        const SHADOW = { ...RED_HALF, blur: 4 };
+
+        const caster = (x: number, mixin: Partial<Rect> = {}) => {
+            const node = new TestRect();
+            Object.assign(node, { x, y: 40, width: 40, height: 40, fill: 'black', fillShadow: SHADOW, ...mixin });
+            return node;
+        };
+
+        const scene = () => [caster(20), caster(120), box(220, 40, 40, 40)];
+
+        // A layer for each caster, each of which casts for itself because they differ in zIndex.
+        const layers = (count: number) =>
+            createGroup(
+                Array.from({ length: count }, (_, i) => caster(20 + i * 50, { y: 40 + i * 10, zIndex: i })),
+                'by-layer'
+            );
+
+        const expectSamePixels = (actual: number[], expected: number[]) => {
+            expect(actual).toHaveLength(expected.length);
+            expect(actual.every((value, i) => Math.abs(value - expected[i]) <= 1)).toBe(true);
+        };
+
+        const redraw = (group: Group, devicePixelRatio = 1, direction: 'ltr' | 'rtl' = 'ltr') => {
+            renderGroup(group, devicePixelRatio, direction);
+            const result = { pixels: pixels(), masked };
+            masked = [];
+            return result;
+        };
+
+        // What a draw must show whatever a cache did: the same scene, changed the same way, drawn the first time.
+        const direct = (make: () => Group, change: (group: Group) => void, devicePixelRatio = 1) => {
+            const group = make();
+            change(group);
+            const { pixels: expected } = redraw(group, devicePixelRatio);
+            return expected;
+        };
+
+        const sceneGroup = () => createGroup(scene());
+
+        // A cast keeps its shadows once it repeats, so the group is drawn until the next draw would blit them.
+        const kept = (make: () => Group = sceneGroup) => {
+            const group = make();
+            redraw(group);
+            redraw(group);
+            expect(paintedPixels()).toBeGreaterThan(0);
+            return group;
+        };
+
+        const nothing = () => {};
+
+        it('should blit the shadows again when a redraw changed none of the casters', () => {
+            const group = kept();
+
+            group.markDirty();
+            const { pixels: actual, masked: casts } = redraw(group);
+
+            expect(casts).toEqual([]);
+            expectSamePixels(actual, direct(sceneGroup, nothing));
+        });
+
+        it('should blit the shadows again when only a node that casts none changed', () => {
+            const group = kept();
+            const move = (target: Group) => {
+                const plain = [...target.children()].find(
+                    (child) => child instanceof Rect && child.__fillShadow == null
+                );
+                (plain as Rect).x = 300;
+            };
+
+            move(group);
+            const { pixels: actual, masked: casts } = redraw(group);
+
+            expect(casts).toEqual([]);
+            expectSamePixels(actual, direct(sceneGroup, move));
+        });
+
+        // The first draw after a change casts again, as does the next, which fills the cache, and the third blits that.
+        it.each([
+            [
+                'the shadow options',
+                (group: Group) => {
+                    ([...group.children()][0] as Rect).fillShadow = { ...SHADOW, xOffset: 60 };
+                },
+                1,
+                [20, 120],
+            ],
+            [
+                'the geometry of a caster',
+                (group: Group) => {
+                    ([...group.children()][0] as Rect).width = 80;
+                },
+                1,
+                [20, 120],
+            ],
+            [
+                'the visibility of a caster',
+                (group: Group) => {
+                    ([...group.children()][0] as Rect).visible = false;
+                },
+                1,
+                [120],
+            ],
+            [
+                'the opacity of the group',
+                (group: Group) => {
+                    group.opacity = 0.5;
+                },
+                1,
+                [20, 120],
+            ],
+            [
+                'the casters of the group',
+                (group: Group) => {
+                    [...group.children()][0].remove();
+                },
+                1,
+                [120],
+            ],
+            ['the pixel ratio', nothing, 2, [20, 120]],
+        ])('should cast the shadows again when %s changed', (_name, change, ratio, expectedMasked) => {
+            const group = kept();
+            const expected = direct(sceneGroup, change, ratio);
+
+            change(group);
+            const first = redraw(group, ratio);
+            const second = redraw(group, ratio);
+            const third = redraw(group, ratio);
+
+            expect(first.masked).toEqual(expectedMasked);
+            expectSamePixels(first.pixels, expected);
+            expect(second.masked).toEqual(expectedMasked);
+            expectSamePixels(second.pixels, expected);
+            expect(third.masked).toEqual([]);
+            expectSamePixels(third.pixels, expected);
+        });
+
+        it('should free its canvas when the shadows changed, and keep the shadows again once the cast repeats', () => {
+            const before = offscreenCanvases();
+            const group = kept();
+            const held = inUse(createdSince(before));
+            expect(held).not.toHaveLength(0);
+            // Both casters, so that the run stays one cast with one canvas.
+            const change = (target: Group) => {
+                for (const child of [...target.children()].slice(0, 2)) {
+                    (child as Rect).fillShadow = { ...SHADOW, xOffset: 60 };
+                }
+            };
+
+            change(group);
+            redraw(group);
+            // Only the scratch canvas of the scene remains.
+            expect(inUse(held)).toHaveLength(1);
+
+            redraw(group);
+            const { pixels: actual, masked: casts } = redraw(group);
+            expect(casts).toEqual([]);
+            expectSamePixels(actual, direct(sceneGroup, change));
+        });
+
+        it('should keep every pixel of shadows that reach far past casters with a stroke, a spread and a long blur', () => {
+            const reaching = () =>
+                createGroup([
+                    caster(20, {
+                        stroke: 'blue',
+                        strokeWidth: 8,
+                        lineJoin: 'miter',
+                        fillShadow: { ...RED_HALF, blur: 16, spread: 6, xOffset: 30, yOffset: -20 },
+                    }),
+                    caster(150, {
+                        stroke: 'blue',
+                        strokeWidth: 8,
+                        lineJoin: 'miter',
+                        fillShadow: { ...RED_HALF, blur: 16, spread: 6, xOffset: 30, yOffset: -20 },
+                    }),
+                ]);
+
+            const group = reaching();
+            for (let i = 0; i < 2; i++) redraw(group, 2);
+            const { pixels: actual, masked: casts } = redraw(group, 2);
+
+            expect(paintedPixels()).toBeGreaterThan(0);
+            expect(casts).toEqual([]);
+            expectSamePixels(actual, direct(reaching, nothing, 2));
+        });
+
+        // A transform moves the casters without marking any of them changed, so the transform is part of what is compared.
+        it.each([
+            ['translated across', (group: TransformableGroup) => (group.translationX = 30)],
+            ['translated down', (group: TransformableGroup) => (group.translationY = 30)],
+            [
+                'rotated',
+                // About the origin, so that only the linear part of the transform changes.
+                (group: TransformableGroup) => {
+                    group.rotation = 0.4;
+                },
+            ],
+        ])('should cast the shadows again when the group is %s, with no caster changed', (_name, transform) => {
+            const make = () => {
+                const group = new TransformableGroup({ name: 'shadow-group' });
+                group.batchShadows = true;
+                for (const child of scene()) group.appendChild(child);
+                groups.push(group);
+                return group;
+            };
+            const group = kept(make);
+            const move = (target: Group) => transform(target as TransformableGroup);
+            const expected = direct(make, move);
+
+            move(group);
+            const first = redraw(group);
+            const second = redraw(group);
+            const third = redraw(group);
+
+            expect(first.masked).toEqual([20, 120]);
+            expectSamePixels(first.pixels, expected);
+            expect(second.masked).toEqual([20, 120]);
+            expect(third.masked).toEqual([]);
+            expectSamePixels(third.pixels, expected);
+        });
+
+        // The shadows that were kept for a layer are no use on another size, where they would be cut off or misplaced.
+        it.each([
+            ['wider', 600, HEIGHT],
+            ['taller', WIDTH, 400],
+        ])('should cast the shadows again when the layer is %s', (_name, width, height) => {
+            const make = () => createGroup([caster(20), caster(420), caster(20, { y: 300 })]);
+            const draw = (group: Group, layer: OffscreenCanvas) => {
+                const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                layerCtx.clearRect(0, 0, layer.width, layer.height);
+                drawOnLayer(group, layer);
+                const alphas = [
+                    [140, 60],
+                    [540, 60],
+                    [140, 320],
+                ].map(([x, y]) => layerCtx.getImageData(x, y, 1, 1).data[3]);
+                const result = { alphas, masked };
+                masked = [];
+                return result;
+            };
+            const small = new OffscreenCanvas(WIDTH, HEIGHT);
+            const large = new OffscreenCanvas(width, height);
+
+            const group = make();
+            draw(group, small);
+            draw(group, small);
+            const expected = draw(make(), large).alphas;
+            expect(expected.some((alpha) => alpha > 0)).toBe(true);
+
+            const first = draw(group, large);
+            const second = draw(group, large);
+            const third = draw(group, large);
+
+            expect(first.masked).toEqual([20, 420, 20]);
+            expect(first.alphas).toEqual(expected);
+            expect(second.masked).toEqual([20, 420, 20]);
+            expect(third.masked).toEqual([]);
+            expect(third.alphas).toEqual(expected);
+        });
+
+        describe('a clipped path', () => {
+            let casts: number[] = [];
+
+            class TestPath extends Path {
+                marker = 0;
+
+                override isolatedRender(renderCtx: RenderContext) {
+                    if (shadowPass.state === 'mask') casts.push(this.marker);
+                    return super.isolatedRender(renderCtx);
+                }
+            }
+
+            const clipped = (tag: number, y: number, clipX: number) => {
+                const node = new TestPath();
+                Object.assign(node, { marker: tag, fill: 'black', fillShadow: { ...SHADOW, xOffset: 30 }, clip: true });
+                node.path.rect(20, y, 60, 50);
+                node.clipX = clipX;
+                node.clipY = HEIGHT;
+                return node;
+            };
+            const makeClipped = () => createGroup([clipped(1, 20, 90), clipped(2, 100, 90)]);
+
+            it('should cast the shadows again when the clip changed, with the same casters', () => {
+                const group = kept(makeClipped);
+                casts = [];
+                const change = (target: Group) => {
+                    for (const child of target.children()) (child as Path).clipX = 70;
+                };
+                const expected = direct(makeClipped, change);
+                casts = [];
+
+                change(group);
+                const first = redraw(group);
+                const firstCasts = casts;
+                casts = [];
+                redraw(group);
+                casts = [];
+                const third = redraw(group);
+
+                expect(firstCasts).toEqual([1, 2]);
+                expectSamePixels(first.pixels, expected);
+                expect(casts).toEqual([]);
+                expectSamePixels(third.pixels, expected);
+            });
+        });
+
+        describe('the casts of a frame', () => {
+            // Two runs, because their shadow options differ, so two casts and a cache for each.
+            const twoRuns = () => [caster(20), caster(120, { fillShadow: { ...SHADOW, xOffset: 60 } })];
+
+            it('should free the shadows that a cast kept when the group makes fewer casts', () => {
+                const before = offscreenCanvases();
+                const group = kept(() => createGroup(twoRuns()));
+                const held = inUse(createdSince(before));
+                // The scratch canvas, and a cache for each cast.
+                expect(held).toHaveLength(3);
+
+                [...group.children()][1].remove();
+                const { pixels: actual, masked: casts } = redraw(group);
+
+                const after = inUse(held);
+                expect(after).toHaveLength(2);
+                // The first cast still blits what it kept.
+                expect(casts).toEqual([]);
+                expectSamePixels(
+                    actual,
+                    direct(
+                        () => createGroup(twoRuns()),
+                        (target) => [...target.children()][1].remove()
+                    )
+                );
+            });
+        });
+
+        describe('a group by layer', () => {
+            it('should blit the shadows of every layer again when a redraw changed none of them', () => {
+                const group = kept(() => layers(3));
+
+                const { pixels: actual, masked: casts } = redraw(group);
+
+                expect(casts).toEqual([]);
+                expectSamePixels(
+                    actual,
+                    direct(() => layers(3), nothing)
+                );
+            });
+
+            it('should cast again only the layer that changed', () => {
+                const group = kept(() => layers(3));
+                const change = (target: Group) => {
+                    ([...target.children()][1] as Rect).width = 80;
+                };
+                const expected = direct(() => layers(3), change);
+
+                change(group);
+                const first = redraw(group);
+                const second = redraw(group);
+                const third = redraw(group);
+
+                // The middle layer has x of 70.
+                expect(first.masked).toEqual([70]);
+                expect(second.masked).toEqual([70]);
+                expect(third.masked).toEqual([]);
+                expectSamePixels(first.pixels, expected);
+                expectSamePixels(third.pixels, expected);
+            });
+
+            // A group keeps only so many casts, so those beyond them are cast every frame, and must still draw the same.
+            it('should cast the layers beyond those that it keeps every frame, and draw the same', () => {
+                const group = kept(() => layers(6));
+                const expected = direct(() => layers(6), nothing);
+
+                const { pixels: actual, masked: casts } = redraw(group);
+
+                expect(casts).toEqual([220, 270]);
+                expectSamePixels(actual, expected);
+            });
+        });
+
+        describe('what it holds', () => {
+            describe('in a scene', () => {
+                const newScene = () => new Scene({ canvasElement: document.createElement('canvas'), pixelRatio: 1 });
+
+                // Two groups, each with a cast that repeats, so that each holds a kept cache beside the scene's one scratch canvas.
+                const keptInScene = () => {
+                    const before = offscreenCanvases();
+                    const chart = newScene();
+                    const first = createGroup([caster(20), caster(120)]);
+                    const second = createGroup([caster(20), caster(120)]);
+                    const root = new Group({ name: 'root' });
+                    root.appendChild(first);
+                    root.appendChild(second);
+                    chart.setRoot(root);
+                    chart.render();
+                    first.markDirty();
+                    second.markDirty();
+                    chart.render();
+
+                    const held = inUse(createdSince(before));
+                    // The scratch canvas, and a cache for each group.
+                    expect(held).toHaveLength(3);
+                    return { chart, first, second, held };
+                };
+
+                it('should free the shadows that a group kept when it leaves the scene, and no others', () => {
+                    const { chart, first, held } = keptInScene();
+
+                    first.remove();
+
+                    // The scratch canvas, which the other group still uses, and the cache of the other group.
+                    expect(inUse(held)).toHaveLength(2);
+                    chart.destroy();
+                });
+
+                it('should free the shadows that the groups of a scene kept when the scene is destroyed', () => {
+                    const { chart, held } = keptInScene();
+
+                    chart.destroy();
+
+                    expect(inUse(held)).toHaveLength(0);
+                });
+            });
+
+            it('should free the shadows that it kept when the group is hidden, and keep them again once it is shown', () => {
+                const before = offscreenCanvases();
+                const group = kept();
+                const held = inUse(createdSince(before));
+                expect(held).not.toHaveLength(0);
+
+                group.visible = false;
+                renderGroup(group);
+                expect(inUse(held)).toHaveLength(0);
+
+                group.visible = true;
+                redraw(group);
+                redraw(group);
+                const { pixels: actual, masked: casts } = redraw(group);
+                expect(casts).toEqual([]);
+                expectSamePixels(actual, direct(sceneGroup, nothing));
+            });
+
+            it('should free the shadows that it kept when no caster of the group is visible', () => {
+                const before = offscreenCanvases();
+                const group = kept();
+                const held = inUse(createdSince(before));
+                expect(held).not.toHaveLength(0);
+
+                for (const child of group.children()) child.visible = false;
+                renderGroup(group);
+
+                expect(inUse(held)).toHaveLength(0);
+            });
+
+            // A kept cast holds a canvas as large as its shadows reach, and a scene holds no more pixels in them than its budget.
+            describe.each([
+                ['small casters', 3000, 3000, {}, 2],
+                ['casters as large as the layer', 2000, 2000, { width: 2000, height: 2000 }, 1],
+                ['small casters', 4200, 4100, {}, 0],
+            ])('%s on a layer of %i x %i', (_name, width, height, size, expectedKept) => {
+                it(`should keep the shadows of ${expectedKept} of its 2 casts, and draw the same either way`, () => {
+                    const make = () =>
+                        createGroup(
+                            [caster(20, { ...size, zIndex: 0 }), caster(220, { ...size, zIndex: 1 })],
+                            'by-layer'
+                        );
+                    const alphasOf = (layer: OffscreenCanvas) => {
+                        const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                        return [140, 340].map((x) => layerCtx.getImageData(x, 60, 1, 1).data[3]);
+                    };
+
+                    const reference = new OffscreenCanvas(width, height);
+                    drawOnLayer(make(), reference);
+                    const expected = alphasOf(reference);
+                    expect(expected.every((alpha) => alpha > 0)).toBe(true);
+
+                    const before = offscreenCanvases();
+                    const group = make();
+                    const layer = new OffscreenCanvas(width, height);
+                    const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                    for (let i = 0; i < 3; i++) {
+                        masked = [];
+                        layerCtx.clearRect(0, 0, width, height);
+                        drawOnLayer(group, layer);
+                    }
+
+                    // The third draw blits what the second kept, so it blurs only the casts that were not kept.
+                    expect(masked).toHaveLength(2 - expectedKept);
+                    const layerSized = createdSince(before).filter(
+                        (canvas) => canvas !== layer && canvas.width === width && canvas.height === height
+                    );
+                    expect(inUse(layerSized)).toHaveLength(0);
+                    expect(alphasOf(layer)).toEqual(expected);
+                });
+            });
+        });
+
+        describe('a caster that fails to draw', () => {
+            it('should not keep the shadows of a cast that failed, and cast again until it draws', () => {
+                const group = kept();
+                const change = (target: Group) => {
+                    ([...target.children()][0] as Rect).x = 30;
+                };
+                change(group);
+                failing = true;
+                redraw(group);
+                redraw(group);
+
+                // The cast fills the cache, but a caster failed to draw into it, so it is not blitted.
+                const stillFailing = redraw(group);
+                expect(stillFailing.masked).not.toEqual([]);
+
+                failing = false;
+                const recovered = redraw(group);
+                const blitted = redraw(group);
+
+                expect(recovered.masked).not.toEqual([]);
+                expect(blitted.masked).toEqual([]);
+                expectSamePixels(blitted.pixels, direct(sceneGroup, change));
+            });
+        });
+
+        // A caster with a transform of its own widens its stroke and spread with it, which the kept canvas must reach.
+        describe('a caster with a transform of its own', () => {
+            const ScalableRect = Scalable(Rect);
+
+            const scaled = (x: number) => {
+                const node = new ScalableRect();
+                Object.assign(node, {
+                    x,
+                    y: 10,
+                    width: 15,
+                    height: 15,
+                    fill: 'black',
+                    stroke: 'black',
+                    strokeWidth: 6,
+                    lineJoin: 'round',
+                    scalingX: 4,
+                    scalingY: 4,
+                    fillShadow: { ...SHADOW, xOffset: 60, spread: 10 },
+                });
+                return node;
+            };
+            const makeScaled = () => createGroup([scaled(5), scaled(40)]);
+
+            it('should draw the same shadows from what it kept as it drew at first', () => {
+                const group = kept(makeScaled);
+                const expected = direct(makeScaled, nothing);
+
+                const { pixels: actual, masked: casts } = redraw(group);
+
+                expect(casts).toEqual([]);
+                expect(paintedPixels()).toBeGreaterThan(0);
+                expectSamePixels(actual, expected);
+            });
+        });
+
+        // A cast keeps the shadows within its casters' bounds, so a caster that draws past them must keep the whole layer.
+        describe('a caster that draws past its bounds', () => {
+            // The path of a bevelled column starts its inner arc closer to the centre than the bounds that its radii give.
+            const TranslatableColumn = Translatable(RadialColumnShape);
+
+            const column = (x: number, mixin: Partial<RadialColumnShape> = {}) => {
+                const node = new TranslatableColumn();
+                Object.assign(node, {
+                    translationX: x,
+                    translationY: 200,
+                    // Pointing up, with an inner radius of 100 and a column 160 wide, so its inner corners are 40 above the arc's ends.
+                    startAngle: -Math.PI / 2 - 0.1,
+                    endAngle: -Math.PI / 2 + 0.1,
+                    columnWidth: 160,
+                    innerRadius: 100,
+                    outerRadius: 150,
+                    axisInnerRadius: 100,
+                    axisOuterRadius: 150,
+                    fill: 'black',
+                    stroke: undefined,
+                    strokeWidth: 0,
+                    fillShadow: { ...SHADOW, xOffset: 0, yOffset: 30, blur: 2 },
+                    ...mixin,
+                });
+                return node;
+            };
+
+            // Its bounds are a 10px corner of a path that is 100px across.
+            class Overhang extends Path {
+                protected override computeBBox() {
+                    return new BBox(20, 40, 10, 10);
+                }
+
+                protected override hasBoundedSilhouette() {
+                    return false;
+                }
+            }
+
+            const overhang = (x: number) => {
+                const node = new Overhang();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: undefined,
+                    strokeWidth: 0,
+                    fillShadow: { ...SHADOW, xOffset: 0, yOffset: 30, blur: 2 },
+                });
+                node.path.rect(x, 40, 100, 100);
+                return node;
+            };
+
+            const makeColumn = () => createGroup([column(120), column(300, { columnWidth: 100 })]);
+            const makeOverhang = () => createGroup([overhang(20), overhang(200)]);
+
+            it.each([
+                ['a bevelled radial column touching the inner radius', makeColumn],
+                ['a caster whose path is not bounded by its bounds', makeOverhang],
+            ])('should draw the same shadows of %s from what it kept as it drew at first', (_name, make) => {
+                const group = kept(make);
+                const expected = direct(make, nothing);
+                expect(paintedPixels()).toBeGreaterThan(0);
+
+                const { pixels: actual, masked: casts } = redraw(group);
+
+                expect(casts).toEqual([]);
+                expectSamePixels(actual, expected);
+            });
+
+            it('should draw the same shadows of a column from what it kept after it changed, as at first', () => {
+                const change = (target: Group) => {
+                    ([...target.children()][0] as RadialColumnShape).outerRadius = 140;
+                };
+                const group = kept(makeColumn);
+                change(group);
+                redraw(group);
+                redraw(group);
+
+                const { pixels: actual } = redraw(group);
+
+                expectSamePixels(actual, direct(makeColumn, change));
+            });
+        });
+
+        // A cast that was refused room does not measure its casters, or ask for a canvas, until it could be given one.
+        describe('a cast that was refused room', () => {
+            const SIZE = 2000;
+            // Each caster is as large as the layer, so that the kept shadows of one fill most of the budget and a second would not fit.
+            // They differ in x, which is how a cast that blurred again shows itself.
+            const makeLayers = () => {
+                const casters = [20, 21].map((x, i) => caster(x, { width: SIZE, height: SIZE, zIndex: i }));
+                const measures = casters.map((node) => vi.spyOn(node, 'getShadowSilhouetteBounds'));
+                return { group: createGroup(casters, 'by-layer'), casters, measures };
+            };
+
+            const drawLayer = (group: Group, layer: OffscreenCanvas) => {
+                masked = [];
+                const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                layerCtx.clearRect(0, 0, SIZE, SIZE);
+                drawOnLayer(group, layer);
+                return { masked, alpha: layerCtx.getImageData(300, 60, 1, 1).data[3] };
+            };
+
+            it('should not measure the casters of a cast that did not fit again, and keep its shadows once it does', () => {
+                const { group, casters, measures } = makeLayers();
+                const [first, second] = measures;
+                const layer = new OffscreenCanvas(SIZE, SIZE);
+
+                drawLayer(group, layer);
+                expect(first).not.toHaveBeenCalled();
+                const repeated = drawLayer(group, layer);
+                // Both casts repeat, so both measure what they would keep, and the second finds no room for it.
+                expect(first).toHaveBeenCalledTimes(1);
+                expect(second).toHaveBeenCalledTimes(1);
+                expect(repeated.masked).toEqual([20, 21]);
+                expect(repeated.alpha).toBeGreaterThan(0);
+
+                // The first blits what it kept, and the second, which could not keep any, casts again without measuring.
+                const refused = drawLayer(group, layer);
+                expect(first).toHaveBeenCalledTimes(1);
+                expect(second).toHaveBeenCalledTimes(1);
+                expect(refused.masked).toEqual([21]);
+                expect(refused.alpha).toEqual(repeated.alpha);
+
+                // The first casts again once it moves, which frees what it held, so the second measures and keeps its shadows.
+                casters[0].x = 22;
+                const freed = drawLayer(group, layer);
+                expect(second).toHaveBeenCalledTimes(2);
+                expect(freed.masked).toEqual([22, 21]);
+                const blitted = drawLayer(group, layer);
+                expect(second).toHaveBeenCalledTimes(2);
+                expect(blitted.masked).not.toContain(21);
+                expect(blitted.alpha).toBeGreaterThan(0);
+            });
+        });
+
+        // The bounds of a text follow the direction of the scene, and are not marked changed when it switches.
+        describe('a text caster', () => {
+            const makeScene = () => {
+                const chart = new Scene({ canvasElement: document.createElement('canvas'), pixelRatio: 1 });
+                chart.resize(WIDTH, HEIGHT, 1);
+                const text = new Text();
+                Object.assign(text, {
+                    x: 200,
+                    y: 100,
+                    text: 'Shadow',
+                    fontSize: 40,
+                    fontFamily: 'Arial',
+                    fill: 'black',
+                    textAlign: 'start',
+                    textBaseline: 'middle',
+                    fillShadow: { ...SHADOW, xOffset: 30, blur: 2 },
+                });
+                const group = createGroup([text]);
+                const root = new Group({ name: 'root' });
+                root.appendChild(group);
+                chart.setRoot(root);
+                return { chart, group };
+            };
+
+            const draw = (chart: Scene, group: Group, rtl: boolean) => {
+                chart.setDirection(rtl);
+                group.markDirty();
+                chart.render();
+                const { width, height } = chart.canvas;
+                return Array.from(chart.canvas.context.getImageData(0, 0, width, height).data);
+            };
+
+            it('should draw the same shadows from what it kept after the direction switched as a first draw', () => {
+                const { chart, group } = makeScene();
+                draw(chart, group, false);
+                draw(chart, group, false);
+                const ltr = draw(chart, group, false);
+                expect(ltr.some((value) => value !== 0)).toBe(true);
+
+                draw(chart, group, true);
+                draw(chart, group, true);
+                const afterSwitch = draw(chart, group, true);
+
+                const reference = makeScene();
+                const expected = draw(reference.chart, reference.group, true);
+                expect(expected).not.toEqual(ltr);
+                expectSamePixels(afterSwitch, expected);
+                chart.destroy();
+                reference.chart.destroy();
+            });
+        });
+
+        describe('text direction', () => {
+            it('should cast the shadows again when the direction changed, and keep them again after', () => {
+                const group = kept();
+
+                const first = redraw(group, 1, 'rtl');
+                redraw(group, 1, 'rtl');
+                const third = redraw(group, 1, 'rtl');
+
+                expect(first.masked).toEqual([20, 120]);
+                expect(third.masked).toEqual([]);
+                expectSamePixels(third.pixels, direct(sceneGroup, nothing));
+            });
+        });
+    });
+
+    describe('shadow engine', () => {
+        const renderContext = (): RenderContext => ({
+            ctx: ctx(),
+            direction: 'ltr',
+            width: WIDTH,
+            height: HEIGHT,
+            devicePixelRatio: 1,
+            logger: new Logger(),
+            debugNodes: {},
+        });
+
+        const keyOf = (caster: Shape, shadow: NonNullable<Shape['fillShadow']>): ShadowKey => ({
+            shadow,
+            clip: undefined,
+            casters: [caster as ShadowCaster],
+        });
+
+        it('should draw no shadow at all when one of its keys can not be cast', () => {
+            clearCanvas();
+            const first = box(20, 40, 40, 40, { fillShadow: BLUE });
+            const second = box(20, 130, 40, 40, { fillShadow: BLUE });
+            const user = createGroup([first, second]);
+            user.preRender(renderContext());
+            const keys = (blur: number) => [keyOf(first, BLUE), keyOf(second, { ...BLUE, blur })];
+            const drawImage = vi.spyOn(ctx(), 'drawImage');
+
+            expect(castShadows({ scene: undefined, user, keys: keys(Number.NaN), index: 0 }, renderContext())).toBe(
+                false
+            );
+            expect(drawImage).not.toHaveBeenCalled();
+            expect(paintedPixels()).toBe(0);
+
+            expect(castShadows({ scene: undefined, user, keys: keys(0), index: 0 }, renderContext())).toBe(true);
+            expect(paintedPixels()).toBeGreaterThan(0);
+        });
+
+        // A group casts each run of children that share a shadow in a call of its own, so a run that can't be cast falls back
+        // alone. The runs that the group did cast stay cast once, and the one that fell back is drawn once, by its shapes.
+        describe('a group with a run whose shadow can not be cast', () => {
+            const UNCASTABLE = { ...RED_HALF, blur: Number.NaN };
+            const nodes = (second: NonNullable<Shape['fillShadow']> = UNCASTABLE) => [
+                box(20, 40, 40, 40, { fillShadow: BLUE }),
+                box(20, 130, 40, 40, { fillShadow: second }),
+            ];
+
+            const aloneAfter = (second: NonNullable<Shape['fillShadow']> = UNCASTABLE) => {
+                renderNodes(nodes(second), false);
+                return pixels();
+            };
+
+            it.each([true, 'by-layer'] as const)(
+                'should draw each shadow once when a later run can not be cast, in a group that batches %s',
+                (batchShadows) => {
+                    const alone = aloneAfter();
+                    expect(paintedPixels()).toBeGreaterThan(0);
+
+                    const blits = vi.spyOn(ctx(), 'drawImage');
+                    try {
+                        renderNodes(nodes(), batchShadows);
+                        // The first run's mask, and not a second blit for the run that fell back.
+                        expect(blits).toHaveBeenCalledTimes(1);
+                    } finally {
+                        blits.mockRestore();
+                    }
+
+                    expect(pixels()).toEqual(alone);
+                }
+            );
+
+            it('should not blit the shadows that a run kept when it stops being castable', () => {
+                const [first, second] = nodes(RED_HALF);
+                const group = createGroup([first, second]);
+                renderGroup(group);
+                renderGroup(group);
+                renderGroup(group);
+
+                second.fillShadow = UNCASTABLE;
+                const blits = vi.spyOn(ctx(), 'drawImage');
+                try {
+                    renderGroup(group);
+                    expect(blits).toHaveBeenCalledTimes(1);
+                } finally {
+                    blits.mockRestore();
+                }
+
+                expect(pixels()).toEqual(aloneAfter());
+            });
+
+            it('should cast the run through the mask again once it can be cast', () => {
+                const [first, second] = nodes();
+                const group = createGroup([first, second]);
+                renderGroup(group);
+
+                second.fillShadow = RED_HALF;
+                const blits = vi.spyOn(ctx(), 'drawImage');
+                try {
+                    renderGroup(group);
+                    expect(blits).toHaveBeenCalledTimes(2);
+                } finally {
+                    blits.mockRestore();
+                }
+            });
+        });
+
+        it('should end a cast at a change of zIndex only in a scope by layer', () => {
+            const lower = box(20, 40, 40, 40, { fillShadow: BLUE, zIndex: 0 });
+            const upper = box(120, 40, 40, 40, { fillShadow: BLUE, zIndex: 1 });
+            const key = keyOf(lower, BLUE);
+
+            expect(joinsShadowKey(key, upper, BLUE, undefined, 'run')).toBe(true);
+            expect(joinsShadowKey(key, upper, BLUE, undefined, 'layer')).toBe(false);
         });
     });
 });

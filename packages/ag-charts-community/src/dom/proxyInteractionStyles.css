@@ -38,15 +38,19 @@
     display: block;
 }
 
+/* Host rules such as `.card button` outrank one class, so what keeps proxies invisible is `!important`.
+   Focus styles and `pointer-events` stay overridable; widgets toggle the latter inline via `setPointerEvents()`. */
 .ag-charts-proxy-elem {
     -webkit-appearance: none;
     appearance: none;
-    background: none;
-    border: none;
-    color: rgba(0, 0, 0, 0);
+    background: none !important;
+    border: none !important;
+    color: rgba(0, 0, 0, 0) !important;
     overflow: hidden;
+    padding: 0 !important;
     pointer-events: auto;
     position: absolute;
+    text-shadow: none !important;
 }
 
 .ag-charts-proxy-elem::-moz-range-thumb,
@@ -79,8 +83,9 @@
     box-shadow: none;
 }
 
+/* `!important` so the focus border wins over the `.ag-charts-proxy-elem` border reset. */
 .ag-charts-proxy-scrollbar-thumb-focus {
-    border: var(--ag-charts-focus-border);
+    border: var(--ag-charts-focus-border) !important;
     box-shadow: var(--ag-charts-focus-border-shadow);
     box-sizing: border-box;
     opacity: 0;

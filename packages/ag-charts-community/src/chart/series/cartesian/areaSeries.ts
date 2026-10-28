@@ -266,7 +266,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
         zIndex: SeriesZIndexMap.BACKGROUND,
-        batchShadows: true,
+        batchShadows: 'shared',
     });
 
     override get pickModeAxis() {
@@ -292,6 +292,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             },
             clipFocusBox: false,
         });
+        // The fill casts through the root, which draws beneath everything; the marker shadows must stay above the fill.
+        this.dataNodeGroup.batchShadows = true;
     }
 
     override renderToOffscreenCanvas(): boolean {
@@ -1606,6 +1608,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 shadow,
                 isHighlight,
                 datumIndex: datum.datumIndex,
+                highlightState: state,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {
@@ -1820,11 +1823,6 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 lineDash,
             },
         };
-    }
-
-    /** The shadows of the markers, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return [this.options.marker.shadow];
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {

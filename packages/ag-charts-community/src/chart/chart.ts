@@ -7,6 +7,7 @@ import type {
     DynamicContext,
     ModuleInstance,
     NormalisedTextOrSegments,
+    RegistryRevision,
     Scene,
 } from 'ag-charts-core';
 import {
@@ -154,6 +155,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     readonly seriesRoot = new TranslatableGroup({
         name: `${this.id}-series-root`,
         zIndex: ZIndexMap.SERIES_LAYER,
+        shadowRoot: true,
     });
     readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,
@@ -270,6 +272,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
+    private servicesRevision: RegistryRevision = -1;
     public readonly ctx: DynamicContext<ChartRegistry>;
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly seriesAreaManager: SeriesAreaManager;
@@ -372,7 +375,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             styleContainer,
             styleNonce: options.processedOptions.styleNonce,
             skipCss,
-            enableShadowDom: options.processedOptions.enableShadowDom,
             agDocument,
             domMode: options.optionMetadata.domMode,
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
@@ -1629,10 +1631,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.ctx.domManager.setEnableRtl(deltaOptions.enableRtl);
         }
 
-        if ('enableShadowDom' in deltaOptions) {
-            this.ctx.domManager.setEnableShadowDom(deltaOptions.enableShadowDom);
-        }
-
         if ('container' in deltaOptions) this.setContainer(deltaOptions.container ?? undefined);
         this.applySizeOptions(deltaOptions);
         if ('loading' in deltaOptions) this.loading = deltaOptions.loading;
@@ -1830,9 +1828,15 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     private applyModules() {
         const { type: chartType } = this.constructor as any;
+        const { moduleRegistry } = this.ctx;
+
+        // Modules registered after `createChartContext()` would otherwise miss its one-shot service install.
+        this.servicesRevision = moduleRegistry.ifRegistryChanged(this.servicesRevision, () =>
+            moduleRegistry.installServices(this.ctx, chartType)
+        );
 
         let modulesChanged = false;
-        for (const module of this.ctx.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
+        for (const module of moduleRegistry.listModulesByType(ModuleType.Plugin)) {
             const shouldBeEnabled = moduleMatchesChartType(module, chartType);
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 

@@ -5,12 +5,14 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     PART_WHOLE_HIGHLIGHT_STYLE,
     PLACED_LABEL_BOXING_DEFAULTS,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
     themeLineHeight,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -100,7 +102,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         hideZeroValueSectorsInLegend: false,
         shadow: SHADOW_THEME_DEFAULTS,
         tooltip: SERIES_TOOLTIP_THEME,
-        highlight: { ...PART_WHOLE_HIGHLIGHT_STYLE, bringToFront: true },
+        highlight: withGlowThemeDefaults({ ...PART_WHOLE_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
     },
     legend: { enabled: true },

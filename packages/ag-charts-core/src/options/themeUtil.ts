@@ -3,6 +3,7 @@ import type {
     AgChartAllThemeParams,
     AgChartLabelFitOptions,
     AgChartLabelPlacementStyleOptions,
+    AgGlowOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
@@ -16,10 +17,12 @@ import type {
     WithThemeParams,
 } from 'ag-charts-types';
 
-import { mapValues } from '../data/object';
+import { mapValues, mergeDefaults } from '../data/object';
 import { Color } from '../format/color';
+import type { DeepPartial } from '../types/global';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../types/themeConstants';
 import type {
+    NormalisedDropShadowOptions,
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
@@ -666,6 +669,69 @@ export const SHADOW_THEME_DEFAULTS = {
     yOffset: 3,
     blur: 5,
 } as const;
+
+/**
+ * Disabled glow; the theme value the highlight states that the others inherit from start with. The colour and blur follow
+ * the theme, as the light theme's dark glow suits a light background and the dark theme's pale one a dark background.
+ */
+export const GLOW_THEME_DEFAULTS = {
+    enabled: false,
+    color: { $ref: 'glowColor' },
+    blur: { $ref: 'glowBlur' },
+    spread: 1,
+} as const;
+
+/** The highlight states of a series with only item states, and of a treemap group. */
+export const ITEM_GLOW_BUCKETS = ['highlightedItem', 'unhighlightedItem'] as const;
+
+/**
+ * The highlight states of a series with series states as well. The item states inherit from these, so a `glow` set on
+ * a series state reaches the items, as with every other highlight style field.
+ */
+export const SERIES_GLOW_BUCKETS = ['highlightedSeries', 'unhighlightedSeries'] as const;
+
+/** The highlight states of a hierarchy series, where branch states take the place of the series states. */
+export const BRANCH_GLOW_BUCKETS = ['highlightedBranch', 'unhighlightedBranch'] as const;
+
+/** Adds the disabled {@link GLOW_THEME_DEFAULTS} to each of the `buckets` of a highlight theme, keeping what they hold. */
+export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: readonly string[]): T {
+    const result: Record<string, unknown> = { ...(highlight as Record<string, unknown>) };
+    for (const bucket of buckets) {
+        result[bucket] = { ...(result[bucket] as object | undefined), glow: GLOW_THEME_DEFAULTS };
+    }
+    return result as T;
+}
+
+/**
+ * The shadow that casts a `glow`: centred on the item, as a glow is the same blurred silhouette as a shadow with no
+ * offset. A glow that is off, or has no colour or blur to cast, casts none.
+ */
+export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
+    if (glow?.enabled !== true) return;
+
+    const { color, blur, spread } = glow;
+    if (color == null || blur == null) return;
+
+    return { enabled: true, color, xOffset: 0, yOffset: 0, blur, spread };
+}
+
+/**
+ * `style` without its `glow`, which the highlight layer casts and no item is drawn or styled by. A highlight style
+ * reaches item stylers and node styles through this, so the theme's disabled `glow` never appears in either.
+ */
+export function withoutGlow<T extends object>(style: T): T {
+    if (!('glow' in style)) return style;
+
+    const { glow: _glow, ...rest } = style;
+    return rest as T;
+}
+
+/** The `glow` of the highlight `buckets`, earlier buckets taking precedence. */
+export function mergeGlow(
+    ...buckets: Array<{ glow?: DeepPartial<AgGlowOptions> } | undefined>
+): DeepPartial<AgGlowOptions> | undefined {
+    return mergeDefaults<DeepPartial<AgGlowOptions>>(...buckets.map((bucket) => bucket?.glow));
+}
 
 type SeriesTooltipTheme = WithThemeParams<Pick<AgSeriesTooltip<never>, 'range' | 'position' | 'interaction'>>;
 

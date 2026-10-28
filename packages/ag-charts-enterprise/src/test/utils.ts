@@ -165,9 +165,6 @@ export const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, 
 /** A smaller shadow than `SHADOW`, for the tests that turn on a second, distinct shadow (flow-proportion, map-shape, waterfall). */
 export const SMALL_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
 
-/** The shadow the highlight tests set on `highlightedItem`, distinct from `SHADOW` in every field. */
-export const HIGHLIGHT_SHADOW = { enabled: true, color: 'rgba(170, 0, 0, 1)', xOffset: 8, yOffset: 8, blur: 2 };
-
 /** A red shadow with no offset or blur, so a node test sees the shadow as exactly the node's own pixels. */
 export const RED_SHADOW = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
@@ -214,12 +211,13 @@ export function renderNode(canvasCtx: MockCanvas, node: Shape, pixelRatio = 1) {
     ctx.restore();
 }
 
-/** Renders `nodes` over a white background as one batch of a group that casts its shadows with a single blur. */
-export function renderShadowBatch(canvasCtx: MockCanvas, nodes: readonly Shape[]) {
+/**
+ * Renders `nodes` over a white background as one batch of a group that casts its shadows with a single blur, `draws`
+ * times, so that a draw after the first can blit the shadows that the group kept.
+ */
+export function renderShadowBatch(canvasCtx: MockCanvas, nodes: readonly Shape[], draws = 1) {
     const { width, height } = canvasCtx.nodeCanvas;
     const ctx = canvasCtx.getRenderContext2D();
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, width, height);
 
     const group = new Group({ name: 'shadow-batch' });
     group.batchShadows = true;
@@ -234,8 +232,12 @@ export function renderShadowBatch(canvasCtx: MockCanvas, nodes: readonly Shape[]
         logger: testLogger,
         debugNodes: {},
     };
-    group.preRender(renderCtx);
-    group.render(renderCtx);
+    for (let i = 0; i < draws; i++) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, width, height);
+        group.preRender(renderCtx);
+        group.render(renderCtx);
+    }
     // The group keeps a scratch canvas for the batch, which it gives up once it has no casters.
     for (const node of nodes) node.fillShadow = undefined;
     group.preRender(renderCtx);

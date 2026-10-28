@@ -17,10 +17,10 @@ import {
     deprecated,
     fillOptionsDef,
     fontOptionsDef,
+    glowHighlightOptionsDef,
     labelBoxOptionsDef,
     positiveNumber,
     required,
-    shadowHighlightOptionsDef,
     shadowOptionsDefs,
     shapeHighlightOptionsDef,
     string,
@@ -65,7 +65,7 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
     tooltip: tooltipOptionsDefs,
     colorScale: colorScaleOptionsDef,
     ...commonSeriesThemeableOptionsDefs,
-    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
+    highlight: glowHighlightOptionsDef(shapeHighlightOptionsDef),
     ...strokeOptionsDef,
 };
 

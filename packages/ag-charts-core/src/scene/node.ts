@@ -10,6 +10,7 @@ import type { SerializedNodeProps, SerializedNodeState } from '../types/scene';
 import { BBox } from './bbox';
 import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
+import type { ShadowCollector } from './shadowCollector';
 import { type ZIndex } from './zIndex';
 
 export enum PointerEvents {
@@ -251,9 +252,9 @@ export abstract class Node<TDatum = unknown> {
     /**
      * Isolated render - the context is returned to its prior state, even if `render` fails, unless
      * {@link needsIsolatedState} is false. Then there is no save and restore, so a failed render can leak
-     * state, and later siblings must set their own fill style.
+     * state, and later siblings must set their own fill style. Returns false if `render` failed.
      */
-    isolatedRender(renderCtx: RenderContext): void {
+    isolatedRender(renderCtx: RenderContext): boolean {
         const isolate = this.needsIsolatedState();
         // Snapshot alongside ctx.save() — restore() reverts ctx.font, so tracker must too.
         const savedFont = renderCtx.currentFont;
@@ -262,6 +263,7 @@ export abstract class Node<TDatum = unknown> {
         }
         try {
             this.render(renderCtx);
+            return true;
         } catch (e: any) {
             // The failed node may have left the layer's bitmap half painted, so it can't be repainted in part.
             this.invalidateLayerOnRenderError();
@@ -276,6 +278,7 @@ export abstract class Node<TDatum = unknown> {
             }
 
             renderCtx.logger.warnOnce('Error during rendering', e, e.stack);
+            return false;
         } finally {
             if (isolate) {
                 renderCtx.ctx.restore();
@@ -304,6 +307,11 @@ export abstract class Node<TDatum = unknown> {
 
     setScene(scene?: IScene) {
         this.scene = scene;
+    }
+
+    /** Records the groups at or below the node that cast through a shadow root, without rendering. Only groups have any. */
+    gatherShadows(_collector: ShadowCollector): void {
+        // Nothing to do by default.
     }
 
     *traverseUp(includeSelf?: boolean): Generator<Node, void, unknown> {

@@ -131,7 +131,6 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     data: array,
     dataIdKey: string,
     enableRtl: boolean,
-    enableShadowDom: boolean,
     footnote: defined,
     formatter: defined,
     height: defined,

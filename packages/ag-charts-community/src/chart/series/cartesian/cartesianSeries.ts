@@ -144,7 +144,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     private readonly paths: SegmentedPath[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
-        new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1, batchShadows: true })
+        new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1, batchShadows: 'shared' })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup<LabelOf<TTypes>>({ name: `${this.id}-series-labels` })
@@ -1343,7 +1343,10 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
                 let [r0, r1] = this.visibleRangeIndices(crossAxisKey, crossVisibleRange, undefined, { sortOrder });
                 r1 -= 1;
-                if (r1 < r0) return 0;
+                if (r1 < r0) {
+                    crossScale.range = crossScaleRange;
+                    return 0;
+                }
 
                 // @todo(AG-7083) - figure out how to determine this
                 const pixelSize = 0;

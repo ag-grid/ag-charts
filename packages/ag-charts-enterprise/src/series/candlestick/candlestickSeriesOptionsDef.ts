@@ -14,7 +14,7 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
-    multiSeriesShadowHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     positiveNumber,
     ratio,
     required,
@@ -61,7 +61,7 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
-    highlight: multiSeriesShadowHighlightOptionsDef(
+    highlight: multiSeriesGlowHighlightOptionsDef(
         candlestickHighlightStyleOptionsDef,
         candlestickHighlightStyleOptionsDef
     ),

@@ -1,6 +1,6 @@
-import { AgCharts, AgRadialGaugeOptions, AllGaugeModule, ModuleRegistry } from 'ag-charts-enterprise';
+import { AgCharts, AgRadialGaugeOptions, ModuleRegistry, RadialGaugeModule } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([AllGaugeModule]);
+ModuleRegistry.registerModules([RadialGaugeModule]);
 
 const options: AgRadialGaugeOptions = {
     type: 'radial-gauge',

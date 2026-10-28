@@ -169,6 +169,7 @@ export abstract class AbstractNetworkSeries<
 
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
     protected seriesRect?: BBox;
+    private laidOutSeriesRect?: BBox;
 
     private vertexNodeDatumIndices: Record<string, number> = {};
     private pendingCollapsedIds?: NetworkSeriesVertexID[];
@@ -263,11 +264,26 @@ export abstract class AbstractNetworkSeries<
 
         this.contentGroup.visible = true;
 
+        if (this.updateHighlightOnly()) return;
+
         // TODO: this.contentGroup.batchedUpdate() ?
         this.updateSelections();
         this.updateNodes();
         // Re-apply now that contentBBox is current (the zoom observer early-returned earlier).
         this.applyViewportTransform();
+    }
+
+    /**
+     * Applies a change that only restyles the highlighted nodes, leaving the layout as it was.
+     * Returns false when the full update is needed.
+     */
+    protected updateHighlightOnly(): boolean {
+        return false;
+    }
+
+    protected isLayoutCurrent(): boolean {
+        const { laidOutSeriesRect, seriesRect } = this;
+        return laidOutSeriesRect != null && seriesRect?.equals(laidOutSeriesRect) === true;
     }
 
     processPendingCollapse() {
@@ -349,6 +365,7 @@ export abstract class AbstractNetworkSeries<
         this.updateDatumNodes(this.datumSelection);
         this.updateLinkNodes(this.linkSelection);
         this.layout.update(this.makeLayoutUpdateOptions());
+        this.laidOutSeriesRect = this.seriesRect?.clone();
     }
 
     /**
@@ -417,7 +434,12 @@ export abstract class AbstractNetworkSeries<
         this.viewportGroup.scalingY = scaling;
         this.viewportGroup.translationX = translation.x;
         this.viewportGroup.translationY = translation.y;
+
+        this.onViewportScaleChange(scaling);
     }
+
+    /** Called with the scale the viewport is drawn at, whenever the viewport transform is applied. */
+    protected onViewportScaleChange(_scaling: number) {}
 
     private centreItem(itemId: NetworkSeriesVertexID | undefined) {
         if (itemId == null) return;
@@ -807,7 +829,6 @@ export abstract class AbstractNetworkSeries<
     }
 
     private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        if (event.isReset) return;
         this.constrainZoomWindow(event);
     }
 
@@ -918,7 +939,8 @@ export abstract class AbstractNetworkSeries<
         const sizes = this.getSharedScaleWindowSizes(requested.x, requested.y);
         if (!sizes) return;
 
-        if (this.isZoomAtLimit(event, requested, sizes)) {
+        // A reset must still re-centre a panned view at the zoom floor, so it is never dropped as a no-op.
+        if (!event.isReset && this.isZoomAtLimit(event, requested, sizes)) {
             this.restoreZoomWindow(event);
             return;
         }

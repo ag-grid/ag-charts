@@ -39,6 +39,10 @@ export enum OrganizationNodeTag {
 // Sub-pixel slack on the overflow check; pure float-comparison guard, not user-tunable.
 const CLIP_EPSILON = 0.5;
 
+// How thick a placeholder bar is, as a ratio of the font size of the text it stands in for.
+const PLACEHOLDER_BAR_HEIGHT_RATIO = 0.5;
+const PLACEHOLDER_BAR_OPACITY = 0.5;
+
 function computeTextMaxWidth(styles: NormalisedOrganizationNodeStyle): number {
     const cardWidth = Number.isNaN(styles.width) ? styles.maxWidth : styles.width;
     if (!Number.isFinite(cardWidth)) return Infinity;
@@ -216,12 +220,15 @@ export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
     // above it, and the expander pill appended later in `updateExpanderNode` so it stays on top.
     private readonly shapeNode = this.appendChild(new OrganizationCardRect({ tag: OrganizationNodeTag.Card }));
     private readonly contentGroup = this.appendChild(new Group());
+    private readonly placeholderGroup = this.appendChild(new Group());
+    private readonly placeholderBars: Rect[] = [];
     private imageNode?: Rect;
     private titleNode?: Text;
     private subtitleNode?: Text;
     private labelNodes?: (Text | undefined)[];
 
     private expanderNode?: OrganizationExpanderNode;
+    private expanderExclusion?: BBox;
 
     private appliedStyles?: NormalisedOrganizationNodeStyle;
     private intrinsicCardSize?: { width: number; height: number };
@@ -320,6 +327,59 @@ export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
         this.intrinsicCardSize = { width: bbox.width, height: bbox.height };
     }
 
+    // Swaps the card's text and image for a bar per text tier, and hides the expander, without changing any
+    // measured size: the card and layout read the tier and expander nodes directly, not through their parents.
+    setDetailVisible(visible: boolean) {
+        this.contentGroup.visible = visible;
+        this.placeholderGroup.visible = !visible;
+        if (this.expanderNode) this.expanderNode.visible = visible;
+        this.applyStrokeExclusion();
+        if (!visible) this.updatePlaceholders();
+    }
+
+    // The border is only cut away for an expander that is drawn.
+    private applyStrokeExclusion() {
+        const { expanderNode, expanderExclusion } = this;
+        if (expanderNode?.visible && expanderExclusion) {
+            this.shapeNode.setStrokeExclusion(expanderExclusion, expanderNode.cornerRadius);
+        } else {
+            this.shapeNode.setStrokeExclusion(undefined, 0);
+        }
+    }
+
+    // Each bar takes the position, width and colour of its tier's text, so the card keeps its shape at a glance.
+    private updatePlaceholders() {
+        const { titleNode, subtitleNode, labelNodes, placeholderBars } = this;
+
+        let count = this.placeBar(0, titleNode);
+        count = this.placeBar(count, subtitleNode);
+        if (labelNodes) {
+            for (const labelNode of labelNodes) count = this.placeBar(count, labelNode);
+        }
+
+        for (let i = count; i < placeholderBars.length; i++) {
+            placeholderBars[i].visible = false;
+        }
+    }
+
+    // Returns the index of the next free bar; a tier with no text takes none.
+    private placeBar(index: number, text: Text | undefined) {
+        if (text == null) return index;
+
+        const bar = (this.placeholderBars[index] ??= this.placeholderGroup.appendChild(new Rect()));
+        const bbox = text.getBBox();
+        const height = text.fontSize * PLACEHOLDER_BAR_HEIGHT_RATIO;
+        bar.x = bbox.x;
+        bar.y = bbox.y + (bbox.height - height) / 2;
+        bar.width = bbox.width;
+        bar.height = height;
+        bar.cornerRadius = height / 2;
+        bar.fill = text.fill;
+        bar.fillOpacity = PLACEHOLDER_BAR_OPACITY;
+        bar.visible = bbox.width > 0;
+        return index + 1;
+    }
+
     updateBBox(bbox: BBox, direction: AgNetworkSeriesTreeLayoutDirection) {
         this.shapeNode.width = bbox.width;
         this.shapeNode.height = bbox.height;
@@ -349,25 +409,25 @@ export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
                 }
             }
 
-            this.shapeNode.setStrokeExclusion(
-                new BBox(
-                    this.expanderNode.translationX,
-                    this.expanderNode.translationY,
-                    expanderBBox.width,
-                    expanderBBox.height
-                ),
-                this.expanderNode.cornerRadius
+            this.expanderExclusion = new BBox(
+                this.expanderNode.translationX,
+                this.expanderNode.translationY,
+                expanderBBox.width,
+                expanderBBox.height
             );
         } else {
-            this.shapeNode.setStrokeExclusion(undefined, 0);
+            this.expanderExclusion = undefined;
         }
+        this.applyStrokeExclusion();
 
         // OPTIMIZATION: clip only on overflow, so the common case pays no per-frame save/clip/restore.
         const intrinsic = this.intrinsicCardSize;
         const overflows =
             intrinsic != null &&
             (intrinsic.width > bbox.width + CLIP_EPSILON || intrinsic.height > bbox.height + CLIP_EPSILON);
-        this.contentGroup.setClipRectCanvasSpace(overflows ? new BBox(0, 0, bbox.width, bbox.height) : undefined);
+        const clip = overflows ? new BBox(0, 0, bbox.width, bbox.height) : undefined;
+        this.contentGroup.setClipRectCanvasSpace(clip);
+        this.placeholderGroup.setClipRectCanvasSpace(clip);
     }
 
     realign(bbox: BBox) {
@@ -410,6 +470,8 @@ export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
             const labelNode = labelNodes?.[i];
             if (labelNode) alignTextNode(labelNode, labelStyles.textAlign);
         }
+
+        if (!this.contentGroup.visible) this.updatePlaceholders();
     }
 
     getShapeBBox(): BBox {

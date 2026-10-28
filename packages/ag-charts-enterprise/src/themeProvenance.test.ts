@@ -13,77 +13,76 @@ const DATA = [
 
 /**
  * See the community suite for what `coverage` pins and how to update it. Each `maxSkipped` counts
- * `highlight.highlightedItem.shadow`, which the theme leaves unset, except radial-bar's and cone-funnel's: neither
- * series has the option. Cartesian cases also count the `collector` callback. Range-bar's `maxIneffective` counts `grouped`, which resolves into `seriesGrouping`.
+ * the four `highlight` buckets, which are containers with no value of their own to compare, except radial-bar's and
+ * cone-funnel's: neither series has the `glow` option. Cartesian cases also count the `collector` callback. Range-bar's `maxIneffective` counts `grouped`, which resolves into `seriesGrouping`.
  */
 const CASES: Array<ProvenanceCase> = [
     {
         seriesType: 'range-bar',
         series: { xKey: 'category', yLowKey: 'low', yHighKey: 'high' },
         data: DATA,
-        coverage: { minChecked: 127, maxSkipped: 11, maxRejected: 1, maxIneffective: 1, minContainers: 5 },
+        coverage: { minChecked: 127, maxSkipped: 14, maxRejected: 1, maxIneffective: 1, minContainers: 5 },
     },
     {
         seriesType: 'range-area',
         series: { xKey: 'category', yLowKey: 'low', yHighKey: 'high' },
         data: DATA,
-        coverage: { minChecked: 157, maxSkipped: 12, maxRejected: 1, maxIneffective: 0, minContainers: 9 },
+        coverage: { minChecked: 157, maxSkipped: 15, maxRejected: 1, maxIneffective: 0, minContainers: 9 },
     },
     {
         seriesType: 'waterfall',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 226, maxSkipped: 20, maxRejected: 4, maxIneffective: 0, minContainers: 17 },
+        coverage: { minChecked: 226, maxSkipped: 21, maxRejected: 4, maxIneffective: 0, minContainers: 17 },
     },
     {
         seriesType: 'box-plot',
         series: { xKey: 'category', minKey: 'low', q1Key: 'open', medianKey: 'value', q3Key: 'close', maxKey: 'high' },
         data: DATA,
-        coverage: { minChecked: 111, maxSkipped: 9, maxRejected: 4, maxIneffective: 0, minContainers: 3 },
+        coverage: { minChecked: 111, maxSkipped: 12, maxRejected: 4, maxIneffective: 0, minContainers: 3 },
     },
     {
         seriesType: 'heatmap',
         series: { xKey: 'category', yKey: 'value', colorKey: 'numeric' },
         data: DATA,
-        coverage: { minChecked: 75, maxSkipped: 11, maxRejected: 2, maxIneffective: 0, minContainers: 4 },
+        coverage: { minChecked: 75, maxSkipped: 12, maxRejected: 2, maxIneffective: 0, minContainers: 4 },
     },
     {
         seriesType: 'radial-bar',
         series: { angleKey: 'value', radiusKey: 'category' },
         data: DATA,
-        coverage: { minChecked: 92, maxSkipped: 8, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
+        coverage: { minChecked: 92, maxSkipped: 12, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
     },
     {
         seriesType: 'radial-column',
         series: { angleKey: 'category', radiusKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 94, maxSkipped: 9, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
+        coverage: { minChecked: 94, maxSkipped: 12, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
     },
     {
         seriesType: 'nightingale',
         series: { angleKey: 'category', radiusKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 92, maxSkipped: 9, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
+        coverage: { minChecked: 92, maxSkipped: 12, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
     },
     {
         seriesType: 'radar-line',
         series: { angleKey: 'category', radiusKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 79, maxSkipped: 11, maxRejected: 1, maxIneffective: 0, minContainers: 5 },
+        coverage: { minChecked: 79, maxSkipped: 12, maxRejected: 1, maxIneffective: 0, minContainers: 5 },
         unresolved: ['AgRadarHighlightStyleOptions'],
     },
     {
         seriesType: 'radar-area',
         series: { angleKey: 'category', radiusKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 97, maxSkipped: 11, maxRejected: 1, maxIneffective: 0, minContainers: 5 },
-        unresolved: ['AgRadarHighlightStyleOptions'],
+        coverage: { minChecked: 97, maxSkipped: 12, maxRejected: 1, maxIneffective: 0, minContainers: 5 },
     },
     {
         seriesType: 'funnel',
         series: { stageKey: 'category', valueKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 73, maxSkipped: 10, maxRejected: 4, maxIneffective: 0, minContainers: 5 },
+        coverage: { minChecked: 73, maxSkipped: 11, maxRejected: 4, maxIneffective: 0, minContainers: 5 },
     },
     {
         seriesType: 'cone-funnel',
@@ -95,19 +94,19 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'pyramid',
         series: { stageKey: 'category', valueKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 65, maxSkipped: 10, maxRejected: 4, maxIneffective: 0, minContainers: 6 },
+        coverage: { minChecked: 65, maxSkipped: 11, maxRejected: 4, maxIneffective: 0, minContainers: 6 },
     },
     {
         seriesType: 'candlestick',
         series: { xKey: 'category', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
         data: DATA,
-        coverage: { minChecked: 114, maxSkipped: 7, maxRejected: 4, maxIneffective: 0, minContainers: 2 },
+        coverage: { minChecked: 114, maxSkipped: 10, maxRejected: 4, maxIneffective: 0, minContainers: 2 },
     },
     {
         seriesType: 'ohlc',
         series: { xKey: 'category', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
         data: DATA,
-        coverage: { minChecked: 66, maxSkipped: 7, maxRejected: 8, maxIneffective: 0, minContainers: 2 },
+        coverage: { minChecked: 66, maxSkipped: 10, maxRejected: 8, maxIneffective: 0, minContainers: 2 },
     },
     {
         seriesType: 'hlc',

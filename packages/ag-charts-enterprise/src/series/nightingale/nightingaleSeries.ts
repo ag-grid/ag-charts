@@ -5,6 +5,7 @@ import {
     PolarZIndexMap,
     Sector,
     SectorBox,
+    polarSectorObstacles,
 } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
@@ -60,6 +61,19 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
             node.endAngle = endAngle;
             node.clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
         }
+    }
+
+    getLabelObstacles() {
+        const sectors = this.nodeData.map((datum) => {
+            const { clipInnerRadius, clipOuterRadius } = getRadii(datum);
+            return {
+                startAngle: datum.startAngle,
+                endAngle: datum.endAngle,
+                innerRadius: Math.min(clipInnerRadius, clipOuterRadius),
+                outerRadius: Math.max(clipInnerRadius, clipOuterRadius),
+            };
+        });
+        return polarSectorObstacles(sectors, this.centerX, this.centerY);
     }
 
     protected override getColumnTransitionFunctions() {

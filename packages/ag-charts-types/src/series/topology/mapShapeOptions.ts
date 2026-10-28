@@ -12,7 +12,7 @@ import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
     AgHighlightStyleOptions,
-    AgMultiSeriesShadowHighlightOptions,
+    AgMultiSeriesGlowHighlightOptions,
 } from '../seriesOptions';
 
 export interface AgMapShapeSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
@@ -82,7 +82,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContex
     /** A callback function for adjusting the styles of a particular Map shape based on the input parameters. */
     itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<TDatum, TContext>, AgMapShapeSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesShadowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgMapShapeSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

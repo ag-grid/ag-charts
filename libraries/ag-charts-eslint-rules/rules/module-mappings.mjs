@@ -6,35 +6,31 @@
  * definitions do not carry, and re-exports the generated tables.
  */
 export {
-    axisListenerToModule,
-    axisPluginToModule,
-    axisTypeToModule,
+    axisListenerToDefinition,
+    axisPluginToDefinition,
+    axisTypeToDefinition,
     bundleContents,
     cartesianSeriesModules,
-    chartListenerToModule,
-    chartOptionPathToModule,
-    enterpriseBundleContents,
-    enterpriseImpliedModules,
-    enterpriseModules,
-    impliedModules,
-    moduleToPackage,
-    pluginOptionToModule,
-    polarAxisPluginToModule,
+    chartListenerToDefinition,
+    chartOptionPathToDefinition,
+    definitions,
+    enterpriseModuleContents,
+    moduleContents,
+    pluginOptionToDefinition,
+    polarAxisPluginToDefinition,
     polarSeriesModules,
     seriesChartType,
-    seriesPluginToModule,
-    seriesTypeToModule,
+    seriesPluginToDefinition,
+    seriesTypeToDefinition,
     validModuleIds,
 } from './module-mappings.generated.mjs';
 
-// Nested annotations plugin option → Module ID
-export const annotationsPluginToModule = new Map([['toolbar', 'ChartToolbarModule']]);
+// Nested annotations plugin option → definition name
+export const annotationsPluginToDefinition = new Map([['toolbar', 'chartToolbar']]);
 
-// Axis module compatibility - modules that can satisfy a default axis requirement
-// For example, GroupedCategoryAxisModule is a superset of CategoryAxisModule
-export const axisModuleCompatibility = new Map([
-    ['CategoryAxisModule', ['GroupedCategoryAxisModule']], // grouped-category can satisfy category axis requirement
-]);
+// Axis compatibility - axis definitions that can satisfy a default axis requirement
+// For example, grouped-category is a superset of category
+export const axisModuleCompatibility = new Map([['category', ['grouped-category']]]);
 
 // Intrinsic defaults - modules that are expected without explicit options
 export const intrinsicDefaults = {

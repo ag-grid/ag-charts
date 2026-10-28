@@ -132,6 +132,9 @@ export default defineMarkdocConfig({
         moduleMappings: {
             render: component('./src/components/module-mappings/ModuleMappings.astro'),
         },
+        themeParamsReference: {
+            render: component('./src/components/theme-params/ThemeParamsReference.astro'),
+        },
         majorTable,
     },
 });

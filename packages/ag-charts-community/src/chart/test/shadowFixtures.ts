@@ -1,4 +1,5 @@
-import type { AgDropShadowOptions, AgMarkerShapeFn } from 'ag-charts-types';
+import type { Group, Shape } from 'ag-charts-core';
+import type { AgDropShadowOptions, AgGlowOptions, AgMarkerShapeFn } from 'ag-charts-types';
 
 /** The shadow the marker shadow tests turn on. */
 export const MARKER_SHADOW: AgDropShadowOptions = { enabled: true, color: '#000000', xOffset: 4, yOffset: 4, blur: 6 };
@@ -12,14 +13,32 @@ export const SERIES_SHADOW: AgDropShadowOptions = {
     blur: 6,
 };
 
-/** The shadow the highlight tests set on `highlightedItem`, distinct from `SERIES_SHADOW` in every field. */
-export const HIGHLIGHT_SHADOW: AgDropShadowOptions = {
-    enabled: true,
-    color: '#aa0000',
-    xOffset: 8,
-    yOffset: 8,
-    blur: 2,
-};
+/** The glow the highlight tests turn on, distinct from `SERIES_SHADOW` in every field. */
+export const HIGHLIGHT_GLOW: AgGlowOptions = { enabled: true, color: '#00aa00', blur: 3, spread: 2 };
+
+/** The shadow a glow casts: the same blurred silhouette as a shadow, centred on the item. */
+export const glowShadow = (glow: AgGlowOptions) => ({ ...glow, xOffset: 0, yOffset: 0 });
+
+export const XY_DATA = [
+    { x: 1, y: 5, size: 10 },
+    { x: 2, y: 8, size: 20 },
+    { x: 3, y: 3, size: 30 },
+];
+export const CATEGORY_DATA = [
+    { category: 'A', value: 5 },
+    { category: 'B', value: 8 },
+    { category: 'C', value: 3 },
+];
+export const HISTOGRAM_DATA = [{ x: 1 }, { x: 2 }, { x: 2.5 }, { x: 4 }, { x: 5 }, { x: 5.5 }, { x: 7 }];
+
+/** The shapes of class `kind` under `root`, in scene order. */
+export function shapesOf<T extends Shape>(root: Group, kind: abstract new (...args: any[]) => T): T[] {
+    const found: T[] = [];
+    for (const node of root.descendants()) {
+        if (node instanceof kind) found.push(node);
+    }
+    return found;
+}
 
 /** A custom marker shape (a triangle), which the out-of-the-box marker shadow must not apply to. */
 export const customMarkerShape: AgMarkerShapeFn = ({ path, x, y, size }) => {

@@ -36,6 +36,7 @@ import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expect
 import { removeUnregisteredModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { __clearChartThemeCacheForTests } from '../chart/mapping/themes';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
+import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import * as examples from '../chart/test/examples';
 import { setAgChartsDebug } from '../chart/test/seriesAccessors';
 import { captureUncaught } from '../chart/test/utils';
@@ -62,6 +63,20 @@ const moduleMessages = () =>
     (console.error as Mock).mock.calls
         .map(([m]) => String(m))
         .filter((m) => m.includes('required modules are not registered'));
+
+// Restore exactly what was registered: the stacking/grouping suite below registers its own
+// ad-hoc series definitions at collection time, which re-registering the bundle would drop.
+function prepareOptionsWithOnly(modules: ModuleDefinition[], userOptions: AgChartOptions) {
+    const registeredModules = [...ModuleRegistry.listModules()];
+    ModuleRegistry.reset();
+    ModuleRegistry.registerModules(modules);
+    try {
+        return prepareOptions(userOptions);
+    } finally {
+        ModuleRegistry.reset();
+        ModuleRegistry.registerModules(registeredModules);
+    }
+}
 
 function runtimeFor(logger?: Logger) {
     return logger == null ? undefined : createProvisionalRuntime(logger);
@@ -572,20 +587,6 @@ describe('ChartOptions', () => {
             expect(message).toContain("'line'");
         });
 
-        // Restore exactly what was registered: the stacking/grouping suite below registers its own
-        // ad-hoc series definitions at collection time, which re-registering the bundle would drop.
-        function prepareOptionsWithOnly(modules: ModuleDefinition[], userOptions: AgChartOptions) {
-            const registeredModules = [...ModuleRegistry.listModules()];
-            ModuleRegistry.reset();
-            ModuleRegistry.registerModules(modules);
-            try {
-                return prepareOptions(userOptions);
-            } finally {
-                ModuleRegistry.reset();
-                ModuleRegistry.registerModules(registeredModules);
-            }
-        }
-
         it('defaults to a registered series type when no series are provided', () => {
             const options = prepareOptionsWithOnly([BarSeriesModule, CategoryAxisModule, NumberAxisModule], {
                 series: [],
@@ -739,7 +740,8 @@ describe('ChartOptions', () => {
 
             const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
             expect(errors.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(errors.some((m) => m.includes('AllGaugeModule'))).toBe(true);
+            expect(errors.some((m) => m.includes('RadialGaugeModule'))).toBe(true);
+            expect(errors.every((m) => !m.includes('LinearGaugeModule'))).toBe(true);
             expect((console.warn as Mock).mock.calls.every(([m]) => !String(m).includes('Unknown option'))).toBe(true);
         });
 
@@ -958,10 +960,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1066,10 +1082,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1174,10 +1204,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1282,10 +1326,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1387,7 +1445,21 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1494,7 +1566,21 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1615,10 +1701,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1723,10 +1823,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1831,10 +1945,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -1939,10 +2067,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2044,7 +2186,21 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2151,7 +2307,21 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2272,10 +2442,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2380,10 +2564,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2488,10 +2686,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2596,10 +2808,24 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedItem": {
                       "opacity": 0.6,
                     },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2701,7 +2927,21 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -2808,7 +3048,21 @@ describe('ChartOptions', () => {
                   "highlight": {
                     "bringToFront": true,
                     "enabled": true,
+                    "highlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
+                    },
                     "unhighlightedSeries": {
+                      "glow": {
+                        "blur": 6,
+                        "color": "rgba(0, 0, 0, 0.35)",
+                        "enabled": false,
+                        "spread": 1,
+                      },
                       "opacity": 0.2,
                     },
                   },
@@ -5799,22 +6053,43 @@ describe('ChartOptions', () => {
                     ...extra,
                 });
 
-                it('reports AxisInteractionModule for an axis click listener and strips the listener', () => {
+                it('reports the enterprise variant of the listening axis and strips the listener', () => {
                     const processed = prepareOptions(axisListenerOptions(), new Logger());
 
-                    expect(moduleMessages()).toEqual([expect.stringContaining('AxisInteractionModule')]);
+                    expect(moduleMessages()).toEqual([expect.stringContaining('CategoryAxisModule')]);
+                    expect(moduleMessages()).toEqual([expect.stringContaining("from 'ag-charts-enterprise'")]);
+                    expect(moduleMessages()).toEqual([expect.not.stringContaining('NumberAxisModule')]);
                     expect(valuesAt(processed, 'axes').some((axis) => optionAt(axis, 'listeners.click'))).toBe(false);
                 });
 
-                it('reports AxisInteractionModule for a chart-level axisDoubleClick listener', () => {
+                it('reports the enterprise variant of every axis in use for a chart-level axisDoubleClick listener', () => {
                     const options = {
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                         listeners: { axisDoubleClick: () => {} },
                     } as AgChartOptions;
                     const processed = prepareOptions(options, new Logger());
 
-                    expect(moduleMessages()).toEqual([expect.stringContaining('AxisInteractionModule')]);
+                    expect(moduleMessages()).toEqual([
+                        expect.stringMatching(
+                            /registerModules\(\[(?=[^\]]*CategoryAxisModule)(?=[^\]]*NumberAxisModule)/
+                        ),
+                    ]);
                     expect(optionAt(processed, 'listeners.axisDoubleClick')).toBeUndefined();
+                });
+
+                it('reports unregistered community axes from enterprise when a chart-level listener needs them', () => {
+                    prepareOptionsWithOnly([LineSeriesModule], {
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        axes: { x: { type: 'category' }, y: { type: 'number' } },
+                        listeners: { axisClick: () => {} },
+                    } as AgChartOptions);
+
+                    expect(moduleMessages()).toEqual([expect.stringContaining("from 'ag-charts-enterprise'")]);
+                    expect(moduleMessages()).toEqual([expect.not.stringContaining("from 'ag-charts-community'")]);
+                    const [message] = moduleMessages();
+                    for (const moduleId of ['CategoryAxisModule', 'NumberAxisModule']) {
+                        expect([...message.matchAll(new RegExp(`^\\s*${moduleId},$`, 'gm'))]).toHaveLength(2);
+                    }
                 });
 
                 it('strips the listener from a non-cartesian chart as unsupported rather than as a missing module', () => {

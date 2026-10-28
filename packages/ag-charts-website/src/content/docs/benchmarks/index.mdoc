@@ -147,6 +147,16 @@ Exercise:
 
 {% chartExampleRunner title="Large Dataset (4x 100k series)" name="large-dataset" type="generated" initialLoadDeferred=true /%}
 
+## Shadow Layering Test
+
+Exercise:
+
+- Initial load and redraw time of series whose shadows overlap: grouped bars with a shadow `spread`, overlapping areas with marker shadows, and 20 lines of 1,000 markers with shadows.
+- Hover redraw time where the highlighted marker casts a `glow` of its own, above the series, while the other markers keep their shadows.
+- Each is timed with the shadows (and, for the hover case, the glow) off and on.
+
+{% chartExampleRunner title="Shadow Layering" name="shadow-root" type="generated" initialLoadDeferred=true /%}
+
 ## Data Selection at Scale
 
 Exercises the per-datum styling pipeline when `selection.enabled` is on across every series type that supports data selection. Two scenarios per series: zoom with no selection (cold path) and zoom with ~50% of datums selected (warm path). Each series family runs as a separate example to keep a benchmark run within a single page session's memory budget.
@@ -161,7 +171,7 @@ Exercises the per-datum styling pipeline when `selection.enabled` is on across e
 
 ## Organization Chart at Scale
 
-Exercises the organization series at 1K and 10K nodes, with every director's reports in a stacked column so the chart draws roughly square: initial load, wheel zoom in to native size and back out, and drag panning once zoomed in. Each case shows how the cost grows with the node count.
+Exercises the organization series at 1K and 10K nodes, with every director's reports in a stacked column so the chart draws roughly square: initial load, wheel zoom in to native size and back out, drag panning once zoomed in, hovering across a row of cards, and clicking a director to collapse and expand it. Each case shows how the cost grows with the node count.
 
 {% chartExampleRunner title="Organization Chart at Scale" name="large-organization" type="generated" initialLoadDeferred=true /%}
 

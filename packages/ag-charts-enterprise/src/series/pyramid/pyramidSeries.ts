@@ -174,7 +174,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     override readonly navigatesWithinSeries = true;
 
-    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup', batchShadows: true }));
+    /** A legend highlight of a stage has an index but no datum, and nothing to draw on the highlight layer. */
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        return highlightedDatum?.datum == null ? undefined : super.getRedrawnDatumIndex(highlightedDatum);
+    }
+
+    private readonly itemGroup = this.contentGroup.appendChild(
+        new Group({ name: 'itemGroup', batchShadows: 'shared' })
+    );
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
     private readonly stageLabelGroup = this.contentGroup.appendChild(new Group({ name: 'stageLabelGroup' }));
 
@@ -1146,11 +1153,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 lineDashOffset,
             },
         };
-    }
-
-    /** A legend highlight carries no datum and draws no highlight copy, so the in-place stage keeps its shadow. */
-    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
-        return highlightedDatum?.datum == null ? undefined : super.getRedrawnDatumIndex(highlightedDatum);
     }
 
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

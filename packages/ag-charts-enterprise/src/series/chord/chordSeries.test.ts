@@ -21,6 +21,7 @@ import {
     expectNoAnimation,
     getSeriesAt,
     getSeriesContextNodeData,
+    getVisibleLabelNodes,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -148,7 +149,7 @@ describe('ChordSeries', () => {
     });
 
     describe('shadow highlight', () => {
-        // The hovered node is redrawn on the highlight layer; only that copy casts the node's shadow.
+        // The hovered node is redrawn on the highlight layer; its in-place copy keeps casting the node's shadow.
         it('should render a highlighted node with shadows enabled', async () => {
             const options = flowProportionShadowOptions('chord', {
                 link: SMALL_SHADOW,
@@ -594,6 +595,22 @@ describe('ChordSeries', () => {
         };
 
         chart = await createEnterpriseChart(options);
+        await compare();
+    });
+
+    it('hides node labels that would overlap a neighbour', async () => {
+        const count = 60;
+        const data = Array.from({ length: count }, (_, i) => ({
+            from: `Node ${i}`,
+            to: `Node ${(i + 1) % count}`,
+            size: i % 5 === 0 ? 12 : 1,
+        }));
+        chart = await createEnterpriseChart({
+            data,
+            series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+        } as AgChartOptions);
+
+        expect(getVisibleLabelNodes(chart)).toHaveLength(48);
         await compare();
     });
 

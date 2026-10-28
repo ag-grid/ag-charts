@@ -16,6 +16,12 @@ export const THEMES_API_PAGE_CONTENT = {
         'Themes API reference for AG Charts JavaScript Charting Library. Search for properties or browse our tree-data explorer; access types, defaults, and child properties.',
 };
 
+export const THEME_PARAMETERS_API_PAGE_CONTENT = {
+    title: 'Theme Parameters API',
+    description:
+        'Theme parameters reference for AG Charts JavaScript Charting Library. Browse every theme parameter by area, with its type, default and description.',
+};
+
 function capitaliseFirstLetter(value: string) {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }

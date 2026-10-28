@@ -66,24 +66,6 @@ export const scenarios = [
         limit: 803_000,
     },
     {
-        name: 'enterprise/AllCartesianModule',
-        package: 'ag-charts-enterprise',
-        import: '{ AllCartesianModule }',
-        limit: 623_000,
-    },
-    {
-        name: 'enterprise/AllPolarModule',
-        package: 'ag-charts-enterprise',
-        import: '{ AllPolarModule }',
-        limit: 463_000,
-    },
-    {
-        name: 'enterprise/AllMapSeriesModule',
-        package: 'ag-charts-enterprise',
-        import: '{ AllMapSeriesModule }',
-        limit: 402_000,
-    },
-    {
         name: 'enterprise/AllEnterpriseModule',
         package: 'ag-charts-enterprise',
         import: '{ AllEnterpriseModule }',

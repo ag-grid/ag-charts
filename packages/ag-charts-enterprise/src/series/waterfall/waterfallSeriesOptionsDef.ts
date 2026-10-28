@@ -15,6 +15,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
+    glowHighlightOptionsDef,
     labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelOrientationDef,
@@ -25,7 +26,6 @@ import {
     ratio,
     required,
     seriesLabelOptionsDefs,
-    shadowHighlightOptionsDef,
     shadowOptionsDefs,
     shapeHighlightOptionsDef,
     string,
@@ -90,7 +90,7 @@ export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesTh
     width: positiveNumberNonZero,
     widthRatio: ratio,
     ...commonSeriesThemeableOptionsDefs,
-    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
+    highlight: glowHighlightOptionsDef(shapeHighlightOptionsDef),
 };
 
 export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = {

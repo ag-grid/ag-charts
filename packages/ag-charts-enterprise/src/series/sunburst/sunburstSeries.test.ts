@@ -1203,7 +1203,7 @@ describe('SunburstSeries', () => {
             await compare();
         });
 
-        // The hovered sector is redrawn on the highlight layer; only that copy casts its shadow.
+        // The hovered sector is redrawn on the highlight layer; its in-place copy keeps casting its shadow.
         it('renders a hovered sector with a single shadow', async () => {
             const series = await renderSeries(shadow);
 

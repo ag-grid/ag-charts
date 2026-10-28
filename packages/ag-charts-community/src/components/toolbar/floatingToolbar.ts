@@ -13,7 +13,7 @@ import type { ChartRegistry } from '../../module/moduleContext';
 import { DraggablePopover } from '../popover/draggablePopover';
 import type { PopoverOptions } from '../popover/popover';
 import { BaseToolbar, type ToolbarButtonOptions, type ToolbarEventMap } from './toolbar';
-import type { ToolbarButtonWidget } from './toolbarButtonWidget';
+import { type ToolbarButtonWidget, getToolbarIconSize, setToolbarSizeProperties } from './toolbarButtonWidget';
 
 export interface FloatingToolbarAnchor {
     x: number;
@@ -121,6 +121,11 @@ export abstract class FloatingToolbar<
         this.popover.destroy();
     }
 
+    override setButtonSize(buttonSize: number | undefined) {
+        super.setButtonSize(buttonSize);
+        this.dragHandle.setButtonSize(buttonSize, this.defaultButtonSize);
+    }
+
     public show(options: PopoverOptions = {}) {
         this.popover.show([this.dragHandle.getElement(), this.getElement()], options);
     }
@@ -173,5 +178,11 @@ class DragHandleWidget extends NativeWidget {
         this.addChild(icon);
 
         this.elem.title = title;
+    }
+
+    public setButtonSize(buttonSize: number | undefined, defaultButtonSize: number | undefined) {
+        const iconSize = buttonSize == null ? undefined : getToolbarIconSize(buttonSize, defaultButtonSize);
+        this.toggleClass('ag-charts-floating-toolbar__drag-handle--sized', buttonSize != null);
+        setToolbarSizeProperties(this.elem, buttonSize, iconSize);
     }
 }

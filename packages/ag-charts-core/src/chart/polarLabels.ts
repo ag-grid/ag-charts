@@ -1,0 +1,162 @@
+import type { PaddingOptions } from 'ag-charts-types';
+
+import {
+    type CandidateFitTarget,
+    type CollideWith,
+    type LabelFitDescriptor,
+    type LabelObstacle,
+    type PlacedLabel,
+    type PointLabelDatum,
+    isPointLabelDatum,
+} from '../geometry/labelPlacement';
+import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
+import { BBox } from '../scene/bbox';
+import { Text } from '../scene/shape/text';
+import { type SectorBoundaries, boxOverlapsSector, sectorBox } from '../scene/util/sector';
+import type { SizedPoint } from '../types/scene';
+import type { FontOptions } from '../types/text';
+
+/** A polar series label, anchored relative to the series centre. The label solve writes back what it drew. */
+export interface PolarLabelDatum {
+    readonly x: number;
+    readonly y: number;
+    readonly text: NormalisedTextOrSegments;
+    readonly textAlign: CanvasTextAlign;
+    readonly textBaseline: CanvasTextBaseline;
+    fittedText?: NormalisedTextOrSegments;
+    fittedFontSize?: number;
+    /** Where the solve drew the label, relative to the series centre. */
+    placedX?: number;
+    placedY?: number;
+    placed?: boolean;
+}
+
+/** The room a fitted polar label fits to, or the placer that fits and positions it. */
+export type PolarFitTarget = Pick<CandidateFitTarget, 'container' | 'place'>;
+
+export interface PolarLabelStyle {
+    readonly font: FontOptions;
+    readonly boxPadding: Required<PaddingOptions>;
+    readonly fit?: (text: NormalisedTextOrSegments) => LabelFitDescriptor | undefined;
+}
+
+interface PolarPointLabelDatum extends PointLabelDatum {
+    readonly target: PolarLabelDatum;
+}
+
+function isPolarPointLabelDatum(datum: unknown): datum is PolarPointLabelDatum {
+    return isPointLabelDatum(datum) && 'target' in datum;
+}
+
+// Polar labels hold their position: they avoid nothing, yet every other label sees them.
+const FIXED_LABEL_COLLISIONS: CollideWith = {
+    marker: false,
+    label: false,
+    seriesItem: false,
+    seriesArea: false,
+    axisLabel: false,
+};
+
+/** Label solve input for labels drawn at `(centreX, centreY)` plus each label's own offset. */
+export function polarLabelData(
+    nodeData: Iterable<{ readonly label?: PolarLabelDatum; readonly point?: Readonly<SizedPoint> }>,
+    style: PolarLabelStyle,
+    centreX: number,
+    centreY: number
+): PointLabelDatum[] {
+    const data: PointLabelDatum[] = [];
+    for (const { label, point } of nodeData) {
+        if (label != null) data.push(polarLabelDatum(label, style, centreX, centreY, point));
+    }
+    return data;
+}
+
+/** Label solve input for one label drawn at `(centreX, centreY)` plus its own offset. */
+export function polarLabelDatum(
+    label: PolarLabelDatum,
+    style: PolarLabelStyle,
+    centreX: number,
+    centreY: number,
+    point?: Readonly<SizedPoint>,
+    fitTarget?: PolarFitTarget
+): PointLabelDatum {
+    const { font, boxPadding: padding, fit } = style;
+    const { text, textAlign, textBaseline } = label;
+    const anchor = { x: centreX + label.x, y: centreY + label.y, textAlign, textBaseline };
+    const glyph = Text.measureBBox(text, anchor.x, anchor.y, { font, textAlign, textBaseline });
+    const box = {
+        x: glyph.x - padding.left,
+        y: glyph.y - padding.top,
+        width: glyph.width + padding.left + padding.right,
+        height: glyph.height + padding.top + padding.bottom,
+    };
+    const labelFit = fit?.(text);
+    const fitTo = labelFit && { container: fitTarget?.container, place: fitTarget?.place, anchor, padding };
+    const datum: PolarPointLabelDatum = {
+        target: label,
+        point: { x: centreX + (point?.x ?? label.x), y: centreY + (point?.y ?? label.y), size: point?.size ?? 0 },
+        label: { text, width: box.width, height: box.height },
+        fit: labelFit,
+        anchor: undefined,
+        placement: undefined,
+        collideWith: FIXED_LABEL_COLLISIONS,
+        // A never-drop fit refuses a bare ellipsis, which a fixed label should still draw.
+        neverDrop: labelFit == null,
+        positionedCandidates: [{ box, unbounded: true, fitTo }],
+    };
+    return datum;
+}
+
+/** Records on each label whether the solve kept it, and the text and size it was fitted at. */
+export function writePlacedPolarLabels(
+    nodeData: Iterable<{ readonly label?: PolarLabelDatum }>,
+    placed: readonly PlacedLabel<unknown>[]
+) {
+    for (const { label } of nodeData) {
+        if (label != null) label.placed = false;
+    }
+    for (const { datum, text, fontSize, offsetX = 0, offsetY = 0 } of placed) {
+        if (!isPolarPointLabelDatum(datum)) continue;
+        const { target } = datum;
+        target.placed = true;
+        target.fittedText = datum.fit == null ? undefined : text;
+        target.fittedFontSize = fontSize;
+        target.placedX = target.x + offsetX;
+        target.placedY = target.y + offsetY;
+    }
+}
+
+/** The label to draw for a node, or `undefined` when the solve dropped it. */
+export function placedPolarLabel(label: PolarLabelDatum | undefined): PolarLabelDatum | undefined {
+    return label?.placed === true ? label : undefined;
+}
+
+/** Room the placed labels take, relative to the series centre. */
+export function polarLabelsBBox(
+    placed: readonly PlacedLabel<unknown>[],
+    centreX: number,
+    centreY: number
+): BBox | null {
+    if (placed.length === 0) return null;
+    return BBox.merge(placed.map(({ x, y, width, height }) => new BBox(x - centreX, y - centreY, width, height)));
+}
+
+/** Centre-relative sectors as `seriesItem` obstacles in the label solve's space. */
+export function polarSectorObstacles(
+    sectors: Iterable<SectorBoundaries>,
+    centreX: number,
+    centreY: number
+): LabelObstacle[] {
+    const obstacles: LabelObstacle[] = [];
+    for (const sector of sectors) {
+        const box = sectorBox(sector).translate(centreX, centreY);
+        obstacles.push({
+            kind: 'custom',
+            box,
+            overlaps: ({ x, y, width, height }) =>
+                boxOverlapsSector({ x: x - centreX, y: y - centreY, width, height }, sector),
+            category: 'seriesItem',
+        });
+    }
+    return obstacles;
+}

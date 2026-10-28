@@ -17,6 +17,7 @@ import {
     deproxy,
     expectWarningMessages,
     expectWarningsCalls,
+    getVisibleLabelNodes,
     hoverAction,
     resetMockConsole,
     setupMockCanvas,
@@ -154,8 +155,9 @@ describe('MapShapeSeries', () => {
             };
 
             // The cutout erases the shape beneath the highlight before it is drawn again, so a
-            // translucent highlight fill makes the erase visible and the shadow must survive it.
-            const cutoutOptions = (seriesShadow?: typeof SMALL_SHADOW): AgChartOptions => ({
+            // translucent highlight fill makes the erase visible. The in-place copy keeps casting the series
+            // shadow, and the highlight copy casts only the glow.
+            const cutoutOptions = (seriesShadow?: typeof SMALL_SHADOW, glow?: object): AgChartOptions => ({
                 ...shadowOptions(seriesShadow),
                 highlight: { drawingMode: 'cutout' },
                 series: [
@@ -163,27 +165,28 @@ describe('MapShapeSeries', () => {
                         type: 'map-shape',
                         idKey: 'name',
                         shadow: seriesShadow,
-                        highlight: { highlightedItem: { fill: 'blue', fillOpacity: 0.4 } },
+                        highlight: { highlightedItem: { fill: 'blue', fillOpacity: 0.4, glow } },
                     },
                 ],
             });
 
-            it('draws the highlighted shape with its shadow after the cutout', async () => {
+            it('draws the highlighted shape without the series shadow after the cutout', async () => {
                 await highlightFirstShape(cutoutOptions(SMALL_SHADOW));
 
                 const [highlighted, ...others] = collectShapes(chart.series[0].highlightNodeGroup);
                 expect(others).toEqual([]);
                 expect(highlighted.drawingMode).toBe('cutout');
-                expect(highlighted.fillShadow).toMatchObject(SMALL_SHADOW);
+                expect(highlighted.fillShadow).toBeUndefined();
                 await compare();
             });
 
-            it('draws the highlighted shape without a shadow after the cutout when no shadow is set', async () => {
-                await highlightFirstShape(cutoutOptions());
+            it('draws the highlighted shape with its glow after the cutout', async () => {
+                const glow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', blur: 6 };
+                await highlightFirstShape(cutoutOptions(SMALL_SHADOW, glow));
 
                 const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);
                 expect(highlighted.drawingMode).toBe('cutout');
-                expect(highlighted.fillShadow?.enabled).toBe(false);
+                expect(highlighted.fillShadow).toMatchObject({ enabled: true, xOffset: 0, yOffset: 0, blur: 6 });
                 await compare();
             });
         });
@@ -266,6 +269,42 @@ describe('MapShapeSeries', () => {
     });
 
     describe('Labels', () => {
+        it('leaves marker labels free to overlap region labels', async () => {
+            const markers = Array.from({ length: 24 }, (_, i) => ({
+                name: `Marker ${i}`,
+                lat: 50.5 + (i % 6) * 1.3,
+                lon: -5.5 + Math.floor(i / 6) * 1.6,
+            }));
+            const visibleMarkerLabels = async (regionLabelKey: string | undefined) => {
+                chart = await createEnterpriseChart({
+                    data: ukData,
+                    topology: ukTopology,
+                    series: [
+                        { type: 'map-shape', idKey: 'name', labelKey: regionLabelKey },
+                        {
+                            type: 'map-marker',
+                            data: markers,
+                            latitudeKey: 'lat',
+                            longitudeKey: 'lon',
+                            labelKey: 'name',
+                            label: { enabled: true },
+                            size: 4,
+                        },
+                    ],
+                } as AgChartOptions);
+                const regionLabels = getVisibleLabelNodes(chart, 0).length;
+                const markerLabels = getVisibleLabelNodes(chart, 1).map(({ text, x, y }) => ({ text, x, y }));
+                chart.destroy();
+                return { regionLabels, markerLabels };
+            };
+
+            const alone = await visibleMarkerLabels(undefined);
+            const withRegionLabels = await visibleMarkerLabels('name');
+            expect(alone.regionLabels).toBe(0);
+            expect(withRegionLabels.regionLabels).toBeGreaterThan(0);
+            expect(withRegionLabels.markerLabels).toEqual(alone.markerLabels);
+        });
+
         it.each([12, 18, 24])('should render short labels at font size %s', async (fontSize) => {
             const options: AgChartOptions = {
                 data: usData,

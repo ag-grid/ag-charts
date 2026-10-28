@@ -15,7 +15,7 @@ import {
     labelOrientationDef,
     labelPlacementStyleDefs,
     lineDashOptionsDef,
-    multiSeriesShadowHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     number,
     positiveNumber,
     positiveNumberNonZero,
@@ -33,7 +33,7 @@ import {
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgBarSeriesStyle, AgBarSeriesThemeableOptions } from 'ag-charts-types';
 
-const highlight = multiSeriesShadowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef);
+const highlight = multiSeriesGlowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef);
 
 const barStyler = callbackDefs<AgBarSeriesStyle>({
     ...fillOptionsDef,

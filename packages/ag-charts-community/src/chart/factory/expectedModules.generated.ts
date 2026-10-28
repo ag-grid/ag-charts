@@ -22,12 +22,6 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'StandaloneChartModule',
     },
     {
-        type: 'chart',
-        name: 'topology',
-        moduleId: 'AllMapSeriesModule',
-        enterprise: true,
-    },
-    {
         type: 'axis',
         name: 'angle-category',
         moduleId: 'AngleCategoryAxisModule',
@@ -369,31 +363,6 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'plugin',
-        name: 'axis-interaction',
-        moduleId: 'AxisInteractionModule',
-        chartTypes: ['cartesian'],
-        enterprise: true,
-        contributes: [
-            {
-                path: 'axes[].listeners.click',
-                options: callback,
-            },
-            {
-                path: 'axes[].listeners.doubleClick',
-                options: callback,
-            },
-            {
-                path: 'listeners.axisClick',
-                options: callback,
-            },
-            {
-                path: 'listeners.axisDoubleClick',
-                options: callback,
-            },
-        ],
-    },
-    {
-        type: 'plugin',
         name: 'background-regions',
         moduleId: 'BackgroundRegionsModule',
         chartTypes: ['cartesian'],
@@ -430,12 +399,6 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
                 options: object,
             },
         ],
-    },
-    {
-        type: 'plugin',
-        name: 'cross-lines-dom-proxy',
-        moduleId: 'AllCommunityModule',
-        chartTypes: ['cartesian', 'polar'],
     },
     {
         type: 'plugin',
@@ -548,11 +511,6 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'plugin',
-        name: 'series-area',
-        moduleId: 'SeriesAreaModule',
-    },
-    {
-        type: 'plugin',
         name: 'statusBar',
         moduleId: 'StatusBarModule',
         chartTypes: ['cartesian'],
@@ -586,39 +544,6 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
             {
                 path: 'zoom',
                 options: object,
-            },
-        ],
-    },
-    {
-        type: 'plugin',
-        name: 'zoom-base',
-        moduleId: 'QuadrantChartModule',
-    },
-    {
-        type: 'axis:plugin',
-        name: 'axisInsetValue',
-        moduleId: 'AxisInsetValueModule',
-        chartTypes: ['cartesian'],
-        enterprise: true,
-        axisTypes: ['category'],
-        contributes: [
-            {
-                path: 'axes[].axisInsetValue',
-                axisTypes: ['category'],
-            },
-        ],
-    },
-    {
-        type: 'axis:plugin',
-        name: 'axisSelectedBand',
-        moduleId: 'AxisSelectedBandModule',
-        chartTypes: ['cartesian'],
-        enterprise: true,
-        axisTypes: ['category'],
-        contributes: [
-            {
-                path: 'axes[].axisSelectedBand',
-                axisTypes: ['category'],
             },
         ],
     },
@@ -729,8 +654,75 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'preset',
+        name: 'sparkline',
+        moduleId: 'SparklinePresetModule',
+    },
+    {
+        type: 'plugin',
+        name: 'axis-interaction',
+        moduleId: 'CategoryAxisModule',
+        alternativeModuleIds: [
+            'GroupedCategoryAxisModule',
+            'LogAxisModule',
+            'NumberAxisModule',
+            'OrdinalTimeAxisModule',
+            'TimeAxisModule',
+            'UnitTimeAxisModule',
+        ],
+        chartTypes: ['cartesian'],
+        enterprise: true,
+        contributes: [
+            {
+                path: 'axes[].listeners.click',
+                options: callback,
+            },
+            {
+                path: 'axes[].listeners.doubleClick',
+                options: callback,
+            },
+            {
+                path: 'listeners.axisClick',
+                options: callback,
+            },
+            {
+                path: 'listeners.axisDoubleClick',
+                options: callback,
+            },
+        ],
+    },
+    {
+        type: 'axis:plugin',
+        name: 'axisInsetValue',
+        moduleId: 'FinancialChartModule',
+        chartTypes: ['cartesian'],
+        enterprise: true,
+        axisTypes: ['category'],
+        contributes: [
+            {
+                path: 'axes[].axisInsetValue',
+                axisTypes: ['category'],
+            },
+        ],
+    },
+    {
+        type: 'axis:plugin',
+        name: 'axisSelectedBand',
+        moduleId: 'FinancialChartModule',
+        chartTypes: ['cartesian'],
+        enterprise: true,
+        axisTypes: ['category'],
+        contributes: [
+            {
+                path: 'axes[].axisSelectedBand',
+                axisTypes: ['category'],
+            },
+        ],
+    },
+    {
+        type: 'preset',
         name: 'gauge-preset',
-        moduleId: 'AllGaugeModule',
+        moduleId: 'LinearGaugeModule',
+        alternativeModuleIds: ['RadialGaugeModule'],
         enterprise: true,
         apiName: 'AgCharts.createGauge',
     },
@@ -747,11 +739,6 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'QuadrantChartModule',
         enterprise: true,
         apiName: 'AgCharts.createQuadrantChart',
-    },
-    {
-        type: 'preset',
-        name: 'sparkline',
-        moduleId: 'SparklinePresetModule',
     },
     {
         type: 'preset',

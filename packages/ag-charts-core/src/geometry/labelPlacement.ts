@@ -4,7 +4,15 @@ import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import type { NormalisedChartLabelCollisionOptions } from '../options/normalised/normalisedLabelOptions';
 import { type TextMeasurer, cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
-import { appendEllipsis, graphemeSegments, lineHeightAtSize, toFontString, toTextString } from '../text/textUtil';
+import {
+    appendEllipsis,
+    graphemeSegments,
+    lineHeightAtSize,
+    splitAtBreakSpaces,
+    toFontString,
+    toTextString,
+    trimBreakSpacesEnd,
+} from '../text/textUtil';
 import {
     type LabelFit,
     type RegionAlign,
@@ -156,6 +164,19 @@ export interface CandidateFitTarget {
     readonly padding: Required<PaddingOptions>;
     /** Font the text is fitted and measured with; defaults to the descriptor's own when unset. */
     readonly font?: FontOptions;
+    /**
+     * Fits and positions the text itself, for a shape whose room depends on where the block lands. The
+     * candidate is drawn where it says, aligned as {@link anchor} is; `undefined` turns the candidate away.
+     */
+    readonly place?: (fit: LabelFitDescriptor) => PlacedFit | undefined;
+}
+
+/** What a {@link CandidateFitTarget.place} fitted: the text, the point it is drawn at, and any reduced size. */
+export interface PlacedFit {
+    readonly text: NormalisedTextOrSegments;
+    readonly x: number;
+    readonly y: number;
+    readonly fontSize?: number;
 }
 
 /**
@@ -181,6 +202,8 @@ export interface PositionedLabelCandidate {
      * fallback that only overflows its {@link region}; when unset, all overflow ranks alike.
      */
     readonly visibleRegion?: BoxBounds;
+    /** Neither {@link region} nor the shared `bounds` contain the box: a label the series fixes in place wherever it lands. */
+    readonly unbounded?: boolean;
     /**
      * Axis the box may move a few pixels along to clear an obstacle without leaving the placement it names;
      * across any other axis it stays on its anchor. Unset moves along neither.
@@ -188,6 +211,8 @@ export interface PositionedLabelCandidate {
     readonly slideAxis?: 'x' | 'y';
     /** Render rotation in degrees (engine convention, matching {@link PlacedLabel.rotation}); `0`/unset is upright. */
     readonly rotation?: number;
+    /** Collides as its rotated rectangle rather than that rectangle's axis-aligned footprint. */
+    readonly orientedCollision?: boolean;
     /** Fit inputs for this candidate; used only when the datum carries a {@link PointLabelDatum.fit}. */
     readonly fitTo?: CandidateFitTarget;
     /**
@@ -959,9 +984,10 @@ function obstacleOverlapsCandidateRect(o: LabelObstacle, testBox: BoxBounds): bo
     }
 }
 
-/** A label fitted inside its own shape collides by its rotated rectangle, not its wider axis-aligned box. */
+/** A rotated label fitted inside its own shape, or opting in, collides by its rotated rectangle, not its axis-aligned box. */
 function collidesByRotatedRect(candidate: PositionedLabelCandidate | undefined, rotation: number | undefined) {
-    return candidate?.fitTo?.shape != null && rotation != null && rotation % 90 !== 0;
+    if (rotation == null || rotation % 90 === 0) return false;
+    return candidate?.orientedCollision === true || candidate?.fitTo?.shape != null;
 }
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
@@ -1850,7 +1876,7 @@ function widestWordWidth(lines: string[], wrapping: FitWrapping): number {
     const measurer = cascadeMeasurer!;
     let widest = 0;
     for (const line of lines) {
-        for (const unit of wrapping === 'never' ? [line.trimEnd()] : line.split(' ')) {
+        for (const unit of wrapping === 'never' ? [trimBreakSpacesEnd(line)] : splitAtBreakSpaces(line)) {
             if (unit !== '') {
                 widest = Math.max(widest, measurer.textWidth(unit));
             }
@@ -1868,7 +1894,9 @@ function narrowestLeadWidth(lines: string[], wrapping: FitWrapping): number {
     let narrowest = Infinity;
     for (const line of lines) {
         // Only the line's leading word can survive a truncation, so the rest of the line is moot.
-        const lead = (wrapping === 'never' ? [line.trimEnd()] : line.split(' ')).find((unit) => unit !== '');
+        const lead = (wrapping === 'never' ? [trimBreakSpacesEnd(line)] : splitAtBreakSpaces(line)).find(
+            (unit) => unit !== ''
+        );
         if (lead == null) continue;
         const first = measurer.textWidth(appendEllipsis(graphemeSegments(lead)[0]));
         narrowest = Math.min(narrowest, measurer.textWidth(lead), first);
@@ -2564,7 +2592,18 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         candidateBox.height = c.box.height;
         candidateStack = undefined;
         let overflowing = false;
-        if (d.stack != null && fit != null && c.fitTo != null) {
+        let placedDX = 0;
+        let placedDY = 0;
+        if (fit != null && c.fitTo?.place != null) {
+            // The placer walks its own font sizes, so a trial size has nothing to add.
+            if (trial || !fitByPlacer(fit, c.fitTo.place)) continue;
+            ({ text, dropped, shrink } = fittedLabel);
+            writeCandidateLabel(c.fitTo.padding, fit.font);
+            ({ width, height } = candidateLabel);
+            resizeCandidateBox(c, width, height, placedFitPoint);
+            placedDX = placedFitPoint.x - c.fitTo.anchor.x;
+            placedDY = placedFitPoint.y - c.fitTo.anchor.y;
+        } else if (d.stack != null && fit != null && c.fitTo != null) {
             // A stack steps through its own sizes, so a trial size has nothing to add.
             if (trial || !fitStackToCandidate(d.stack, c.fitTo, threshold)) continue;
             ({ text, dropped, shrink } = fittedLabel);
@@ -2586,7 +2625,8 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         flushCandidateBox(rawRegion, c.region != null && c.flushToRegion !== false);
         let { x, y } = candidateBox;
         const { width: cw, height: ch } = candidateBox;
-        let { x: offsetX, y: offsetY } = flushOffset;
+        let offsetX = flushOffset.x + placedDX;
+        let offsetY = flushOffset.y + placedDY;
         inflateBoxInto(queryBox, candidateBox, inflate);
         const rotation = c.rotation ?? 0;
         candidateOriented = collidesByRotatedRect(c, rotation);
@@ -2594,7 +2634,7 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
             const grow = 2 * threshold;
             writeOrientedRect(candidateRect, x + cw / 2, y + ch / 2, width + grow, height + grow, rotation);
         }
-        const contained = boxContains(region, x, y, cw, ch);
+        const contained = c.unbounded === true || boxContains(region, x, y, cw, ch);
         // An overflowing stack ranks with the overflowing candidates, below any that fit truncated.
         const placeable = contained && !overflowing;
         let clear = placeable && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate);
@@ -2800,10 +2840,46 @@ function fitStackToCandidate(stack: LabelStack, fitTo: CandidateFitTarget, thres
     return true;
 }
 
-/** Rebuilds {@link candidateBox} as the rotated footprint of a re-fitted box, recentred on its anchor. */
-function resizeCandidateBox(c: PositionedLabelCandidate, boxWidth: number, boxHeight: number) {
+// Where the current candidate's placer drew its text, and that point carrying the candidate's alignment.
+const placedFitPoint: Point = { x: 0, y: 0 };
+const placedFitAnchor: { x: number; y: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline } = {
+    x: 0,
+    y: 0,
+    textAlign: 'center',
+    textBaseline: 'middle',
+};
+
+/** Fits into {@link fittedLabel} through the candidate's own placer; `false` when it turned the candidate away. */
+function fitByPlacer(fit: LabelFitDescriptor, place: (fit: LabelFitDescriptor) => PlacedFit | undefined): boolean {
+    const placed = place(fit);
+    if (placed == null || isErased(placed.text)) return false;
+    const size = measureLabelText(placed.text, fontWithSize(fit.font, placed.fontSize));
+    fittedLabel.text = placed.text;
+    fittedLabel.width = size.width;
+    fittedLabel.height = size.height;
+    fittedLabel.dropped = Math.max(0, textLength(fit.text) - textLength(placed.text));
+    fittedLabel.shrink = shrinkRatio(size, positionedFitSource ?? measureLabelText(fit.text, fit.font));
+    fittedLabel.fontSize = placed.fontSize;
+    fittedLabel.maxWidth = Infinity;
+    fittedLabel.maxHeight = Infinity;
+    placedFitPoint.x = placed.x;
+    placedFitPoint.y = placed.y;
+    return true;
+}
+
+/**
+ * Rebuilds {@link candidateBox} as the rotated footprint of a re-fitted box, recentred on its anchor, or on
+ * `at` aligned as the anchor is when the candidate's placer moved it.
+ */
+function resizeCandidateBox(c: PositionedLabelCandidate, boxWidth: number, boxHeight: number, at?: Point) {
     const { anchor, padding, centreFor } = c.fitTo!;
-    if (centreFor == null) {
+    if (at != null) {
+        placedFitAnchor.x = at.x;
+        placedFitAnchor.y = at.y;
+        placedFitAnchor.textAlign = anchor.textAlign;
+        placedFitAnchor.textBaseline = anchor.textBaseline;
+        writeLabelBoxCentre(boxCentre, placedFitAnchor, boxWidth, boxHeight, padding);
+    } else if (centreFor == null) {
         writeLabelBoxCentre(boxCentre, anchor, boxWidth, boxHeight, padding);
     } else {
         const centre = centreFor(boxWidth, boxHeight);

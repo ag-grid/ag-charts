@@ -36,11 +36,12 @@ const toChartParamValue = (property: string, value: unknown): unknown => {
 
     if (isPlainObject(value)) {
         // A reference passes through; a composite's members need the same
-        // treatment. `style` has no AG Charts equivalent, so it is dropped.
+        // treatment. `style` has no AG Charts equivalent, so it is dropped, as
+        // is a width reference, which AG Charts cannot take: unset, it keeps its stock value.
         if ('ref' in value) return value;
         return Object.fromEntries(
             Object.keys(value)
-                .filter((key) => key !== 'style')
+                .filter((key) => key !== 'style' && !(key === 'width' && isPlainObject(value[key])))
                 .map((key) => [key, toChartParamValue(key === 'width' ? `${key}Width` : key, value[key])])
         );
     }

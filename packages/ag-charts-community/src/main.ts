@@ -18,7 +18,6 @@ export { StandaloneChartModule } from './chart/standaloneChartModule';
 
 export { CrossLinesModule } from './chart/crossline/crossLinesModule';
 export { LegendModule } from './chart/legend/legendModule';
-export { SeriesAreaModule } from './chart/series-area/seriesAreaModule';
 export { AreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 export { BarSeriesModule } from './chart/series/cartesian/barSeriesModule';
 export { BubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
@@ -38,10 +37,6 @@ export { GroupedCategoryAxisModule } from './module/axis-modules/groupedCategory
 export { UnitTimeAxisModule } from './module/axis-modules/unitTimeAxisModule';
 
 export { AllCommunityModule } from './module-bundles/all';
-export { AllCartesianModule } from './module-bundles/cartesian';
-export { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
-export { AllCartesianSeriesModule } from './module-bundles/cartesian-series';
-export { AllPolarModule } from './module-bundles/polar';
 
 // Undocumented APIs used by Integrated Charts.
 export { AgChartsCommunityModule } from './module-bundles/integrated';

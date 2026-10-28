@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaLabelColorPickerHue: 'Färgton',
     ariaLabelColorPickerMultiColor: 'Flera färger',
     ariaLabelColorPickerPalette: 'Palett',
+    ariaLabelCrossLine: '${label}, Korslinje ${index}[number] av ${count}[number]',
     ariaLabelFinancialCharts: 'Finansiella diagram',
     ariaLabelGaugeTarget: 'Mål',
     ariaLabelGaugeValue: 'Värde',

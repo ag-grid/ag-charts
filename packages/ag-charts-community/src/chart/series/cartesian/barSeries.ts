@@ -1881,8 +1881,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const contextStyles = contextNodeData.styles;
 
         function updateDatumNode(rect: BarShape, datum: BarNodeDatum): void {
-            const style =
-                datum.style ?? contextStyles[series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            // Resolved only when the datum has no style of its own, and then shared with the shadow.
+            const highlightState =
+                datum.style === undefined
+                    ? series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
+                    : undefined;
+            const style = datum.style ?? contextStyles[highlightState ?? HighlightState.None];
 
             rect.setStyleProperties(style, fillBBox);
 
@@ -1899,7 +1903,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 datum.bottomLeftCornerRadius ? cornerRadius : 0,
                 visible,
                 datum.crisp,
-                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex),
+                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex, highlightState),
                 direction,
                 datum.featherRatio,
                 crispCentreDirection

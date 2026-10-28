@@ -1,7 +1,6 @@
 import type {
     DynamicContext,
     GradientParams,
-    LabelFit,
     NormalisedCollisionFreeSeriesLabelOptions,
     NormalisedColorType,
     NormalisedDonutInnerLabelOptions,
@@ -9,6 +8,11 @@ import type {
     NormalisedDonutSeriesStyle,
     NormalisedPieSeriesStyle,
     NormalisedTextOrSegments,
+    PlacedLabel,
+    PointLabelDatum,
+    PolarFitTarget,
+    PolarLabelDatum,
+    PolarLabelStyle,
     SectorBoundaries,
 } from 'ag-charts-core';
 import {
@@ -37,40 +41,32 @@ import {
     canRenderTextOffscreen,
     clockwiseAngles,
     cycledValue,
-    drawnLineHeight,
     extractDomain,
-    findLargestFontSizeDescending,
     fitCircleToLabels,
     fitLabelTextAutoSize,
-    fitLabelTextToRegion,
     fontWithSize,
     formatValue,
     gridCellSize,
-    hasRealChars,
-    insetFitRegion,
     isBoxInSector,
-    isErased,
     isGradientFill,
-    isPointInSector,
     isStringFillArray,
     jsonDiff,
-    keptCharacters,
-    measureLabelText,
     mergeDefaults,
     modulus,
     normalizeAngle180,
     normalizeAngle360,
-    probedFitRegion,
-    regionTextCapacity,
+    placedPolarLabel,
+    polarLabelDatum,
+    polarSectorObstacles,
     resolveLabelFit,
-    resolveMinimumFontSize,
     sectorBox,
     sectorEdges,
+    sectorLabelPlacer,
     toNumber,
     toPlainText,
     toRadians,
-    withFitRegion,
     wrapTextOrSegments,
+    writePlacedPolarLabels,
 } from 'ag-charts-core';
 import type {
     AgDonutCalloutLineItemStylerParams,
@@ -86,6 +82,7 @@ import type {
     PaddingOptions,
 } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { DataController } from '../../data/dataController';
@@ -101,14 +98,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandLabelBoxExtent, expandLabelPadding, labelHasBox } from '../../label';
-import {
-    type BlockSize,
-    fitLabelToContainer,
-    fitLabelToContainerAutoSize,
-    fitSectorLabelRect,
-    getLabelStyles,
-    sectorLabelRoom,
-} from '../../labelUtil';
+import { fitLabelToContainer, getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -132,149 +122,9 @@ import {
     PolarSeries,
 } from './polarSeries';
 
-/** Extra clearance (px) retried when a placement the region accepted still overruns the wedge once drawn. */
-const WEDGE_RETRY_INSETS = [1, 2, 4, 8];
-// Clearance retries plus the passes the block height needs to settle, which is one per line it ends with.
-const MAX_WEDGE_ATTEMPTS = 8;
-// Block and wedge heights within this many px are the same box; the fit rounds bands to whole lines.
-const HEIGHT_CONVERGED = 1;
-
-/** A sector label placed in its wedge: the fitted text, and where the text node has to draw it. */
-interface PlacedSectorLabel {
-    text: NormalisedTextOrSegments;
-    x: number;
-    y: number;
-    fontSize?: number;
-}
-
-/** Lays a candidate out on the label's own node, so the fit reads the boxes the visibility gate will judge. */
-function wedgeLabelLayout(node: Text) {
-    return (placed: PlacedSectorLabel, font: FontOptions) => {
-        node.text = placed.text;
-        node.x = placed.x;
-        node.y = placed.y;
-        node.setFont(font);
-        return node.getLineBoxes();
-    };
-}
-
-function sameBlock(a: BlockSize | undefined, b: BlockSize | undefined) {
-    if (a == null || b == null) return a === b;
-    return a.width === b.width && a.height === b.height;
-}
-
-/** The wedge's usable region depends on the line height, so every candidate size is placed and probed afresh. */
-function fitSectorLabelToWedge(
-    text: NormalisedTextOrSegments,
-    fit: LabelFit,
-    font: FontOptions,
-    anchor: Point,
-    sector: SectorBoundaries,
-    padding: Required<PaddingOptions>,
-    layout: (placed: PlacedSectorLabel, font: FontOptions) => BBox[]
-): PlacedSectorLabel {
-    const place = (sized: FontOptions, atFloor: boolean, inset: number, block: BlockSize | undefined) => {
-        const lineHeight = drawnLineHeight(sized);
-        const rect = fitSectorLabelRect(anchor, sector, lineHeight, block);
-        const region = insetFitRegion(
-            probedFitRegion(
-                { x: rect.centerX, y: rect.centerY },
-                (x, y) => isPointInSector(x, y, sector),
-                Math.abs(sector.outerRadius) * 2
-            ),
-            Math.max(padding.left, padding.right) + inset,
-            Math.max(padding.top, padding.bottom) + inset
-        );
-        // The region bounds the text the same way the wedge does but for the block's own place in it,
-        // padding included, so it refuses what the wedge-wide bounds let through — still before any layout.
-        if (!atFloor && measureLabelText(text, sized).width > regionTextCapacity(region, lineHeight)) {
-            return undefined;
-        }
-        // Above the floor the text must fit whole, so a truncating size is rejected and the search steps down.
-        const policy = atFloor ? fit : { ...fit, overflowStrategy: 'hide' as const };
-        // An anchored rect is the block's place, so the fit must not take a horizontal offset to exploit
-        // room on one side: the text would be wrapped for bands it is then not drawn in.
-        const fitted = fitLabelTextToRegion(text, withFitRegion(policy, region), sized, rect.anchored);
-        return {
-            placed: { text: fitted.text, x: rect.centerX + fitted.offsetX, y: rect.centerY + fitted.offsetY },
-            rectHeight: rect.height,
-        };
-    };
-    /**
-     * The wedge is sized for a block before its text has wrapped, and the region samples the wedge rather
-     * than proving it, so each placement is measured on the node: one that overruns the wedge is re-fitted
-     * with more clearance, and one whose block is not the size the wedge was sized for is placed again
-     * for the size it turned out to be — a block only earns the anchor, or the band that suits it, once
-     * its own width and height are known.
-     */
-    const placeInWedge = (sized: FontOptions, atFloor: boolean) => {
-        let inset = 0;
-        let block: BlockSize | undefined;
-        const first = place(sized, atFloor, inset, block);
-        if (first == null) {
-            return { placed: { text: '', x: 0, y: 0 }, inWedge: false };
-        }
-        let { placed, rectHeight } = first;
-        // Re-placing trades one shape of room for another, so the passes are candidates rather than
-        // refinements: the one keeping the most text wins, and only a placement drawn inside the wedge can.
-        let best: PlacedSectorLabel | undefined;
-        let bestKept = 0;
-        for (let attempt = 0; attempt < MAX_WEDGE_ATTEMPTS && hasRealChars(placed.text); attempt += 1) {
-            const boxes = layout(placed, sized);
-            const inWedge = boxes.every((box) => isBoxInSector(box, sector));
-            const kept = inWedge ? keptCharacters(placed.text) : 0;
-            // A later pass ties only by placing the same text better, so equal candidates prefer it.
-            if (kept > 0 && kept >= bestKept) {
-                best = placed;
-                bestKept = kept;
-            }
-            const drawn = BBox.merge(boxes);
-            if (inWedge && block != null && Math.abs(drawn.height - rectHeight) < HEIGHT_CONVERGED) {
-                break;
-            }
-            const nextInset = inWedge ? inset : WEDGE_RETRY_INSETS[Math.min(attempt, WEDGE_RETRY_INSETS.length - 1)];
-            const nextBlock = inWedge ? { width: drawn.width, height: drawn.height } : block;
-            // Nothing the next placement reads has moved, so it would fit the same text in the same place.
-            if (nextInset === inset && sameBlock(nextBlock, block)) {
-                break;
-            }
-            inset = nextInset;
-            block = nextBlock;
-            const next = place(sized, atFloor, inset, block);
-            if (next == null) {
-                break;
-            }
-            ({ placed, rectHeight } = next);
-        }
-        // A wedge too narrow for one character leaves a bare ellipsis, which reads as an artefact rather
-        // than a label, so it is dropped outright instead of appearing and vanishing as the chart resizes.
-        const chosen = best ?? placed;
-        const kept = hasRealChars(chosen.text) ? chosen.text : '';
-        return { placed: { ...chosen, text: kept }, inWedge: best != null };
-    };
-    const floor = resolveMinimumFontSize(fit.minimumFontSize, font.fontSize);
-    if (floor >= font.fontSize) return placeInWedge(font, true).placed;
-    // Wedge clearance is not monotonic in the font size — a smaller size can reflow the text into a wider
-    // block — so the ladder is scanned down rather than bisected, which could step past the largest fit.
-    // Measured at the smallest line height in play, so it bounds the room at every size on the ladder.
-    const room = sectorLabelRoom(anchor, sector, drawnLineHeight(fontWithSize(font, floor)));
-    const found = findLargestFontSizeDescending(floor, font.fontSize, (fontSize, atFloor) => {
-        const sized = fontWithSize(font, fontSize);
-        // The wedge cannot hold more text than it has room for, whether measured by the area the text
-        // covers or by the lines the wedge can stack, so an oversized rung goes without being placed.
-        const lineHeight = drawnLineHeight(sized);
-        const advance = measureLabelText(text, sized).width;
-        if (!atFloor && (advance * lineHeight > room.area || advance > room.capacityAt(lineHeight))) {
-            return undefined;
-        }
-        const { placed, inWedge } = placeInWedge(sized, atFloor);
-        if (!inWedge || isErased(placed.text)) return undefined;
-        return { ...placed, fontSize: fontSize === font.fontSize ? undefined : fontSize };
-    });
-    return found ?? placeInWedge(fontWithSize(font, floor), true).placed;
-}
-
 const twoPi = 2 * Math.PI;
+
+const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
 /** Clearance kept between callout labels, and between a label and the sectors it is pushed away from. */
 const CALLOUT_LABEL_MIN_SPACING = 4;
@@ -470,6 +320,15 @@ export class DonutSeries extends PolarSeries<
 
     surroundingRadius?: number = undefined;
 
+    // Built only by the label solve: node data is remapped on every update, so it cannot carry the writeback.
+    private labelTargets: { readonly label: PolarLabelDatum }[] = [];
+    private readonly sectorLabels = new Map<number, PolarLabelDatum>();
+    private readonly calloutLabels = new Map<number, PolarLabelDatum>();
+    private readonly calloutProbeText = new Text();
+    private innerLabelTargets: PolarLabelDatum[] = [];
+    private titleLabel: PolarLabelDatum | undefined;
+    private labelLayout = '';
+
     override readonly supportsDataTransactions = false;
     override readonly snapsSeriesAreaOrigin = false;
     override readonly seriesAreaLayout = layoutDonutSeries;
@@ -500,6 +359,9 @@ export class DonutSeries extends PolarSeries<
 
         this.phantomGroup.opacity = 0.2;
         this.phantomHighlightGroup.opacity = 0.2;
+
+        // The inner circle is the series' own fill and draws beneath the root's shadows; the sector shadows must stay above it.
+        this.itemGroup.batchShadows = true;
 
         this.innerLabelsGroup.pointerEvents = PointerEvents.None;
     }
@@ -658,6 +520,19 @@ export class DonutSeries extends PolarSeries<
             DebugMetrics.record(`${this.type}:nodeData`, nodeData.length);
         }
         this.nodeDataRefresh = false;
+    }
+
+    /**
+     * A ring linked to the hovered legend item through `legendItemKey` redraws its own matching sector on its
+     * highlight layer, as `updateNodes` shows it whenever the series is highlighted, legend-linked or not.
+     */
+    protected override getRedrawnDatumIndex(highlightedDatum: HighlightNodeDatum | undefined) {
+        const { dataModel, processedData } = this;
+        if (highlightedDatum == null || dataModel == null || processedData == null) return;
+        if (!this.isDatumHighlight(highlightedDatum)) return;
+
+        const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
+        return this.isSeriesHighlighted(highlightedDatum, legendItemValues) ? highlightedDatum.datumIndex : undefined;
     }
 
     private getProcessedDataValues(dataModel: DataModel<any>, processedData: ProcessedData<any>) {
@@ -1188,6 +1063,7 @@ export class DonutSeries extends PolarSeries<
             this.labelGroup.translationY = this.centerY;
         }
 
+        this.syncLabelPlacementInputs();
         this.updateTitleNode();
 
         for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
@@ -1204,16 +1080,28 @@ export class DonutSeries extends PolarSeries<
     }
 
     private updateTitleNode() {
-        const { titleNode } = this;
+        const { titleNode, titleLabel } = this;
         const { title } = this.options;
-        const dy = this.getTitleTranslationY();
 
         titleNode.text = title.text;
         titleNode.setFont(title);
         titleNode.fill = title.color;
-        titleNode.y = Number.isFinite(dy) ? dy : 0;
-        titleNode.visible =
-            title.enabled && Number.isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleNode.getBBox());
+        titleNode.y = titleLabel?.y ?? 0;
+        titleNode.visible = title.enabled && titleLabel?.placed === true;
+    }
+
+    private syncLabelPlacementInputs() {
+        const { calloutLabel, sectorLabel, title, innerLabels = [] } = this.options;
+        this.usesPlacedLabels = calloutLabel.enabled || sectorLabel.enabled || title.enabled || innerLabels.length > 0;
+        const layout = `${this.centerX},${this.centerY},${this.radius},${this.surroundingRadius},${this.visibleSectorCount()}`;
+        if (layout === this.labelLayout) return;
+        // The labels anchor on the circle, which lays out without rebuilding the node data.
+        this.labelLayout = layout;
+        this.invalidateLabelPlacement();
+    }
+
+    private visibleSectorCount() {
+        return this.ctx.legendManager?.getData(this.id)?.filter((d) => d.enabled).length ?? 0;
     }
 
     private updateNodeMidPoint() {
@@ -1380,6 +1268,7 @@ export class DonutSeries extends PolarSeries<
         if (!dataModel || !processedData) return;
         const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
+        this.resetRedrawnIndex();
 
         const drawingMode = this.getChartHighlightDrawingMode();
         this.highlightGroup.visible = visible && seriesHighlighted;
@@ -1428,7 +1317,13 @@ export class DonutSeries extends PolarSeries<
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
-            sector.fillShadow = this.resolveItemShadow(this.options.shadow, isDatumHighlighted, datum.datumIndex);
+            sector.fillShadow = this.resolveItemShadow(
+                this.options.shadow,
+                isDatumHighlighted,
+                datum.datumIndex,
+                undefined,
+                legendItemValues
+            );
             this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
         };
@@ -1471,8 +1366,10 @@ export class DonutSeries extends PolarSeries<
 
         // The labels resolve legend-linked highlights the same way the sectors do, so a label on a series that
         // does not own the hovered legend item is lit with its sector rather than dimmed as another series.
-        this.updateCalloutLineNodes(legendItemValues);
-        this.updateCalloutLabelNodes(seriesRect, legendItemValues);
+        if (!this.usesPlacedLabels) {
+            this.updateCalloutLineNodes(legendItemValues);
+            this.updateCalloutLabelNodes(seriesRect, legendItemValues);
+        }
         this.updateSectorLabelNodes(legendItemValues);
         this.updateInnerLabelNodes();
         this.updateZerosumRings();
@@ -1494,8 +1391,9 @@ export class DonutSeries extends PolarSeries<
             const calloutStrokeWidth = strokeWidth;
             const calloutColors: string[] = isStringFillArray(colors) ? colors : strokes;
             const { calloutLabel: label, outerRadius, datumIndex } = datum;
+            const placed = placedPolarLabel(this.calloutLabels.get(datumIndex)) != null;
 
-            if (label?.text != null && label.text !== '' && !label.hidden && outerRadius !== 0) {
+            if (label?.text != null && label.text !== '' && !label.hidden && outerRadius !== 0 && placed) {
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
                 line.stroke = color ?? cycledValue(calloutColors, datumIndex);
@@ -2086,65 +1984,73 @@ export class DonutSeries extends PolarSeries<
         ]);
     }
 
-    private updateCalloutLabelNodes(seriesRect: BBox, legendItemValues: string[] | undefined) {
-        const { radiusScale } = this;
-        const { calloutLabel } = this.options;
+    private hasCalloutLabel(datum: PieDonutNodeDatum): datum is Has<'calloutLabel', PieDonutNodeDatum> {
+        const label = datum.calloutLabel;
+        const outerRadius = Math.max(0, this.radiusScale.convert(datum.radius));
+        return label?.text != null && label.text !== '' && outerRadius !== 0 && !label.hidden;
+    }
 
-        const tempTextNode = new Text();
+    /** The callout label as drawn: probing it for the label solve and painting it must agree. */
+    private resolveCalloutLabel(
+        datum: Has<'calloutLabel', PieDonutNodeDatum>,
+        seriesRect: BBox | undefined,
+        isHighlight: boolean
+    ) {
+        const label = datum.calloutLabel;
+        const outerRadius = Math.max(0, this.radiusScale.convert(datum.radius));
+        const metrics = this.getCalloutLabelMetrics(datum, label, isHighlight);
+        const { style, text: fittedText, font } = metrics;
+        const { x, y } = this.getCalloutLabelAnchor(datum, label, outerRadius, metrics);
+        const align = { textAlign: label.collisionTextAlign ?? label.textAlign, textBaseline: label.textBaseline };
+
+        let text = fittedText;
+        let visible = true;
+        if (this.options.calloutLabel.avoidCollisions && seriesRect != null) {
+            const probe = this.calloutProbeText;
+            probe.text = fittedText;
+            probe.x = x;
+            probe.y = y;
+            probe.setFont(font);
+            probe.setAlign(align);
+            probe.setBoxing(style);
+            const box = probe.getBBox();
+            const { maxWidth, hasVerticalOverflow } = this.getLabelOverflow(box, seriesRect);
+            if (box.width > maxWidth) {
+                const options: WrapOptions = { font, textWrap: 'on-space', overflow: 'hide', maxWidth };
+                text = wrapTextOrSegments(fittedText, options);
+            }
+            visible = !hasVerticalOverflow;
+        }
+        return { x, y, text, font, style, align, visible };
+    }
+
+    private updateCalloutLabelNodes(seriesRect: BBox | undefined, legendItemValues: string[] | undefined) {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
         for (const text of this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel)) {
             const datum: PieDonutNodeDatum = text.unsafeClosestDatum();
-            const label = datum.calloutLabel;
-            const radius = radiusScale.convert(datum.radius);
-            const outerRadius = Math.max(0, radius);
-
-            if (label?.text == null || label.text === '' || outerRadius === 0 || label.hidden) {
+            if (!this.hasCalloutLabel(datum) || placedPolarLabel(this.calloutLabels.get(datum.datumIndex)) == null) {
                 text.visible = false;
                 continue;
             }
 
             const isDatumHighlighted =
                 seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
-
-            const metrics = this.getCalloutLabelMetrics(datum, label, isDatumHighlighted);
-            const { style, text: fittedText, font: fittedFont } = metrics;
-            const { x, y } = this.getCalloutLabelAnchor(datum, label, outerRadius, metrics);
-
-            // Detect text overflow
-            const align = {
-                textAlign: label.collisionTextAlign ?? label.textAlign,
-                textBaseline: label.textBaseline,
-            };
-            tempTextNode.text = fittedText;
-            tempTextNode.x = x;
-            tempTextNode.y = y;
-            tempTextNode.setFont(fittedFont);
-            tempTextNode.setAlign(align);
-            tempTextNode.setBoxing(style);
-            const box = tempTextNode.getBBox();
-
-            let displayText = fittedText;
-            let visible = true;
-            if (calloutLabel.avoidCollisions) {
-                const { maxWidth, hasVerticalOverflow } = this.getLabelOverflow(box, seriesRect);
-                if (box.width > maxWidth) {
-                    const options: WrapOptions = {
-                        font: fittedFont,
-                        textWrap: 'on-space',
-                        overflow: 'hide',
-                        maxWidth,
-                    };
-                    displayText = wrapTextOrSegments(fittedText, options);
-                }
-                visible = !hasVerticalOverflow;
-            }
+            const {
+                x,
+                y,
+                text: displayText,
+                font,
+                style,
+                align,
+                visible,
+            } = this.resolveCalloutLabel(datum, seriesRect, isDatumHighlighted);
 
             text.text = displayText;
             text.x = x;
             text.y = y;
-            text.setFont(fittedFont);
+            text.setFont(font);
             text.setAlign(align);
             text.setBoxing(style);
             text.fill = style.color;
@@ -2249,86 +2155,197 @@ export class DonutSeries extends PolarSeries<
         return BBox.merge(textBoxes);
     }
 
-    private updateSectorLabelNodes(legendItemValues: string[] | undefined) {
-        const { options } = this;
-        const { positionOffset, positionRatio } = this.options.sectorLabel;
-        // Fitting only engages when the user opts into wrapping/truncation; otherwise the sector text renders in
-        // full (and hides if it overruns the wedge, as before), so the default path stays untouched.
-        const sectorFit = resolveLabelFit(this.options.sectorLabel, false);
-        // The wedge holds the drawn box, not the glyphs, so the region owes the box its own extent.
-        const labelPadding = expandLabelBoxExtent(this.options.sectorLabel);
+    override getLabelData(seriesRect?: BBox): PointLabelDatum[] {
+        const data: PointLabelDatum[] = [];
+        this.labelTargets = [];
+        this.calloutLabelData(data, seriesRect);
+        this.sectorLabelData(data);
+        this.titleLabelData(data);
+        this.innerLabelData(data);
+        return data;
+    }
 
+    private pushLabel(
+        data: PointLabelDatum[],
+        label: PolarLabelDatum,
+        style: PolarLabelStyle,
+        fitTarget?: PolarFitTarget
+    ) {
+        data.push(polarLabelDatum(label, style, this.centerX, this.centerY, undefined, fitTarget));
+        this.labelTargets.push({ label });
+    }
+
+    // Callouts are spread by the layout pass before the solve, so they register where that pass left them.
+    private calloutLabelData(data: PointLabelDatum[], seriesRect: BBox | undefined) {
+        const { calloutLabels } = this;
+        calloutLabels.clear();
+        for (const datum of this.calloutNodeData) {
+            if (!this.hasCalloutLabel(datum)) continue;
+            const { x, y, text, font, style, align, visible } = this.resolveCalloutLabel(datum, seriesRect, false);
+            if (!visible) continue;
+            const label: PolarLabelDatum = { x, y, text, ...align };
+            calloutLabels.set(datum.datumIndex, label);
+            this.pushLabel(data, label, { font, boxPadding: expandLabelBoxExtent(style) });
+        }
+    }
+
+    private sectorLabelData(data: PointLabelDatum[]) {
+        const { sectorLabels } = this;
+        const { sectorLabel } = this.options;
+        sectorLabels.clear();
+        if (!sectorLabel.enabled) return;
+
+        const { positionOffset, positionRatio } = sectorLabel;
+        // Fitting only engages when the user opts into wrapping/truncation; otherwise the sector text renders in
+        // full and hides if it overruns the wedge.
+        const policy = resolveLabelFit(sectorLabel, false);
+        // The wedge holds the drawn box, not the glyphs, so the region owes the box its own extent.
+        const boxPadding = expandLabelBoxExtent(sectorLabel);
+        const innerRadius = this.radiusScale.convert(0);
+        const centred = innerRadius <= 0 && this.visibleSectorCount() === 1;
+
+        for (const datum of this.nodeData) {
+            const { outerRadius, startAngle, endAngle } = datum;
+            if (datum.sectorLabel == null || outerRadius === 0) continue;
+
+            const font = this.getLabelStyle(datum, sectorLabel, 'sectorLabel');
+            const labelRadius = innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
+            const x = centred ? 0 : datum.midCos * labelRadius;
+            const y = centred ? 0 : datum.midSin * labelRadius;
+            let fitPolicy = policy;
+            let fitTarget: PolarFitTarget | undefined;
+            if (policy != null && centred) {
+                // A centred single-sector label fits the square inscribed in the pie, like the inner label.
+                const holeExtent = outerRadius * Math.SQRT2;
+                fitTarget = { container: { width: holeExtent, height: holeExtent } };
+            } else if (policy != null) {
+                const sector = { startAngle, endAngle, innerRadius, outerRadius };
+                const place = sectorLabelPlacer({ x, y }, sector, boxPadding, font, this.centerX, this.centerY);
+                fitPolicy = { ...policy, boxed: labelHasBox(font) };
+                fitTarget = { place };
+            }
+
+            const label: PolarLabelDatum = {
+                x,
+                y,
+                text: datum.sectorLabel.text,
+                textAlign: 'center',
+                textBaseline: 'middle',
+            };
+            sectorLabels.set(datum.datumIndex, label);
+            const fit =
+                fitPolicy == null
+                    ? undefined
+                    : (text: NormalisedTextOrSegments) => ({
+                          text,
+                          policy: fitPolicy,
+                          font,
+                          boxPadding,
+                          boundByRegion: true,
+                      });
+            this.pushLabel(data, label, { font, boxPadding, fit }, fitTarget);
+        }
+    }
+
+    private titleLabelData(data: PointLabelDatum[]) {
+        this.titleLabel = undefined;
+        const { title } = this.options;
+        const y = this.getTitleTranslationY();
+        if (!title.enabled || title.text == null || title.text === '' || !Number.isFinite(y)) return;
+
+        const label: PolarLabelDatum = { x: 0, y, text: title.text, textAlign: 'center', textBaseline: 'bottom' };
+        const box = Text.measureBBox(label.text, label.x, label.y, { font: title, ...label });
+        if (this.bboxIntersectsSurroundingSeries(box)) return;
+
+        this.titleLabel = label;
+        this.pushLabel(data, label, { font: title, boxPadding: NO_PADDING });
+    }
+
+    private innerLabelData(data: PointLabelDatum[]) {
+        this.innerLabelTargets = [];
+        const { innerLabels = [] } = this.options;
+        if (innerLabels.length === 0) return;
+
+        const innerRadius = this.getInnerRadius();
+        const holeRadius = innerRadius > 0 ? innerRadius : this.getOuterRadius();
+        // The inner labels fit the square inscribed in the hole circle (diagonal 2·r ⇒ side r·√2).
+        const holeBox = { width: holeRadius * Math.SQRT2, height: holeRadius * Math.SQRT2 };
+        // Lines are stacked by box bottom; the default `alphabetic` baseline drops each by a descent.
+        const align = { textAlign: 'center', textBaseline: 'bottom' } as const;
+        const texts = innerLabels.map((innerLabel) =>
+            fitLabelToContainer(innerLabel.text, undefined, innerLabel, holeBox)
+        );
+        const boxes = texts.map((text, i) => Text.measureBBox(text, 0, 0, { font: innerLabels[i], ...align }));
+
+        const marginTop = (index: number) => (index === 0 ? 0 : innerLabels[index].spacing);
+        const marginBottom = (index: number) => (index === innerLabels.length - 1 ? 0 : innerLabels[index].spacing);
+        const totalWidth = boxes.reduce((max, bbox) => Math.max(max, bbox.width), 0);
+        const totalHeight = boxes.reduce((sum, bbox, i) => sum + bbox.height + marginTop(i) + marginBottom(i), 0);
+        if (Math.hypot(totalWidth / 2, totalHeight / 2) > holeRadius) return;
+
+        for (let i = 0, prev = -totalHeight / 2; i < boxes.length; i++) {
+            const bottom = boxes[i].height + prev + marginTop(i);
+            prev = bottom + marginBottom(i);
+            const label: PolarLabelDatum = { x: 0, y: bottom, text: texts[i], ...align };
+            this.innerLabelTargets.push(label);
+            this.pushLabel(data, label, { font: innerLabels[i], boxPadding: NO_PADDING });
+        }
+    }
+
+    getLabelObstacles() {
+        const sectors: SectorBoundaries[] = [];
+        for (const { enabled, startAngle, endAngle, innerRadius, outerRadius } of this.nodeData) {
+            if (enabled && outerRadius > 0) sectors.push({ startAngle, endAngle, innerRadius, outerRadius });
+        }
+        return polarSectorObstacles(sectors, this.centerX, this.centerY);
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<unknown>[], seriesRect?: BBox) {
+        writePlacedPolarLabels(this.labelTargets, placed);
+        const { dataModel, processedData } = this;
+        const legendItemValues =
+            dataModel == null || processedData == null
+                ? undefined
+                : this.getProcessedDataValues(dataModel, processedData).legendItemValues;
+        this.updateTitleNode();
+        this.updateCalloutLineNodes(legendItemValues);
+        this.updateCalloutLabelNodes(seriesRect, legendItemValues);
+        this.updateSectorLabelNodes(legendItemValues);
+        this.updateInnerLabelNodes();
+    }
+
+    private updateSectorLabelNodes(legendItemValues: string[] | undefined) {
+        const { options, sectorLabels } = this;
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
-
         const innerRadius = this.radiusScale.convert(0);
-        const shouldPutTextInCenter =
-            innerRadius <= 0 && // is donut?
-            this.ctx.legendManager?.getData(this.id)?.filter((d) => d.enabled).length === 1; // single visible sector?
 
-        const align = { textAlign: 'center', textBaseline: 'middle' } as const;
         const updateSelection = (selection: Selection<PieDonutNodeDatum, Text<PieDonutNodeDatum>>) =>
             selection.each((text, datum) => {
                 const { outerRadius, startAngle, endAngle } = datum;
+                const label = outerRadius === 0 ? undefined : placedPolarLabel(sectorLabels.get(datum.datumIndex));
+                if (datum.sectorLabel == null || label == null) {
+                    text.visible = false;
+                    return;
+                }
 
                 const isDatumHighlighted =
                     seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
+                const style = this.getLabelStyle(datum, options.sectorLabel, 'sectorLabel', isDatumHighlighted);
+                text.fill = style.color;
+                text.fillOpacity =
+                    this.getHighlightStyle(isDatumHighlighted, datum.datumIndex, undefined, legendItemValues).opacity ??
+                    1;
+                text.text = label.fittedText ?? label.text;
+                text.x = label.placedX ?? label.x;
+                text.y = label.placedY ?? label.y;
+                text.setFont(fontWithSize(style, label.fittedFontSize));
+                text.setAlign(label);
+                text.setBoxing(style);
 
-                let isTextVisible = false;
-                let fittedFontSize: number | undefined;
-                if (datum.sectorLabel && outerRadius !== 0) {
-                    const style = this.getLabelStyle(datum, options.sectorLabel, 'sectorLabel', isDatumHighlighted);
-                    const labelRadius =
-                        innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
-                    const sectorBounds = { startAngle, endAngle, innerRadius, outerRadius };
-
-                    text.fill = style.color;
-                    text.fillOpacity =
-                        this.getHighlightStyle(isDatumHighlighted, datum.datumIndex, undefined, legendItemValues)
-                            .opacity ?? 1;
-                    if (sectorFit == null) {
-                        text.x = shouldPutTextInCenter ? 0 : datum.midCos * labelRadius;
-                        text.y = shouldPutTextInCenter ? 0 : datum.midSin * labelRadius;
-                        text.text = datum.sectorLabel.text;
-                    } else if (shouldPutTextInCenter) {
-                        // A centred single-sector label fits the square inscribed in the pie, like the inner label.
-                        text.x = 0;
-                        text.y = 0;
-                        const holeExtent = outerRadius * Math.SQRT2;
-                        const container = { width: holeExtent, height: holeExtent };
-                        const fitted = fitLabelToContainerAutoSize(datum.sectorLabel.text, sectorFit, style, container);
-                        text.text = fitted.text;
-                        fittedFontSize = fitted.fontSize;
-                    } else {
-                        // The wedge bounds the text rather than capping the inscribed rect, and is lopsided
-                        // about the anchor, so the fit also reports where to draw.
-                        const anchor = { x: datum.midCos * labelRadius, y: datum.midSin * labelRadius };
-                        // The node judges each candidate, so alignment and boxing are settled first.
-                        text.setAlign(align);
-                        text.setBoxing(style);
-                        const fitted = fitSectorLabelToWedge(
-                            datum.sectorLabel.text,
-                            { ...sectorFit, boxed: labelHasBox(style) },
-                            style,
-                            anchor,
-                            sectorBounds,
-                            labelPadding,
-                            wedgeLabelLayout(text)
-                        );
-                        text.text = fitted.text;
-                        text.x = fitted.x;
-                        text.y = fitted.y;
-                        fittedFontSize = fitted.fontSize;
-                    }
-                    text.setFont(fontWithSize(style, fittedFontSize));
-                    text.setAlign(align);
-                    text.setBoxing(style);
-
-                    // A shape-fitted label overhangs its own block box by design, so each line answers
-                    // for itself.
-                    isTextVisible = text.getLineBoxes().every((box) => isBoxInSector(box, sectorBounds));
-                }
-                text.visible = isTextVisible;
+                // A shape-fitted label overhangs its own block box by design, so each line answers for itself.
+                const sectorBounds = { startAngle, endAngle, innerRadius, outerRadius };
+                text.visible = text.getLineBoxes().every((box) => isBoxInSector(box, sectorBounds));
             });
 
         updateSelection(this.labelSelection);
@@ -2336,49 +2353,21 @@ export class DonutSeries extends PolarSeries<
     }
 
     private updateInnerLabelNodes() {
-        const textBBoxes: BBox[] = [];
-        const margins: number[] = [];
-        const innerRadius = this.getInnerRadius();
-        // The inner labels fit the square inscribed in the hole circle (diagonal 2·r ⇒ side r·√2).
-        const holeExtent = (innerRadius > 0 ? innerRadius : this.getOuterRadius()) * Math.SQRT2;
-        const holeBox = { width: holeExtent, height: holeExtent };
-        this.innerLabelsSelection.each((text, datum) => {
-            const { fontStyle, fontWeight, fontSize, fontFamily, lineHeight, color } = datum;
-            text.fontStyle = fontStyle;
-            text.fontWeight = fontWeight;
-            text.fontSize = fontSize;
-            text.fontFamily = fontFamily;
-            text.lineHeight = lineHeight;
-            text.text = fitLabelToContainer(datum.text, undefined, datum, holeBox);
-            text.x = 0;
-            text.y = 0;
-            text.fill = color;
+        const { innerLabelTargets } = this;
+        this.innerLabelsSelection.each((text, datum, index) => {
+            const label = placedPolarLabel(innerLabelTargets.at(index));
+            text.fontStyle = datum.fontStyle;
+            text.fontWeight = datum.fontWeight;
+            text.fontSize = datum.fontSize;
+            text.fontFamily = datum.fontFamily;
+            text.lineHeight = datum.lineHeight;
+            text.fill = datum.color;
             text.textAlign = 'center';
-            // Lines are stacked by box bottom; the default `alphabetic` baseline drops each by a descent.
             text.textBaseline = 'bottom';
-            textBBoxes.push(text.getBBox());
-            margins.push(datum.spacing);
-        });
-        const getMarginTop = (index: number) => (index === 0 ? 0 : margins[index]);
-        const getMarginBottom = (index: number) => (index === margins.length - 1 ? 0 : margins[index]);
-        const totalWidth = textBBoxes.reduce((max, bbox) => Math.max(max, bbox.width), 0);
-        const totalHeight = textBBoxes.reduce(
-            (sum, bbox, i) => sum + bbox.height + getMarginTop(i) + getMarginBottom(i),
-            0
-        );
-        const labelRadius = Math.sqrt(Math.pow(totalWidth / 2, 2) + Math.pow(totalHeight / 2, 2));
-        const labelsVisible = labelRadius <= (innerRadius > 0 ? innerRadius : this.getOuterRadius());
-
-        const textBottoms: number[] = [];
-        for (let i = 0, prev = -totalHeight / 2; i < textBBoxes.length; i++) {
-            const bbox = textBBoxes[i];
-            const bottom = bbox.height + prev + getMarginTop(i);
-            textBottoms.push(bottom);
-            prev = bottom + getMarginBottom(i);
-        }
-        this.innerLabelsSelection.each((text, _datum, index) => {
-            text.visible = labelsVisible;
-            text.y = textBottoms[index];
+            text.text = label?.text ?? datum.text;
+            text.x = 0;
+            text.y = label?.y ?? 0;
+            text.visible = label != null;
         });
     }
 

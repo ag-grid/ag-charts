@@ -33,10 +33,15 @@ import {
     appendEllipsis,
     graphemeSegments,
     guardTextEdges,
+    indexOfBreakSpace,
+    isBreakSpace,
     isTextTruncated,
+    lastIndexOfBreakSpace,
     lineHeightAtSize,
     preserveArabicJoining,
     toTextString,
+    trimBreakSpacesEnd,
+    trimBreakSpacesStart,
     unguardTextEdges,
 } from './textUtil';
 
@@ -372,7 +377,7 @@ function measureText(text: NormalisedTextOrSegments, font: FontOptions) {
 
 /** Characters of the source that survived a fit, ignoring the layout and the ellipsis marking the loss. */
 function survivingCharacters(text: string) {
-    return text.replaceAll(EllipsisChar, '').replace(/\s/g, '').length;
+    return text.replaceAll(EllipsisChar, '').replaceAll(/[\s\u200B]/g, '').length;
 }
 
 /** Where the top of a block of `height` sits against the anchor, kept inside the room the shape has. */
@@ -458,8 +463,22 @@ function wrapBlockToRegion(
         text: marked,
         offsetX,
         offsetY: blockTop + drawnHeight / 2,
-        consistent: shorter || drawnLines === lines,
+        consistent: (shorter || drawnLines === lines) && linesFitBands(marked, options, widthAt, lineHeight),
     };
+}
+
+/** A forced ellipsis can land on a band too narrow for it, so a truncated block checks each line against its band. */
+function linesFitBands(
+    text: string,
+    options: WrapOptions,
+    widthAt: (top: number, bottom: number) => number,
+    lineHeight: number
+) {
+    if (options.overflow !== 'ellipsis') return true;
+    const measurer = cachedTextMeasurer(options.font);
+    return text
+        .split('\n')
+        .every((line, i) => measurer.textWidth(line) <= widthAt(i * lineHeight, (i + 1) * lineHeight));
 }
 
 /**
@@ -970,10 +989,14 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
 
     if (options.textWrap === 'never') {
         if (preserveText) {
-            return lines.map((line) => line.trimEnd());
+            return lines.map(trimBreakSpacesEnd);
         }
         for (const line of lines) {
-            const truncatedLine = truncateLine(line.trimEnd(), measurer, Math.max(0, maxWidth() - widthOffset));
+            const truncatedLine = truncateLine(
+                trimBreakSpacesEnd(line),
+                measurer,
+                Math.max(0, maxWidth() - widthOffset)
+            );
             if (truncatedLine === '') break;
             result.push(truncatedLine);
             widthOffset = 0;
@@ -985,18 +1008,24 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
 
     const wrapHyphenate = options.textWrap === 'hyphenate';
     const wrapOnSpace = options.textWrap == null || options.textWrap === 'on-space';
+    // The break spaces consumed ahead of each line, which moving an orphan back onto it restores.
+    const breaksBefore: string[] = [];
 
     for (const untrimmedLine of lines) {
-        let line = untrimmedLine.trimEnd();
+        let line = trimBreakSpacesEnd(untrimmedLine);
 
         if (line === '') {
             result.push(line);
             continue;
         }
 
-        // Cut `line` at `breakIndex` so the next pass fits what remains.
-        const resumeAfterBreak = (breakIndex: number) => {
-            line = line.slice(breakIndex).trimStart();
+        const breakAtSpace = (breakIndex: number) => {
+            const head = line.slice(0, breakIndex);
+            const tail = line.slice(breakIndex);
+            const kept = trimBreakSpacesEnd(head);
+            line = trimBreakSpacesStart(tail);
+            result.push(kept);
+            breaksBefore[result.length] = head.slice(kept.length) + tail.slice(0, tail.length - line.length);
         };
 
         // Only the whole line is measured: what remains after a break is fitted by prefix, never measured whole.
@@ -1011,7 +1040,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             let charOffset = 0;
             let lastSpaceIndex = 0;
             for (let g = 0; g <= fitted; g++) {
-                if (graphemes[g] === ' ') lastSpaceIndex = charOffset;
+                if (isBreakSpace(graphemes[g])) lastSpaceIndex = charOffset;
                 if (g < fitted) charOffset += graphemes[g].length;
             }
 
@@ -1024,10 +1053,9 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
 
             if (preserveText && wrapOnSpace) {
                 // A word with no space to break at overhangs whole rather than being cut short.
-                const breakIndex = lastSpaceIndex === 0 ? line.indexOf(' ', 1) : lastSpaceIndex;
+                const breakIndex = lastSpaceIndex === 0 ? indexOfBreakSpace(line, 1) : lastSpaceIndex;
                 if (breakIndex < 1) break;
-                result.push(line.slice(0, breakIndex).trimEnd());
-                resumeAfterBreak(breakIndex);
+                breakAtSpace(breakIndex);
                 continue;
             }
 
@@ -1036,19 +1064,17 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
                 const textWidth = measurer.textWidth(nextWord);
 
                 if (textWidth <= maxWidth()) {
-                    result.push(line.slice(0, lastSpaceIndex).trimEnd());
-                    resumeAfterBreak(lastSpaceIndex);
+                    breakAtSpace(lastSpaceIndex);
                     continue;
                 } else if (wrapOnSpace) {
                     // The word that did not fit lands on the line below, whose width a shape-bounded
                     // label narrows band by band, so that is the width it answers to.
-                    const remainder = line.slice(lastSpaceIndex).trimStart();
-                    result.push(line.slice(0, lastSpaceIndex).trimEnd());
+                    breakAtSpace(lastSpaceIndex);
                     const remainderWidth = maxWidth();
                     result.push(
-                        measurer.textWidth(remainder) <= remainderWidth
-                            ? remainder
-                            : truncateLine(remainder, measurer, remainderWidth, true)
+                        measurer.textWidth(line) <= remainderWidth
+                            ? line
+                            : truncateLine(line, measurer, remainderWidth, true)
                     );
                 }
             } else if (wrapOnSpace) {
@@ -1064,10 +1090,12 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             }
 
             const postfix = wrapHyphenate ? '-' : '';
-            const head = graphemeSegments(line.slice(0, charOffset).trim());
-            const drawBroken = (prefix: string) => preserveArabicJoining(prefix.trimEnd()) + postfix;
+            const fittedText = trimBreakSpacesEnd(line.slice(0, charOffset));
+            const headText = trimBreakSpacesStart(fittedText);
+            const head = graphemeSegments(headText);
+            const drawBroken = (prefix: string) => preserveArabicJoining(trimBreakSpacesEnd(prefix)) + postfix;
             const kept = fittingGraphemeCount(head, measurer, maxWidth() - offset, drawBroken);
-            const newLine = head.slice(0, kept).join('').trimEnd();
+            const newLine = trimBreakSpacesEnd(head.slice(0, kept).join(''));
 
             if (newLine !== '' && newLine !== TrimEdgeGuard) {
                 result.push(drawBroken(newLine));
@@ -1078,7 +1106,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
                 break;
             }
 
-            resumeAfterBreak(newLine.length);
+            line = trimBreakSpacesStart(line.slice(fittedText.length - headText.length + newLine.length));
         }
 
         if (line !== '') {
@@ -1086,13 +1114,13 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
         }
     }
 
-    avoidOrphans(result, measurer, options);
+    avoidOrphans(result, breaksBefore, measurer, options);
     const clippedResult = clipLines(result, measurer, options);
     return shouldHideOverflow(clippedResult, options, text) ? [] : clippedResult;
 }
 
 function getWordAt(text: string, position: number) {
-    const nextSpaceIndex = text.indexOf(' ', position);
+    const nextSpaceIndex = indexOfBreakSpace(text, position);
     return nextSpaceIndex === -1 ? text.slice(position) : text.slice(position, nextSpaceIndex);
 }
 
@@ -1137,7 +1165,7 @@ function lastLineMaxWidth(lines: string[], measurer: ITextMeasurer, options: Wra
     return lineMaxWidth(options, top, top + heightAt(lineMetrics.length - 1));
 }
 
-function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
+function avoidOrphans(lines: string[], breaksBefore: string[], measurer: ITextMeasurer, options: WrapOptions) {
     if (options.avoidOrphans === false || lines.length < 2) return;
 
     const { length } = lines;
@@ -1146,17 +1174,23 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
 
     if (graphemeSegments(beforeLast).length < graphemeSegments(lastLine).length) return;
 
-    const lastSpaceIndex = beforeLast.lastIndexOf(' ');
+    const lastSpaceIndex = lastIndexOfBreakSpace(beforeLast);
     // If the last line has an orphan, and the previous line has more than one space
-    if (lastSpaceIndex === -1 || lastSpaceIndex === beforeLast.indexOf(' ') || lastLine.includes(' ')) return;
+    if (
+        lastSpaceIndex === -1 ||
+        lastSpaceIndex === indexOfBreakSpace(beforeLast) ||
+        indexOfBreakSpace(lastLine) !== -1
+    ) {
+        return;
+    }
 
     const lastWord = beforeLast.slice(lastSpaceIndex + 1);
     const maxWidth = options.maxWidthAt == null ? options.maxWidth : lastLineMaxWidth(lines, measurer, options);
     // Measured as it will be drawn, joining space included: a line that reads as fitting without it
     // overruns its width by a space, which a shape-bounded label pays for by being hidden whole.
-    const joined = lastWord + ' ' + lastLine;
+    const joined = lastWord + (breaksBefore[length - 1] ?? ' ') + lastLine;
     if (measurer.textWidth(joined) <= maxWidth) {
-        lines[length - 2] = beforeLast.slice(0, lastSpaceIndex);
+        lines[length - 2] = trimBreakSpacesEnd(beforeLast.slice(0, lastSpaceIndex));
         lines[length - 1] = joined;
     }
 }

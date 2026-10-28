@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaLabelColorPickerHue: '色相',
     ariaLabelColorPickerMultiColor: 'マルチカラー',
     ariaLabelColorPickerPalette: 'パレット',
+    ariaLabelCrossLine: '${label}, クロスライン ${index}[number] / ${count}[number]',
     ariaLabelFinancialCharts: 'ファイナンシャルチャート',
     ariaLabelGaugeTarget: '目標',
     ariaLabelGaugeValue: '値',

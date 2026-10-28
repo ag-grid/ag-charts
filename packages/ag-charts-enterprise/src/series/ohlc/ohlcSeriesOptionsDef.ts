@@ -9,7 +9,7 @@ import {
     constant,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
-    multiSeriesShadowHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     required,
     shadowOptionsDefs,
     string,
@@ -38,7 +38,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
-    highlight: multiSeriesShadowHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
 export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {

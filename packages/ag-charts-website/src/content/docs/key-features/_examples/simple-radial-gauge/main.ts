@@ -1,15 +1,15 @@
 import {
     AgCharts,
     AgGaugeOptions,
-    AllGaugeModule,
     AnimationModule,
     ContextMenuModule,
     CrosshairModule,
     LegendModule,
     ModuleRegistry,
+    RadialGaugeModule,
 } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([AllGaugeModule, AnimationModule, CrosshairModule, LegendModule, ContextMenuModule]);
+ModuleRegistry.registerModules([RadialGaugeModule, AnimationModule, CrosshairModule, LegendModule, ContextMenuModule]);
 const performanceStages = ['VERY POOR', 'POOR', 'AVERAGE', 'GOOD', 'VERY GOOD', 'EXCELLENT'].flatMap((item) => [
     '',
     item,

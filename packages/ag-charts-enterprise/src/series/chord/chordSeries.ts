@@ -2,21 +2,25 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     BBox,
     type CallbackParamRules,
+    type CollideWith,
     type DynamicContext,
     type NormalisedChordSeriesLinkStyle,
     type NormalisedChordSeriesNodeStyle,
     type NormalisedChordSeriesOwnOptions,
+    type PlacedLabel,
+    type PointLabelDatum,
     type RequireOptional,
     Sector,
     angleBetween,
     cachedTextMeasurer,
     evaluateBezier,
     fitLabelText,
-    isBetweenAngles,
+    getMinOuterRectSize,
     measureLabelText,
     mergeDefaults,
     normalizeAngle360,
     resolveLabelFit,
+    toDegrees,
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
@@ -32,7 +36,7 @@ import {
 } from '../flow-proportion/flowProportionSeries';
 import { ChordLink, type ChordLinkNodeEdge, bezierControlPoints } from './chordLink';
 
-const { SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles } = _ModuleSupport;
+const { SeriesNodePickMode, createDatumId, expandLabelBoxExtent, getShapeStyle, getLabelStyles } = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;
@@ -64,7 +68,25 @@ interface ChordNodeLabelDatum {
     size: number;
     nodeDatum: ChordNodeDatum;
     datumIndex: _ModuleSupport.DatumIndex;
+    hidden: boolean;
 }
+
+interface ChordPlacedLabelDatum extends PointLabelDatum {
+    readonly target: ChordNodeLabelDatum;
+}
+
+function placedLabelTarget(placed: PlacedLabel<unknown>): ChordNodeLabelDatum {
+    return (placed.datum as ChordPlacedLabelDatum).target;
+}
+
+// Node labels give way only to each other.
+const NODE_LABEL_COLLISIONS: CollideWith = {
+    marker: false,
+    label: true,
+    seriesItem: false,
+    seriesArea: false,
+    axisLabel: false,
+};
 
 interface ChordNodeDataContext extends FlowProportionSeriesContext<
     ChordNodeDatum,
@@ -88,6 +110,7 @@ export class ChordSeries extends FlowProportionSeries<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            usesPlacedLabels: true,
         });
     }
 
@@ -97,11 +120,6 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected linkFactory() {
         return new ChordLink<ChordLinkDatum>();
-    }
-
-    /** The shadows of the nodes and links, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return [this.options.node.shadow, this.options.link.shadow];
     }
 
     protected nodeFactory() {
@@ -240,6 +258,7 @@ export class ChordSeries extends FlowProportionSeries<
                     size: node.size,
                     datumIndex: node.datumIndex,
                     nodeDatum: node,
+                    hidden: false,
                 });
             }
 
@@ -353,29 +372,64 @@ export class ChordSeries extends FlowProportionSeries<
         }
         labelData.sort((a, b) => a.angle - b.angle);
 
-        let minAngle = Infinity;
-        let maxAngle = -Infinity;
-        labelData = labelData.filter((label) => {
-            const labelHeight = measureLabelText(label.text, options.label).height;
-            const da = Math.atan2(labelHeight / 2, label.radius);
-
-            const a0 = label.angle - da;
-            const a1 = label.angle + da;
-
-            if (isBetweenAngles(minAngle, a0, a1)) return false;
-            if (isBetweenAngles(maxAngle, a0, a1)) return false;
-
-            minAngle = Math.min(a0, minAngle);
-            maxAngle = Math.max(a1, maxAngle);
-
-            return true;
-        });
-
         return {
             itemId: seriesId,
             nodeData,
             labelData,
         };
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.isLabelEnabled()) return [];
+        const { label } = this.options;
+        const padding = expandLabelBoxExtent(label);
+        const data: ChordPlacedLabelDatum[] = [];
+        for (const target of this.contextNodeData?.labelData ?? []) {
+            const { text, centerX, centerY, radius, angle } = target;
+            const measured = measureLabelText(text, label);
+            const width = measured.width + padding.left + padding.right;
+            const height = measured.height + padding.top + padding.bottom;
+            const readsOutward = Math.cos(angle) >= 0;
+            const rotation = readsOutward ? angle : angle - Math.PI;
+            // Box centre from the anchor, along and across the text as it reads.
+            const along = readsOutward ? width / 2 - padding.left : padding.right - width / 2;
+            const across = (padding.bottom - padding.top) / 2;
+            const cos = Math.cos(rotation);
+            const sin = Math.sin(rotation);
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            const boxX = x + along * cos - across * sin;
+            const boxY = y + along * sin + across * cos;
+            const rotationDeg = toDegrees(rotation);
+            const footprint = getMinOuterRectSize(rotationDeg, width, height);
+            const box = {
+                x: boxX - footprint.width / 2,
+                y: boxY - footprint.height / 2,
+                width: footprint.width,
+                height: footprint.height,
+            };
+            data.push({
+                point: { x, y, size: 0 },
+                label: { text, width, height },
+                anchor: undefined,
+                placement: undefined,
+                alwaysShow: false,
+                collideWith: NODE_LABEL_COLLISIONS,
+                positionedCandidates: [{ box, unbounded: true, rotation: rotationDeg, orientedCollision: true }],
+                target,
+            });
+        }
+        return data;
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
+        for (const target of this.contextNodeData?.labelData ?? []) {
+            target.hidden = true;
+        }
+        for (const label of placed) {
+            placedLabelTarget(label).hidden = false;
+        }
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
     }
 
     protected updateLabelSelection(opts: {
@@ -398,7 +452,11 @@ export class ChordSeries extends FlowProportionSeries<
 
         const activeHighlightDatum = this.getHighlightedDatum();
         opts.labelSelection.each((label, labelNodeDatum) => {
-            const { size, text, centerX, centerY, radius, angle, datumIndex, nodeDatum } = labelNodeDatum;
+            const { size, text, centerX, centerY, radius, angle, datumIndex, nodeDatum, hidden } = labelNodeDatum;
+            if (hidden) {
+                label.visible = false;
+                return;
+            }
             params.size = size;
             const isHighlight = this.isLabelHighlighted(nodeDatum, activeHighlightDatum);
             const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);

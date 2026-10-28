@@ -50,12 +50,12 @@ describe('volume profile tooltips', () => {
 
     const [level] = normaliseVolumeProfile([{ price: 150, up: 56617298, down: 68115020 }], KEYS, 10);
 
-    const renderTooltip = (series: typeof upSeries) => {
+    const renderTooltip = (series: typeof upSeries, datum = level) => {
         const { yKey, yName } = series;
         // The renderers read only the datum and the keys, so the rest of the renderer params are left out.
-        return series.tooltip.renderer({ datum: level, yKey, yName } as Parameters<typeof series.tooltip.renderer>[0]);
+        return series.tooltip.renderer({ datum, yKey, yName } as Parameters<typeof series.tooltip.renderer>[0]);
     };
-    const render = (series: typeof upSeries) => renderTooltip(series).data;
+    const render = (series: typeof upSeries, datum = level) => renderTooltip(series, datum).data;
 
     it('should mark each tooltip with the colour of its series', () => {
         expect(renderTooltip(upSeries).symbol).toEqual({ marker: { fill: '#112233' } });
@@ -65,14 +65,22 @@ describe('volume profile tooltips', () => {
     it('should give the range a level covers beside its up volume', () => {
         expect(render(upSeries)).toEqual([
             { label: 'Range', value: '145-155' },
-            { label: 'Up Volume', value: '56,617,298' },
+            { label: 'Up Volume', value: '56.6M' },
         ]);
     });
 
-    it('should give the down volume and total of a level with thousands separators, without repeating the range', () => {
+    it('should give the down volume and total of a level abbreviated to one decimal place, without repeating the range', () => {
         expect(render(downSeries)).toEqual([
-            { label: 'Down Volume', value: '68,115,020' },
-            { label: 'Total', value: '124,732,318' },
+            { label: 'Down Volume', value: '68.1M' },
+            { label: 'Total', value: '124.7M' },
+        ]);
+    });
+
+    it('should keep the one decimal place when a volume is a round number', () => {
+        const [round] = normaliseVolumeProfile([{ price: 150, up: 3_000_000, down: 1_000 }], KEYS, 10);
+        expect(render(downSeries, round)).toEqual([
+            { label: 'Down Volume', value: '1.0K' },
+            { label: 'Total', value: '3.0M' },
         ]);
     });
 });

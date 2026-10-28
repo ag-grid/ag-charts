@@ -1,0 +1,84 @@
+---
+import docsStyles from '@ag-website-shared/components/page-styles/docs.module.scss';
+import ApiReference from '@components/api-documentation/ApiReference.astro';
+import ApiReferenceOuter from '@components/api-documentation/ApiReferenceOuter.astro';
+import { Header } from '@components/docs/components/Header';
+import { SideNavigation } from '@components/pages-navigation/components/SideNavigation';
+import { DISABLE_MARKDOWN_DOCS } from '@constants';
+import APIViewLayout from '@layouts/APIViewLayout.astro';
+import { THEME_PARAMETERS_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePageContent';
+import {
+    getThemeParamGroups,
+    THEME_PARAM_GROUP_LINKS,
+    themeParamDocsPath,
+    themeParamGroupId,
+} from '@utils/server/getThemeParamGroups';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { getEntry, type CollectionEntry } from 'astro:content';
+
+const title = 'Theme Parameters';
+const groups = getThemeParamGroups();
+const headings = [
+    { depth: 1, slug: 'top', text: title },
+    ...groups.map(({ name }) => ({ depth: 2, slug: themeParamGroupId(name), text: name })),
+];
+
+const { data: versionsData } = (await getEntry('versions', 'ag-charts-versions')) as CollectionEntry<'versions'>;
+const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/theme-parameters-api.md');
+---
+
+<APIViewLayout
+    title={THEME_PARAMETERS_API_PAGE_CONTENT.title}
+    description={THEME_PARAMETERS_API_PAGE_CONTENT.description}
+>
+    <div class:list={[docsStyles.noLeftMenu, docsStyles.contentViewport, 'layout-grid']}>
+        <div id="doc-content" class={docsStyles.docPage}>
+            <Header client:load title={title} version={versionsData[0]?.version} markdownHref={markdownUrl} />
+            <div class={docsStyles.pageSections}>
+                <p class="text-secondary">
+                    Theme parameters set styles across the whole chart in one place, and most inherit their default from
+                    a few foundation parameters. Set them with <code>params</code> in a
+                    <a href={urlWithBaseUrl('/r/themes/')}>theme</a>, or explore their effect in the
+                    <a href={urlWithBaseUrl('/theme-builder/')}>Theme Builder</a>.
+                </p>
+                {groups.map(({ name, members }) => (
+                    <ApiReferenceOuter id={themeParamGroupId(name)} title={name}>
+                        {THEME_PARAM_GROUP_LINKS[name] && (
+                            <p slot="description" class="text-secondary group-links">
+                                See{' '}
+                                {THEME_PARAM_GROUP_LINKS[name].map((link) => (
+                                    <span>
+                                        <a href={urlWithBaseUrl(themeParamDocsPath(link))}>{link.title}</a>
+                                    </span>
+                                ))}{' '}
+                                for more information.
+                            </p>
+                        )}
+                        <ApiReference
+                            id="AgChartThemeParams"
+                            include={members.map((member) => member.name)}
+                            includeInOrder
+                            hideHeader
+                        />
+                    </ApiReferenceOuter>
+                ))}
+            </div>
+        </div>
+        <SideNavigation client:load headings={headings} />
+    </div>
+</APIViewLayout>
+
+<style lang="scss">
+    .group-links span {
+        // flex drops the whitespace the formatter adds inside the span, which would otherwise precede the comma
+        display: inline-flex;
+    }
+
+    .group-links span:not(:last-of-type) {
+        margin-right: 0.25em;
+
+        &::after {
+            content: ',';
+        }
+    }
+</style>

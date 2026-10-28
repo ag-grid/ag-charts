@@ -3,6 +3,7 @@ import { ChartAxisDirection, ZIndexMap, fitCircleToLabels } from 'ag-charts-core
 import type { AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
+import type { PolarAxis } from './axis/polarAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { PolarChartAxes } from './chartAxes';
@@ -25,6 +26,19 @@ export class PolarChart extends Chart {
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
         this.ctx.axisManager.axisGroup.zIndex = ZIndexMap.AXIS_FOREGROUND;
+    }
+
+    override onAxisChange(newValue: PolarAxis[], oldValue?: PolarAxis[]) {
+        super.onAxisChange(newValue, oldValue);
+        if (this.ctx == null) return;
+
+        const { labelManager } = this.ctx;
+        for (const axis of oldValue ?? []) {
+            labelManager.unregisterSource(axis.labelSource.id, axis.labelSource);
+        }
+        for (const axis of newValue) {
+            labelManager.registerSource(axis.labelSource);
+        }
     }
 
     override toAgCoordinates(_point: CanvasPoint): AgCoordinates | undefined {

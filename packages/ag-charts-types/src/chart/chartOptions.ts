@@ -135,7 +135,7 @@ export interface AgChartCaptionOptions<TContext = ContextDefault> extends LabelB
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
-     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), never a non-breaking space (`\u00A0`). If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
      * - `'never'` disables text wrapping.
      *
      * Default: `'on-space'`
@@ -348,12 +348,6 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     formatter?: FormatterConfiguration<TDatum, TContext>;
     /** Set to `true` to render the chart in right-to-left mode. If not specified, the chart will detect the `dir` attribute on the container or its ancestors. */
     enableRtl?: boolean;
-    /**
-     * Set to `true` to render the chart in a shadow root of its own, so the page's CSS cannot reach its elements, or `false` to always render it in the page's DOM. If not specified, the chart uses a shadow root only on known pages whose CSS breaks its controls, such as some AI chat visualisations.
-     *
-     * Page CSS that targets the chart's elements does not reach the shadow root; theme options and CSS variables do. A chart placed in your own shadow DOM does not need this option.
-     */
-    enableShadowDom?: boolean;
 }
 
 /** Configuration common to all charts.  */

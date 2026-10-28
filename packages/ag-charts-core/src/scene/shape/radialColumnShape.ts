@@ -58,6 +58,11 @@ export class RadialColumnShape<D = any> extends Path<D> {
         // TODO implement cornerRadius support
     }
 
+    // A bevelled column starts its inner arc closer to the centre than `innerRadius`, outside the bounds.
+    protected override hasBoundedSilhouette(): boolean {
+        return false;
+    }
+
     protected override computeBBox(): BBox {
         const { columnWidth } = this;
         const [innerRadius, outerRadius] = this.normalizeRadii(this.innerRadius, this.outerRadius);

@@ -35,7 +35,7 @@ const DARK_MODE_PARAMS: AgChartThemeParams = {
 
 /**
  * The shadows are not plain colours, the focus, hover and active colours use a different accent mix in the dark
- * theme, and the annotation and shadow colours are private parameters, so none of these can travel through a CSS
+ * theme, and the annotation, shadow and glow colours are private parameters, so none of these can travel through a CSS
  * variable.
  */
 const UNMAPPABLE_PROPERTIES = [
@@ -51,6 +51,8 @@ const UNMAPPABLE_PROPERTIES = [
     '--ag-charts-annotation-textbox-border-color',
     '--ag-charts-annotation-divider-color',
     '--ag-charts-shadow-color',
+    '--ag-charts-glow-color',
+    '--ag-charts-glow-blur',
 ];
 
 /**

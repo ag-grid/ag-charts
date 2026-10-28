@@ -65,7 +65,7 @@ import {
     type SeriesType,
 } from 'ag-charts-types';
 
-import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expectedModules';
+import { ExpectedModules, type ModulePlaceholder, narrowMissingModule } from '../chart/factory/expectedModules';
 import {
     composeAxisOptionsDefs,
     composeChartOptionsDefs,
@@ -626,7 +626,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             presetDef = this.moduleRegistry.getPresetModule(presetType);
             presetDefName = presetDef?.name;
             optionsTheme ??= presetDef?.baseTheme;
-            missingPresetModule = presetDef == null ? ExpectedModules.get(presetType) : undefined;
+            const presetPlaceholder = presetDef == null ? ExpectedModules.get(presetType) : undefined;
+            missingPresetModule = presetPlaceholder && narrowMissingModule(presetPlaceholder, [options.type])[0];
         }
 
         const activeTheme = this.resolveThemeAndArmValidations(optionsTheme, presetDefName);

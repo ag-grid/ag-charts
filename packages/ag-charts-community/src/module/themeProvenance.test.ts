@@ -13,58 +13,58 @@ const DATA = [
  * option of a type the harness cannot supply a value for raises `skipped` or `rejected` and fails here on
  * purpose, so losing coverage is a decision rather than a silent drift. Each run logs the current counts.
  * The `maxIneffective` allowances cover `errorBar`, whose module is enterprise and so strips on both routes
- * here — nothing this suite can demonstrate. Each `maxSkipped` counts `highlight.highlightedItem.shadow`, which the
- * theme leaves unset, so there is no themed value to compare. Cartesian cases also count the
- * `collector` callback.
+ * here — nothing this suite can demonstrate. Each `maxSkipped` counts the four `highlight` buckets, which are containers with no
+ * value of their own to compare; their `glow` leaves are checked individually.
+ * Cartesian cases also count the `collector` callback.
  */
 const CASES: Array<ProvenanceCase> = [
     {
         seriesType: 'bar',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 127, maxSkipped: 11, maxRejected: 1, maxIneffective: 15, minContainers: 6 },
+        coverage: { minChecked: 127, maxSkipped: 14, maxRejected: 1, maxIneffective: 15, minContainers: 6 },
     },
     {
         seriesType: 'line',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 118, maxSkipped: 12, maxRejected: 1, maxIneffective: 15, minContainers: 5 },
+        coverage: { minChecked: 118, maxSkipped: 15, maxRejected: 1, maxIneffective: 15, minContainers: 5 },
     },
     {
         seriesType: 'area',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 127, maxSkipped: 12, maxRejected: 1, maxIneffective: 0, minContainers: 7 },
+        coverage: { minChecked: 127, maxSkipped: 15, maxRejected: 1, maxIneffective: 0, minContainers: 7 },
     },
     {
         seriesType: 'scatter',
         series: { xKey: 'numeric', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 116, maxSkipped: 12, maxRejected: 3, maxIneffective: 15, minContainers: 4 },
+        coverage: { minChecked: 116, maxSkipped: 15, maxRejected: 3, maxIneffective: 15, minContainers: 4 },
     },
     {
         seriesType: 'bubble',
         series: { xKey: 'numeric', yKey: 'value', sizeKey: 'size' },
         data: DATA,
-        coverage: { minChecked: 117, maxSkipped: 13, maxRejected: 3, maxIneffective: 0, minContainers: 4 },
+        coverage: { minChecked: 117, maxSkipped: 16, maxRejected: 3, maxIneffective: 0, minContainers: 4 },
     },
     {
         seriesType: 'histogram',
         series: { xKey: 'numeric' },
         data: DATA,
-        coverage: { minChecked: 96, maxSkipped: 11, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
+        coverage: { minChecked: 96, maxSkipped: 14, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
     },
     {
         seriesType: 'pie',
         series: { angleKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 126, maxSkipped: 11, maxRejected: 3, maxIneffective: 0, minContainers: 8 },
+        coverage: { minChecked: 126, maxSkipped: 14, maxRejected: 3, maxIneffective: 0, minContainers: 8 },
     },
     {
         seriesType: 'donut',
         series: { angleKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 130, maxSkipped: 11, maxRejected: 10, maxIneffective: 0, minContainers: 8 },
+        coverage: { minChecked: 130, maxSkipped: 14, maxRejected: 10, maxIneffective: 0, minContainers: 8 },
     },
 ];
 

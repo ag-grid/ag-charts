@@ -200,6 +200,11 @@ export abstract class BaseFunnelSeries<
         };
     }
 
+    /** A legend highlight of a stage has an index but no datum, and nothing to draw on the highlight layer. */
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        return highlightedDatum?.datum == null ? undefined : super.getRedrawnDatumIndex(highlightedDatum);
+    }
+
     /** The themed style of one stage, as the base every highlight, selection and styler layer merges onto. */
     protected itemStyle(datumIndex: number): Required<NormalisedFunnelSeriesStyle> & { opacity: number } {
         const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.options;
@@ -263,6 +268,8 @@ export abstract class BaseFunnelSeries<
         });
 
         this.connectorNodeGroup.pointerEvents = PointerEvents.None;
+        // The connectors batch their own shadows, beneath the stages of this series alone, so the stages do the same.
+        this.dataNodeGroup.batchShadows = true;
     }
 
     override setZIndex(zIndex: number): boolean {

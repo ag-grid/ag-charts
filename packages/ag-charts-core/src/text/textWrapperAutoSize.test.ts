@@ -20,8 +20,8 @@ vi.mock('../rendering/canvasUtil', () => ({
         measureText(text: string) {
             const fontSize = Number.parseFloat(this.font);
             return {
-                // The zero-width space the wrapper guards segment edges with draws nothing, as on a real canvas.
-                width: [...text.replaceAll('​', '')].length * fontSize,
+                // Zero-width spaces and the word joiner the wrapper guards segment edges with draw nothing.
+                width: [...text.replaceAll(/[\u200B\u2060]/g, '')].length * fontSize,
                 fontBoundingBoxAscent: fontSize * 1.2,
                 fontBoundingBoxDescent: fontSize * 0.3,
                 emHeightAscent: fontSize * 1.2,
