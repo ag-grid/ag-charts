@@ -743,4 +743,57 @@ describe('Shadow root', () => {
             expect(reads).toBeGreaterThan(0);
         });
     });
+    describe('a glow with no fill around items of different colours', () => {
+        const GLOW = { enabled: true, xOffset: 0, yOffset: 0, blur: 0, spread: 8, fillOpacity: 1, glow: true as const };
+        const COLOURS = ['rgb(255, 0, 0)', 'rgb(0, 255, 0)', 'rgb(0, 0, 255)', 'rgb(255, 255, 0)', 'rgb(0, 255, 255)'];
+
+        // One group per item, as a series that casts through the root has, so the root is what puts the casters in keys.
+        const build = (count: number, fillShadow: (i: number) => Rect['fillShadow']) => () =>
+            COLOURS.slice(0, count).map((fill, i) =>
+                group('shared', [square(20 + i * 70, 60, { fill, width: 40, height: 40, fillShadow: fillShadow(i) })])
+            );
+
+        const blitsOf = (nodes: () => Group[]) => {
+            const root = new TranslatableGroup({ name: 'root', shadowRoot: true });
+            for (const child of nodes()) root.appendChild(child);
+            const scene = newScene(root);
+            const blits = vi.spyOn(scene.canvas.context, 'drawImage');
+            try {
+                scene.render();
+                return blits.mock.calls.length;
+            } finally {
+                blits.mockRestore();
+            }
+        };
+
+        it('should blit one mask however many colours the items have', () => {
+            expect(blitsOf(build(1, () => GLOW))).toBe(1);
+            expect(blitsOf(build(COLOURS.length, () => GLOW))).toBe(1);
+        });
+
+        it('should make a mask for each colour of a glow that has a fill, as the colour is part of its key', () => {
+            expect(blitsOf(build(COLOURS.length, (i) => ({ ...GLOW, fill: COLOURS[i] })))).toBe(COLOURS.length);
+        });
+
+        it('should still make a mask for each spread, however many colours the items have', () => {
+            expect(blitsOf(build(COLOURS.length, (i) => ({ ...GLOW, spread: i < 3 ? 8 : 2 })))).toBe(2);
+        });
+
+        it('should draw the glow around each item in the colour of that item', () => {
+            const scene = draw(
+                true,
+                build(3, () => GLOW)
+            );
+
+            // 4px outside the top edge of each item, within the 8px of spread of the glow.
+            for (const [i, rgb] of [
+                [255, 0, 0],
+                [0, 255, 0],
+                [0, 0, 255],
+            ].entries()) {
+                expect(at(scene, 20 + i * 70 + 20, 56)).toEqual([...rgb, 255]);
+            }
+            expect(at(scene, 40, 48)).toEqual([0, 0, 0, 0]);
+        });
+    });
 });

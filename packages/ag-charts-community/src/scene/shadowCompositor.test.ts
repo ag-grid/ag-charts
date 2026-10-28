@@ -2553,6 +2553,81 @@ describe('Group shadow compositor', () => {
             });
         });
 
+        // A glow with no `fill` takes the colour of each item it surrounds, and is keyed without one, so the items of many
+        // colours share a mask, which is blurred and blitted once.
+        describe('a glow with no fill around items of different colours', () => {
+            const GLOW = {
+                enabled: true,
+                xOffset: 0,
+                yOffset: 0,
+                blur: 0,
+                spread: 8,
+                fillOpacity: 1,
+                glow: true as const,
+            };
+            const COLOURS = [
+                'rgb(255, 0, 0)',
+                'rgb(0, 255, 0)',
+                'rgb(0, 0, 255)',
+                'rgb(255, 255, 0)',
+                'rgb(0, 255, 255)',
+            ];
+            const items = (count: number, fillShadow: Shape['fillShadow'] | ((i: number) => Shape['fillShadow'])) =>
+                COLOURS.slice(0, count).map((fill, i) =>
+                    box(20 + i * 70, 60, 40, 40, {
+                        fill,
+                        fillShadow: typeof fillShadow === 'function' ? fillShadow(i) : fillShadow,
+                    })
+                );
+
+            const blitsOf = (nodes: Shape[], batchShadows: Group['batchShadows'] = true) => {
+                const blits = vi.spyOn(ctx(), 'drawImage');
+                try {
+                    renderNodes(nodes, batchShadows);
+                    return blits.mock.calls.length;
+                } finally {
+                    blits.mockRestore();
+                }
+            };
+
+            it.each([true, 'by-layer'] as const)(
+                'should blit one mask however many colours the items have, in a group that batches %s',
+                (batchShadows) => {
+                    expect(blitsOf(items(1, GLOW), batchShadows)).toBe(1);
+                    expect(blitsOf(items(COLOURS.length, GLOW), batchShadows)).toBe(1);
+                }
+            );
+
+            it('should make a mask for each colour of a glow that has a fill, as the colour is part of its key', () => {
+                const blits = blitsOf(items(COLOURS.length, (i) => ({ ...GLOW, fill: COLOURS[i] })));
+
+                expect(blits).toBe(COLOURS.length);
+            });
+
+            it('should still make a mask for each spread, however many colours the items have', () => {
+                const nodes = [
+                    ...items(2, GLOW),
+                    box(300, 60, 40, 40, { fill: 'rgb(255, 0, 255)', fillShadow: { ...GLOW, spread: 2 } }),
+                ];
+
+                expect(blitsOf(nodes)).toBe(2);
+            });
+
+            it('should draw the glow around each item in the colour of that item', () => {
+                renderNodes(items(3, GLOW));
+
+                // 4px outside the edge of each item, clear of the others, within the 8px of spread of the glow.
+                const glowAt = (i: number) => at(20 + i * 70 + 20, 60 - 4);
+                const [red, green, blue] = [0, 1, 2].map(glowAt);
+                expect([red[0], red[1], red[2]]).toEqual([255, 0, 0]);
+                expect([green[0], green[1], green[2]]).toEqual([0, 255, 0]);
+                expect([blue[0], blue[1], blue[2]]).toEqual([0, 0, 255]);
+                for (const pixel of [red, green, blue]) expect(pixel[3]).toBe(255);
+                // Beyond the spread there is none.
+                expect(at(20 + 20, 60 - 12)).toEqual(CLEAR);
+            });
+        });
+
         it('should end a cast at a change of zIndex only in a scope by layer', () => {
             const lower = box(20, 40, 40, 40, { fillShadow: BLUE, zIndex: 0 });
             const upper = box(120, 40, 40, 40, { fillShadow: BLUE, zIndex: 1 });

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgChartOptions, AgDropShadowOptions } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import type { AgChartOptions, AgDropShadowOptions, _ModuleSupport } from 'ag-charts-community';
+import { deproxy, getSeriesSelectionNodes, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
-import { createEnterpriseChart, shadowedShapes } from '../test/utils';
+import { createEnterpriseChart } from '../test/utils';
 
 const DATA = [
     { x: 1, low: 2, high: 8, close: 5 },
@@ -70,7 +70,9 @@ describe('item marker shadow fill and fillOpacity', () => {
                 series: [testCase.series(itemShadow, seriesShadow)],
             } as AgChartOptions)
         );
-        const casters = shadowedShapes(chart.series[0].contentGroup);
+        const casters = getSeriesSelectionNodes<_ModuleSupport.Marker>(chart, 'datumSelection').filter(
+            (marker) => marker.fillShadow?.enabled
+        );
         expect(casters.length).toBeGreaterThan(0);
         return casters.map((shape) => shape.fillShadow);
     };

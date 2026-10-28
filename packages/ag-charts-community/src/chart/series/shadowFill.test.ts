@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Shape, Transformable } from 'ag-charts-core';
+import { type Node, Shape, Transformable } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
+import { Marker } from '../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../test/bigintExamples';
 import { getSeriesPaths } from '../test/communitySeriesAccessors';
-import { CATEGORY_DATA, HISTOGRAM_DATA, XY_DATA, shapesOf } from '../test/shadowFixtures';
+import { getSeriesSelectionNodes } from '../test/seriesAccessors';
+import { CATEGORY_DATA, HISTOGRAM_DATA, XY_DATA } from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 interface SeriesCase {
@@ -75,9 +77,10 @@ describe('shadow fill and fillOpacity', () => {
 
     /** The shapes of the first series that cast a shadow, including the fill path of an area. */
     const casters = () => {
-        const shapes = new Set<Shape>(shapesOf(chart.series[0].contentGroup, Shape));
-        if (chart.series[0].type === 'area') for (const path of getSeriesPaths(chart)) shapes.add(path);
-        return [...shapes].filter((shape) => shape.fillShadow?.enabled === true);
+        const selection = chart.series[0].type === 'donut' ? 'itemSelection' : 'datumSelection';
+        const nodes: Node[] = getSeriesSelectionNodes(chart, selection);
+        if (chart.series[0].type === 'area') nodes.push(...getSeriesPaths(chart));
+        return nodes.filter((node): node is Shape => node instanceof Shape && node.fillShadow?.enabled === true);
     };
 
     const createSeries = (testCase: SeriesCase, shadow: AgDropShadowOptions | undefined) =>
@@ -201,8 +204,8 @@ describe('shadow fill and fillOpacity', () => {
                     },
                 ],
             } as AgCartesianChartOptions);
-            const [marker] = [...chart.series[0].datumSelection.nodes()].filter((node: any) => node.visible);
-            const { canvasX, canvasY } = Transformable.toCanvasPoint(marker.parentNode, marker.x, marker.y);
+            const [marker] = getSeriesSelectionNodes<Marker>(chart, 'datumSelection').filter((node) => node.visible);
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(marker.parentNode!, marker.x, marker.y);
             const pixel = pixelAt(canvasX + 40, canvasY);
             chart.destroy();
             return pixel;

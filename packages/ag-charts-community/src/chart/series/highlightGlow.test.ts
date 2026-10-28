@@ -793,6 +793,8 @@ describe('highlight glow', () => {
         describe('the pixels of a glow that takes the stroke of an item with no fill', () => {
             const BLUE = [0, 0, 255, 255];
             const WHITE = [255, 255, 255, 255];
+            const GREEN = [0, 255, 0, 255];
+            const GREEN_FILL = '#00ff00';
             const glow = (extra: object) => ({ enabled: true, fillOpacity: 1, ...extra });
 
             const hoveredPixels = async (testCase: SeriesCase, options: object, bucketGlow: object) => {
@@ -845,6 +847,59 @@ describe('highlight glow', () => {
                 );
 
                 expect(pixels.above(2)).toEqual(WHITE);
+            });
+
+            it.each([
+                ['a marker with no fill', SERIES[3], NO_FILL_MARKER],
+                ['a bar whose fill is fully transparent', SERIES[0], NO_FILL_BAR],
+            ] as const)(
+                'draws a glow in its own fill around %s, cast from the stroke',
+                async (_name, testCase, options) => {
+                    const pixels = await hoveredPixels(
+                        testCase,
+                        options,
+                        glow({ spread: 4, blur: 0, fill: GREEN_FILL })
+                    );
+
+                    expect(pixels.above(2)).toEqual(GREEN);
+                    expect(pixels.above(12)).toEqual(WHITE);
+                }
+            );
+
+            it('draws a blur-only glow in its own fill around a marker with no fill', async () => {
+                const pixels = await hoveredPixels(
+                    SERIES[3],
+                    NO_FILL_MARKER,
+                    glow({ spread: 0, blur: 8, fill: GREEN_FILL })
+                );
+                const [red, green, blue] = pixels.above(2);
+
+                // Over the white background, a green glow lowers red and blue and keeps green.
+                expect(green).toBe(255);
+                expect(red).toBeLessThan(green);
+                expect(blue).toBeLessThan(green);
+            });
+
+            it('draws no glow in its own fill around a marker with neither a fill nor a stroke', async () => {
+                const pixels = await hoveredPixels(
+                    SERIES[3],
+                    { fill: 'none', stroke: 'none', strokeWidth: 2, size: 24 },
+                    glow({ spread: 4, blur: 0, fill: GREEN_FILL })
+                );
+
+                expect(pixels.above(2)).toEqual(WHITE);
+            });
+
+            it('draws a glow in its own fill from the fill alone, not the stroke, around a marker that has a fill', async () => {
+                // The stroke reaches 5px past the edge of the fill, which the 4px of spread of a glow cast from the fill stays within.
+                const pixels = await hoveredPixels(
+                    SERIES[3],
+                    { fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: 10, size: 24 },
+                    glow({ spread: 4, blur: 0, fill: GREEN_FILL })
+                );
+                const sampled = [0, 2, 4, 6, 8, 10, 12].map((offset) => pixels.above(offset));
+
+                expect(sampled).not.toContainEqual(GREEN);
             });
 
             it('draws a glow of the item fill, and not the stroke, around a marker that has a fill', async () => {
