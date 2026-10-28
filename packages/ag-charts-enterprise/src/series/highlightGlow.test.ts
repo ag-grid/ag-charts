@@ -319,6 +319,18 @@ const SERIES: SeriesCase[] = [
         }),
     },
     {
+        name: 'radial-bar',
+        data: POLAR_DATA,
+        kind: Sector,
+        series: (shadow, highlight) => ({
+            type: 'radial-bar',
+            angleKey: 'value',
+            radiusKey: 'quarter',
+            shadow,
+            highlight,
+        }),
+    },
+    {
         name: 'waterfall',
         data: WATERFALL_DATA,
         kind: Rect,
@@ -790,6 +802,14 @@ describe('highlight glow (enterprise series)', () => {
                 highlight: (options) => options.highlight,
             },
             {
+                name: 'radial-bar',
+                data: POLAR_DATA,
+                series: { type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter' },
+                buckets: SERIES_BUCKETS,
+                defaulted: ['highlightedSeries', 'unhighlightedSeries'],
+                highlight: (options) => options.highlight,
+            },
+            {
                 name: 'heatmap',
                 data: GRID_DATA,
                 series: { type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value' },
@@ -845,16 +865,15 @@ describe('highlight glow (enterprise series)', () => {
         });
 
         it('gives the series without a glow no glow theme defaults', async () => {
-            for (const [series, data] of [
-                [{ type: 'cone-funnel', stageKey: 'stage', valueKey: 'value' }, STAGE_DATA],
-                [{ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter' }, POLAR_DATA],
-            ] as const) {
-                const options = await resolvedOptions('ag-default', series, [...data]);
-                for (const bucket of SERIES_BUCKETS) {
-                    expect(options.highlight?.[bucket]?.glow).toBeUndefined();
-                }
-                chart.destroy();
+            const options = await resolvedOptions(
+                'ag-default',
+                { type: 'cone-funnel', stageKey: 'stage', valueKey: 'value' },
+                [...STAGE_DATA]
+            );
+            for (const bucket of SERIES_BUCKETS) {
+                expect(options.highlight?.[bucket]?.glow).toBeUndefined();
             }
+            chart.destroy();
         });
     });
 });

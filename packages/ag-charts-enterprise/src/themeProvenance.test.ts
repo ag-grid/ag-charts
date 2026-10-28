@@ -51,7 +51,7 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'radial-bar',
         series: { angleKey: 'value', radiusKey: 'category' },
         data: DATA,
-        coverage: { minChecked: 92, maxSkipped: 8, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
+        coverage: { minChecked: 92, maxSkipped: 12, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
     },
     {
         seriesType: 'radial-column',
