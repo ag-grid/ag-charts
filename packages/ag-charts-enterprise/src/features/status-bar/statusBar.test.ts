@@ -211,6 +211,51 @@ describe('StatusBar', () => {
         expect(shownColors()).toEqual(['red', 'green']);
     });
 
+    it('colours the last waterfall datum by its own item and `itemStyler` before any hover', async () => {
+        chart = await createEnterpriseChart({
+            data: [
+                { q: 'A', v: 10 },
+                { q: 'B', v: 5 },
+            ],
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'q',
+                    yKey: 'v',
+                    item: {
+                        positive: {
+                            fill: 'green',
+                            itemStyler: ({ datum }) => (datum.q === 'B' ? { fill: 'red' } : {}),
+                        },
+                        total: { fill: 'blue' },
+                    },
+                },
+            ],
+            statusBar: { enabled: true },
+        });
+        expect(shownColors()).toEqual(['red']);
+    });
+
+    it('truncates coloured default values and long labels to the status bar width', async () => {
+        chart = await createEnterpriseChart({
+            ...OPTIONS,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'revenue',
+                    yName: 'A very long series name that cannot fit',
+                    collector: ({ values }) =>
+                        values.map((value) => ({ ...value, formattedValue: 'a long formatted value' })),
+                },
+            ],
+            statusBar: { enabled: true, maxWidth: 120 },
+        });
+        const [node] = shownNodes();
+        expect(toPlainText(node.label.text)).toMatch(/…$/);
+        expect(toPlainText(node.value.text)).toMatch(/…$/);
+    });
+
     it('shows the values of horizontal series rather than their categories', async () => {
         chart = await createEnterpriseChart({
             ...OPTIONS,

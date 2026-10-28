@@ -1447,7 +1447,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         return {
             datum,
-            style: this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType),
+            style: this.getItemStyle(nodeDatum, false, undefined, itemType),
             itemType,
             values: [
                 {

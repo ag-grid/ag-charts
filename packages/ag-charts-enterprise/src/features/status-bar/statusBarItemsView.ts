@@ -1,20 +1,26 @@
 import type { AgChartLegendPlacement, AgStatusBarRendererItem, _ModuleSupport } from 'ag-charts-community';
 import {
     BBox,
+    EllipsisChar,
     Group,
+    type NormalisedContentSegment,
     type NormalisedStatusBarFontOptions,
     type NormalisedStatusBarOptions,
     Rect,
     Text,
     TranslatableGroup,
+    appendEllipsis,
     cachedTextMeasurer,
     drawnLineHeight,
     expandLegendPosition,
+    isArray,
     isString,
     placementOffset,
     placementSide,
     resolvePadding,
+    toTextString,
     truncateLine,
+    wrapTextOrSegments,
 } from 'ag-charts-core';
 
 const INNER_SPACING = 4;
@@ -40,7 +46,10 @@ export class StatusBarItemsView {
     private seriesWidth?: number;
     private contentWidth = 0;
     private contentHeight = 0;
+    private maxContentHeight = 0;
+    private relayoutPending = false;
     private items: readonly AgStatusBarRendererItem[] = [];
+    private sizingItems: readonly AgStatusBarRendererItem[] = [];
 
     performLayout(
         { layoutBox, width, height }: _ModuleSupport.LayoutContext,
@@ -69,6 +78,8 @@ export class StatusBarItemsView {
 
         this.contentWidth = vertical ? measured.width : maxWidth;
         this.contentHeight = vertical ? maxHeight : measured.height;
+        this.maxContentHeight = maxHeight;
+        this.sizingItems = items;
         this.placement = placement;
         this.offset = { x: xOffset, y: yOffset };
         this.alignToSeries = alignToSeries;
@@ -80,18 +91,29 @@ export class StatusBarItemsView {
         }
     }
 
-    onLayoutComplete(seriesRect: BBox, opts: NormalisedStatusBarOptions) {
+    /** Returns whether the reserved height no longer fits the items at the final series width. */
+    onLayoutComplete(seriesRect: BBox, opts: NormalisedStatusBarOptions): boolean {
         this.seriesWidth = seriesRect.width;
+        let relayout = false;
         if (this.alignToSeries) {
             this.area = new BBox(seriesRect.x, this.area.y, seriesRect.width, this.area.height);
             const { left, right } = resolvePadding(opts.padding);
-            const seriesContentWidth = Math.max(0, seriesRect.width - left - right);
-            if (this.contentWidth > seriesContentWidth) {
+            const seriesContentWidth = Math.max(
+                0,
+                Math.min(opts.maxWidth ?? Infinity, seriesRect.width) - left - right
+            );
+            if (this.contentWidth !== seriesContentWidth) {
+                const shown = this.items;
                 this.contentWidth = seriesContentWidth;
-                this.flow(opts, this.items, this.contentWidth, this.contentHeight);
+                const { height } = this.flow(opts, this.sizingItems, seriesContentWidth, this.maxContentHeight);
+                // One extra layout at most, in case the new height in turn changes the series width.
+                relayout = height !== this.contentHeight && !this.relayoutPending;
+                this.flow(opts, shown, this.contentWidth, this.contentHeight);
             }
         }
+        this.relayoutPending = relayout;
         this.position(opts);
+        return relayout;
     }
 
     update(opts: NormalisedStatusBarOptions, items: readonly AgStatusBarRendererItem[]) {
@@ -126,7 +148,7 @@ export class StatusBarItemsView {
 
             const labelWidth = setText(node.label, item.label, opts.label, opts.label.color);
             const valueWidth = setText(node.value, item.value, opts.value, opts.label.color);
-            const labelExtent = labelWidth > 0 ? labelWidth + INNER_SPACING : 0;
+            let labelExtent = labelWidth > 0 ? labelWidth + INNER_SPACING : 0;
             let itemWidth = labelExtent + valueWidth;
 
             if (x > 0 && wraps && x + itemWidth > maxWidth) {
@@ -140,7 +162,7 @@ export class StatusBarItemsView {
             if (!visible) {
                 if (lastShown != null && opts.truncate) {
                     const { value } = lastShown;
-                    const truncatedWidth = truncateValue(value, opts.value, maxWidth - value.x, true);
+                    const truncatedWidth = truncateText(value, opts.value, maxWidth - value.x, true);
                     width = Math.max(width, value.x + truncatedWidth);
                 }
                 lastShown = undefined;
@@ -148,7 +170,13 @@ export class StatusBarItemsView {
             }
 
             if (x + itemWidth > maxWidth && opts.truncate) {
-                itemWidth = labelExtent + truncateValue(node.value, opts.value, maxWidth - x - labelExtent, false);
+                const available = maxWidth - x;
+                // The value keeps at least half the room, so a long label cannot squeeze it out entirely.
+                const labelMax = Math.max(available / 2, available - valueWidth) - INNER_SPACING;
+                if (labelWidth > labelMax) {
+                    labelExtent = truncateText(node.label, opts.label, labelMax, false) + INNER_SPACING;
+                }
+                itemWidth = labelExtent + truncateText(node.value, opts.value, available - labelExtent, false);
             }
 
             node.label.x = x;
@@ -164,7 +192,7 @@ export class StatusBarItemsView {
 
         const height = items.length === 0 ? 0 : Math.min(y + lineHeight, maxHeight);
         this.updateBackground(opts, width, height);
-        this.content.setClipRectCanvasSpace(opts.truncate ? undefined : new BBox(0, 0, maxWidth, height));
+        this.content.setClipRectCanvasSpace(new BBox(0, 0, maxWidth, height));
         return { width, height };
     }
 
@@ -221,10 +249,22 @@ function setText(
     return isString(text) ? cachedTextMeasurer(font).textWidth(text) : node.getBBox().width;
 }
 
-function truncateValue(node: Text, font: NormalisedStatusBarFontOptions, maxWidth: number, ellipsisForce: boolean) {
+function truncateText(node: Text, font: NormalisedStatusBarFontOptions, maxWidth: number, ellipsisForce: boolean) {
     const { text } = node;
-    if (!isString(text)) return node.getBBox().width;
-    const measurer = cachedTextMeasurer(font);
-    node.text = truncateLine(text, measurer, Math.max(0, maxWidth), ellipsisForce);
-    return measurer.textWidth(node.text);
+    const width = Math.max(0, maxWidth);
+    if (isString(text)) {
+        const measurer = cachedTextMeasurer(font);
+        node.text = truncateLine(text, measurer, width, ellipsisForce);
+        return measurer.textWidth(node.text);
+    }
+    if (!isArray(text)) return node.getBBox().width;
+    const segments = ellipsisForce ? withEllipsis(text) : text;
+    node.text = wrapTextOrSegments(segments, { font, maxWidth: width, textWrap: 'never' });
+    return node.getBBox().width;
+}
+
+function withEllipsis(segments: NormalisedContentSegment[]): NormalisedContentSegment[] {
+    const last = segments.at(-1);
+    if (last == null || last.type === 'image') return [...segments, { text: EllipsisChar }];
+    return [...segments.slice(0, -1), { ...last, text: appendEllipsis(toTextString(last.text)) }];
 }
