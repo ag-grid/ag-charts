@@ -165,10 +165,8 @@ export class DOMManager extends BaseManager {
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
     private shadowDocumentRoot?: HTMLElement = undefined;
-    // OPTIMIZATION: mirrors the registered CSS-variable watchers so `updateCSSVariableWatchers`
-    // skips an O(children) DOM scan. Both kinds suit only the root they were made for (an `@property`
-    // rule is ignored inside a shadow root, and a shadow-path watcher is not needed outside one), so
-    // each maps to its removal, run when that root changes.
+    // OPTIMIZATION: mirrors the registered CSS-variable watchers so `updateCSSVariableWatchers` skips a DOM scan.
+    // Each maps to its remover, run when the shadow root changes, as a watcher suits only the root it was made for.
     private readonly cssVariableWatchers = new Map<string, () => void>();
     private readonly shadowCssVariableWatchers = new Map<string, () => void>();
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
@@ -780,7 +778,7 @@ export class DOMManager extends BaseManager {
 
     /** Points `shadowDocumentRoot` at the container's shadow root, moving the CSS-variable watchers to a new root. */
     private updateShadowDocumentRoot(container: HTMLElement) {
-        // A move within the same root keeps its shadow-path watchers.
+        // A move within the same root keeps its watchers.
         const previousShadowRoot = this.getShadowRoot();
         const watchedProperties = new Set([
             ...this.cssVariableWatchers.keys(),

@@ -71,11 +71,8 @@ test.describe('css variables', () => {
         await waitForAllChartUpdates(page);
         await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'onto-color-changed.png');
     });
-    // The CSS-variable watchers belong to the root the chart sits in. Moving the chart between a shadow root
-    // and the light DOM must drop the old root's watchers, or one `var()` change refreshes the chart twice.
     test('moving a chart out of and back into a shadow root keeps a single CSS-variable watcher', async ({ page }) => {
-        // `AgCharts` adds a `transitionend` listener per watcher, so counting the invocations
-        // counts the `chart:request-refresh` emissions caused by a transition.
+        // Each watcher adds a `transitionend` listener, so counting calls counts refreshes.
         await page.addInitScript(() => {
             const win = window as unknown as { transitionEndCalls: number };
             win.transitionEndCalls = 0;
