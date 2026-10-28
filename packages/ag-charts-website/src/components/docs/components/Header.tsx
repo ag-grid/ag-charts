@@ -39,17 +39,18 @@ export const Header: FunctionComponent<Props> = ({
 
     const frameworkName = framework == null ? undefined : `${getFrameworkDisplayText(framework)} Charts`;
     const hasLandingHub = framework != null && isFrameworkLandingHub(framework);
+    const hasEyebrow = !suppressFrameworkHeader && framework != null;
 
     return (
         <header className={styles.docsPageHeader}>
             {/* `#top` is the side navigation's scroll target, so it sits on the container rather than
                 the h1: the h1 is `display: contents` and so has no box to scroll to. */}
-            <div id="top" className={styles.pageTitleContainer}>
+            <div id="top" className={hasEyebrow ? styles.pageTitleContainer : styles.pageTitleContainerNoEyebrow}>
                 {/* The framework name must stay inside the h1 to count towards it for SEO; the version
                     must stay outside it, or it would read as part of the heading. `data-page-title` is
                     how the Algolia indexer finds the page title within the heading. */}
                 <h1 className={styles.docsPageTitle}>
-                    {!suppressFrameworkHeader && framework != null && (
+                    {hasEyebrow && (
                         <span className={styles.headerFramework}>
                             {hasLandingHub ? (
                                 <a className={styles.headerFrameworkLink} href={urlWithBaseUrl(`/${framework}/`)}>

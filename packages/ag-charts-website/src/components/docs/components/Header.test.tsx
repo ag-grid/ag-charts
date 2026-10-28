@@ -92,5 +92,11 @@ describe('Header', () => {
             expect(html).toContain('AI Options');
             expect(html).not.toContain('frameworkSelector');
         });
+
+        it('lays the title row out without the framework name column', () => {
+            expect(renderHeader(frameworkless)).toContain('pageTitleContainerNoEyebrow');
+            expect(renderHeader({ suppressFrameworkHeader: true })).toContain('pageTitleContainerNoEyebrow');
+            expect(renderHeader()).not.toContain('pageTitleContainerNoEyebrow');
+        });
     });
 });
