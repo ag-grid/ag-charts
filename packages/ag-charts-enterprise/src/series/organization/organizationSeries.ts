@@ -118,6 +118,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     private detailHidden = false;
 
+    // The cards at either end of each link, by link index; a link from the root has no parent card.
+    private readonly linkParents: (OrganizationNode | undefined)[] = [];
+    private readonly linkChildren: (OrganizationNode | undefined)[] = [];
+    private hasCulledLinks = false;
+
     private readonly appliedStyleInputs = new WeakMap<OrganizationNode, AppliedStyleInputs>();
     // Bumped by anything that restyles every card, so no card's recorded inputs can match afterwards.
     private styleEpoch = 0;
@@ -440,7 +445,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (cardBBox == null) return;
 
         this.updateDetailVisibility(cardBBox.height * scaling < MIN_DETAIL_CARD_HEIGHT);
-        if (viewport) this.cullOffscreenCards(viewport, cardBBox);
+        if (!viewport) return;
+
+        this.cullOffscreenCards(viewport, cardBBox);
+        this.cullOffscreenLinks(viewport, cardBBox);
     }
 
     private updateDetailVisibility(detailHidden: boolean) {
@@ -471,8 +479,47 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         });
     }
 
+    // A link stays within the cards it joins, so it is left undrawn when those, taken together, are out of view.
+    // Links are not drawn at all while the detail is hidden, so that is when there is nothing to cull.
+    private cullOffscreenLinks(viewport: BBox, cardBBox: BBox) {
+        if (this.detailHidden) {
+            if (this.hasCulledLinks) this.restoreCulledLinks();
+            return;
+        }
+        this.hasCulledLinks = true;
+
+        const { linkParents, linkChildren } = this;
+        const margin = cardBBox.height;
+        const minX = viewport.x - margin - cardBBox.width;
+        const maxX = viewport.x + viewport.width + margin;
+        const minY = viewport.y - margin - cardBBox.height;
+        const maxY = viewport.y + viewport.height + margin;
+
+        this.linkSelection.each(function cullLink(link, _datum, index) {
+            const parent = linkParents[index];
+            const child = linkChildren[index];
+            link.culled =
+                parent != null &&
+                child != null &&
+                (Math.max(parent.translationX, child.translationX) < minX ||
+                    Math.min(parent.translationX, child.translationX) > maxX ||
+                    Math.max(parent.translationY, child.translationY) < minY ||
+                    Math.min(parent.translationY, child.translationY) > maxY);
+            const visible = !link.hidden && !link.culled;
+            if (link.visible !== visible) link.visible = visible;
+        });
+    }
+
+    private restoreCulledLinks() {
+        this.hasCulledLinks = false;
+        this.linkSelection.each(function restoreLink(link) {
+            link.culled = false;
+            link.visible = !link.hidden;
+        });
+    }
+
     updateLinkNodes(linkSelection: Selection<OrganizationLinkDatum, NetworkLinkNode<OrganizationLinkDatum>>) {
-        linkSelection.each((node, datum) => {
+        linkSelection.each((node, datum, index) => {
             const fromIndex = this.graph.findNeighbourValue(datum.from, 'datumIndex') as number;
             const toIndex = this.graph.findNeighbourValue(datum.to, 'datumIndex') as number;
 
@@ -481,7 +528,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 parentDatumIndex == null ? undefined : this.contextNodeData?.nodeData[parentDatumIndex].itemId;
             const visible = parentItemId == null || !this.ctx.collapsedManager.isCollapsed(parentItemId);
 
-            node.visible = visible;
+            const childDatumIndex = this.getNodeDatumIndex(datum.to);
+            this.linkParents[index] = parentDatumIndex == null ? undefined : this.datumSelection.at(parentDatumIndex);
+            this.linkChildren[index] = childDatumIndex == null ? undefined : this.datumSelection.at(childDatumIndex);
+            node.hidden = !visible;
+            node.visible = visible && !node.culled;
             if (visible) {
                 const styles = this.getLinkStyle(fromIndex, toIndex);
                 node.update(styles);

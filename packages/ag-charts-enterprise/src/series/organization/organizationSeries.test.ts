@@ -3121,6 +3121,47 @@ describe('OrganizationSeries', () => {
             expect(getCardsAgainstViewport(chart).every(({ drawn }) => drawn)).toBe(true);
         });
 
+        it('should draw only the links that cross the viewport, and every link again once zoomed out', async () => {
+            const getLinksAgainstViewport = (c: ChartOrProxy<any>) => {
+                const seriesRect = getNetworkSeriesRect(c);
+                const { scalingX, scalingY, translationX, translationY } = getNetworkViewport(c);
+                const cards = new Map(getOrganizationCards(c).map(({ node, datum }) => [datum.itemId, node]));
+
+                return getOrganizationLinks(c).flatMap(({ node, datum }) => {
+                    const parent = cards.get(String(datum.from.value));
+                    const child = cards.get(String(datum.to.value));
+                    if (parent == null || child == null) return [];
+
+                    const { width, height } = child.getShapeBBox();
+                    const left = Math.min(parent.translationX, child.translationX) * scalingX + translationX;
+                    const right = Math.max(parent.translationX, child.translationX) * scalingX + translationX;
+                    const top = Math.min(parent.translationY, child.translationY) * scalingY + translationY;
+                    const bottom = Math.max(parent.translationY, child.translationY) * scalingY + translationY;
+                    const inView =
+                        left < seriesRect.width &&
+                        right + width * scalingX > 0 &&
+                        top < seriesRect.height &&
+                        bottom + height * scalingY > 0;
+                    return [{ drawn: node.visible, inView }];
+                });
+            };
+
+            chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
+            expect(getLinksAgainstViewport(chart).every(({ drawn }) => drawn)).toBe(true);
+
+            setZoom(chart, 0.48, 0.52, 0.48, 0.52);
+            await waitForChartStability(chart);
+
+            const zoomedIn = getLinksAgainstViewport(chart);
+            expect(zoomedIn.some(({ inView }) => inView)).toBe(true);
+            expect(zoomedIn.some(({ drawn }) => !drawn)).toBe(true);
+            expect(zoomedIn.filter(({ inView }) => inView).every(({ drawn }) => drawn)).toBe(true);
+
+            setZoom(chart, 0, 1, 0, 1);
+            await waitForChartStability(chart);
+            expect(getLinksAgainstViewport(chart).every(({ drawn }) => drawn)).toBe(true);
+        });
+
         it('should draw the active item that setState pans into view', async () => {
             chart = await createEnterpriseChart({ ...OVERFLOWING_ORG_CHART });
 
