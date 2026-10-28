@@ -172,6 +172,7 @@ export class DOMManager extends BaseManager {
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
     private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
+    private hasDeferredCSSVariables = false;
     containerSize?: ElementSize = undefined;
     private readonly tabGuards?: GuardedElement;
 
@@ -446,7 +447,11 @@ export class DOMManager extends BaseManager {
 
             // A detached container has no computed style, and a watcher only reports changes made after it
             // is in place, so everything resolved while detached is re-resolved once here.
-            if (this.cssVariableWatchers.size > 0 || this.shadowCssVariableWatchers.size > 0) {
+            if (
+                this.hasDeferredCSSVariables ||
+                this.cssVariableWatchers.size > 0 ||
+                this.shadowCssVariableWatchers.size > 0
+            ) {
                 this.eventsHub.emit('chart:request-refresh', null);
             }
         }
@@ -1114,15 +1119,18 @@ export class DOMManager extends BaseManager {
         });
     }
 
-    /**
-     * Watches the variables in use. `deferred` names those that could not be resolved on a detached container:
-     * watching them lets a variable defined later re-theme the chart once it is attached.
-     */
-    updateCSSVariableWatchers(cssVariables?: Record<string, string>, deferred?: Iterable<string>) {
-        const keys = [...(cssVariables ? strictObjectKeys(cssVariables) : []), ...(deferred ?? [])];
-        if (keys.length === 0) return;
+    updateCSSVariableWatchers(cssVariables?: Record<string, string>) {
+        if (!cssVariables) return;
 
-        this.watchCSSVariables(keys.map((key) => key.slice(4, -1)));
+        this.watchCSSVariables(strictObjectKeys(cssVariables).map((key) => key.slice(4, -1)));
+    }
+
+    /**
+     * Records that variables could not be resolved on a detached container. They are not watched, as registering one
+     * in the light DOM would give a variable nothing defines a value, but the attach re-resolves them.
+     */
+    setDeferredCSSVariables(deferred?: readonly string[]) {
+        this.hasDeferredCSSVariables = deferred != null && deferred.length > 0;
     }
 
     private watchCSSVariables(properties: Iterable<string>) {

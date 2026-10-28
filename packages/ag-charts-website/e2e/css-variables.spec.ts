@@ -113,6 +113,7 @@ test.describe('css variables', () => {
         const GREEN = [0, 255, 0] as const;
         const YELLOW = [255, 255, 0] as const;
         const FALLBACK_GREEN = [0, 128, 0] as const;
+        const DEFAULT_BAR = [80, 144, 220] as const;
 
         const targets: Target[] = ['shadow', 'light'];
         const hostSelector = (target: Target) => (target === 'shadow' ? '#shadowHost' : '#lightHost');
@@ -264,30 +265,34 @@ test.describe('css variables', () => {
             });
         }
 
-        test('nothing is warned about while detached, and a var() still unresolved once attached warns once [ignoreConsoleWarnings]', async ({
-            page,
-        }) => {
-            const warnings: string[] = [];
-            page.on('console', (msg) => {
-                if (msg.text().includes('is not a valid color')) warnings.push(msg.text());
+        for (const target of targets) {
+            test(`nothing is warned about while detached, and a var() still unresolved once attached to the ${target === 'shadow' ? 'shadow root' : 'light DOM'} warns once [ignoreConsoleWarnings]`, async ({
+                page,
+            }) => {
+                const warnings: string[] = [];
+                page.on('console', (msg) => {
+                    if (msg.text().includes('is not a valid color')) warnings.push(msg.text());
+                });
+                await open(page);
+                await create(page, 'series-unresolvable');
+                // Give the detached chart time to process its options and to settle.
+                await page.evaluate(
+                    () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+                );
+                expect(warnings).toHaveLength(0);
+
+                await attach(page, target);
+
+                await expect.poll(() => warnings.length).toBe(1);
+                expect(warnings[0]).toContain('var(--attach-undefined)');
+                // The unresolved fill is ignored, so the series is painted with the theme default.
+                await seriesIs(page, target, DEFAULT_BAR);
+                await changeVariable(page);
+                await waitForAllChartUpdates(page);
+                expect(warnings).toHaveLength(1);
+                await seriesIs(page, target, DEFAULT_BAR);
+                await seriesIsNot(page, target, RED);
             });
-            await open(page);
-            await create(page, 'series-unresolvable');
-            // Give the detached chart time to process its options and to settle.
-            await page.evaluate(
-                () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-            );
-            expect(warnings).toHaveLength(0);
-
-            await attach(page, 'shadow');
-
-            await expect.poll(() => warnings.length).toBe(1);
-            expect(warnings[0]).toContain('var(--attach-undefined)');
-            // The unresolved fill is ignored, so the series is painted with the theme default.
-            await changeVariable(page);
-            await waitForAllChartUpdates(page);
-            expect(warnings).toHaveLength(1);
-            await seriesIsNot(page, 'shadow', RED);
-        });
+        }
     });
 });

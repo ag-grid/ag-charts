@@ -2129,10 +2129,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const deferred = new Set<string>();
         const ctx: CSSVariableContext = { container, logger: this.logger, deferred };
         let processed = jsonWalk(options, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx);
-        // The options graph resolves theme params from `activeTheme.params`, a distinct object from `options`, so an
-        // invalid `var()` colour there must be dropped here too — otherwise it reaches the blend engine unresolved.
-        // The theme is shared and outlives this pass, so the values are dropped from a copy: removing them from
-        // the theme itself would leave nothing for the pass that re-resolves them once the container is attached.
+        // The options graph resolves theme params apart from `options`, so an invalid `var()` colour there is dropped
+        // too, from a copy because the theme is shared.
         if (themeParams != null) {
             const params = deepClone(themeParams);
             ctx.removed = false;

@@ -505,10 +505,8 @@ class AgChartsInternal {
             (globalThis as any).agChartInstances[chart.id] = chart;
         }
 
-        chart.ctx.domManager.updateCSSVariableWatchers(
-            chartOptions.processedCSSVariables,
-            chartOptions.deferredCSSVariables
-        );
+        chart.ctx.domManager.updateCSSVariableWatchers(chartOptions.processedCSSVariables);
+        chart.ctx.domManager.setDeferredCSSVariables(chartOptions.deferredCSSVariables);
 
         chart.setRequestRefreshListener(() => {
             const refreshedChartOptions = new ChartOptions(
@@ -525,10 +523,8 @@ class AgChartsInternal {
             );
             AgChartsInternal.licenseCheck(chartProxy, licenceScope);
             // A variable that could not be resolved before, such as on a detached container, can be now.
-            chart.ctx.domManager.updateCSSVariableWatchers(
-                refreshedChartOptions.processedCSSVariables,
-                refreshedChartOptions.deferredCSSVariables
-            );
+            chart.ctx.domManager.updateCSSVariableWatchers(refreshedChartOptions.processedCSSVariables);
+            chart.ctx.domManager.setDeferredCSSVariables(refreshedChartOptions.deferredCSSVariables);
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
 
