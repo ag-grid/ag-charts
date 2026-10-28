@@ -572,6 +572,11 @@ export class SeriesAreaManager extends BaseManager {
     private onHoverLikeEvent(event: HoverLikeEvent): void {
         if (this.isIgnoredTouch(event)) return;
 
+        const { chartWidget, seriesBoundsWidget } = this.chart.ctx.widgets;
+        if (!(chartWidget.isOnTarget(event) || seriesBoundsWidget.containsTarget(event))) {
+            return;
+        }
+
         this.tooltip.lastHover = event;
         this.setHoverDevice('pointer');
         this.highlight.pendingHoverEvent = event;
