@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { StateTracker } from './stateTracker';
 
@@ -23,6 +23,27 @@ describe('StateTracker', () => {
         // Callers clear their contribution by setting no value, as `updateCursor(id)` does.
         tracker.set('a', cleared);
         expect(tracker.stateValue()).toBe('default');
+    });
+
+    it('caches an empty result, and drops it when a state is set', () => {
+        const tracker = new StateTracker<string>();
+        const values = vi.spyOn(tracker, 'values');
+        const keys = vi.spyOn(tracker, 'keys');
+
+        expect(tracker.stateValue()).toBeUndefined();
+        expect(tracker.stateValue()).toBeUndefined();
+        expect(tracker.stateId()).toBeUndefined();
+        expect(tracker.stateId()).toBeUndefined();
+        expect(values).toHaveBeenCalledTimes(1);
+        expect(keys).toHaveBeenCalledTimes(1);
+
+        tracker.set('a', 'one');
+        expect(tracker.stateValue()).toBe('one');
+        expect(tracker.stateId()).toBe('a');
+
+        tracker.delete('a');
+        expect(tracker.stateValue()).toBeUndefined();
+        expect(tracker.stateId()).toBeUndefined();
     });
 
     describe('lock', () => {

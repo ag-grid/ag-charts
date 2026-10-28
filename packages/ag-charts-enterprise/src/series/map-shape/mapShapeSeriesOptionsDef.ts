@@ -16,7 +16,7 @@ import {
     labelAutoFontSizeOptionsDefs,
     labelFitOptionsDefs,
     lineDashOptionsDef,
-    multiSeriesShadowHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     overflowStrategy,
     positiveNumber,
     required,
@@ -50,7 +50,7 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     ...undocumentedDefs({
         topologyIdKey: string,
     }),

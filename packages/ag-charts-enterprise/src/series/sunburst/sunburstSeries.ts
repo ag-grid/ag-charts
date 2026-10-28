@@ -41,7 +41,12 @@ import {
 import type { Path } from 'ag-charts-core';
 import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight, PaddingOptions } from 'ag-charts-types';
 
-import { HierarchyNode, HierarchySeries, toHierarchyHighlightString } from '../hierarchy/hierarchySeries';
+import {
+    HierarchyHighlightState,
+    HierarchyNode,
+    HierarchySeries,
+    toHierarchyHighlightString,
+} from '../hierarchy/hierarchySeries';
 import { autoSizedLabelFit, labelPairBlocks, styledLabelFont } from '../util/autoSizedLabelFit';
 
 const { fromToMotion, createDatumId, expandLabelBoxExtent, fitLabelToContainer, getLabelStyles } = _ModuleSupport;
@@ -95,6 +100,9 @@ interface SunburstPlacedLabelDatum extends PointLabelDatum {
 interface SunburstLabelCandidate extends PositionedLabelCandidate {
     readonly labelPlacement: LabelPlacement;
 }
+
+/** The highlight cache slot (see `HierarchySeries.getHierarchyGlow`). */
+const SUNBURST_SLOT = 0;
 
 const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -271,7 +279,7 @@ export class SunburstSeries extends HierarchySeries<
 
         const highlightedNode = this.getActiveHighlightNode();
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
-        const highlightStyles = this.getHierarchyHighlightStyles(highlightState, this.options.highlight);
+        const highlightStyles = this.getHierarchyHighlightStyles(SUNBURST_SLOT, highlightState, this.options.highlight);
         const selectionState = this.getSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(selectionState, highlightStyles, this.itemStyle(rootIndex));
 
@@ -305,6 +313,17 @@ export class SunburstSeries extends HierarchySeries<
         }
 
         return style;
+    }
+
+    private readonly resolveGlow = (highlightState: HierarchyHighlightState) =>
+        this.getHierarchyHighlightGlow(highlightState, this.options.highlight);
+
+    /** The node's glow as a shadow, which the cache resolves from the highlight styles once per highlight state. */
+    private getNodeGlow(nodeDatum: SunburstNode, isHighlight: boolean, highlightedNode: SunburstNode | undefined) {
+        if (!this.options.highlight.enabled) return;
+
+        const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
+        return this.getHierarchyGlow(SUNBURST_SLOT, highlightState, this.resolveGlow);
     }
 
     private itemStyle(index: number): ItemStyle {
@@ -502,6 +521,7 @@ export class SunburstSeries extends HierarchySeries<
             });
         }
 
+        const highlightedNode = this.getActiveHighlightNode();
         const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean) => {
             const { depth, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
@@ -512,13 +532,14 @@ export class SunburstSeries extends HierarchySeries<
             sector.visible = true;
 
             const style = this.getItemStyle(nodeDatum, highlighted);
+            const glow = this.getNodeGlow(nodeDatum, highlighted, highlightedNode);
 
             const fill = style.fill;
             const strokeWidth = style.strokeWidth;
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = this.resolveItemShadow(shadow, highlighted, nodeDatum.datumIndex);
+            sector.fillShadow = this.resolveNodeShadow(shadow, glow, highlighted, highlightedNode, nodeDatum);
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
@@ -803,7 +824,7 @@ export class SunburstSeries extends HierarchySeries<
             const highlightState = this.getHierarchyHighlightState(highlighted, highlightedNode, node);
 
             const { opacity: highlightOpacity } =
-                this.getHierarchyHighlightStyles(highlightState, this.options.highlight) ?? {};
+                this.getHierarchyHighlightStyles(SUNBURST_SLOT, highlightState, this.options.highlight) ?? {};
 
             const baseLabelStyle = primary ? this.options.label : this.options.secondaryLabel;
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();

@@ -10,12 +10,14 @@ import {
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     NEAREST_NODE_TOOLTIP_THEME,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     themeLineHeight,
     undocumentedThemeOptions,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
@@ -93,7 +95,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
             placement: 'top',
         },
         tooltip: NEAREST_NODE_TOOLTIP_THEME,
-        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+        highlight: withGlowThemeDefaults({ ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
         colorScale: BUBBLE_SCATTER_COLOR_SCALE_THEME,
     },

@@ -4,6 +4,7 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     AgDropShadowOptions,
+    AgGlowOptions,
     AreaSeriesModule,
     BarSeriesModule,
     CategoryAxisModule,
@@ -31,6 +32,7 @@ ModuleRegistry.registerModules([
 
 const SHADOW: AgDropShadowOptions = { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: 4, yOffset: 4, blur: 8 };
 const SPREAD_SHADOW: AgDropShadowOptions = { ...SHADOW, spread: 14 };
+const GLOW: AgGlowOptions = { enabled: true, color: 'rgba(0, 0, 0, 0.35)', blur: 6, spread: 14 };
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -96,7 +98,7 @@ function buildOptions(scenario: Scenario, shadowOn: boolean): AgCartesianChartOp
             fillOpacity: 0.6,
             shadow: shadow(SHADOW),
             marker: { enabled: true, size: 8, shadow: shadow(SHADOW) },
-            ...(highlighted ? { highlight: { highlightedItem: { shadow: shadow(SPREAD_SHADOW) } } } : {}),
+            ...(highlighted ? { highlight: { highlightedItem: { glow: shadowOn ? GLOW : undefined } } } : {}),
         })),
     };
 }
@@ -176,7 +178,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
             },
             {
                 id: 'highlight',
-                label: 'Highlighted marker shadow',
+                label: 'Highlighted marker glow',
                 variants: variantsOf('highlight', {
                     'Hover x10': () => performDatumHighlight(chartRef.current!, container, 10),
                 }),

@@ -10,8 +10,8 @@ import type { ContextDefault, DatumDefault, DatumKey, PixelSize, TextAlign, Vert
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
+    AgGlowHighlightOptions,
     AgHighlightStyleOptions,
-    AgShadowHighlightOptions,
 } from '../seriesOptions';
 import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
 
@@ -78,7 +78,7 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext
     /** Configuration for the shadow used behind the cells. */
     shadow?: AgDropShadowOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgShadowHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Horizontal position of the label.
      *
      * @deprecated v14.2.0 Use `label.textAlign` instead.

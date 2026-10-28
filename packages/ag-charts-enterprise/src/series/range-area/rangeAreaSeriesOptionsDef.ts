@@ -21,7 +21,7 @@ import {
     lineDashOptionsDef,
     markerOptionsDefs,
     markerStyleOptionsDefs,
-    multiSeriesShadowHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     positiveNumber,
     required,
     seriesLabelOptionsDefs,
@@ -90,7 +90,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
             high: { ...rangeAreaSeriesLineStyleDef },
         },
     }),
-    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     segmentation: shapeSegmentation,
     invertedStyle: {
         enabled: boolean,

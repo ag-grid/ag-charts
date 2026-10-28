@@ -69,7 +69,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     ...without(strokeOptionsDef, ['stroke']),
     highlight: {
         enabled: boolean,
-        highlightedItem: { ...hierarchyHighlightStyleOptionsDef, shadow: shadowOptionsDefs },
+        highlightedItem: hierarchyHighlightStyleOptionsDef,
         highlightedBranch: hierarchyHighlightStyleOptionsDef,
         unhighlightedItem: hierarchyHighlightStyleOptionsDef,
         unhighlightedBranch: hierarchyHighlightStyleOptionsDef,

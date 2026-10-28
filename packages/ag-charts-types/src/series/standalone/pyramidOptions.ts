@@ -13,8 +13,8 @@ import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '.
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
+    AgGlowHighlightOptions,
     AgHighlightStyleOptions,
-    AgShadowHighlightOptions,
 } from '../seriesOptions';
 
 export interface AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
@@ -90,7 +90,7 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgShadowHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgPyramidSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual bars, based on the given parameters.*/

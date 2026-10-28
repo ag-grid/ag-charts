@@ -5,12 +5,14 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     POLAR_AXIS_SHAPE,
     POLAR_AXIS_TYPE,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     themeLineHeight,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -36,7 +38,7 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
             color: { $ref: 'textColor' },
         },
         tooltip: SERIES_TOOLTIP_THEME,
-        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: false },
+        highlight: withGlowThemeDefaults({ ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: false }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
     },
     axes: {

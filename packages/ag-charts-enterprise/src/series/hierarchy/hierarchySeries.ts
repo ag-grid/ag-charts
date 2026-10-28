@@ -2,9 +2,12 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type {
     BBox,
     ChartAnimationPhase,
+    DeepPartial,
     DynamicContext,
     Node,
+    NormalisedDropShadowOptions,
     NormalisedHierarchySeriesKeys,
+    NormalisedSeriesOptions,
     Path,
     Selection,
     SelectionInterface,
@@ -18,12 +21,15 @@ import {
     arraysEqual,
     clamp,
     configureColorScale,
+    glowToShadow,
     isFiniteNumericValue,
     isNumericValue,
     mergeDefaults,
+    mergeGlow,
     toNumber,
+    withoutGlow,
 } from 'ag-charts-core';
-import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
+import type { AgActiveItemState, AgGlowOptions, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 
@@ -34,6 +40,13 @@ const {
     colorScaleLegendFormatterContext,
     createDatumId,
 } = _ModuleSupport;
+
+interface HierarchyHighlightBuckets<TStyle> {
+    highlightedItem?: TStyle;
+    unhighlightedItem?: TStyle;
+    highlightedBranch?: TStyle;
+    unhighlightedBranch?: TStyle;
+}
 
 export enum HierarchyHighlightState {
     None,
@@ -556,14 +569,53 @@ export abstract class HierarchySeries<
         return nodeRoot === highlightRoot ? HierarchyHighlightState.Branch : HierarchyHighlightState.OtherBranch;
     }
 
+    /**
+     * The highlight styles of a node, without their `glow`, which {@link getHierarchyHighlightGlow} reads. Resolved
+     * once per `slot` and highlight state, as every node of the state shares it. Callers must not modify it.
+     */
     protected getHierarchyHighlightStyles<TStyle extends Partial<FillOptions & StrokeOptions & { opacity?: number }>>(
+        slot: number,
         highlightState: HierarchyHighlightState,
-        highlight: {
-            highlightedItem?: TStyle;
-            unhighlightedItem?: TStyle;
-            highlightedBranch?: TStyle;
-            unhighlightedBranch?: TStyle;
+        highlight: HierarchyHighlightBuckets<TStyle>
+    ): TStyle | undefined {
+        return this.getCachedHighlightStyle(slot, highlightState, () => {
+            const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
+            return style && withoutGlow(style);
+        });
+    }
+
+    /**
+     * The glow-free style of a highlight state, which `syncOptionDerivedState` drops. `null` once there is none.
+     * OPTIMIZATION: styling runs per node while something is highlighted, and the style only changes with the options.
+     */
+    private highlightStyleBySlot: Array<Array<object | null> | undefined> = [];
+
+    protected getCachedHighlightStyle<TStyle extends object>(
+        slot: number,
+        highlightState: HierarchyHighlightState,
+        resolveStyle: () => TStyle | undefined
+    ): TStyle | undefined {
+        const styleByState = (this.highlightStyleBySlot[slot] ??= []);
+        let style = styleByState[highlightState];
+        if (style === undefined) {
+            style = resolveStyle() ?? null;
+            styleByState[highlightState] = style;
         }
+        return (style as TStyle | null) ?? undefined;
+    }
+
+    /** The merged `glow` of the highlight styles of a node. */
+    protected getHierarchyHighlightGlow<TStyle extends { glow?: DeepPartial<AgGlowOptions> }>(
+        highlightState: HierarchyHighlightState,
+        highlight: HierarchyHighlightBuckets<TStyle>
+    ): DeepPartial<AgGlowOptions> | undefined {
+        const style = this.getHierarchyHighlightBuckets(highlightState, highlight);
+        return style && mergeGlow(style);
+    }
+
+    private getHierarchyHighlightBuckets<TStyle extends object>(
+        highlightState: HierarchyHighlightState,
+        highlight: HierarchyHighlightBuckets<TStyle>
     ): TStyle | undefined {
         switch (highlightState) {
             case HierarchyHighlightState.Item:
@@ -575,6 +627,47 @@ export abstract class HierarchySeries<
             default:
                 return undefined;
         }
+    }
+
+    /** The shadow of each highlight state's `glow`, by slot, which `syncOptionDerivedState` drops. `null` once none. */
+    private glowBySlot: Array<Array<NormalisedDropShadowOptions | null> | undefined> = [];
+
+    protected override syncOptionDerivedState(diff: DeepPartial<NormalisedSeriesOptions<TOptions>> | undefined) {
+        super.syncOptionDerivedState(diff);
+        this.glowBySlot = [];
+        this.highlightStyleBySlot = [];
+    }
+
+    /** The glow of a highlight state as a shadow, converted once per `slot` (tiles and groups resolve differently). */
+    protected getHierarchyGlow(
+        slot: number,
+        highlightState: HierarchyHighlightState,
+        resolveGlow: (highlightState: HierarchyHighlightState) => Parameters<typeof glowToShadow>[0]
+    ): NormalisedDropShadowOptions | undefined {
+        const glowByState = (this.glowBySlot[slot] ??= []);
+        let glow = glowByState[highlightState];
+        if (glow === undefined) {
+            glow = glowToShadow(resolveGlow(highlightState)) ?? null;
+            glowByState[highlightState] = glow;
+        }
+        return glow ?? undefined;
+    }
+
+    /**
+     * The shadow to draw on one copy of a node. The highlight layer's copy casts only its `glow`. An in-place copy casts
+     * the glow of its highlight state, in the base pass that keeps it behind every series, except for the hovered
+     * node's own in-place copy, which keeps its `shadow` beneath the highlight layer's copy.
+     */
+    protected resolveNodeShadow(
+        shadow: NormalisedDropShadowOptions | undefined,
+        glow: NormalisedDropShadowOptions | undefined,
+        isHighlight: boolean,
+        highlightedNode: TNodeClass | undefined,
+        nodeDatum: Pick<TNodeClass, 'datumIndex'>
+    ): NormalisedDropShadowOptions | undefined {
+        if (isHighlight) return glow;
+        if (highlightedNode?.datumIndex === nodeDatum.datumIndex) return shadow;
+        return glow ?? shadow;
     }
 
     public override getHighlightStateString(

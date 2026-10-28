@@ -694,11 +694,6 @@ export abstract class RadarSeries<
         };
     }
 
-    /** The shadows of the markers, which this series keeps there rather than on its own `shadow`. */
-    protected override getItemShadowOptions() {
-        return [this.options.marker.shadow];
-    }
-
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (legendType !== 'category') {
             return [];

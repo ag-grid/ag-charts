@@ -47,8 +47,8 @@ interface RadialOverrides {
 
 export type NormalisedRadialBarSeriesOwnOptions = Normalised<
     AgRadialBarSeriesOptions,
-    RadialRequiredKeys,
-    RadialOverrides
+    RadialRequiredKeys | 'shadow',
+    RadialOverrides & { shadow: NormalisedDropShadowOptions }
 > &
     RadialAxisKeys;
 

@@ -13,8 +13,8 @@ import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSi
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
+    AgGlowHighlightOptions,
     AgHighlightStyleOptions,
-    AgShadowHighlightOptions,
 } from '../seriesOptions';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -95,7 +95,7 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgShadowHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgFunnelSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual bars, based on the given parameters.*/
