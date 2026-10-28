@@ -1,5 +1,5 @@
 import { arraysEqual } from '../data/arrays';
-import type { ResolvedDropShadowOptions } from '../options/normalised/normalisedCommonOptions';
+import type { NormalisedDropShadowOptions } from '../options/normalised/normalisedCommonOptions';
 import type { Node, RenderContext } from './node';
 import { type CollectedFrame, type ShadowFrame, transformCorners } from './shadowCollector';
 import {
@@ -48,7 +48,12 @@ class RootKeys {
     private last: ShadowKey | undefined;
     private lastFrame: ShadowFrame | undefined;
 
-    add(caster: ShadowCaster, shadow: ResolvedDropShadowOptions, frame: ShadowFrame, pathClip: ShadowClip | undefined) {
+    add(
+        caster: ShadowCaster,
+        shadow: NormalisedDropShadowOptions,
+        frame: ShadowFrame,
+        pathClip: ShadowClip | undefined
+    ) {
         const clips = pathClip == null ? frame.clips : [...frame.clips, [transformCorners(frame.matrix, pathClip)]];
         let key = this.last;
         // The casters of a group follow one another, and rarely differ in shadow or clip.

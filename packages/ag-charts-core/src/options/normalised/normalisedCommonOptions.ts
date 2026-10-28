@@ -73,8 +73,16 @@ export type NormalisedColorType = CssColor | InternalAgGradientColor | InternalA
 export type NormalisedFillOptions = Normalised<FillOptions, never, { fill?: NormalisedColorType }>;
 export type NormalisedStrokeOptions = Normalised<StrokeOptions, never, { stroke?: CssColor }>;
 
-/** Only a glow's `fill` may be unset; the theme has folded the deprecated `color` into `fill`. */
-export type NormalisedDropShadowOptions = Normalised<AgDropShadowOptions, 'enabled' | 'xOffset' | 'yOffset' | 'blur'>;
+/**
+ * Only a glow's `fill` may be unset; the theme has folded the deprecated `color` into `fill`. `glow` marks the shadow
+ * that a highlight `glow` makes, which surrounds an item with no visible fill by its stroke.
+ */
+export type NormalisedDropShadowOptions = Normalised<
+    AgDropShadowOptions,
+    'enabled' | 'xOffset' | 'yOffset' | 'blur'
+> & {
+    glow?: true;
+};
 
 /** A shadow with the `fill` that it casts in. */
 export type ResolvedDropShadowOptions = NormalisedDropShadowOptions & { fill: string };

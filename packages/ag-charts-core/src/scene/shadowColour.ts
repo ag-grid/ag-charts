@@ -1,5 +1,6 @@
 import type { CssColor } from 'ag-charts-types';
 
+import { getOffscreenCanvas } from '../dom/globalsProxy';
 import { Color } from '../format/color';
 import { isGradientFill, isPatternFill } from '../geometry/fill';
 import type {
@@ -60,22 +61,54 @@ export function withShadowFill(shadow: NormalisedDropShadowOptions, fill: string
     return resolved;
 }
 
-const visibleColours = new Map<string, boolean>();
+let tintable: boolean | undefined;
+
+/**
+ * Whether a canvas can blur a mask that holds silhouettes of many colours once, with its `filter`, so that a glow with no
+ * `fill` makes one shadow for all of its items. Without it, a glow makes a shadow for each colour.
+ */
+export function canTintShadows(): boolean {
+    if (tintable == null) {
+        try {
+            const context = new (getOffscreenCanvas())(1, 1).getContext('2d');
+            tintable = context != null && 'filter' in context;
+        } catch {
+            tintable = false;
+        }
+    }
+    return tintable;
+}
+
+interface ColourInfo {
+    visible: boolean;
+    /** The colour with its alpha removed, or the colour itself if it can't be read. */
+    opaque: string;
+}
+
+const colourInfos = new Map<string, ColourInfo>();
+
+function getColourInfo(colour: string): ColourInfo {
+    let info = colourInfos.get(colour);
+    if (info == null) {
+        try {
+            const { r, g, b, a } = Color.fromString(colour);
+            info = { visible: a > 0, opaque: new Color(r, g, b, 1).toRgbaString() };
+        } catch {
+            info = { visible: false, opaque: colour };
+        }
+        if (colourInfos.size >= MAX_FILLS_PER_SHADOW) colourInfos.delete(colourInfos.keys().next().value!);
+        colourInfos.set(colour, info);
+    }
+    return info;
+}
 
 function isVisibleColour(colour: string): boolean {
-    if (colour === 'none' || colour === 'transparent') return false;
+    return colour !== 'none' && colour !== 'transparent' && getColourInfo(colour).visible;
+}
 
-    let visible = visibleColours.get(colour);
-    if (visible == null) {
-        try {
-            visible = Color.fromString(colour).a > 0;
-        } catch {
-            visible = false;
-        }
-        if (visibleColours.size >= MAX_FILLS_PER_SHADOW) visibleColours.delete(visibleColours.keys().next().value!);
-        visibleColours.set(colour, visible);
-    }
-    return visible;
+/** The colour with its alpha removed, or the colour itself if it can't be read. */
+export function getOpaqueColour(colour: string): string {
+    return getColourInfo(colour).opaque;
 }
 
 /** A paint's solid colour: a gradient's first stop or a pattern's fill. Undefined for an image or no paint. */

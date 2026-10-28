@@ -722,7 +722,7 @@ export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): Norm
     const { fill, fillOpacity, blur, spread } = glow;
     if (blur == null) return;
 
-    return { enabled: true, fill, fillOpacity, xOffset: 0, yOffset: 0, blur, spread };
+    return { enabled: true, fill, fillOpacity, xOffset: 0, yOffset: 0, blur, spread, glow: true };
 }
 
 /**

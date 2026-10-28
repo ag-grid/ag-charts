@@ -44,7 +44,7 @@ import { Image } from '../image/image';
 import type { MatrixFrame } from '../matrix';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { getShadowColour, getSolidColour, withShadowFill } from '../shadowColour';
+import { canTintShadows, getOpaqueColour, getShadowColour, getSolidColour, withShadowFill } from '../shadowColour';
 import { shadowPass } from '../shadowPass';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
@@ -426,6 +426,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         strokeOpacity: number;
         resolved: ResolvedDropShadowOptions | undefined;
         fromStroke: boolean;
+        /** The colour of the shadow with no alpha, which a batch draws the silhouette in, as the alpha is its strength. */
+        tint: string;
     };
 
     /** How much wider than the shape the spread shadow's stroke is drawn. Zero except while that stroke is drawn. */
@@ -516,16 +518,60 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             const colour = fillColour ?? getSolidColour(stroke, strokeOpacity);
             const resolved = colour == null ? undefined : withShadowFill(shadow, colour);
             const fromStroke = resolved != null && fillColour == null;
-            cast = this.castShadowMemo = { shadow, fill, fillOpacity, stroke, strokeOpacity, resolved, fromStroke };
+            const tint = colour == null ? '#000' : getOpaqueColour(colour);
+            cast = this.castShadowMemo = {
+                shadow,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                resolved,
+                fromStroke,
+                tint,
+            };
         }
         return cast.resolved;
     }
 
-    /** The mode that the shadow is cast in: a shape casting a stroke-coloured glow casts it from its stroke. */
+    /**
+     * The shadow that a batch keys this shape by. A glow with no `fill` is keyed without one, so that the glows of items
+     * of every colour share a mask and a blur: each silhouette is drawn in its colour, see {@link getCastTint}.
+     */
+    getBatchShadow(): NormalisedDropShadowOptions | undefined {
+        const resolved = this.getCastShadow();
+        const shadow = this.__fillShadow;
+        return resolved != null && shadow?.fill == null && canTintShadows() ? shadow : resolved;
+    }
+
+    /** The colour that this shape draws its silhouette in, in a mask whose shadow takes the colour of each caster. */
+    private getCastTint(): string {
+        return this.getCastShadow() == null ? '#000' : this.castShadowMemo!.tint;
+    }
+
+    /**
+     * The mode that the shadow is cast in. A glow around an item with no visible fill casts from the item's stroke, whatever
+     * the source of the glow's colour. A drop shadow does not: it casts nothing around an item that has no fill.
+     */
     private getShadowMode(): ShapeShadowMode {
         const mode = this.__shadowMode;
-        if (mode !== 'fill' || this.__fillShadow?.enabled !== true || this.__fillShadow.fill != null) return mode;
-        return this.getCastShadow() != null && this.castShadowMemo!.fromStroke ? 'stroke' : mode;
+        const shadow = this.__fillShadow;
+        if (mode !== 'fill' || shadow?.enabled !== true || shadow.glow !== true) return mode;
+
+        if (shadow.fill == null) {
+            return this.getCastShadow() != null && this.castShadowMemo!.fromStroke ? 'stroke' : mode;
+        }
+        return !this.hasCastableFill() && this.hasCastableStroke() ? 'stroke' : mode;
+    }
+
+    /** Whether the fill has any alpha to cast a shadow from. */
+    private hasCastableFill(): boolean {
+        const { __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
+        return fill != null && fill !== 'none' && fillOpacity > 0 && this.getMaxFillAlpha(fill) > 0;
+    }
+
+    /** Whether the stroke is visible and has any alpha to cast a shadow from. */
+    private hasCastableStroke(): boolean {
+        return this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
     }
 
     /** False while a layer shadow batch casts the shadow for this shape, instead of the shape itself. */
@@ -559,7 +605,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const drawsStroke = this.castsShadowFromStroke();
         const hasExtras = this.castsShadowFromExtras();
 
-        if ((spread > 0 || shadowPass.opaque) && path != null) {
+        if ((spread > 0 || shadowPass.opaque || shadowPass.tinted) && path != null) {
             this.renderSpreadMask(ctx, path, spread, drawsFill, drawsStroke, hasExtras, bboxOverride);
             return;
         }
@@ -591,16 +637,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     /** Whether the fill is part of the silhouette that casts the shadow. A fill with no alpha casts nothing. */
     private castsShadowFromFill(): boolean {
-        const { __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
-        const mode = this.getShadowMode();
-        return (
-            mode !== 'stroke' && fill != null && fill !== 'none' && fillOpacity > 0 && this.getMaxFillAlpha(fill) > 0
-        );
+        return this.getShadowMode() !== 'stroke' && this.hasCastableFill();
     }
 
     /** Whether the stroke is part of the silhouette that casts the shadow. A transparent stroke colour casts nothing. */
     private castsShadowFromStroke(): boolean {
-        return this.getShadowMode() !== 'fill' && this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
+        return this.getShadowMode() !== 'fill' && this.hasCastableStroke();
     }
 
     /** Whether the extras, such as a candlestick's wicks, are part of the silhouette that casts the shadow. */
@@ -778,8 +820,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         drawsFill: boolean,
         drawsStroke: boolean
     ) {
-        ctx.fillStyle = '#000';
-        ctx.strokeStyle = '#000';
+        const tint = shadowPass.tinted ? this.getCastTint() : '#000';
+        ctx.fillStyle = tint;
+        ctx.strokeStyle = tint;
         this.setDilationStyle(ctx, spread, drawsStroke);
 
         if (drawsFill) {
