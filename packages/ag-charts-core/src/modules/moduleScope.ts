@@ -44,7 +44,7 @@ export function isModuleType<T extends ModuleType>(
 export class ModuleScope {
     private readonly modules = new Map<string, ModuleDefinition>();
     private revision = 0;
-    private sorted?: { modules: ModuleDefinition[]; revision: number };
+    private sorted?: { modules: ModuleDefinition[]; revision: RegistryRevision };
     private contributions?: {
         table: ResolvedContribution<ModuleDefinition>[];
         byModule: Map<string, ResolvedContribution<ModuleDefinition>[]>;
@@ -143,19 +143,21 @@ export class ModuleScope {
 
     *listModules(): Generator<ModuleDefinition> {
         yield* this.sortedModules();
-        if (this.parent == null) return;
-        for (const definition of this.parent.listModules()) {
-            if (!this.modules.has(definition.name)) {
-                yield definition;
-            }
-        }
     }
 
-    // Ordered by name so that the order modules are created in does not depend on the order they were registered in.
+    // Ordered by name across scopes, so neither registration order nor scope changes the order modules are created in.
     private sortedModules(): ModuleDefinition[] {
-        if (this.sorted?.revision !== this.revision) {
-            const modules = [...this.modules.values()].sort((a, b) => (a.name < b.name ? -1 : 1));
-            this.sorted = { modules, revision: this.revision };
+        const revision = this.currentRevision();
+        if (this.sorted?.revision !== revision) {
+            const visible = new Map<string, ModuleDefinition>();
+            for (const definition of this.parent?.sortedModules() ?? []) {
+                visible.set(definition.name, definition);
+            }
+            for (const [name, definition] of this.modules) {
+                visible.set(name, definition);
+            }
+            const modules = [...visible.values()].sort((a, b) => (a.name < b.name ? -1 : 1));
+            this.sorted = { modules, revision };
         }
         return this.sorted.modules;
     }

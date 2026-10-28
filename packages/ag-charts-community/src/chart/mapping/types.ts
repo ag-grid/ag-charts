@@ -8,7 +8,7 @@ export function detectChartType(
     moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
 ): string {
     const mainSeriesType = input.series?.[0]?.type;
-    // A chart with no series takes the first registered chart type.
+    // A chart with no series takes the first chart type by name.
     if (mainSeriesType == null)
         return moduleRegistry.listModulesByType(ModuleType.Chart).next().value?.name ?? 'unknown';
     return (
