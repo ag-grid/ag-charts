@@ -101,60 +101,6 @@ In the above example we provided the same `highlight` for all of the series, but
 
 For simplicity, we provided the `highlight` once within a chart [Theme](./themes/), rather than repeating it on each series.
 
-## Glow
-
-A highlighted item can have a glow: a soft halo that is drawn around the item while it is highlighted. The glow is off by default, and is configured with `glow` in the highlight styles.
-
-```js format="snippet"
-{
-    highlight: {
-        highlightedItem: {
-            glow: {
-                enabled: true,
-                color: 'rgba(255, 190, 0, 0.8)',
-                blur: 8,
-                spread: 2,
-            },
-        },
-    },
-}
-```
-
-In this configuration:
-
-- `enabled` — turns the glow on. The default is `false`.
-- `color` — the colour of the glow.
-- `blur` — the radius of the glow's blur, in pixels.
-- `spread` — how far, in pixels, the glow grows beyond the item before the blur is applied.
-
-Unless set, the colour, blur and spread come from the chart [Theme](./themes/). Light themes use `rgba(0, 0, 0, 0.35)` with a `blur` of `6` and a `spread` of `1`. Dark themes use `rgba(255, 255, 255, 0.6)` with a `blur` of `4` and a `spread` of `1`.
-
-The glow is centred on the item, so it has no offset. The glow of the hovered item is drawn above every series, with the item drawn over its own glow, so a neighbouring series' items are only tinted where the glow itself reaches them. The glow of every other highlight state, such as `unhighlightedItem`, is drawn where the item's `shadow` would be, behind the series as described in Shadows below.
-
-### Glow Styles
-
-`glow` can be set in each of the highlight styles of a series: `highlightedItem`, `unhighlightedItem`, `highlightedSeries` and `unhighlightedSeries`. Series that only have `highlightedItem` and `unhighlightedItem`, such as sankey and chord, take `glow` in those two. Radial bar, cone funnel, HLC and map line series do not support `glow`.
-
-`glow` cascades like the other highlight style properties. For the hovered item, `highlightedItem.glow` is applied over `highlightedSeries.glow`, property by property, so `highlightedSeries` can set the `color` for the whole series while `highlightedItem` only turns the glow on. `unhighlightedItem.glow` applies in the same way to the other items of the highlighted series.
-
-Treemap and sunburst series take `glow` in `highlightedItem`, `unhighlightedItem`, `highlightedBranch` and `unhighlightedBranch`, with the item styles applied over the branch styles. Treemap groups take it in `highlightedItem` and `unhighlightedItem`. The treemap styles are set in `tile.highlight` and `group.highlight`.
-
-Some details to be aware of:
-
-- The glow is cast by whatever casts the series' `shadow`: the series items, or their markers, nodes or links. Area, radar area and range area fills are not redrawn when highlighted, so only their markers glow.
-- An item has one shadow slot. While an item is in a highlight state whose glow is enabled, the glow replaces that item's own `shadow`. With the glow off, the item keeps its `shadow`.
-- The hovered item keeps its `shadow` in place, behind the series, and its glow is drawn above it.
-- With the default `highlight.drawingMode` of `'cutout'`, the highlighted item cuts out the content beneath it. Where the highlighted fill is translucent, that can hide part of the item's own `shadow`.
-- A heatmap that is drawn as a single batch does not draw the `highlightedItem` glow of the other cells that share the hovered category when `highlight.mode` is `'shared'`.
-
-## Shadows
-
-The `shadow` of a series casts a shadow behind each of its items. It is separate from the highlight `glow`, and highlight styles do not have a `shadow` of their own.
-
-- **Layering:** a shadow is drawn behind the items it belongs to. Cartesian series other than funnel, the radar, nightingale and radial column series, sankey, chord, map shape and pyramid series cast their shadows together, before any of these series draws, so the shadow of a later series does not land on top of the items of an earlier one. The markers of area, range area and radar area series draw their shadows above the fill. Other series, such as pie, donut, funnel and map marker, draw their shadows behind their own items. The `shadow` of the hovered item stays behind the series while it is highlighted, and is not cast a second time by the highlighted copy.
-- **Hierarchies:** the items of treemap and sunburst series are drawn from the shallowest level to the deepest, and the shadow of a deeper tile or sector falls on its parent.
-- **Glow:** a `glow` only applies while its highlight state does. The glow of the hovered item is drawn above every series, and the glow of the other states is drawn behind them, like a `shadow`. Use `shadow` for a lasting effect that sits behind the series, and `glow` to emphasise the hovered item.
-
 ## Stylers
 
 All [Styler](./stylers/) callbacks receive a `param.highlightState`
