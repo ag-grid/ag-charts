@@ -790,6 +790,74 @@ describe('highlight glow', () => {
             });
         });
 
+        describe('the pixels of a glow that takes the stroke of an item with no fill', () => {
+            const BLUE = [0, 0, 255, 255];
+            const WHITE = [255, 255, 255, 255];
+            const glow = (extra: object) => ({ enabled: true, fillOpacity: 1, ...extra });
+
+            const hoveredPixels = async (testCase: SeriesCase, options: object, bucketGlow: object) => {
+                const { highlighted } = await hoverFirstItem(
+                    {
+                        ...testCase,
+                        series: (shadow, extra) => ({ ...testCase.series(shadow, extra), ...options }),
+                    },
+                    undefined,
+                    { highlightedItem: { glow: bucketGlow } }
+                );
+                const { x, y, width } = Transformable.toCanvas(highlighted[0]);
+                const pixelAt = (px: number, py: number) => [
+                    ...chart.ctx.scene.canvas.context.getImageData(Math.round(px), Math.round(py), 1, 1).data,
+                ];
+                // Sampled above the shape and off its centre line, clear of the crosshair that the hover draws.
+                return { above: (offset: number) => pixelAt(x + width / 2 + 4, y - offset) };
+            };
+
+            const NO_FILL_MARKER = { fill: 'none', stroke: 'blue', strokeWidth: 2, size: 24 };
+            const NO_FILL_BAR = { fill: 'red', fillOpacity: 0, stroke: 'blue', strokeWidth: 2 };
+
+            it.each([
+                ['a marker with no fill', SERIES[3], NO_FILL_MARKER],
+                ['a bar whose fill is fully transparent', SERIES[0], NO_FILL_BAR],
+            ] as const)('draws a spread glow in the stroke colour around %s', async (_name, testCase, options) => {
+                const pixels = await hoveredPixels(testCase, options, glow({ spread: 4, blur: 0 }));
+
+                expect(pixels.above(2)).toEqual(BLUE);
+                expect(pixels.above(12)).toEqual(WHITE);
+            });
+
+            it.each([
+                ['a marker with no fill', SERIES[3], NO_FILL_MARKER],
+                ['a bar whose fill is fully transparent', SERIES[0], NO_FILL_BAR],
+            ] as const)('draws a blur-only glow in the stroke colour around %s', async (_name, testCase, options) => {
+                const pixels = await hoveredPixels(testCase, options, glow({ spread: 0, blur: 8 }));
+                const [red, , blue] = pixels.above(2);
+
+                // Over the white background, a blue glow lowers red and keeps blue.
+                expect(red).toBeLessThan(blue);
+                expect(blue).toBe(255);
+            });
+
+            it('draws no glow around a marker with neither a fill nor a stroke', async () => {
+                const pixels = await hoveredPixels(
+                    SERIES[3],
+                    { fill: 'none', stroke: 'none', strokeWidth: 2, size: 24 },
+                    glow({ spread: 4, blur: 0 })
+                );
+
+                expect(pixels.above(2)).toEqual(WHITE);
+            });
+
+            it('draws a glow of the item fill, and not the stroke, around a marker that has a fill', async () => {
+                const pixels = await hoveredPixels(
+                    SERIES[3],
+                    { fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: 2, size: 24 },
+                    glow({ spread: 4, blur: 0 })
+                );
+
+                expect(pixels.above(3)).toEqual([255, 0, 0, 255]);
+            });
+        });
+
         it('casts no glow from an item that has no fill and no stroke, while the other items keep their shadow', async () => {
             const { inPlace, highlighted } = await hoverFirstItem(
                 {
