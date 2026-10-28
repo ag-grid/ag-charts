@@ -296,12 +296,13 @@ export interface AgBaseChartThemeParams {
      */
     fontSize?: FontSize;
     /**
-     * Default line height for all text, as a ratio of each text element's font size, e.g. `1.5`. When unset, text
-     * uses the natural line height of its font.
+     * Default font weight used for all text.
      *
-     * @group Spacing & Sizing
+     * Default: `400`
+     *
+     * @group Foundations
      */
-    lineHeight?: Ratio;
+    fontWeight?: FontWeight;
     /**
      * Background colour for text inputs. A colour string, or a theme-colour reference object.
      *
@@ -351,14 +352,6 @@ export interface AgBaseChartThemeParams {
      */
     menuBorder?: boolean | AgBorderThemeParam;
     /**
-     * Corner radius for menus.
-     *
-     * Default: `borderRadius`
-     *
-     * @group Menus & Popups
-     */
-    menuBorderRadius?: PixelSize;
-    /**
      * Colour of the separator lines between groups of items in menus, e.g. right-click context menus. A colour string,
      * or a theme-colour reference object.
      *
@@ -392,14 +385,6 @@ export interface AgBaseChartThemeParams {
      */
     panelBackgroundColor?: AgCssColorOrRef;
     /**
-     * Colour of text that should stand out less in panels and dialogs. A colour string, or a theme-colour reference object.
-     *
-     * Default: `chromeSubtleTextColor`
-     *
-     * @group Panels & Dialogs
-     */
-    panelSubtleTextColor?: AgCssColorOrRef;
-    /**
      * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
      * dropdown menus of the toolbars and the colour picker. Defaults to `popupShadow`. The value must be a valid CSS
      * box-shadow.
@@ -409,6 +394,14 @@ export interface AgBaseChartThemeParams {
      * @group Menus & Popups
      */
     cardShadow?: CssShadow;
+    /**
+     * Background colour of tooltips, menus, dialogs, toolbars and buttons. A colour string, or a theme-colour reference object.
+     *
+     * Default: `foregroundColor + backgroundColor`
+     *
+     * @group Colours
+     */
+    chromeBackgroundColor?: AgCssColorOrRef;
     /**
      * Colour of text that should stand out less than the default. A colour string, or a theme-colour reference object.
      *
@@ -441,22 +434,6 @@ export interface AgBaseChartThemeParams {
      * @group Tooltips
      */
     tooltipBorder?: boolean | AgBorderThemeParam;
-    /**
-     * Corner radius for tooltips.
-     *
-     * Default: `borderRadius`
-     *
-     * @group Tooltips
-     */
-    tooltipBorderRadius?: PixelSize;
-    /**
-     * Colour of text that should stand out less in tooltips. A colour string, or a theme-colour reference object.
-     *
-     * Default: `chromeSubtleTextColor`
-     *
-     * @group Tooltips
-     */
-    tooltipSubtleTextColor?: AgCssColorOrRef;
     /**
      * Text colour for tooltips. A colour string, or a theme-colour reference object.
      *
@@ -591,13 +568,12 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     chartPadding?: PixelSize;
     /**
-     * Background colour of tooltips, menus, dialogs, toolbars and buttons. A colour string, or a theme-colour reference object.
+     * Default line height for all text, as a ratio of each text element's font size, e.g. `1.5`. When unset, text
+     * uses the natural line height of its font.
      *
-     * Default: `foregroundColor + backgroundColor`
-     *
-     * @group Colours
+     * @group Spacing & Sizing
      */
-    chromeBackgroundColor?: AgCssColorOrRef;
+    lineHeight?: Ratio;
     /**
      * Font family used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs. A single family name, or an array of names used as fallbacks.
      *
@@ -782,14 +758,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * @group Titles
      */
     footnoteLineHeight?: Ratio;
-    /**
-     * Default font weight used for all text.
-     *
-     * Default: `400`
-     *
-     * @group Foundations
-     */
-    fontWeight?: FontWeight;
     /**
      * Default width for grid lines.
      *
@@ -1110,6 +1078,38 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * @group Series Labels
      */
     seriesLabelOutsideTextColor?: AgCssColorOrRef;
+    /**
+     * Colour of text that should stand out less in panels and dialogs. A colour string, or a theme-colour reference object.
+     *
+     * Default: `chromeSubtleTextColor`
+     *
+     * @group Panels & Dialogs
+     */
+    panelSubtleTextColor?: AgCssColorOrRef;
+    /**
+     * Corner radius for menus.
+     *
+     * Default: `borderRadius`
+     *
+     * @group Menus & Popups
+     */
+    menuBorderRadius?: PixelSize;
+    /**
+     * Corner radius for tooltips.
+     *
+     * Default: `borderRadius`
+     *
+     * @group Tooltips
+     */
+    tooltipBorderRadius?: PixelSize;
+    /**
+     * Colour of text that should stand out less in tooltips. A colour string, or a theme-colour reference object.
+     *
+     * Default: `chromeSubtleTextColor`
+     *
+     * @group Tooltips
+     */
+    tooltipSubtleTextColor?: AgCssColorOrRef;
 }
 
 export interface AgChartPrivateThemeParams {
