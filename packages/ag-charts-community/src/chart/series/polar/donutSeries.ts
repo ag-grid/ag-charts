@@ -82,6 +82,7 @@ import type {
     PaddingOptions,
 } from 'ag-charts-types';
 
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { DataController } from '../../data/dataController';
@@ -519,6 +520,19 @@ export class DonutSeries extends PolarSeries<
             DebugMetrics.record(`${this.type}:nodeData`, nodeData.length);
         }
         this.nodeDataRefresh = false;
+    }
+
+    /**
+     * A ring linked to the hovered legend item through `legendItemKey` redraws its own matching sector on its
+     * highlight layer, as `updateNodes` shows it whenever the series is highlighted, legend-linked or not.
+     */
+    protected override getRedrawnDatumIndex(highlightedDatum: HighlightNodeDatum | undefined) {
+        const { dataModel, processedData } = this;
+        if (highlightedDatum == null || dataModel == null || processedData == null) return;
+        if (!this.isDatumHighlight(highlightedDatum)) return;
+
+        const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
+        return this.isSeriesHighlighted(highlightedDatum, legendItemValues) ? highlightedDatum.datumIndex : undefined;
     }
 
     private getProcessedDataValues(dataModel: DataModel<any>, processedData: ProcessedData<any>) {
@@ -1254,6 +1268,7 @@ export class DonutSeries extends PolarSeries<
         if (!dataModel || !processedData) return;
         const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
+        this.resetRedrawnIndex();
 
         const drawingMode = this.getChartHighlightDrawingMode();
         this.highlightGroup.visible = visible && seriesHighlighted;
@@ -1302,7 +1317,13 @@ export class DonutSeries extends PolarSeries<
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
-            sector.fillShadow = this.resolveItemShadow(this.options.shadow, isDatumHighlighted, datum.datumIndex);
+            sector.fillShadow = this.resolveItemShadow(
+                this.options.shadow,
+                isDatumHighlighted,
+                datum.datumIndex,
+                undefined,
+                legendItemValues
+            );
             this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
         };

@@ -1,6 +1,10 @@
-import type { AreExact, NormalisedColorType } from 'ag-charts-core';
-import { isEmptyObject, mergeDefaults } from 'ag-charts-core';
-import type { HighlightState as PublicHighlightState, SelectionState as PublicSelectionState } from 'ag-charts-types';
+import type { AreExact, DeepPartial, NormalisedColorType } from 'ag-charts-core';
+import { mergeDefaults, mergeGlow, withoutGlow } from 'ag-charts-core';
+import type {
+    AgGlowOptions,
+    HighlightState as PublicHighlightState,
+    SelectionState as PublicSelectionState,
+} from 'ag-charts-types';
 
 import { HighlightState, SelectionState } from './seriesTypes';
 
@@ -135,14 +139,27 @@ type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 
 export type SeriesItemHighlightStyle = HighlightOptions<object>;
 
-/** Merges the highlight-state buckets that apply to `highlightState`, earlier keys taking precedence. */
+/**
+ * Merges the highlight-state buckets that apply to `highlightState`, earlier keys taking precedence. The `glow` is left
+ * out, as the highlight layer casts it and no item style or styler takes it; {@link getHighlightGlow} reads it.
+ */
 export function getHighlightStyle<TStyle extends object>(
     highlight: { [K in HighlightStyleOptionKey]?: TStyle } | undefined,
     highlightState: HighlightState
 ): TStyle {
     const keys = getHighlightStyleOptionKeys(highlightState);
     if (highlight == null || keys.length === 0) return {} as TStyle;
-    return mergeDefaults<TStyle>(...keys.map((key) => highlight[key]));
+    return withoutGlow(mergeDefaults<TStyle>(...keys.map((key) => highlight[key])));
+}
+
+/** Merges the `glow` of the highlight-state buckets that apply to `highlightState`. */
+export function getHighlightGlow(
+    highlight: { [K in HighlightStyleOptionKey]?: { glow?: DeepPartial<AgGlowOptions> } } | undefined,
+    highlightState: HighlightState
+): DeepPartial<AgGlowOptions> | undefined {
+    const keys = getHighlightStyleOptionKeys(highlightState);
+    if (highlight == null || keys.length === 0) return;
+    return mergeGlow(...keys.map((key) => highlight[key]));
 }
 
 /** Merges the selection-state buckets that apply to `selectionState`, earlier keys taking precedence. */
@@ -155,7 +172,15 @@ export function getSelectionStyle<TStyle extends object>(
     return mergeDefaults<TStyle>(...keys.map((key) => selection[key]));
 }
 
-/** Whether a highlight/selection bucket carries any overrides; an absent bucket carries none. */
+/**
+ * Whether a highlight/selection bucket carries any overrides of how an item is drawn in place; an absent bucket
+ * carries none. A `glow` that is off is no such override.
+ */
 export function hasStateStyle(bucket: object | undefined): boolean {
-    return bucket != null && !isEmptyObject(bucket);
+    if (bucket == null) return false;
+
+    for (const key in bucket) {
+        if (key !== 'glow' || (bucket as { glow?: { enabled?: boolean } }).glow?.enabled === true) return true;
+    }
+    return false;
 }

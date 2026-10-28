@@ -8,11 +8,12 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
-    multiSeriesHighlightOptionsDef,
+    multiSeriesGlowHighlightOptionsDef,
     number,
     positiveNumber,
     required,
     seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
@@ -27,11 +28,12 @@ export const radialBarSeriesThemeableOptionsDef: OptionsDefs<AgRadialBarSeriesTh
     itemStyler: radialSeriesStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+    highlight: multiSeriesGlowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
 export const radialBarSeriesOptionsDef: OptionsDefs<AgRadialBarSeriesOptions> = {

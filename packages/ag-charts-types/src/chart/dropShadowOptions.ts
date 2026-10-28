@@ -19,3 +19,18 @@ export interface AgDropShadowOptions {
      */
     spread?: PixelSize;
 }
+
+export interface AgGlowOptions {
+    /**
+     * Whether the glow is visible.
+     *
+     * Default: `false`
+     */
+    enabled?: boolean;
+    /** The colour of the glow. */
+    color?: CssColor;
+    /** The radius of the glow's blur, in pixels. */
+    blur?: PixelSize;
+    /** How far, in pixels, the glow grows beyond the item before the blur is applied. */
+    spread?: PixelSize;
+}

@@ -12,7 +12,6 @@ import {
     createChart,
     deproxy,
     getSeriesDataNodeGroup,
-    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -28,7 +27,6 @@ const shadowAt = (xOffset: number, yOffset = 0): AgDropShadowOptions => ({
 });
 
 const RED = [255, 0, 0, 255];
-const GREEN = [0, 128, 0, 255];
 const WHITE = [255, 255, 255, 255];
 
 const isHalfBlack = (pixel: number[]) => pixel.slice(0, 3).every((channel) => Math.abs(channel - 128) <= 2);
@@ -72,12 +70,6 @@ describe('cartesian series shadow root', () => {
     const pixelAt = (x: number, y: number) => [
         ...scene().canvas.context.getImageData(Math.round(x), Math.round(y), 1, 1).data,
     ];
-
-    /** The pixel of an image taken of the canvas, whatever the canvas shows now. */
-    const pixelIn = ({ data, width }: { data: ArrayLike<number>; width: number }, x: number, y: number) => {
-        const offset = (Math.round(y) * width + Math.round(x)) * 4;
-        return Array.from({ length: 4 }, (_, i) => data[offset + i]);
-    };
 
     const canvasImage = () => {
         const { width, height } = scene().canvas;
@@ -499,77 +491,6 @@ describe('cartesian series shadow root', () => {
 
             expect(hasColour(through)).toBe(true);
             expectSamePixels(through, local, 1);
-        });
-    });
-
-    describe('highlight', () => {
-        const data = [{ category: 'A', first: 6, second: 6 }];
-        const options = (shadow: AgDropShadowOptions | undefined): AgCartesianChartOptions => ({
-            data,
-            highlight: { drawingMode: 'overlay' },
-            series: [
-                {
-                    type: 'bar',
-                    xKey: 'category',
-                    yKey: 'first',
-                    fill: 'red',
-                    fillOpacity: 1,
-                    strokeWidth: 0,
-                    highlight: { unhighlightedSeries: { opacity: 1 } },
-                },
-                {
-                    type: 'bar',
-                    xKey: 'category',
-                    yKey: 'second',
-                    fill: 'blue',
-                    fillOpacity: 1,
-                    strokeWidth: 0,
-                    highlight: { highlightedItem: { fill: 'green', shadow } },
-                },
-            ],
-        });
-
-        /** Hovers the bar of the later series, whose highlight casts its shadow onto the bar of the earlier series. */
-        const hover = async () => {
-            await create(options(undefined));
-            const [first] = itemCentres(0);
-            const [second] = itemCentres(1);
-            await create(options(shadowAt(Math.round(first.x - second.x))));
-            await hoverAction(second.x, second.y)(chart!);
-            await waitForChartStability(chart!);
-            expect(pixelAt(second.x, second.y)).toEqual(GREEN);
-            return first;
-        };
-
-        it('should draw the shadow of the highlighted item above the earlier series, as it is drawn without a root', async () => {
-            let first!: Awaited<ReturnType<typeof hover>>;
-            const { through, local } = await renderBothWays(async () => {
-                first = await hover();
-            });
-
-            // The shadow lands on the earlier bar, and covers it.
-            expect(hasColour(through)).toBe(true);
-            expectSamePixels(through, local);
-            expect(pixelIn(through, first.x, first.y)).not.toEqual(RED);
-        });
-
-        it('should hover a chart whose series cast shadows, through the root or through their own batches', async () => {
-            const shadowed = (): AgCartesianChartOptions => {
-                const base = options(shadowAt(0));
-                return {
-                    ...base,
-                    series: base.series!.map((series) => ({ ...series, shadow: shadowAt(30, 10) })),
-                } as AgCartesianChartOptions;
-            };
-            await create(shadowed());
-            const [{ x, y }] = itemCentres(1);
-            const { through, local } = await renderBothWays(async () => {
-                await create(shadowed());
-                await hoverAction(x, y)(chart!);
-                await waitForChartStability(chart!);
-            });
-
-            expectSamePixels(through, local);
         });
     });
 });

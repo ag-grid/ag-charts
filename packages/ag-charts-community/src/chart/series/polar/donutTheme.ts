@@ -2,8 +2,10 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     PART_WHOLE_HIGHLIGHT_STYLE,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     themeLineHeight,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -43,7 +45,7 @@ export const donutTheme: ExtensibleSeriesTheme<'donut'> = {
                 spacing: 2,
             },
         },
-        highlight: { ...PART_WHOLE_HIGHLIGHT_STYLE, bringToFront: true },
+        highlight: withGlowThemeDefaults({ ...PART_WHOLE_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
     },
 };

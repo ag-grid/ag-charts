@@ -413,6 +413,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const fillBBox = this.getShapeFillBBox();
+        const { shadow } = this.options;
         const hasItemStylers = this.hasItemStylers();
         // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
         const styleCache =
@@ -469,6 +470,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
                 node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
+                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
                 node.lineJoin = 'round';
                 node.inset = node.stroke == null ? 0 : node.strokeWidth / 2;
 

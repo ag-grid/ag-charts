@@ -4,6 +4,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    ITEM_GLOW_BUCKETS,
     LABEL_BOXING_DEFAULTS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
@@ -13,6 +14,7 @@ import {
     type SeriesModuleDefinition,
     themeLineHeight,
     undocumentedThemeOptions,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 
 import { ChordSeries } from './chordSeries';
@@ -35,7 +37,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
             ...COMMON_SERIES_THEME_DEFAULTS,
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
+            highlight: withGlowThemeDefaults(SINGLE_SERIES_HIGHLIGHT_STYLE, ITEM_GLOW_BUCKETS),
             tooltip: SERIES_TOOLTIP_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,

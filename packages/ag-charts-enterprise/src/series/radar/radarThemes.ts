@@ -7,12 +7,14 @@ import {
     NEAREST_TOOLTIP_THEME,
     POLAR_AXIS_TYPE,
     SAFE_STROKE_FILL_OPERATION,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     mergeDefaults,
     themeLineHeight,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -41,7 +43,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
             ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         },
-        highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+        highlight: withGlowThemeDefaults({ ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
         tooltip: NEAREST_TOOLTIP_THEME,
     },

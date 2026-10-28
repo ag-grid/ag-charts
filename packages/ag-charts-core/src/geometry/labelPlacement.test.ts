@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 
+import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { measureLabelText } from '../rendering/textMeasurer';
 import type { Point, SizedPoint } from '../types/scene';
 import {
@@ -64,6 +65,20 @@ vi.mock('../rendering/canvasUtil', () => ({
         },
     }),
 }));
+
+// The fit policy and font are scratch objects the engine refills, so each call is recorded as it happens.
+const fitCalls = vi.hoisted(() => [] as { fontSize: number; maxWidth?: number; minimumFontSize?: number }[]);
+vi.mock('../text/textWrapper', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../text/textWrapper')>();
+    return {
+        ...actual,
+        fitLabelTextOrOverflowAutoSize: (...args: Parameters<typeof actual.fitLabelTextOrOverflowAutoSize>) => {
+            const [, fit, , font] = args;
+            fitCalls.push({ fontSize: font.fontSize, maxWidth: fit?.maxWidth, minimumFontSize: fit?.minimumFontSize });
+            return actual.fitLabelTextOrOverflowAutoSize(...args);
+        },
+    };
+});
 
 const PLACEMENTS: (LabelPlacement | undefined)[] = [
     undefined,
@@ -3104,6 +3119,248 @@ describe('placeLabels collision shrink', () => {
         expect(placed[0].fontSize).toBe(9);
         expect(placed[1].fontSize).toBeUndefined();
         expect(placed[1].x).toBeCloseTo(220);
+    });
+});
+
+describe('placeLabels positioned shrink ladder', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 400, height: 400 };
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const TEXT = 'WWWWW';
+    const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
+    const OWN_BOX: BoxBounds = { x: 0, y: 390, width: 5, height: 5 };
+    // Covers every candidate's box at full size; one at x <= 85 clears only once the text is narrow enough.
+    const WALL: LabelObstacle = { kind: 'rect', box: { x: 50, y: 0, width: 100, height: 300 }, category: 'label' };
+    const EDGE: LabelObstacle = { kind: 'rect', box: { x: 0, y: 0, width: 85, height: 300 }, category: 'label' };
+
+    type Container = { width: number; height: number };
+    const candidate = (y: number, container?: Container, region?: BoxBounds): PositionedLabelCandidate => ({
+        box: { x: 75, y: y - 10, width: 50, height: 20 },
+        region,
+        fitTo: {
+            container,
+            anchor: { x: 100, y, textAlign: 'center', textBaseline: 'middle' },
+            padding: NO_PADDING,
+        },
+    });
+
+    const place = (
+        candidates: PositionedLabelCandidate[],
+        obstacles: LabelObstacle[],
+        {
+            alwaysShow = false,
+            resolveCandidate,
+            fitText = TEXT,
+            overflowStrategy = 'ellipsis',
+        }: {
+            alwaysShow?: boolean;
+            resolveCandidate?: PositionedCandidateResolver;
+            fitText?: NormalisedTextOrSegments;
+            overflowStrategy?: 'ellipsis' | 'hide';
+        } = {}
+    ) => {
+        const datum = buildBarPositionedLabelDatum(
+            TEXT,
+            50,
+            20,
+            candidates,
+            { rotation: 0 },
+            OWN_BOX,
+            alwaysShow,
+            {},
+            0,
+            false,
+            {
+                text: fitText,
+                policy: { minimumFontSize: 6, overflowStrategy },
+                font: FONT,
+                boxPadding: NO_PADDING,
+            }
+        );
+        const placed = placeLabels(new Map([['s', { datums: [datum], resolveCandidate }]]), bounds, 0, obstacles).get(
+            's'
+        )!;
+        return placed.map(({ text, fontSize, x, y, width, height }) => ({ text, fontSize, x, y, width, height }));
+    };
+
+    /** The fits a ladder trial ran, as `[font size, max width]`: a trial fits with no `minimumFontSize` of its own. */
+    const trialFits = () =>
+        fitCalls.filter((call) => call.minimumFontSize == null).map((call) => [call.fontSize, call.maxWidth] as const);
+
+    beforeEach(() => {
+        fitCalls.length = 0;
+    });
+
+    describe('result', () => {
+        // Expected values are the base ladder's output, except in the three `lineHeight` cases (this describe's
+        // 'is sized from the source measured under its own candidate font, including line height' and the two
+        // 'line height of a later candidate in the same font as an erased one' cases). There `styledFitSource`
+        // now compares `lineHeight`, so a candidate is sized under its own line height where base reused another's.
+        const AT_SEVEN = {
+            text: TEXT,
+            fontSize: 7,
+            x: 85.41666666666667,
+            y: 94.16666666666667,
+            width: 29.166666666666668,
+            height: 11.666666666666668,
+        };
+        const shared = { width: 30, height: 60 };
+
+        it('is the largest size that clears when candidates share a container', () => {
+            expect(place([candidate(100, shared), candidate(140, shared)], [EDGE])).toEqual([AT_SEVEN]);
+        });
+
+        it('is the largest size that clears when candidates have their own containers', () => {
+            const placed = place(
+                [candidate(100, { width: 40, height: 60 }), candidate(140, { width: 25, height: 60 })],
+                [EDGE]
+            );
+            expect(placed).toEqual([{ text: TEXT, fontSize: 6, x: 87.5, y: 135, width: 25, height: 10 }]);
+        });
+
+        it('is the largest size that clears when candidates have no container', () => {
+            expect(place([candidate(100), candidate(140)], [EDGE])).toEqual([AT_SEVEN]);
+        });
+
+        it('is the largest size that clears when a candidate carries its own font', () => {
+            const resolveCandidate: PositionedCandidateResolver = (_d, c) =>
+                c.box.y === 90 ? { ...c, fitTo: { ...c.fitTo!, font: { fontSize: 16, fontFamily: 'serif' } } } : c;
+            const placed = place([candidate(100, shared), candidate(140, shared)], [EDGE], { resolveCandidate });
+            expect(placed).toEqual([AT_SEVEN]);
+        });
+
+        it('is sized from the source measured under its own candidate font, including line height', () => {
+            // Only the last candidate clears, and the fit of the first, in the same font, must not stand in for it.
+            const serif = (lineHeight: number) => ({ fontSize: 12, fontFamily: 'serif', lineHeight });
+            const fonts = new Map([
+                [90, serif(16)],
+                [130, { fontSize: 12, fontFamily: 'monospace' }],
+                [170, serif(8)],
+                [210, serif(16)],
+            ]);
+            const resolveCandidate: PositionedCandidateResolver = (_d, c) => ({
+                ...c,
+                fitTo: { ...c.fitTo!, font: fonts.get(c.box.y) },
+            });
+            const blocksFirstThree: LabelObstacle = {
+                kind: 'rect',
+                box: { x: 0, y: 80, width: 200, height: 120 },
+                category: 'label',
+            };
+            const wide = { width: 40, height: 60 };
+            const candidates = [100, 140, 180, 220].map((y) => candidate(y, wide));
+            const placed = place(candidates, [EDGE, blocksFirstThree], { resolveCandidate });
+            expect(placed).toEqual([
+                {
+                    text: TEXT,
+                    fontSize: 7,
+                    x: 85.41666666666667,
+                    y: 215.33333333333334,
+                    width: 29.166666666666668,
+                    height: 9.333333333333334,
+                },
+            ]);
+        });
+
+        it('is the label at its floor when it is kept and no size clears', () => {
+            const placed = place([candidate(100, shared), candidate(140, shared)], [WALL], { alwaysShow: true });
+            expect(placed).toEqual([{ text: TEXT, fontSize: 6, x: 87.5, y: 95, width: 25, height: 10 }]);
+        });
+
+        it('is no label when it is hideable and no size clears', () => {
+            expect(place([candidate(100, shared), candidate(140, shared)], [WALL])).toEqual([]);
+        });
+    });
+
+    describe('shared fit targets', () => {
+        it('fits candidates sharing a container once per trial size', () => {
+            const shared = { width: 30, height: 60 };
+            place([candidate(100, shared), candidate(140, shared), candidate(180, shared)], [WALL]);
+            const fits = trialFits();
+            expect(fits.length).toBeGreaterThan(0);
+            expect(new Set(fits.map(([size]) => size)).size).toBe(fits.length);
+        });
+
+        it('fits candidates with different containers separately', () => {
+            place([candidate(100, { width: 30, height: 60 }), candidate(140, { width: 31, height: 60 })], [WALL]);
+            const fits = trialFits();
+            expect(fits.filter(([size]) => size === 12)).toHaveLength(2);
+        });
+
+        it('fits candidates with different fonts separately', () => {
+            const shared = { width: 30, height: 60 };
+            const resolveCandidate: PositionedCandidateResolver = (_d, c) =>
+                c.box.y === 130 ? { ...c, fitTo: { ...c.fitTo!, font: { ...FONT, fontFamily: 'serif' } } } : c;
+            place([candidate(100, shared), candidate(140, shared)], [WALL], { resolveCandidate });
+            expect(trialFits().filter(([size]) => size === 12)).toHaveLength(2);
+        });
+    });
+
+    describe('hopeless candidates', () => {
+        it('never refits a candidate whose text the configured-size fit erased', () => {
+            const sliver = { width: 2, height: 60 };
+            place([candidate(100, sliver), candidate(140, { width: 30, height: 60 })], [WALL]);
+            const fits = trialFits();
+            expect(fits.length).toBeGreaterThan(0);
+            expect(fits.filter(([, maxWidth]) => maxWidth === 2)).toEqual([]);
+        });
+
+        describe('line height of a later candidate in the same font as an erased one', () => {
+            const serif = (lineHeight: number) => ({ fontSize: 12, fontFamily: 'serif', lineHeight });
+            const resolveCandidate: PositionedCandidateResolver = (_d, c) => ({
+                ...c,
+                fitTo: { ...c.fitTo!, font: serif(c.box.y === 90 ? 4 : 16) },
+            });
+            const erased = candidate(100, { width: 2, height: 60 });
+
+            it('is its own when the label places at the configured size', () => {
+                const viable = candidate(140, { width: 60, height: 60 });
+                const alone = place([viable], [], { resolveCandidate });
+                expect(place([erased, viable], [], { resolveCandidate })).toEqual(alone);
+                expect(alone).toEqual([{ text: TEXT, fontSize: undefined, x: 75, y: 132, width: 50, height: 16 }]);
+            });
+
+            it('is its own when the label places on the ladder', () => {
+                const viable = candidate(140, { width: 40, height: 60 });
+                const alone = place([viable], [EDGE], { resolveCandidate });
+                expect(place([erased, viable], [EDGE], { resolveCandidate })).toEqual(alone);
+                expect(alone).toEqual([
+                    {
+                        text: TEXT,
+                        fontSize: 7,
+                        x: 85.41666666666667,
+                        y: 135.33333333333334,
+                        width: 29.166666666666668,
+                        height: 9.333333333333334,
+                    },
+                ]);
+            });
+        });
+
+        it('still tries a candidate whose segment holds its own minimum font size at the configured size', () => {
+            // The configured-size fit holds the segment at 10px, which a 32px container cannot take; a trial fits
+            // it at the trial size instead, so the first candidate places at 7px on the ladder.
+            const fitText: NormalisedTextOrSegments = [{ type: 'text', text: TEXT, minimumFontSize: 10 }];
+            const first = candidate(100, { width: 32, height: 60 });
+            const placed = place([first, candidate(140)], [EDGE], { fitText, overflowStrategy: 'hide' });
+            expect(placed).toEqual([
+                {
+                    text: fitText,
+                    fontSize: 7,
+                    x: 85.41666666666667,
+                    y: 94.16666666666667,
+                    width: 29.166666666666668,
+                    height: 11.666666666666668,
+                },
+            ]);
+        });
+
+        it('still tries a candidate whose box only fits its region at a smaller size', () => {
+            // 50px of text fits the container at 12px but not its 30px region; it holds from 7px (29.2px) down.
+            const region = { x: 75, y: 90, width: 30, height: 20 };
+            const [placed] = place([candidate(100, { width: 60, height: 60 }, region)], []);
+            expect(placed.fontSize).toBe(7);
+            expect(placed.text).toBe(TEXT);
+        });
     });
 });
 

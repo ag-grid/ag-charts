@@ -4,20 +4,8 @@ import { ChartUpdateType, Transformable } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import { STRIPPED_NUMBER_AXES } from '../test/bigintExamples';
-import { SERIES_SHADOW } from '../test/shadowFixtures';
+import { CATEGORY_DATA, HISTOGRAM_DATA, SERIES_SHADOW, XY_DATA } from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
-
-const XY_DATA = [
-    { x: 1, y: 5, size: 10 },
-    { x: 2, y: 8, size: 20 },
-    { x: 3, y: 3, size: 30 },
-];
-const CATEGORY_DATA = [
-    { category: 'A', value: 5 },
-    { category: 'B', value: 8 },
-    { category: 'C', value: 3 },
-];
-const HISTOGRAM_DATA = [{ x: 1 }, { x: 2 }, { x: 2.5 }, { x: 4 }, { x: 5 }, { x: 5.5 }, { x: 7 }];
 
 interface SeriesCase {
     name: string;

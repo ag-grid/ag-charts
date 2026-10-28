@@ -1,12 +1,12 @@
 import {
     AgCharts,
     AgLinearGaugeOptions,
-    AllGaugeModule,
     ContextMenuModule,
+    LinearGaugeModule,
     ModuleRegistry,
 } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([AllGaugeModule]);
+ModuleRegistry.registerModules([LinearGaugeModule]);
 const options: AgLinearGaugeOptions = {
     type: 'linear-gauge',
     container: document.getElementById('myChart'),

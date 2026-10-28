@@ -65,6 +65,18 @@ export function getSeriesContextNodeData<TDatum = SeriesNodeDatum, TLabel = TDat
     return contextNodeData!;
 }
 
+// `hasChangesOnHighlight` is protected on `Series`: it is the flag that asks the series for a full redraw.
+interface HighlightRedrawHost {
+    hasChangesOnHighlight?: boolean;
+}
+
+/** Whether the series asked for a full redraw on its last highlight change (its protected `hasChangesOnHighlight`). */
+export function getSeriesHasChangesOnHighlight(chartOrProxy: ChartOrProxy<any>, index = 0): boolean {
+    const { hasChangesOnHighlight } = getSeriesAt(chartOrProxy, index) as unknown as HighlightRedrawHost;
+    expect(hasChangesOnHighlight, `series ${index} highlight redraw flag`).toBeTypeOf('boolean');
+    return hasChangesOnHighlight!;
+}
+
 /** The scene selections of a series that tests read the drawn nodes through. */
 export type SeriesSelectionName =
     'datumSelection' | 'labelSelection' | 'highlightSelection' | 'highlightLabelSelection' | 'itemSelection';

@@ -42,6 +42,8 @@ Select a theme in the example below to apply it to the chart.
 
 ## Making Custom Themes
 
+Design a theme visually in the [Theme Builder](/theme-builder/), then copy it into your application.
+
 You can create your own theme, which builds upon an existing theme and allows you to change as many or as few properties as you like.
 
 A custom theme is an object with the following optional properties:
@@ -52,6 +54,30 @@ A custom theme is an object with the following optional properties:
 - `overrides` - The object to be merged with the base theme's defaults and override them.
 
 See the [Themes API page](/themes-api/) for the complete options structure.
+
+## Order of Application
+
+A theme is applied in layers, and each layer takes precedence over the ones before it:
+
+1. The base theme, set by `baseTheme`.
+2. `params`.
+3. `overrides`.
+4. The options passed to the chart.
+
+```js format="snippet"
+const myTheme = {
+    params: { textColor: '#0000ff' },
+    overrides: { common: { title: { color: '#00ff00' } } },
+};
+
+AgCharts.create({
+    theme: myTheme,
+    title: { text: 'Sales', color: '#ff00ff' },
+    // ...
+});
+```
+
+The title is `'#ff00ff'` because the chart option comes last. Without the chart option it is `'#00ff00'` from `overrides`, and without that it is `'#0000ff'` from `params`, as `textColor` is the default title colour.
 
 ## Palette
 
@@ -76,7 +102,7 @@ The `params` object is used to set styles across the whole chart in one place.
 
 - Set the font with `fontFamily` and `fontSize`.
 - Use `foregroundColor`, `backgroundColor` and `accentColor` to set the main colours on the chart. All other colours will default to a mix of these three.
-- Use specific params to adjust tooltips, menus, panels, toolbars, buttons and text inputs, for example `tooltipBackgroundColor`. Please see the [Themes API reference](/themes-api/#reference-AgChartTheme-params) for the full list of available options.
+- Use specific params to adjust tooltips, menus, panels, toolbars, buttons and text inputs, for example `tooltipBackgroundColor`. See the [Theme Parameters reference](/theme-parameters-api/) for the full list, with the type, default and description of each.
 
 {% chartExampleRunner title="Theme Parameters" name="theme-parameters" type="generated"  /%}
 
@@ -103,6 +129,28 @@ In the above example:
 - The three main colours are defined with some additional specific colours for chrome elements.
 - All text elements are set to the same font family.
 - All text, except the titles and footer, are set to the same font size.
+
+### Parameter Inheritance
+
+The foundation parameters `foregroundColor`, `backgroundColor`, `accentColor`, `fontFamily` and `fontSize` set the defaults for more specific parameters. Changing a foundation parameter changes every parameter that inherits from it.
+
+For example, `textColor` defaults to `foregroundColor`, and `subtleTextColor` defaults to a blend of `textColor` and the chart background. Setting `foregroundColor` therefore changes `textColor`, which in turn changes `subtleTextColor`.
+
+```js format="snippet"
+const myTheme = {
+    params: { foregroundColor: '#1a3a5c' },
+};
+```
+
+Setting a specific parameter replaces its inherited default. Here `textColor` no longer follows `foregroundColor`, while `subtleTextColor` follows the new `textColor`. `foregroundColor` still sets other parameters that inherit from it, such as `borderColor`.
+
+```js format="snippet"
+const myTheme = {
+    params: { foregroundColor: '#1a3a5c', textColor: '#b00020' },
+};
+```
+
+See the [Theme Parameters reference](/theme-parameters-api/) for the default of every parameter.
 
 ### Colour References
 

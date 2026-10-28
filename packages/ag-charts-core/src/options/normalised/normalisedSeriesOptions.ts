@@ -1,4 +1,5 @@
 import type {
+    AgGlowHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
     AgSelectionOptions,
     AgSeriesListeners,
@@ -11,9 +12,9 @@ import type {
     Renderer,
 } from 'ag-charts-types';
 
-import type { DeepPartial, RequireOptional } from '../../types/global';
+import type { RequireOptional } from '../../types/global';
 import type { BivariantCallback, Normalised } from './normalise';
-import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
+import type { NormalisedColorType } from './normalisedCommonOptions';
 
 /** Style overrides a highlight or selection state bucket may carry once colour refs are resolved. */
 export interface NormalisedSeriesStateStyle {
@@ -27,22 +28,13 @@ export interface NormalisedSeriesStateStyle {
     opacity?: number;
 }
 
-/** The `shadow` only `highlightedItem` accepts, which the shared state style leaves out. */
-export interface NormalisedItemHighlightShadow {
-    shadow?: DeepPartial<NormalisedDropShadowOptions>;
-}
-
 type NormalisedSeriesHighlightBuckets<TStyle extends object> = Normalised<
-    AgMultiSeriesHighlightOptions<Partial<TStyle & NormalisedSeriesStateStyle>>,
+    AgMultiSeriesHighlightOptions<Partial<TStyle & NormalisedSeriesStateStyle> & AgGlowHighlightStyleOptions>,
     'enabled'
 >;
 
-export type NormalisedSeriesHighlightOptions<TStyle extends object = NormalisedSeriesStateStyle> = Omit<
-    NormalisedSeriesHighlightBuckets<TStyle>,
-    'highlightedItem'
-> & {
-    highlightedItem?: NormalisedSeriesHighlightBuckets<TStyle>['highlightedItem'] & NormalisedItemHighlightShadow;
-};
+export type NormalisedSeriesHighlightOptions<TStyle extends object = NormalisedSeriesStateStyle> =
+    NormalisedSeriesHighlightBuckets<TStyle>;
 
 export type NormalisedSeriesSelectionOptions<TStyle extends object = NormalisedSeriesStateStyle> = Normalised<
     AgSelectionOptions<Partial<TStyle & NormalisedSeriesStateStyle>>,
@@ -73,10 +65,10 @@ type NormaliseSeriesTooltip<T> = T extends { tooltip?: AgSeriesTooltip<infer P> 
 export interface NormalisedSeriesHighlightBase<TStyle extends object = NormalisedSeriesStateStyle> {
     enabled: boolean;
     bringToFront?: boolean;
-    highlightedItem?: TStyle & NormalisedItemHighlightShadow;
-    unhighlightedItem?: TStyle;
-    highlightedSeries?: TStyle;
-    unhighlightedSeries?: TStyle;
+    highlightedItem?: TStyle & AgGlowHighlightStyleOptions;
+    unhighlightedItem?: TStyle & AgGlowHighlightStyleOptions;
+    highlightedSeries?: TStyle & AgGlowHighlightStyleOptions;
+    unhighlightedSeries?: TStyle & AgGlowHighlightStyleOptions;
 }
 
 /** A series whose own options already normalise `highlight` (a required block) keeps that shape and its required-ness. */

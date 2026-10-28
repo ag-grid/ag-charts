@@ -28,7 +28,7 @@ import {
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { ChartTheme } from '../themes/chartTheme';
-import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
+import { ExpectedModules, type ModulePlaceholder, narrowMissingModule } from './expectedModules';
 
 const SkippedModules = new Set<string>(['foreground']);
 
@@ -178,6 +178,20 @@ export interface MissingModule {
     features: string[];
 }
 
+/** Merges a missing module by id, keeping the enterprise variant when community and enterprise requirements meet. */
+function addMissingModule(missingModules: MissingModule[], module: ModulePlaceholder, feature?: string) {
+    let missing = missingModules.find((entry) => entry.module.moduleId === module.moduleId);
+    if (missing == null) {
+        missing = { module, features: [] };
+        missingModules.push(missing);
+    } else if (module.enterprise && !missing.module.enterprise) {
+        missing.module = module;
+    }
+    if (feature != null && !missing.features.includes(feature)) {
+        missing.features.push(feature);
+    }
+}
+
 export function processModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
     options: T,
@@ -187,9 +201,7 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
 ): void {
     const missingModules = removeUnregisteredModuleOptions(chartType, options, moduleRegistry);
     for (const module of additionalMissingModules) {
-        if (!missingModules.some((missing) => missing.module === module)) {
-            missingModules.push({ module, features: [] });
-        }
+        addMissingModule(missingModules, module);
     }
 
     if (missingModules.length === 0) return;
@@ -239,7 +251,7 @@ function bundlerMissingModulesMessage(
         'required modules are not registered. Check if you have registered the modules:',
         '',
         createRegistrySnippet(
-            missingModules.map(({ module }) => module.moduleId ?? module.name),
+            missingModules.map(({ module }) => module),
             packageName,
             instanceModules
         ),
@@ -257,14 +269,20 @@ function formatImportItem(name: string) {
     return `    ${name},`;
 }
 
+function formatModuleItem({ moduleId, alternativeModuleIds }: ModulePlaceholder) {
+    const item = formatImportItem(moduleId);
+    return alternativeModuleIds == null ? item : `${item} // or ${alternativeModuleIds.join(', or ')}`;
+}
+
 function formatImports(imports: string[], packageName: string) {
     return imports.length === 0
         ? null
         : `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`;
 }
 
-function createRegistrySnippet(moduleNames: string[], packageName: string, instanceModules: boolean): string {
-    const moduleList = moduleNames.map(formatImportItem).join('\n');
+function createRegistrySnippet(modules: ModulePlaceholder[], packageName: string, instanceModules: boolean): string {
+    const moduleNames = modules.map(({ moduleId }) => moduleId);
+    const moduleList = modules.map(formatModuleItem).join('\n');
     if (instanceModules) {
         const imports = formatImports(['AgCharts'].concat(moduleNames), packageName);
         return `${imports}\n\nAgCharts.create(options, {\n    modules: [\n${moduleList.replace(/^/gm, '    ')}\n    ],\n});`;
@@ -278,7 +296,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
     options: T,
     moduleRegistry: ModuleScope
 ): MissingModule[] {
-    const missingModules = new Map<string, MissingModule>();
+    const missingModules: MissingModule[] = [];
     const optionsAxes = 'axes' in options && isObject(options.axes) ? options.axes : {};
     const axisTypesInOptions = new Set<string>(
         Object.values(optionsAxes)
@@ -286,17 +304,6 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
             .filter(isDefined)
     );
     const seriesTypesInOptions = new Set<string>(options.series?.map((series) => series.type).filter(isDefined));
-
-    function addMissingModule(module: ModulePlaceholder, feature?: string) {
-        let missing = missingModules.get(module.name);
-        if (missing == null) {
-            missing = { module, features: [] };
-            missingModules.set(module.name, missing);
-        }
-        if (feature != null && !missing.features.includes(feature)) {
-            missing.features.push(feature);
-        }
-    }
 
     const uncovered = uncoveredPlaceholderContributions(moduleRegistry, chartType);
 
@@ -318,7 +325,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                             delete optionsAxes[key];
                         }
                     }
-                    addMissingModule(module);
+                    addMissingModule(missingModules, module);
                 }
                 break;
 
@@ -326,27 +333,38 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                 if (moduleRegistry.hasModule(module.name)) break;
                 if (seriesTypesInOptions.has(module.name)) {
                     options.series = (options.series as any[]).filter((series) => series.type !== module.name);
-                    addMissingModule(module);
+                    addMissingModule(missingModules, module);
                 }
                 break;
 
             default:
-                for (const { contribution, path } of uncovered.get(module) ?? []) {
+                for (const { contribution, host, relative } of uncovered.get(module) ?? []) {
                     if (!contributionMatchesChartType(contribution, chartType)) continue;
-                    visitOptionsPath(options, path, (host, key) => {
-                        const value = host[key];
-                        if (value == null) return;
-                        if (isContributionRequested(contribution, value)) {
-                            addMissingModule(module, contribution.apiName ?? contribution.path);
-                        }
-                        delete host[key];
-                    });
+                    const feature = contribution.apiName ?? contribution.path;
+                    const removeFrom = (instance: unknown, typesInUse: Iterable<unknown>) =>
+                        visitOptionsPath(instance, relative, (target, key) => {
+                            const value = target[key];
+                            if (value == null) return;
+                            if (isContributionRequested(contribution, value)) {
+                                for (const missing of narrowMissingModule(module, typesInUse)) {
+                                    addMissingModule(missingModules, missing, feature);
+                                }
+                            }
+                            delete target[key];
+                        });
+                    if (host === 'axis') {
+                        for (const axis of Object.values(optionsAxes)) removeFrom(axis, [axis?.type]);
+                    } else if (host === 'series') {
+                        for (const series of options.series ?? []) removeFrom(series, [series.type]);
+                    } else {
+                        removeFrom(options, [...axisTypesInOptions, ...seriesTypesInOptions]);
+                    }
                 }
                 break;
         }
     }
 
-    return Array.from(missingModules.values());
+    return missingModules;
 }
 
 /**

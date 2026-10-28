@@ -24,7 +24,7 @@ import type {
     VerticalAlign,
 } from '../../chart/types';
 import type { AgColorScale, AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgItemHighlightStyleOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgGlowHighlightStyleOptions } from '../seriesOptions';
 
 export type AgTreemapHighlightState = HierarchyHighlightState;
 
@@ -142,7 +142,7 @@ export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
     gap?: PixelSize;
 }
 
-export interface AgTreemapSeriesTileHighlightStyle extends AgTreemapSeriesTileStyle {
+export interface AgTreemapSeriesTileHighlightStyle extends AgTreemapSeriesTileStyle, AgGlowHighlightStyleOptions {
     /** Opacity to apply to the tile and its labels. */
     opacity?: Opacity;
 }
@@ -157,14 +157,14 @@ export interface AgTreemapSeriesTileHighlightOptions {
     /** Style for tiles within the hovered branch. */
     highlightedBranch?: AgTreemapSeriesTileHighlightStyle;
     /** Style for the directly hovered tile. */
-    highlightedItem?: AgTreemapSeriesTileHighlightStyle & AgItemHighlightStyleOptions;
+    highlightedItem?: AgTreemapSeriesTileHighlightStyle;
     /** Style for other tiles within the hovered branch. */
     unhighlightedItem?: AgTreemapSeriesTileHighlightStyle;
     /** Style for tiles outside of the hovered branch. */
     unhighlightedBranch?: AgTreemapSeriesTileHighlightStyle;
 }
 
-export interface AgTreemapSeriesGroupHighlightStyle extends FillOptions, StrokeOptions {
+export interface AgTreemapSeriesGroupHighlightStyle extends FillOptions, StrokeOptions, AgGlowHighlightStyleOptions {
     /** Opacity to apply to the group tile and its child tiles. */
     opacity?: Opacity;
 }
@@ -177,7 +177,7 @@ export interface AgTreemapSeriesGroupHighlightOptions {
      */
     enabled?: boolean;
     /** Style for the hovered group. */
-    highlightedItem?: AgTreemapSeriesGroupHighlightStyle & AgItemHighlightStyleOptions;
+    highlightedItem?: AgTreemapSeriesGroupHighlightStyle;
     /** Style for groups that are not hovered when another group is active. */
     unhighlightedItem?: AgTreemapSeriesGroupHighlightStyle;
 }

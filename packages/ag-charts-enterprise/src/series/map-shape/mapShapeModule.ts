@@ -4,6 +4,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
@@ -13,6 +14,7 @@ import {
     seriesLabelFontWeightOr,
     themeLineHeight,
     undocumentedThemeOptions,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
@@ -64,7 +66,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 fontWeight: seriesLabelFontWeightOr('bold'),
             },
             tooltip: SERIES_TOOLTIP_THEME,
-            highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
+            highlight: applyMapPalette(withGlowThemeDefaults(MULTI_SERIES_HIGHLIGHT_STYLE, SERIES_GLOW_BUCKETS)),
             selection: SERIES_SELECTION_THEME,
         },
         tooltip: {

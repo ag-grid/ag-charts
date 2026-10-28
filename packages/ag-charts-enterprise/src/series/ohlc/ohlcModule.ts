@@ -12,11 +12,13 @@ import {
     ChartAxisDirection,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     NEAREST_TOOLTIP_THEME,
+    SERIES_GLOW_BUCKETS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -50,7 +52,7 @@ const themeTemplate: ExtensibleSeriesTheme<'ohlc'> = {
         },
         shadow: SHADOW_THEME_DEFAULTS,
         tooltip: NEAREST_TOOLTIP_THEME,
-        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+        highlight: withGlowThemeDefaults({ ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
     },
     axes: {

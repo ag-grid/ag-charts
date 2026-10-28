@@ -6,6 +6,7 @@ import {
     deproxy,
     getSeriesAt,
     getSeriesContextNodeData,
+    getSeriesOptions,
     getSeriesSelectionNodes,
 } from 'ag-charts-community-test';
 import { BBox, ChartAxisDirection, Group, type Node, Selection, Shape, Text, type Vertex } from 'ag-charts-core';
@@ -15,7 +16,7 @@ import { FlowProportionDatumType } from '../series/flow-proportion/flowDatumInde
 import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../series/flow-proportion/flowProportionSeries';
 import { FunnelConnector } from '../series/funnel/funnelConnector';
 import { HeatmapSeries } from '../series/heatmap/heatmapSeries';
-import type { HierarchyNode } from '../series/hierarchy/hierarchySeries';
+import type { HierarchyHighlightState, HierarchyNode } from '../series/hierarchy/hierarchySeries';
 import { HlcSeries } from '../series/hlc/hlcSeries';
 import type { HlcMarkerDatum } from '../series/hlc/hlcUtil';
 import type { MapMarkerNodeDatum } from '../series/map-marker/mapMarkerSeries';
@@ -273,8 +274,9 @@ export type SeriesGroupName =
     | 'linkGroup'
     | 'highlightNodeGroup'
     | 'highlightLinkGroup'
-    | 'focusLinkGroup'
     | 'focusNodeGroup'
+    | 'focusLinkGroup'
+    | 'contentGroup'
     | 'connectorNodeGroup'
     | 'dataNodeGroup'
     | 'itemGroup'
@@ -365,6 +367,33 @@ export function getHeatmapCellMethods(): HeatmapCellMethods {
     prototype.accessProperty('getItemStyle').cast(Function);
     prototype.accessProperty('updateNodeDatum').cast(Function);
     return prototype.value as unknown as HeatmapCellMethods;
+}
+
+/**
+ * The glow-free highlight style a sunburst, or a treemap tile, resolves for `state`. The series caches it per state, so
+ * a second read returns the same object until the options change. Tiles and sunburst nodes share the first cache slot.
+ */
+export function getHierarchyHighlightStyle(
+    chartOrProxy: ChartOrProxy<any>,
+    state: HierarchyHighlightState,
+    index = 0
+): object | undefined {
+    const series = getSeriesAt(chartOrProxy, index);
+    const options = getSeriesOptions<{ highlight?: object; tile?: { highlight?: object } }>(chartOrProxy, index);
+    const highlight = defined(options.tile?.highlight ?? options.highlight);
+    const getStyles = new Caster(series).accessProperty('getHierarchyHighlightStyles').cast(Function).value;
+    return getStyles.call(series, 0, state, highlight) as object | undefined;
+}
+
+/** The glow-free highlight style a treemap group resolves for `state`; cached per state like the tile's. */
+export function getTreemapGroupHighlightStyle(
+    chartOrProxy: ChartOrProxy<any>,
+    state: HierarchyHighlightState,
+    index = 0
+): object | undefined {
+    const series = getSeriesAt(chartOrProxy, index);
+    const getStyle = new Caster(series).accessProperty('getGroupHighlightStyle').cast(Function).value;
+    return getStyle.call(series, state) as object | undefined;
 }
 
 /** The labels a series placed with the label placement engine, in the series' coordinates. */

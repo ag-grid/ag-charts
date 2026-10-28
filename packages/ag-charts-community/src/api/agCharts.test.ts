@@ -519,7 +519,11 @@ describe('AgCharts', () => {
                 () => AgCharts.createFinancialChart(invalidOption(undefined)),
                 ['FinancialChartModule'],
             ],
-            ['createGauge', () => AgCharts.createGauge(invalidOption(undefined)), ['AllGaugeModule']],
+            [
+                'createGauge',
+                () => AgCharts.createGauge(invalidOption(undefined)),
+                ['LinearGaugeModule, // or RadialGaugeModule'],
+            ],
             [
                 'createQuadrantChart',
                 () => AgCharts.createQuadrantChart(invalidOption(undefined)),

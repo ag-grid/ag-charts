@@ -50,6 +50,24 @@
     }
 }
 
+// Without the eyebrow the version leads the row, rather than sitting after an empty column and its gap.
+.pageTitleContainerNoEyebrow {
+    @extend .pageTitleContainer;
+
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        'version'
+        'actions'
+        'title';
+
+    @media screen and (min-width: $breakpoint-docs-search-medium) {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+            'version actions'
+            'title actions';
+    }
+}
+
 // Framework name, inside the h1, so it opts back out of the heading type it inherits.
 .headerFramework {
     grid-area: meta;

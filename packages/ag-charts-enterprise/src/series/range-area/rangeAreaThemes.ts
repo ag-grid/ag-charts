@@ -14,12 +14,14 @@ import {
     NEAREST_TOOLTIP_THEME,
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     interpolationThemeTemplate,
     themeLineHeight,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
@@ -174,7 +176,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             blur: 5,
         },
         tooltip: NEAREST_TOOLTIP_THEME,
-        highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+        highlight: withGlowThemeDefaults({ ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
         invertedStyle: {

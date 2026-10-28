@@ -12,12 +12,14 @@ import {
     MARKER_SERIES_HIGHLIGHT_STYLE,
     NEAREST_TOOLTIP_THEME,
     SEGMENTATION_DEFAULTS,
+    SERIES_GLOW_BUCKETS,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     interpolationThemeTemplate,
     themeLineHeight,
+    withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -80,7 +82,7 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
         },
-        highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
+        highlight: withGlowThemeDefaults({ ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },

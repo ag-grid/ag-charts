@@ -523,20 +523,20 @@ describe('instance modules', () => {
         });
 
         it('answers isModuleRegistered() for plugin modules by their exported name', async () => {
-            const axisInteraction: ModuleDefinition = {
+            const crosshair: ModuleDefinition = {
                 type: ModuleType.Plugin,
-                name: 'axis-interaction',
+                name: 'crosshair',
                 version: LineSeriesModule.version,
                 enterprise: false,
                 create: () => ({}),
             };
 
             chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }), {
-                modules: [...LINE_MODULES, axisInteraction],
+                modules: [...LINE_MODULES, crosshair],
             });
             await waitForChartStability(chart);
 
-            expect(chart.isModuleRegistered('AxisInteractionModule')).toBe(true);
+            expect(chart.isModuleRegistered('CrosshairModule')).toBe(true);
             expect(chart.isModuleRegistered('ZoomModule')).toBe(false);
         });
 

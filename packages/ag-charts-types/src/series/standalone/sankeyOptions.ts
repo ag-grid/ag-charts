@@ -11,8 +11,8 @@ import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '.
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
+    AgGlowHighlightOptions,
     AgHighlightStyleOptions,
-    AgShadowHighlightOptions,
 } from '../seriesOptions';
 
 export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
@@ -80,7 +80,7 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgShadowHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
