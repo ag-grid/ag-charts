@@ -662,19 +662,29 @@ export const FONT_THEME_DEFAULTS = {
 } as const;
 
 /**
- * The deprecated `color` is the shadow's `fill` where the shadow has one. The theme's `fillOpacity` goes with the theme's
- * `fill` alone, so that a `fill` or `color` of the user's is cast as it is written.
+ * The `fill` and `fillOpacity` of a shadow. The deprecated `color` is the shadow's `fill`, and wins over `fallbackFill`
+ * where the user sets it. The `fallbackFillOpacity` goes with the fallback `fill` alone, so that a `fill` or `color` of
+ * the user's is cast as it is written, at every level that a shadow inherits from another.
  */
-const SHADOW_FILL_THEME: Operation = { $isUserOption: ['./color', { $path: './color' }, '#000'] };
-const SHADOW_FILL_OPACITY_THEME: Operation = {
-    $isUserOption: [['./color', './fill'], 1, { $ref: 'shadowFillOpacity' }],
-};
+function shadowFillTheme(fallbackFill: Operation | string, fallbackFillOpacity: Operation) {
+    return {
+        fill: { $isUserOption: ['./color', { $path: './color' }, fallbackFill] },
+        fillOpacity: { $isUserOption: [['./color', './fill'], 1, fallbackFillOpacity] },
+    } as const satisfies Record<string, Operation>;
+}
+
+/**
+ * The `fill` and `fillOpacity` of an item's marker `shadow`, which start from those of the series' marker `shadow` at
+ * `seriesShadowPath`, the theme values included.
+ */
+export function inheritedShadowFillTheme(seriesShadowPath: string) {
+    return shadowFillTheme({ $path: `${seriesShadowPath}/fill` }, { $path: `${seriesShadowPath}/fillOpacity` });
+}
 
 /** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
 export const SHADOW_THEME_DEFAULTS = {
     enabled: false,
-    fill: SHADOW_FILL_THEME,
-    fillOpacity: SHADOW_FILL_OPACITY_THEME,
+    ...shadowFillTheme('#000', { $ref: 'shadowFillOpacity' }),
     xOffset: 3,
     yOffset: 3,
     blur: 5,

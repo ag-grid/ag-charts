@@ -75,7 +75,7 @@ export type NormalisedStrokeOptions = Normalised<StrokeOptions, never, { stroke?
 
 /**
  * A shadow's `fill` is set on every shadow but a glow's, which takes the fill of the item that it surrounds. The deprecated
- * `color` is folded into `fill` by the theme, so nothing reads it.
+ * `color` is folded into `fill` by the theme of every shadow, so nothing reads it.
  */
 export type NormalisedDropShadowOptions = Normalised<AgDropShadowOptions, 'enabled' | 'xOffset' | 'yOffset' | 'blur'>;
 

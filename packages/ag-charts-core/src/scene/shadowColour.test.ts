@@ -73,6 +73,16 @@ describe('withShadowFill', () => {
         expect(withShadowFill({ ...base }, 'red')).not.toBe(withShadowFill({ ...base }, 'red'));
     });
 
+    it('forgets the oldest fill rather than all of them when a shadow takes more than it remembers', () => {
+        const first = withShadowFill(base, 'rgb(0, 0, 0)');
+        const second = withShadowFill(base, 'rgb(1, 0, 0)');
+        for (let i = 2; i < 256; i++) withShadowFill(base, `rgb(${i}, 0, 0)`);
+
+        withShadowFill(base, 'rgb(0, 1, 0)');
+        expect(withShadowFill(base, 'rgb(1, 0, 0)')).toBe(second);
+        expect(withShadowFill(base, 'rgb(0, 0, 0)')).not.toBe(first);
+    });
+
     it('stays correct when a shadow takes more fills than it remembers', () => {
         for (let i = 0; i < 600; i++) {
             expect(withShadowFill(base, `rgb(${i % 256}, ${Math.floor(i / 256)}, 0)`).fill).toBe(

@@ -417,6 +417,16 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     shadowMode: ShapeShadowMode = 'fill';
     declare __shadowMode: ShapeShadowMode; // optimised field accessor
 
+    /** The shadow that {@link getCastShadow} resolved, with the shadow and paint that it resolved it from. */
+    private castShadowMemo?: {
+        shadow: NormalisedDropShadowOptions;
+        fill: unknown;
+        fillOpacity: number;
+        stroke: unknown;
+        strokeOpacity: number;
+        resolved: ResolvedDropShadowOptions | undefined;
+    };
+
     /** How much wider than the shape the spread shadow's stroke is drawn. Zero except while that stroke is drawn. */
     protected shadowStrokeGrowth: number = 0;
 
@@ -485,16 +495,28 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     /**
      * The shadow that this shape casts, or undefined if it casts none. A glow with no `fill` takes the colour of the
-     * shape's own paint: its fill, or its stroke where it has no fill, and casts nothing where it has neither.
+     * shape's own paint: its fill, or its stroke where it has no fill, and casts nothing where it has neither. The
+     * result is kept until the shadow or the paint changes, as this is asked several times for each shape in a frame.
      */
     getCastShadow(): ResolvedDropShadowOptions | undefined {
         const shadow = this.__fillShadow;
         if (shadow?.enabled !== true) return;
         if (shadow.fill != null) return shadow as ResolvedDropShadowOptions;
 
-        const colour =
-            getSolidColour(this.__fill, this.__fillOpacity) ?? getSolidColour(this.__stroke, this.__strokeOpacity);
-        return colour == null ? undefined : withShadowFill(shadow, colour);
+        const { __fill: fill, __fillOpacity: fillOpacity, __stroke: stroke, __strokeOpacity: strokeOpacity } = this;
+        let cast = this.castShadowMemo;
+        if (
+            cast?.shadow !== shadow ||
+            cast.fill !== fill ||
+            cast.fillOpacity !== fillOpacity ||
+            cast.stroke !== stroke ||
+            cast.strokeOpacity !== strokeOpacity
+        ) {
+            const colour = getSolidColour(fill, fillOpacity) ?? getSolidColour(stroke, strokeOpacity);
+            const resolved = colour == null ? undefined : withShadowFill(shadow, colour);
+            cast = this.castShadowMemo = { shadow, fill, fillOpacity, stroke, strokeOpacity, resolved };
+        }
+        return cast.resolved;
     }
 
     /** False while a layer shadow batch casts the shadow for this shape, instead of the shape itself. */

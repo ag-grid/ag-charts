@@ -38,7 +38,7 @@ export function scaleColourAlpha(colour: string, scale: number): string | undefi
     }
 }
 
-/** More fills than a glow normally takes: a glow over a colour scale takes the colour of each of its items. */
+/** More colours than a glow normally takes: a glow over a colour scale takes the colour of each of its items. */
 const MAX_FILLS_PER_SHADOW = 256;
 
 const withFills = new WeakMap<NormalisedDropShadowOptions, Map<string, ResolvedDropShadowOptions>>();
@@ -53,19 +53,29 @@ export function withShadowFill(shadow: NormalisedDropShadowOptions, fill: string
 
     let resolved = fills.get(fill);
     if (resolved == null) {
-        if (fills.size >= MAX_FILLS_PER_SHADOW) fills.clear();
+        if (fills.size >= MAX_FILLS_PER_SHADOW) fills.delete(fills.keys().next().value!);
         resolved = { ...shadow, fill };
         fills.set(fill, resolved);
     }
     return resolved;
 }
 
+const visibleColours = new Map<string, boolean>();
+
 function isVisibleColour(colour: string): boolean {
-    try {
-        return Color.fromString(colour).a > 0;
-    } catch {
-        return false;
+    if (colour === 'none' || colour === 'transparent') return false;
+
+    let visible = visibleColours.get(colour);
+    if (visible == null) {
+        try {
+            visible = Color.fromString(colour).a > 0;
+        } catch {
+            visible = false;
+        }
+        if (visibleColours.size >= MAX_FILLS_PER_SHADOW) visibleColours.delete(visibleColours.keys().next().value!);
+        visibleColours.set(colour, visible);
     }
+    return visible;
 }
 
 /**

@@ -19,6 +19,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
+    inheritedShadowFillTheme,
     interpolationThemeTemplate,
     themeLineHeight,
     withGlowThemeDefaults,
@@ -96,8 +97,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         },
         shadow: {
             enabled: { $path: '/series/$index/marker/shadow/enabled' },
-            fill: { $path: '/series/$index/marker/shadow/fill' },
-            fillOpacity: { $path: '/series/$index/marker/shadow/fillOpacity' },
+            ...inheritedShadowFillTheme('/series/$index/marker/shadow'),
             xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
             yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
             blur: { $path: '/series/$index/marker/shadow/blur' },
