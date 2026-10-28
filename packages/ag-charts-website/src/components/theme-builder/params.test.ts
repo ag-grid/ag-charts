@@ -39,10 +39,28 @@ describe('charts theme builder param layout', () => {
     it('opens with the designed groups, each leading with its designed rows', () => {
         const DESIGNED: [string, (string | [string, string])[]][] = [
             ['General', [['fontFamily', 'fontSize'], 'backgroundColor', 'foregroundColor', 'accentColor']],
-            ['Borders', ['borderColor', 'borderRadius']],
+            ['Borders & Spacing', ['borderColor', 'borderRadius', 'chartPadding']],
             [
                 'Axis & Grid',
-                ['axisTitleFontFamily', ['axisTitleColor', 'axisTitleFontSize'], 'axisLineColor', 'gridLineColor'],
+                [
+                    'axisTitleFontFamily',
+                    ['axisTitleColor', 'axisTitleFontSize'],
+                    'axisLineColor',
+                    'gridLineColor',
+                    'axisLineWidth',
+                    'axisLabelFontFamily',
+                    ['axisLabelColor', 'axisLabelFontSize'],
+                ],
+            ],
+            [
+                'Legend',
+                [
+                    'legendLabelFontFamily',
+                    ['legendLabelColor', 'legendLabelFontSize'],
+                    'legendMarkerSize',
+                    'legendBorder',
+                    'legendPadding',
+                ],
             ],
             [
                 'Titles & Footnote',
@@ -55,6 +73,8 @@ describe('charts theme builder param layout', () => {
                     ['footnoteColor', 'footnoteFontSize'],
                 ],
             ],
+            ['Series Labels', ['seriesLabelFontFamily']],
+            ['Tooltips', ['tooltipBackgroundColor', 'tooltipBorder', 'tooltipBorderRadius']],
         ];
         const rowKeys = PARAM_GROUPS.map((group) =>
             group.params.map((row) => (Array.isArray(row) ? row.map(({ key }) => key) : row.key))
