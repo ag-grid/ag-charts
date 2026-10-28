@@ -78,11 +78,22 @@ function optionsFor(nodes: number): AgStandaloneChartOptions {
 }
 
 /** inScope */
+async function loadFonts(): Promise<void> {
+    const loads: Promise<unknown>[] = [];
+    document.fonts.forEach((font) => loads.push(font.load()));
+    await Promise.all(loads);
+}
+
+/** inScope */
 async function ensureChart(nodes: number): Promise<void> {
     if (chartRef.current == null || chartNodes !== nodes) {
         chartRef.current?.destroy();
         chartRef.current = AgCharts.create(optionsFor(nodes));
         chartNodes = nodes;
+        await chartRef.current.waitForUpdate();
+
+        // The page font loads on first text draw, and its late layout shift refits the zoom, discarding one under way.
+        await loadFonts();
     }
     await chartRef.current.waitForUpdate();
 }
