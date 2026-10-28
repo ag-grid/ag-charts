@@ -63,7 +63,7 @@ This release includes the following behaviour changes:
 
 ### Series Shadows
 
-- The `shadow` of cartesian series, the radar, nightingale, radial bar and radial column series, sankey, chord, map shape and pyramid series is now cast once, beneath the items of all of these series in the chart. Previously the shadow of a later series could be drawn over the items of an earlier series. The markers of area, range area and radar area series still cast their shadows above the fill.
+- The `shadow` of cartesian series other than funnel, the radar, nightingale and radial column series, sankey, chord, map shape and pyramid series is now cast once, beneath the items of all of these series in the chart. Previously the shadow of a later series could be drawn over the items of an earlier series. The markers of area, range area and radar area series still cast their shadows above the fill.
 - The highlighted item no longer casts a second copy of its `shadow` in the highlight layer above the other series. Its `shadow` stays beneath the series. To emphasise a highlighted item, use the new `glow` option of the [highlight styles](./series-highlighting/#glow).
 
 {% /expandingSection %}
