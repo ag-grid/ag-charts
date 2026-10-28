@@ -282,7 +282,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         reuseStyles: boolean
     ) {
         const { collapsedByAncestor } = datum;
-        node.visible = !collapsedByAncestor;
+        node.visible = !collapsedByAncestor && !node.culled;
         if (collapsedByAncestor) return;
 
         const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
@@ -434,17 +434,41 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         );
     }
 
-    protected override onViewportScaleChange(scaling: number) {
+    protected override onViewportChange(scaling: number, viewport: BBox | undefined) {
         // Cards share one size, so any laid-out node stands for them all.
-        const cardHeight = this.datumSelection.at(0)?.getShapeBBox().height;
-        if (cardHeight == null) return;
+        const cardBBox = this.datumSelection.at(0)?.getShapeBBox();
+        if (cardBBox == null) return;
 
-        const detailHidden = cardHeight * scaling < MIN_DETAIL_CARD_HEIGHT;
+        this.updateDetailVisibility(cardBBox.height * scaling < MIN_DETAIL_CARD_HEIGHT);
+        if (viewport) this.cullOffscreenCards(viewport, cardBBox);
+    }
+
+    private updateDetailVisibility(detailHidden: boolean) {
         if (detailHidden === this.detailHidden) return;
 
         this.detailHidden = detailHidden;
         this.linkGroup.visible = !detailHidden;
         this.datumSelection.each((node) => node.setDetailVisible(!detailHidden));
+    }
+
+    // OPTIMIZATION: zooming and panning only move the viewport, so drawing the cards that lie outside it is the bulk
+    // of a frame. A card height of margin keeps the expander, which straddles the card's edge, from being clipped.
+    private cullOffscreenCards(viewport: BBox, cardBBox: BBox) {
+        const margin = cardBBox.height;
+        const minX = viewport.x - margin - cardBBox.width;
+        const maxX = viewport.x + viewport.width + margin;
+        const minY = viewport.y - margin - cardBBox.height;
+        const maxY = viewport.y + viewport.height + margin;
+
+        this.datumSelection.each(function cullCard(node, datum) {
+            node.culled =
+                node.translationX < minX ||
+                node.translationX > maxX ||
+                node.translationY < minY ||
+                node.translationY > maxY;
+            const visible = !datum.collapsedByAncestor && !node.culled;
+            if (node.visible !== visible) node.visible = visible;
+        });
     }
 
     updateLinkNodes(linkSelection: Selection<OrganizationLinkDatum, NetworkLinkNode<OrganizationLinkDatum>>) {

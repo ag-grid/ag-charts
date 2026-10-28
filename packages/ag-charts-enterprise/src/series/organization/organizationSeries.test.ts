@@ -3085,6 +3085,57 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    describe('off-screen culling', () => {
+        function getCardsAgainstViewport(c: ChartOrProxy<any>) {
+            const seriesRect = getNetworkSeriesRect(c);
+            const { scalingX, scalingY, translationX, translationY } = getNetworkViewport(c);
+
+            return getOrganizationCards(c).map(({ node }) => {
+                const { width, height } = node.getShapeBBox();
+                const left = node.translationX * scalingX + translationX;
+                const top = node.translationY * scalingY + translationY;
+                const inView =
+                    left < seriesRect.width &&
+                    left + width * scalingX > 0 &&
+                    top < seriesRect.height &&
+                    top + height * scalingY > 0;
+                return { drawn: node.visible, inView };
+            });
+        }
+
+        it('should draw only the cards near the viewport, and every card again once zoomed out', async () => {
+            chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
+            expect(getCardsAgainstViewport(chart).every(({ drawn }) => drawn)).toBe(true);
+
+            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            await waitForChartStability(chart);
+
+            const zoomedIn = getCardsAgainstViewport(chart);
+            expect(zoomedIn.some(({ inView }) => inView)).toBe(true);
+            expect(zoomedIn.some(({ drawn }) => !drawn)).toBe(true);
+            // A card in view must never be culled; the margin may keep a few outside it drawn.
+            expect(zoomedIn.filter(({ inView }) => inView).every(({ drawn }) => drawn)).toBe(true);
+
+            setZoom(chart, 0, 1, 0, 1);
+            await waitForChartStability(chart);
+            expect(getCardsAgainstViewport(chart).every(({ drawn }) => drawn)).toBe(true);
+        });
+
+        it('should draw the active item that setState pans into view', async () => {
+            chart = await createEnterpriseChart({ ...OVERFLOWING_ORG_CHART });
+
+            const seriesId = getSeriesAt(chart).id;
+            await chart.setState({
+                version: '13.3.0',
+                zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } },
+                active: { activeItem: { type: 'series-node', seriesId, itemId: 'leaf-7-7' } },
+            });
+            await waitForChartStability(chart);
+
+            expect(findCardNode('leaf-7-7').visible).toBe(true);
+        });
+    });
+
     // OVERFLOWING_ORG_CHART throughout: the content has to overflow the viewport for centring to have
     // anywhere to move the view to.
     describe('pan-to-active', () => {
