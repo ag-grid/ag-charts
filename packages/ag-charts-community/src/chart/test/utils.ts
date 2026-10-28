@@ -563,6 +563,9 @@ export function spyOnAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: s
  * Counts, per axis position, the walks that check a domain for primitives (`isPrimitiveCategory`, private to the axis,
  * so counted through its callback) over a domain that axis has cached. A domain the axis has since replaced still
  * counts, which is how a walk over the previous entry in `processData()` shows. Call `restore()` when done.
+ *
+ * `walks()` throws until the spy has seen the check on some axis, so a rename of the check can't leave every
+ * `walks(...) === 0` assertion passing without measuring anything.
  */
 export function spyOnAxisPrimitiveDomainWalks(chartOrProxy: ChartOrProxy<any>) {
     const axes = getAxisInternals(chartOrProxy);
@@ -586,6 +589,9 @@ export function spyOnAxisPrimitiveDomainWalks(chartOrProxy: ChartOrProxy<any>) {
     });
     return {
         walks: (position: string) => {
+            if (walked.length === 0) {
+                throw new Error('spyOnAxisPrimitiveDomainWalks never saw the isPrimitiveCategory check run');
+            }
             sampleCachedDomains();
             return walked.filter((domain) => cachedDomains.get(position)!.has(domain)).length;
         },

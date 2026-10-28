@@ -688,6 +688,11 @@ describe('Ordinal Time Axis Examples', () => {
 
             // Anti-vacuous: the zoom steps must have rebuilt the layout, or there was no write to avoid the walk on.
             expect(xTickLayout).toHaveBeenCalled();
+
+            // Anti-vacuous: new data makes the number y axis, which can retain its layout across data, walk its domain.
+            await chart.updateDelta({ data: largeData.slice(0, 4999) });
+            await waitForChartStability(chart);
+            expect(domainWalks.walks('left')).toBeGreaterThan(0);
             expect(domainWalks.walks('bottom')).toBe(0);
         } finally {
             domainWalks.restore();
