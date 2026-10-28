@@ -463,8 +463,22 @@ function wrapBlockToRegion(
         text: marked,
         offsetX,
         offsetY: blockTop + drawnHeight / 2,
-        consistent: shorter || drawnLines === lines,
+        consistent: (shorter || drawnLines === lines) && linesFitBands(marked, options, widthAt, lineHeight),
     };
+}
+
+/** A forced ellipsis can land on a band too narrow for it, so a truncated block checks each line against its band. */
+function linesFitBands(
+    text: string,
+    options: WrapOptions,
+    widthAt: (top: number, bottom: number) => number,
+    lineHeight: number
+) {
+    if (options.overflow !== 'ellipsis') return true;
+    const measurer = cachedTextMeasurer(options.font);
+    return text
+        .split('\n')
+        .every((line, i) => measurer.textWidth(line) <= widthAt(i * lineHeight, (i + 1) * lineHeight));
 }
 
 /**

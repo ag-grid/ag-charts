@@ -19,6 +19,7 @@ import type { HierarchyNode } from '../series/hierarchy/hierarchySeries';
 import { HlcSeries } from '../series/hlc/hlcSeries';
 import type { HlcMarkerDatum } from '../series/hlc/hlcUtil';
 import type { MapMarkerNodeDatum } from '../series/map-marker/mapMarkerSeries';
+import { NetworkLayout } from '../series/network/networkLayout';
 import type { NetworkLinkNode } from '../series/network/networkLinkNode';
 import { AbstractNetworkSeries } from '../series/network/networkSeries';
 import type { OhlcSeriesDataAggregationFilter } from '../series/ohlc/ohlcAggregation';
@@ -194,6 +195,12 @@ export function getNetworkContentBBox(chartOrProxy: ChartOrProxy<any>, index = 0
     return new Caster(getContentBBox.call(layout.value)).cast(BBox).value;
 }
 
+/** The layout a network series positions its nodes with. */
+export function getNetworkLayout(chartOrProxy: ChartOrProxy<any>, index = 0): NetworkLayout<unknown, unknown> {
+    const series = classCast(getSeriesAt(chartOrProxy, index), AbstractNetworkSeries);
+    return new Caster(series).accessProperty('layout').cast(NetworkLayout).value;
+}
+
 /** The rect the chart gave a network series to lay out in. */
 export function getNetworkSeriesRect(chartOrProxy: ChartOrProxy<any>, index = 0): BBox {
     const series = classCast(getSeriesAt(chartOrProxy, index), AbstractNetworkSeries);
@@ -269,7 +276,12 @@ export type SeriesGroupName =
     | 'focusNodeGroup'
     | 'focusLinkGroup'
     | 'contentGroup'
-    | 'connectorNodeGroup';
+    | 'connectorNodeGroup'
+    | 'dataNodeGroup'
+    | 'itemGroup'
+    | 'areaGroup'
+    | 'rectGroup'
+    | 'markerGroup';
 
 /** A scene group the series keeps to itself. */
 export function getSeriesGroup(chartOrProxy: ChartOrProxy<any>, name: SeriesGroupName, index = 0): Group {

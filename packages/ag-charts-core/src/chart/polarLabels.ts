@@ -1,6 +1,7 @@
 import type { PaddingOptions } from 'ag-charts-types';
 
 import {
+    type CandidateFitTarget,
     type CollideWith,
     type LabelFitDescriptor,
     type LabelObstacle,
@@ -24,8 +25,14 @@ export interface PolarLabelDatum {
     readonly textBaseline: CanvasTextBaseline;
     fittedText?: NormalisedTextOrSegments;
     fittedFontSize?: number;
+    /** Where the solve drew the label, relative to the series centre. */
+    placedX?: number;
+    placedY?: number;
     placed?: boolean;
 }
+
+/** The room a fitted polar label fits to, or the placer that fits and positions it. */
+export type PolarFitTarget = Pick<CandidateFitTarget, 'container' | 'place'>;
 
 export interface PolarLabelStyle {
     readonly font: FontOptions;
@@ -57,33 +64,47 @@ export function polarLabelData(
     centreX: number,
     centreY: number
 ): PointLabelDatum[] {
-    const { font, boxPadding: padding, fit } = style;
-    const data: PolarPointLabelDatum[] = [];
+    const data: PointLabelDatum[] = [];
     for (const { label, point } of nodeData) {
-        if (label == null) continue;
-        const { text, textAlign, textBaseline } = label;
-        const anchor = { x: centreX + label.x, y: centreY + label.y, textAlign, textBaseline };
-        const glyph = Text.measureBBox(text, anchor.x, anchor.y, { font, textAlign, textBaseline });
-        const box = {
-            x: glyph.x - padding.left,
-            y: glyph.y - padding.top,
-            width: glyph.width + padding.left + padding.right,
-            height: glyph.height + padding.top + padding.bottom,
-        };
-        const labelFit = fit?.(text);
-        data.push({
-            target: label,
-            point: { x: centreX + (point?.x ?? label.x), y: centreY + (point?.y ?? label.y), size: point?.size ?? 0 },
-            label: { text, width: box.width, height: box.height },
-            fit: labelFit,
-            anchor: undefined,
-            placement: undefined,
-            collideWith: FIXED_LABEL_COLLISIONS,
-            neverDrop: true,
-            positionedCandidates: [{ box, unbounded: true, fitTo: labelFit && { anchor, padding } }],
-        });
+        if (label != null) data.push(polarLabelDatum(label, style, centreX, centreY, point));
     }
     return data;
+}
+
+/** Label solve input for one label drawn at `(centreX, centreY)` plus its own offset. */
+export function polarLabelDatum(
+    label: PolarLabelDatum,
+    style: PolarLabelStyle,
+    centreX: number,
+    centreY: number,
+    point?: Readonly<SizedPoint>,
+    fitTarget?: PolarFitTarget
+): PointLabelDatum {
+    const { font, boxPadding: padding, fit } = style;
+    const { text, textAlign, textBaseline } = label;
+    const anchor = { x: centreX + label.x, y: centreY + label.y, textAlign, textBaseline };
+    const glyph = Text.measureBBox(text, anchor.x, anchor.y, { font, textAlign, textBaseline });
+    const box = {
+        x: glyph.x - padding.left,
+        y: glyph.y - padding.top,
+        width: glyph.width + padding.left + padding.right,
+        height: glyph.height + padding.top + padding.bottom,
+    };
+    const labelFit = fit?.(text);
+    const fitTo = labelFit && { container: fitTarget?.container, place: fitTarget?.place, anchor, padding };
+    const datum: PolarPointLabelDatum = {
+        target: label,
+        point: { x: centreX + (point?.x ?? label.x), y: centreY + (point?.y ?? label.y), size: point?.size ?? 0 },
+        label: { text, width: box.width, height: box.height },
+        fit: labelFit,
+        anchor: undefined,
+        placement: undefined,
+        collideWith: FIXED_LABEL_COLLISIONS,
+        // A never-drop fit refuses a bare ellipsis, which a fixed label should still draw.
+        neverDrop: labelFit == null,
+        positionedCandidates: [{ box, unbounded: true, fitTo }],
+    };
+    return datum;
 }
 
 /** Records on each label whether the solve kept it, and the text and size it was fitted at. */
@@ -94,12 +115,14 @@ export function writePlacedPolarLabels(
     for (const { label } of nodeData) {
         if (label != null) label.placed = false;
     }
-    for (const { datum, text, fontSize } of placed) {
+    for (const { datum, text, fontSize, offsetX = 0, offsetY = 0 } of placed) {
         if (!isPolarPointLabelDatum(datum)) continue;
         const { target } = datum;
         target.placed = true;
         target.fittedText = datum.fit == null ? undefined : text;
         target.fittedFontSize = fontSize;
+        target.placedX = target.x + offsetX;
+        target.placedY = target.y + offsetY;
     }
 }
 

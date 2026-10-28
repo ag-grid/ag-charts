@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaLabelColorPickerHue: 'درجة اللون',
     ariaLabelColorPickerMultiColor: 'ألوان متعددة',
     ariaLabelColorPickerPalette: 'لوحة الألوان',
+    ariaLabelCrossLine: '${label}، خط متقاطع رقم ${index}[number] من ${count}[number]',
     ariaLabelFinancialCharts: 'الرسوم البيانية المالية',
     ariaLabelGaugeTarget: 'الهدف',
     ariaLabelGaugeValue: 'قيمة',

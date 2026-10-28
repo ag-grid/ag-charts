@@ -1833,6 +1833,7 @@ describe('RangeAreaSeries', () => {
         ];
 
         const options = (series: AgRangeAreaSeriesOptions[]): AgCartesianChartOptions => ({
+            legend: { enabled: false },
             data,
             axes: {
                 x: { ...STRIPPED_NUMBER_AXES.x, type: 'number' },
@@ -1903,6 +1904,35 @@ describe('RangeAreaSeries', () => {
             chart = destroyChart(chart);
             await render(series, false);
             expect(countPixels(STACKED)).toBeGreaterThan(0);
+        });
+
+        it('should cast the shadow of translucent range-areas once where they overlap, as it is cast for one of them', async () => {
+            // The fill opacity is the default of the theme, which is translucent. The second area is within the first, so
+            // its shadow adds nothing to that of the first, whose pixels are the greys of the canvas.
+            const first = rangeArea('A', { fill: 'red', shadow: shadowAt(40) });
+            const second = rangeArea('B', { fill: 'blue', shadow: shadowAt(40) });
+            const greys = () => {
+                const { scene } = deproxy(chart).ctx;
+                const { width, height } = scene.canvas;
+                const { data: pixels } = scene.canvas.context.getImageData(0, 0, width, height);
+                const counts = new Map<number, number>();
+                for (let i = 0; i < pixels.length; i += 4) {
+                    const grey = pixels[i];
+                    if (grey < 255 && grey === pixels[i + 1] && grey === pixels[i + 2]) {
+                        counts.set(grey, (counts.get(grey) ?? 0) + 1);
+                    }
+                }
+                return counts;
+            };
+            const withDefaultOpacity = (area: AgRangeAreaSeriesOptions) => ({ ...area, fillOpacity: undefined });
+
+            await render([withDefaultOpacity(first), withDefaultOpacity(second)], true);
+            const both = greys();
+            expect(both.size).toBeGreaterThan(0);
+            chart = destroyChart(chart);
+            await render([withDefaultOpacity(first)], true);
+
+            expect(greys()).toEqual(both);
         });
 
         it('should draw the shadows of its markers over its own fill, not beneath it', async () => {

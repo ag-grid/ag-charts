@@ -252,6 +252,38 @@ describe('Shadow root', () => {
         });
     });
 
+    describe('fills', () => {
+        // A fill that is transparent at the left of a box, and opaque at the right, so that its shadow follows it.
+        const gradient = {
+            type: 'gradient' as const,
+            gradient: 'linear' as const,
+            rotation: 90,
+            colorStops: [
+                { color: 'rgba(0, 0, 0, 0)', stop: 0 },
+                { color: 'rgba(0, 0, 0, 1)', stop: 1 },
+            ],
+        };
+        // The shadow of a box at 40 to 100 down, and 20 to 80 across, falls 50 down, below the box.
+        const gradientBox = () => {
+            const node = new Path();
+            Object.assign(node, { fill: gradient, fillOpacity: 0.8, stroke: undefined, strokeWidth: 0 });
+            node.fillShadow = redHalfShadow(0, 50);
+            node.path.rect(20, 40, 60, 60);
+            return node;
+        };
+
+        it('should cast the shadow of a gradient fill at the alpha of the gradient, not at its strongest alpha', () => {
+            const build = () => [group('shared', [gradientBox()])];
+
+            expectSameAsLocal(build);
+
+            // The gradient has no alpha at the left edge, so there is no shadow below it, and there is below the right.
+            const scene = draw(true, build);
+            expect(at(scene, 22, 120)[3]).toBeLessThan(20);
+            expect(at(scene, 78, 120)[3]).toBeGreaterThan(60);
+        });
+    });
+
     describe('when the root cannot cast', () => {
         const series = (second: typeof RED_HALF) => () => [
             group('shared', [square(120, 40, { fillShadow: RED_HALF })]),

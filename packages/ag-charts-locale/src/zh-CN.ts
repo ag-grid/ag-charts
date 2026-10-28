@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaLabelColorPickerHue: '色相',
     ariaLabelColorPickerMultiColor: '多色',
     ariaLabelColorPickerPalette: '调色板',
+    ariaLabelCrossLine: '${label}, 交叉线 ${index}[number] / ${count}[number]',
     ariaLabelFinancialCharts: '财务图表',
     ariaLabelGaugeTarget: '目标',
     ariaLabelGaugeValue: '“值”',

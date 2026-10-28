@@ -43,6 +43,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaLabelColorPickerHue: 'Απόχρωση',
     ariaLabelColorPickerMultiColor: 'Πολύχρωμο',
     ariaLabelColorPickerPalette: 'Παλέτα',
+    ariaLabelCrossLine: '${label}, Γραμμή διασταύρωσης ${index}[number] από ${count}[number]',
     ariaLabelFinancialCharts: 'Χρηματοοικονομικά γραφήματα',
     ariaLabelGaugeTarget: 'Στόχος',
     ariaLabelGaugeValue: 'Αξία',

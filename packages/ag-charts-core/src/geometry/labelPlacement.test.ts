@@ -2041,14 +2041,14 @@ describe('placeLabels sole positioned candidate', () => {
     });
 });
 
-describe('placeLabels shape-fitted rotated labels', () => {
+describe('placeLabels rotated labels', () => {
     const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
     const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
     const padding = { top: 0, right: 0, bottom: 0, left: 0 };
     const unbounded: FitRegion = { spanAt: () => [-1000, 1000], extentAbove: Infinity, extentBelow: Infinity };
 
     /** A 50×20 'WWWWW' label rotated 45° about `(cx, cy)`, fitted to `shape` when one is given. */
-    const rotatedLabel = (cx: number, cy: number, shape?: FitRegion): PointLabelDatum => {
+    const rotatedLabel = (cx: number, cy: number, shape?: FitRegion, orientedCollision?: boolean): PointLabelDatum => {
         const footprint = (50 + 20) * Math.SQRT1_2;
         return {
             point: { x: cx, y: cy, size: 0 },
@@ -2060,6 +2060,7 @@ describe('placeLabels shape-fitted rotated labels', () => {
                 {
                     box: { x: cx - footprint / 2, y: cy - footprint / 2, width: footprint, height: footprint },
                     rotation: 45,
+                    orientedCollision,
                     fitTo: { shape, anchor: { x: cx, y: cy, textAlign: 'center', textBaseline: 'middle' }, padding },
                 },
             ],
@@ -2067,15 +2068,18 @@ describe('placeLabels shape-fitted rotated labels', () => {
     };
 
     // Side by side across their 20px height, 24px apart: the rotated boxes clear, their footprints overlap.
-    const place = (shape?: FitRegion) =>
+    const place = (shape?: FitRegion, orientedCollision?: boolean) =>
         placeLabels(
             new Map([
-                ['a', seriesLabels([rotatedLabel(100, 100, shape)])],
+                ['a', seriesLabels([rotatedLabel(100, 100, shape, orientedCollision)])],
                 [
                     'b',
-                    seriesLabels([rotatedLabel(100 - 24 * Math.SQRT1_2, 100 + 24 * Math.SQRT1_2, shape)], {
-                        alwaysShow: false,
-                    }),
+                    seriesLabels(
+                        [rotatedLabel(100 - 24 * Math.SQRT1_2, 100 + 24 * Math.SQRT1_2, shape, orientedCollision)],
+                        {
+                            alwaysShow: false,
+                        }
+                    ),
                 ],
             ]),
             bounds,
@@ -2084,6 +2088,10 @@ describe('placeLabels shape-fitted rotated labels', () => {
 
     it('collides by the rotated box when fitted inside a shape', () => {
         expect(place(unbounded)).toHaveLength(1);
+    });
+
+    it('collides by the rotated box when the candidate opts in', () => {
+        expect(place(undefined, true)).toHaveLength(1);
     });
 
     it('collides by the axis-aligned footprint otherwise', () => {
@@ -2424,6 +2432,44 @@ describe('placeLabels per-candidate fit', () => {
             const placed = placePositioned(34);
             expect(placed.text).toBe(TEXT);
             expect(placed.y).toBe(140);
+        });
+
+        it("draws a placer's text where it says, after one that turned its candidate away", () => {
+            const box = { x: 25, y: 40, width: 50, height: 20 };
+            const placed = placeLabels(
+                new Map([
+                    [
+                        's',
+                        seriesLabels([
+                            buildBarPositionedLabelDatum(
+                                TEXT,
+                                50,
+                                20,
+                                [
+                                    { box, unbounded: true, fitTo: { anchor, padding, place: () => undefined } },
+                                    {
+                                        box,
+                                        unbounded: true,
+                                        fitTo: { anchor, padding, place: () => ({ text: 'WW…', x: 60, y: 70 }) },
+                                    },
+                                ],
+                                target(),
+                                { x: 20, y: 20, width: 60, height: 60 },
+                                true,
+                                {},
+                                0,
+                                false,
+                                { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
+                            ),
+                        ]),
+                    ],
+                ]),
+                bounds,
+                0
+            ).get('s')![0];
+            expect(placed.text).toBe('WW…');
+            expect([placed.offsetX, placed.offsetY]).toEqual([10, 20]);
+            expect([placed.x + placed.width / 2, placed.y + placed.height / 2]).toEqual([60, 70]);
         });
 
         it('shrinks a floating candidate to the room a neighbouring label leaves', () => {
