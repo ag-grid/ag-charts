@@ -3145,7 +3145,10 @@ describe('placeLabels positioned shrink ladder', () => {
     });
 
     describe('result', () => {
-        // Expected values are the base ladder's output.
+        // Expected values are the base ladder's output, except in the three `lineHeight` cases (this describe's
+        // 'is sized from the source measured under its own candidate font, including line height' and the two
+        // 'line height of a later candidate in the same font as an erased one' cases). There `styledFitSource`
+        // now compares `lineHeight`, so a candidate is sized under its own line height where base reused another's.
         const AT_SEVEN = {
             text: TEXT,
             fontSize: 7,

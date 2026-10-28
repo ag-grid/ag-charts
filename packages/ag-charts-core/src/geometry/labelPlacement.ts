@@ -2417,7 +2417,7 @@ function shrinkToClear(d: PointLabelDatum, pass: () => PlacedLabel | undefined):
     } finally {
         // A styler throwing mid-trial would otherwise leave every later label sized at the trial size.
         candidateTrialFontSize = undefined;
-        trialFitCount = 0;
+        releaseTrialFits();
         endFloorFallback();
     }
 }
@@ -2771,9 +2771,6 @@ interface TrialFit {
     ownShape: boolean;
     shape: FitRegion | undefined;
     shapeAlign: RegionAlign | undefined;
-    hasSource: boolean;
-    sourceWidth: number;
-    sourceHeight: number;
     fitted: boolean;
     text: NormalisedTextOrSegments;
     width: number;
@@ -2785,10 +2782,21 @@ interface TrialFit {
     maxHeight: number;
 }
 
-// Fits at the current trial size, so candidates sharing a fit target are fitted once. Keyed by font, container,
-// shape and source measurement: the datum, fit policy and threshold are fixed within a ladder.
+// Fits at the current trial size, so candidates sharing a fit target are fitted once. Keyed by font, container
+// and shape: the datum, fit policy and threshold are fixed within a ladder, and a trial's source measurement is
+// `styledFitSource(fit, font)`, which the font already determines.
 const trialFits: TrialFit[] = [];
 let trialFitCount = 0;
+
+/** Empties the cache, dropping every pooled entry's reference to the ladder's text and shape. */
+function releaseTrialFits() {
+    for (let i = 0; i < trialFits.length; i++) {
+        const t = trialFits[i];
+        t.text = '';
+        t.shape = undefined;
+    }
+    trialFitCount = 0;
+}
 
 function newTrialFit(): TrialFit {
     return {
@@ -2803,9 +2811,6 @@ function newTrialFit(): TrialFit {
         ownShape: true,
         shape: undefined,
         shapeAlign: undefined,
-        hasSource: false,
-        sourceWidth: 0,
-        sourceHeight: 0,
         fitted: false,
         text: '',
         width: 0,
@@ -2818,11 +2823,7 @@ function newTrialFit(): TrialFit {
     };
 }
 
-function findTrialFit(
-    font: FontOptions,
-    fitTo: CandidateFitTarget,
-    source: { width: number; height: number } | undefined
-): TrialFit | undefined {
+function findTrialFit(font: FontOptions, fitTo: CandidateFitTarget): TrialFit | undefined {
     const { container, shape, shapeAlign } = fitTo;
     const ownShape = fitTo.ownShape !== false;
     for (let i = 0; i < trialFitCount; i++) {
@@ -2838,10 +2839,7 @@ function findTrialFit(
             t.containerHeight === (container?.height ?? 0) &&
             t.ownShape === ownShape &&
             t.shape === shape &&
-            t.shapeAlign === shapeAlign &&
-            t.hasSource === (source != null) &&
-            t.sourceWidth === (source?.width ?? 0) &&
-            t.sourceHeight === (source?.height ?? 0)
+            t.shapeAlign === shapeAlign
         ) {
             return t;
         }
@@ -2849,12 +2847,7 @@ function findTrialFit(
     return undefined;
 }
 
-function storeTrialFit(
-    font: FontOptions,
-    fitTo: CandidateFitTarget,
-    source: { width: number; height: number } | undefined,
-    fitted: boolean
-) {
+function storeTrialFit(font: FontOptions, fitTo: CandidateFitTarget, fitted: boolean) {
     const { container } = fitTo;
     let t = trialFits[trialFitCount++];
     if (t == null) {
@@ -2872,9 +2865,6 @@ function storeTrialFit(
     t.ownShape = fitTo.ownShape !== false;
     t.shape = fitTo.shape;
     t.shapeAlign = fitTo.shapeAlign;
-    t.hasSource = source != null;
-    t.sourceWidth = source?.width ?? 0;
-    t.sourceHeight = source?.height ?? 0;
     t.fitted = fitted;
     t.text = fittedLabel.text;
     t.width = fittedLabel.width;
@@ -2896,10 +2886,10 @@ function fitPositionedCandidate(
     threshold: number
 ): boolean {
     if (candidateTrialFontSize == null) return fitPositionedCandidateAt(d, fit, fitTo, font, source, threshold);
-    const hit = findTrialFit(font, fitTo, source);
+    const hit = findTrialFit(font, fitTo);
     if (hit == null) {
         const fitted = fitPositionedCandidateAt(d, fit, fitTo, font, source, threshold);
-        storeTrialFit(font, fitTo, source, fitted);
+        storeTrialFit(font, fitTo, fitted);
         return fitted;
     }
     fittedLabel.text = hit.text;
