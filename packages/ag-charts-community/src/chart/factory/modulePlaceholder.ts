@@ -7,6 +7,8 @@ export interface ModulePlaceholder {
     type: `${ModuleType}` | ModuleType;
     name: string;
     moduleId: string;
+    /** Other modules that each register this one; any one of them, or `moduleId`, suffices. */
+    alternativeModuleIds?: readonly string[];
     /** The chart type an axis or series module belongs to. */
     chartType?: ChartType;
     /** The chart types a plugin applies to; absent when it applies everywhere. */

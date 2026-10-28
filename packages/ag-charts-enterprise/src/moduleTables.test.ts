@@ -122,16 +122,18 @@ async function collectEnterpriseExports(): Promise<PackageExports> {
 interface ModuleCatalogue {
     /** Registry name -> the definition the placeholder describes. */
     byName: Map<string, Definition>;
-    /** Every definition reachable from a public export, keyed to the public id that registers it. */
+    /** Every exported definition, keyed to its public id. Internal dependencies have none, so are never reported. */
     idOf: Map<Definition, string>;
-    communityIds: Set<string>;
+    /**
+     * Reported unexported modules -> the exported modules named for them, any one of which suffices: the
+     * axis and series modules that register them, which the types in use narrow, else the smallest ones.
+     */
+    internalCarriers: Map<Definition, string[]>;
     definitionIds: Set<string>;
     bundleIds: Set<string>;
     /** Public id -> the definitions registering it brings in, transitively, per exporting package. */
     communityClosures: Map<string, Set<Definition>>;
     enterpriseClosures: Map<string, Set<Definition>>;
-    communityDefinitions: Map<string, Definition>;
-    enterpriseDefinitions: Map<string, Definition>;
     communityBundles: Map<string, Definition[]>;
     enterpriseBundles: Map<string, Definition[]>;
 }
@@ -145,9 +147,20 @@ function dependencyClosure(roots: Iterable<Definition>, into = new Set<Definitio
     return into;
 }
 
+/** An unexported module still reported when missing: a preset, or one that owns option locations. */
+function isReportedInternal(definition: Definition, idOf: Map<Definition, string>) {
+    if (idOf.has(definition)) return false;
+    return definition.type === ModuleType.Preset || contributionsOf(definition).length > 0;
+}
+
+/** Whether `carrier` is an axis or series module of a chart type `internal` applies to. */
+function isTypeCarrier(carrier: Definition, internal: Definition) {
+    if (carrier.type !== ModuleType.Axis && carrier.type !== ModuleType.Series) return false;
+    return internal.chartTypes == null || internal.chartTypes.includes(carrier.chartType!);
+}
+
 function buildCatalogue(communityExports: PackageExports, enterpriseExports: PackageExports): ModuleCatalogue {
     const idOf = new Map<Definition, string>();
-    const communityIds = new Set([...communityExports.definitions.keys(), ...communityExports.bundles.keys()]);
     const definitionIds = new Set([...communityExports.definitions.keys(), ...enterpriseExports.definitions.keys()]);
     const bundleIds = new Set([...communityExports.bundles.keys(), ...enterpriseExports.bundles.keys()]);
 
@@ -164,23 +177,6 @@ function buildCatalogue(communityExports: PackageExports, enterpriseExports: Pac
     }
     const communityClosures = packageClosures(communityExports);
     const enterpriseClosures = packageClosures(enterpriseExports);
-    const closures = new Map<string, Set<Definition>>();
-    for (const [id, closure] of [...communityClosures, ...enterpriseClosures]) {
-        closures.set(id, new Set([...(closures.get(id) ?? []), ...closure]));
-    }
-
-    // A definition that is not exported itself is named after the smallest public bundle, failing that
-    // the smallest public definition, whose registration brings it in.
-    const bySize = [...closures].sort(([a, aClosure], [b, bClosure]) => {
-        const bundleFirst = Number(bundleIds.has(b)) - Number(bundleIds.has(a));
-        if (bundleFirst !== 0) return bundleFirst;
-        return aClosure.size === bClosure.size ? a.localeCompare(b) : aClosure.size - bClosure.size;
-    });
-    for (const [id, closure] of bySize) {
-        for (const definition of closure) {
-            if (!idOf.has(definition)) idOf.set(definition, id);
-        }
-    }
 
     // The community variant describes a name registered by both packages, unless the enterprise variant
     // owns option locations the community one does not.
@@ -196,19 +192,58 @@ function buildCatalogue(communityExports: PackageExports, enterpriseExports: Pac
         }
     }
 
+    const smallestCarriers = new Map<Definition, { size: number; ids: Set<string> }>();
+    const typeCarriers = new Map<Definition, Set<string>>();
+    const internalCarriers = new Map<Definition, string[]>();
+    const packages: [PackageExports, Map<string, Set<Definition>>][] = [
+        [communityExports, communityClosures],
+        [enterpriseExports, enterpriseClosures],
+    ];
+    for (const [{ definitions }, closures] of packages) {
+        for (const [id, closure] of closures) {
+            for (const definition of closure) {
+                if (!isReportedInternal(definition, idOf)) continue;
+                const { size } = closure;
+                const carriers = smallestCarriers.get(definition);
+                if (carriers == null || size < carriers.size) {
+                    smallestCarriers.set(definition, { size, ids: new Set([id]) });
+                } else if (size === carriers.size) {
+                    carriers.ids.add(id);
+                }
+                const carrier = definitions.get(id);
+                if (carrier != null && isTypeCarrier(carrier, definition)) {
+                    const ids = typeCarriers.get(definition) ?? new Set();
+                    typeCarriers.set(definition, ids.add(id));
+                }
+            }
+        }
+    }
+    for (const [definition, { ids }] of smallestCarriers) {
+        const carriers = typeCarriers.get(definition) ?? ids;
+        internalCarriers.set(
+            definition,
+            [...carriers].sort((a, b) => a.localeCompare(b))
+        );
+    }
+
     return {
         byName,
         idOf,
-        communityIds,
+        internalCarriers,
         definitionIds,
         bundleIds,
         communityClosures,
         enterpriseClosures,
-        communityDefinitions: communityExports.definitions,
-        enterpriseDefinitions: enterpriseExports.definitions,
         communityBundles: communityExports.bundles,
         enterpriseBundles: enterpriseExports.bundles,
     };
+}
+
+function moduleIds(catalogue: ModuleCatalogue, definition: Definition) {
+    const id = catalogue.idOf.get(definition);
+    if (id != null) return { moduleId: id };
+    const [moduleId, ...alternativeModuleIds] = catalogue.internalCarriers.get(definition)!;
+    return { moduleId, alternativeModuleIds: alternativeModuleIds.length > 0 ? alternativeModuleIds : undefined };
 }
 
 /** A generated placeholder keeps only the shape of a contribution's validator, as one of these core validators. */
@@ -251,43 +286,44 @@ function compact<T extends object>(value: T): T {
 }
 
 function sortedPlaceholders(catalogue: ModuleCatalogue) {
-    return [...catalogue.byName.values()]
-        .sort((a, b) => {
-            const byType = typeOrder.indexOf(a.type as ModuleType) - typeOrder.indexOf(b.type as ModuleType);
-            return byType === 0 ? a.name.localeCompare(b.name) : byType;
+    const byTypeAndName = (a: Definition, b: Definition) => {
+        const byType = typeOrder.indexOf(a.type as ModuleType) - typeOrder.indexOf(b.type as ModuleType);
+        return byType === 0 ? a.name.localeCompare(b.name) : byType;
+    };
+    // Exported modules come first, so that an id resolves to its own module before the internal ones named after it.
+    return [
+        ...[...catalogue.byName.values()].sort(byTypeAndName),
+        ...[...catalogue.internalCarriers.keys()].sort(byTypeAndName),
+    ].map((definition) =>
+        compact({
+            type: definition.type,
+            name: definition.name,
+            ...moduleIds(catalogue, definition),
+            chartType: definition.chartType,
+            chartTypes: definition.chartTypes,
+            enterprise: definition.enterprise ? true : undefined,
+            optionsKey: definition.optionsKey,
+            axisTypes: definition.axisTypes,
+            seriesTypes: definition.seriesTypes,
+            apiName: definition.apiName,
+            contributes: mergeAxisTypes(
+                placeholderContributions(definition)?.map((contribution) => {
+                    const options = placeholderValidator(contribution.options);
+                    const themeOptions = placeholderValidator(contribution.themeOptions);
+                    return compact({
+                        path: contribution.path,
+                        options,
+                        themeOptions: themeOptions === options ? undefined : themeOptions,
+                        chartTypes: inheritedChartTypes(definition, contribution) ? undefined : contribution.chartTypes,
+                        axisTypes: contribution.axisTypes,
+                        seriesTypes: contribution.seriesTypes,
+                        requested: contribution.requested,
+                        apiName: contribution.apiName,
+                    });
+                })
+            ),
         })
-        .map((definition) =>
-            compact({
-                type: definition.type,
-                name: definition.name,
-                moduleId: catalogue.idOf.get(definition)!,
-                chartType: definition.chartType,
-                chartTypes: definition.chartTypes,
-                enterprise: definition.enterprise ? true : undefined,
-                optionsKey: definition.optionsKey,
-                axisTypes: definition.axisTypes,
-                seriesTypes: definition.seriesTypes,
-                apiName: definition.apiName,
-                contributes: mergeAxisTypes(
-                    placeholderContributions(definition)?.map((contribution) => {
-                        const options = placeholderValidator(contribution.options);
-                        const themeOptions = placeholderValidator(contribution.themeOptions);
-                        return compact({
-                            path: contribution.path,
-                            options,
-                            themeOptions: themeOptions === options ? undefined : themeOptions,
-                            chartTypes: inheritedChartTypes(definition, contribution)
-                                ? undefined
-                                : contribution.chartTypes,
-                            axisTypes: contribution.axisTypes,
-                            seriesTypes: contribution.seriesTypes,
-                            requested: contribution.requested,
-                            apiName: contribution.apiName,
-                        });
-                    })
-                ),
-            })
-        );
+    );
 }
 
 /** Placeholder validators are coarser than the real ones, so per-axis-type contributions often collapse to one. */
@@ -381,79 +417,93 @@ function expectedModulesSource(placeholders: Placeholder[]): string {
     ].join('\n');
 }
 
+interface DefinitionEntry {
+    moduleId: string;
+    alternativeModuleIds?: string[];
+    enterprise?: true;
+}
+
+/** Requirement tables name the owning definition by its registry `name`, as the chart's module registry does. */
 interface EslintMappings {
-    seriesTypeToModule: Map<string, string>;
-    axisTypeToModule: Map<string, string>;
-    pluginOptionToModule: Map<string, string>;
+    seriesTypeToDefinition: Map<string, string>;
+    axisTypeToDefinition: Map<string, string>;
+    pluginOptionToDefinition: Map<string, string>;
     /** Dotted chart-host paths below the root, e.g. `seriesArea.backgroundRegions`. */
-    chartOptionPathToModule: Map<string, string>;
-    axisPluginToModule: Map<string, string>;
-    polarAxisPluginToModule: Map<string, string>;
-    axisListenerToModule: Map<string, string>;
-    chartListenerToModule: Map<string, string>;
-    seriesPluginToModule: Map<string, string>;
+    chartOptionPathToDefinition: Map<string, string>;
+    axisPluginToDefinition: Map<string, string>;
+    polarAxisPluginToDefinition: Map<string, string>;
+    axisListenerToDefinition: Map<string, string>;
+    chartListenerToDefinition: Map<string, string>;
+    seriesPluginToDefinition: Map<string, string>;
     seriesChartType: Map<string, string>;
     cartesianSeriesModules: Set<string>;
     polarSeriesModules: Set<string>;
-    enterpriseModules: Set<string>;
-    impliedModules: Map<string, string[]>;
-    enterpriseImpliedModules: Map<string, string[]>;
+    /** Definition name -> the exported id a missing-module report names, and whether the definition is enterprise. */
+    definitions: Map<string, DefinitionEntry>;
+    /** Exported id -> the definitions its registration brings in. */
+    moduleContents: Map<string, string[]>;
+    /** As `moduleContents`, for enterprise exports that are not the same modules as the community ones. */
+    enterpriseModuleContents: Map<string, string[]>;
     bundleContents: Map<string, string[]>;
-    enterpriseBundleContents: Map<string, string[]>;
     validModuleIds: Set<string>;
-    moduleToPackage: Map<string, string>;
 }
 
-/** Public ids among a definition's transitive dependencies; internal dependencies fold into their dependents. */
-function impliedIds(definition: Definition, catalogue: ModuleCatalogue): string[] {
-    const ids = new Set<string>();
-    for (const dependency of dependencyClosure(definition.dependencies ?? [])) {
-        const id = catalogue.idOf.get(dependency);
-        if (id != null && catalogue.definitionIds.has(id)) ids.add(id);
-    }
-    return [...ids].sort((a, b) => a.localeCompare(b));
+const requirementTables = [
+    'seriesTypeToDefinition',
+    'axisTypeToDefinition',
+    'pluginOptionToDefinition',
+    'chartOptionPathToDefinition',
+    'axisPluginToDefinition',
+    'polarAxisPluginToDefinition',
+    'axisListenerToDefinition',
+    'chartListenerToDefinition',
+    'seriesPluginToDefinition',
+] as const;
+
+function requirementOwners(tables: EslintMappings): Set<string> {
+    return new Set(requirementTables.flatMap((table) => [...tables[table].values()]));
+}
+
+function namesOf(closure: Set<Definition>): string[] {
+    return [...new Set([...closure].map((definition) => definition.name))].sort((a, b) => a.localeCompare(b));
 }
 
 function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
-    const { byName, idOf, communityIds, definitionIds, bundleIds } = catalogue;
+    const { byName, idOf, definitionIds, bundleIds } = catalogue;
     const tables: EslintMappings = {
-        seriesTypeToModule: new Map(),
-        axisTypeToModule: new Map(),
-        pluginOptionToModule: new Map(),
-        chartOptionPathToModule: new Map(),
-        axisPluginToModule: new Map(),
-        polarAxisPluginToModule: new Map(),
-        axisListenerToModule: new Map(),
-        chartListenerToModule: new Map(),
-        seriesPluginToModule: new Map(),
+        seriesTypeToDefinition: new Map(),
+        axisTypeToDefinition: new Map(),
+        pluginOptionToDefinition: new Map(),
+        chartOptionPathToDefinition: new Map(),
+        axisPluginToDefinition: new Map(),
+        polarAxisPluginToDefinition: new Map(),
+        axisListenerToDefinition: new Map(),
+        chartListenerToDefinition: new Map(),
+        seriesPluginToDefinition: new Map(),
         seriesChartType: new Map(),
         cartesianSeriesModules: new Set(),
         polarSeriesModules: new Set(),
-        enterpriseModules: new Set([...definitionIds].filter((id) => !communityIds.has(id))),
-        impliedModules: new Map(),
-        enterpriseImpliedModules: new Map(),
+        definitions: new Map(),
+        moduleContents: new Map(),
+        enterpriseModuleContents: new Map(),
         bundleContents: new Map(),
-        enterpriseBundleContents: new Map(),
         validModuleIds: new Set([...definitionIds, ...bundleIds]),
-        moduleToPackage: new Map(
-            [...definitionIds, ...bundleIds].map((id) => [
-                id,
-                communityIds.has(id) ? 'ag-charts-community' : 'ag-charts-enterprise',
-            ])
-        ),
     };
 
-    for (const definition of byName.values()) {
+    const owners = new Map(byName);
+    for (const definition of catalogue.internalCarriers.keys()) owners.set(definition.name, definition);
+
+    for (const [name, definition] of owners) {
         const id = idOf.get(definition)!;
         switch (definition.type) {
             case ModuleType.Series:
-                tables.seriesTypeToModule.set(definition.name, id);
-                if (definition.chartType != null) tables.seriesChartType.set(definition.name, definition.chartType);
+                tables.seriesTypeToDefinition.set(name, name);
+                if (definition.chartType != null) tables.seriesChartType.set(name, definition.chartType);
                 if (definition.chartType === 'cartesian') tables.cartesianSeriesModules.add(id);
                 if (definition.chartType === 'polar') tables.polarSeriesModules.add(id);
                 break;
             case ModuleType.Axis:
-                tables.axisTypeToModule.set(definition.name, id);
+                tables.axisTypeToDefinition.set(name, name);
                 break;
             case ModuleType.Plugin:
             case ModuleType.AxisPlugin:
@@ -468,36 +518,43 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
                     if (host === 'axis') {
                         if (keys.length === 1) {
                             if (everywhere || chartTypes.includes('polar'))
-                                tables.polarAxisPluginToModule.set(head, id);
-                            if (onCartesian) tables.axisPluginToModule.set(head, id);
+                                tables.polarAxisPluginToDefinition.set(head, name);
+                            if (onCartesian) tables.axisPluginToDefinition.set(head, name);
                         } else if (keys.length === 2 && head === 'listeners' && onCartesian) {
                             // The ESLint rule has no polar variant for listeners, so a cartesian owner names them.
-                            tables.axisListenerToModule.set(rest[0], id);
+                            tables.axisListenerToDefinition.set(rest[0], name);
                         }
                     } else if (host === 'series') {
-                        if (keys.length === 1) tables.seriesPluginToModule.set(head, id);
+                        if (keys.length === 1) tables.seriesPluginToDefinition.set(head, name);
                     } else if (keys.length === 1) {
-                        tables.pluginOptionToModule.set(head, id);
+                        tables.pluginOptionToDefinition.set(head, name);
                     } else if (keys.length === 2 && head === 'listeners') {
-                        if (onCartesian) tables.chartListenerToModule.set(rest[0], id);
+                        if (onCartesian) tables.chartListenerToDefinition.set(rest[0], name);
                     } else {
-                        tables.chartOptionPathToModule.set(keys.join('.'), id);
+                        tables.chartOptionPathToDefinition.set(keys.join('.'), name);
                     }
                 }
                 break;
         }
     }
 
-    for (const [id, definition] of [...catalogue.communityDefinitions, ...catalogue.enterpriseDefinitions]) {
-        const implied = impliedIds(definition, catalogue).filter((impliedId) => impliedId !== id);
-        if (implied.length === 0) continue;
-        const communityVariant = catalogue.communityDefinitions.get(id);
-        if (communityVariant != null && communityVariant !== definition) {
-            const communityImplied = new Set(impliedIds(communityVariant, catalogue));
-            const extra = implied.filter((impliedId) => !communityImplied.has(impliedId));
-            if (extra.length > 0) tables.enterpriseImpliedModules.set(id, extra);
-        } else {
-            tables.impliedModules.set(id, implied);
+    for (const name of requirementOwners(tables)) {
+        const definition = owners.get(name)!;
+        tables.definitions.set(
+            name,
+            compact({ ...moduleIds(catalogue, definition), enterprise: definition.enterprise ? true : undefined })
+        );
+    }
+
+    for (const [id, closure] of catalogue.communityClosures) {
+        tables.moduleContents.set(id, namesOf(closure));
+    }
+    for (const [id, closure] of catalogue.enterpriseClosures) {
+        const communityClosure = catalogue.communityClosures.get(id);
+        if (communityClosure == null) {
+            tables.moduleContents.set(id, namesOf(closure));
+        } else if ([...closure].some((definition) => !communityClosure.has(definition))) {
+            tables.enterpriseModuleContents.set(id, namesOf(closure));
         }
     }
 
@@ -505,8 +562,8 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
         const contained = closures.get(bundleId)!;
         const ids = new Set<string>();
         for (const member of contained) {
-            const id = idOf.get(member)!;
-            if (definitionIds.has(id)) ids.add(id);
+            const id = idOf.get(member);
+            if (id != null) ids.add(id);
         }
         // Bundles wholly contained in this one are redundant alongside it, so they are listed as members too.
         for (const [otherId, otherClosure] of closures) {
@@ -520,10 +577,9 @@ function eslintMappings(catalogue: ModuleCatalogue): EslintMappings {
         tables.bundleContents.set(bundleId, bundleContents(bundleId, catalogue.communityClosures));
     }
     for (const bundleId of catalogue.enterpriseBundles.keys()) {
-        const target = catalogue.communityBundles.has(bundleId)
-            ? tables.enterpriseBundleContents
-            : tables.bundleContents;
-        target.set(bundleId, bundleContents(bundleId, catalogue.enterpriseClosures));
+        if (!catalogue.communityBundles.has(bundleId)) {
+            tables.bundleContents.set(bundleId, bundleContents(bundleId, catalogue.enterpriseClosures));
+        }
     }
 
     return tables;
@@ -576,6 +632,14 @@ describe('module tables', async () => {
         for (const [name, table] of Object.entries(mappings)) {
             expect(normalise(generated[name]), `${name}: ${refreshHint}`).toEqual(normalise(table));
         }
+    });
+
+    it('reports each requirement with a module exported by the package its definition belongs to', () => {
+        const mismatched = [...mappings.definitions].filter(([, { moduleId, enterprise }]) => {
+            const exports = enterprise ? catalogue.enterpriseClosures : catalogue.communityClosures;
+            return !exports.has(moduleId);
+        });
+        expect(mismatched).toEqual([]);
     });
 
     it('lists only exported module ids in the documentation module list', () => {
