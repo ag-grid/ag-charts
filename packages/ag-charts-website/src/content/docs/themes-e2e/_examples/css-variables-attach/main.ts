@@ -37,7 +37,7 @@ AgCharts.create(options);
 
 let detached: HTMLElement | undefined;
 let detachedChart: AgChartInstance | undefined;
-let theme: AgCartesianChartOptions['theme'];
+let theme: { params: Record<string, string> } | undefined;
 
 // The chart is created on a container that is not yet in the document, as a framework wrapper does while it mounts.
 function createDetached(scenario: Scenario) {
