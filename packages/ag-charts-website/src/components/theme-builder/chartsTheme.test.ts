@@ -5,8 +5,8 @@ import { type AgChartThemeName, _Theme } from 'ag-charts-community';
 
 import {
     CHARTS_PARAM_DEFAULTS,
+    MEMBER_DERIVED_BORDER_PARAMS,
     PUBLIC_PARAM_NAMES,
-    TOGGLE_ONLY_BORDER_PARAMS,
     UNSET_BY_DEFAULT_PARAMS,
     chartsParamType,
     getPalette,
@@ -54,7 +54,7 @@ describe('AG Charts param translation', () => {
         for (const [, createTheme] of STOCK_THEMES) {
             const params = createTheme().params as Record<string, unknown>;
             for (const property of PUBLIC_PARAM_NAMES) {
-                if (TOGGLE_ONLY_BORDER_PARAMS.has(property)) continue;
+                if (MEMBER_DERIVED_BORDER_PARAMS.has(property)) continue;
                 collectOperations(params[property], operations);
             }
         }
@@ -129,12 +129,22 @@ describe('AG Charts param translation', () => {
             }
         });
 
-        it('reads the scrollbar borders as on/off toggles', () => {
+        it('reads a border derived from another border as `true`', () => {
             for (const [themeName] of STOCK_THEMES) {
                 const params = getStackParams(themeName);
-                for (const property of TOGGLE_ONLY_BORDER_PARAMS) {
+                for (const property of MEMBER_DERIVED_BORDER_PARAMS) {
                     expect(params[property]).toBe(true);
                 }
+            }
+        });
+
+        it('reads the scrollbar track and thumb borders with their colour and width', () => {
+            const params = getStackParams('ag-default');
+            for (const property of ['scrollbarTrackBorder', 'scrollbarThumbBorder']) {
+                expect(params[property]).toEqual({
+                    color: { ref: 'borderColor', mix: expect.any(Number), onto: 'foregroundColor' },
+                    width: { ref: 'borderWidth' },
+                });
             }
         });
     });

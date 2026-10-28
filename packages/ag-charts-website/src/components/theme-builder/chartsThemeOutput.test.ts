@@ -62,6 +62,11 @@ describe('toChartTheme', () => {
         });
     });
 
+    it('drops a border width that refers to another param, which AG Charts cannot take', () => {
+        const params = { buttonBorder: { color: '#ff0000', width: { ref: 'borderWidth' } } };
+        expect(toChartTheme({ ...selection, params }).params).toEqual({ buttonBorder: { color: '#ff0000' } });
+    });
+
     it('keeps every bookkeeping key out of the snippet the user copies', () => {
         // The end of the same thread: whatever survives the projection is what
         // someone pastes into their app.

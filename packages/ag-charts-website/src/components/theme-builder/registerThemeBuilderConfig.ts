@@ -1,3 +1,7 @@
+import {
+    setBorderStyleEditable,
+    setInheritedBorders,
+} from '@ag-website-shared/components/theme-builder/BorderValueEditor';
 import { setFontFamilyOptions } from '@ag-website-shared/components/theme-builder/FontFamilyValueEditor';
 import { setNonAdvancedParams, setParamTypeOverride, setThemeParamSource } from '@ag-website-shared/theming/ParamModel';
 import { setFeatureModels } from '@ag-website-shared/theming/PartModel';
@@ -22,6 +26,14 @@ setRenderedBaseThemeAtom(shadowBaseThemeAtom);
 setRenderedFeatures([]);
 
 setFontFamilyOptions(CHARTS_FONT_FAMILY_OPTIONS);
+setBorderStyleEditable(false);
+// State borders take their unset parts from the border they vary; the thumb hover colour is a mix, shown unmixed.
+setInheritedBorders({
+    buttonHoverBorder: 'buttonBorder',
+    buttonActiveBorder: 'buttonBorder',
+    buttonDisabledBorder: 'buttonBorder',
+    scrollbarThumbHoverBorder: 'scrollbarThumbBorder',
+});
 
 setProductVersion(VERSION);
 
