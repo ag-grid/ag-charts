@@ -1,0 +1,16 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="createDetached('series-fallback')">Series with fallback</button>
+        <button onclick="createDetached('series-no-fallback')">Series without fallback</button>
+        <button onclick="createDetached('theme-no-fallback')">Theme param without fallback</button>
+        <button onclick="createDetached('series-unresolvable')">Series unresolvable</button>
+    </div>
+    <div class="controls-row">
+        <button onclick="changeCSSVariable()">Change CSS variable</button>
+        <button onclick="attachTo('shadow')">Attach to shadow root</button>
+        <button onclick="attachTo('light')">Attach to light DOM</button>
+    </div>
+</div>
+<div id="reference"></div>
+<div id="lightHost"></div>
+<div id="shadowHost"></div>

@@ -397,6 +397,24 @@ describe('DOMManager', () => {
             expect(shadowWatchers(shadow)).toHaveLength(1);
         });
 
+        it('watches a variable deferred while detached once, and refreshes on its change after attach', () => {
+            const component = doc.createElement('div');
+            const container = doc.createElement('div');
+            const dm = new DOMManager(eventsHub, 'late-deferred-watchers', doc, container);
+
+            // The refresh re-resolves the options and reports the same deferred variable again.
+            dm.updateCSSVariableWatchers({}, ['var(--my-color)']);
+            doc.body.append(component);
+            const shadow = component.attachShadow({ mode: 'open' });
+            shadow.appendChild(container);
+            dm.setDeferring(false);
+            vi.runAllTimers();
+            dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' }, ['var(--my-color)']);
+
+            expect(shadowWatchers(shadow)).toHaveLength(1);
+            expect(countRefreshes(() => transitionEnd(shadowWatchers(shadow)[0]))).toBe(1);
+        });
+
         describe('requests a single refresh when a detached container is attached', () => {
             const attach = (dm: DOMManager, parent: Node, container: HTMLElement) => {
                 parent.appendChild(container);
