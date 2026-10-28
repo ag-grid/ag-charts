@@ -52,6 +52,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'backgroundColor', label: 'Background Color' },
             { key: 'foregroundColor', label: 'Foreground Color' },
             { key: 'accentColor', label: 'Accent Color' },
+            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
             { key: 'fontWeight', label: 'Font Weight' },
             { key: 'lineHeight', label: 'Line Height' },
             { key: 'textColor', label: 'Text Color' },
@@ -60,27 +61,30 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         ],
     },
     {
-        id: 'borders',
-        label: 'Borders & Spacing',
+        id: 'captions',
+        label: 'Titles',
         params: [
-            { key: 'borderColor', label: 'Border Color' },
-            {
-                key: 'borderRadius',
-                label: 'Border Radius',
-                icon: 'radius',
-                swipeAdjustmentDivisor: 20,
-                min: 0,
-                max: 24,
-            },
-            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
-            {
-                key: 'borderWidth',
-                label: 'Border Width',
-                icon: 'borderWidth',
-                swipeAdjustmentDivisor: 20,
-                min: 0,
-                max: 8,
-            },
+            { key: 'titleFontFamily', label: 'Title Font Family' },
+            [
+                { key: 'titleColor', label: 'Title Color' },
+                { key: 'titleFontSize', label: 'Font Size', min: 8, max: 32 },
+            ],
+            { key: 'subtitleFontFamily', label: 'Subtitle Font Family' },
+            [
+                { key: 'subtitleColor', label: 'Subtitle Color' },
+                { key: 'subtitleFontSize', label: 'Font Size', min: 8, max: 32 },
+            ],
+            { key: 'footnoteFontFamily', label: 'Footnote Font Family' },
+            [
+                { key: 'footnoteColor', label: 'Footnote Color' },
+                { key: 'footnoteFontSize', label: 'Font Size', min: 8, max: 32 },
+            ],
+            { key: 'titleFontWeight', label: 'Title Font Weight' },
+            { key: 'subtitleFontWeight', label: 'Subtitle Font Weight' },
+            { key: 'footnoteFontWeight', label: 'Footnote Font Weight' },
+            { key: 'titleLineHeight', label: 'Title Line Height' },
+            { key: 'subtitleLineHeight', label: 'Subtitle Line Height' },
+            { key: 'footnoteLineHeight', label: 'Footnote Line Height' },
         ],
     },
     {
@@ -93,8 +97,8 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
                 { key: 'axisTitleFontSize', label: 'Font Size', min: 8, max: 24 },
             ],
             { key: 'axisLineColor', label: 'Axis Line Color' },
-            { key: 'gridLineColor', label: 'Grid Line Color' },
             { key: 'axisLineWidth', label: 'Axis Line Width', min: 0, max: 8 },
+            { key: 'gridLineColor', label: 'Grid Line Color' },
             { key: 'axisLabelFontFamily', label: 'Axis Label Font Family' },
             [
                 { key: 'axisLabelColor', label: 'Axis Label Color' },
@@ -143,33 +147,6 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         ],
     },
     {
-        id: 'captions',
-        label: 'Titles & Footnote',
-        params: [
-            { key: 'titleFontFamily', label: 'Title Font Family' },
-            [
-                { key: 'titleColor', label: 'Title Color' },
-                { key: 'titleFontSize', label: 'Font Size', min: 8, max: 32 },
-            ],
-            { key: 'subtitleFontFamily', label: 'Subtitle Font Family' },
-            [
-                { key: 'subtitleColor', label: 'Subtitle Color' },
-                { key: 'subtitleFontSize', label: 'Font Size', min: 8, max: 32 },
-            ],
-            { key: 'footnoteFontFamily', label: 'Footnote Font Family' },
-            [
-                { key: 'footnoteColor', label: 'Footnote Color' },
-                { key: 'footnoteFontSize', label: 'Font Size', min: 8, max: 32 },
-            ],
-            { key: 'titleFontWeight', label: 'Title Font Weight' },
-            { key: 'subtitleFontWeight', label: 'Subtitle Font Weight' },
-            { key: 'footnoteFontWeight', label: 'Footnote Font Weight' },
-            { key: 'titleLineHeight', label: 'Title Line Height' },
-            { key: 'subtitleLineHeight', label: 'Subtitle Line Height' },
-            { key: 'footnoteLineHeight', label: 'Footnote Line Height' },
-        ],
-    },
-    {
         id: 'seriesLabels',
         label: 'Series Labels',
         params: [
@@ -194,6 +171,29 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'tooltipBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
             { key: 'tooltipTextColor', label: 'Text Color' },
             { key: 'tooltipSubtleTextColor', label: 'Subtle Text Color' },
+        ],
+    },
+    {
+        id: 'borders',
+        label: 'Borders',
+        params: [
+            { key: 'borderColor', label: 'Border Color' },
+            {
+                key: 'borderRadius',
+                label: 'Border Radius',
+                icon: 'radius',
+                swipeAdjustmentDivisor: 20,
+                min: 0,
+                max: 24,
+            },
+            {
+                key: 'borderWidth',
+                label: 'Border Width',
+                icon: 'borderWidth',
+                swipeAdjustmentDivisor: 20,
+                min: 0,
+                max: 8,
+            },
         ],
     },
     {
