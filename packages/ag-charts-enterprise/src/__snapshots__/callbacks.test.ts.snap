@@ -54,18 +54,6 @@ exports[`AG-15850 activeChange > area > mouse 3`] = `
 [
   [
     {
-      "activeItem": undefined,
-      "dataIdKey": undefined,
-      "datum": undefined,
-      "defaultPrevented": false,
-      "frozen": false,
-      "preventDefault": [Function],
-      "source": "user-interaction",
-      "type": "activeChange",
-    },
-  ],
-  [
-    {
       "activeItem": {
         "itemId": "myValue",
         "seriesId": "AreaSeries-1",
@@ -80,11 +68,6 @@ exports[`AG-15850 activeChange > area > mouse 3`] = `
       "type": "activeChange",
     },
   ],
-]
-`;
-
-exports[`AG-15850 activeChange > area > mouse 4`] = `
-[
   [
     {
       "activeItem": undefined,
@@ -99,6 +82,8 @@ exports[`AG-15850 activeChange > area > mouse 4`] = `
   ],
 ]
 `;
+
+exports[`AG-15850 activeChange > area > mouse 4`] = `[]`;
 
 exports[`AG-15850 activeChange > area > setState 1`] = `
 [
@@ -225,18 +210,6 @@ exports[`AG-15850 activeChange > bar > mouse 3`] = `
 [
   [
     {
-      "activeItem": undefined,
-      "dataIdKey": undefined,
-      "datum": undefined,
-      "defaultPrevented": false,
-      "frozen": false,
-      "preventDefault": [Function],
-      "source": "user-interaction",
-      "type": "activeChange",
-    },
-  ],
-  [
-    {
       "activeItem": {
         "itemId": "myValue",
         "seriesId": "BarSeries-1",
@@ -251,11 +224,6 @@ exports[`AG-15850 activeChange > bar > mouse 3`] = `
       "type": "activeChange",
     },
   ],
-]
-`;
-
-exports[`AG-15850 activeChange > bar > mouse 4`] = `
-[
   [
     {
       "activeItem": undefined,
@@ -270,6 +238,8 @@ exports[`AG-15850 activeChange > bar > mouse 4`] = `
   ],
 ]
 `;
+
+exports[`AG-15850 activeChange > bar > mouse 4`] = `[]`;
 
 exports[`AG-15850 activeChange > bar > setState 1`] = `
 [
@@ -436,18 +406,6 @@ exports[`AG-15850 activeChange > box-plot > mouse 3`] = `
 [
   [
     {
-      "activeItem": undefined,
-      "dataIdKey": undefined,
-      "datum": undefined,
-      "defaultPrevented": false,
-      "frozen": false,
-      "preventDefault": [Function],
-      "source": "user-interaction",
-      "type": "activeChange",
-    },
-  ],
-  [
-    {
       "activeItem": {
         "itemId": "BoxPlotSeries-2",
         "seriesId": "BoxPlotSeries-2",
@@ -462,11 +420,6 @@ exports[`AG-15850 activeChange > box-plot > mouse 3`] = `
       "type": "activeChange",
     },
   ],
-]
-`;
-
-exports[`AG-15850 activeChange > box-plot > mouse 4`] = `
-[
   [
     {
       "activeItem": undefined,
@@ -481,6 +434,8 @@ exports[`AG-15850 activeChange > box-plot > mouse 4`] = `
   ],
 ]
 `;
+
+exports[`AG-15850 activeChange > box-plot > mouse 4`] = `[]`;
 
 exports[`AG-15850 activeChange > box-plot > setState 1`] = `
 [
@@ -807,18 +762,6 @@ exports[`AG-15850 activeChange > donut-shared-legend > mouse 3`] = `
 [
   [
     {
-      "activeItem": undefined,
-      "dataIdKey": undefined,
-      "datum": undefined,
-      "defaultPrevented": false,
-      "frozen": false,
-      "preventDefault": [Function],
-      "source": "user-interaction",
-      "type": "activeChange",
-    },
-  ],
-  [
-    {
       "activeItem": {
         "itemId": 4,
         "seriesId": "DonutSeries-1",
@@ -833,11 +776,6 @@ exports[`AG-15850 activeChange > donut-shared-legend > mouse 3`] = `
       "type": "activeChange",
     },
   ],
-]
-`;
-
-exports[`AG-15850 activeChange > donut-shared-legend > mouse 4`] = `
-[
   [
     {
       "activeItem": undefined,
@@ -852,6 +790,8 @@ exports[`AG-15850 activeChange > donut-shared-legend > mouse 4`] = `
   ],
 ]
 `;
+
+exports[`AG-15850 activeChange > donut-shared-legend > mouse 4`] = `[]`;
 
 exports[`AG-15850 activeChange > donut-shared-legend > setState 1`] = `
 [
@@ -1028,18 +968,6 @@ exports[`AG-15850 activeChange > line > mouse 3`] = `
 [
   [
     {
-      "activeItem": undefined,
-      "dataIdKey": undefined,
-      "datum": undefined,
-      "defaultPrevented": false,
-      "frozen": false,
-      "preventDefault": [Function],
-      "source": "user-interaction",
-      "type": "activeChange",
-    },
-  ],
-  [
-    {
       "activeItem": {
         "itemId": "myValue2",
         "seriesId": "LineSeries-2",
@@ -1054,11 +982,6 @@ exports[`AG-15850 activeChange > line > mouse 3`] = `
       "type": "activeChange",
     },
   ],
-]
-`;
-
-exports[`AG-15850 activeChange > line > mouse 4`] = `
-[
   [
     {
       "activeItem": undefined,
@@ -1073,6 +996,8 @@ exports[`AG-15850 activeChange > line > mouse 4`] = `
   ],
 ]
 `;
+
+exports[`AG-15850 activeChange > line > mouse 4`] = `[]`;
 
 exports[`AG-15850 activeChange > line > setState 1`] = `
 [
