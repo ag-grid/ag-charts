@@ -59,6 +59,11 @@ input[type='search'].searchInput {
     gap: $spacing-size-1;
     align-items: center;
     margin-right: $spacing-size-2;
+
+    // As a flex item the chip would otherwise inherit the grid cell's row-height line height.
+    code {
+        line-height: normal;
+    }
 }
 
 .swatch {
@@ -78,10 +83,12 @@ input[type='search'].searchInput {
     color: var(--color-fg-secondary);
 }
 
-.chain {
-    display: inline-flex;
+.chain,
+.links {
+    display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: baseline;
+    gap: $spacing-size-1 $spacing-size-2;
 }
 
 .arrow {
@@ -90,7 +97,6 @@ input[type='search'].searchInput {
 }
 
 .paramLink {
-    margin-right: $spacing-size-2;
     padding: 0;
     border: none;
     background: none;
@@ -110,7 +116,7 @@ input[type='search'].searchInput {
     border-radius: var(--radius-md);
 
     h4 {
-        margin-top: 0;
+        margin: 0 0 $spacing-size-2;
     }
 }
 
@@ -122,6 +128,8 @@ input[type='search'].searchInput {
     display: grid;
     grid-template-columns: max-content 1fr;
     gap: $spacing-size-2 $spacing-size-4;
+    align-items: baseline;
+    margin: 0 0 $spacing-size-5;
 
     dt {
         font-weight: var(--text-semibold);
@@ -134,8 +142,9 @@ input[type='search'].searchInput {
 
 .optionList {
     max-height: 320px;
+    margin: 0 0 $spacing-size-4;
     overflow-y: auto;
-    padding-left: $spacing-size-4;
+    padding-left: $spacing-size-5;
 
     li {
         margin-bottom: $spacing-size-1;

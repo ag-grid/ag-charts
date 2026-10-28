@@ -139,9 +139,11 @@ function ParamDetail({
                     <>
                         <dt>Also blends</dt>
                         <dd>
-                            {node.parents.slice(1).map((parent) => (
-                                <ParamLink key={parent} name={parent} onSelect={onSelect} />
-                            ))}
+                            <span className={styles.links}>
+                                {node.parents.slice(1).map((parent) => (
+                                    <ParamLink key={parent} name={parent} onSelect={onSelect} />
+                                ))}
+                            </span>
                         </dd>
                     </>
                 )}
@@ -149,9 +151,11 @@ function ParamDetail({
                     <>
                         <dt>Inherited by</dt>
                         <dd>
-                            {node.children.map((child) => (
-                                <ParamLink key={child} name={child} onSelect={onSelect} />
-                            ))}
+                            <span className={styles.links}>
+                                {node.children.map((child) => (
+                                    <ParamLink key={child} name={child} onSelect={onSelect} />
+                                ))}
+                            </span>
                         </dd>
                     </>
                 )}
