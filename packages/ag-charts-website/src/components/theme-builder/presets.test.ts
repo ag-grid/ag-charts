@@ -49,7 +49,7 @@ describe('charts theme builder presets', () => {
 
     it('uses only fonts the font menu offers', () => {
         // The chart imports its own Google fonts, so an unlisted one would still
-        // render - but the Font Family control would show "Same as application"
+        // render - but the Font Family control would show "Match application"
         // for a value it has no option for, and picking anything else would be a
         // one-way door out of the preset's typeface.
         const loaded = new Set(
