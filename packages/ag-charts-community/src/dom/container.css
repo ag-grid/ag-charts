@@ -9,12 +9,6 @@
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
-/* `!important` is required: proxy elements set their own cursor inline, which would otherwise win
- * over the cursor pinned on the wrapper for the duration of an interaction. */
-.ag-charts-wrapper--cursor-locked .ag-charts-proxy-elem {
-    cursor: inherit !important;
-}
-
 /* When browser support for `align-items: safe center` is sufficient, use that instead */
 .ag-charts-wrapper--safe-horizontal {
     --justify-content: flex-start;
