@@ -1466,12 +1466,12 @@ describe('Chart highlighting', () => {
 
             // Caller A unhighlights with delayed=true (schedules delayed unhighlight for A)
             highlightManager.updateHighlight(callerA, undefined, true);
-            // B should still be active (A's entry is still in StateTracker until delay fires)
+            // B should still be active (B owns the highlight, so A cannot clear it)
             expect(highlightManager.getActiveHighlight()).toBe(datumB);
 
             // Advance timer by 100ms - A's unhighlight fires, clearing A's entry
             vi.advanceTimersByTime(100);
-            // B should still be active (only A's entry was cleared)
+            // B should still be active (A's delayed unhighlight was a no-op)
             expect(highlightManager.getActiveHighlight()).toBe(datumB);
 
             // Now caller B unhighlights with delayed=true (schedules delayed unhighlight for B)

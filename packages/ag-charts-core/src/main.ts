@@ -32,7 +32,6 @@ export * from './structures/graph';
 export * from './structures/listeners';
 export * from './structures/lruCache';
 export * from './structures/pool';
-export * from './structures/stateTracker';
 
 // state
 export * from './state/caching';

@@ -1,4 +1,4 @@
-import { type BoxBounds, CleanupRegistry, StateTracker, debouncedCallback, objectsEqual } from 'ag-charts-core';
+import { type BoxBounds, CleanupRegistry, debouncedCallback, objectsEqual } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
@@ -20,12 +20,13 @@ interface TooltipState {
 }
 
 /**
- * Manages the tooltip HTML an element. Tracks the requested HTML from distinct dependents and
- * handles conflicting tooltip requests.
+ * Manages the tooltip HTML element. The most recent tooltip request wins, and only the caller that
+ * made it can remove it.
  */
 export class TooltipManager {
-    private readonly stateTracker = new StateTracker<TooltipState>();
-    private readonly suppressState = new StateTracker(false);
+    private activeCallerId?: string;
+    private activeState?: TooltipState;
+    private readonly suppressedBy = new Set<string>();
     private appliedState: TooltipState | null = null;
 
     // Track pending removals per caller
@@ -77,8 +78,11 @@ export class TooltipManager {
             this.pendingRemovals.delete(callerId);
         }
 
-        content ??= this.stateTracker.get(callerId)?.content;
-        this.stateTracker.set(callerId, { meta, content, pagination });
+        if (callerId === this.activeCallerId) {
+            content ??= this.activeState?.content;
+        }
+        this.activeCallerId = callerId;
+        this.activeState = { meta, content, pagination };
         this.applyStates();
     }
 
@@ -110,27 +114,35 @@ export class TooltipManager {
         }
 
         // Remove immediately
-        this.stateTracker.delete(callerId);
+        this.clearState(callerId);
         this.applyStates();
     }
 
     /** Whether the caller's tooltip is shown, or will be once its show delay elapses. */
     public isTooltipActive(callerId: string): boolean {
-        const state = this.stateTracker.get(callerId);
+        const state = this.activeState;
         return (
+            callerId === this.activeCallerId &&
             state?.meta != null &&
             state.content != null &&
             !this.pendingRemovals.has(callerId) &&
-            !this.suppressState.stateValue()
+            this.suppressedBy.size === 0
         );
     }
 
     public suppressTooltip(callerId: string) {
-        this.suppressState.set(callerId, true);
+        this.suppressedBy.add(callerId);
     }
 
     public unsuppressTooltip(callerId: string) {
-        this.suppressState.delete(callerId);
+        this.suppressedBy.delete(callerId);
+    }
+
+    /** A no-op unless `callerId` owns the tooltip, so one caller cannot remove another's. */
+    private clearState(callerId: string): void {
+        if (callerId !== this.activeCallerId) return;
+        this.activeCallerId = undefined;
+        this.activeState = undefined;
     }
 
     private applyPendingRemoval(callerId: string): void {
@@ -143,15 +155,14 @@ export class TooltipManager {
         this.pendingRemovals.delete(callerId);
 
         // Actually remove the tooltip
-        this.stateTracker.delete(callerId);
+        this.clearState(callerId);
         this.applyStates();
     }
 
     private applyStates() {
-        const id = this.stateTracker.stateId();
-        const state = id == null ? undefined : this.stateTracker.get(id);
+        const state = this.activeState;
 
-        if (this.suppressState.stateValue() || state?.meta == null || state?.content == null) {
+        if (this.suppressedBy.size > 0 || state?.meta == null || state?.content == null) {
             this.appliedState = null;
             this.tooltip.hide();
             return;

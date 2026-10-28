@@ -1,23 +1,24 @@
-import { type DynamicContext, type Point, StateTracker, debouncedCallback, objectsEqual } from 'ag-charts-core';
+import { type DynamicContext, type Point, debouncedCallback, objectsEqual } from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ErrorBoundSeriesNodeDatum } from '../series/seriesTypes';
 
 /**
- * Manages the actively highlighted series/datum for a chart. Tracks the requested highlights from
- * distinct dependents and handles conflicting highlight requests.
+ * Manages the actively highlighted series/datum for a chart. The most recent highlight request wins,
+ * and only the caller that made it can clear it.
  */
 export class HighlightManager {
-    private readonly highlightStates = new StateTracker<HighlightNodeDatum>();
+    private activeCallerId?: string;
+    private activeHighlight?: HighlightNodeDatum;
 
     /**
-     * Part of the highlighted node under the pointer, per caller (see `Series.getHighlightPart`). Kept
-     * beside the highlight rather than on it: the highlighted datum rolls up unchanged, so consumers
-     * that don't care about parts are unaffected, and only a caller supplying a part makes the
-     * highlight sensitive to it.
+     * Part of the highlighted node under the pointer (see `Series.getHighlightPart`). Kept beside the
+     * highlight rather than on it: the highlighted datum rolls up unchanged, so consumers that don't
+     * care about parts are unaffected, and only a caller supplying a part makes the highlight
+     * sensitive to it.
      */
-    private readonly highlightParts = new Map<string, string>();
+    private activeHighlightPart?: string;
 
     // Track pending unhighlights per caller
     private readonly pendingUnhighlights = new Map<string, { scheduler: ReturnType<typeof debouncedCallback> }>();
@@ -66,15 +67,11 @@ export class HighlightManager {
         }
 
         if (highlightedDatum) {
-            this.highlightStates.set(callerId, highlightedDatum);
+            this.activeCallerId = callerId;
+            this.activeHighlight = highlightedDatum;
+            this.activeHighlightPart = highlightPart;
         } else {
-            this.highlightStates.delete(callerId);
-        }
-
-        if (highlightedDatum && highlightPart != null) {
-            this.highlightParts.set(callerId, highlightPart);
-        } else {
-            this.highlightParts.delete(callerId);
+            this.clearHighlight(callerId);
         }
 
         this.maybeEmitChange(callerId, previousHighlight, inViewport, previousHighlightPart);
@@ -122,21 +119,26 @@ export class HighlightManager {
         const previousHighlight = this.getActiveHighlight();
         const previousHighlightPart = this.getActiveHighlightPart();
 
-        // Actually clear the highlight for this caller
-        this.highlightStates.delete(callerId);
-        this.highlightParts.delete(callerId);
+        this.clearHighlight(callerId);
 
         this.maybeEmitChange(callerId, previousHighlight, true, previousHighlightPart);
     }
 
+    /** A no-op unless `callerId` owns the active highlight, so one caller cannot clear another's. */
+    private clearHighlight(callerId: string): void {
+        if (callerId !== this.activeCallerId) return;
+        this.activeCallerId = undefined;
+        this.activeHighlight = undefined;
+        this.activeHighlightPart = undefined;
+    }
+
     public getActiveHighlight(): HighlightNodeDatum | undefined {
-        return this.highlightStates.stateValue();
+        return this.activeHighlight;
     }
 
     /** Part of the active highlight, as reported by the caller that owns it. */
     public getActiveHighlightPart(): string | undefined {
-        const callerId = this.highlightStates.stateId();
-        return callerId == null ? undefined : this.highlightParts.get(callerId);
+        return this.activeHighlightPart;
     }
 
     public destroy(): void {
@@ -145,7 +147,6 @@ export class HighlightManager {
             scheduler.cancel();
         }
         this.pendingUnhighlights.clear();
-        this.highlightParts.clear();
     }
 
     private isEqual(a?: HighlightNodeDatum, b?: HighlightNodeDatum): boolean {
