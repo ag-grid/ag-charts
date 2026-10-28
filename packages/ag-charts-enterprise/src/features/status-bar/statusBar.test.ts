@@ -110,6 +110,42 @@ describe('StatusBar', () => {
         expect(shownItems()).toEqual(['Revenue 120', 'Costs 80']);
     });
 
+    it('follows the hovered datum with the tooltip disabled', async () => {
+        chart = await createEnterpriseChart({ ...OPTIONS, tooltip: { enabled: false } });
+        await hoverCategory(1);
+        expect(shownItems()).toEqual(['Revenue 150', 'Costs 95']);
+    });
+
+    it('applies status bar and collector changes from an update', async () => {
+        chart = await createEnterpriseChart(OPTIONS);
+        await chart.update({
+            ...OPTIONS,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'revenue',
+                    yName: 'Revenue',
+                    collector: ({ datum }) => [{ key: 'costs', label: 'Costs', value: datum.costs }],
+                },
+            ],
+        });
+        await waitForChartStability(chart);
+        expect(shownItems()).toEqual(['Costs 130']);
+
+        await chart.update({ ...OPTIONS, statusBar: { enabled: false } });
+        await waitForChartStability(chart);
+        expect(shownItems()).toEqual([]);
+
+        await chart.update(OPTIONS);
+        await waitForChartStability(chart);
+        expect(shownItems()).toEqual(['Revenue 210', 'Costs 130']);
+
+        await chart.update({ ...OPTIONS, statusBar: { enabled: true, inactive: 'hidden' } });
+        await waitForChartStability(chart);
+        expect(shownItems()).toEqual([]);
+    });
+
     it('uses the values a series collector returns', async () => {
         chart = await createEnterpriseChart({
             ...OPTIONS,
