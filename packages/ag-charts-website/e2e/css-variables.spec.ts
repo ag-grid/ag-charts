@@ -105,7 +105,8 @@ test.describe('css variables', () => {
     // A chart created on a detached container has no computed style to resolve a `var()` against, so what it
     // resolved then is re-resolved when the container is attached.
     test.describe('on a container that is attached after the chart is created', () => {
-        type Scenario = 'series-fallback' | 'series-no-fallback' | 'theme-no-fallback' | 'series-unresolvable';
+        type Scenario =
+            'series-fallback' | 'series-no-fallback' | 'theme-fallback' | 'theme-no-fallback' | 'series-unresolvable';
         type Target = 'shadow' | 'light';
 
         const RED = [255, 0, 0] as const;
@@ -113,6 +114,7 @@ test.describe('css variables', () => {
         const GREEN = [0, 255, 0] as const;
         const YELLOW = [255, 255, 0] as const;
         const FALLBACK_GREEN = [0, 128, 0] as const;
+        const FALLBACK_PURPLE = [128, 0, 128] as const;
         const DEFAULT_BAR = [80, 144, 220] as const;
 
         const targets: Target[] = ['shadow', 'light'];
@@ -207,6 +209,45 @@ test.describe('css variables', () => {
 
                     await seriesIs(page, target, RED);
                     await seriesIsNot(page, target, BLUE);
+                });
+
+                test('a theme param var() with a fallback shows the value changed while detached', async ({ page }) => {
+                    await open(page);
+                    await create(page, 'theme-fallback');
+                    await changeVariable(page);
+
+                    await attach(page, target);
+
+                    await expect.poll(() => cornerIs(page, target, YELLOW)).toBe(true);
+                    expect(await cornerIs(page, target, FALLBACK_PURPLE)).toBe(false);
+                });
+
+                test('a theme param var() with a fallback shows the current value when it was not changed', async ({
+                    page,
+                }) => {
+                    await open(page);
+                    await create(page, 'theme-fallback');
+
+                    await attach(page, target);
+
+                    await expect.poll(() => cornerIs(page, target, GREEN)).toBe(true);
+                    expect(await cornerIs(page, target, FALLBACK_PURPLE)).toBe(false);
+                });
+
+                test('a later change re-themes a theme param with a fallback without an options update', async ({
+                    page,
+                }) => {
+                    // The light-DOM watcher is keyed on the whole `--name, fallback` text, so only the shadow root is
+                    // covered here.
+                    test.skip(target === 'light', 'light-DOM watchers do not support a var() fallback');
+                    await open(page);
+                    await create(page, 'theme-fallback');
+                    await attach(page, target);
+                    await expect.poll(() => cornerIs(page, target, GREEN)).toBe(true);
+
+                    await changeVariable(page);
+
+                    await expect.poll(() => cornerIs(page, target, YELLOW)).toBe(true);
                 });
 
                 test('a theme param var() with no fallback is applied once attached', async ({ page }) => {

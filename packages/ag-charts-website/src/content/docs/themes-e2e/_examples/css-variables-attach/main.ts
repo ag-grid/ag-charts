@@ -11,7 +11,8 @@ import {
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 
-type Scenario = 'series-fallback' | 'series-no-fallback' | 'theme-no-fallback' | 'series-unresolvable';
+type Scenario =
+    'series-fallback' | 'series-no-fallback' | 'theme-fallback' | 'theme-no-fallback' | 'series-unresolvable';
 
 const data = [
     { month: 'Jan', revenue: 120 },
@@ -47,10 +48,16 @@ function createDetached(scenario: Scenario) {
     const fills: Record<Scenario, string | undefined> = {
         'series-fallback': 'var(--attach-color, green)',
         'series-no-fallback': 'var(--attach-color)',
+        'theme-fallback': undefined,
         'theme-no-fallback': undefined,
         'series-unresolvable': 'var(--attach-undefined)',
     };
-    theme = scenario === 'theme-no-fallback' ? { params: { backgroundColor: 'var(--attach-background)' } } : undefined;
+    const backgrounds: Partial<Record<Scenario, string>> = {
+        'theme-fallback': 'var(--attach-background, purple)',
+        'theme-no-fallback': 'var(--attach-background)',
+    };
+    const backgroundColor = backgrounds[scenario];
+    theme = backgroundColor ? { params: { backgroundColor } } : undefined;
 
     detachedChart = AgCharts.create({
         ...options,
