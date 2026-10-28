@@ -3086,80 +3086,82 @@ describe('OrganizationSeries', () => {
     });
 
     describe('off-screen culling', () => {
-        function getCardsAgainstViewport(c: ChartOrProxy<any>) {
+        // Narrow enough to leave most of the tree out of view, yet deep enough for the cards to show their detail,
+        // which is when links are drawn. Placed so that some cards lie just outside the viewport, within the margin.
+        const ZOOMED_IN = [0.38, 0.42, 0.48, 0.52] as const;
+
+        /** The on-screen box that the cards of `nodes` take up together, and the margin a drawn card may lie outside it. */
+        function getScreenFrame(c: ChartOrProxy<any>, nodes: OrganizationNode[]) {
             const seriesRect = getNetworkSeriesRect(c);
             const { scalingX, scalingY, translationX, translationY } = getNetworkViewport(c);
+            const { width, height } = nodes[0].getShapeBBox();
 
-            return getOrganizationCards(c).map(({ node }) => {
-                const { width, height } = node.getShapeBBox();
-                const left = node.translationX * scalingX + translationX;
-                const top = node.translationY * scalingY + translationY;
-                const inView =
-                    left < seriesRect.width &&
-                    left + width * scalingX > 0 &&
-                    top < seriesRect.height &&
-                    top + height * scalingY > 0;
-                return { drawn: node.visible, inView };
+            const left = Math.min(...nodes.map((node) => node.translationX)) * scalingX + translationX;
+            const top = Math.min(...nodes.map((node) => node.translationY)) * scalingY + translationY;
+            const right =
+                Math.max(...nodes.map((node) => node.translationX)) * scalingX + translationX + width * scalingX;
+            const bottom =
+                Math.max(...nodes.map((node) => node.translationY)) * scalingY + translationY + height * scalingY;
+
+            const distanceOutside = Math.max(left - seriesRect.width, -right, top - seriesRect.height, -bottom);
+            return {
+                left,
+                top,
+                right,
+                bottom,
+                isOutside: distanceOutside > 0,
+                isBeyondMargin: distanceOutside > height * scalingY,
+            };
+        }
+
+        function getCardsDrawing(c: ChartOrProxy<any>) {
+            return getOrganizationCards(c).map(({ node }) => ({
+                drawn: node.visible,
+                ...getScreenFrame(c, [node]),
+            }));
+        }
+
+        function getLinksDrawing(c: ChartOrProxy<any>) {
+            const cards = new Map(getOrganizationCards(c).map(({ node, datum }) => [datum.itemId, node]));
+
+            return getOrganizationLinks(c).flatMap(({ node, datum }) => {
+                const fromItemId = String(datum.from.value);
+                const from = cards.get(fromItemId);
+                const to = cards.get(String(datum.to.value));
+                if (from == null || to == null) return [];
+
+                return [{ fromItemId, from, drawn: node.visible, ...getScreenFrame(c, [from, to]) }];
             });
         }
 
-        it('should draw only the cards near the viewport, and every card again once zoomed out', async () => {
+        /** Every card is drawn when in range, and only then; the cull is by on-screen distance, not by data. */
+        function expectDrawnWithinMargin(items: { drawn: boolean; isOutside: boolean; isBeyondMargin: boolean }[]) {
+            expect(items.some(({ isBeyondMargin }) => isBeyondMargin)).toBe(true);
+            expect(items.some(({ isOutside, isBeyondMargin }) => isOutside && !isBeyondMargin)).toBe(true);
+            expect(items.some(({ isOutside }) => !isOutside)).toBe(true);
+            expect(items.map(({ drawn }) => drawn)).toEqual(items.map(({ isBeyondMargin }) => !isBeyondMargin));
+        }
+
+        it('should draw only the cards within a card height of the viewport, and every card again once zoomed out', async () => {
             chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
-            expect(getCardsAgainstViewport(chart).every(({ drawn }) => drawn)).toBe(true);
+            expect(getCardsDrawing(chart).every(({ drawn }) => drawn)).toBe(true);
 
-            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            setZoom(chart, ...ZOOMED_IN);
             await waitForChartStability(chart);
-
-            const zoomedIn = getCardsAgainstViewport(chart);
-            expect(zoomedIn.some(({ inView }) => inView)).toBe(true);
-            expect(zoomedIn.some(({ drawn }) => !drawn)).toBe(true);
-            // A card in view must never be culled; the margin may keep a few outside it drawn.
-            expect(zoomedIn.filter(({ inView }) => inView).every(({ drawn }) => drawn)).toBe(true);
+            expectDrawnWithinMargin(getCardsDrawing(chart));
 
             setZoom(chart, 0, 1, 0, 1);
             await waitForChartStability(chart);
-            expect(getCardsAgainstViewport(chart).every(({ drawn }) => drawn)).toBe(true);
+            expect(getCardsDrawing(chart).every(({ drawn }) => drawn)).toBe(true);
         });
 
-        it('should draw only the links that cross the viewport, and every link again once zoomed out', async () => {
-            const getLinksAgainstViewport = (c: ChartOrProxy<any>) => {
-                const seriesRect = getNetworkSeriesRect(c);
-                const { scalingX, scalingY, translationX, translationY } = getNetworkViewport(c);
-                const cards = new Map(getOrganizationCards(c).map(({ node, datum }) => [datum.itemId, node]));
-
-                return getOrganizationLinks(c).flatMap(({ node, datum }) => {
-                    const parent = cards.get(String(datum.from.value));
-                    const child = cards.get(String(datum.to.value));
-                    if (parent == null || child == null) return [];
-
-                    const { width, height } = child.getShapeBBox();
-                    const left = Math.min(parent.translationX, child.translationX) * scalingX + translationX;
-                    const right = Math.max(parent.translationX, child.translationX) * scalingX + translationX;
-                    const top = Math.min(parent.translationY, child.translationY) * scalingY + translationY;
-                    const bottom = Math.max(parent.translationY, child.translationY) * scalingY + translationY;
-                    const inView =
-                        left < seriesRect.width &&
-                        right + width * scalingX > 0 &&
-                        top < seriesRect.height &&
-                        bottom + height * scalingY > 0;
-                    return [{ drawn: node.visible, inView }];
-                });
-            };
-
+        it('should draw only the links within a card height of the viewport', async () => {
             chart = await createEnterpriseChart({ ...SQUARE_OVERFLOW_ORG_CHART });
-            expect(getLinksAgainstViewport(chart).every(({ drawn }) => drawn)).toBe(true);
 
-            setZoom(chart, 0.48, 0.52, 0.48, 0.52);
+            setZoom(chart, ...ZOOMED_IN);
             await waitForChartStability(chart);
 
-            const zoomedIn = getLinksAgainstViewport(chart);
-            expect(zoomedIn.some(({ inView }) => inView)).toBe(true);
-            expect(zoomedIn.some(({ drawn }) => !drawn)).toBe(true);
-            expect(zoomedIn.filter(({ inView }) => inView).every(({ drawn }) => drawn)).toBe(true);
-
-            setZoom(chart, 0, 1, 0, 1);
-            await waitForChartStability(chart);
-            expect(getLinksAgainstViewport(chart).every(({ drawn }) => drawn)).toBe(true);
+            expectDrawnWithinMargin(getLinksDrawing(chart));
         });
 
         it('should draw the active item that setState pans into view', async () => {
