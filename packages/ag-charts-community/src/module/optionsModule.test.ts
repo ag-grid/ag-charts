@@ -5834,6 +5834,10 @@ describe('ChartOptions', () => {
 
                     expect(moduleMessages()).toEqual([expect.stringContaining("from 'ag-charts-enterprise'")]);
                     expect(moduleMessages()).toEqual([expect.not.stringContaining("from 'ag-charts-community'")]);
+                    const [message] = moduleMessages();
+                    for (const moduleId of ['CategoryAxisModule', 'NumberAxisModule']) {
+                        expect([...message.matchAll(new RegExp(`^\\s*${moduleId},$`, 'gm'))]).toHaveLength(2);
+                    }
                 });
 
                 it('strips the listener from a non-cartesian chart as unsupported rather than as a missing module', () => {

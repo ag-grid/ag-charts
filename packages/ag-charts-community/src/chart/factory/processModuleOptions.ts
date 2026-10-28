@@ -172,6 +172,20 @@ export interface MissingModule {
     features: string[];
 }
 
+/** Merges a missing module by id, keeping the enterprise variant when community and enterprise requirements meet. */
+function addMissingModule(missingModules: MissingModule[], module: ModulePlaceholder, feature?: string) {
+    let missing = missingModules.find((entry) => entry.module.moduleId === module.moduleId);
+    if (missing == null) {
+        missing = { module, features: [] };
+        missingModules.push(missing);
+    } else if (module.enterprise && !missing.module.enterprise) {
+        missing.module = module;
+    }
+    if (feature != null && !missing.features.includes(feature)) {
+        missing.features.push(feature);
+    }
+}
+
 export function processModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
     options: T,
@@ -181,9 +195,7 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
 ): void {
     const missingModules = removeUnregisteredModuleOptions(chartType, options, moduleRegistry);
     for (const module of additionalMissingModules) {
-        if (!missingModules.some((missing) => missing.module === module)) {
-            missingModules.push({ module, features: [] });
-        }
+        addMissingModule(missingModules, module);
     }
 
     if (missingModules.length === 0) return;
@@ -278,7 +290,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
     options: T,
     moduleRegistry: ModuleScope
 ): MissingModule[] {
-    const missingModules = new Map<string, MissingModule>();
+    const missingModules: MissingModule[] = [];
     const optionsAxes = 'axes' in options && isObject(options.axes) ? options.axes : {};
     const axisTypesInOptions = new Set<string>(
         Object.values(optionsAxes)
@@ -286,19 +298,6 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
             .filter(isDefined)
     );
     const seriesTypesInOptions = new Set<string>(options.series?.map((series) => series.type).filter(isDefined));
-
-    function addMissingModule(module: ModulePlaceholder, feature?: string) {
-        let missing = missingModules.get(module.moduleId);
-        if (missing == null) {
-            missing = { module, features: [] };
-            missingModules.set(module.moduleId, missing);
-        } else if (module.enterprise && !missing.module.enterprise) {
-            missing.module = module;
-        }
-        if (feature != null && !missing.features.includes(feature)) {
-            missing.features.push(feature);
-        }
-    }
 
     const uncovered = uncoveredPlaceholderContributions(moduleRegistry, chartType);
 
@@ -320,7 +319,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                             delete optionsAxes[key];
                         }
                     }
-                    addMissingModule(module);
+                    addMissingModule(missingModules, module);
                 }
                 break;
 
@@ -328,7 +327,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                 if (moduleRegistry.hasModule(module.name)) break;
                 if (seriesTypesInOptions.has(module.name)) {
                     options.series = (options.series as any[]).filter((series) => series.type !== module.name);
-                    addMissingModule(module);
+                    addMissingModule(missingModules, module);
                 }
                 break;
 
@@ -342,7 +341,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                             if (value == null) return;
                             if (isContributionRequested(contribution, value)) {
                                 for (const missing of narrowMissingModule(module, typesInUse)) {
-                                    addMissingModule(missing, feature);
+                                    addMissingModule(missingModules, missing, feature);
                                 }
                             }
                             delete target[key];
@@ -359,7 +358,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
         }
     }
 
-    return Array.from(missingModules.values());
+    return missingModules;
 }
 
 /**
