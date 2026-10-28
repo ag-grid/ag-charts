@@ -125,7 +125,6 @@ export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     qualifiedName: A,
     value: BaseAttributeTypeMap[A] | undefined
 ) {
-    // eslint-disable-next-line sonarjs/different-types-comparison
     if (value == null || value === '' || value === '') {
         e?.removeAttribute(qualifiedName);
     } else {

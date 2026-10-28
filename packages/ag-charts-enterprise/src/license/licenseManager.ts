@@ -392,7 +392,7 @@ export class LicenseManager {
             return ['legacy', false, undefined];
         }
 
-        // eslint-disable-next-line sonarjs/slow-regex
+        // eslint-disable-next-line sonarjs/super-linear-regex
         const matches = licenseKey.match(/\[(.*?)\]/g)!.map((match) => match.replace('[', '').replace(']', ''));
         if (matches.length === 0) {
             return ['legacy', false, undefined];

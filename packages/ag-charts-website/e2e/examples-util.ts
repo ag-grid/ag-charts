@@ -92,7 +92,6 @@ export async function triggerExampleTooltips(page: Page) {
         if (!tooltipVisible) {
             await page.keyboard.press('ArrowRight');
             await waitForAllChartUpdates(page);
-            tooltipVisible = await isTooltipVisible(wrapper);
         }
 
         await waitForAllChartUpdates(page);

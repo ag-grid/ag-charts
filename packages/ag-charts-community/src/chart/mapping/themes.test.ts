@@ -438,6 +438,7 @@ describe('themes.ts', () => {
                     overrides: { line: { series: { strokeWidth: i } } },
                 };
                 registry.register(getChartTheme(themeOptions), i);
+                // eslint-disable-next-line no-useless-assignment -- drop the strong reference so GC can collect it
                 themeOptions = undefined;
             }
 

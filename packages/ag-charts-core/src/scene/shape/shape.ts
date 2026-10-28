@@ -909,7 +909,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         // The shadow is as strong as what casts it, as it is without a spread.
         const globalAlpha = ctx.globalAlpha;
-        let strength = 1;
+        let strength: number;
         if (drawsFill) {
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
             strength = fillAlpha;

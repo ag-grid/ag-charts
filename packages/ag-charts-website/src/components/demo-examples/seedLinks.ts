@@ -108,7 +108,7 @@ export function readSeedManifests(seedsDir: string = defaultSeedsDir()): SeedMan
             try {
                 manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
             } catch (error) {
-                throw new Error(`${manifestPath} is not valid JSON: ${(error as Error).message}`);
+                throw new Error(`${manifestPath} is not valid JSON: ${(error as Error).message}`, { cause: error });
             }
             if (manifest.demo !== demo || manifest.framework !== framework) {
                 throw new Error(

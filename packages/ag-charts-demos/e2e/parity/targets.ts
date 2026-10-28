@@ -272,7 +272,7 @@ export function parityTargets(): ParityTarget[] {
     try {
         parsed = JSON.parse(raw);
     } catch (error) {
-        throw new Error(`PARITY_TARGETS is not valid JSON: ${(error as Error).message}`);
+        throw new Error(`PARITY_TARGETS is not valid JSON: ${(error as Error).message}`, { cause: error });
     }
     if (!Array.isArray(parsed) || parsed.length === 0) {
         throw new Error('PARITY_TARGETS must be a non-empty JSON array of { demo, framework, baseURL }');

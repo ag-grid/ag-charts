@@ -1758,7 +1758,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
 
         const operationVertices = this.neighboursWithEdgeValue(vertex, OPERATION_EDGE) ?? [];
-        index = 0;
         // for (const operation of operationVertices) {
         const [operation] = operationVertices;
         if (operation != null) {
@@ -1767,12 +1766,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
                 OPERATION_EDGE,
                 path,
                 vertex,
-                `${path}.${OPERATION_EDGE}.${index}`,
+                `${path}.${OPERATION_EDGE}.0`,
                 operation as any,
                 depth + 1,
                 maxDepth
             );
-            index++;
             // break; // TODO: there should only be 1 operation per vertex
         }
 

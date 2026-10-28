@@ -264,7 +264,7 @@ export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
 
         styles.padding = padding;
 
-        let rowScenes = [];
+        let rowScenes;
         let rowGaps: number[] = [];
 
         const columnScenes = [];

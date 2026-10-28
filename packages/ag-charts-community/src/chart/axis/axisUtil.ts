@@ -182,7 +182,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         },
         toFn(node, datum, status) {
             const { x, y, rotationCenterX, rotationCenterY } = datum;
-            let rotation = 0;
+            let rotation: number;
             let opacity = 1;
 
             if (status === 'added') {
