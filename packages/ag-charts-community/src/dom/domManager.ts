@@ -443,6 +443,12 @@ export class DOMManager extends BaseManager {
         // A container observed while detached had no laid-out size, so re-measure on attachment.
         if (this.container != null) {
             this.sizeMonitor.refresh(this.container);
+
+            // A detached container has no computed style, and a watcher only reports changes made after it
+            // is in place, so everything resolved while detached is re-resolved once here.
+            if (this.cssVariableWatchers.size > 0 || this.shadowCssVariableWatchers.size > 0) {
+                this.eventsHub.emit('chart:request-refresh', null);
+            }
         }
     }
 
@@ -1108,10 +1114,15 @@ export class DOMManager extends BaseManager {
         });
     }
 
-    updateCSSVariableWatchers(cssVariables?: Record<string, string>) {
-        if (!cssVariables) return;
+    /**
+     * Watches the variables in use. `deferred` names those that could not be resolved on a detached container:
+     * watching them lets a variable defined later re-theme the chart once it is attached.
+     */
+    updateCSSVariableWatchers(cssVariables?: Record<string, string>, deferred?: Iterable<string>) {
+        const keys = [...(cssVariables ? strictObjectKeys(cssVariables) : []), ...(deferred ?? [])];
+        if (keys.length === 0) return;
 
-        this.watchCSSVariables(strictObjectKeys(cssVariables).map((key) => key.slice(4, -1)));
+        this.watchCSSVariables(keys.map((key) => key.slice(4, -1)));
     }
 
     private watchCSSVariables(properties: Iterable<string>) {

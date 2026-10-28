@@ -103,6 +103,15 @@ import type { SeriesGrouping } from './seriesGrouping';
 /** What a preset's data transform derives from the rows. */
 type PresetDataUpdate = ReturnType<NonNullable<PresetModuleDefinition<any>['processData']>>;
 
+interface CSSVariableContext {
+    container: HTMLElement;
+    logger: Logger;
+    /** Collects the `var()` values left unresolved on a detached container. */
+    deferred?: Set<string>;
+    /** Set when a value was removed from the node being walked. */
+    removed?: boolean;
+}
+
 interface FontAccumulator {
     /** Google font families to load from the CDN (gated by `loadGoogleFonts`). */
     googleFonts: Set<string>;
@@ -302,6 +311,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     };
     userDeltaKeys?: Set<string>;
     processedCSSVariables?: Record<string, string>;
+    /** The `var()` values that could not be resolved on a detached container, to be resolved once it is attached. */
+    deferredCSSVariables?: string[];
+    /** The theme's params with the unresolvable `var()` values removed; unset when the theme's own are usable. */
+    processedThemeParams?: PlainObject;
     /** Every issue the Logger reported while this pass ran; the chart starts its validation cycle from them. */
     issues: LogIssue[] = [];
     /** False when the fast path or the structural cache carried the previous pass's issues forward unvalidated. */
@@ -713,7 +726,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             options,
             this.processedCSSVariables,
             presetOptions,
-            this.moduleRegistry
+            this.moduleRegistry,
+            this.processedThemeParams
         );
         const resolvedOptions = optionsGraph.resolve(this.logger) as any;
         const themeParameters = optionsGraph.resolveParams();
@@ -1765,7 +1779,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? series
                 : mergeDefaults(
                       series,
-                      resolveSeriesThemeDefaultsMemoised(activeTheme, series.type, this.moduleRegistry, cssVariables)
+                      resolveSeriesThemeDefaultsMemoised(
+                          activeTheme,
+                          series.type,
+                          this.moduleRegistry,
+                          cssVariables,
+                          this.processedThemeParams
+                      )
                   )
         );
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(
@@ -2031,7 +2051,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this: void,
         optionsNode: any,
         _parallelNode: any,
-        ctx: { container: HTMLElement | null | undefined; logger: Logger } | undefined,
+        ctx: CSSVariableContext | undefined,
         processedCSSVariables: Record<string, string> | undefined
     ) {
         processedCSSVariables ??= {};
@@ -2050,7 +2070,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (!resolved) continue;
 
             if (!resolved.isValid) {
-                ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+                // A detached element has no computed style, so a variable with no value yet may be given one once
+                // the container is attached; the value is left out for now and the attach re-resolves it.
+                if (!container.isConnected && resolved.propertyValue === '') {
+                    ctx.deferred?.add(value);
+                } else {
+                    ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+                }
+                ctx.removed = true;
                 delete optionsNode[key];
                 continue;
             }
@@ -2090,16 +2117,29 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return { isValid, propertyValue };
     }
 
-    private processCSSVariables(options: Partial<T>, themeParams?: object) {
+    private processCSSVariables(options: Partial<T>, themeParams?: PlainObject) {
         const { container } = options;
         if (container == null) return;
 
         const skip = new Set(['data']);
-        const ctx = { container, logger: this.logger };
+        // The clone of the user's options holds their `theme` by reference, and the walk below removes values.
+        if (isPlainObject(options.theme)) {
+            options.theme = deepClone(options.theme);
+        }
+        const deferred = new Set<string>();
+        const ctx: CSSVariableContext = { container, logger: this.logger, deferred };
         let processed = jsonWalk(options, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx);
         // The options graph resolves theme params from `activeTheme.params`, a distinct object from `options`, so an
         // invalid `var()` colour there must be dropped here too — otherwise it reaches the blend engine unresolved.
-        processed = jsonWalk(themeParams, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx, processed);
+        // The theme is shared and outlives this pass, so the values are dropped from a copy: removing them from
+        // the theme itself would leave nothing for the pass that re-resolves them once the container is attached.
+        if (themeParams != null) {
+            const params = deepClone(themeParams);
+            ctx.removed = false;
+            processed = jsonWalk(params, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx, processed);
+            this.processedThemeParams = ctx.removed ? params : undefined;
+        }
+        this.deferredCSSVariables = deferred.size > 0 ? Array.from(deferred) : undefined;
         return processed;
     }
 
@@ -2109,7 +2149,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return jsonWalk(partialOptions, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, {
             container,
             logger: this.logger,
-        });
+        } satisfies CSSVariableContext);
     }
 
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {

@@ -1,5 +1,5 @@
 import type { Mock } from 'vitest';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 
 import {
     type DeepPartial,
@@ -5068,13 +5068,11 @@ describe('ChartOptions', () => {
         });
     });
 
-    describe('invalid `ontoColor` var fallback (AG-17816 AC4)', () => {
-        const mockComputedStyle = (container: HTMLElement, values: Record<string, string>) => {
-            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(
-                fakeComputedStyle(values)
-            );
-        };
+    const mockComputedStyle = (container: HTMLElement, values: Record<string, string>) => {
+        vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(fakeComputedStyle(values));
+    };
 
+    describe('invalid `ontoColor` var fallback (AG-17816 AC4)', () => {
         it('drops the invalid ontoColor, leaving ref + mix (transparency)', () => {
             const container = document.createElement('div');
             mockComputedStyle(container, { '--bad': 'not-a-color' });
@@ -5120,6 +5118,9 @@ describe('ChartOptions', () => {
 
         it('resolves an invalid ontoColor var on a theme param to the ref + mix blend, not undefined', () => {
             const container = document.createElement('div');
+            // Attached: a detached container defers an unset variable rather than reporting it.
+            document.body.append(container);
+            onTestFinished(() => container.remove());
             mockComputedStyle(container, {});
 
             const chartOptions = new ChartOptions<AgChartOptions>(
@@ -5145,6 +5146,99 @@ describe('ChartOptions', () => {
             expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'))).toBe(
                 true
             );
+        });
+    });
+
+    describe('var() on a detached container', () => {
+        // jsdom's style declaration rejects a `var()` as a colour, so these go through `ontoColor`, whose own
+        // validator admits one.
+        const createTheme = () => ({
+            params: {
+                accentColor: '#ff0000',
+                foregroundColor: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--onto)' },
+            },
+        });
+        const createOptions = (container: HTMLElement, theme: object) =>
+            new ChartOptions<AgChartOptions>(
+                {
+                    container,
+                    theme,
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category' }, y: { type: 'number' } },
+                },
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+        const warnedInvalidColour = () =>
+            (console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'));
+
+        it('defers a theme param var() with no value instead of warning, and leaves the caller theme intact', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const theme = createTheme();
+
+            const chartOptions = createOptions(container, theme);
+
+            expect(warnedInvalidColour()).toBe(false);
+            expect(chartOptions.deferredCSSVariables).toEqual(['var(--onto)']);
+            expect(chartOptions.processedCSSVariables).toEqual({});
+            expect(theme).toEqual(createTheme());
+            expect(chartOptions.themeParameters.foregroundColor).toBe('rgba(255, 0, 0, 0.5)');
+        });
+
+        it('resolves the deferred theme param from the same theme once the container is attached', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const theme = createTheme();
+            createOptions(container, theme);
+
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+            mockComputedStyle(container, { '--onto': '#00ff00' });
+            const attached = createOptions(container, theme);
+
+            expect(warnedInvalidColour()).toBe(false);
+            expect(attached.deferredCSSVariables).toBeUndefined();
+            expect(attached.processedCSSVariables).toEqual({ 'var(--onto)': '#00ff00' });
+            expect(attached.themeParameters.foregroundColor).not.toBe('rgba(255, 0, 0, 0.5)');
+        });
+
+        it('still warns about a theme param var() that has no value once the container is attached', () => {
+            const container = document.createElement('div');
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+            mockComputedStyle(container, {});
+
+            const chartOptions = createOptions(container, createTheme());
+
+            expect(warnedInvalidColour()).toBe(true);
+            expect(chartOptions.deferredCSSVariables).toBeUndefined();
+            expect(chartOptions.themeParameters.foregroundColor).toBe('rgba(255, 0, 0, 0.5)');
+        });
+
+        it('warns about a value that is set but is not a colour even while detached', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--onto': 'not-a-color' });
+
+            const chartOptions = createOptions(container, createTheme());
+
+            expect(warnedInvalidColour()).toBe(true);
+            expect(chartOptions.deferredCSSVariables).toBeUndefined();
+        });
+
+        it('leaves a series option var() out without warning while detached', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = { fill: 'var(--my-color)' };
+            chartOptions.processCSSVariablesPartial(node, container);
+
+            expect(node).toEqual({});
+            expect(warnedInvalidColour()).toBe(false);
         });
     });
 
