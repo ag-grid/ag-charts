@@ -86,7 +86,11 @@ type FormValues = {
 } & Record<string, string>;
 
 export type ContactFormLocation =
-    'About page' | 'Grid pricing page' | 'Charts pricing page' | 'Studio pricing page' | 'Contact page';
+    | 'About page'
+    | 'Grid pricing page'
+    | 'Charts pricing page'
+    | 'Studio pricing page'
+    | 'Contact page';
 
 interface Props {
     formLocation: ContactFormLocation;
