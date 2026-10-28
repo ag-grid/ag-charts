@@ -7,6 +7,9 @@ export class NetworkLinkNode<TDatum> extends TranslatableGroup<TDatum> {
     hidden = false;
     /** Whether the link lies outside the viewport, which the series leaves undrawn. */
     culled = false;
+    /** The nodes the link runs between; a link from the root has no `fromNode`. */
+    fromNode?: TranslatableGroup;
+    toNode?: TranslatableGroup;
 
     private pathNode?: Path;
 
