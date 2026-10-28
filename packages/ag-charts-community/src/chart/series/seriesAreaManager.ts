@@ -500,6 +500,8 @@ export class SeriesAreaManager extends BaseManager {
         const contexts: ContextMenuRegionContexts = {};
         if (this.chart.ctx.widgets.seriesWidget.containsTarget(event)) {
             contexts['series-area'] = undefined;
+        } else if (!directNodeHit) {
+            pickedNodes = [];
         }
 
         const nodeContexts = seriesNodeContexts(pickedNodes);
