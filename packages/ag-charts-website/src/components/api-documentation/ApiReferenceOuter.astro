@@ -1,0 +1,40 @@
+---
+import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
+
+interface Props {
+    /** The `id` of the heading, which is what the page's "On this page" navigation links to. */
+    id: string;
+    title: string;
+}
+
+const { id, title } = Astro.props;
+---
+
+{/* Titles an `ApiReference` and describes it, sharing the wrapper class so groups space as they do on the AG Grid Theming API page. */}
+<section class:list={[styles.apiReferenceOuter, styles.isInline]} aria-labelledby={id}>
+    <h2 id={id}>{title}</h2>
+    {Astro.slots.has('description') && (
+        <div class="description">
+            <slot name="description" />
+        </div>
+    )}
+    <slot />
+</section>
+
+<style lang="scss">
+    @use 'design-system' as *;
+
+    h2 {
+        margin: $spacing-size-4 0 $spacing-size-2;
+        font-size: var(--text-fs-xl);
+        scroll-margin-top: calc(var(--header-nav-height) + var(--tab-bar-height));
+    }
+
+    .description {
+        margin-bottom: $spacing-size-5;
+    }
+
+    .description > :global(p) {
+        margin: 0;
+    }
+</style>

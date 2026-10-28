@@ -9,6 +9,10 @@
             "path": "/themes-api"
         },
         {
+            "title": "Theme Parameters",
+            "path": "/theme-parameters-api"
+        },
+        {
             "title": "Chart API",
             "path": "/[framework]/api-create-update"
         },
