@@ -8,7 +8,7 @@ export function getData() {
         { store: 'Eastbrook', footfall: 88, conversion: 36, revenue: 180 },
         { store: 'Southport', footfall: 34, conversion: 40, revenue: 60 },
         { store: 'Kingsway', footfall: 52, conversion: 9, revenue: 10 },
-        { store: 'Harbourside', footfall: 95, conversion: 27, revenue: 245 },
+        { store: 'Harbourside', footfall: 95, conversion: 27, revenue: 225 },
         { store: 'Meadowbank', footfall: 20, conversion: 33, revenue: 35 },
     ];
 }

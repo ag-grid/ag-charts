@@ -33,12 +33,20 @@ Collision avoidance is enabled by default, to disable set `label.avoidCollisions
 
 Text wrapping allows labels to fit within constrained space by breaking across multiple lines.
 
-Wrapping behaviour is set with the `label.wrapping` property:
+{% chartExampleRunner title="Label Wrapping" name="axis-label-wrapping" type="generated" /%}
+
+Wrapping behaviour is set with the `label.wrapping` property. This defaults to `'on-space'` for Category Axes, and to `'never'` on all other axes types.
+
+The available options are:
 
 - `'on-space'` - Wraps only on whitespace. If no suitable space is found, the next avoidance strategy is used.
 - `'always'` - Forces wrapping to fit within the available space, including breaking words if needed.
 - `'hyphenate'` - Similar to `'always'`, but inserts a hyphen (`-`) when wrapping in the middle of a word.
 - `'never'` - Disables wrapping. Labels will remain on a single line, with the next avoidance strategy being used.
+- Special spaces:
+    - A zero-width space (`\u200B`) adds a break point without a visible gap, allowing `on-space` wrapping to break a word at that point.
+    - A non-breaking space (`\u00A0`) looks like a space but will not be a break point with `on-space` wrapping.
+    - Other Unicode spaces and tabs act as ordinary spaces.
 
 ```js format="snippet"
 {
@@ -48,23 +56,11 @@ Wrapping behaviour is set with the `label.wrapping` property:
 }
 ```
 
-This defaults to `on-space` for Category Axes, and to `never` on all other axes types.
+In this example:
 
-Use `label.maxWidth` and `label.maxHeight` to limit the size of each label, in pixels. The limits are measured along and across the text, so on a rotated label `maxWidth` is the length of the rotated text.
-
-```js format="snippet"
-{
-    label: {
-        maxWidth: 120,
-        maxHeight: 40,
-        wrapping: 'on-space',
-    },
-}
-```
-
-When either limit is set, labels also stay within the space available to the axis and clear of an axis scrollbar. Labels wrap within the limits according to `label.wrapping`; wrapping is not switched on automatically.
-
-These options, and `label.minimumFontSize` below, are available on all cartesian axes except on `parentLevel.label`. On Grouped Category axes they can also be set per level with `depthOptions[].label`.
+- Use the Word Separator dropdown to change the word separator used in the labels. This allows testing of the different wrapping options.
+- The Wrapping dropdown allows choosing the `wrapping` option, and the sliders change the maximum label dimensions.
+- Drag the bottom-right corner to resize the chart and see the labels refit in each scenario.
 
 ### Font Size Reduction
 
