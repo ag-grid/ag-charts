@@ -40,8 +40,8 @@ type AnySeriesOptions = NonNullable<AgChartOptions['series']>[number];
 
 /** The `highlight` option of a series: the cases only ever set the glow of the highlight styles. */
 interface HighlightOptions {
-    highlightedItem?: { glow?: AgGlowOptions };
-    unhighlightedItem?: { glow?: AgGlowOptions };
+    highlightedItem?: { fill?: string; stroke?: string; glow?: AgGlowOptions };
+    unhighlightedItem?: { fill?: string; stroke?: string; glow?: AgGlowOptions };
 }
 
 interface SeriesCase {
@@ -512,6 +512,52 @@ describe('highlight glow (enterprise series)', () => {
         return layersOf(testCase);
     };
 
+    describe('glow fill from a colour scale', () => {
+        const byName = (name: string) => SERIES.find((testCase) => testCase.name === name)!;
+
+        it('takes the colour that the scale gives each heatmap cell', async () => {
+            const heatmap = byName('heatmap');
+            const colours: unknown[] = [];
+            for (const index of [0, 3]) {
+                const { highlighted } = await hoverItem(
+                    { ...heatmap, hover: (c) => getSeriesNodeData<HighlightNodeDatum>(c)[index] },
+                    undefined,
+                    { highlightedItem: { glow: { enabled: true } } }
+                );
+                expect(highlighted).toHaveLength(1);
+                expect(highlighted[0].getCastShadow()?.fill).toBe(highlighted[0].fill);
+                colours.push(highlighted[0].getCastShadow()?.fill);
+                chart.destroy();
+            }
+
+            expect(colours[0]).not.toBe(colours[1]);
+        });
+
+        it.each(['treemap tiles', 'sunburst'])('takes the colour that the scale gives each %s item', async (name) => {
+            const testCase = byName(name);
+            const coloured: SeriesCase = {
+                ...testCase,
+                series: (shadow, highlight) => ({
+                    ...testCase.series(shadow, highlight),
+                    colorKey: 'size',
+                    colorScale: { fills: [{ color: '#ff0000' }, { color: '#0000ff' }] },
+                }),
+            };
+            const colours: unknown[] = [];
+            for (const hover of [FIRST_LEAF, SECOND_LEAF]) {
+                const { highlighted } = await hoverItem({ ...coloured, hover }, undefined, {
+                    highlightedItem: { glow: { enabled: true } },
+                });
+                expect(highlighted).toHaveLength(1);
+                expect(highlighted[0].getCastShadow()?.fill).toBe(highlighted[0].fill);
+                colours.push(highlighted[0].getCastShadow()?.fill);
+                chart.destroy();
+            }
+
+            expect(colours[0]).not.toBe(colours[1]);
+        });
+    });
+
     describe('map-shape series sharing a legendItemName', () => {
         it('casts the glow from every item of the sibling series, including the one at the hovered index', async () => {
             const sibling = {
@@ -582,6 +628,64 @@ describe('highlight glow (enterprise series)', () => {
 
             expect(params.length).toBeGreaterThan(0);
             for (const itemParams of params) expect(itemParams).not.toHaveProperty('glow');
+        });
+
+        it('takes the fill of the item that it surrounds when it sets none, or its stroke where it has no fill', async () => {
+            const { highlighted } = await hoverItem(testCase, undefined, {
+                highlightedItem: { glow: { enabled: true } },
+            });
+
+            const shapes = highlighted.filter((shape) => shape.getCastShadow() != null);
+            expect(shapes.length).toBeGreaterThan(0);
+            for (const shape of shapes) {
+                const itemColour = typeof shape.fill === 'string' && shape.fill !== 'none' ? shape.fill : shape.stroke;
+                expect(typeof itemColour).toBe('string');
+                expect(shape.getCastShadow()).toMatchObject({ enabled: true, fill: itemColour, fillOpacity: 0.4 });
+            }
+        });
+
+        it('takes the fill of the highlight style where the item is highlighted with another', async () => {
+            // An OHLC item is a stroke alone.
+            const style = testCase.name === 'ohlc' ? { stroke: 'orange' } : { fill: 'orange' };
+            const { highlighted } = await hoverItem(testCase, undefined, {
+                highlightedItem: { ...style, glow: { enabled: true } },
+            });
+
+            const shapes = highlighted.filter((shape) => shape.getCastShadow() != null);
+            expect(shapes.length).toBeGreaterThan(0);
+            for (const shape of shapes) {
+                const itemColour = typeof shape.fill === 'string' && shape.fill !== 'none' ? shape.fill : shape.stroke;
+                expect(shape.getCastShadow()?.fill).toBe(itemColour);
+            }
+        });
+
+        it('casts its own fill and fillOpacity, and not that of the item, when it sets them', async () => {
+            const { highlighted } = await hoverItem(testCase, undefined, {
+                highlightedItem: { glow: { enabled: true, fill: '#123456', fillOpacity: 0.7 } },
+            });
+
+            const shapes = highlighted.filter(casts);
+            expect(shapes.length).toBeGreaterThan(0);
+            for (const shape of shapes) {
+                expect(shape.getCastShadow()).toMatchObject({ fill: '#123456', fillOpacity: 0.7 });
+            }
+        });
+
+        it('rejects a glow colour, which a glow no longer has', async () => {
+            const { highlighted } = await hoverItem(testCase, undefined, {
+                highlightedItem: { glow: { enabled: true, color: '#ff00ff' } as AgGlowOptions },
+            });
+
+            const messages = vi
+                .mocked(console.warn)
+                .mock.calls.map(([message]) => String(message))
+                .filter((message) => message.includes('glow.color'));
+            expect(messages.length).toBeGreaterThan(0);
+            for (const shape of highlighted.filter(casts)) {
+                expect(shape.fillShadow).not.toHaveProperty('color');
+                expect(shape.getCastShadow()?.fill).not.toBe('#ff00ff');
+            }
+            vi.mocked(console.warn).mockClear();
         });
 
         it('casts no glow unless it is enabled', async () => {
