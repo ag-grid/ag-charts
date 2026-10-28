@@ -14,7 +14,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { RadialColumnShape, Rect, Sector } from 'ag-charts-core';
+import { Color, RadialColumnShape, Rect, Sector } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
@@ -65,6 +65,13 @@ interface SeriesCase {
 /** The glow theme defaults, which a glow takes the fields it leaves unset from. */
 const LIGHT_GLOW = { enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 };
 const DARK_GLOW = LIGHT_GLOW;
+
+/** The colour the items of a case are painted in, which no theme palette uses, so the glow can only have taken it from the case. */
+const PAINT = '#336699';
+
+/** Whether two CSS colours are the same colour, whichever way each is written. */
+const sameColour = (actual: unknown, expected: string) =>
+    typeof actual === 'string' && Color.fromString(actual).toHexString() === Color.fromString(expected).toHexString();
 
 const FLOW_DATA = [
     { from: 'A', to: 'C', size: 8 },
@@ -173,6 +180,51 @@ function withItemStyler(series: AnySeriesOptions, itemStyler: (params: object) =
             break;
         default:
             options.itemStyler = itemStyler;
+    }
+    return options as AnySeriesOptions;
+}
+
+/**
+ * Where a series takes the paint of its items, so a case can set one colour and expect it back from the glow: the
+ * stroke alone for an OHLC item, the colour scale for a heatmap, and the fill everywhere else.
+ */
+function withPaint(series: AnySeriesOptions, paint: string): AnySeriesOptions {
+    const options = { ...series } as Record<string, any>;
+    const merge = (key: string, style: object) => (options[key] = { ...options[key], ...style });
+    switch (options.type) {
+        case 'sankey':
+        case 'chord':
+            for (const key of ['node', 'link']) if (key in options) merge(key, { fill: paint });
+            break;
+        case 'treemap':
+            merge('tile' in options ? 'tile' : 'group', { fill: paint });
+            break;
+        case 'sunburst':
+        case 'funnel':
+        case 'pyramid':
+            options.fills = [paint];
+            break;
+        case 'heatmap':
+            options.colorScale = { fills: [{ color: paint }, { color: paint }] };
+            break;
+        case 'waterfall':
+            for (const key of ['positive', 'negative', 'total']) {
+                options.item = { ...options.item, [key]: { ...options.item[key], fill: paint } };
+            }
+            break;
+        case 'radar-line':
+        case 'radar-area':
+        case 'range-area':
+            merge('marker', { fill: paint });
+            break;
+        case 'candlestick':
+            options.item = { up: { fill: paint }, down: { fill: paint } };
+            break;
+        case 'ohlc':
+            options.item = { up: { stroke: paint }, down: { stroke: paint } };
+            break;
+        default:
+            options.fill = paint;
     }
     return options as AnySeriesOptions;
 }
@@ -515,22 +567,32 @@ describe('highlight glow (enterprise series)', () => {
     describe('glow fill from a colour scale', () => {
         const byName = (name: string) => SERIES.find((testCase) => testCase.name === name)!;
 
+        // The scale runs from red at the smallest value to blue at the largest.
+        const SCALE = { fills: [{ color: '#ff0000' }, { color: '#0000ff' }] };
+
         it('takes the colour that the scale gives each heatmap cell', async () => {
             const heatmap = byName('heatmap');
-            const colours: unknown[] = [];
-            for (const index of [0, 3]) {
+            const scaled: SeriesCase = {
+                ...heatmap,
+                series: (shadow, highlight) => ({
+                    ...heatmap.series(shadow, highlight),
+                    colorScale: SCALE,
+                }),
+            };
+            // GRID_DATA values: the first cell holds the smallest (1), the fourth the largest (5).
+            for (const [index, expected] of [
+                [0, '#ff0000'],
+                [3, '#0000ff'],
+            ] as const) {
                 const { highlighted } = await hoverItem(
-                    { ...heatmap, hover: (c) => getSeriesNodeData<HighlightNodeDatum>(c)[index] },
+                    { ...scaled, hover: (c) => getSeriesNodeData<HighlightNodeDatum>(c)[index] },
                     undefined,
                     { highlightedItem: { glow: { enabled: true } } }
                 );
                 expect(highlighted).toHaveLength(1);
-                expect(highlighted[0].getCastShadow()?.fill).toBe(highlighted[0].fill);
-                colours.push(highlighted[0].getCastShadow()?.fill);
+                expect(sameColour(highlighted[0].getCastShadow()?.fill, expected)).toBe(true);
                 chart.destroy();
             }
-
-            expect(colours[0]).not.toBe(colours[1]);
         });
 
         it.each(['treemap tiles', 'sunburst'])('takes the colour that the scale gives each %s item', async (name) => {
@@ -540,21 +602,26 @@ describe('highlight glow (enterprise series)', () => {
                 series: (shadow, highlight) => ({
                     ...testCase.series(shadow, highlight),
                     colorKey: 'size',
-                    colorScale: { fills: [{ color: '#ff0000' }, { color: '#0000ff' }] },
+                    colorScale: SCALE,
                 }),
             };
-            const colours: unknown[] = [];
-            for (const hover of [FIRST_LEAF, SECOND_LEAF]) {
+            // The leaves of HIERARCHY_SHADOW_DATA hold 10, 6, 8 and 4: the scale gives the largest blue and the smallest red.
+            const bySize = (pick: 'smallest' | 'largest') => (instance: AgChartInstance) => {
+                const leaves = [...hierarchyRoot(instance)].filter((node) => node.children.length === 0);
+                leaves.sort((a, b) => a.sumSize - b.sumSize);
+                return pick === 'smallest' ? leaves[0] : leaves.at(-1)!;
+            };
+            for (const [hover, expected] of [
+                [bySize('smallest'), '#ff0000'],
+                [bySize('largest'), '#0000ff'],
+            ] as const) {
                 const { highlighted } = await hoverItem({ ...coloured, hover }, undefined, {
                     highlightedItem: { glow: { enabled: true } },
                 });
                 expect(highlighted).toHaveLength(1);
-                expect(highlighted[0].getCastShadow()?.fill).toBe(highlighted[0].fill);
-                colours.push(highlighted[0].getCastShadow()?.fill);
+                expect(sameColour(highlighted[0].getCastShadow()?.fill, expected)).toBe(true);
                 chart.destroy();
             }
-
-            expect(colours[0]).not.toBe(colours[1]);
         });
     });
 
@@ -631,21 +698,24 @@ describe('highlight glow (enterprise series)', () => {
         });
 
         it('takes the fill of the item that it surrounds when it sets none, or its stroke where it has no fill', async () => {
-            const { highlighted } = await hoverItem(testCase, undefined, {
+            // An OHLC item is a stroke alone.
+            const painted: SeriesCase = {
+                ...testCase,
+                series: (shadow, highlight) => withPaint(testCase.series(shadow, highlight), PAINT),
+            };
+            const { highlighted } = await hoverItem(painted, undefined, {
                 highlightedItem: { glow: { enabled: true } },
             });
 
             const shapes = highlighted.filter((shape) => shape.getCastShadow() != null);
             expect(shapes.length).toBeGreaterThan(0);
             for (const shape of shapes) {
-                const itemColour = typeof shape.fill === 'string' && shape.fill !== 'none' ? shape.fill : shape.stroke;
-                expect(typeof itemColour).toBe('string');
-                expect(shape.getCastShadow()).toMatchObject({ enabled: true, fill: itemColour, fillOpacity: 0.4 });
+                expect(shape.getCastShadow()).toMatchObject({ enabled: true, fillOpacity: 0.4 });
+                expect(sameColour(shape.getCastShadow()?.fill, PAINT)).toBe(true);
             }
         });
 
         it('takes the fill of the highlight style where the item is highlighted with another', async () => {
-            // An OHLC item is a stroke alone.
             const style = testCase.name === 'ohlc' ? { stroke: 'orange' } : { fill: 'orange' };
             const { highlighted } = await hoverItem(testCase, undefined, {
                 highlightedItem: { ...style, glow: { enabled: true } },
@@ -653,10 +723,7 @@ describe('highlight glow (enterprise series)', () => {
 
             const shapes = highlighted.filter((shape) => shape.getCastShadow() != null);
             expect(shapes.length).toBeGreaterThan(0);
-            for (const shape of shapes) {
-                const itemColour = typeof shape.fill === 'string' && shape.fill !== 'none' ? shape.fill : shape.stroke;
-                expect(shape.getCastShadow()?.fill).toBe(itemColour);
-            }
+            for (const shape of shapes) expect(sameColour(shape.getCastShadow()?.fill, 'orange')).toBe(true);
         });
 
         it('casts its own fill and fillOpacity, and not that of the item, when it sets them', async () => {
@@ -697,7 +764,7 @@ describe('highlight glow (enterprise series)', () => {
 
         it.each([
             ['ag-default', LIGHT_GLOW],
-            ['ag-default-dark', DARK_GLOW],
+            ['ag-default-dark', LIGHT_GLOW],
         ])('casts the %s theme glow once only enabled is set', async (theme, defaults) => {
             const themed = { ...testCase, chartOptions: { ...testCase.chartOptions, theme } };
             const { highlighted } = await hoverItem(themed, undefined, {

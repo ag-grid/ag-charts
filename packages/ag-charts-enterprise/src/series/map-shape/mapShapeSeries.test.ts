@@ -189,6 +189,23 @@ describe('MapShapeSeries', () => {
                 expect(highlighted.fillShadow).toMatchObject({ enabled: true, xOffset: 0, yOffset: 0, blur: 6 });
                 await compare();
             });
+
+            it('draws the highlighted shape with the default glow, in the colour of its fill, after the cutout', async () => {
+                await highlightFirstShape(cutoutOptions(SMALL_SHADOW, { enabled: true }));
+
+                const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);
+                expect(highlighted.drawingMode).toBe('cutout');
+                expect(highlighted.fillShadow).toMatchObject({
+                    enabled: true,
+                    xOffset: 0,
+                    yOffset: 0,
+                    blur: 2,
+                    spread: 4,
+                    fillOpacity: 0.4,
+                });
+                expect(highlighted.getCastShadow()?.fill).toBe('blue');
+                await compare();
+            });
         });
     });
 

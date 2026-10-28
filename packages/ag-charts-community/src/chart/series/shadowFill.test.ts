@@ -147,6 +147,7 @@ describe('shadow fill and fillOpacity', () => {
             await createSeries(testCase, { enabled: true, fill: '#336699', fillOpacity: 2, xOffset: 2, blur: 4 });
 
             expect(warnings().filter((message) => message.includes('fillOpacity'))).toHaveLength(1);
+            expect(casters().length).toBeGreaterThan(0);
             for (const shape of casters()) expect(shape.fillShadow?.fillOpacity).not.toBe(2);
         });
 
@@ -161,6 +162,7 @@ describe('shadow fill and fillOpacity', () => {
         it('keeps the theme fillOpacity out of a fill that the user sets', async () => {
             await createSeries(testCase, { enabled: true, fill: 'red' });
 
+            expect(casters().length).toBeGreaterThan(0);
             for (const shape of casters()) expect(shape.fillShadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
         });
     });
