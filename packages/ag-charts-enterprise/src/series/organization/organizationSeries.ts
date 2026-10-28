@@ -519,6 +519,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     updateLinkNodes(linkSelection: Selection<OrganizationLinkDatum, NetworkLinkNode<OrganizationLinkDatum>>) {
+        // Entries past the end would keep the cards that a smaller dataset removed reachable.
+        this.linkParents.length = linkSelection.length;
+        this.linkChildren.length = linkSelection.length;
+
         linkSelection.each((node, datum, index) => {
             const fromIndex = this.graph.findNeighbourValue(datum.from, 'datumIndex') as number;
             const toIndex = this.graph.findNeighbourValue(datum.to, 'datumIndex') as number;
