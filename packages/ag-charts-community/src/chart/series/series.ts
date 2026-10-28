@@ -414,6 +414,7 @@ export abstract class Series<
         this.options = options;
         this.glowByState = undefined;
         this.anyGlow = undefined;
+        this.redrawnPass = undefined;
         this.legendItemName =
             'legendItemName' in options && typeof options.legendItemName === 'string'
                 ? options.legendItemName
@@ -958,10 +959,10 @@ export abstract class Series<
         const hasItemStylers = this.hasItemStylers();
 
         // The hovered item's in-place copy keeps its own shadow while the others cast the glow of their state (see
-        // `resolveItemShadow`), so the in-place nodes redraw whenever the hovered item changes.
+        // `resolveItemShadow`), so this series' in-place nodes redraw when the item its highlight layer redraws changes.
         const glowSwapped =
-            currentHighlightedDatum?.datumIndex !== previousHighlightedDatum?.datumIndex &&
-            this.getStateGlow(HighlightState.OtherItem) != null;
+            this.getStateGlow(HighlightState.OtherItem) != null &&
+            this.getRedrawnDatumIndex(previousHighlightedDatum) !== this.getRedrawnDatumIndex(currentHighlightedDatum);
 
         if (!hasItemStylers && !glowSwapped && currentHighlightState === previousHighlightState) {
             // Datum-level and series-level highlights both report HighlightState.Series here, yet dim
@@ -1034,16 +1035,16 @@ export abstract class Series<
     /**
      * The shadow to draw on one copy of an item. A hovered item is drawn twice: in place, and again by the highlight
      * layer on top of it. The highlight layer's copy casts only the `glow` of the hovered item, centred on it and above
-     * every series. Every in-place copy, the hovered item's included, casts the item's own `shadow` in the base pass
-     * that keeps it behind every series, except where its highlight state sets a `glow`: an item other than the
-     * hovered one casts that glow in its place, and so also stays behind every series. An item has one shadow slot, so
-     * an enabled glow replaces the item's own shadow while the item is in that state.
+     * every series. Every in-place copy casts the item's own `shadow` in the base pass that keeps it behind every
+     * series, except where its highlight state sets a `glow`: that glow replaces the shadow, as an item has one shadow
+     * slot. The exception is the item this series' highlight layer redraws, whose in-place copy keeps its `shadow`.
      */
     protected resolveItemShadow(
         shadow: NormalisedDropShadowOptions | undefined,
         isHighlight: boolean | undefined,
         datumIndex?: DatumIndex,
-        highlightState?: HighlightState
+        highlightState?: HighlightState,
+        legendItemValues?: string[]
     ): NormalisedDropShadowOptions | undefined {
         if (!this.hasAnyGlow()) return isHighlight ? undefined : shadow;
         if (isHighlight) return this.getStateGlow(HighlightState.Item);
@@ -1051,15 +1052,13 @@ export abstract class Series<
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         if (highlightedDatum == null) return shadow;
 
-        highlightState ??= this.getHighlightState(highlightedDatum, false, datumIndex);
+        highlightState ??= this.getHighlightState(highlightedDatum, false, datumIndex, legendItemValues);
         if (highlightState === HighlightState.None) return shadow;
 
-        // The hovered item's in-place copy lies beneath the highlight layer's copy, which casts the glow.
         if (
             highlightState === HighlightState.OtherItem &&
             datumIndex != null &&
-            highlightedDatum.datumIndex === datumIndex &&
-            this.hasHighlightCopy(highlightedDatum)
+            this.getRedrawnIndex(highlightedDatum) === datumIndex
         ) {
             return shadow;
         }
@@ -1067,13 +1066,24 @@ export abstract class Series<
         return this.getStateGlow(highlightState) ?? shadow;
     }
 
+    /** The redrawn index of the active highlight, read once per highlight rather than per datum. */
+    private redrawnPass?: { highlightedDatum: HighlightNodeDatum; redrawnIndex: DatumIndex | undefined };
+
+    private getRedrawnIndex(highlightedDatum: HighlightNodeDatum): DatumIndex | undefined {
+        if (this.redrawnPass?.highlightedDatum !== highlightedDatum) {
+            this.redrawnPass = { highlightedDatum, redrawnIndex: this.getRedrawnDatumIndex(highlightedDatum) };
+        }
+        return this.redrawnPass.redrawnIndex;
+    }
+
     /**
-     * Whether the highlight layer draws the active highlight, so the hovered item's in-place copy lies beneath a copy
-     * that casts its glow. A series overrides this where a highlight with a `datumIndex` can have no geometry to draw,
-     * as a legend item of a funnel stage does: that stage's in-place copy then casts its state's glow like the others.
+     * The index of the item this series' highlight layer redraws over its in-place copy, if `highlightedDatum` is one.
+     * A series that draws no highlight copy for an item it reports as highlighted overrides this, as the in-place copy
+     * of that item must keep casting its shadow.
      */
-    protected hasHighlightCopy(_highlightedDatum: HighlightNodeDatum): boolean {
-        return true;
+    protected getRedrawnDatumIndex(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
+        if (highlightedDatum?.series !== this || !this.isDatumHighlight(highlightedDatum)) return;
+        return highlightedDatum.datumIndex;
     }
 
     protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datumIndex?: DatumIndex) {

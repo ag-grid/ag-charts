@@ -156,3 +156,52 @@ describe.each(SERIES)(
         });
     }
 );
+
+describe('glow when the hover moves between series', () => {
+    setupMockConsole();
+    setupMockCanvas();
+    let chart: any;
+    afterEach(() => chart?.destroy());
+
+    const create = async (seriesOptions: object[]) => {
+        chart = deproxy(
+            await createChart({
+                data: DATA,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: seriesOptions,
+            } as AgChartOptions)
+        );
+    };
+
+    const hoverDatum = async (seriesIndex: number, datumIndex: number) => {
+        chart.ctx.highlightManager.updateHighlight(chart.id, chart.series[seriesIndex].getNodeData()[datumIndex]);
+        await waitForChartStability(chart);
+    };
+
+    it('redraws only the series whose redrawn item changes when the hover moves between items', async () => {
+        const highlight = { unhighlightedItem: { glow: HIGHLIGHT_GLOW } };
+        await create(
+            ['v', 'w', 'x'].map((yKey) => ({ type: 'bar', xKey: 'x', yKey, shadow: SERIES_SHADOW, highlight }))
+        );
+        await hoverDatum(0, 0);
+        await hoverDatum(0, 1);
+
+        expect(chart.series[0].hasChangesOnHighlight).toBe(true);
+        expect(chart.series[1].hasChangesOnHighlight).toBe(false);
+        expect(chart.series[2].hasChangesOnHighlight).toBe(false);
+    });
+
+    it('redraws the two series involved when the hover moves from one to the other', async () => {
+        const highlight = { unhighlightedItem: { glow: HIGHLIGHT_GLOW } };
+        await create(
+            ['v', 'w', 'x'].map((yKey) => ({ type: 'bar', xKey: 'x', yKey, shadow: SERIES_SHADOW, highlight }))
+        );
+        await hoverDatum(0, 0);
+        await hoverDatum(1, 0);
+
+        expect(chart.series[0].hasChangesOnHighlight).toBe(true);
+        expect(chart.series[1].hasChangesOnHighlight).toBe(true);
+        expect(chart.series[2].hasChangesOnHighlight).toBe(false);
+    });
+});

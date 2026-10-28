@@ -175,8 +175,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     override readonly navigatesWithinSeries = true;
 
     /** A legend highlight of a stage has an index but no datum, and nothing to draw on the highlight layer. */
-    protected override hasHighlightCopy(highlightedDatum: _ModuleSupport.HighlightNodeDatum): boolean {
-        return highlightedDatum.datum != null;
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        return highlightedDatum?.datum == null ? undefined : super.getRedrawnDatumIndex(highlightedDatum);
     }
 
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup', batchShadows: true }));

@@ -475,6 +475,40 @@ describe('highlight glow (enterprise series)', () => {
         return layersOf(testCase);
     };
 
+    describe('map-shape series sharing a legendItemName', () => {
+        it('casts the glow from every item of the sibling series, including the one at the hovered index', async () => {
+            const sibling = {
+                type: 'map-shape',
+                idKey: 'name',
+                legendItemName: 'Shared',
+                fill: 'red',
+                stroke: 'red',
+                shadow: SHADOW,
+                highlight: { unhighlightedItem: { glow: HIGHLIGHT_GLOW } },
+            };
+            chart = await createEnterpriseChart({
+                data: ukData,
+                topology: ukTopology,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [sibling, sibling],
+            } as AgChartOptions);
+            raiseHighlight(getSeriesNodeData<HighlightNodeDatum>(chart, 0)[0]);
+            await waitForChartStability(chart);
+
+            const drawn = (index: number) =>
+                [...collectShapes(getSeriesAt(chart, index).contentGroup)].filter(
+                    (shape) => shape instanceof GeoGeometry && shape.visible
+                );
+            const [hovered, ...others] = drawn(0);
+            expect(hovered.fillShadow).toMatchObject(SHADOW);
+            for (const shape of others) expect(shape.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+
+            expect(drawn(1).length).toBeGreaterThan(0);
+            for (const shape of drawn(1)) expect(shape.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
+        });
+    });
+
     describe.each(SERIES)('$name', (testCase) => {
         const copies = testCase.hoveredCopies ?? 1;
 

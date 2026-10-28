@@ -589,11 +589,7 @@ export abstract class HierarchySeries<
         this.glowBySlot = [];
     }
 
-    /**
-     * The glow of one highlight state as a shadow, converted once per state and slot so that a node's shadow keeps its
-     * identity across updates. `slot` tells apart the places that resolve a state to different options, such as a
-     * treemap's tiles and groups; `resolveGlow` is only called on the first lookup of a state.
-     */
+    /** The glow of a highlight state as a shadow, converted once per `slot` (tiles and groups resolve differently). */
     protected getHierarchyGlow(
         slot: number,
         highlightState: HierarchyHighlightState,

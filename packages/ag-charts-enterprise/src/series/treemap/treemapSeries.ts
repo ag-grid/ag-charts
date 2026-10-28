@@ -658,6 +658,14 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         this.labelSelection.update(descendants, updateLabelGroup, (node) => node.datumIndex);
     }
 
+    /** A group that isn't interactive gets no highlight copy, so its in-place copy keeps its shadow. */
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        if (highlightedDatum?.series !== this) return;
+        return this.isNodeHighlightable(highlightedDatum as TreemapNode)
+            ? super.getRedrawnDatumIndex(highlightedDatum)
+            : undefined;
+    }
+
     protected override getActiveHighlightNode(): TreemapNode | undefined {
         const highlightedNode = super.getActiveHighlightNode();
         return this.isNodeHighlightable(highlightedNode) ? highlightedNode : undefined;
