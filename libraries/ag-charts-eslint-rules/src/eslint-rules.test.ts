@@ -4,7 +4,7 @@ import path from 'path';
 function runRuleTest(ruleNameSuffix: string) {
     const lintDataFile = path.resolve(__dirname, `lint-${ruleNameSuffix}.data.ts`);
     const eslintConfigFile = path.resolve(__dirname, `lint-${ruleNameSuffix}-eslint-config.mjs`);
-    let stdout: string = '';
+    let stdout: string;
     let stderr: string = '';
     // npm 11 warns about the pnpm-only `shamefully-hoist` in `.npmrc` on every `npx` call.
     const env: any = { ...process.env, NO_COLOR: '1', npm_config_loglevel: 'error' };

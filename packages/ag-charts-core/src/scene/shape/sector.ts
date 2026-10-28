@@ -390,8 +390,8 @@ export class Sector<D = unknown> extends Path<D> {
         startInnerCornerRadius *= edgesScalingFactor;
         endInnerCornerRadius *= edgesScalingFactor;
 
-        let startOuterCornerRadiusAngleSweep = 0;
-        let endOuterCornerRadiusAngleSweep = 0;
+        let startOuterCornerRadiusAngleSweep: number;
+        let endOuterCornerRadiusAngleSweep: number;
         const startOuterCornerRadiusSweep = startOuterCornerRadius / (outerRadius - startOuterCornerRadius);
         const endOuterCornerRadiusSweep = endOuterCornerRadius / (outerRadius - endOuterCornerRadius);
         if (startOuterCornerRadiusSweep >= 0 && startOuterCornerRadiusSweep < 1 - delta) {

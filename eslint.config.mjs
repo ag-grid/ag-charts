@@ -77,6 +77,23 @@ if (process.env.CI != null) {
     env = 'nx-task';
 }
 
+const sonarjsTestRules = {
+    'sonarjs/assertions-in-tests': 0,
+    'sonarjs/no-empty-test-file': 0,
+    'sonarjs/stable-tests': 0,
+    'sonarjs/slow-regex': 0,
+    'sonarjs/super-linear-regex': 0,
+    'sonarjs/no-duplicate-string': 0,
+    'sonarjs/no-nested-functions': 0,
+    'sonarjs/pseudo-random': 0,
+    'sonarjs/prefer-specific-assertions': 0,
+    'sonarjs/no-floating-point-equality': 0,
+    'sonarjs/parameterized-tests': 0,
+    'sonarjs/no-duplicate-test-title': 0,
+    'sonarjs/hooks-before-test-cases': 0,
+    'sonarjs/no-trivial-assertions': 0,
+};
+
 export const testDefaults = {
     files: ['**/*.test.ts', '**/*.test.tsx', '**/*.test.js', '**/*.test.jsx'],
     languageOptions: {
@@ -100,14 +117,14 @@ export const testDefaults = {
         '@typescript-eslint/no-unsafe-call': 0,
         '@typescript-eslint/no-unsafe-member-access': 0,
         '@typescript-eslint/unbound-method': 0,
-        'sonarjs/assertions-in-tests': 0,
-        'sonarjs/no-empty-test-file': 0,
-        'sonarjs/stable-tests': 0,
-        'sonarjs/slow-regex': 0,
-        'sonarjs/no-duplicate-string': 0,
-        'sonarjs/no-nested-functions': 0,
-        'sonarjs/pseudo-random': 0,
+        ...sonarjsTestRules,
     },
+};
+
+// Shared test modules outside `*.test.*` files, which declare test cases and assertions for suites to call.
+const testHelperDefaults = {
+    files: ['**/src/chart/test/**/*.ts', '**/src/test/**/*.ts'],
+    rules: sonarjsTestRules,
 };
 
 export const sonarjsConfig = [
@@ -134,6 +151,7 @@ export const sonarjsConfig = [
             'sonarjs/different-types-comparison': 1,
             'sonarjs/public-static-readonly': 1,
             'sonarjs/regex-complexity': 1,
+            'sonarjs/no-redundant-optional': 1,
 
             // Duplicates @typescript-eslint
             'sonarjs/sonar-no-unused-vars': 0,
@@ -343,6 +361,7 @@ export default [
         },
     },
     testDefaults,
+    testHelperDefaults,
     {
         files: ['packages/*/tools/*.ts'],
         rules: {

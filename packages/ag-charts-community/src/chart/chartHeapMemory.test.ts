@@ -141,6 +141,7 @@ describe('Chart Heap Memory', { retry: 5 }, () => {
 
             chartProxy.destroy();
 
+            // eslint-disable-next-line no-useless-assignment -- drop the strong reference so GC can collect it
             chartProxy = null;
 
             globalThis.gc?.();
