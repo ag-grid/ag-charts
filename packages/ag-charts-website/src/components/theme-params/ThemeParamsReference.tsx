@@ -1,4 +1,5 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import { normalizeType } from '@components/api-documentation/apiReferenceHelpers';
 import { fetchInterfacesReference } from '@utils/client/fetchInterfacesReference';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import type {
@@ -215,7 +216,10 @@ export function ThemeParamsReference() {
                     const node = reference.get(interfaceName);
                     if (node == null || !('members' in node)) continue;
                     for (const member of node.members) {
-                        result.set(member.name, { description: member.docs?.join(' '), type: member.type });
+                        result.set(member.name, {
+                            description: member.docs?.join(' '),
+                            type: normalizeType(member.type),
+                        });
                     }
                 }
                 setDocs(result);

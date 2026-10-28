@@ -48,6 +48,16 @@ const operatorKey = (value: PlainObject): string | undefined => {
     return keys.length === 1 && keys[0].startsWith('$') ? keys[0] : undefined;
 };
 
+/** The params `$foregroundBackgroundMix` and `$rem` read without naming them, or `undefined` for other operations. */
+function implicitRefs(op: string | undefined, value: PlainObject): string[] | undefined {
+    if (op === '$foregroundBackgroundMix') return ['foregroundColor', 'backgroundColor'];
+    if (op === '$rem') {
+        const [, param] = Array.isArray(value.$rem) ? value.$rem : [];
+        return [typeof param === 'string' ? param : 'fontSize'];
+    }
+    return undefined;
+}
+
 /** Params an operation reads, in the order they appear. `$foregroundBackgroundMix` and `$rem` read params implicitly. */
 export function collectRefs(value: unknown, out: string[] = []): string[] {
     if (Array.isArray(value)) {
@@ -57,15 +67,13 @@ export function collectRefs(value: unknown, out: string[] = []): string[] {
     if (!isPlainObject(value)) return out;
 
     const op = operatorKey(value);
+    const implicit = implicitRefs(op, value);
     if (op === '$ref' && typeof value.$ref === 'string') {
         out.push(value.$ref);
-    } else if (op === '$foregroundBackgroundMix') {
-        out.push('foregroundColor', 'backgroundColor');
-    } else if (op === '$rem') {
-        const [, param] = Array.isArray(value.$rem) ? value.$rem : [];
-        out.push(typeof param === 'string' ? param : 'fontSize');
-    } else {
+    } else if (implicit == null) {
         for (const child of Object.values(value)) collectRefs(child, out);
+    } else {
+        out.push(...implicit);
     }
     return out;
 }
@@ -119,6 +127,7 @@ const kebabCase = (name: string) => name.replace(/[A-Z]/g, (char) => `-${char.to
 /**
  * Walks a theme template, recording every option path whose default references a param. Operator arguments are
  * descended into without extending the path, so `{ fill: { $mix: [{ $ref: 'a' }, ...] } }` records `fill` for `a`.
+ * Operations that read params implicitly, such as `$rem`, record those params too.
  */
 export function collectOptionRefs(
     template: unknown,
@@ -136,6 +145,13 @@ export function collectOptionRefs(
     if (op === '$ref') {
         if (typeof template.$ref === 'string' && path.length > 0) {
             visit(path.join('.'), template.$ref, !insideOperation);
+        }
+        return;
+    }
+    const implicit = implicitRefs(op, template);
+    if (implicit != null) {
+        if (path.length > 0) {
+            for (const param of implicit) visit(path.join('.'), param, false);
         }
         return;
     }

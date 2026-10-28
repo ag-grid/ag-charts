@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildThemeParamsGraph, collectRefs, formatDefault, treePath } from './themeParamsGraph';
+import { buildThemeParamsGraph, collectOptionRefs, collectRefs, formatDefault, treePath } from './themeParamsGraph';
 
 const defaults = {
     foregroundColor: '#181d1f',
@@ -44,6 +44,29 @@ describe('collectRefs', () => {
     it('includes the params read implicitly by operations', () => {
         expect(collectRefs({ $foregroundBackgroundMix: 0.1 })).toEqual(['foregroundColor', 'backgroundColor']);
         expect(collectRefs({ $rem: 1.2 })).toEqual(['fontSize']);
+    });
+});
+
+describe('collectOptionRefs', () => {
+    const collect = (template: unknown) => {
+        const visits: Array<[string, string, boolean]> = [];
+        collectOptionRefs(template, (path, param, direct) => visits.push([path, param, direct]));
+        return visits;
+    };
+
+    it('records the params operations read implicitly, as blended rather than direct', () => {
+        expect(
+            collect({
+                title: { fontSize: { $rem: 1.2 } },
+                ranges: { fontSize: { $rem: [0.9, 'chromeFontSize'] } },
+                background: { fill: { $foregroundBackgroundMix: 0.1 } },
+            })
+        ).toEqual([
+            ['title.fontSize', 'fontSize', false],
+            ['ranges.fontSize', 'chromeFontSize', false],
+            ['background.fill', 'foregroundColor', false],
+            ['background.fill', 'backgroundColor', false],
+        ]);
     });
 });
 
