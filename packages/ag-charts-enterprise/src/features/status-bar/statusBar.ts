@@ -53,7 +53,6 @@ export class StatusBar extends AbstractModuleInstance {
     private recent?: RecentAnchor;
     private rendered?: RenderedItems;
     private sizing?: RenderedItems;
-    private collectedBeforeNodes = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -86,7 +85,6 @@ export class StatusBar extends AbstractModuleInstance {
             this.enabledCleanup.register(
                 ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.layoutItems(view, e)),
                 ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(view, e.series.rect)),
-                ctx.eventsHub.on('update:pre-scene-render', () => this.refreshAfterSeriesUpdate(view)),
                 ctx.eventsHub.on('update:process-data', () => this.invalidate()),
                 ctx.chartState.observe((get) => {
                     get('options');
@@ -121,29 +119,17 @@ export class StatusBar extends AbstractModuleInstance {
         this.recent = undefined;
         this.rendered = undefined;
         this.sizing = undefined;
-        this.collectedBeforeNodes = false;
     }
 
     private invalidate() {
         this.rendered = undefined;
         this.sizing = undefined;
-        this.collectedBeforeNodes = true;
     }
 
     private onLayoutComplete(view: StatusBarItemsView, seriesRect: BBox) {
         if (view.onLayoutComplete(seriesRect, this.opts)) {
             this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
         }
-    }
-
-    // Layout collects before the series create their nodes, which some series resolve styles from.
-    private refreshAfterSeriesUpdate(view: StatusBarItemsView) {
-        if (!this.collectedBeforeNodes) return;
-        this.collectedBeforeNodes = false;
-        this.rendered = undefined;
-        const resolved = this.resolveAnchor(this.ctx.chartState.getValue('highlight'));
-        const items = this.renderItems(resolved);
-        view.update(this.opts, isHidden(resolved, this.opts) ? [] : items);
     }
 
     private onPointerMove(canvasY: number | undefined) {

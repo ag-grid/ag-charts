@@ -289,6 +289,27 @@ describe('WaterfallSeries', () => {
             expect(captured.get('total')).toBe(TOTAL_VALUE);
         });
 
+        it('shows the drawn value in the tooltip for a subtotal after a total', async () => {
+            chart = await createEnterpriseChart({
+                ...totalValueOptions(),
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'type',
+                        yKey: 'value',
+                        totals: [
+                            { totalType: 'total', index: 1, axisLabel: 'Total' },
+                            { totalType: 'subtotal', index: 3, axisLabel: 'Sub' },
+                        ],
+                    },
+                ],
+            });
+
+            const subtotal = nodeOfType(chart, 'subtotal');
+            expect(subtotal.totalValue).toBe(50);
+            expect(seriesOf(chart).getTooltipContent(subtotal.datumIndex)).toMatchObject({ data: [{ value: '50' }] });
+        });
+
         it('exposes totalValue on the seriesNodeClick event for total/subtotal and undefined otherwise', async () => {
             const seriesNodeClick = vi.fn();
             chart = await createEnterpriseChart({ ...totalValueOptions(), listeners: { seriesNodeClick } });

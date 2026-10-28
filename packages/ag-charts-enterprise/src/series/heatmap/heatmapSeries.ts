@@ -1297,18 +1297,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const allowNullKeys = this.options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
 
-        // Independent of `isColorScaleValid()` so an invalidly-configured scale doesn't take out
-        // tooltips for datums whose own data is fine.
-        if (colorKey != null && colorValue == null) {
-            return;
-        }
-
         const style = this.getItemStyle({ datumIndex, datum, colorValue }, false);
         let fill: InternalAgColorType = style.fill ?? options.colorScale.fills[0]?.color ?? 'black';
         const values: SeriesDatumValue[] = [];
 
-        // Reachable only when colorKey is null (missing-colour datums returned above).
-        if (colorValue != null) {
+        if (colorKey != null && colorValue == null) {
+            values.push({ key: colorKey, name: colorName, value: undefined, missing: true });
+        } else if (colorValue != null) {
             fill = style.fill ?? colorScale.convert(colorValue);
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
             const content = formatManager.format(this.callWithContext.bind(this), {
@@ -1359,7 +1354,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { id: seriesId, options } = this;
         const { xKey, xName, yKey, yName, colorKey, colorName, title, tooltip } = options;
         const datumValues = this.getDatumValues(datumIndex, 'tooltip');
-        if (datumValues == null) return;
+        // Independent of `isColorScaleValid()` so an invalidly-configured scale doesn't take out
+        // tooltips for datums whose own data is fine.
+        if (datumValues == null || datumValues.values.some(({ missing }) => missing)) return;
         const { datum, style, fill, values } = datumValues;
 
         const symbol: _ModuleSupport.LegendSymbolOptions | undefined =

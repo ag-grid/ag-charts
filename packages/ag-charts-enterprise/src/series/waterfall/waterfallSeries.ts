@@ -143,6 +143,13 @@ export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDa
     style?: Required<AgWaterfallSeriesStyle>;
 }
 
+type WaterfallStyleDatum = Pick<WaterfallNodeDatum, 'series' | 'datumIndex' | 'datum' | 'itemId' | 'totalValue'>;
+
+// Synthetic bars have no data row, so their totals `itemId` (or axis label) is their only stable identifier.
+function syntheticItemId(datum: unknown, xDatum: unknown) {
+    return (datum as { itemId?: string } | undefined)?.itemId ?? String(xDatum);
+}
+
 interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<WaterfallNodeDatum> {
     pointData?: WaterfallNodePointDatum[];
     styles: Record<AgWaterfallSeriesItemType, _ModuleSupport.SeriesNodeStyleContext<Required<AgWaterfallSeriesStyle>>>;
@@ -403,10 +410,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
             const value = this.computeDisplayValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
 
-            // Synthetic bars have no data row, so their totals `itemId` (or axis label) is their only stable identifier.
-            const totalItemId = isTotalOrSubtotal
-                ? ((datum as { itemId?: string } | undefined)?.itemId ?? String(xDatum))
-                : undefined;
+            const totalItemId = isTotalOrSubtotal ? syntheticItemId(datum, xDatum) : undefined;
 
             paramsScratch.datumIndex = datumIndex;
             paramsScratch.itemId = totalItemId;
@@ -1016,7 +1020,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     private getItemStyle(
-        nodeDatum: WaterfallNodeDatum | undefined,
+        nodeDatum: WaterfallStyleDatum | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState,
         itemType: AgWaterfallSeriesItemType = 'total',
@@ -1418,11 +1422,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const datumType = totalTypeValues[datumIndex];
 
+        const rawDatum = processedData.dataSources.get(this.id)?.data[datumIndex];
+        const isTotalOrSubtotal = this.isTotal(datumType) || this.isSubtotal(datumType);
         // Synthetic total/subtotal bars expose no user datum to the renderer or axis formatters.
-        const datum =
-            this.isTotal(datumType) || this.isSubtotal(datumType)
-                ? undefined
-                : processedData.dataSources.get(this.id)?.data[datumIndex];
+        const datum = isTotalOrSubtotal ? undefined : rawDatum;
 
         const isPositive = (yValue ?? 0) >= 0;
 
@@ -1434,7 +1437,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } else if (this.isSubtotal(datumType)) {
             total = yCurrTotalValues[datumIndex];
             for (let previousIndex = datumIndex - 1; previousIndex >= 0; previousIndex -= 1) {
-                if (this.isSubtotal(totalTypeValues[previousIndex])) {
+                const previousType = totalTypeValues[previousIndex];
+                if (this.isTotal(previousType) || this.isSubtotal(previousType)) {
                     total = subtractValues(total, yCurrTotalValues[previousIndex]);
                     break;
                 }
@@ -1443,11 +1447,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             total = yValue;
         }
 
-        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
+        const styleDatum: WaterfallStyleDatum = {
+            series: this,
+            datumIndex,
+            datum,
+            itemId: isTotalOrSubtotal ? syntheticItemId(rawDatum, xValue) : undefined,
+            totalValue: this.getTotalValue(itemType, total),
+        };
 
         return {
             datum,
-            style: this.getItemStyle(nodeDatum, false, undefined, itemType),
+            style: this.getItemStyle(styleDatum, false, undefined, itemType),
             itemType,
             values: [
                 {

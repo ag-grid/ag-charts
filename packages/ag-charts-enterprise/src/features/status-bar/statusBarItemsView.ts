@@ -3,7 +3,6 @@ import {
     BBox,
     EllipsisChar,
     Group,
-    type NormalisedContentSegment,
     type NormalisedStatusBarFontOptions,
     type NormalisedStatusBarOptions,
     Rect,
@@ -13,14 +12,13 @@ import {
     cachedTextMeasurer,
     drawnLineHeight,
     expandLegendPosition,
+    fitLabelText,
     isArray,
-    isString,
+    measureLabelText,
     placementOffset,
     placementSide,
     resolvePadding,
     toTextString,
-    truncateLine,
-    wrapTextOrSegments,
 } from 'ag-charts-core';
 
 const INNER_SPACING = 4;
@@ -147,11 +145,11 @@ export class StatusBarItemsView {
                 continue;
             }
 
-            const labelWidth = setText(node.label, item.label, opts.label, opts.label.color);
-            const valueWidth = setText(node.value, item.value, opts.value, opts.label.color);
-            let labelExtent = labelWidth > 0 ? labelWidth + INNER_SPACING : 0;
-            let itemWidth = labelExtent + valueWidth;
-            const itemHeight = Math.max(lineHeight, textHeight(node.label), textHeight(node.value));
+            const label = setText(node.label, item.label, opts.label, opts.label.color);
+            const value = setText(node.value, item.value, opts.value, opts.label.color);
+            let labelExtent = label.width > 0 ? label.width + INNER_SPACING : 0;
+            let itemWidth = labelExtent + value.width;
+            const itemHeight = Math.max(lineHeight, label.height, value.height);
 
             if (x > 0 && wraps && x + itemWidth > maxWidth) {
                 x = 0;
@@ -160,13 +158,13 @@ export class StatusBarItemsView {
             }
 
             const visible = y + itemHeight <= maxHeight && x < maxWidth;
-            node.label.visible = visible && labelWidth > 0;
+            node.label.visible = visible && label.width > 0;
             node.value.visible = visible;
             if (!visible) {
                 if (lastShown != null && opts.truncate) {
-                    const { value } = lastShown;
-                    const truncatedWidth = truncateText(value, opts.value, maxWidth - value.x, true);
-                    width = Math.max(width, value.x + truncatedWidth);
+                    const { value: shown } = lastShown;
+                    const truncated = fitText(shown, withEllipsis(shown.text), opts.value, maxWidth - shown.x);
+                    width = Math.max(width, shown.x + truncated.width);
                 }
                 lastShown = undefined;
                 continue;
@@ -175,11 +173,12 @@ export class StatusBarItemsView {
             if (x + itemWidth > maxWidth && opts.truncate) {
                 const available = maxWidth - x;
                 // The value keeps at least half the room, so a long label cannot squeeze it out entirely.
-                const labelMax = Math.max(available / 2, available - valueWidth) - INNER_SPACING;
-                if (labelWidth > labelMax) {
-                    labelExtent = truncateText(node.label, opts.label, labelMax, false) + INNER_SPACING;
-                }
-                itemWidth = labelExtent + truncateText(node.value, opts.value, available - labelExtent, false);
+                const labelMax = Math.max(available / 2, available - value.width) - INNER_SPACING;
+                const fittedLabel =
+                    label.width > labelMax ? fitText(node.label, item.label, opts.label, labelMax) : label;
+                labelExtent = fittedLabel.width > 0 ? fittedLabel.width + INNER_SPACING : 0;
+                const fittedValue = fitText(node.value, item.value, opts.value, available - labelExtent);
+                itemWidth = labelExtent + fittedValue.width;
             }
 
             node.label.x = x;
@@ -248,33 +247,38 @@ function setText(
     node.fill = color;
     node.textAlign = 'left';
     node.textBaseline = 'top';
-    node.text = text == null || isArray(text) ? text : toTextString(text);
-    if (node.text == null || node.text === '') return 0;
-    return isString(node.text) ? cachedTextMeasurer(font).textWidth(node.text) : node.getBBox().width;
+    node.text = text;
+    return measure(text, font);
 }
 
-function textHeight(node: Text) {
-    const { text } = node;
-    if (text == null || text === '' || (isString(text) && !text.includes('\n'))) return 0;
-    return node.getBBox().height;
+function fitText(
+    node: Text,
+    text: AgStatusBarRendererItem['value'] | undefined,
+    font: NormalisedStatusBarFontOptions,
+    maxWidth: number
+) {
+    node.text =
+        text == null
+            ? text
+            : fitLabelText(
+                  text,
+                  { maxWidth: Math.max(0, maxWidth), wrapping: 'never', overflowStrategy: 'ellipsis' },
+                  font
+              );
+    return measure(node.text, font);
 }
 
-function truncateText(node: Text, font: NormalisedStatusBarFontOptions, maxWidth: number, ellipsisForce: boolean) {
-    const { text } = node;
-    const width = Math.max(0, maxWidth);
-    if (isString(text)) {
-        const measurer = cachedTextMeasurer(font);
-        node.text = truncateLine(text, measurer, width, ellipsisForce);
-        return measurer.textWidth(node.text);
-    }
-    if (!isArray(text)) return node.getBBox().width;
-    const segments = ellipsisForce ? withEllipsis(text) : text;
-    node.text = wrapTextOrSegments(segments, { font, maxWidth: width, textWrap: 'never' });
-    return node.getBBox().width;
+function measure(text: AgStatusBarRendererItem['value'] | undefined, font: NormalisedStatusBarFontOptions) {
+    if (text == null || text === '') return { width: 0, height: 0 };
+    return measureLabelText(text, font);
 }
 
-function withEllipsis(segments: NormalisedContentSegment[]): NormalisedContentSegment[] {
-    const last = segments.at(-1);
-    if (last == null || last.type === 'image') return [...segments, { text: EllipsisChar }];
-    return [...segments.slice(0, -1), { ...last, text: appendEllipsis(toTextString(last.text)) }];
+function withEllipsis(
+    text: AgStatusBarRendererItem['value'] | undefined
+): AgStatusBarRendererItem['value'] | undefined {
+    if (text == null) return text;
+    if (!isArray(text)) return appendEllipsis(toTextString(text));
+    const last = text.at(-1);
+    if (last == null || last.type === 'image') return [...text, { text: EllipsisChar }];
+    return [...text.slice(0, -1), { ...last, text: appendEllipsis(toTextString(last.text)) }];
 }

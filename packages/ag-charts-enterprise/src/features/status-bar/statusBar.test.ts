@@ -272,6 +272,17 @@ describe('StatusBar', () => {
         expect(toPlainText(node.value.text)).toMatch(/…$/);
     });
 
+    it('measures and truncates multi-line text by its lines', async () => {
+        const label = 'Revenue this quarter\nRevenue last quarter';
+        chart = await createEnterpriseChart({
+            ...OPTIONS,
+            statusBar: { enabled: true, maxWidth: 200, renderer: () => [{ label, value: '210' }] },
+        });
+        const [node] = shownNodes();
+        expect(node.label.text).toBe(label);
+        expect(node.label.getBBox().height).toBeGreaterThan(20);
+    });
+
     it('sizes each row to its tallest rendered item', async () => {
         chart = await createEnterpriseChart({
             ...OPTIONS,
@@ -444,6 +455,17 @@ describe('StatusBar', () => {
                     series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'c', colorName: 'Score' }],
                 },
                 ['Score 5'],
+            ],
+            [
+                'heatmap missing colour values',
+                {
+                    data: [
+                        { x: 'a', y: 'b', c: 5 },
+                        { x: 'b', y: 'b' },
+                    ],
+                    series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'c', colorName: 'Score' }],
+                },
+                ['Score —'],
             ],
             [
                 'ohlc prices in reading order',
