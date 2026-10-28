@@ -24,6 +24,8 @@ import { createEnterpriseChart } from '../../test/utils';
 interface StatusBarTextNode {
     visible: boolean;
     text?: NormalisedTextOrSegments;
+    y: number;
+    getBBox(): { height: number };
 }
 
 interface StatusBarInternals {
@@ -254,6 +256,37 @@ describe('StatusBar', () => {
         const [node] = shownNodes();
         expect(toPlainText(node.label.text)).toMatch(/…$/);
         expect(toPlainText(node.value.text)).toMatch(/…$/);
+    });
+
+    it('truncates numeric renderer labels and values', async () => {
+        chart = await createEnterpriseChart({
+            ...OPTIONS,
+            statusBar: {
+                enabled: true,
+                maxWidth: 80,
+                renderer: () => [{ label: 123456789012345, value: 987654321098765 }],
+            },
+        });
+        const [node] = shownNodes();
+        expect(toPlainText(node.label.text)).toMatch(/…$/);
+        expect(toPlainText(node.value.text)).toMatch(/…$/);
+    });
+
+    it('sizes each row to its tallest rendered item', async () => {
+        chart = await createEnterpriseChart({
+            ...OPTIONS,
+            statusBar: {
+                enabled: true,
+                maxWidth: 90,
+                renderer: () => [
+                    { label: 'Big', value: [{ text: '210', fontSize: 32 }] },
+                    { label: 'Next', value: '130' },
+                ],
+            },
+        });
+        const [big, next] = shownNodes();
+        expect(big.value.getBBox().height).toBeGreaterThan(30);
+        expect(next.label.y - big.label.y).toBeGreaterThanOrEqual(big.value.getBBox().height);
     });
 
     it('shows the values of horizontal series rather than their categories', async () => {

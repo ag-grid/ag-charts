@@ -135,6 +135,7 @@ export class StatusBarItemsView {
 
         let x = 0;
         let y = 0;
+        let rowHeight = lineHeight;
         let width = 0;
         let lastShown: ItemNodes | undefined;
         for (let i = 0; i < Math.max(items.length, nodes.length); i++) {
@@ -150,13 +151,15 @@ export class StatusBarItemsView {
             const valueWidth = setText(node.value, item.value, opts.value, opts.label.color);
             let labelExtent = labelWidth > 0 ? labelWidth + INNER_SPACING : 0;
             let itemWidth = labelExtent + valueWidth;
+            const itemHeight = Math.max(lineHeight, textHeight(node.label), textHeight(node.value));
 
             if (x > 0 && wraps && x + itemWidth > maxWidth) {
                 x = 0;
-                y += lineHeight;
+                y += rowHeight;
+                rowHeight = lineHeight;
             }
 
-            const visible = y + lineHeight <= maxHeight && x < maxWidth;
+            const visible = y + itemHeight <= maxHeight && x < maxWidth;
             node.label.visible = visible && labelWidth > 0;
             node.value.visible = visible;
             if (!visible) {
@@ -185,12 +188,13 @@ export class StatusBarItemsView {
             node.value.y = y;
 
             x += itemWidth;
+            rowHeight = Math.max(rowHeight, itemHeight);
             width = Math.max(width, Math.min(x, maxWidth));
             x += OUTER_SPACING;
             lastShown = node;
         }
 
-        const height = items.length === 0 ? 0 : Math.min(y + lineHeight, maxHeight);
+        const height = items.length === 0 ? 0 : Math.min(y + rowHeight, maxHeight);
         this.updateBackground(opts, width, height);
         this.content.setClipRectCanvasSpace(new BBox(0, 0, maxWidth, height));
         return { width, height };
@@ -244,9 +248,15 @@ function setText(
     node.fill = color;
     node.textAlign = 'left';
     node.textBaseline = 'top';
-    node.text = text;
-    if (text == null || text === '') return 0;
-    return isString(text) ? cachedTextMeasurer(font).textWidth(text) : node.getBBox().width;
+    node.text = text == null || isArray(text) ? text : toTextString(text);
+    if (node.text == null || node.text === '') return 0;
+    return isString(node.text) ? cachedTextMeasurer(font).textWidth(node.text) : node.getBBox().width;
+}
+
+function textHeight(node: Text) {
+    const { text } = node;
+    if (text == null || text === '' || (isString(text) && !text.includes('\n'))) return 0;
+    return node.getBBox().height;
 }
 
 function truncateText(node: Text, font: NormalisedStatusBarFontOptions, maxWidth: number, ellipsisForce: boolean) {
