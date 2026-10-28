@@ -181,7 +181,7 @@ describe('MapShapeSeries', () => {
             });
 
             it('draws the highlighted shape with its glow after the cutout', async () => {
-                const glow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', blur: 6 };
+                const glow = { enabled: true, fill: 'rgba(0, 0, 0, 0.6)', fillOpacity: 1, blur: 6, spread: 1 };
                 await highlightFirstShape(cutoutOptions(SMALL_SHADOW, glow));
 
                 const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);

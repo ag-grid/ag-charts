@@ -3249,7 +3249,7 @@ describe('HeatmapSeries', () => {
         const GRID = gridCells(6, 4);
         const COLOR_SCALE = { fills: [{ color: 'blue' }, { color: 'red' }] };
         // An enabled shadow that casts nothing paints nothing, but keeps the cells out of the batch.
-        const AS_RECTS = { shadow: { enabled: true, color: 'transparent', blur: 0, xOffset: 0, yOffset: 0 } };
+        const AS_RECTS = { shadow: { enabled: true, fill: 'transparent', blur: 0, xOffset: 0, yOffset: 0 } };
         const SELECTION = { enabled: true, selectedItem: { fill: 'lime' }, unselectedItem: { opacity: 0.3 } };
 
         const options = (series: Record<string, unknown> = {}, data: GridCell[] = GRID, asRects = false) =>

@@ -118,7 +118,7 @@ describe('layer shadow batching of series', () => {
         // shadow on the white of the chart.
         const SHADOW: AgDropShadowOptions = {
             enabled: true,
-            color: 'rgba(0, 0, 0, 0.5)',
+            fill: 'rgba(0, 0, 0, 0.5)',
             xOffset: 40,
             yOffset: 0,
             blur: 0,
@@ -279,7 +279,7 @@ describe('layer shadow batching of series', () => {
     describe('spread shadow of paint that casts nothing', () => {
         const SPREAD_SHADOW: AgDropShadowOptions = {
             enabled: true,
-            color: 'rgba(255, 0, 0, 0.5)',
+            fill: 'rgba(255, 0, 0, 0.5)',
             xOffset: 0,
             yOffset: 0,
             blur: 0,

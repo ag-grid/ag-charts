@@ -1860,7 +1860,7 @@ describe('TreemapSeries', () => {
     });
 
     describe('shadow', () => {
-        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 8, yOffset: 8, blur: 8 };
+        const shadow = { enabled: true, fill: 'rgba(0, 0, 0, 0.7)', xOffset: 8, yOffset: 8, blur: 8 };
         const data = HIERARCHY_SHADOW_DATA;
         const shadowOptions = (parts: { group?: typeof shadow; tile?: typeof shadow } = {}): AgChartOptions => ({
             data,

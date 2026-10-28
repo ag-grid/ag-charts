@@ -65,7 +65,7 @@ const HALF_BLACK = [128, 128, 128];
 // A shadow with no blur, so that the colour of a pixel is the strength of the shadows cast on it.
 const shadowAt = (xOffset: number, yOffset = 0) => ({
     enabled: true,
-    color: 'rgba(0, 0, 0, 0.5)',
+    fill: 'rgba(0, 0, 0, 0.5)',
     xOffset,
     yOffset,
     blur: 0,
@@ -204,9 +204,9 @@ describe('RangeAreaSeries', () => {
     });
 
     it.each([
-        ['ag-default', '#00000080'],
-        ['ag-default-dark', '#000'],
-    ])('should default the series and marker shadow colour for %s', async (theme, expected) => {
+        ['ag-default', 0.5],
+        ['ag-default-dark', 1],
+    ])('should default the series and marker shadow fill for %s', async (theme, fillOpacity) => {
         chart = await createEnterpriseChart({
             ...RANGE_AREA_OPTIONS,
             theme,
@@ -220,8 +220,8 @@ describe('RangeAreaSeries', () => {
         } as AgCartesianChartOptions);
 
         const series = getSeriesOptions<AgRangeAreaSeriesOptions>(chart);
-        expect(series.shadow?.color).toBe(expected);
-        expect(series.marker?.shadow?.color).toBe(expected);
+        expect(series.shadow).toMatchObject({ fill: '#000', fillOpacity });
+        expect(series.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity });
     });
 
     describe('node interactions with markers disabled (AG-10226)', () => {
@@ -1973,7 +1973,7 @@ describe('RangeAreaSeries', () => {
                 ]),
                 highlight: { drawingMode: 'cutout' },
             });
-            const SOLID = { ...shadowAt(0, 20), color: 'black' };
+            const SOLID = { ...shadowAt(0, 20), fill: 'black' };
 
             // The mock canvas only backs the first chart a test creates, and this test compares two.
             const chartCanvas = { getRenderContext2D: () => deproxy(chart).ctx.scene.canvas.context };

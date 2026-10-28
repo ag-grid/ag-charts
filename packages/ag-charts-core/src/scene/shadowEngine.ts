@@ -1,11 +1,14 @@
 import { arraysEqual } from '../data/arrays';
 import { isFiniteNumber } from '../data/typeGuards';
-import { Color } from '../format/color';
-import type { NormalisedDropShadowOptions } from '../options/normalised/normalisedCommonOptions';
+import type {
+    NormalisedDropShadowOptions,
+    ResolvedDropShadowOptions,
+} from '../options/normalised/normalisedCommonOptions';
 import { type SpreadCanvas, allocateCanvas, disposeCanvas, releaseSpreadCanvas } from './canvas/spreadCanvas';
 import type { MatrixFrame } from './matrix';
 import type { Node, RenderContext } from './node';
 import type { ShadowClip, ShadowFrame, ShadowRegion } from './shadowCollector';
+import { getShadowColour, scaleColourAlpha } from './shadowColour';
 import { shadowPass } from './shadowPass';
 import { Path } from './shape/path';
 import { Shape, type SilhouetteBounds } from './shape/shape';
@@ -55,7 +58,7 @@ export type ShadowScope = 'run' | 'layer' | 'root';
 
 /** The casters that share their shadow options and clip, and so one mask and one blur. */
 export interface ShadowKey {
-    readonly shadow: NormalisedDropShadowOptions;
+    readonly shadow: ResolvedDropShadowOptions;
     /** The clip of a local key, in the coordinates of the group. A `root` key has {@link clips} instead. */
     readonly clip: ShadowClip | undefined;
     readonly casters: ShadowCaster[];
@@ -66,14 +69,12 @@ export interface ShadowKey {
 }
 
 /** The shadow options that a node casts through a shadow root, which a cutout may, or undefined if it casts none. */
-export function getRootShadow(node: Node): NormalisedDropShadowOptions | undefined {
-    if (!(node instanceof Shape)) return;
-    const shadow = node.__fillShadow;
-    return shadow?.enabled === true ? shadow : undefined;
+export function getRootShadow(node: Node): ResolvedDropShadowOptions | undefined {
+    return node instanceof Shape ? node.getCastShadow() : undefined;
 }
 
 /** The shadow options that a node casts through the engine, or undefined if it casts none. */
-export function getBatchedShadow(node: Node): NormalisedDropShadowOptions | undefined {
+export function getBatchedShadow(node: Node): ResolvedDropShadowOptions | undefined {
     // A cutout erases the layer beneath it, and so also what the engine's shadow put there. It casts for itself.
     return node instanceof Shape && node.__drawingMode === 'cutout' ? undefined : getRootShadow(node);
 }
@@ -117,10 +118,11 @@ function sameLayer(a: Node, b: Node) {
     return aIndex === bIndex || compareZIndex(aIndex, bIndex) === 0;
 }
 
-function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
+function sameShadow(a: ResolvedDropShadowOptions, b: ResolvedDropShadowOptions) {
     return (
         a === b ||
-        (a.color === b.color &&
+        (a.fill === b.fill &&
+            (a.fillOpacity ?? 1) === (b.fillOpacity ?? 1) &&
             a.xOffset === b.xOffset &&
             a.yOffset === b.yOffset &&
             a.blur === b.blur &&
@@ -132,7 +134,7 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
 export function joinsShadowKey(
     key: ShadowKey,
     next: Node,
-    shadow: NormalisedDropShadowOptions,
+    shadow: ResolvedDropShadowOptions,
     clip: ShadowClip | undefined,
     scope: ShadowScope,
     clips?: readonly ShadowRegion[]
@@ -305,7 +307,8 @@ function matchSignature(
     if (unchanged && cache.signature.length > cache.cursor) return !cache.changed;
 
     for (const { shadow, clip, clips, casters, frames } of keys) {
-        putSignature(cache, shadow.color);
+        putSignature(cache, shadow.fill);
+        putSignature(cache, shadow.fillOpacity ?? 1);
         putSignature(cache, shadow.xOffset);
         putSignature(cache, shadow.yOffset);
         putSignature(cache, shadow.blur);
@@ -523,16 +526,6 @@ function getUniformSpreadStrength({ casters, frames }: ShadowKey): number | unde
     return uniform;
 }
 
-/** The colour with its alpha scaled, or undefined if it can't be read. */
-function scaleColourAlpha(colour: string, scale: number): string | undefined {
-    try {
-        const { r, g, b, a } = Color.fromString(colour);
-        return new Color(r, g, b, a * scale).toRgbaString();
-    } catch {
-        return;
-    }
-}
-
 /** How a key casts its shadow: where its mask goes, and how it is blurred. */
 interface MaskPlan {
     readonly key: ShadowKey;
@@ -591,10 +584,10 @@ function planKey(
 
     // Casters at one translucent strength are drawn solid, with the shadow cast at that strength. A `root` key's frames hold the layer alpha.
     const layerAlpha = key.frames == null ? ctx.globalAlpha : 1;
-    let colour = shadow.color;
+    let colour = getShadowColour(shadow);
     let opaque = false;
     if (strength != null && strength * layerAlpha < 1) {
-        const scaled = scaleColourAlpha(shadow.color, strength * layerAlpha);
+        const scaled = scaleColourAlpha(colour, strength * layerAlpha);
         if (scaled != null) {
             colour = scaled;
             opaque = true;

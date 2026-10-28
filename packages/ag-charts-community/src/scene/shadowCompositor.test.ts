@@ -19,7 +19,7 @@ import {
     releaseShadowScratch,
     shadowPass,
 } from 'ag-charts-core';
-import type { RenderContext, ShadowCaster, ShadowKey, Shape } from 'ag-charts-core';
+import type { RenderContext, ResolvedDropShadowOptions, ShadowCaster, ShadowKey, Shape } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { BLACK, type Pixel, box, isHalfRed } from '../util/test/shadowPixels';
@@ -28,9 +28,9 @@ const WIDTH = 400;
 const HEIGHT = 220;
 
 // The layer is transparent, so the alpha of a pixel is the strength of the shadow cast on it.
-const RED_HALF = { enabled: true, color: 'rgba(255, 0, 0, 0.5)', xOffset: 100, yOffset: 0, blur: 0 };
-const BLUE = { enabled: true, color: 'rgba(0, 0, 255, 1)', xOffset: 100, yOffset: 0, blur: 0 };
-const IN_PLACE = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+const RED_HALF = { enabled: true, fill: 'rgba(255, 0, 0, 0.5)', xOffset: 100, yOffset: 0, blur: 0 };
+const BLUE = { enabled: true, fill: 'rgba(0, 0, 255, 1)', xOffset: 100, yOffset: 0, blur: 0 };
+const IN_PLACE = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
 const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
 
@@ -332,7 +332,7 @@ describe('Group shadow compositor', () => {
                     backgroundFillOpacity: 0.5,
                     strokeWidth: 0,
                 };
-                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+                const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 10 };
                 renderNodes(
                     [
                         box(20, 40, 40, 50, { fill: pattern, fillShadow: shadow }),
@@ -349,7 +349,7 @@ describe('Group shadow compositor', () => {
         );
 
         it('should fade the shadow of a crisp rectangle that is narrower than a pixel, as the rectangle fades', () => {
-            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 4 };
+            const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 4 };
             const thin = () => [
                 box(20, 40, 0.4, 50, { crisp: true, fillShadow: shadow }),
                 box(20, 130, 0.4, 50, { crisp: true, fillShadow: shadow }),
@@ -366,7 +366,7 @@ describe('Group shadow compositor', () => {
         });
 
         describe('a crisp rectangle that is narrower than a pixel', () => {
-            const SOLID = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 4 };
+            const SOLID = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 4 };
             // A bar that is 0.4 across, or high, which crisp rendering fades rather than widening to a pixel.
             const bars = {
                 thin: () => [
@@ -440,7 +440,7 @@ describe('Group shadow compositor', () => {
         });
 
         describe('a pattern of several parts', () => {
-            const SOLID = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+            const SOLID = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 10 };
 
             it.each([false, true])(
                 'should cast the shadow of a pattern with a background, a fill and a visible stroke (batched: %s)',
@@ -484,7 +484,7 @@ describe('Group shadow compositor', () => {
                         gradient: 'linear' as const,
                         colorStops: [{ color: 'rgba(0, 0, 255, 0.4)', stop: 0 }, { stop: 1 }],
                     };
-                    const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+                    const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 10 };
                     renderNodes(
                         [
                             box(20, 40, 40, 50, { fill: gradient, fillShadow: shadow }),
@@ -503,7 +503,7 @@ describe('Group shadow compositor', () => {
         });
 
         describe('line patterns', () => {
-            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+            const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 10 };
 
             it.each([['forward-slanted-lines'], ['backward-slanted-lines'], ['vertical-lines'], ['horizontal-lines']])(
                 'should cast no shadow from a %s pattern with no stroke, as its fill is open segments that paint nothing',
@@ -612,7 +612,7 @@ describe('Group shadow compositor', () => {
             }
 
             it('should cast its spread shadow at the scaled opacity, whether or not the shadow is batched', () => {
-                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 4 };
+                const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 4 };
                 const extras = (x: number, y: number) => {
                     const node = new ExtrasPath();
                     Object.assign(node, { fill: 'none', stroke: undefined, strokeWidth: 0, fillShadow: shadow });
@@ -633,7 +633,7 @@ describe('Group shadow compositor', () => {
         });
 
         describe('the strength of the casters of a batch', () => {
-            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 12 };
+            const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 12 };
             const item = (y: number, alpha: number) =>
                 box(20, y, 40, 50, { fill: `rgba(0, 0, 255, ${alpha})`, fillShadow: shadow });
             const alphaAt = (x: number, y: number) => at(x, y)[3];
@@ -727,7 +727,7 @@ describe('Group shadow compositor', () => {
     });
 
     describe('knock-out of a translucent item', () => {
-        const INK = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+        const INK = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
         const translucent = (y: number, spread?: number) =>
             box(60, y, 60, 50, { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: { ...INK, spread } });
@@ -822,7 +822,7 @@ describe('Group shadow compositor', () => {
                         fill,
                         stroke: 'black',
                         strokeWidth: 6,
-                        fillShadow: { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 8 },
+                        fillShadow: { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 8 },
                         shadowMode: 'silhouette',
                     });
                 // Outside the edge, on the stroke, inside its footprint and in the middle of the fill.
@@ -844,7 +844,7 @@ describe('Group shadow compositor', () => {
                 pathBox(40, y, 60, 50, {
                     stroke: 'black',
                     strokeWidth: 6,
-                    fillShadow: { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 8 },
+                    fillShadow: { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 8 },
                     shadowMode: 'silhouette',
                     ...mixin,
                 });
@@ -913,7 +913,7 @@ describe('Group shadow compositor', () => {
                 pathBox(60.5, y + 0.25, 40.25, 30.5, {
                     stroke: 'black',
                     strokeWidth: 3,
-                    fillShadow: { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 6 },
+                    fillShadow: { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 6 },
                     shadowMode: 'silhouette',
                     ...mixin,
                 });
@@ -1058,7 +1058,7 @@ describe('Group shadow compositor', () => {
 
     describe('strength of a spread batch', () => {
         // The shadow is opaque and lands 100px right of the items, so that its alpha is that of the mask under it.
-        const SPREAD = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 100, yOffset: 0, blur: 0, spread: 6 };
+        const SPREAD = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 100, yOffset: 0, blur: 0, spread: 6 };
 
         // Two items that overlap at 50 to 80 across, and 60 to 90 down, so their shadows overlap there.
         const overlapping = (first: Partial<Rect>, second: Partial<Rect>) => [
@@ -1465,7 +1465,7 @@ describe('Group shadow compositor', () => {
 
         it('should keep the mask within what a browser can allocate, with a blur wider than the layer at 2x', () => {
             const before = offscreenCanvases();
-            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, blur: 3000 };
+            const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, blur: 3000 };
             renderGroup(
                 createGroup([
                     box(20, 40, 40, 40, { fillShadow: shadow }),
@@ -1523,7 +1523,7 @@ describe('Group shadow compositor', () => {
             ])(
                 'should cast the shadow through a mask of a lower resolution, for a layer of %i x %i',
                 (width, height) => {
-                    const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 8 };
+                    const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 8 };
                     const before = offscreenCanvases();
                     const group = createGroup([
                         box(20, 40, 40, 50, { fill: transparentGradient, fillShadow: shadow }),
@@ -1547,7 +1547,7 @@ describe('Group shadow compositor', () => {
             );
 
             it('should cast the shadow of a segmented path past the width that the mask reaches at its resolution', () => {
-                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)' };
+                const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)' };
                 // A segment that no item reaches, so that the item is drawn in the gap between segments.
                 const segments = [{ clipRect: { x0: 0, y0: 0, x1: 10, y1: 10 } }];
                 const segmentedBox = (x: number) => {
@@ -2460,7 +2460,7 @@ describe('Group shadow compositor', () => {
             debugNodes: {},
         });
 
-        const keyOf = (caster: Shape, shadow: NonNullable<Shape['fillShadow']>): ShadowKey => ({
+        const keyOf = (caster: Shape, shadow: ResolvedDropShadowOptions): ShadowKey => ({
             shadow,
             clip: undefined,
             casters: [caster as ShadowCaster],

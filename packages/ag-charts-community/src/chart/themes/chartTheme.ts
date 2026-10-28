@@ -302,9 +302,7 @@ export class ChartTheme {
             annotationTextboxBackgroundColor: '#fafafa',
             annotationTextboxBorderColor: '#ddd',
             annotationDividerColor: '#181d1f',
-            shadowColor: '#00000080',
-            glowColor: 'rgba(0, 0, 0, 0.35)',
-            glowBlur: 6,
+            shadowFillOpacity: 0.5,
             captionLayoutStyle: 'block',
             captionAlignment: 'center',
         };

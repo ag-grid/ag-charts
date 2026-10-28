@@ -661,24 +661,34 @@ export const FONT_THEME_DEFAULTS = {
     fontWeight: { $ref: 'fontWeight' },
 } as const;
 
+/**
+ * The deprecated `color` is the shadow's `fill` where the shadow has one. The theme's `fillOpacity` goes with the theme's
+ * `fill` alone, so that a `fill` or `color` of the user's is cast as it is written.
+ */
+const SHADOW_FILL_THEME: Operation = { $isUserOption: ['./color', { $path: './color' }, '#000'] };
+const SHADOW_FILL_OPACITY_THEME: Operation = {
+    $isUserOption: [['./color', './fill'], 1, { $ref: 'shadowFillOpacity' }],
+};
+
 /** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
 export const SHADOW_THEME_DEFAULTS = {
     enabled: false,
-    color: { $ref: 'shadowColor' },
+    fill: SHADOW_FILL_THEME,
+    fillOpacity: SHADOW_FILL_OPACITY_THEME,
     xOffset: 3,
     yOffset: 3,
     blur: 5,
 } as const;
 
 /**
- * Disabled glow; the theme value the highlight states that the others inherit from start with. The colour and blur follow
- * the theme, as the light theme's dark glow suits a light background and the dark theme's pale one a dark background.
+ * Disabled glow; the theme value the highlight states that the others inherit from start with. It has no `fill`, as it
+ * takes the fill of the item that it surrounds.
  */
 export const GLOW_THEME_DEFAULTS = {
     enabled: false,
-    color: { $ref: 'glowColor' },
-    blur: { $ref: 'glowBlur' },
-    spread: 1,
+    fillOpacity: 0.4,
+    blur: 2,
+    spread: 4,
 } as const;
 
 /** The highlight states of a series with only item states, and of a treemap group. */
@@ -704,15 +714,16 @@ export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: r
 
 /**
  * The shadow that casts a `glow`: centred on the item, as a glow is the same blurred silhouette as a shadow with no
- * offset. A glow that is off, or has no colour or blur to cast, casts none.
+ * offset. A glow that is off, or has no blur to cast, casts none. A glow with no `fill` leaves that of its shadow
+ * unset, for the shape that casts it to fill in from its own paint.
  */
 export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
     if (glow?.enabled !== true) return;
 
-    const { color, blur, spread } = glow;
-    if (color == null || blur == null) return;
+    const { fill, fillOpacity, blur, spread } = glow;
+    if (blur == null) return;
 
-    return { enabled: true, color, xOffset: 0, yOffset: 0, blur, spread };
+    return { enabled: true, fill, fillOpacity, xOffset: 0, yOffset: 0, blur, spread };
 }
 
 /**

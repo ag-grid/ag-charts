@@ -63,8 +63,8 @@ interface SeriesCase {
 }
 
 /** The glow theme defaults, which a glow takes the fields it leaves unset from. */
-const LIGHT_GLOW = { enabled: false, color: 'rgba(0, 0, 0, 0.35)', blur: 6, spread: 1 };
-const DARK_GLOW = { enabled: false, color: 'rgba(255, 255, 255, 0.6)', blur: 4, spread: 1 };
+const LIGHT_GLOW = { enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 };
+const DARK_GLOW = LIGHT_GLOW;
 
 const FLOW_DATA = [
     { from: 'A', to: 'C', size: 8 },
@@ -634,7 +634,7 @@ describe('highlight glow (enterprise series)', () => {
                 expect(highlighted.filter(casts)).toHaveLength(copies);
                 for (const shape of highlighted.filter(casts)) {
                     expect(shape.fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
-                    expect(shape.fillShadow?.color).not.toBe(SHADOW.color);
+                    expect(shape.fillShadow?.fill).not.toBe(SHADOW.fill);
                 }
             }
         );

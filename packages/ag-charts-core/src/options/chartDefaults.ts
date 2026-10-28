@@ -677,14 +677,17 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     yOffset: number,
     blur: positiveNumber,
     spread: positiveNumber,
-    color: colorOrRef,
+    fill: colorOrRef,
+    fillOpacity: ratio,
+    color: deprecated(colorOrRef, 'Use `fill` instead.'),
 };
 
 export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
     enabled: boolean,
     blur: positiveNumber,
     spread: positiveNumber,
-    color: colorOrRef,
+    fill: colorOrRef,
+    fillOpacity: ratio,
 };
 
 /** Validation for a series whose highlighted and unhighlighted items can also cast a `glow`. */

@@ -220,7 +220,7 @@ describe('highlight glow', () => {
                 // ... and the highlight copy casts the glow alone, never merged with the base shadow.
                 expect(highlighted).toHaveLength(1);
                 expect(highlighted[0].fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
-                expect(highlighted[0].fillShadow?.color).not.toBe(SERIES_SHADOW.color);
+                expect(highlighted[0].fillShadow?.fill).not.toBe(SERIES_SHADOW.fill);
                 expect(highlighted[0].fillShadow?.xOffset).toBe(0);
                 expect(highlighted[0].fillShadow?.yOffset).toBe(0);
             }
@@ -247,14 +247,14 @@ describe('highlight glow', () => {
 
         it('takes the glow fields highlightedItem sets, and the rest from highlightedSeries', async () => {
             const { highlighted } = await hoverFirstItem(testCase, undefined, {
-                highlightedSeries: { glow: { enabled: true, color: '#0000ff', blur: 9, spread: 4 } },
-                highlightedItem: { glow: { color: '#ff0000', spread: 3 } },
+                highlightedSeries: { glow: { enabled: true, fill: '#0000ff', blur: 9, spread: 4 } },
+                highlightedItem: { glow: { fill: '#ff0000', spread: 3 } },
             });
 
             // The item bucket sets the colour and spread alone; `enabled` and `blur` fall through to the series bucket.
             expect(highlighted[0].fillShadow).toMatchObject({
                 enabled: true,
-                color: '#ff0000',
+                fill: '#ff0000',
                 blur: 9,
                 spread: 3,
                 xOffset: 0,
@@ -365,7 +365,13 @@ describe('highlight glow', () => {
                             second: {
                                 highlight: {
                                     highlightedItem: {
-                                        glow: { enabled: true, color: '#00aa00', blur: 0, spread: reach },
+                                        glow: {
+                                            enabled: true,
+                                            fill: '#00aa00',
+                                            fillOpacity: 1,
+                                            blur: 0,
+                                            spread: reach,
+                                        },
                                     },
                                 },
                             },
@@ -406,7 +412,8 @@ describe('highlight glow', () => {
                                     highlightedItem: {
                                         glow: {
                                             enabled: true,
-                                            color: '#00aa00',
+                                            fill: '#00aa00',
+                                            fillOpacity: 1,
                                             blur: 0,
                                             spread: Math.max(0, Math.floor(gap) - 2),
                                         },
@@ -436,7 +443,7 @@ describe('highlight glow', () => {
                         ? left.x + left.width / 2 - (right.x + right.width / 2)
                         : right.x + right.width / 2 - (left.x + left.width / 2)
                 );
-                const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset, yOffset: 0, blur: 0 };
+                const shadow = { enabled: true, fill: 'rgba(0, 0, 0, 0.5)', xOffset, yOffset: 0, blur: 0 };
                 await create(
                     bars(
                         {
@@ -444,7 +451,9 @@ describe('highlight glow', () => {
                                 shadow,
                                 highlight: {
                                     unhighlightedSeries: { opacity: 1 },
-                                    highlightedItem: { glow: { enabled: true, color: '#00aa00', blur: 0, spread: 1 } },
+                                    highlightedItem: {
+                                        glow: { enabled: true, fill: '#00aa00', fillOpacity: 1, blur: 0, spread: 1 },
+                                    },
                                 },
                             },
                         },
@@ -500,30 +509,20 @@ describe('highlight glow', () => {
             async (bucket) => {
                 await createBar('ag-default');
 
-                expect(resolvedGlow(bucket)).toEqual({
-                    enabled: false,
-                    color: 'rgba(0, 0, 0, 0.35)',
-                    blur: 6,
-                    spread: 1,
-                });
+                expect(resolvedGlow(bucket)).toEqual({ enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 });
             }
         );
 
         it.each(BUCKETS)('has the %s glow off, with the dark values ready for when it is turned on', async (bucket) => {
             await createBar('ag-default-dark');
 
-            expect(resolvedGlow(bucket)).toEqual({
-                enabled: false,
-                color: 'rgba(255, 255, 255, 0.6)',
-                blur: 4,
-                spread: 1,
-            });
+            expect(resolvedGlow(bucket)).toEqual({ enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 });
         });
 
-        it('does not apply the dark shadow colour to the glow', async () => {
+        it('leaves the glow fill to the item, whatever the theme', async () => {
             await createBar('ag-default-dark');
 
-            expect(resolvedGlow('highlightedItem')?.color).toBe('rgba(255, 255, 255, 0.6)');
+            expect(resolvedGlow('highlightedItem')?.fill).toBeUndefined();
         });
 
         it('casts the light default glow once it is enabled, without any other glow field', async () => {
@@ -533,12 +532,13 @@ describe('highlight glow', () => {
 
             expect(highlighted[0].fillShadow).toMatchObject({
                 enabled: true,
-                color: 'rgba(0, 0, 0, 0.35)',
-                blur: 6,
-                spread: 1,
+                fillOpacity: 0.4,
+                blur: 2,
+                spread: 4,
                 xOffset: 0,
                 yOffset: 0,
             });
+            expect(highlighted[0].getCastShadow()?.fill).toBe(highlighted[0].fill);
         });
     });
 

@@ -19,6 +19,7 @@ import type {
     ColorSpace,
     InternalAgGradientColor,
     NormalisedDropShadowOptions,
+    ResolvedDropShadowOptions,
 } from '../../options/normalised/normalisedCommonOptions';
 import {
     DeclaredSceneChangeDetection,
@@ -43,6 +44,7 @@ import { Image } from '../image/image';
 import type { MatrixFrame } from '../matrix';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
+import { getShadowColour, getSolidColour, withShadowFill } from '../shadowColour';
 import { shadowPass } from '../shadowPass';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
@@ -481,9 +483,23 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return this.__shadowMode === 'silhouette' || (shadow.spread ?? 0) > 0;
     }
 
+    /**
+     * The shadow that this shape casts, or undefined if it casts none. A glow with no `fill` takes the colour of the
+     * shape's own paint: its fill, or its stroke where it has no fill, and casts nothing where it has neither.
+     */
+    getCastShadow(): ResolvedDropShadowOptions | undefined {
+        const shadow = this.__fillShadow;
+        if (shadow?.enabled !== true) return;
+        if (shadow.fill != null) return shadow as ResolvedDropShadowOptions;
+
+        const colour =
+            getSolidColour(this.__fill, this.__fillOpacity) ?? getSolidColour(this.__stroke, this.__strokeOpacity);
+        return colour == null ? undefined : withShadowFill(shadow, colour);
+    }
+
     /** False while a layer shadow batch casts the shadow for this shape, instead of the shape itself. */
     private castsOwnShadow(): boolean {
-        return shadowPass.state === 'none' && this.__fillShadow?.enabled === true;
+        return shadowPass.state === 'none' && this.getCastShadow() != null;
     }
 
     /** True while the shape is drawing into a layer shadow batch's mask, where {@link renderSilhouetteExtras} is drawn. */
@@ -1093,7 +1109,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
         const { __fillShadow: fillShadow } = this;
         if (fillShadow?.enabled) {
-            ctx.shadowColor = fillShadow.color;
+            const shadow = this.getCastShadow();
+            ctx.shadowColor = shadow == null ? 'rgba(0, 0, 0, 0)' : getShadowColour(shadow);
             ctx.shadowOffsetX = fillShadow.xOffset * pixelRatio;
             ctx.shadowOffsetY = fillShadow.yOffset * pixelRatio;
             ctx.shadowBlur = fillShadow.blur * pixelRatio;

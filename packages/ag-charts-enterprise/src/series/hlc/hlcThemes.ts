@@ -79,7 +79,8 @@ const HLC_ITEM_MARKER: WithThemeParams<HlcItemMarkerOptions> = {
     lineDashOffset: { $path: '/series/$index/marker/lineDashOffset' },
     shadow: {
         enabled: { $path: '/series/$index/marker/shadow/enabled' },
-        color: { $path: '/series/$index/marker/shadow/color' },
+        fill: { $path: '/series/$index/marker/shadow/fill' },
+        fillOpacity: { $path: '/series/$index/marker/shadow/fillOpacity' },
         xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
         yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
         blur: { $path: '/series/$index/marker/shadow/blur' },
