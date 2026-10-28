@@ -661,11 +661,7 @@ export const FONT_THEME_DEFAULTS = {
     fontWeight: { $ref: 'fontWeight' },
 } as const;
 
-/**
- * The `fill` and `fillOpacity` of a shadow. The deprecated `color` is the shadow's `fill`, and wins over `fallbackFill`
- * where the user sets it. The `fallbackFillOpacity` goes with the fallback `fill` alone, so that a `fill` or `color` of
- * the user's is cast as it is written, at every level that a shadow inherits from another.
- */
+/** A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone. */
 function shadowFillTheme(fallbackFill: Operation | string, fallbackFillOpacity: Operation) {
     return {
         fill: { $isUserOption: ['./color', { $path: './color' }, fallbackFill] },
@@ -690,10 +686,7 @@ export const SHADOW_THEME_DEFAULTS = {
     blur: 5,
 } as const;
 
-/**
- * Disabled glow; the theme value the highlight states that the others inherit from start with. It has no `fill`, as it
- * takes the fill of the item that it surrounds.
- */
+/** Disabled glow. It has no `fill`, as it takes the fill of the item that it surrounds. */
 export const GLOW_THEME_DEFAULTS = {
     enabled: false,
     fillOpacity: 0.4,
@@ -722,11 +715,7 @@ export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: r
     return result as T;
 }
 
-/**
- * The shadow that casts a `glow`: centred on the item, as a glow is the same blurred silhouette as a shadow with no
- * offset. A glow that is off, or has no blur to cast, casts none. A glow with no `fill` leaves that of its shadow
- * unset, for the shape that casts it to fill in from its own paint.
- */
+/** The offset-free shadow that casts a `glow`. A glow with no `fill` leaves it unset, for the shape to fill in. */
 export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
     if (glow?.enabled !== true) return;
 

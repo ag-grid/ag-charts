@@ -78,10 +78,7 @@ function isVisibleColour(colour: string): boolean {
     return visible;
 }
 
-/**
- * The solid colour of a paint, or undefined if it paints nothing. A gradient is represented by its first colour stop and
- * a pattern by its fill; an image has no colour of its own.
- */
+/** A paint's solid colour: a gradient's first stop or a pattern's fill. Undefined for an image or no paint. */
 export function getSolidColour(paint: unknown, opacity: number = 1): CssColor | undefined {
     if (paint == null || Number.isNaN(opacity) || opacity <= 0) return;
 
