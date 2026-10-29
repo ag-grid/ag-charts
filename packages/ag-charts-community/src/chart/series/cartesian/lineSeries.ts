@@ -886,7 +886,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
         this.selectedOnly = markerDrawMode.selectedOnly === true;
-        this.markerNodesPickable = markerDrawMode.needsNodeData && (!markerDrawMode.hideWithSize0 || this.selectedOnly);
+        // Under `selectedOnly` only the cross-filter-selected datums have a full-size marker, so the rest fall back to markerless picking.
+        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0 && !this.selectedOnly;
         nodeData = filterMarkerNodeData(nodeData, markerDrawMode);
 
         if (this.markerDirty) {

@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { type AgChartInstance, type AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
+    clickAction,
     deproxy,
+    getSeriesContextNodeData,
     getSeriesSelectionNodes,
     setupMockCanvas,
     setupMockConsole,
@@ -49,6 +51,16 @@ describe('AG-19127 cross-filter markers with selection.enabled', () => {
         await waitForChartStability(chart!);
     }
 
+    async function clickDatum(index: number, offset = 0) {
+        const series = deproxy(chart!).series[0];
+        const nodeDatum = getSeriesContextNodeData(chart!).nodeData[index];
+        const { canvasX, canvasY } = series.toCanvasFromMidPoint(nodeDatum);
+        await clickAction(canvasX + offset, canvasY)(chart!);
+        await waitForChartStability(chart!);
+    }
+
+    const selectedItemIds = () => Array.from(chart!.getSelection()).map((item) => item.itemId);
+
     describe.each(['line', 'area'] as const)('%s', (type) => {
         it('draws the cross-filter-selected marker solid and hides the rest', async () => {
             await create(type);
@@ -71,6 +83,24 @@ describe('AG-19127 cross-filter markers with selection.enabled', () => {
             expect(feb.size).toBeGreaterThan(0);
             expect(feb.fillOpacity).toBeLessThan(1);
             expect(mar.size).toBe(0);
+        });
+
+        it('selects an unselected point clicked within the markerless pick range', async () => {
+            await create(type);
+
+            await clickDatum(1, 5);
+
+            const { series } = deproxy(chart!);
+            expect(selectedItemIds()).toEqual([series[0].data!.getItemIdFromIndex(1)]);
+        });
+
+        it('selects an unselected point clicked exactly', async () => {
+            await create(type);
+
+            await clickDatum(2);
+
+            const { series } = deproxy(chart!);
+            expect(selectedItemIds()).toEqual([series[0].data!.getItemIdFromIndex(2)]);
         });
     });
 });

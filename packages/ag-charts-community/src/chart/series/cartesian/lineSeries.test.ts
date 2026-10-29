@@ -49,6 +49,7 @@ import {
     type TrajectoryExpectation,
     axisReflowSpec,
     cartesianChartAssertions,
+    clickAction,
     compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
@@ -3322,6 +3323,55 @@ describe('LineSeries', () => {
                 expect(nodes).toHaveLength(denseData.length);
                 expect(nodes[0].fillOpacity).toBe(1);
                 expect(nodes[1].fillOpacity).toBeLessThan(1);
+            });
+
+            describe('picking with markers disabled', () => {
+                const clicks: string[] = [];
+
+                async function createClickChart() {
+                    clicks.length = 0;
+                    chart = await createChart({
+                        data,
+                        series: [
+                            withUndocumentedOptions(
+                                {
+                                    type: 'line',
+                                    xKey: 'x',
+                                    yKey: 'y',
+                                    marker: { enabled: false },
+                                    listeners: { seriesNodeClick: (event) => clicks.push(event.datum.x) },
+                                },
+                                { selectedKey: 'selected' }
+                            ),
+                        ],
+                    });
+                }
+
+                async function clickDatum(index: number, offset = 0) {
+                    const series = deproxy(chart).series[0];
+                    const nodeDatum = getSeriesContextNodeData(chart).nodeData[index];
+                    const { canvasX, canvasY } = series.toCanvasFromMidPoint(nodeDatum);
+                    await clickAction(canvasX + offset, canvasY)(chart);
+                    await waitForChartStability(chart);
+                }
+
+                it('fires seriesNodeClick on the unselected points', async () => {
+                    await createClickChart();
+
+                    await clickDatum(1);
+                    await clickDatum(2);
+                    await clickDatum(0);
+
+                    expect(clicks).toEqual(['Feb', 'Mar', 'Jan']);
+                });
+
+                it('fires seriesNodeClick within the markerless pick range of an unselected point', async () => {
+                    await createClickChart();
+
+                    await clickDatum(1, 5);
+
+                    expect(clicks).toEqual(['Feb']);
+                });
             });
         });
     });
