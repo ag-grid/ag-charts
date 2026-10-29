@@ -1,5 +1,4 @@
 import { BUILDER_MIN_WIDTH } from '@ag-website-shared/components/theme-builder/NarrowScreenNotice';
-import { strokesAreEnabled } from '@ag-website-shared/components/theme-builder/palette';
 import { useRenderedTheme, useRenderedThemeInfo } from '@ag-website-shared/theming/rendered-theme';
 import styled from '@emotion/styled';
 import { useStore } from 'jotai';
@@ -11,7 +10,13 @@ import { PresetSelector } from './PresetSelector';
 import { PreviewPane } from './PreviewPane';
 import { PREVIEW_PANES } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
-import { completePalette, setStoredPalette, useStoredPalette } from './paletteModel';
+import {
+    completePalette,
+    setStoredPalette,
+    usePreviewStrokes,
+    useStoredPalette,
+    useStrokeDirection,
+} from './paletteModel';
 import {
     getSelectedPresetId,
     setInitialBaseTheme,
@@ -26,6 +31,8 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     const renderedTheme = useRenderedTheme();
     const { overriddenParams } = useRenderedThemeInfo();
     const storedPalette = useStoredPalette();
+    const strokeDirection = useStrokeDirection();
+    const [previewStrokes] = usePreviewStrokes();
 
     const selectedPresetId = useSelectedPresetId();
     const preset = findPreset(selectedPresetId) ?? initialPreset;
@@ -45,8 +52,9 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
             baseTheme,
             params: overriddenParams,
             palette: storedPalette ?? preset.palette,
+            strokeDirection,
         }),
-        [baseTheme, preset, overriddenParams, storedPalette]
+        [baseTheme, preset, overriddenParams, storedPalette, strokeDirection]
     );
     const previewTheme = useMemo(() => toChartTheme(selection), [selection]);
 
@@ -78,12 +86,7 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
                 <PresetSelector selectedId={selectedPresetId} />
                 <PreviewRow>
                     {PREVIEW_PANES.map((pane) => (
-                        <PreviewPane
-                            key={pane}
-                            pane={pane}
-                            theme={previewTheme}
-                            strokesEnabled={strokesAreEnabled(selection.palette)}
-                        />
+                        <PreviewPane key={pane} pane={pane} theme={previewTheme} strokesEnabled={previewStrokes} />
                     ))}
                 </PreviewRow>
             </Main>

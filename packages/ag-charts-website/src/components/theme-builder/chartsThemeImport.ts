@@ -47,7 +47,9 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
 const asColor = (value: unknown): string | undefined => (typeof value === 'string' ? value : undefined);
 
 const toAccent = (value: unknown): PaletteAccent | undefined =>
-    isPlainObject(value) ? { fill: asColor(value.fill), stroke: asColor(value.stroke) } : undefined;
+    isPlainObject(value)
+        ? { fill: asColor(value.fill), stroke: asColor(value.stroke), strokeDerived: asColor(value.stroke) == null }
+        : undefined;
 
 /**
  * An `AgChartThemePalette` in the editor's shape. Fills and strokes are
@@ -64,6 +66,7 @@ const toEditorPalette = (value: unknown, warnings: string[]): Palette | undefine
     const rawStrokes = Array.isArray(value.strokes) ? value.strokes : [];
     const fills: string[] = [];
     const strokes: string[] = [];
+    const strokesDerived: boolean[] = [];
     let droppedFills = 0;
     rawFills.forEach((fill, index) => {
         if (typeof fill !== 'string') {
@@ -72,8 +75,9 @@ const toEditorPalette = (value: unknown, warnings: string[]): Palette | undefine
         }
         fills.push(fill);
         // A palette may carry fills alone, and AG Charts then outlines each
-        // series in the colour it would have derived anyway.
+        // series in the colour it would have derived anyway. A stroke it names is kept as chosen.
         strokes.push(asColor(rawStrokes[index]) ?? deriveStroke(fill));
+        strokesDerived.push(asColor(rawStrokes[index]) == null);
     });
     if (droppedFills > 0) {
         warnings.push(
@@ -84,20 +88,12 @@ const toEditorPalette = (value: unknown, warnings: string[]): Palette | undefine
     const palette: Palette = {
         fills,
         strokes,
-        // Inverting `toThemePalette`, which writes "strokes off" as a stroke
-        // matching its fill.
-        ...(strokesMatchFills(fills, strokes) ? { strokesEnabled: false } : {}),
-        // `strokesDerived` is deliberately absent, meaning derived: a theme does
-        // not record which strokes were chosen, and re-deriving to compare would
-        // read a stock palette's hand-tuned strokes as chosen.
+        strokesDerived,
         ...accentEntries(value),
     };
 
     return paletteIsEmpty(palette) ? undefined : palette;
 };
-
-const strokesMatchFills = (fills: string[], strokes: string[]) =>
-    fills.length > 0 && fills.every((fill, index) => strokes[index]?.toLowerCase() === fill.toLowerCase());
 
 const accentEntries = (value: Record<string, unknown>) => {
     const entries: Partial<Pick<Palette, 'up' | 'down' | 'neutral'>> = {};

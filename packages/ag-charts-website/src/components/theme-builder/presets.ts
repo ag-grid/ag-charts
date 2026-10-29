@@ -27,9 +27,11 @@ interface PaletteSpec {
 const toPalette = ({ series, up, down, neutral }: PaletteSpec): Palette => ({
     fills: series.map(([fill]) => fill),
     strokes: series.map(([, stroke]) => stroke),
-    up: { fill: up[0], stroke: up[1] },
-    down: { fill: down[0], stroke: down[1] },
-    neutral: { fill: neutral[0], stroke: neutral[1] },
+    // Hand-tuned, so unlinked: a linked stroke would be re-derived from its fill.
+    strokesDerived: series.map(() => false),
+    up: { fill: up[0], stroke: up[1], strokeDerived: false },
+    down: { fill: down[0], stroke: down[1], strokeDerived: false },
+    neutral: { fill: neutral[0], stroke: neutral[1], strokeDerived: false },
 });
 
 export type ChartsPreset = {
