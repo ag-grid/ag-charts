@@ -1,6 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { BBox, Group, Path, Rect, Scene, SegmentedGroup, TranslatableGroup, shadowPass } from 'ag-charts-core';
+import {
+    BBox,
+    Group,
+    Path,
+    Rect,
+    Scene,
+    SegmentedGroup,
+    TranslatableGroup,
+    overrideTintableShadows,
+    shadowPass,
+} from 'ag-charts-core';
 import type { Node, RenderContext } from 'ag-charts-core';
 
 import { expectSamePixels } from '../chart/test/expectSamePixels';
@@ -794,6 +804,45 @@ describe('Shadow root', () => {
                 expect(at(scene, 20 + i * 70 + 20, 56)).toEqual([...rgb, 255]);
             }
             expect(at(scene, 40, 48)).toEqual([0, 0, 0, 0]);
+        });
+
+        describe('where the canvas cannot blur a mask of many colours', () => {
+            beforeEach(() => overrideTintableShadows(false));
+            afterEach(() => overrideTintableShadows());
+
+            it('should make a mask for each colour of the items, which the glow has no fill to key by', () => {
+                expect(blitsOf(build(1, () => GLOW))).toBe(1);
+                expect(blitsOf(build(COLOURS.length, () => GLOW))).toBe(COLOURS.length);
+            });
+
+            it('should draw the glow around each item in the colour of that item', () => {
+                const scene = draw(
+                    true,
+                    build(3, () => GLOW)
+                );
+
+                for (const [i, rgb] of [
+                    [255, 0, 0],
+                    [0, 255, 0],
+                    [0, 0, 255],
+                ].entries()) {
+                    expect(at(scene, 20 + i * 70 + 20, 56)).toEqual([...rgb, 255]);
+                }
+                expect(at(scene, 40, 48)).toEqual([0, 0, 0, 0]);
+            });
+
+            it('should cast the glow of a translucent item at the strength of its alpha', () => {
+                const scene = draw(true, () => [
+                    group('shared', [
+                        square(20, 60, { fill: 'rgba(255, 0, 0, 0.5)', width: 40, height: 40, fillShadow: GLOW }),
+                    ]),
+                ]);
+
+                // A half of a half.
+                const [red, green, blue, alpha] = at(scene, 40, 56);
+                expect([red, green, blue]).toEqual([255, 0, 0]);
+                expect(Math.abs(alpha - 64)).toBeLessThanOrEqual(2);
+            });
         });
     });
 });

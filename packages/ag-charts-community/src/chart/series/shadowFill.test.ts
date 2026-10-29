@@ -3,10 +3,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { type Node, Shape, Transformable } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
+import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../test/bigintExamples';
 import { getSeriesPaths } from '../test/communitySeriesAccessors';
-import { getSeriesSelectionNodes } from '../test/seriesAccessors';
+import { getSeriesAt, getSeriesSelectionNodes } from '../test/seriesAccessors';
 import { CATEGORY_DATA, HISTOGRAM_DATA, XY_DATA } from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
@@ -59,7 +60,7 @@ describe('shadow fill and fillOpacity', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: Chart | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -70,16 +71,23 @@ describe('shadow fill and fillOpacity', () => {
     const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
 
     const create = async (options: AgChartOptions) => {
-        chart = deproxy(await createChart(options));
-        await waitForChartStability(chart);
-        return chart;
+        const created = deproxy(await createChart(options));
+        chart = created;
+        await waitForChartStability(created);
+        return created;
+    };
+
+    /** The chart under test, asserted to exist. */
+    const current = () => {
+        expect(chart, 'chart').toBeDefined();
+        return chart!;
     };
 
     /** The shapes of the first series that cast a shadow, including the fill path of an area. */
     const casters = () => {
-        const selection = chart.series[0].type === 'donut' ? 'itemSelection' : 'datumSelection';
-        const nodes: Node[] = getSeriesSelectionNodes(chart, selection);
-        if (chart.series[0].type === 'area') nodes.push(...getSeriesPaths(chart));
+        const selection = getSeriesAt(current()).type === 'donut' ? 'itemSelection' : 'datumSelection';
+        const nodes: Node[] = getSeriesSelectionNodes(current(), selection);
+        if (getSeriesAt(current()).type === 'area') nodes.push(...getSeriesPaths(current()));
         return nodes.filter((node): node is Shape => node instanceof Shape && node.fillShadow?.enabled === true);
     };
 
@@ -180,7 +188,7 @@ describe('shadow fill and fillOpacity', () => {
         };
 
         const pixelAt = (x: number, y: number) => [
-            ...chart.ctx.scene.canvas.context.getImageData(Math.round(x), Math.round(y), 1, 1).data,
+            ...current().ctx.scene.canvas.context.getImageData(Math.round(x), Math.round(y), 1, 1).data,
         ];
 
         /** The colour of the chart where the shadow of the marker falls, on its centre. */
@@ -204,10 +212,12 @@ describe('shadow fill and fillOpacity', () => {
                     },
                 ],
             } as AgCartesianChartOptions);
-            const [marker] = getSeriesSelectionNodes<Marker>(chart, 'datumSelection').filter((node) => node.visible);
+            const [marker] = getSeriesSelectionNodes<Marker>(current(), 'datumSelection').filter(
+                (node) => node.visible
+            );
             const { canvasX, canvasY } = Transformable.toCanvasPoint(marker.parentNode!, marker.x, marker.y);
             const pixel = pixelAt(canvasX + 40, canvasY);
-            chart.destroy();
+            current().destroy();
             return pixel;
         };
 

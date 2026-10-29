@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgChartInstance, AgChartOptions, AgGlowOptions } from 'ag-charts-community';
+import type { AgCandlestickSeriesOptions, AgChartInstance, AgChartOptions, AgGlowOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     HIGHLIGHT_GLOW,
@@ -14,7 +14,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Color, RadialColumnShape, Rect, Sector } from 'ag-charts-core';
+import { Color, RadialColumnShape, Rect, Sector, Transformable } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
@@ -563,6 +563,52 @@ describe('highlight glow (enterprise series)', () => {
 
         return layersOf(testCase);
     };
+
+    describe('glow with no spread around a shape with extras', () => {
+        const candlestick = SERIES.find((testCase) => testCase.name === 'candlestick')!;
+        const WHITE = [255, 255, 255, 255];
+
+        // The wick is stroked and the body is not, so the wick is all that the glow has to reach past the body.
+        const wicked: SeriesCase = {
+            ...candlestick,
+            series: (shadow, highlight): AgCandlestickSeriesOptions => ({
+                type: 'candlestick',
+                xKey: 'x',
+                openKey: 'open',
+                highKey: 'high',
+                lowKey: 'low',
+                closeKey: 'close',
+                shadow,
+                highlight,
+                item: {
+                    up: { fill: 'blue', stroke: 'none', wick: { stroke: 'blue', strokeWidth: 2 } },
+                    down: { fill: 'blue', stroke: 'none', wick: { stroke: 'blue', strokeWidth: 2 } },
+                },
+            }),
+        };
+
+        const pixelsBesideWick = async (glow: AgGlowOptions, drawingMode: 'cutout' | 'overlay') => {
+            const { highlighted } = await hoverItem(wicked, undefined, { highlightedItem: { glow } }, drawingMode);
+            const [node] = highlighted;
+            const { x, y, width } = Transformable.toCanvas(node);
+            const pixelAt = (px: number, py: number) => [
+                ...deproxy(chart).ctx.scene.canvas.context.getImageData(Math.round(px), Math.round(py), 1, 1).data,
+            ];
+            // On the upper wick, level with the glow that is cast from it.
+            const centre = x + width / 2;
+            return { near: pixelAt(centre + 4, y + 4), far: pixelAt(centre + 60, y + 4) };
+        };
+
+        it.each([
+            ['with a blur and no fill', { enabled: true, spread: 0, blur: 8, fillOpacity: 1 }],
+            ['with a blur and a fill', { enabled: true, spread: 0, blur: 8, fillOpacity: 1, fill: '#00ff00' }],
+        ] as const)('casts the glow of the wick, at a spread of 0, %s', async (_name, glow) => {
+            const { near, far } = await pixelsBesideWick(glow, 'overlay');
+
+            expect(near).not.toEqual(WHITE);
+            expect(far).toEqual(WHITE);
+        });
+    });
 
     describe('glow fill from a colour scale', () => {
         const byName = (name: string) => SERIES.find((testCase) => testCase.name === name)!;

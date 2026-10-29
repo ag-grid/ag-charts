@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartOptions, AgDropShadowOptions, _ModuleSupport } from 'ag-charts-community';
+import type { Chart } from 'ag-charts-community-test';
 import { deproxy, getSeriesSelectionNodes, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../test/utils';
@@ -47,7 +48,7 @@ describe('item marker shadow fill and fillOpacity', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: Chart | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -62,7 +63,7 @@ describe('item marker shadow fill and fillOpacity', () => {
         itemShadow: AgDropShadowOptions | undefined,
         seriesShadow?: AgDropShadowOptions
     ) => {
-        chart = deproxy(
+        const created = deproxy(
             await createEnterpriseChart({
                 data: DATA,
                 animation: { enabled: false },
@@ -70,7 +71,8 @@ describe('item marker shadow fill and fillOpacity', () => {
                 series: [testCase.series(itemShadow, seriesShadow)],
             } as AgChartOptions)
         );
-        const casters = getSeriesSelectionNodes<_ModuleSupport.Marker>(chart, 'datumSelection').filter(
+        chart = created;
+        const casters = getSeriesSelectionNodes<_ModuleSupport.Marker>(created, 'datumSelection').filter(
             (marker) => marker.fillShadow?.enabled
         );
         expect(casters.length).toBeGreaterThan(0);

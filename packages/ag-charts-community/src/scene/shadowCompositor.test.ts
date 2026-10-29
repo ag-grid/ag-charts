@@ -16,6 +16,7 @@ import {
     Translatable,
     castShadows,
     joinsShadowKey,
+    overrideTintableShadows,
     releaseShadowScratch,
     shadowPass,
 } from 'ag-charts-core';
@@ -2625,6 +2626,100 @@ describe('Group shadow compositor', () => {
                 for (const pixel of [red, green, blue]) expect(pixel[3]).toBe(255);
                 // Beyond the spread there is none.
                 expect(at(20 + 20, 60 - 12)).toEqual(CLEAR);
+            });
+
+            describe('translucent items', () => {
+                afterEach(() => overrideTintableShadows());
+
+                // The colour of an item has an alpha of a half, which applies to the colour of its glow and to its strength.
+                const translucent = (fillShadow: Shape['fillShadow']) => [
+                    box(20, 60, 40, 40, { fill: 'rgba(255, 0, 0, 0.5)', fillShadow }),
+                ];
+                const glowPixel = (fillShadow: Shape['fillShadow'], canTint: boolean | undefined) => {
+                    overrideTintableShadows(canTint);
+                    renderNodes(translucent(fillShadow));
+                    return at(20 + 20, 60 - 4);
+                };
+                const EXPLICIT = { ...GLOW, fill: 'rgba(255, 0, 0, 0.5)' };
+
+                it('should cast the alpha of the colour once in the colour and once in the strength', () => {
+                    // A half of a half.
+                    const [red, green, blue, alpha] = glowPixel(GLOW, true);
+
+                    expect([red, green, blue]).toEqual([255, 0, 0]);
+                    expect(Math.abs(alpha - 64)).toBeLessThanOrEqual(2);
+                });
+
+                it.each([true, false])(
+                    'should cast the same pixels from the inferred colour as from the same fill, where tinting is %s',
+                    (canTint) => {
+                        const inferred = glowPixel(GLOW, canTint);
+                        const explicit = glowPixel(EXPLICIT, canTint);
+
+                        for (let i = 0; i < 4; i++) expect(Math.abs(inferred[i] - explicit[i])).toBeLessThanOrEqual(1);
+                    }
+                );
+
+                it.each([GLOW, EXPLICIT])(
+                    'should cast the same pixels whether or not the canvas can tint',
+                    (shadow) => {
+                        const tinted = glowPixel(shadow, true);
+                        const perColour = glowPixel(shadow, false);
+
+                        for (let i = 0; i < 4; i++) expect(Math.abs(tinted[i] - perColour[i])).toBeLessThanOrEqual(1);
+                    }
+                );
+            });
+
+            describe('where the canvas cannot blur a mask of many colours', () => {
+                beforeEach(() => overrideTintableShadows(false));
+                afterEach(() => overrideTintableShadows());
+
+                it('should make a mask for each colour of the items, which the glow has no fill to key by', () => {
+                    expect(blitsOf(items(1, GLOW))).toBe(1);
+                    expect(blitsOf(items(COLOURS.length, GLOW))).toBe(COLOURS.length);
+                });
+
+                it('should share a mask between neighbouring items of the same colour', () => {
+                    // A cast ends where an item of another colour comes between, as it would draw over the glow.
+                    const nodes = [0, 0, 1, 1].map((colour, i) =>
+                        box(20 + i * 70, 60, 40, 40, { fill: COLOURS[colour], fillShadow: GLOW })
+                    );
+
+                    expect(blitsOf(nodes)).toBe(2);
+                });
+
+                it('should draw the glow around each item in the colour of that item', () => {
+                    renderNodes(items(3, GLOW));
+
+                    const glowAt = (i: number) => at(20 + i * 70 + 20, 60 - 4);
+                    for (const [i, rgb] of [
+                        [255, 0, 0],
+                        [0, 255, 0],
+                        [0, 0, 255],
+                    ].entries()) {
+                        expect(glowAt(i)).toEqual([...rgb, 255]);
+                    }
+                    expect(at(20 + 20, 60 - 12)).toEqual(CLEAR);
+                });
+
+                it('should cast the glow of each translucent item at the strength of its alpha', () => {
+                    renderNodes(
+                        COLOURS.slice(0, 2).map((colour, i) =>
+                            box(20 + i * 70, 60, 40, 40, {
+                                fill: colour.replace('rgb', 'rgba').replace(')', ', 0.5)'),
+                                fillShadow: GLOW,
+                            })
+                        )
+                    );
+
+                    const [red, green, blue, alpha] = at(20 + 20, 60 - 4);
+                    expect([red, green, blue]).toEqual([255, 0, 0]);
+                    expect(Math.abs(alpha - 64)).toBeLessThanOrEqual(2);
+                    const second = at(20 + 70 + 20, 60 - 4);
+                    expect([second[0], second[1], second[2]]).toEqual([0, 255, 0]);
+                    expect(Math.abs(second[3] - 64)).toBeLessThanOrEqual(2);
+                });
             });
         });
 

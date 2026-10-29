@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Rect, Sector, Shape, Transformable } from 'ag-charts-core';
+import { Rect, Sector, Shape, Transformable, overrideTintableShadows } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
@@ -797,14 +797,20 @@ describe('highlight glow', () => {
             const GREEN_FILL = '#00ff00';
             const glow = (extra: object) => ({ enabled: true, fillOpacity: 1, ...extra });
 
-            const hoveredPixels = async (testCase: SeriesCase, options: object, bucketGlow: object) => {
+            const hoveredPixels = async (
+                testCase: SeriesCase,
+                options: object,
+                bucketGlow: object,
+                drawingMode: 'cutout' | 'overlay' = 'cutout'
+            ) => {
                 const { highlighted } = await hoverFirstItem(
                     {
                         ...testCase,
                         series: (shadow, extra) => ({ ...testCase.series(shadow, extra), ...options }),
                     },
                     undefined,
-                    { highlightedItem: { glow: bucketGlow } }
+                    { highlightedItem: { glow: bucketGlow } },
+                    drawingMode
                 );
                 const { x, y, width } = Transformable.toCanvas(highlighted[0]);
                 const pixelAt = (px: number, py: number) => [
@@ -910,6 +916,132 @@ describe('highlight glow', () => {
                 );
 
                 expect(pixels.above(3)).toEqual([255, 0, 0, 255]);
+            });
+
+            describe('around a stroked item whose fill has no colour to take', () => {
+                // 1x1 transparent PNG: an image fill has no colour, and the stroke gives the glow its colour.
+                const IMAGE = {
+                    type: 'image',
+                    url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+                };
+                const CLEAR_FIRST_STOP = {
+                    type: 'gradient',
+                    colorStops: [
+                        { color: 'rgba(255, 0, 0, 0)', stop: 0 },
+                        { color: 'rgba(255, 0, 0, 1)', stop: 1 },
+                    ],
+                };
+                const PAINTS = [
+                    ['an image fill', IMAGE],
+                    ['a gradient whose first stop is transparent', CLEAR_FIRST_STOP],
+                ] as const;
+                const SHAPES = [
+                    ['bar', SERIES[0], { stroke: 'blue', strokeWidth: 2 }],
+                    [
+                        'marker',
+                        SERIES[3],
+                        { shape: 'square', fillOpacity: 1, stroke: 'blue', strokeWidth: 2, size: 24 },
+                    ],
+                ] as const;
+
+                /** The pixels above the shape, one for each pixel of distance from its top edge. */
+                const column = async (testCase: SeriesCase, options: object, bucketGlow: object) => {
+                    const pixels = await hoveredPixels(testCase, options, bucketGlow);
+                    const sampled = Array.from({ length: 14 }, (_, offset) => pixels.above(offset));
+                    chart.destroy();
+                    return sampled;
+                };
+                const covered = (sampled: number[][]) => sampled.map((pixel) => pixel.join() !== WHITE.join());
+
+                describe.each(SHAPES)('a %s', (_shape, testCase, stroke) => {
+                    it.each(PAINTS)(
+                        'casts the same silhouette with and without a glow fill, with %s',
+                        async (_p, fill) => {
+                            const options = { ...stroke, fill };
+                            const inferred = await column(testCase, options, glow({ spread: 4, blur: 0 }));
+                            const explicit = await column(
+                                testCase,
+                                options,
+                                glow({ spread: 4, blur: 0, fill: GREEN_FILL })
+                            );
+
+                            expect(covered(inferred)).toContain(true);
+                            expect(covered(explicit)).toEqual(covered(inferred));
+                            // The colour of the glow is the only difference: the stroke's, or the fill that was set.
+                            expect(inferred[3]).toEqual(BLUE);
+                            expect(explicit[3]).toEqual(GREEN);
+                            // The glow of a fill reaches 4px past the fill, 3px past the stroke.
+                            expect(explicit[8]).toEqual(WHITE);
+                        }
+                    );
+                });
+            });
+
+            describe('parity of the routes that cast a glow', () => {
+                const TRANSLUCENT = { fill: 'rgba(255, 0, 0, 0.5)', fillOpacity: 1, strokeWidth: 0, size: 24 };
+                const TRANSLUCENT_FILL = 'rgba(255, 0, 0, 0.5)';
+                const PARITY_CASES = [
+                    ['bar', SERIES[0]],
+                    ['marker', SERIES[3]],
+                ] as const;
+
+                afterEach(() => overrideTintableShadows());
+
+                const glowPixel = async (
+                    testCase: SeriesCase,
+                    bucketGlow: object,
+                    drawingMode: 'cutout' | 'overlay',
+                    canTint: boolean | undefined
+                ) => {
+                    overrideTintableShadows(canTint);
+                    const pixels = await hoveredPixels(testCase, TRANSLUCENT, bucketGlow, drawingMode);
+                    const pixel = pixels.above(2);
+                    chart.destroy();
+                    return pixel;
+                };
+
+                describe.each(PARITY_CASES)('a %s', (_name, testCase) => {
+                    describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
+                        const spread = glow({ spread: 4, blur: 0 });
+
+                        it('applies the alpha of the colour to both the colour and the strength', async () => {
+                            const [red, green, blue, alpha] = await glowPixel(testCase, spread, drawingMode, undefined);
+
+                            // A half of a half, over white: 255 * (1 - 0.25).
+                            expect(red).toBe(255);
+                            expect(Math.abs(green - 191)).toBeLessThanOrEqual(2);
+                            expect(Math.abs(blue - 191)).toBeLessThanOrEqual(2);
+                            expect(alpha).toBe(255);
+                        });
+
+                        it.each([undefined, false])(
+                            'casts the same pixels from an inferred fill as from the same fill set, with tinting %s',
+                            async (canTint) => {
+                                const inferred = await glowPixel(testCase, spread, drawingMode, canTint);
+                                const explicit = await glowPixel(
+                                    testCase,
+                                    { ...spread, fill: TRANSLUCENT_FILL },
+                                    drawingMode,
+                                    canTint
+                                );
+
+                                for (let i = 0; i < 4; i++)
+                                    expect(Math.abs(inferred[i] - explicit[i])).toBeLessThanOrEqual(2);
+                            }
+                        );
+
+                        it.each([
+                            ['inferred', {}],
+                            ['set', { fill: TRANSLUCENT_FILL }],
+                        ])('casts the same pixels where the canvas cannot tint, with a fill %s', async (_f, extra) => {
+                            const tinted = await glowPixel(testCase, { ...spread, ...extra }, drawingMode, undefined);
+                            const perColour = await glowPixel(testCase, { ...spread, ...extra }, drawingMode, false);
+
+                            for (let i = 0; i < 4; i++)
+                                expect(Math.abs(tinted[i] - perColour[i])).toBeLessThanOrEqual(2);
+                        });
+                    });
+                });
             });
         });
 
