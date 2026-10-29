@@ -71,4 +71,33 @@ test.describe('css variables', () => {
         await waitForAllChartUpdates(page);
         await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'onto-color-changed.png');
     });
+    // Moving between roots must clear the previous root's watchers; a leftover watcher doubles every refresh.
+    test('moving a chart out of and back into a shadow root keeps a single CSS-variable watcher', async ({ page }) => {
+        const { url } = toExamplePageUrl('themes-e2e', 'css-variables-shadow-root', 'vanilla');
+        await gotoExample(page, url);
+
+        // Watchers sit in a sensor element below the root they belong to, so count at any depth in each root.
+        const countWatchers = () =>
+            page.evaluate(() => ({
+                shadow: document.getElementById('shadowHost')!.shadowRoot!.querySelectorAll('[data-variable-name]')
+                    .length,
+                light: document.querySelectorAll('[data-variable-name]').length,
+            }));
+
+        await page.getByText('Move to shadow root').click();
+        await expect(page.locator('#shadowHost canvas')).toBeVisible();
+        await waitForAllChartUpdates(page);
+        const first = await countWatchers();
+        expect(first.shadow).toBe(1);
+
+        await page.getByText('Move to light DOM').click();
+        await expect(page.locator('#myChart canvas')).toBeVisible();
+        await waitForAllChartUpdates(page);
+        expect((await countWatchers()).shadow).toBe(0);
+
+        await page.getByText('Move to shadow root').click();
+        await expect(page.locator('#shadowHost canvas')).toBeVisible();
+        await waitForAllChartUpdates(page);
+        expect(await countWatchers()).toEqual(first);
+    });
 });
