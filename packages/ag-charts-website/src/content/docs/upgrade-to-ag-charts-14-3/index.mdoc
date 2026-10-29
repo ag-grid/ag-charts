@@ -23,7 +23,7 @@ migrationVersion: '14.3.0'
 
 See the [release post](https://www.ag-grid.com/blog/whats-new-in-ag-charts-14-3/) for feature highlights of what's new in this version.
 
-Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid {% gridVersion() %}.
+Users of integrated charting on AG Grid should refer to this migration guide when upgrading to AG Grid {% gridVersion() %}.
 
 <!--
 Documentation to the highest patch release of the major/minor
@@ -110,7 +110,7 @@ There are no deprecations in AG Charts version {% migrationVersion() %}.
 - Navigator `mask` is deprecated. Use `track` instead.
 - Cross line `label.position` is deprecated. Use `label.placement` instead.
 - Axis `line.width` is deprecated. Use `line.strokeWidth` instead.
-- Series and marker `shadow.color` is deprecated. Use `shadow.fill` and `shadow.fillOpacity` instead.
+- Linear Gauge label `avoidCollisions` is deprecated. Use `collision.alwaysShow` instead. The sense is inverted: `avoidCollisions: false` is equivalent to `collision.alwaysShow: true`.
 
 {% /expandingSection %}
 

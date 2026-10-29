@@ -43,6 +43,24 @@ Set `totalSegment.enabled` to show a column between the price axis and the bars,
 
 {% chartExampleRunner title="Total Segment" name="total-segment" type="generated" /%}
 
+On a Financial Chart, `totalSegment` is an option of `volumeProfile`:
+
+```js format="snippet"
+{
+    tickSize: 5,
+    volumeProfile: {
+        data: profile,
+        upKey: 'upVolume',
+        downKey: 'downVolume',
+        totalSegment: {
+            enabled: true,
+        },
+    },
+}
+```
+
+The example above is a Volume Profile Chart created with `AgCharts.createVolumeProfileChart()`, where `totalSegment` is a top-level option:
+
 ```js format="snippet"
 {
     tickSize: 5,
