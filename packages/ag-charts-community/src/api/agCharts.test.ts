@@ -19,6 +19,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../chart/test/utils';
+import { getManagerSizeMonitor } from '../dom/test/domAccessors';
 import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
 import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
 import { invalidOption } from '../module/test/moduleAccessors';
@@ -798,10 +799,12 @@ describe('AgCharts', () => {
             const { domManager, eventsHub, optionsGraphService } = deproxy(chart).ctx;
             const refresh = vi.fn();
             eventsHub.on('chart:request-refresh', refresh);
+            const remeasure = vi.spyOn(getManagerSizeMonitor(domManager), 'refresh');
 
             optionsGraphService.resolvePartial(['series', '0'], stylerResult);
             document.body.append(detached);
-            (domManager as any).onAttachTransition();
+            // The attach MutationObserver detects the insertion; the transition re-measures the container.
+            await vi.waitFor(() => expect(remeasure).toHaveBeenCalledWith(detached));
             detached.remove();
 
             return refresh;
