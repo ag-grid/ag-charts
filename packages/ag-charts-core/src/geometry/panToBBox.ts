@@ -64,11 +64,12 @@ function panAxisUnnormalized(
 /* Call panAxisUnnormalized for both x and y axes */
 function panAxesUnnormalized(
     viewport: Bounds4,
+    zoomRect: Bounds4,
     target: Bounds4,
     ratioX: Ratios,
     ratioY: Ratios
 ): { x: number; y: number } {
-    const world = calcWorldVec4(viewport, ratioX, ratioY);
+    const world = calcWorldVec4(zoomRect, ratioX, ratioY);
     return {
         x: panAxisUnnormalized(world.x1, world.x2, viewport.x1, viewport.x2, target.x1, target.x2),
         y: panAxisUnnormalized(world.y1, world.y2, viewport.y1, viewport.y2, target.y1, target.y2),
@@ -77,42 +78,54 @@ function panAxesUnnormalized(
 
 // Screen-space is y-down but zoom ratios are y-up; mirroring about the viewport's centre-line
 // keeps the viewport fixed while letting `viewport.y1` map to `ratio.min` below.
-function flipTargetY(viewportBBox: BoxBounds, targetBBox: BoxBounds): BoxBounds {
+function flipY(viewportBBox: BoxBounds, bbox: BoxBounds): BoxBounds {
     return {
-        x: targetBBox.x,
-        y: 2 * viewportBBox.y + viewportBBox.height - targetBBox.y - targetBBox.height,
-        width: targetBBox.width,
-        height: targetBBox.height,
+        x: bbox.x,
+        y: 2 * viewportBBox.y + viewportBBox.height - bbox.y - bbox.height,
+        width: bbox.width,
+        height: bbox.height,
     };
 }
 
 // The calculations of the new desired viewport (i.e. ZoomMinMax) is done in pixel coords (unnormalised).
-// The desired (x, y) for the new viewport is found, the pixel coords are converted into normalized values
+// The desired (x, y) for the new viewport is found, the pixel coords are converted into normalized values.
+// `screenZoomRectBBox` is the pixel rect `ratios` span, smaller than the viewport when letterboxed (e.g. maps).
 export function calcPanToBBoxRatios(
     scalingMode: PanToBBoxScalingModeEnum,
     viewportBBox: BoxBounds,
     ratios: Partial<XYRatios>,
-    screenTargetBBox: BoxBounds
+    screenTargetBBox: BoxBounds,
+    screenZoomRectBBox: BoxBounds = viewportBBox
 ): XYRatios {
-    const targetBBox = flipTargetY(viewportBBox, screenTargetBBox);
+    const targetBBox = flipY(viewportBBox, screenTargetBBox);
+    const zoomRectBBox = flipY(viewportBBox, screenZoomRectBBox);
     switch (scalingMode) {
         case PanToBBoxScalingModeEnum.None:
-            return calcPanToBBoxRatiosNoScale(viewportBBox, ratios, targetBBox);
+            return calcPanToBBoxRatiosNoScale(viewportBBox, zoomRectBBox, ratios, targetBBox);
 
         case PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally:
-            return calcPanToBBoxRatiosScaleProportionally(viewportBBox, ratios, targetBBox);
+            return calcPanToBBoxRatiosScaleProportionally(viewportBBox, zoomRectBBox, ratios, targetBBox);
 
         case PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYDisproportionally:
-            return calcPanToBBoxRatiosScaleDisproportionally(viewportBBox, ratios, targetBBox);
+            return calcPanToBBoxRatiosScaleDisproportionally(viewportBBox, zoomRectBBox, ratios, targetBBox);
 
         default:
             return scalingMode satisfies never; // unreachable
     }
 }
 
+/* Shift the zoom rect's [min, max] by `delta` pixels and convert the result into ratios. */
+function panRatios(zoomRectMin: number, zoomRectMax: number, ratio: Ratios, delta: number): Ratios {
+    return {
+        min: normalize(zoomRectMin, ratio.min, zoomRectMax, ratio.max, zoomRectMin + delta),
+        max: normalize(zoomRectMin, ratio.min, zoomRectMax, ratio.max, zoomRectMax + delta),
+    };
+}
+
 function calcPanToBBoxRatiosWithScaling(
     assignToViewport: NeedsScaling,
     viewportBBox: BoxBounds,
+    zoomRectBBox: BoxBounds,
     ratios: Partial<XYRatios>,
     targetBBox: BoxBounds
 ): XYRatios {
@@ -120,27 +133,16 @@ function calcPanToBBoxRatiosWithScaling(
 
     const target = Vec4.from(targetBBox);
     const viewport = Vec4.from(viewportBBox);
-    const pan = panAxesUnnormalized(viewport, target, ratioX, ratioY);
+    const zoomRect = Vec4.from(zoomRectBBox);
+    const pan = panAxesUnnormalized(viewport, zoomRect, target, ratioX, ratioY);
 
     const result: XYRatios = {
         x: assignToViewport.x
-            ? {
-                  min: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, viewport.x1),
-                  max: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, viewport.x2),
-              }
-            : {
-                  min: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, pan.x),
-                  max: normalize(viewport.x1, ratioX.min, viewport.x2, ratioX.max, pan.x + viewportBBox.width),
-              },
+            ? { min: ratioX.min, max: ratioX.max }
+            : panRatios(zoomRect.x1, zoomRect.x2, ratioX, pan.x - viewport.x1),
         y: assignToViewport.y
-            ? {
-                  min: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, viewport.y1),
-                  max: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, viewport.y2),
-              }
-            : {
-                  min: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, pan.y),
-                  max: normalize(viewport.y1, ratioY.min, viewport.y2, ratioY.max, pan.y + viewportBBox.height),
-              },
+            ? { min: ratioY.min, max: ratioY.max }
+            : panRatios(zoomRect.y1, zoomRect.y2, ratioY, pan.y - viewport.y1),
     };
 
     // [min, max] are in the [0, 1] range while preserving the (max - min) difference.
@@ -156,29 +158,32 @@ function calcPanToBBoxRatiosWithScaling(
 
 function calcPanToBBoxRatiosNoScale(
     viewportBBox: BoxBounds,
+    zoomRectBBox: BoxBounds,
     ratios: Partial<XYRatios>,
     targetBBox: BoxBounds
 ): XYRatios {
-    return calcPanToBBoxRatiosWithScaling({ x: false, y: false }, viewportBBox, ratios, targetBBox);
+    return calcPanToBBoxRatiosWithScaling({ x: false, y: false }, viewportBBox, zoomRectBBox, ratios, targetBBox);
 }
 
 function calcPanToBBoxRatiosScaleDisproportionally(
     viewportBBox: BoxBounds,
+    zoomRectBBox: BoxBounds,
     ratios: Partial<XYRatios>,
     targetBBox: BoxBounds
 ): XYRatios {
     const scaling = calcNeedsScaling(viewportBBox, targetBBox);
-    return calcPanToBBoxRatiosWithScaling(scaling, viewportBBox, ratios, targetBBox);
+    return calcPanToBBoxRatiosWithScaling(scaling, viewportBBox, zoomRectBBox, ratios, targetBBox);
 }
 
 function calcPanToBBoxRatiosScaleProportionally(
     viewportBBox: BoxBounds,
+    zoomRectBBox: BoxBounds,
     ratios: Partial<XYRatios>,
     targetBBox: BoxBounds
 ): XYRatios {
     const scaleRequirements = calcNeedsScaling(viewportBBox, targetBBox);
     if (!scaleRequirements.x && !scaleRequirements.y) {
-        return calcPanToBBoxRatiosWithScaling(scaleRequirements, viewportBBox, ratios, targetBBox);
+        return calcPanToBBoxRatiosWithScaling(scaleRequirements, viewportBBox, zoomRectBBox, ratios, targetBBox);
     }
 
     // Compute required uniform scale
@@ -201,5 +206,11 @@ function calcPanToBBoxRatiosScaleProportionally(
         height: newHeight,
     };
 
-    return calcPanToBBoxRatiosWithScaling({ x: false, y: false }, scaledViewportBBox, ratios, targetBBox);
+    return calcPanToBBoxRatiosWithScaling(
+        { x: false, y: false },
+        scaledViewportBBox,
+        scaledViewportBBox,
+        ratios,
+        targetBBox
+    );
 }

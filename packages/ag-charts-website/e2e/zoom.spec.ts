@@ -4,12 +4,14 @@ import { evalPageFunction, getChartState } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
+    SELECTORS,
     canvasToPageTransformer,
     delay,
     dragCanvas,
     gotoExample,
     hoverCanvas,
     locateCanvas,
+    repeat,
     setupIntrinsicAssertions,
     toExamplePageUrl,
     waitForAllChartUpdates,
@@ -297,6 +299,161 @@ test.describe('zoom', () => {
                 expect(await popEvents(page)).toEqual([
                     { source: 'user-interaction', type: 'zoom', ...NEW_ZOOM_STATE },
                 ]);
+            });
+        });
+    });
+
+    test.describe('AG-19077 map-shape keyboard pan fits the focus box', () => {
+        type Ratio = { start: number; end: number };
+        type FocusCase = {
+            name: string;
+            code: string;
+            gdp: number;
+            itemId: number;
+            arrowRightCount: number;
+            zoom: { ratioX: Ratio; ratioY: Ratio };
+        };
+
+        const popEvents = async (page: Page) => evalPageFunction(page, 'popEvents');
+        const approx = (v: number) => expect.closeTo(v, 2);
+        const approxRatio = ({ start, end }: Ratio) => ({ start: approx(start), end: approx(end) });
+        const pressArrowRight = async (page: Page) => page.keyboard.press('ArrowRight');
+
+        async function expectFocusIndicatorInSeriesArea(page: Page) {
+            const seriesArea = await page.locator(SELECTORS.seriesArea).evaluate((e) => e.getBoundingClientRect());
+            // Not `boundingBox()`: for an SVG path that includes the stroke, whereas the pan targets the outline.
+            const focusBox = await page
+                .locator(`${SELECTORS.focusIndicator} .ag-charts-focus-svg-outer-path`)
+                .evaluate((e) => e.getBoundingClientRect());
+
+            // 1px tolerance: the pan places the focus box flush against the series-area edge.
+            expect(focusBox.left).toBeGreaterThanOrEqual(seriesArea.left - 1);
+            expect(focusBox.top).toBeGreaterThanOrEqual(seriesArea.top - 1);
+            expect(focusBox.right).toBeLessThanOrEqual(seriesArea.right + 1);
+            expect(focusBox.bottom).toBeLessThanOrEqual(seriesArea.bottom + 1);
+        }
+
+        function describeFocusOn(letterbox: string, focus: FocusCase) {
+            const { name, code, gdp, itemId, arrowRightCount, zoom } = focus;
+            const activeItem = { type: 'series-node', seriesId: 'MapShapeSeries-1', itemId };
+            const expectedZoom = { ratioX: approxRatio(zoom.ratioX), ratioY: approxRatio(zoom.ratioY) };
+
+            test.describe(`Focus on ${name}`, () => {
+                test.beforeEach(async ({ page }) => {
+                    // Move focus to the item before the target, then discard those events so that only the final
+                    // focus move (and the pan it triggers) is asserted.
+                    if (arrowRightCount > 0) {
+                        await page.keyboard.press('Tab');
+                        await repeat(arrowRightCount - 1, async () => await pressArrowRight(page));
+                        await popEvents(page);
+                        await pressArrowRight(page);
+                    } else {
+                        await popEvents(page);
+                        await page.keyboard.press('Tab');
+                    }
+                    await waitForAllChartUpdates(page);
+                });
+                test('screenshots', async ({ page }) => {
+                    await expectChartScreenshot(page, page, `AG-19077-${letterbox}-letterbox-${name}.png`);
+                });
+                test('getState', async ({ page }) => {
+                    expect(await getChartState(page)).toEqual(
+                        expect.objectContaining({ zoom: expectedZoom, active: { frozen: false, activeItem } })
+                    );
+                });
+                test('popEvents', async ({ page }) => {
+                    const inactiveEvents =
+                        arrowRightCount > 0
+                            ? [
+                                  {
+                                      type: 'activeChange',
+                                      source: 'user-interaction',
+                                      frozen: false,
+                                      activeItem: undefined,
+                                      datum: undefined,
+                                      defaultPrevented: false,
+                                  },
+                              ]
+                            : [];
+                    expect(await popEvents(page)).toEqual([
+                        ...inactiveEvents,
+                        {
+                            type: 'activeChange',
+                            source: 'user-interaction',
+                            frozen: false,
+                            activeItem,
+                            datum: { name, code, gdp },
+                            defaultPrevented: false,
+                        },
+                        { type: 'zoom', source: 'user-interaction', ...expectedZoom },
+                    ]);
+                });
+                test('focus indicator fits', async ({ page }) => {
+                    await expectFocusIndicatorInSeriesArea(page);
+                });
+            });
+        }
+
+        test.beforeEach(async ({ page }) => {
+            const { url } = toExamplePageUrl('zoom-e2e', 'map-keyboard-pan', 'vanilla');
+            await gotoExample(page, url);
+        });
+
+        // The US map is wider than the series area, so it is letterboxed vertically.
+        test.describe('vertical letterbox', () => {
+            describeFocusOn('vertical', {
+                name: 'Alabama',
+                code: 'AL',
+                gdp: 302289,
+                itemId: 0,
+                arrowRightCount: 0,
+                zoom: { ratioX: { start: 0.3894, end: 0.6894 }, ratioY: { start: 0.2374, end: 0.5374 } },
+            });
+            describeFocusOn('vertical', {
+                name: 'Connecticut',
+                code: 'CT',
+                gdp: 343186,
+                itemId: 5,
+                arrowRightCount: 5,
+                zoom: { ratioX: { start: 0.6161, end: 0.9161 }, ratioY: { start: 0.3336, end: 0.6336 } },
+            });
+            describeFocusOn('vertical', {
+                name: 'Florida',
+                code: 'FL',
+                gdp: 1595347,
+                itemId: 7,
+                arrowRightCount: 7,
+                zoom: { ratioX: { start: 0.6161, end: 0.9161 }, ratioY: { start: 0.0334, end: 0.3334 } },
+            });
+        });
+
+        // A short viewport makes the series area wider than the map, so it is letterboxed horizontally.
+        test.describe('horizontal letterbox', () => {
+            test.use({ viewport: { width: 800, height: 300 } });
+
+            describeFocusOn('horizontal', {
+                name: 'Alabama',
+                code: 'AL',
+                gdp: 302289,
+                itemId: 0,
+                arrowRightCount: 0,
+                zoom: { ratioX: { start: 0.2199, end: 0.5199 }, ratioY: { start: 0.204, end: 0.504 } },
+            });
+            describeFocusOn('horizontal', {
+                name: 'Connecticut',
+                code: 'CT',
+                gdp: 343186,
+                itemId: 5,
+                arrowRightCount: 5,
+                zoom: { ratioX: { start: 0.4466, end: 0.7466 }, ratioY: { start: 0.367, end: 0.667 } },
+            });
+            describeFocusOn('horizontal', {
+                name: 'Montana',
+                code: 'MT',
+                gdp: 71088,
+                itemId: 23,
+                arrowRightCount: 23,
+                zoom: { ratioX: { start: 0.3196, end: 0.6196 }, ratioY: { start: 0.6815, end: 0.9815 } },
             });
         });
     });
