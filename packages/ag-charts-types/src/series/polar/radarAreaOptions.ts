@@ -1,8 +1,7 @@
 import type { Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type { FillOptions } from '../cartesian/commonOptions';
-import type { AgHighlightStyleOptions, AgMultiSeriesGlowHighlightOptions } from '../seriesOptions';
+import type { AgHighlightStyleOptions, AgMultiSeriesHighlightOptions } from '../seriesOptions';
 import type {
     AgBaseRadarSeriesOptions,
     AgRadarSeriesStyle,
@@ -27,9 +26,7 @@ export interface AgRadarAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
             AgRadarAreaSeriesStylerParams<TDatum, TContext>
         > {
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
-    /** Configuration for the shadow used behind the area. */
-    shadow?: AgDropShadowOptions;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgRadarAreaSeriesStylerParams<TDatum, TContext>, AgRadarAreaSeriesStyle>;
 }

@@ -50,7 +50,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
             fillOpacity: 0.5,
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
-            shadow: SHADOW_THEME_DEFAULTS,
+            ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,

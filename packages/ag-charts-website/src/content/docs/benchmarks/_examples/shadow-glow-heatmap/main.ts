@@ -33,7 +33,8 @@ const options: AgCartesianChartOptions = {
             yKey: 'band',
             colorKey: 'level',
             colorScale: SCALES['Colour scale'],
-            highlight: { unhighlightedItem: { glow: { enabled: true } } },
+            // `glow` is accepted at runtime but is not part of the public highlight style options.
+            highlight: { unhighlightedItem: { glow: { enabled: true } } } as any,
         },
     ],
 };
@@ -52,7 +53,7 @@ function buildOptions(scale: string, glowOn: boolean): AgCartesianChartOptions {
                 yKey: 'band',
                 colorKey: 'level',
                 colorScale: SCALES[scale],
-                highlight: glowOn ? { unhighlightedItem: { glow: { enabled: true } } } : undefined,
+                highlight: glowOn ? ({ unhighlightedItem: { glow: { enabled: true } } } as any) : undefined,
             },
         ],
     };

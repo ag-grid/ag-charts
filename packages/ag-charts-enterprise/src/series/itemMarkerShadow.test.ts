@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgChartOptions, AgDropShadowOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import type { Chart } from 'ag-charts-community-test';
 import { deproxy, getSeriesSelectionNodes, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import type { InternalAgDropShadowOptions } from 'ag-charts-core';
 
 import { createEnterpriseChart } from '../test/utils';
 
@@ -15,7 +16,7 @@ const DATA = [
 interface ItemCase {
     name: string;
     /** The series options with the `shadow` of the marker of one item, which inherits from the series marker. */
-    series: (itemShadow: AgDropShadowOptions | undefined, seriesShadow?: AgDropShadowOptions) => object;
+    series: (itemShadow: InternalAgDropShadowOptions | undefined, seriesShadow?: InternalAgDropShadowOptions) => object;
 }
 
 const ITEM_CASES: ItemCase[] = [
@@ -60,8 +61,8 @@ describe('item marker shadow fill and fillOpacity', () => {
 
     const castBy = async (
         testCase: ItemCase,
-        itemShadow: AgDropShadowOptions | undefined,
-        seriesShadow?: AgDropShadowOptions
+        itemShadow: InternalAgDropShadowOptions | undefined,
+        seriesShadow?: InternalAgDropShadowOptions
     ) => {
         const created = deproxy(
             await createEnterpriseChart({
@@ -80,11 +81,11 @@ describe('item marker shadow fill and fillOpacity', () => {
     };
 
     describe.each(ITEM_CASES)('$name', (testCase) => {
-        it('casts a deprecated color as its fill, at a fillOpacity of 1', async () => {
+        it('casts a color as its fill, at a fillOpacity of 1, without a deprecation warning', async () => {
             const shadows = await castBy(testCase, { enabled: true, color: 'red' });
 
             for (const shadow of shadows) expect(shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
-            expect(warnings().some((message) => message.includes('color'))).toBe(true);
+            expect(warnings().some((message) => message.includes('color'))).toBe(false);
         });
 
         it('casts a fill at a fillOpacity of 1 unless it sets one', async () => {

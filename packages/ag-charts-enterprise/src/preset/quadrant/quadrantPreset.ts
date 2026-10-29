@@ -1,4 +1,11 @@
-import { type CartesianAxisDirection, Logger, isFiniteNumericValue, mergeDefaults, pick } from 'ag-charts-core';
+import {
+    type CartesianAxisDirection,
+    Logger,
+    type WithInternalShadow,
+    isFiniteNumericValue,
+    mergeDefaults,
+    pick,
+} from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
     AgCartesianChartOptions,
@@ -366,7 +373,7 @@ export function createQuadrant(
 
     if (options.sizeKey == null) {
         series.push({
-            ...pick(options, scatterSeriesKeys),
+            ...pick(options as typeof options & WithInternalShadow, scatterSeriesKeys),
             id: options.id ?? DEFAULT_SERIES_ID,
             type: 'scatter',
             context,
@@ -385,7 +392,7 @@ export function createQuadrant(
     } else {
         series.push({
             minSize: options.size, // Default minSize to size
-            ...pick(options, bubbleSeriesKeys),
+            ...pick(options as typeof options & WithInternalShadow, bubbleSeriesKeys),
             sizeKey: options.sizeKey, // Tell typescript that sizeKey is not undefined
             id: options.id ?? DEFAULT_SERIES_ID,
             type: 'bubble',

@@ -1,6 +1,7 @@
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle, AgSeriesMarkerStylerParams } from 'ag-charts-types';
 
 import type { RequireOptional } from '../../types/global';
+import type { WithInternalShadow } from '../internalShadowOptions';
 import type { BivariantCallback, Normalised } from './normalise';
 import type { FillStrokeMorph, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 
@@ -24,7 +25,7 @@ type MarkerRequiredKeys =
     | 'lineDashOffset';
 
 export type NormalisedSeriesMarkerOptions<TParams = never> = Normalised<
-    AgSeriesMarkerOptions<unknown, unknown, unknown>,
+    AgSeriesMarkerOptions<unknown, unknown, unknown> & WithInternalShadow,
     MarkerRequiredKeys,
     FillStrokeMorph & {
         shadow: NormalisedDropShadowOptions;

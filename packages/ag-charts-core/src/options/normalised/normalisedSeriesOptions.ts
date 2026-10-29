@@ -1,5 +1,4 @@
 import type {
-    AgGlowHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
     AgSelectionOptions,
     AgSeriesListeners,
@@ -13,6 +12,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { RequireOptional } from '../../types/global';
+import type { InternalAgGlowHighlightStyleOptions } from '../internalShadowOptions';
 import type { BivariantCallback, Normalised } from './normalise';
 import type { NormalisedColorType } from './normalisedCommonOptions';
 
@@ -29,7 +29,7 @@ export interface NormalisedSeriesStateStyle {
 }
 
 type NormalisedSeriesHighlightBuckets<TStyle extends object> = Normalised<
-    AgMultiSeriesHighlightOptions<Partial<TStyle & NormalisedSeriesStateStyle> & AgGlowHighlightStyleOptions>,
+    AgMultiSeriesHighlightOptions<Partial<TStyle & NormalisedSeriesStateStyle> & InternalAgGlowHighlightStyleOptions>,
     'enabled'
 >;
 
@@ -65,10 +65,10 @@ type NormaliseSeriesTooltip<T> = T extends { tooltip?: AgSeriesTooltip<infer P> 
 export interface NormalisedSeriesHighlightBase<TStyle extends object = NormalisedSeriesStateStyle> {
     enabled: boolean;
     bringToFront?: boolean;
-    highlightedItem?: TStyle & AgGlowHighlightStyleOptions;
-    unhighlightedItem?: TStyle & AgGlowHighlightStyleOptions;
-    highlightedSeries?: TStyle & AgGlowHighlightStyleOptions;
-    unhighlightedSeries?: TStyle & AgGlowHighlightStyleOptions;
+    highlightedItem?: TStyle & InternalAgGlowHighlightStyleOptions;
+    unhighlightedItem?: TStyle & InternalAgGlowHighlightStyleOptions;
+    highlightedSeries?: TStyle & InternalAgGlowHighlightStyleOptions;
+    unhighlightedSeries?: TStyle & InternalAgGlowHighlightStyleOptions;
 }
 
 /** A series whose own options already normalise `highlight` (a required block) keeps that shape and its required-ness. */

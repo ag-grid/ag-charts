@@ -1,7 +1,7 @@
 import { fail } from 'assert';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { cycledValue } from 'ag-charts-core';
+import { type WithInternalShadow, cycledValue } from 'ag-charts-core';
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
 import type {
     AgBarSeriesOptions,
@@ -540,7 +540,7 @@ describe('ChartTheme', () => {
     });
 
     describe('default shadow colour', () => {
-        const create = async (theme: AgChartTheme | string, series: Partial<AgBarSeriesOptions> = {}) => {
+        const create = async (theme: object | string, series: object = {}) => {
             chart = deproxy(
                 AgCharts.create({
                     width: 600,
@@ -555,7 +555,10 @@ describe('ChartTheme', () => {
             );
             await waitForChartStability(chart);
             const [bar, line] = (chart.chartOptions.processedOptions as AgCartesianChartOptions).series ?? [];
-            return { bar: bar as AgBarSeriesOptions, line: line as AgLineSeriesOptions };
+            return {
+                bar: bar as AgBarSeriesOptions,
+                line: line as AgLineSeriesOptions & { marker?: WithInternalShadow },
+            };
         };
 
         it.each([
@@ -584,7 +587,7 @@ describe('ChartTheme', () => {
             expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
         });
 
-        it('treats the deprecated shadow colour as the fill, cast as it is written', async () => {
+        it('treats the shadow colour as the fill, cast as it is written, without a deprecation warning', async () => {
             const { bar, line } = await create(
                 { overrides: { line: { series: { marker: { shadow: { color: 'red' } } } } } },
                 { shadow: { enabled: true, color: '#0000ff80' } }
@@ -592,11 +595,7 @@ describe('ChartTheme', () => {
 
             expect(bar.shadow).toMatchObject({ fill: '#0000ff80', fillOpacity: 1 });
             expect(line.marker?.shadow).toMatchObject({ fill: 'red', fillOpacity: 1 });
-            expect(vi.mocked(console.warn).mock.calls.map(([message]) => String(message))).toEqual([
-                expect.stringContaining('`theme.overrides.line.series.marker.shadow.color` is deprecated'),
-                expect.stringContaining('`series[0].shadow.color` is deprecated'),
-            ]);
-            vi.mocked(console.warn).mockClear();
+            expect(vi.mocked(console.warn).mock.calls.map(([message]) => String(message))).toEqual([]);
         });
     });
 

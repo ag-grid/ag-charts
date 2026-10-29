@@ -57,7 +57,7 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
     }),
     showInMiniChart: boolean,
     tooltip: tooltipOptionsDefs,
-    shadow: shadowOptionsDefs,
+    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
     ...commonSeriesThemeableOptionsDefs,
     highlight: multiSeriesGlowHighlightOptionsDef(
         candlestickHighlightStyleOptionsDef,

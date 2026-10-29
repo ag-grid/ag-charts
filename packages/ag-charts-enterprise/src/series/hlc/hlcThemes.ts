@@ -15,6 +15,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     inheritedShadowFillTheme,
     interpolationThemeTemplate,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 type HlcItemOptions = NonNullablePath<AgChartThemeOverrides, 'hlc', 'series', 'item'>;
@@ -78,13 +79,15 @@ const HLC_ITEM_MARKER: WithThemeParams<HlcItemMarkerOptions> = {
     fillOpacity: { $path: '/series/$index/marker/fillOpacity' },
     lineDash: { $path: '/series/$index/marker/lineDash' },
     lineDashOffset: { $path: '/series/$index/marker/lineDashOffset' },
-    shadow: {
-        enabled: { $path: '/series/$index/marker/shadow/enabled' },
-        ...inheritedShadowFillTheme('/series/$index/marker/shadow'),
-        xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
-        yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
-        blur: { $path: '/series/$index/marker/shadow/blur' },
-    },
+    ...undocumentedThemeOptions({
+        shadow: {
+            enabled: { $path: '/series/$index/marker/shadow/enabled' },
+            ...inheritedShadowFillTheme('/series/$index/marker/shadow'),
+            xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
+            yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
+            blur: { $path: '/series/$index/marker/shadow/blur' },
+        },
+    }),
     shape: { $path: '/series/$index/marker/shape' },
     size: { $path: ['/series/$index/marker/size', 6] },
     stroke: { $path: ['/series/$index/marker/stroke', { $path: '../stroke' }] },
@@ -122,7 +125,7 @@ export const HLC_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['hlc']> = {
         ...COMMON_SERIES_THEME_DEFAULTS,
         marker: {
             enabled: false,
-            shadow: SHADOW_THEME_DEFAULTS,
+            ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
             shape: 'circle',
             size: 6,
             fillOpacity: 1,

@@ -17,12 +17,7 @@ import type {
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
-import type {
-    AgBaseCartesianThemeableOptions,
-    AgBaseSeriesOptions,
-    AgGlowHighlightOptions,
-    AgHighlightStyleOptions,
-} from '../seriesOptions';
+import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -117,8 +112,6 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TConte
     label?: AgWaterfallSeriesLabelOptions<TDatum, AgWaterfallSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
-    /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Fixed width of each bar in the series. */
@@ -143,7 +136,7 @@ export interface AgWaterfallSeriesOptionsNames {
 
 export interface AgWaterfallSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight' | 'focusIndex'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'focusIndex'>,
         AgBaseCartesianSeriesAxisOptions,
         AgWaterfallSeriesOptionsKeys<TDatum>,
         AgWaterfallSeriesOptionsNames,

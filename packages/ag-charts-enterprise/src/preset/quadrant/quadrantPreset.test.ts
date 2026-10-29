@@ -15,6 +15,7 @@ import {
     findAxis,
     getSeriesAt,
     getSeriesNodeData,
+    internalOptions,
     setupMockCanvas,
     setupMockConsole,
     setupMockPointerEvent,
@@ -492,7 +493,7 @@ describe('Quadrant Preset', () => {
         const shadow = { enabled: true, fill: '#000000', xOffset: 2, yOffset: 3, blur: 4 };
 
         const cartesianOptions = createQuadrant(
-            { ...base, shadow },
+            internalOptions<AgQuadrantChartOptions>({ ...base, shadow }),
             undefined,
             undefined,
             undefined,
