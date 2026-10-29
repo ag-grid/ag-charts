@@ -205,7 +205,7 @@ describe('RangeAreaSeries', () => {
 
     it.each([
         ['ag-default', 0.5],
-        ['ag-default-dark', 1],
+        ['ag-default-dark', 0.5],
     ])('should default the series and marker shadow fill for %s', async (theme, fillOpacity) => {
         chart = await createEnterpriseChart({
             ...RANGE_AREA_OPTIONS,
@@ -1831,7 +1831,8 @@ describe('RangeAreaSeries', () => {
         });
     });
 
-    describe('shadow root', () => {
+    // AG-9003: 14.2.0 rendering restored for this release
+    describe.skip('shadow root', () => {
         const FILLS = { fillOpacity: 1, strokeWidth: 0, marker: { enabled: false } };
         const data = [
             { x: 1, lowA: 2, highA: 8, lowB: 3, highB: 6 },

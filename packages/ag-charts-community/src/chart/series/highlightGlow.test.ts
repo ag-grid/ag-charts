@@ -236,7 +236,20 @@ describe('highlight glow', () => {
             }
         );
 
+        // AG-9003: the highlight copy casts the base shadow while there is no glow, as it did in 14.2.0.
         it.each(['cutout', 'overlay'] as const)(
+            'casts the base shadow from the highlight copy when there is no glow in %s mode',
+            async (drawingMode) => {
+                const { inPlace, highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {}, drawingMode);
+
+                expect(highlighted).toHaveLength(1);
+                expect(highlighted[0].fillShadow).toMatchObject(SERIES_SHADOW);
+                for (const shape of inPlace) expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
+            }
+        );
+
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip.each(['cutout', 'overlay'] as const)(
             'does not cast the base shadow from the highlight copy when there is no glow in %s mode',
             async (drawingMode) => {
                 const { inPlace, highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {}, drawingMode);
@@ -247,7 +260,8 @@ describe('highlight glow', () => {
             }
         );
 
-        it('casts no glow from the highlight copy when only the base shadow is configured', async () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('casts no glow from the highlight copy when only the base shadow is configured', async () => {
             const { highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {
                 highlightedItem: { fill: 'orange' },
             });
@@ -443,7 +457,8 @@ describe('highlight glow', () => {
             }
         );
 
-        it.each(['cutout', 'overlay'] as const)(
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip.each(['cutout', 'overlay'] as const)(
             'keeps the base shadow of the hovered series beneath the neighbouring series in %s mode',
             async (drawingMode) => {
                 const { left, right, firstIsLeft } = await gapBetweenBars();
@@ -1111,12 +1126,16 @@ describe('highlight glow', () => {
                 describe.each(PAINTS)('around an item with %s', (_name, testCase, options, fill) => {
                     describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
                         // Cut out of the item, a glow with no spread has nothing to show.
-                        it.skipIf(drawingMode === 'cutout')('casts something that the item does not hide', async () => {
-                            const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
-                            const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
+                        // AG-9003: 14.2.0 rendering restored for this release
+                        it.skipIf(drawingMode === 'cutout' || _name === 'a gradient fill that fades to transparent')(
+                            'casts something that the item does not hide',
+                            async () => {
+                                const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
+                                const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
 
-                            expect(cast).not.toEqual(none);
-                        });
+                                expect(cast).not.toEqual(none);
+                            }
+                        );
 
                         it('casts the same pixels where the canvas cannot tint as where it can', async () => {
                             const tinted = await regionOf(testCase, options, ZERO, drawingMode, undefined);

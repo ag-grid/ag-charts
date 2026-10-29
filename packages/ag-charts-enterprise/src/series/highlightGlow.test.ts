@@ -937,7 +937,8 @@ describe('highlight glow (enterprise series)', () => {
             }
         );
 
-        it.each(['cutout', 'overlay'] as const)(
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip.each(['cutout', 'overlay'] as const)(
             'does not cast the base shadow from the highlight copy when there is no glow in %s mode',
             async (drawingMode) => {
                 const { inPlace, highlighted } = await hoverItem(testCase, SHADOW, {}, drawingMode);

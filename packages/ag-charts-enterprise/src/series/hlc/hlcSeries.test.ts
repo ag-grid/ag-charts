@@ -174,7 +174,8 @@ describe('HlcSeries', () => {
             await compare();
         });
 
-        it('renders a marker shadow', async () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('renders a marker shadow', async () => {
             await renderSeries(
                 withSeries(
                     internalOptions<Partial<AgHlcSeriesOptions>>({

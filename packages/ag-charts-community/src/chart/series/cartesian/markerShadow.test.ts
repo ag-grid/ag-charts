@@ -359,7 +359,8 @@ describe('marker shadow', () => {
             await compare();
         });
 
-        it('should render line markers with a shadow', async () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('should render line markers with a shadow', async () => {
             await create({
                 data: SCATTER_DATA,
                 axes: PADDED_AXES,

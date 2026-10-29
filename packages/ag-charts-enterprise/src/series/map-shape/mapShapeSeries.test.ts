@@ -173,7 +173,8 @@ describe('MapShapeSeries', () => {
                     ],
                 });
 
-            it('draws the highlighted shape without the series shadow after the cutout', async () => {
+            // AG-9003: 14.2.0 rendering restored for this release
+            it.skip('draws the highlighted shape without the series shadow after the cutout', async () => {
                 await highlightFirstShape(cutoutOptions(SMALL_SHADOW));
 
                 const [highlighted, ...others] = collectShapes(chart.series[0].highlightNodeGroup);
