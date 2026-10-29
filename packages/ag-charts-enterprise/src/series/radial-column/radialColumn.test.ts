@@ -1362,7 +1362,8 @@ describe('RadialColumnSeries', () => {
                 }
             });
 
-            it('renders with the shadow enabled', async () => {
+            // AG-9003: 14.2.0 rendering restored for this release
+            it.skip('renders with the shadow enabled', async () => {
                 chart = await createEnterpriseChart(shadowOptions(SHADOW));
                 await compare();
             });

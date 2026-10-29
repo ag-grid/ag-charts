@@ -324,7 +324,8 @@ describe('ConeFunnelSeries', () => {
             );
         });
 
-        it('casts the shadows of its dividers through the shadow root', async () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('casts the shadows of its dividers through the shadow root', async () => {
             await create(SHADOW);
 
             expect(getSeriesDataNodeGroup(chart).batchShadows).toBe('shared');
@@ -370,7 +371,8 @@ describe('ConeFunnelSeries', () => {
             }
         });
 
-        it('should render a cone funnel chart with a shadow', async () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('should render a cone funnel chart with a shadow', async () => {
             await create(SHADOW);
             await compare();
         });

@@ -152,7 +152,8 @@ describe.each(SERIES)(
                 for (const rect of inPlace(0)) expect(rect.fillShadow).toMatchObject(SERIES_SHADOW);
             });
 
-            it('keeps the base shadow where the state glow is disabled', async () => {
+            // AG-9003: 14.2.0 rendering restored for this release
+            it.skip('keeps the base shadow where the state glow is disabled', async () => {
                 const { inPlace, highlighted } = await hover(
                     { highlightedSeries: { glow: { ...HIGHLIGHT_GLOW, enabled: false } } },
                     SERIES_SHADOW

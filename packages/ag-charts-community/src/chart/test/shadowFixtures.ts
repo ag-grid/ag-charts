@@ -1,4 +1,4 @@
-import type { Group, InternalAgDropShadowOptions, InternalAgGlowOptions, Shape } from 'ag-charts-core';
+import { Group, type InternalAgDropShadowOptions, type InternalAgGlowOptions, type Shape } from 'ag-charts-core';
 import type { AgChartOptions, AgMarkerShapeFn } from 'ag-charts-types';
 
 /**
@@ -56,6 +56,12 @@ export function shapesOf<T extends Shape>(root: Group, kind: abstract new (...ar
         if (node instanceof kind) found.push(node);
     }
     return found;
+}
+
+/** Every group of the scene that `group` is in, so that none that batches its shadows is missed. */
+export function sceneGroups(group: Group): Group[] {
+    const root = Array.from(group.traverseUp()).at(-1) as Group;
+    return [root, ...root.descendants()].filter((node): node is Group => node instanceof Group);
 }
 
 /** A custom marker shape (a triangle), which the out-of-the-box marker shadow must not apply to. */

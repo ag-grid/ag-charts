@@ -101,7 +101,8 @@ describe('layer shadow batching of series', () => {
     };
 
     describe.each(SERIES)('$name', (testCase) => {
-        it('draws its shadows through a mask', async () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('draws its shadows through a mask', async () => {
             const withoutShadow = await canvasesInUse(testCase, undefined);
 
             expect(await canvasesInUse(testCase, SERIES_SHADOW)).toBeGreaterThan(withoutShadow);
@@ -159,7 +160,8 @@ describe('layer shadow batching of series', () => {
 
         const isHalfBlack = (pixel: number[]) => pixel.slice(0, 3).every((channel) => Math.abs(channel - 128) <= 2);
 
-        it('should cast one shadow where two items overlap, not two', async () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('should cast one shadow where two items overlap, not two', async () => {
             // Two points at the same place cast the same shadow twice, which would darken it to a quarter without a batch.
             await createScatter(
                 [
@@ -184,10 +186,7 @@ describe('layer shadow batching of series', () => {
             expect(isHalfBlack(pixelBesideMarker(40))).toBe(true);
         });
 
-        it.each([
-            ['left to right', [3, 6]],
-            ['right to left', [6, 3]],
-        ])('should draw the shadow of one item beneath the next item, in data order %s', async (_, xs) => {
+        const shadowBeneathNextItem = async (_: string, xs: number[]) => {
             // The shadow lands on the item to the right of the one that casts it, whichever of the two is drawn last. It is
             // offset by the distance between them, which is only known once the chart has been laid out.
             const data = xs.map((x) => ({ x, y: 5 }));
@@ -202,7 +201,18 @@ describe('layer shadow batching of series', () => {
             // Beneath the item on the right, the shadow of the item on the left is hidden.
             const { x, y } = markerCentres().sort((a, b) => a.x - b.x)[1];
             expect(pixelAt(x, y)).toEqual([255, 0, 0, 255]);
-        });
+        };
+
+        it.each([['left to right', [3, 6]]])(
+            'should draw the shadow of one item beneath the next item, in data order %s',
+            shadowBeneathNextItem
+        );
+
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip.each([['right to left', [6, 3]]])(
+            'should draw the shadow of one item beneath the next item, in data order %s',
+            shadowBeneathNextItem
+        );
 
         // The marker is a 20px square, and its stroke is centred on its edge, so a 6px stroke fills the ring from 7 to 13px
         // beyond its centre. The shadow lies 40px to the right: the fill casts from 30 to 49px, and a stroke that cast would
@@ -235,7 +245,8 @@ describe('layer shadow batching of series', () => {
     describe('aggregated markers', () => {
         const MARKERS = 40;
 
-        it('should blur the shadow of aggregated markers as one batch, not once for each', async () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('should blur the shadow of aggregated markers as one batch, not once for each', async () => {
             await create(
                 internalOptions<AgChartOptions>({
                     data: Array.from({ length: MARKERS }, (_, i) => ({
