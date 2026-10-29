@@ -3868,29 +3868,28 @@ describe('BarSeries', () => {
                 expectBarsCentredInSlots([0, 1], 2);
             });
 
+            const barCentre = ({ x, width }: { x: number; width: number }) => x + width / 2;
+
+            const expectBarsCentredOnDatum = (seriesCount: number, datumCount: number) => {
+                for (const seriesIndex of Array.from({ length: seriesCount }, (_, index) => index)) {
+                    const { nodeData } = getBarSeriesContextNodeData(chart, seriesIndex);
+                    expect(nodeData).toHaveLength(datumCount);
+                    for (const datum of nodeData) {
+                        const datumCentre = getAxisCoordinate(chart, 'bottom', datum.xValue);
+                        expect(
+                            Math.abs(barCentre(datum) - datumCentre),
+                            `series ${seriesIndex}, x ${datum.xValue}: bar [${datum.x}, ${datum.x + datum.width}] on datum at ${datumCentre}`
+                        ).toBeLessThanOrEqual(TOLERANCE);
+                    }
+                }
+            };
+
             describe('on a number axis', () => {
                 const numberData = data.map((row, index) => ({ ...row, x: (index + 1) * 10 }));
-
-                const expectBarsCentredOnDatum = (seriesCount: number) => {
-                    for (const seriesIndex of Array.from({ length: seriesCount }, (_, index) => index)) {
-                        const { nodeData } = getBarSeriesContextNodeData(chart, seriesIndex);
-                        expect(nodeData).toHaveLength(numberData.length);
-                        for (const datum of nodeData) {
-                            const datumCentre = getAxisCoordinate(chart, 'bottom', datum.xValue);
-                            expect(
-                                Math.abs(datum.x + datum.width / 2 - datumCentre),
-                                `series ${seriesIndex}, x ${datum.xValue}: bar [${datum.x}, ${datum.x + datum.width}] on datum at ${datumCentre}`
-                            ).toBeLessThanOrEqual(TOLERANCE);
-                        }
-                    }
-                };
+                const numberAxes: AgCartesianChartOptions['axes'] = { x: { type: 'number' }, y: { type: 'number' } };
 
                 const createNumberAxisChart = async (series: AgBarSeriesOptions[]) => {
-                    chart = await createChart({
-                        data: numberData,
-                        series,
-                        axes: { x: { type: 'number' }, y: { type: 'number' } },
-                    });
+                    chart = await createChart({ data: numberData, series, axes: numberAxes });
                     await compare();
                 };
 
@@ -3902,7 +3901,72 @@ describe('BarSeries', () => {
                         { type: 'bar', xKey: 'x', yKey: 'iphone', stacked: true, widthRatio },
                         { type: 'bar', xKey: 'x', yKey: 'mac', stacked: true, widthRatio },
                     ]);
-                    expectBarsCentredOnDatum(2);
+                    expectBarsCentredOnDatum(2, numberData.length);
+                });
+
+                it('centres the bars of a stack with different widths on one another', async () => {
+                    chart = await createChart({
+                        data: numberData,
+                        series: [
+                            { type: 'bar', xKey: 'x', yKey: 'iphone', stacked: true, width: 20 },
+                            { type: 'bar', xKey: 'x', yKey: 'mac', stacked: true, width: 40 },
+                        ],
+                        axes: numberAxes,
+                    });
+                    const narrow = getBarSeriesContextNodeData(chart, 0).nodeData;
+                    const wide = getBarSeriesContextNodeData(chart, 1).nodeData;
+                    expect(narrow).toHaveLength(numberData.length);
+                    expect(wide).toHaveLength(numberData.length);
+                    for (const [index, datum] of narrow.entries()) {
+                        expect(datum.width).toBeLessThan(wide[index].width);
+                        expect(Math.abs(barCentre(datum) - barCentre(wide[index]))).toBeLessThanOrEqual(TOLERANCE);
+                    }
+                });
+
+                it('keeps the centre of each of two stacks when widthRatio is set', async () => {
+                    const createStacks = async (widthRatio: number | undefined) => {
+                        const series: AgBarSeriesOptions[] = [
+                            { type: 'bar', xKey: 'x', yKey: 'iphone', stackGroup: 'one', widthRatio },
+                            { type: 'bar', xKey: 'x', yKey: 'mac', stackGroup: 'one', widthRatio },
+                            { type: 'bar', xKey: 'x', yKey: 'ipad', stackGroup: 'two', widthRatio },
+                            { type: 'bar', xKey: 'x', yKey: 'wearables', stackGroup: 'two', widthRatio },
+                        ];
+                        const created = await createChart({ data: numberData, series, axes: numberAxes });
+                        const centres = series.map((_, seriesIndex) =>
+                            getBarSeriesContextNodeData(created, seriesIndex).nodeData.map(barCentre)
+                        );
+                        created.destroy();
+                        return centres;
+                    };
+
+                    const withoutWidthRatio = await createStacks(undefined);
+                    const withWidthRatio = await createStacks(0.5);
+
+                    for (const [seriesIndex, centres] of withoutWidthRatio.entries()) {
+                        expect(centres).toHaveLength(numberData.length);
+                        for (const [index, centre] of centres.entries()) {
+                            expect(
+                                Math.abs(withWidthRatio[seriesIndex][index] - centre),
+                                `series ${seriesIndex}, datum ${index}`
+                            ).toBeLessThanOrEqual(TOLERANCE);
+                        }
+                    }
+                });
+            });
+
+            describe('on a time axis', () => {
+                const timeData = data.map((row, index) => ({ ...row, x: new Date(2018, index * 3, 1) }));
+
+                it('centres a single stack on its datum with widthRatio', async () => {
+                    chart = await createChart({
+                        data: timeData,
+                        series: [
+                            { type: 'bar', xKey: 'x', yKey: 'iphone', stacked: true, widthRatio: 0.5 },
+                            { type: 'bar', xKey: 'x', yKey: 'mac', stacked: true, widthRatio: 0.5 },
+                        ],
+                        axes: { x: { type: 'time' }, y: { type: 'number' } },
+                    });
+                    expectBarsCentredOnDatum(2, timeData.length);
                 });
             });
         });
