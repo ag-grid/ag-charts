@@ -33,18 +33,19 @@ export class ListWidget extends RovingTabContainerWidget<TChildWidget> {
         setElementStyle(listItem, 'position', 'absolute');
         Widget.setElementContainer(child, listItem);
         this.appendOrInsert(listItem, before);
-        this.setHidden(false);
     }
 
     protected override removeChildFromDOM(child: TChildWidget) {
         removeFromDOM(child);
-        this.setHidden(this.children.length === 0);
     }
 
-    override setHidden(hidden: boolean) {
-        if (this.children.length === 0) {
-            hidden = true;
-        }
-        super.setHidden(hidden);
+    protected override onChildAdded(child: TChildWidget): void {
+        super.onChildAdded(child);
+        this.setHidden(false);
+    }
+
+    protected override onChildRemoved(removedChild: TChildWidget): void {
+        super.onChildRemoved(removedChild);
+        this.setHidden(this.children.length === 0);
     }
 }
