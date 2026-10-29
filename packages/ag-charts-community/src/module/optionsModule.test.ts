@@ -5158,7 +5158,7 @@ describe('ChartOptions', () => {
                 foregroundColor: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--onto)' },
             },
         });
-        const createOptions = (container: HTMLElement, theme: object) =>
+        const createOptions = (container: HTMLElement, theme: object, optionMetadata: object = {}) =>
             new ChartOptions<AgChartOptions>(
                 {
                     container,
@@ -5170,7 +5170,7 @@ describe('ChartOptions', () => {
                 {} as AgChartOptions,
                 {},
                 {},
-                {}
+                optionMetadata
             );
         const warnedInvalidColour = () =>
             (console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'));
@@ -5259,6 +5259,50 @@ describe('ChartOptions', () => {
             chartOptions.processCSSVariablesPartial(node, container);
 
             expect(node).toEqual({});
+            expect(warnedInvalidColour()).toBe(false);
+        });
+
+        it('records a series option var() that a styler result leaves out while detached, once', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            expect(chartOptions.takePartialDeferredCSSVariables()).toBeUndefined();
+
+            chartOptions.processCSSVariablesPartial({ fill: 'var(--my-color)' }, container);
+            chartOptions.processCSSVariablesPartial({ fill: 'var(--my-color)', stroke: 'var(--my-stroke)' }, container);
+
+            expect(chartOptions.takePartialDeferredCSSVariables()).toEqual(['var(--my-color)', 'var(--my-stroke)']);
+            expect(chartOptions.takePartialDeferredCSSVariables()).toBeUndefined();
+        });
+
+        it('records nothing from a styler result once the container is attached, and warns as before', () => {
+            const container = document.createElement('div');
+            document.body.append(container);
+            onTestFinished(() => container.remove());
+            mockComputedStyle(container, {});
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = { fill: 'var(--my-color)' };
+            chartOptions.processCSSVariablesPartial(node, container);
+
+            expect(node).toEqual({});
+            expect(warnedInvalidColour()).toBe(true);
+            expect(chartOptions.takePartialDeferredCSSVariables()).toBeUndefined();
+        });
+
+        it('does not report a deferred theme param var() as resolved when served from the structural cache', () => {
+            __clearStructuralCacheForTests();
+            onTestFinished(__clearStructuralCacheForTests);
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+            const create = () => createOptions(container, createTheme(), { domMode: 'minimal' });
+
+            expect(create().deferredCSSVariables).toEqual(['var(--onto)']);
+
+            // The cached pass does not walk the theme params, so it must leave the pending state as it was.
+            const cached = create();
+            expect(cached.deferredCSSVariables).toBeUndefined();
             expect(warnedInvalidColour()).toBe(false);
         });
     });

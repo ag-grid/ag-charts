@@ -313,9 +313,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     processedCSSVariables?: Record<string, string>;
     /**
      * The `var()` values that could not be resolved on a detached container, to be resolved once it is attached. Unset
-     * when the pass did not process CSS variables, as the fast path does not, so the previous pass's stand.
+     * when the pass did not process CSS variables and theme params, as the fast path does not, so the previous pass's
+     * stand.
      */
     deferredCSSVariables?: string[];
+    /** What stylers' partial options deferred since it was last taken; see `takePartialDeferredCSSVariables`. */
+    private readonly partialDeferred = new Set<string>();
     /** The theme's params with the unresolvable `var()` values removed; unset when the theme's own are usable. */
     processedThemeParams?: PlainObject;
     /** Every issue the Logger reported while this pass ran; the chart starts its validation cycle from them. */
@@ -2140,8 +2143,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             processed = jsonWalk(params, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx, processed);
             this.processedThemeParams = ctx.removed ? params : undefined;
         }
-        this.deferredCSSVariables = Array.from(deferred);
+        // Without the theme params this walk is not authoritative, so it reports nothing rather than a list that
+        // would clear what an earlier pass deferred in them.
+        this.deferredCSSVariables = themeParams == null ? undefined : Array.from(deferred);
         return processed;
+    }
+
+    /** The variables `processCSSVariablesPartial` left out while detached; `undefined` when none, so it never clears. */
+    takePartialDeferredCSSVariables(): string[] | undefined {
+        if (this.partialDeferred.size === 0) return;
+
+        const deferred = Array.from(this.partialDeferred);
+        this.partialDeferred.clear();
+        return deferred;
     }
 
     processCSSVariablesPartial(partialOptions: PlainObject | undefined, container: HTMLElement | null | undefined) {
@@ -2150,6 +2164,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return jsonWalk(partialOptions, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, {
             container,
             logger: this.logger,
+            deferred: this.partialDeferred,
         } satisfies CSSVariableContext);
     }
 

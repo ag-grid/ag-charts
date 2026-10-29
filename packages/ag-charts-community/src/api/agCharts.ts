@@ -456,6 +456,8 @@ class AgChartsInternal {
                     chartOptions.processedOptions.container
                 );
                 chart.ctx.domManager.updateCSSVariableWatchers(processedCSSVariables);
+                // A styler's result is rebuilt on each render, so it only needs a render after the attach.
+                chart.ctx.domManager.setDeferredCSSVariables(chartOptions.takePartialDeferredCSSVariables());
 
                 return chartOptions.optionsGraph?.resolvePartial(
                     logger,

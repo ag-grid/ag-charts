@@ -1126,9 +1126,10 @@ export class DOMManager extends BaseManager {
     }
 
     /**
-     * Records that variables could not be resolved on a detached container. They are not watched, as registering one
-     * in the light DOM would give a variable nothing defines a value, but the attach re-resolves them. A pass that did not
-     * process CSS variables passes none, and leaves what an earlier pass deferred pending.
+     * Records that variables could not be resolved on a detached container. They are not watched, as watching an
+     * undefined variable in the light DOM registers it with `initial-value: transparent`, which makes it resolve to
+     * transparent instead of staying undefined. The attach re-resolves them. A pass that did not process CSS variables
+     * passes none, and leaves what an earlier pass deferred pending.
      */
     setDeferredCSSVariables(deferred?: readonly string[]) {
         if (deferred == null) return;
