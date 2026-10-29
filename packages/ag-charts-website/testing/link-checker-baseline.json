@@ -1,0 +1,27 @@
+{
+    "unlabelled-link": [
+        "https://www.ag-grid.com/blog/",
+        "https://www.ag-grid.com/blog/newsletter/"
+    ],
+    "utm-parameters": [
+        "/charts/gallery/?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta",
+        "/charts/license-pricing/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta",
+        "/charts/r/quick-start/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta",
+        "/charts/react/community-vs-enterprise/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta#request-a-30-day-enterprise-bundle-trial-licence",
+        "/charts/react/financial-charts/?utm_source=charts-homepage&utm_medium=financial-charts-section&utm_campaign=homepage-cta",
+        "/charts/react/maps/?utm_source=charts-homepage&utm_medium=maps-section&utm_campaign=homepage-cta",
+        "/charts/whats-new/?utm_source=charts-homepage&utm_medium=whats-new-section&utm_campaign=homepage-cta",
+        "https://www.ag-grid.com/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/blog/updating-bar-chart-in-real-time/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/charts/react/accessibility/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/charts/react/api-download/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/charts/react/context-menu/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/charts/react/events/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/charts/react/navigator/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/charts/react/quick-start/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/charts/react/tooltips/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/charts/react/touch/?utm_source=charts-homepage&utm_medium=faqs",
+        "https://www.ag-grid.com/charts/react/zoom/?utm_source=charts-homepage&utm_medium=faqs"
+    ]
+}
