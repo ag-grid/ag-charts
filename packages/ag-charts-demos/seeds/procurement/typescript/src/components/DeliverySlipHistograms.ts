@@ -443,8 +443,15 @@ export function createDeliverySlipHistograms({
             created.push(fresh);
             return fresh;
         });
-        for (const facet of kept.values()) facet.destroy();
-        el.replaceChildren(...facets.map((facet) => facet.el));
+        for (const facet of kept.values()) {
+            facet.destroy();
+            facet.el.remove();
+        }
+        // Moves only facets out of place: detaching a facet drops the keyboard focus inside its charts.
+        facets.forEach((facet, index) => {
+            const at = el.children[index] ?? null;
+            if (at !== facet.el) el.insertBefore(facet.el, at);
+        });
         if (mounted) created.forEach((facet) => facet.mount());
     }
     render();
