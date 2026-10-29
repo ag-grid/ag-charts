@@ -87,13 +87,15 @@ Measuring Tools available are:
 
 Use `buttonSize` to set the width and height in pixels of the buttons in each toolbar. Icon buttons are square, while text buttons use this height and are at least this wide. If `buttonSize` is not set, buttons keep their default size.
 
-`buttonSize` is available on the following toolbars:
+Set `buttonSize` in `theme.overrides.common`. It is available on the following toolbars, shown here relative to `theme.overrides.common`:
 
 - `annotations.toolbar`: The main annotations toolbar.
 - `annotations.optionsToolbar`: The options toolbar shown for the selected drawing or annotation.
 - `chartToolbar`: The chart toolbar, including chart type selection.
 - `zoom.buttons`: The zoom buttons.
 - `ranges`: The date range buttons.
+
+See [Theme Override Options](/themes-api/#reference-AgChartTheme-overrides-common-annotations) for the full list of theme options.
 
 ```js format="snippet"
 {
