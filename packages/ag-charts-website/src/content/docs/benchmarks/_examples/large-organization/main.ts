@@ -158,31 +158,34 @@ async function performZoomInOut(nodes: number): Promise<number> {
     return zoomIn + (await zoomSteps(stepDelta(fit / floor), fit));
 }
 
+// Older releases handle a drag from mouse events and newer ones from pointer events, and each ignores the other kind,
+// so both are sent for the example to drive either.
 /** inScope */
-function pointerEvent(seriesArea: Element, type: string, x: number, y: number, buttons: number): PointerEvent {
+function dispatchPress(seriesArea: Element, type: 'down' | 'move' | 'up', x: number, y: number, buttons: number): void {
     const { left, top } = seriesArea.getBoundingClientRect();
-    return new PointerEvent(type, {
+    const init = {
         bubbles: true,
         cancelable: true,
-        pointerId: 1,
-        pointerType: 'mouse',
-        isPrimary: true,
         button: 0,
         buttons,
         clientX: left + x,
         clientY: top + y,
         view: window,
-    });
+    };
+    seriesArea.dispatchEvent(
+        new PointerEvent(`pointer${type}`, { ...init, pointerId: 1, pointerType: 'mouse', isPrimary: true })
+    );
+    seriesArea.dispatchEvent(new MouseEvent(`mouse${type}`, init));
 }
 
 /** inScope */
 function dragPan(seriesArea: Element, fromX: number, toX: number, y: number): void {
-    seriesArea.dispatchEvent(pointerEvent(seriesArea, 'pointerdown', fromX, y, 1));
+    dispatchPress(seriesArea, 'down', fromX, y, 1);
     for (let step = 1; step <= PAN_DRAG_STEPS; step++) {
         const x = fromX + ((toX - fromX) * step) / PAN_DRAG_STEPS;
-        seriesArea.dispatchEvent(pointerEvent(seriesArea, 'pointermove', x, y, 1));
+        dispatchPress(seriesArea, 'move', x, y, 1);
     }
-    seriesArea.dispatchEvent(pointerEvent(seriesArea, 'pointerup', toX, y, 0));
+    dispatchPress(seriesArea, 'up', toX, y, 0);
 }
 
 /** inScope */
@@ -288,8 +291,8 @@ const clickToggleTargets = new Map<number, ClickToggleTarget>();
 /** inScope */
 async function clickAtPoint(point: { x: number; y: number }): Promise<void> {
     const seriesArea = container.querySelector('.ag-charts-series-area')!;
-    seriesArea.dispatchEvent(pointerEvent(seriesArea, 'pointerdown', point.x, point.y, 1));
-    seriesArea.dispatchEvent(pointerEvent(seriesArea, 'pointerup', point.x, point.y, 0));
+    dispatchPress(seriesArea, 'down', point.x, point.y, 1);
+    dispatchPress(seriesArea, 'up', point.x, point.y, 0);
     // The chart handles a click on the next animation frame, so wait for that before the update it causes.
     await new Promise((resolve) => requestAnimationFrame(resolve));
     await chartRef.current!.waitForUpdate();
