@@ -70,9 +70,12 @@ function panAxesUnnormalized(
     ratioY: Ratios
 ): { x: number; y: number } {
     const world = calcWorldVec4(zoomRect, ratioX, ratioY);
+    // The world bounds the zoom rect's origin, so offset it to bound the viewport's origin (letterbox margins).
+    const offsetX = zoomRect.x1 - viewport.x1;
+    const offsetY = zoomRect.y1 - viewport.y1;
     return {
-        x: panAxisUnnormalized(world.x1, world.x2, viewport.x1, viewport.x2, target.x1, target.x2),
-        y: panAxisUnnormalized(world.y1, world.y2, viewport.y1, viewport.y2, target.y1, target.y2),
+        x: panAxisUnnormalized(world.x1 - offsetX, world.x2 - offsetX, viewport.x1, viewport.x2, target.x1, target.x2),
+        y: panAxisUnnormalized(world.y1 - offsetY, world.y2 - offsetY, viewport.y1, viewport.y2, target.y1, target.y2),
     };
 }
 

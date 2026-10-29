@@ -321,10 +321,19 @@ test.describe('zoom', () => {
 
         async function expectFocusIndicatorInSeriesArea(page: Page) {
             const seriesArea = await page.locator(SELECTORS.seriesArea).evaluate((e) => e.getBoundingClientRect());
-            // Not `boundingBox()`: for an SVG path that includes the stroke, whereas the pan targets the outline.
+            // The pan targets the outline: `boundingBox()`, and Firefox's `getBoundingClientRect()`, include the stroke.
             const focusBox = await page
                 .locator(`${SELECTORS.focusIndicator} .ag-charts-focus-svg-outer-path`)
-                .evaluate((e) => e.getBoundingClientRect());
+                .evaluate((path: SVGGraphicsElement) => {
+                    const { x, y, width, height } = path.getBBox();
+                    const { a, d, e, f } = path.getScreenCTM()!;
+                    return {
+                        left: e + a * x,
+                        top: f + d * y,
+                        right: e + a * (x + width),
+                        bottom: f + d * (y + height),
+                    };
+                });
 
             // 1px tolerance: the pan places the focus box flush against the series-area edge.
             expect(focusBox.left).toBeGreaterThanOrEqual(seriesArea.left - 1);
