@@ -14,7 +14,7 @@ describe('buildHomepageMarkdown', () => {
     it('renders the hero subheading and its CTA link', () => {
         expect(output).toContain('The professional choice for developers building enterprise applications');
         expect(output).toContain(
-            '[See the charts](https://www.ag-grid.com/gallery/?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta)'
+            '[See the charts](https://www.ag-grid.com/gallery/)'
         );
     });
 
@@ -29,7 +29,7 @@ describe('buildHomepageMarkdown', () => {
 
     it('resolves section CTA links absolutely', () => {
         expect(output).toContain(
-            '[Explore the Docs](https://www.ag-grid.com/react/quick-start/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta)'
+            '[Explore the Docs](https://www.ag-grid.com/react/quick-start/)'
         );
     });
 
@@ -41,7 +41,7 @@ describe('buildHomepageMarkdown', () => {
     it('resolves framework agnostic CTA links to the default framework', () => {
         // `/r/{page}` redirects client side, which the tools reading this markdown don't run.
         expect(output).toContain(
-            '[Free Trial](https://www.ag-grid.com/react/community-vs-enterprise/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta#request-a-30-day-enterprise-bundle-trial-licence)'
+            '[Free Trial](https://www.ag-grid.com/react/community-vs-enterprise/#request-a-30-day-enterprise-bundle-trial-licence)'
         );
         expect(output).not.toContain('ag-grid.com/r/');
     });
