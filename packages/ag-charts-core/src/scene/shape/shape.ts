@@ -549,9 +549,31 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return this.isBatchTinted() ? this.__fillShadow : this.getCastShadow();
     }
 
-    /** Whether a batch casts this shape's glow in the shape's own colour, rather than keyed by it. */
+    /**
+     * Whether a batch casts this shape's glow in the shape's own colour, rather than keyed by it. A tinted mask draws one
+     * solid silhouette, so a shape whose ordinary mask draws its real paint is keyed by its colour and draws that paint.
+     */
     private isBatchTinted(): boolean {
-        return this.__fillShadow?.fill == null && this.getCastShadow() != null && canTintShadows();
+        return (
+            this.__fillShadow?.fill == null &&
+            this.getCastShadow() != null &&
+            canTintShadows() &&
+            !this.drawsRealPaintWithoutSpread()
+        );
+    }
+
+    /**
+     * Whether, without a `spread`, the mask draws the shape's real paint rather than a solid silhouette: a stroke (which may
+     * be dashed) or extras drawn over the fill, or a fill with alpha that varies across the shape (a gradient, pattern or image).
+     */
+    private drawsRealPaintWithoutSpread(): boolean {
+        if ((this.__fillShadow?.spread ?? 0) > 0) return false;
+
+        return (
+            this.castsShadowFromStroke() ||
+            this.castsShadowFromExtras() ||
+            (this.castsShadowFromFill() && typeof this.__fill !== 'string')
+        );
     }
 
     /** The alpha that the colour of this shape's glow has. */
@@ -701,13 +723,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const shadow = this.__fillShadow;
         if (shadow?.enabled !== true || !this.hasSpreadMaskPath()) return;
 
+        if (this.drawsRealPaintWithoutSpread()) return;
+
         const drawsFill = this.castsShadowFromFill();
         const drawsStroke = this.castsShadowFromStroke();
         const hasExtras = this.castsShadowFromExtras();
-        if ((shadow.spread ?? 0) <= 0 && (drawsStroke || hasExtras || (drawsFill && typeof this.__fill !== 'string'))) {
-            return;
-        }
-
         const strength = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras, this.isBatchTinted());
         return isFiniteNumber(strength) ? strength : undefined;
     }
