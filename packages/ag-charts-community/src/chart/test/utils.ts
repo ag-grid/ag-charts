@@ -484,7 +484,7 @@ export function getVisibleLabelNodes<TDatum = any>(
 interface AxisLayoutInternals {
     position: string;
     pickTickData: unknown;
-    scale: { domain: unknown[] };
+    scale: { domain: unknown[]; bandwidth?: number; convert(value: unknown): number };
     tickLabelGroupSelection: {
         nodes(): Iterable<DrawnLabelNode & { fill?: string; rotation: number; textAlign?: string }>;
     };
@@ -536,6 +536,17 @@ export function getAxisTickLayout(chartOrProxy: ChartOrProxy<any>, position: str
 /** The domain the scale of the axis at `position` autoscaled to. */
 export function getAxisScaleDomain(chartOrProxy: ChartOrProxy<any>, position: string): unknown[] {
     return findAxisInternals(chartOrProxy, position).scale.domain;
+}
+
+/** The band `category` occupies on the band-scaled axis at `position`: where it starts and how wide it is. */
+export function getAxisBand(
+    chartOrProxy: ChartOrProxy<any>,
+    position: string,
+    category: unknown
+): { start: number; width: number } {
+    const { scale } = findAxisInternals(chartOrProxy, position);
+    expect(scale.bandwidth, `axis ${position} has a bandwidth`).toBeDefined();
+    return { start: scale.convert(category), width: scale.bandwidth! };
 }
 
 /** The label texts of the axis at `position`, in order along the axis. */

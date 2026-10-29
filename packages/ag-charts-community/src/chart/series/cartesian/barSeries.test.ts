@@ -71,6 +71,7 @@ import {
     expectSceneTrajectory,
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
+    getAxisBand,
     getSeriesAggregationInternals,
     getSwapChainText,
     hoverAction,
@@ -3795,6 +3796,75 @@ describe('BarSeries', () => {
             for (const datum of nodeData) {
                 expect(datum.width).toBe(fixedWidth);
             }
+        });
+
+        describe('width ratio centring', () => {
+            // A pixel of slack for the whole-pixel rounding of band widths.
+            const TOLERANCE = 1;
+
+            // The stacks of a category share its band equally, as `groupPaddingInner` is zero.
+            const expectBarsCentredInSlots = (stackOfSeries: number[], stackCount: number) => {
+                for (const [seriesIndex, stack] of stackOfSeries.entries()) {
+                    const { nodeData } = getBarSeriesContextNodeData(chart, seriesIndex);
+                    expect(nodeData).toHaveLength(data.length);
+                    for (const [categoryIndex, datum] of nodeData.entries()) {
+                        const band = getAxisBand(chart, 'bottom', data[categoryIndex].quarter);
+                        const slotCentre = band.start + (stack + 0.5) * (band.width / stackCount);
+                        expect(
+                            Math.abs(datum.x + datum.width / 2 - slotCentre),
+                            `series ${seriesIndex}, category ${categoryIndex}: bar [${datum.x}, ${datum.x + datum.width}] in slot centred on ${slotCentre}`
+                        ).toBeLessThanOrEqual(TOLERANCE);
+                    }
+                }
+            };
+
+            const createStackedChart = async (series: AgBarSeriesOptions[]) => {
+                chart = await createChart({
+                    data,
+                    series,
+                    axes: { x: { type: 'category', paddingInner: 0, paddingOuter: 0, groupPaddingInner: 0 } },
+                });
+            };
+
+            it.each([
+                ['without widthRatio', undefined],
+                ['with widthRatio', 0.5],
+            ])('centres a single stack %s', async (_, widthRatio) => {
+                await createStackedChart([
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true, widthRatio },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', stacked: true, widthRatio },
+                ]);
+                expectBarsCentredInSlots([0, 0], 1);
+            });
+
+            it.each([
+                ['without widthRatio', undefined],
+                ['with widthRatio', 0.5],
+            ])('centres each of two stacks in its slot %s', async (_, widthRatio) => {
+                await createStackedChart([
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', stackGroup: 'one', widthRatio },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', stackGroup: 'one', widthRatio },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', stackGroup: 'two', widthRatio },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', stackGroup: 'two', widthRatio },
+                ]);
+                expectBarsCentredInSlots([0, 0, 1, 1], 2);
+            });
+
+            it('centres a single stack with a fixed width and widthRatio', async () => {
+                await createStackedChart([
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true, width: 40, widthRatio: 0.5 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', stacked: true, width: 40, widthRatio: 0.5 },
+                ]);
+                expectBarsCentredInSlots([0, 0], 1);
+            });
+
+            it('centres unstacked grouped bars with widthRatio in their slots', async () => {
+                await createStackedChart([
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', widthRatio: 0.5 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', widthRatio: 0.5 },
+                ]);
+                expectBarsCentredInSlots([0, 1], 2);
+            });
         });
     });
 
