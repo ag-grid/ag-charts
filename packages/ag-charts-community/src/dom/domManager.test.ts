@@ -397,6 +397,100 @@ describe('DOMManager', () => {
             expect(shadowWatchers(shadow)).toHaveLength(1);
         });
 
+        it('does not watch a variable deferred while detached, and watches it once resolved after attach', () => {
+            const component = doc.createElement('div');
+            const container = doc.createElement('div');
+            const dm = new DOMManager(eventsHub, 'late-deferred-watchers', doc, container);
+
+            // Watching it in the light DOM would register the variable, so it would resolve to transparent.
+            dm.setDeferredCSSVariables(['var(--my-color)']);
+            expect(container.querySelector('[data-variable-name]')).toBeNull();
+
+            doc.body.append(component);
+            const shadow = component.attachShadow({ mode: 'open' });
+            shadow.appendChild(container);
+            dm.setDeferring(false);
+            vi.runAllTimers();
+            expect(shadowWatchers(shadow)).toHaveLength(0);
+
+            // The refresh re-resolves the options, which now find the variable.
+            dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+            dm.setDeferredCSSVariables([]);
+
+            expect(shadowWatchers(shadow)).toHaveLength(1);
+            expect(countRefreshes(() => transitionEnd(shadowWatchers(shadow)[0]))).toBe(1);
+        });
+
+        describe('requests a single refresh when a detached container is attached', () => {
+            const attach = (dm: DOMManager, parent: Node, container: HTMLElement) => {
+                parent.appendChild(container);
+                dm.setDeferring(false);
+                vi.runAllTimers();
+            };
+
+            it('after the chart moved into a shadow root with several variables watched', () => {
+                const component = doc.createElement('div');
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-shadow', doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red', 'var(--other-color)': 'blue' });
+                doc.body.append(component);
+
+                expect(countRefreshes(() => attach(dm, component.attachShadow({ mode: 'open' }), container))).toBe(1);
+            });
+
+            it('after the chart moved into the light DOM', () => {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-light', doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+                expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(1);
+            });
+
+            it('for a variable that could not be resolved while detached', () => {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-deferred', doc, container);
+                dm.setDeferredCSSVariables(['var(--my-color)']);
+
+                expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(1);
+            });
+
+            it('for a variable deferred while detached, after a pass that processed no CSS variables', () => {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-fast-path', doc, container);
+                dm.setDeferredCSSVariables(['var(--my-color)']);
+                // A fast-path update while still detached passes none.
+                dm.setDeferredCSSVariables();
+
+                expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(1);
+            });
+
+            it('not for a variable that a later pass resolved while detached', () => {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-resolved', doc, container);
+                dm.setDeferredCSSVariables(['var(--my-color)']);
+                dm.setDeferredCSSVariables([]);
+
+                expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(0);
+            });
+
+            it('only when a variable is watched', () => {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-none', doc, container);
+
+                expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(0);
+            });
+
+            it('and not again for a later move', () => {
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'late-refresh-once', doc, container);
+                dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+                attach(dm, doc.body, container);
+                container.remove();
+
+                expect(countRefreshes(() => attach(dm, doc.body, container))).toBe(0);
+            });
+        });
+
         it('should keep styles inside the shadow root when attached to a shadow DOM', () => {
             const component = doc.createElement('div');
             const container = doc.createElement('div');

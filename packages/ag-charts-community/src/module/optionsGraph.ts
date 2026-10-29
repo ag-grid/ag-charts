@@ -76,12 +76,13 @@ function resolveSeriesThemeDefaults(
     theme: ChartTheme,
     seriesType: string,
     moduleRegistry: ModuleScope,
-    cssVariables: Record<string, string> | undefined
+    cssVariables: Record<string, string> | undefined,
+    params?: PlainObject
 ): PlainObject {
     const optionsGraph = new OptionsGraph(
         theme.config,
         { series: [{ type: seriesType }] },
-        theme.params,
+        params ?? theme.params,
         theme.getThemeParameters(),
         theme.palette,
         undefined,
@@ -157,13 +158,15 @@ export function createOptionsGraph(
     options: PlainObject,
     cssVariables?: Record<string, string>,
     presetOptions?: PlainObject,
-    moduleRegistry?: ModuleScope
+    moduleRegistry?: ModuleScope,
+    // The theme's params less any `var()` value that could not be resolved, so the shared theme stays untouched.
+    params?: PlainObject
 ): OptionsGraphAccessor {
     return debug.group('OptionsGraph.constructor()', () => {
         const optionsGraph = new OptionsGraph(
             theme.config,
             options,
-            theme.params,
+            params ?? theme.params,
             theme.getThemeParameters(),
             theme.palette,
             theme.overrides,

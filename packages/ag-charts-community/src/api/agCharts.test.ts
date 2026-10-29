@@ -1,4 +1,4 @@
-import { type Mock, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { type ModuleDefinition, ModuleRegistry, getDocument } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineOptions } from 'ag-charts-types';
@@ -19,6 +19,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../chart/test/utils';
+import { getManagerSizeMonitor } from '../dom/test/domAccessors';
 import { CategoryAxisModule } from '../module/axis-modules/categoryAxisModule';
 import { NumberAxisModule } from '../module/axis-modules/numberAxisModule';
 import { invalidOption } from '../module/test/moduleAccessors';
@@ -778,6 +779,47 @@ describe('AgCharts', () => {
 
             expect(deproxy(chart).series).toHaveLength(1);
             expect(console.error).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('CSS variables left out of a styler result on a detached container', () => {
+        // jsdom cannot validate a `var()` returned from a callback, so the result is handed to the options graph the
+        // way the series hand it theirs.
+        async function attachAfterStylerResult(stylerResult: object) {
+            const detached = document.createElement('div');
+            chart = AgCharts.create({
+                container: detached,
+                width: 300,
+                height: 200,
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            } as AgChartOptions);
+            await chart.waitForUpdate();
+
+            const { domManager, eventsHub, optionsGraphService } = deproxy(chart).ctx;
+            const refresh = vi.fn();
+            eventsHub.on('chart:request-refresh', refresh);
+            const remeasure = vi.spyOn(getManagerSizeMonitor(domManager), 'refresh');
+
+            optionsGraphService.resolvePartial(['series', '0'], stylerResult);
+            document.body.append(detached);
+            // The attach MutationObserver detects the insertion; the transition re-measures the container.
+            await vi.waitFor(() => expect(remeasure).toHaveBeenCalledWith(detached));
+            detached.remove();
+
+            return refresh;
+        }
+
+        it('requests one refresh on attach, so the styler is evaluated against the attached container', async () => {
+            const refresh = await attachAfterStylerResult({ fill: 'var(--attach-undefined)' });
+
+            expect(refresh).toHaveBeenCalledTimes(1);
+        });
+
+        it('requests no refresh on attach when the styler result has no unresolvable variable', async () => {
+            const refresh = await attachAfterStylerResult({ fill: 'red' });
+
+            expect(refresh).not.toHaveBeenCalled();
         });
     });
 });

@@ -456,6 +456,8 @@ class AgChartsInternal {
                     chartOptions.processedOptions.container
                 );
                 chart.ctx.domManager.updateCSSVariableWatchers(processedCSSVariables);
+                // A styler's result is rebuilt on each render, so it only needs a render after the attach.
+                chart.ctx.domManager.setDeferredCSSVariables(chartOptions.takePartialDeferredCSSVariables());
 
                 return chartOptions.optionsGraph?.resolvePartial(
                     logger,
@@ -506,6 +508,7 @@ class AgChartsInternal {
         }
 
         chart.ctx.domManager.updateCSSVariableWatchers(chartOptions.processedCSSVariables);
+        chart.ctx.domManager.setDeferredCSSVariables(chartOptions.deferredCSSVariables);
 
         chart.setRequestRefreshListener(() => {
             const refreshedChartOptions = new ChartOptions(
@@ -521,6 +524,9 @@ class AgChartsInternal {
                 chart.ctx
             );
             AgChartsInternal.licenseCheck(chartProxy, licenceScope);
+            // A variable that could not be resolved before, such as on a detached container, can be now.
+            chart.ctx.domManager.updateCSSVariableWatchers(refreshedChartOptions.processedCSSVariables);
+            chart.ctx.domManager.setDeferredCSSVariables(refreshedChartOptions.deferredCSSVariables);
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
 

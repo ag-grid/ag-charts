@@ -172,6 +172,7 @@ export class DOMManager extends BaseManager {
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
     private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
+    private hasDeferredCSSVariables = false;
     containerSize?: ElementSize = undefined;
     private readonly tabGuards?: GuardedElement;
 
@@ -443,6 +444,16 @@ export class DOMManager extends BaseManager {
         // A container observed while detached had no laid-out size, so re-measure on attachment.
         if (this.container != null) {
             this.sizeMonitor.refresh(this.container);
+
+            // A detached container has no computed style, and a watcher only reports changes made after it
+            // is in place, so everything resolved while detached is re-resolved once here.
+            if (
+                this.hasDeferredCSSVariables ||
+                this.cssVariableWatchers.size > 0 ||
+                this.shadowCssVariableWatchers.size > 0
+            ) {
+                this.eventsHub.emit('chart:request-refresh', null);
+            }
         }
     }
 
@@ -1112,6 +1123,18 @@ export class DOMManager extends BaseManager {
         if (!cssVariables) return;
 
         this.watchCSSVariables(strictObjectKeys(cssVariables).map((key) => key.slice(4, -1)));
+    }
+
+    /**
+     * Records that variables could not be resolved on a detached container. They are not watched, as watching an
+     * undefined variable in the light DOM registers it with `initial-value: transparent`, which makes it resolve to
+     * transparent instead of staying undefined. The attach re-resolves them. A pass that did not process CSS variables
+     * passes none, and leaves what an earlier pass deferred pending.
+     */
+    setDeferredCSSVariables(deferred?: readonly string[]) {
+        if (deferred == null) return;
+
+        this.hasDeferredCSSVariables = deferred.length > 0;
     }
 
     private watchCSSVariables(properties: Iterable<string>) {
