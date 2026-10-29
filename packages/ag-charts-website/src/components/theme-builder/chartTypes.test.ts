@@ -216,16 +216,6 @@ describe('preview chart types', () => {
         }
     });
 
-    it('shows the zoom buttons without a hover only when asked to', () => {
-        for (const type of PREVIEW_CHART_TYPES.filter((other) => other.features.includes('zoom'))) {
-            const zoomButtons = (shown?: boolean) =>
-                (type.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON, shown) as { zoom: Record<string, unknown> }).zoom
-                    .buttons;
-            expect(zoomButtons(true), type.id).toEqual({ visible: 'always' });
-            expect(zoomButtons(), type.id).toBeUndefined();
-        }
-    });
-
     it('gives the context menu rows beyond its defaults to show the menu styles on', () => {
         for (const type of PREVIEW_CHART_TYPES) {
             const { contextMenu } = type.buildOptions(DEFAULT_SERIES_COUNT, ALL_OFF) as {
