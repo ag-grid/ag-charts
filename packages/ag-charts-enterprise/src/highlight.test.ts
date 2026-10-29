@@ -79,7 +79,7 @@ describe('Enterprise highlight defaults', () => {
         if (highlightDatum == null) {
             throw new Error(`No highlight datum found for test case: ${testCase.name}`);
         }
-        chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+        chart.ctx.highlightManager.updateHighlight(highlightDatum);
         await compare();
     };
 
@@ -801,7 +801,7 @@ describe('Enterprise highlight defaults', () => {
                 // Hover over first tile in Root A (path: [0, 0])
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -822,7 +822,7 @@ describe('Enterprise highlight defaults', () => {
                 // Hover over first tile in Root B (path: [1, 0])
                 const highlightDatum = getNodeAtPath(chart, [1, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -856,7 +856,7 @@ describe('Enterprise highlight defaults', () => {
                 // Hover over group in Root A (path: [0, 2])
                 const highlightDatum = getNodeAtPath(chart, [0, 2]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -883,7 +883,7 @@ describe('Enterprise highlight defaults', () => {
                 // Hover over group in Root B (path: [1, 1])
                 const highlightDatum = getNodeAtPath(chart, [1, 1]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -921,7 +921,7 @@ describe('Enterprise highlight defaults', () => {
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -951,7 +951,7 @@ describe('Enterprise highlight defaults', () => {
                 // Hover tile in Root A to see Root B dimmed
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -974,7 +974,7 @@ describe('Enterprise highlight defaults', () => {
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -1003,7 +1003,7 @@ describe('Enterprise highlight defaults', () => {
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -1030,7 +1030,7 @@ describe('Enterprise highlight defaults', () => {
                 // Hover over nested group (path: [0, 2])
                 const highlightDatum = getNodeAtPath(chart, [0, 2]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
         });
@@ -1053,7 +1053,7 @@ describe('Enterprise highlight defaults', () => {
                 // Hover over first segment in Root A (path: [0, 0])
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -1074,7 +1074,7 @@ describe('Enterprise highlight defaults', () => {
                 // Hover over first segment in Root B (path: [1, 0])
                 const highlightDatum = getNodeAtPath(chart, [1, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -1102,7 +1102,7 @@ describe('Enterprise highlight defaults', () => {
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -1129,7 +1129,7 @@ describe('Enterprise highlight defaults', () => {
                 // Hover segment in Root A to see Root B dimmed
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -1152,7 +1152,7 @@ describe('Enterprise highlight defaults', () => {
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -1179,7 +1179,7 @@ describe('Enterprise highlight defaults', () => {
 
                 const highlightDatum = getNodeAtPath(chart, [0, 0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
 
@@ -1200,7 +1200,7 @@ describe('Enterprise highlight defaults', () => {
                 // Hover over inner ring (parent node) - path: [0]
                 const highlightDatum = getNodeAtPath(chart, [0]);
                 if (!highlightDatum) throw new Error('No highlight datum found');
-                chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+                chart.ctx.highlightManager.updateHighlight(highlightDatum);
                 await compare();
             });
         });

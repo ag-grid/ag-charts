@@ -97,7 +97,7 @@ describe('MapShapeSeries', () => {
             const node = seriesImpl?.['contextNodeData']?.nodeData[i];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            highlightManager.updateHighlight(node);
             await compare({
                 failureThreshold: 1,
             });
@@ -150,7 +150,7 @@ describe('MapShapeSeries', () => {
 
                 const seriesImpl = chart.series[0] as MapShapeSeries;
                 const node = seriesImpl?.['contextNodeData']?.nodeData[0];
-                (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, node);
+                (chart as Chart).ctx.highlightManager.updateHighlight(node);
                 await waitForChartStability(chart);
             };
 
@@ -601,7 +601,7 @@ describe('MapShapeSeries', () => {
 
             const series0 = (chart as Chart).series[0];
             const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, {
+            highlightManager.updateHighlight({
                 series: series0,
                 itemId: series0.id,
                 datum: undefined,

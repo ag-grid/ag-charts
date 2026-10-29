@@ -298,7 +298,6 @@ export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuIt
 };
 
 export interface HighlightChangeEvent {
-    readonly callerId: string;
     readonly currentHighlight?: HighlightNodeDatum;
     readonly previousHighlight?: HighlightNodeDatum;
     /** Part of the highlighted node under the pointer, for series that distinguish parts (`Series.getHighlightPart`). */
@@ -306,6 +305,8 @@ export interface HighlightChangeEvent {
     readonly previousHighlightPart?: string;
     readonly highlightSuppressed: boolean;
     readonly highlightInViewport: boolean;
+    /** Whether the highlight was mirrored from another chart by sync. */
+    readonly highlightSynced: boolean;
 }
 
 export interface HighlightSelectionUpdatedEvent {

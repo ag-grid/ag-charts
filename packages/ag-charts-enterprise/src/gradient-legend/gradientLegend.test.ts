@@ -235,7 +235,7 @@ describe('GradientLegend', () => {
         // Sunburst sectors do not hit-test in jsdom, so drive the highlight directly with a real node datum.
         const datum = series.rootNode.children[0].children[0];
         expect(datum?.colorValue).not.toBeNull();
-        chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, datum);
+        chartInstance.ctx.highlightManager.updateHighlight(datum);
         await waitForChartStability(chart);
 
         // The arrow indicates the hovered node, matching treemap.

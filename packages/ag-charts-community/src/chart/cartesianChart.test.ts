@@ -235,7 +235,7 @@ describe('CartesianChart', () => {
 
         it.each(YKEYS)(`should render series with yKey [%s] appropriately`, async (yKey) => {
             const { chart: testee, highlightManager, nodeData } = await buildChart({ ...tcOptions }, yKey);
-            highlightManager.updateHighlight(testee.id, nodeData?.nodeData[3]);
+            highlightManager.updateHighlight(nodeData?.nodeData[3]);
             await compare(testee, {
                 failureThreshold: 2,
                 failureThresholdType: 'pixel',
@@ -249,14 +249,14 @@ describe('CartesianChart', () => {
             expect(nodesToTest).toHaveLength(2);
 
             for (const nodeDataItem of nodesToTest) {
-                highlightManager.updateHighlight(testee.id, nodeDataItem);
+                highlightManager.updateHighlight(nodeDataItem);
                 await compare(testee, {
                     failureThreshold: 2,
                     failureThresholdType: 'pixel',
                 });
             }
 
-            highlightManager.updateHighlight(testee.id, undefined, false); // false = immediate unhighlight
+            highlightManager.updateHighlight(undefined, false); // false = immediate unhighlight
             await compare(testee, {
                 failureThreshold: 2,
                 failureThresholdType: 'pixel',

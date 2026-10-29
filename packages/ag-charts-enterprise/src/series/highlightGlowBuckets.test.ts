@@ -105,8 +105,8 @@ describe('highlight glow on every hierarchy bucket', () => {
         } as AgChartOptions);
 
         const target = leaves().find((leaf) => leaf.datum?.name === 'A1')!;
-        const { ctx, id } = deproxy(chart);
-        ctx.highlightManager.updateHighlight(id, target as any);
+        const { ctx } = deproxy(chart);
+        ctx.highlightManager.updateHighlight(target as any);
         await waitForChartStability(chart);
 
         const withRoles = (name: 'datumSelection' | 'highlightSelection') =>
@@ -275,8 +275,8 @@ describe('highlight glow on treemap groups', () => {
         } as AgChartOptions);
 
         const groupA = getHierarchyRootNode(chart)!.children.find((node) => node.datum?.name === 'A')!;
-        const { ctx, id } = deproxy(chart);
-        ctx.highlightManager.updateHighlight(id, groupA);
+        const { ctx } = deproxy(chart);
+        ctx.highlightManager.updateHighlight(groupA);
         await waitForChartStability(chart);
 
         const groups = (name: 'datumSelection' | 'highlightSelection') =>
@@ -352,8 +352,8 @@ describe('highlight glow on heatmap cells', () => {
             legend: { enabled: false },
             series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', highlight }],
         } as AgChartOptions);
-        const { ctx, id } = deproxy(chart);
-        ctx.highlightManager.updateHighlight(id, getSeriesNodeData<any>(chart)[0]);
+        const { ctx } = deproxy(chart);
+        ctx.highlightManager.updateHighlight(getSeriesNodeData<any>(chart)[0]);
         await waitForChartStability(chart);
     };
 
@@ -423,8 +423,8 @@ describe.each(['sankey', 'chord'] as const)('highlight glow on %s focus copies',
         } as AgChartOptions);
 
         const datum = target === 'node' ? getFlowNodeData(chart)[0] : getFlowLinkData(chart)[0];
-        const { ctx, id } = deproxy(chart);
-        ctx.highlightManager.updateHighlight(id, datum as any);
+        const { ctx } = deproxy(chart);
+        ctx.highlightManager.updateHighlight(datum as any);
         await waitForChartStability(chart);
 
         // The hovered node's and link's own copies, and the focus layers redrawing their connected items undimmed.

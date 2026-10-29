@@ -568,7 +568,6 @@ export abstract class Axis<
 
         if (title != null && title !== '') {
             this.moduleCtx.tooltipManager.updateTooltip(
-                this.id,
                 { canvasX: event.canvasX, canvasY: event.canvasY, showArrow: false },
                 [{ type: 'structured', title }]
             );
@@ -580,7 +579,7 @@ export abstract class Axis<
 
     private endHovering() {
         if (this.isHovering) {
-            this.moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
+            this.moduleCtx.tooltipManager.removeTooltip(true); // true = delayed
             this.isHovering = false;
         }
     }

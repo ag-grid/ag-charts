@@ -2781,11 +2781,11 @@ describe('HeatmapSeries', () => {
             chart = deproxy(await createEnterpriseChart(rawOptions(GRID, series)));
             // The highlight is set through the manager, so the pointer cannot bring it back after the update.
             const { highlightManager } = deproxy(chart).ctx;
-            highlightManager.updateHighlight('test', heatmap(chart).getNodeData()![0]);
+            highlightManager.updateHighlight(heatmap(chart).getNodeData()![0]);
             await waitForChartStability(chart);
             expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.4));
 
-            highlightManager.updateHighlight('test');
+            highlightManager.updateHighlight();
             await transact({ update: [UPDATED('2:2', 5)] });
 
             expect(highlightManager.getActiveHighlight()).toBeUndefined();

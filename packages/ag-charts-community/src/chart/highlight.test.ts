@@ -101,7 +101,7 @@ describe('Chart highlighting', () => {
         if (highlightDatum == null) {
             throw new Error(`No highlight datum found for test case: ${testCase.name}`);
         }
-        chart.ctx.highlightManager.updateHighlight(chart.id, highlightDatum);
+        chart.ctx.highlightManager.updateHighlight(highlightDatum);
         await compare();
     };
 
@@ -460,7 +460,7 @@ describe('Chart highlighting', () => {
                 seriesIndex: 0,
                 datumIndex: 0,
             });
-            chart.ctx.highlightManager.updateHighlight(chart.id, disabledDatum);
+            chart.ctx.highlightManager.updateHighlight(disabledDatum);
             await waitForChartStability(chart);
 
             // Now transition to an enabled series (oranges) — bananas should dehighlight
@@ -470,7 +470,7 @@ describe('Chart highlighting', () => {
                 seriesIndex: 1,
                 datumIndex: 0,
             });
-            chart.ctx.highlightManager.updateHighlight(chart.id, enabledDatum);
+            chart.ctx.highlightManager.updateHighlight(enabledDatum);
             await compare();
         });
 
@@ -521,7 +521,7 @@ describe('Chart highlighting', () => {
                 seriesIndex: 1,
                 datumIndex: 0,
             });
-            chart.ctx.highlightManager.updateHighlight(chart.id, enabledDatum);
+            chart.ctx.highlightManager.updateHighlight(enabledDatum);
             await waitForChartStability(chart);
 
             // Now transition to the disabled series (apples) — all series should clear dehighlight
@@ -531,7 +531,7 @@ describe('Chart highlighting', () => {
                 seriesIndex: 0,
                 datumIndex: 0,
             });
-            chart.ctx.highlightManager.updateHighlight(chart.id, disabledDatum);
+            chart.ctx.highlightManager.updateHighlight(disabledDatum);
             await compare();
         });
 
@@ -718,14 +718,14 @@ describe('Chart highlighting', () => {
             expect(datumHighlight).toBeDefined();
 
             // Datum-level highlight, as produced by hovering or arrow-key focusing a bar.
-            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            chart.ctx.highlightManager.updateHighlight(datumHighlight);
             await waitForChartStability(chart);
             for (const fillOpacity of baseLayerFillOpacities(chart, 0)) {
                 expect(fillOpacity).toBeLessThan(1);
             }
 
             // Series-level highlight of the same series, as when focus moves into a legend item.
-            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            chart.ctx.highlightManager.updateHighlight(legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
 
             expect(baseLayerFillOpacities(chart, 0)).toEqual([1, 1, 1, 1]);
@@ -735,7 +735,7 @@ describe('Chart highlighting', () => {
             const options = twoSeriesOptions();
             chart = deproxy(await createChart(options));
 
-            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            chart.ctx.highlightManager.updateHighlight(legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
             expect(baseLayerFillOpacities(chart, 0)).toEqual([1, 1, 1, 1]);
 
@@ -747,7 +747,7 @@ describe('Chart highlighting', () => {
             });
             expect(datumHighlight).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            chart.ctx.highlightManager.updateHighlight(datumHighlight);
             await waitForChartStability(chart);
             for (const fillOpacity of baseLayerFillOpacities(chart, 0)) {
                 expect(fillOpacity).toBeLessThan(1);
@@ -765,13 +765,13 @@ describe('Chart highlighting', () => {
                 datumIndex: 1,
             });
 
-            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            chart.ctx.highlightManager.updateHighlight(datumHighlight);
             await waitForChartStability(chart);
             for (const fillOpacity of baseLayerFillOpacities(chart, 1)) {
                 expect(fillOpacity).toBeLessThan(1);
             }
 
-            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            chart.ctx.highlightManager.updateHighlight(legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
             for (const fillOpacity of baseLayerFillOpacities(chart, 1)) {
                 expect(fillOpacity).toBeLessThan(1);
@@ -789,11 +789,11 @@ describe('Chart highlighting', () => {
                 datumIndex: 1,
             });
 
-            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            chart.ctx.highlightManager.updateHighlight(datumHighlight);
             await waitForChartStability(chart);
             expect(chart.series[0].highlightGroup.visible).toBe(true);
 
-            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            chart.ctx.highlightManager.updateHighlight(legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
             expect(chart.series[0].highlightGroup.visible).toBe(false);
         });
@@ -838,7 +838,7 @@ describe('Chart highlighting', () => {
             });
             expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            chart.ctx.highlightManager.updateHighlight(hoveredDatum);
             await waitForChartStability(chart);
 
             // The hovered node itself.
@@ -898,7 +898,7 @@ describe('Chart highlighting', () => {
                 });
                 expect(hoveredDatum).toBeDefined();
 
-                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                chart.ctx.highlightManager.updateHighlight(hoveredDatum);
                 await waitForChartStability(chart);
 
                 expect(stateAt(chart, 2, 1, true)).toBe('highlighted-item');
@@ -949,7 +949,7 @@ describe('Chart highlighting', () => {
             });
             expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            chart.ctx.highlightManager.updateHighlight(hoveredDatum);
             await waitForChartStability(chart);
 
             for (let datumIndex = 0; datumIndex < 3; datumIndex += 1) {
@@ -988,7 +988,7 @@ describe('Chart highlighting', () => {
             });
             expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            chart.ctx.highlightManager.updateHighlight(hoveredDatum);
             await waitForChartStability(chart);
 
             expect(stateAt(chart, 1, 1)).toBe('highlighted-item');
@@ -1021,7 +1021,7 @@ describe('Chart highlighting', () => {
             });
             expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            chart.ctx.highlightManager.updateHighlight(hoveredDatum);
             await waitForChartStability(chart);
 
             for (let datumIndex = 0; datumIndex < cartesianSeriesData.length; datumIndex += 1) {
@@ -1040,7 +1040,7 @@ describe('Chart highlighting', () => {
                 datumIndex: Number.NaN,
             };
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, legendHighlight);
+            chart.ctx.highlightManager.updateHighlight(legendHighlight);
             await waitForChartStability(chart);
 
             for (let datumIndex = 0; datumIndex < 4; datumIndex += 1) {
@@ -1060,7 +1060,7 @@ describe('Chart highlighting', () => {
             });
             expect(hoveredDatum).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            chart.ctx.highlightManager.updateHighlight(hoveredDatum);
             await waitForChartStability(chart);
 
             // Without an explicit `mode`, the non-hovered series' item at the same category stays
@@ -1077,7 +1077,7 @@ describe('Chart highlighting', () => {
             expect(datumQ2).toBeDefined();
             expect(datumQ3).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ2);
+            chart.ctx.highlightManager.updateHighlight(datumQ2);
             await waitForChartStability(chart);
 
             const afterQ2 = baseLayerFillOpacities(chart, 1);
@@ -1085,7 +1085,7 @@ describe('Chart highlighting', () => {
             expect(afterQ2[0]).toBe(afterQ2[2]);
             expect(afterQ2[2]).toBe(afterQ2[3]);
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+            chart.ctx.highlightManager.updateHighlight(datumQ3);
             await waitForChartStability(chart);
 
             const afterQ3 = baseLayerFillOpacities(chart, 1);
@@ -1153,14 +1153,14 @@ describe('Chart highlighting', () => {
             expect(datumQ2).toBeDefined();
             expect(datumQ3).toBeDefined();
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ2);
+            chart.ctx.highlightManager.updateHighlight(datumQ2);
             await waitForChartStability(chart);
 
             const afterQ2 = baseLayerFillOpacities(chart, 2);
             expect(afterQ2[1]).toBeGreaterThan(afterQ2[0]);
 
             // Shared mode widens the update beyond the hovered series, so the third series repaints too.
-            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+            chart.ctx.highlightManager.updateHighlight(datumQ3);
             await waitForChartStability(chart);
 
             const afterQ3 = baseLayerFillOpacities(chart, 2);
@@ -1178,12 +1178,12 @@ describe('Chart highlighting', () => {
                 expect(datumQ2).toBeDefined();
                 expect(datumQ3).toBeDefined();
 
-                chart.ctx.highlightManager.updateHighlight(chart.id, datumQ2);
+                chart.ctx.highlightManager.updateHighlight(datumQ2);
                 await waitForChartStability(chart);
                 await compare();
 
                 // The lit pair must move with the hover, leaving nothing lit at the previous category.
-                chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+                chart.ctx.highlightManager.updateHighlight(datumQ3);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -1223,7 +1223,7 @@ describe('Chart highlighting', () => {
                 });
                 expect(hoveredDatum).toBeDefined();
 
-                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                chart.ctx.highlightManager.updateHighlight(hoveredDatum);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -1258,7 +1258,7 @@ describe('Chart highlighting', () => {
                 });
                 expect(hoveredDatum).toBeDefined();
 
-                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                chart.ctx.highlightManager.updateHighlight(hoveredDatum);
                 await waitForChartStability(chart);
                 await compare();
             });
@@ -1275,7 +1275,7 @@ describe('Chart highlighting', () => {
                 });
                 expect(hoveredDatum).toBeDefined();
 
-                chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+                chart.ctx.highlightManager.updateHighlight(hoveredDatum);
                 await waitForChartStability(chart);
                 await compare();
             });

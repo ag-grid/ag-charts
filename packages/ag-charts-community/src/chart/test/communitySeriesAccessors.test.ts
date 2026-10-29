@@ -21,7 +21,7 @@ import {
     withUndocumentedChartOptions,
     withUndocumentedOptions,
 } from './communitySeriesAccessors';
-import { getSeriesAt, getSeriesContextNodeData, getSeriesSelectionNodes } from './seriesAccessors';
+import { getSeriesContextNodeData, getSeriesSelectionNodes } from './seriesAccessors';
 import { createChart, deproxy, errorFrom, setupMockCanvas, setupMockConsole, waitForChartStability } from './utils';
 
 describe('community series test accessors', () => {
@@ -179,7 +179,7 @@ describe('community series test accessors', () => {
             expect(getVisibleLabelTextNodes(chart, 0, 'highlightLabelSelection')).toHaveLength(0);
 
             const [datum] = getSeriesContextNodeData(chart).labelData;
-            deproxy(chart).ctx.highlightManager.updateHighlight(getSeriesAt(chart).id, datum);
+            deproxy(chart).ctx.highlightManager.updateHighlight(datum);
             await waitForChartStability(chart);
 
             expect(getVisibleLabelTextNodes(chart, 0, 'highlightLabelSelection')).toHaveLength(1);

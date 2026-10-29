@@ -98,7 +98,7 @@ describe('MapLineSeries', () => {
             const node = seriesImpl?.['contextNodeData']?.nodeData[i];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node);
+            highlightManager.updateHighlight(node);
             await compare();
         });
     });

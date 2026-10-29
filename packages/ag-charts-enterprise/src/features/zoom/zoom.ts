@@ -55,7 +55,6 @@ const { userInteraction, InteractionState } = _ModuleSupport;
 const round = (value: number) => roundTo(value, 10);
 
 const CURSOR_ID = 'zoom-cursor';
-const TOOLTIP_ID = 'zoom-tooltip';
 
 enum DragState {
     None,
@@ -371,7 +370,7 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
-            tooltipManager.updateTooltip(TOOLTIP_ID);
+            tooltipManager.updateTooltip();
         }
         eventsHub.emit('chart:request-update', {
             type: this.dragUpdateType,
@@ -414,7 +413,7 @@ export class Zoom extends AbstractModuleInstance {
     private resetDragState(): void {
         this.dragState = DragState.None;
         this.ctx.domManager.updateCursor(CURSOR_ID);
-        this.ctx.tooltipManager.removeTooltip(TOOLTIP_ID);
+        this.ctx.tooltipManager.removeTooltip();
     }
 
     private onAxisMouseEnter(event: _ModuleSupport.ZoomInteractionAxisMouseEvent<'mouseenter'>) {
@@ -549,7 +548,7 @@ export class Zoom extends AbstractModuleInstance {
             );
         }
 
-        tooltipManager.updateTooltip(TOOLTIP_ID);
+        tooltipManager.updateTooltip();
         eventsHub.emit('chart:request-update', {
             type: ChartUpdateType.PERFORM_LAYOUT,
             opts: { skipAnimations: true },
@@ -581,7 +580,7 @@ export class Zoom extends AbstractModuleInstance {
         if (this.hoveredAxisId != null && this.hoveredAxisDirection != null) {
             this.updateAxisCursor(this.hoveredAxisDirection);
         }
-        tooltipManager.removeTooltip(TOOLTIP_ID);
+        tooltipManager.removeTooltip();
     }
 
     private onNavZoom(event: _ModuleSupport.SeriesKeyNavZoomEvent) {
@@ -818,7 +817,7 @@ export class Zoom extends AbstractModuleInstance {
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
         this.updateChanges(userInteraction('zoom-seriesarea-panner'), newZooms);
         if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
-            tooltipManager.updateTooltip(TOOLTIP_ID);
+            tooltipManager.updateTooltip();
         }
     }
 

@@ -537,8 +537,8 @@ describe('highlight glow (enterprise series)', () => {
 
     /** Raises the highlight on `datum` (or clears it) as the pointer would. */
     const raiseHighlight = (datum?: HighlightNodeDatum) => {
-        const { ctx, id } = deproxy(chart);
-        ctx.highlightManager.updateHighlight(id, datum);
+        const { ctx } = deproxy(chart);
+        ctx.highlightManager.updateHighlight(datum);
     };
 
     const hoverItem = async (

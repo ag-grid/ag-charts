@@ -1934,13 +1934,13 @@ describe('DonutSeries', () => {
             const cutouts = series.innerCircleCutoutSelection.nodes().length;
             expect(cutouts).toBe(data.length);
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, series.getNodeData()![1]);
+            chart.ctx.highlightManager.updateHighlight(series.getNodeData()![1]);
             await waitForChartStability(chart);
 
             expect(circleSize(series)).toBe(size);
             expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(cutouts);
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, undefined, false);
+            chart.ctx.highlightManager.updateHighlight(undefined, false);
             await waitForChartStability(chart);
 
             expect(circleSize(series)).toBe(size);
@@ -1957,11 +1957,11 @@ describe('DonutSeries', () => {
             });
             await compare('donut-inner-circle-corner-radius-highlight-before');
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, series.getNodeData()![1]);
+            chart.ctx.highlightManager.updateHighlight(series.getNodeData()![1]);
             await waitForChartStability(chart);
             await compare('donut-inner-circle-corner-radius-highlight-during');
 
-            chart.ctx.highlightManager.updateHighlight(chart.id, undefined, false);
+            chart.ctx.highlightManager.updateHighlight(undefined, false);
             await waitForChartStability(chart);
             await compare('donut-inner-circle-corner-radius-highlight-after');
         });

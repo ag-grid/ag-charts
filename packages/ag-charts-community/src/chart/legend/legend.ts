@@ -197,7 +197,7 @@ export class Legend {
             ctx.chartState.observe((get) => {
                 const activeItem = get('activeItem');
                 if (activeItem?.type === 'series-node') {
-                    this.ctx.highlightManager.updateHighlight(this.id);
+                    this.ctx.highlightManager.updateHighlight();
                 }
             }),
             ctx.chartState.observe((get) => {
@@ -1191,21 +1191,23 @@ export class Legend {
         const datum: CategoryLegendDatum | undefined = node.datum;
         const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
 
+        // Emitted first so the series area drops its highlight and tooltip before the legend sets its own.
+        this.ctx.eventsHub.emit('legend:item-hover', null);
+
         const content = datum ? this.getTooltipContent(datum) : undefined;
         if (content) {
             const meta = this.toTooltipMeta(event, node);
-            this.ctx.tooltipManager.updateTooltip(this.id, meta, content);
+            this.ctx.tooltipManager.updateTooltip(meta, content);
         } else {
-            this.ctx.tooltipManager.removeTooltip(this.id, undefined, true);
+            this.ctx.tooltipManager.removeTooltip(true);
         }
 
         this.updateHighlight(datum?.enabled, datum, series, undefined, event.type === 'focus');
-        this.ctx.eventsHub.emit('legend:item-hover', null);
     }
 
     onLeave(event: LegendLeaveEvent) {
         if (this.checkInteractionState()) return;
-        this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
+        this.ctx.tooltipManager.removeTooltip(true); // true = delayed
         this.clearHighlight(event.type !== 'mouseleave');
     }
 
@@ -1239,7 +1241,7 @@ export class Legend {
         const updateManagers = (opts: InternalUpdateOpts | undefined): void => {
             const defaultPrevented: boolean = updateActive(opts);
             if (!defaultPrevented) {
-                this.ctx.highlightManager.updateHighlight(this.id, opts?.nodeDatum);
+                this.ctx.highlightManager.updateHighlight(opts?.nodeDatum);
             }
         };
 
@@ -1282,7 +1284,7 @@ export class Legend {
     private onActiveLoadMemento(event: ActiveLoadMementoEvent): void {
         const { activeItem } = event;
         if (activeItem?.type !== 'legend') {
-            return this.ctx.highlightManager.updateHighlight(this.id);
+            return this.ctx.highlightManager.updateHighlight();
         }
 
         const datum = this.data.find((d) => d.seriesId === activeItem.seriesId && d.itemId === activeItem.itemId);

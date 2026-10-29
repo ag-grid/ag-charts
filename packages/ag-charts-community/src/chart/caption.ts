@@ -160,7 +160,7 @@ export class Caption implements CaptionLike {
         if (!this.enabled || !this.truncated) return;
 
         const content: TooltipContent = { type: 'structured', title: toPlainText(this.text) };
-        moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [content]);
+        moduleCtx.tooltipManager.updateTooltip({ canvasX, canvasY, showArrow: false }, [content]);
     }
 
     private handleMouseMove(moduleCtx: DynamicContext<ChartRegistry>, event?: MouseWidgetEvent<'mousemove'>) {
@@ -178,7 +178,7 @@ export class Caption implements CaptionLike {
     }
 
     private handleTooltipHide(moduleCtx: DynamicContext<ChartRegistry>) {
-        moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true);
+        moduleCtx.tooltipManager.removeTooltip(true);
     }
 
     destroy() {
