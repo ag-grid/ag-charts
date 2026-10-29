@@ -791,8 +791,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const crossAxisZoom = this.state[crossAxisId] ?? { min: 0, max: 1 };
 
-        let min: number;
-        let max: number;
+        let min = 0;
+        let max = 1;
 
         // For vertical bars, pin to the left and extend right until the right reaches max, then extend left.
         // For horizontal bars, pin to the top and extend down until the bottom reaches max, then extend up.

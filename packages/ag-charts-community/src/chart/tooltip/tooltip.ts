@@ -222,7 +222,7 @@ export class Tooltip {
         let i = 0;
         let placement: AgTooltipPlacement | undefined;
         let position: Placement | undefined;
-        let constrained: boolean;
+        let constrained = false;
         do {
             placement = placements[i];
             i += 1;

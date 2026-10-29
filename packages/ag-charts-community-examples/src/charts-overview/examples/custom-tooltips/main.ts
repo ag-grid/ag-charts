@@ -4,7 +4,7 @@ import { getData } from "./data"
 
 function tooltipRenderer(params: AgBarSeriesTooltipRendererParams) {
   const formatThousands = function (value: number) {
-    return value.toLocaleString("en-US")
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
   }
 
   const tooltipHtml = [
