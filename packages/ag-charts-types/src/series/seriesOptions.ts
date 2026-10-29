@@ -1,4 +1,3 @@
-import type { AgGlowOptions } from '../chart/dropShadowOptions';
 import type { AgSeriesListeners } from '../chart/eventOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../chart/selectionOptions';
 import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
@@ -18,46 +17,6 @@ export interface AgMultiSeriesHighlightOptions<
      */
     bringToFront?: boolean;
 }
-
-/** Highlight style options for an item that can cast a `glow`. */
-export interface AgGlowHighlightStyleOptions {
-    /**
-     * Configuration for the glow around the item while this highlight state applies.
-     *
-     * The hovered item's glow (`highlightedItem`) is drawn centred on the item, with the item drawn over its own glow.
-     * It sits above every series when `bringToFront` is on, and keeps its series' stacking order otherwise. The glow of
-     * every other state (`unhighlightedItem`, `unhighlightedSeries`, and the other items under `highlightedSeries`; on
-     * treemap and sunburst, `highlightedBranch` and `unhighlightedBranch`) is cast in the same pass as the item's
-     * `shadow`, so it stays behind every series.
-     *
-     * While a glow is enabled for an item's state it replaces that item's `shadow`; the two are never merged. The
-     * hovered item's own `shadow` stays beneath its glow. Series with a series-level bucket (`highlightedSeries`,
-     * `unhighlightedSeries`) fall back to it: both `highlightedItem` and `unhighlightedItem` fall back to
-     * `highlightedSeries`, so its glow also lights the other items of the hovered series, and `highlightedItem.glow` is
-     * merged over it field by field. On treemap and sunburst the branch buckets take the place of the series buckets,
-     * except for treemap groups, which have only the item buckets.
-     *
-     * Line series glow only on their markers, and area, radar area and range area fills are not redrawn when
-     * highlighted, so only their markers glow. Cone funnel series do not have this option.
-     *
-     * Default: no glow
-     */
-    glow?: AgGlowOptions;
-}
-
-/** Highlight options for a series whose items can cast a `glow`. */
-export interface AgGlowHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> extends AgHighlightOptions<
-    ItemHighlightStyleOptions & AgGlowHighlightStyleOptions
-> {}
-
-/** Highlight options for a series whose items can cast a `glow`, with separate options for the highlighted series. */
-export interface AgMultiSeriesGlowHighlightOptions<
-    ItemHighlightStyleOptions,
-    SeriesHighlightStyleOptions = ItemHighlightStyleOptions,
-> extends AgMultiSeriesHighlightOptions<
-    ItemHighlightStyleOptions & AgGlowHighlightStyleOptions,
-    SeriesHighlightStyleOptions & AgGlowHighlightStyleOptions
-> {}
 
 export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> {
     /** Set to `false` to disable highlighting. */

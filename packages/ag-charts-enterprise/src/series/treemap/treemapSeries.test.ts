@@ -34,6 +34,7 @@ import {
     getSeriesSelectionNodes,
     hierarchyChartAssertions,
     hoverAction,
+    internalOptions,
     isTooltipVisible,
     pressKey,
     setupMockCanvas,
@@ -1862,21 +1863,22 @@ describe('TreemapSeries', () => {
     describe('shadow', () => {
         const shadow = { enabled: true, fill: 'rgba(0, 0, 0, 0.7)', xOffset: 8, yOffset: 8, blur: 8 };
         const data = HIERARCHY_SHADOW_DATA;
-        const shadowOptions = (parts: { group?: typeof shadow; tile?: typeof shadow } = {}): AgChartOptions => ({
-            data,
-            series: [
-                {
-                    type: 'treemap',
-                    labelKey: 'name',
-                    sizeKey: 'size',
-                    fills: ['#c3dafe', '#fbd38d'],
-                    group: { shadow: parts.group, gap: 12, padding: 10 },
-                    tile: { shadow: parts.tile },
-                },
-            ],
-            legend: { enabled: false },
-            animation: { enabled: false },
-        });
+        const shadowOptions = (parts: { group?: typeof shadow; tile?: typeof shadow } = {}): AgChartOptions =>
+            internalOptions<AgChartOptions>({
+                data,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        fills: ['#c3dafe', '#fbd38d'],
+                        group: { shadow: parts.group, gap: 12, padding: 10 },
+                        tile: { shadow: parts.tile },
+                    },
+                ],
+                legend: { enabled: false },
+                animation: { enabled: false },
+            });
         const renderRects = async (options: AgChartOptions) => {
             chart = deproxy(await createEnterpriseChart(options));
             const rects: { isLeaf: boolean; rect: Rect }[] = [];

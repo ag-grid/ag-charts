@@ -1,3 +1,4 @@
+import type { InternalAgThemeParams } from 'ag-charts-core';
 import { getSequentialColors } from 'ag-charts-core';
 import type { AgChartAllThemeParams, AgChartPrivateThemeParams, WithThemeParams } from 'ag-charts-types';
 
@@ -65,7 +66,9 @@ export class DarkTheme extends ChartTheme {
         };
     }
 
-    protected override getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
+    protected override getPrivateParameters(): Required<
+        WithThemeParams<AgChartPrivateThemeParams & InternalAgThemeParams>
+    > {
         return {
             ...super.getPrivateParameters(),
             annotationTextColor: '#fff',
@@ -74,7 +77,7 @@ export class DarkTheme extends ChartTheme {
             annotationTextboxBackgroundColor: '#28313e',
             annotationTextboxBorderColor: '#4b525d',
             annotationDividerColor: '#fff',
-            shadowFillOpacity: 1,
+            shadowFillOpacity: 0.5,
         };
     }
 

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgCandlestickSeriesOptions, AgChartInstance, AgChartOptions, AgGlowOptions } from 'ag-charts-community';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     HIGHLIGHT_GLOW,
@@ -15,7 +15,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { Color, RadialColumnShape, Rect, Sector, Transformable, overrideTintableShadows } from 'ag-charts-core';
-import type { Shape } from 'ag-charts-core';
+import type { InternalAgGlowOptions, Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
 import { getHierarchyRootNode } from '../test/seriesAccessors';
@@ -35,13 +35,16 @@ type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;
 
 type Shadow = typeof SHADOW;
 
-/** The options of a series of any chart kind, which is what a case's `series` builds. */
-type AnySeriesOptions = NonNullable<AgChartOptions['series']>[number];
+/**
+ * The options of a series of any chart kind, which is what a case's `series` builds. They set `shadow` and `glow` where
+ * the public series types do not declare them, so they are not typed as `AgChartOptions['series']`.
+ */
+type AnySeriesOptions = object;
 
 /** The `highlight` option of a series: the cases only ever set the glow of the highlight styles. */
 interface HighlightOptions {
-    highlightedItem?: { fill?: string; stroke?: string; glow?: AgGlowOptions };
-    unhighlightedItem?: { fill?: string; stroke?: string; glow?: AgGlowOptions };
+    highlightedItem?: { fill?: string; stroke?: string; glow?: InternalAgGlowOptions };
+    unhighlightedItem?: { fill?: string; stroke?: string; glow?: InternalAgGlowOptions };
 }
 
 interface SeriesCase {
@@ -571,7 +574,7 @@ describe('highlight glow (enterprise series)', () => {
         // The wick is stroked and the body is not, so the wick is all that the glow has to reach past the body.
         const wicked: SeriesCase = {
             ...candlestick,
-            series: (shadow, highlight): AgCandlestickSeriesOptions => ({
+            series: (shadow, highlight): AnySeriesOptions => ({
                 type: 'candlestick',
                 xKey: 'x',
                 openKey: 'open',
@@ -587,7 +590,7 @@ describe('highlight glow (enterprise series)', () => {
             }),
         };
 
-        const pixelsBesideWick = async (glow: AgGlowOptions, drawingMode: 'cutout' | 'overlay') => {
+        const pixelsBesideWick = async (glow: InternalAgGlowOptions, drawingMode: 'cutout' | 'overlay') => {
             const { highlighted } = await hoverItem(wicked, undefined, { highlightedItem: { glow } }, drawingMode);
             const [node] = highlighted;
             const { x, y, width } = Transformable.toCanvas(node);
@@ -618,7 +621,7 @@ describe('highlight glow (enterprise series)', () => {
         // A body that is half transparent under a stroke that is opaque, and wicks of the same stroke.
         const stroked: SeriesCase = {
             ...candlestick,
-            series: (shadow, highlight): AgCandlestickSeriesOptions => ({
+            series: (shadow, highlight): AnySeriesOptions => ({
                 type: 'candlestick',
                 xKey: 'x',
                 openKey: 'open',
@@ -637,7 +640,7 @@ describe('highlight glow (enterprise series)', () => {
         afterEach(() => overrideTintableShadows());
 
         const regionOf = async (
-            glow: AgGlowOptions,
+            glow: InternalAgGlowOptions,
             drawingMode: 'cutout' | 'overlay',
             canTint: boolean | undefined
         ) => {
@@ -864,7 +867,7 @@ describe('highlight glow (enterprise series)', () => {
 
         it('rejects a glow colour, which a glow no longer has', async () => {
             const { highlighted } = await hoverItem(testCase, undefined, {
-                highlightedItem: { glow: { enabled: true, color: '#ff00ff' } as AgGlowOptions },
+                highlightedItem: { glow: { enabled: true, color: '#ff00ff' } as InternalAgGlowOptions },
             });
 
             const messages = vi
@@ -934,7 +937,8 @@ describe('highlight glow (enterprise series)', () => {
             }
         );
 
-        it.each(['cutout', 'overlay'] as const)(
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip.each(['cutout', 'overlay'] as const)(
             'does not cast the base shadow from the highlight copy when there is no glow in %s mode',
             async (drawingMode) => {
                 const { inPlace, highlighted } = await hoverItem(testCase, SHADOW, {}, drawingMode);

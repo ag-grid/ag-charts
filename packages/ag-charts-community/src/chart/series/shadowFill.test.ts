@@ -1,20 +1,21 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { InternalAgDropShadowOptions } from 'ag-charts-core';
 import { type Node, Shape, Transformable } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import type { Chart } from '../chart';
 import { Marker } from '../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../test/bigintExamples';
 import { getSeriesPaths } from '../test/communitySeriesAccessors';
 import { getSeriesAt, getSeriesSelectionNodes } from '../test/seriesAccessors';
-import { CATEGORY_DATA, HISTOGRAM_DATA, XY_DATA } from '../test/shadowFixtures';
+import { CATEGORY_DATA, HISTOGRAM_DATA, XY_DATA, internalOptions } from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 interface SeriesCase {
     name: string;
     /** The series options, with `shadow` placed where this series reads it from. */
-    series: (shadow: AgDropShadowOptions | undefined) => object;
+    series: (shadow: InternalAgDropShadowOptions | undefined) => object;
     data: object[];
 }
 
@@ -91,7 +92,7 @@ describe('shadow fill and fillOpacity', () => {
         return nodes.filter((node): node is Shape => node instanceof Shape && node.fillShadow?.enabled === true);
     };
 
-    const createSeries = (testCase: SeriesCase, shadow: AgDropShadowOptions | undefined) =>
+    const createSeries = (testCase: SeriesCase, shadow: InternalAgDropShadowOptions | undefined) =>
         create({
             data: testCase.data,
             animation: { enabled: false },
@@ -126,20 +127,17 @@ describe('shadow fill and fillOpacity', () => {
             }
         });
 
-        it('still casts the shadow in its deprecated colour, as the fill, and warns', async () => {
+        it('still casts the shadow in its colour, as the fill, without a deprecation warning', async () => {
             await createSeries(testCase, { enabled: true, color: '#336699', xOffset: 2, yOffset: 2, blur: 4 });
 
             expect(casters().length).toBeGreaterThan(0);
             for (const shape of casters()) {
                 expect(shape.fillShadow).toMatchObject({ fill: '#336699', fillOpacity: 1 });
             }
-            const messages = warnings().filter((message) => message.includes('.shadow.color'));
-            expect(messages).toHaveLength(1);
-            expect(messages[0]).toContain('is deprecated');
-            expect(messages[0]).toContain('Use `fill` instead.');
+            expect(warnings().filter((message) => message.includes('.shadow.color'))).toEqual([]);
         });
 
-        it('casts the fill and not the deprecated colour when it has both, and warns about the colour', async () => {
+        it('casts the fill and not the colour when it has both, without a deprecation warning', async () => {
             await createSeries(testCase, {
                 enabled: true,
                 fill: '#336699',
@@ -151,7 +149,7 @@ describe('shadow fill and fillOpacity', () => {
 
             expect(casters().length).toBeGreaterThan(0);
             for (const shape of casters()) expect(shape.fillShadow?.fill).toBe('#336699');
-            expect(warnings().filter((message) => message.includes('.shadow.color'))).toHaveLength(1);
+            expect(warnings().filter((message) => message.includes('.shadow.color'))).toEqual([]);
         });
 
         it('warns about a fillOpacity beyond 0 to 1, and casts the shadow without it', async () => {
@@ -181,7 +179,7 @@ describe('shadow fill and fillOpacity', () => {
     describe('rendering', () => {
         // A shadow with no blur, to the right of a marker that is clear of it, so that the colour of a pixel on the white
         // of the chart is the strength of the shadow.
-        const SHADOW: AgDropShadowOptions = { enabled: true, xOffset: 40, yOffset: 0, blur: 0 };
+        const SHADOW: InternalAgDropShadowOptions = { enabled: true, xOffset: 40, yOffset: 0, blur: 0 };
         const AXES = {
             x: { ...STRIPPED_NUMBER_AXES.x, min: 0, max: 10 },
             y: { ...STRIPPED_NUMBER_AXES.y, min: 0, max: 10 },
@@ -192,26 +190,28 @@ describe('shadow fill and fillOpacity', () => {
         ];
 
         /** The colour of the chart where the shadow of the marker falls, on its centre. */
-        const shadowPixel = async (shadow: AgDropShadowOptions) => {
-            await create({
-                data: [{ x: 3, y: 5 }],
-                animation: { enabled: false },
-                legend: { enabled: false },
-                axes: AXES,
-                series: [
-                    {
-                        type: 'scatter',
-                        xKey: 'x',
-                        yKey: 'y',
-                        shape: 'square',
-                        size: 20,
-                        fill: 'blue',
-                        fillOpacity: 1,
-                        strokeWidth: 0,
-                        shadow: { ...SHADOW, ...shadow },
-                    },
-                ],
-            } as AgCartesianChartOptions);
+        const shadowPixel = async (shadow: InternalAgDropShadowOptions) => {
+            await create(
+                internalOptions<AgCartesianChartOptions>({
+                    data: [{ x: 3, y: 5 }],
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    axes: AXES,
+                    series: [
+                        {
+                            type: 'scatter',
+                            xKey: 'x',
+                            yKey: 'y',
+                            shape: 'square',
+                            size: 20,
+                            fill: 'blue',
+                            fillOpacity: 1,
+                            strokeWidth: 0,
+                            shadow: { ...SHADOW, ...shadow },
+                        },
+                    ],
+                })
+            );
             const [marker] = getSeriesSelectionNodes<Marker>(current(), 'datumSelection').filter(
                 (node) => node.visible
             );
@@ -247,7 +247,7 @@ describe('shadow fill and fillOpacity', () => {
             expectChannels(await shadowPixel({ fill: '#ff0000', fillOpacity: 0 }), [255, 255, 255, 255]);
         });
 
-        it('casts the deprecated colour as the fill would be cast', async () => {
+        it('casts the colour as the fill would be cast', async () => {
             const withColor = await shadowPixel({ color: 'rgba(255, 0, 0, 0.5)' });
             const withFill = await shadowPixel({ fill: 'rgba(255, 0, 0, 0.5)' });
 

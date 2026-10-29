@@ -50,7 +50,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         edgePlacement: union('inside', 'outside'),
     },
     link: {
-        shadow: shadowOptionsDefs,
+        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
         itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
             ...fillOptionsDef,
             ...strokeOptionsDef,
@@ -61,7 +61,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...lineDashOptionsDef,
     },
     node: {
-        shadow: shadowOptionsDefs,
+        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
         width: positiveNumber,
         spacing: positiveNumber,
         minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),

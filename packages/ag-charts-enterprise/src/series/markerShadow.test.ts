@@ -1,14 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartOptions, AgDropShadowOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgChartOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     MARKER_SHADOW,
     customMarkerShape,
     getSeriesAt,
     getSeriesSelectionNodes,
+    internalOptions,
     setupMockCanvas,
     setupMockConsole,
 } from 'ag-charts-community-test';
+import type { InternalAgDropShadowOptions } from 'ag-charts-core';
 import type { AgChartInstance, AgMarkerShape } from 'ag-charts-types';
 
 import { getEnterpriseSelectionNodes } from '../test/enterpriseSeriesAccessors';
@@ -33,7 +35,7 @@ interface SeriesExtras {
 interface MarkerSeriesCase {
     name: string;
     /** Chart options for a series whose markers use `shape` and (optionally) `shadow`. */
-    options: (shape: AgMarkerShape, shadow?: AgDropShadowOptions, extras?: SeriesExtras) => AgChartOptions;
+    options: (shape: AgMarkerShape, shadow?: InternalAgDropShadowOptions, extras?: SeriesExtras) => AgChartOptions;
     /** Series selection holding the marker nodes. */
     selection: 'datumSelection' | 'itemSelection' | 'markerSelection';
     /** Index of the series that draws the markers. */
@@ -172,8 +174,20 @@ describe('marker shadow', () => {
     });
 
     describe('range-area item markers', () => {
-        const LOW_SHADOW: AgDropShadowOptions = { enabled: true, fill: '#ff0000', xOffset: 2, yOffset: 2, blur: 3 };
-        const HIGH_SHADOW: AgDropShadowOptions = { enabled: true, fill: '#0000ff', xOffset: 6, yOffset: 7, blur: 9 };
+        const LOW_SHADOW: InternalAgDropShadowOptions = {
+            enabled: true,
+            fill: '#ff0000',
+            xOffset: 2,
+            yOffset: 2,
+            blur: 3,
+        };
+        const HIGH_SHADOW: InternalAgDropShadowOptions = {
+            enabled: true,
+            fill: '#0000ff',
+            xOffset: 6,
+            yOffset: 7,
+            blur: 9,
+        };
 
         const rangeAreaCase = CASES.find((c) => c.name === 'range-area')!;
 
@@ -187,22 +201,24 @@ describe('marker shadow', () => {
         };
 
         it('applies each item marker its own shadow', async () => {
-            await create({
-                data: RADAR_DATA,
-                series: [
-                    {
-                        type: 'range-area',
-                        xKey: 'subject',
-                        yHighKey: 'value',
-                        yLowKey: 'low',
-                        marker: { enabled: true, shape: 'circle', size: 12 },
-                        item: {
-                            low: { marker: { shadow: LOW_SHADOW } },
-                            high: { marker: { shadow: HIGH_SHADOW } },
+            await create(
+                internalOptions<AgChartOptions>({
+                    data: RADAR_DATA,
+                    series: [
+                        {
+                            type: 'range-area',
+                            xKey: 'subject',
+                            yHighKey: 'value',
+                            yLowKey: 'low',
+                            marker: { enabled: true, shape: 'circle', size: 12 },
+                            item: {
+                                low: { marker: { shadow: LOW_SHADOW } },
+                                high: { marker: { shadow: HIGH_SHADOW } },
+                            },
                         },
-                    },
-                ],
-            });
+                    ],
+                })
+            );
 
             const { low, high } = markersByItemType();
             expect(low).toHaveLength(RADAR_DATA.length);
@@ -216,19 +232,21 @@ describe('marker shadow', () => {
         });
 
         it('shadows only the item whose marker sets a shadow', async () => {
-            await create({
-                data: RADAR_DATA,
-                series: [
-                    {
-                        type: 'range-area',
-                        xKey: 'subject',
-                        yHighKey: 'value',
-                        yLowKey: 'low',
-                        marker: { enabled: true, shape: 'circle', size: 12 },
-                        item: { high: { marker: { shadow: HIGH_SHADOW } } },
-                    },
-                ],
-            });
+            await create(
+                internalOptions<AgChartOptions>({
+                    data: RADAR_DATA,
+                    series: [
+                        {
+                            type: 'range-area',
+                            xKey: 'subject',
+                            yHighKey: 'value',
+                            yLowKey: 'low',
+                            marker: { enabled: true, shape: 'circle', size: 12 },
+                            item: { high: { marker: { shadow: HIGH_SHADOW } } },
+                        },
+                    ],
+                })
+            );
 
             const { low, high } = markersByItemType();
             for (const marker of low) {

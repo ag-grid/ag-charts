@@ -363,7 +363,8 @@ describe('WaterfallSeries', () => {
         await compare();
     });
 
-    it(`should render a waterfall chart with item shadows`, async () => {
+    // AG-9003: 14.2.0 rendering restored for this release
+    it.skip(`should render a waterfall chart with item shadows`, async () => {
         const baseSeries = WATERFALL_COLUMN_SERIES;
         const options: AgCartesianChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,

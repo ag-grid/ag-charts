@@ -18,6 +18,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -50,7 +51,7 @@ const themeTemplate: ExtensibleSeriesTheme<'ohlc'> = {
             up: itemTheme('up'),
             down: itemTheme('down'),
         },
-        shadow: SHADOW_THEME_DEFAULTS,
+        ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
         tooltip: NEAREST_TOOLTIP_THEME,
         highlight: withGlowThemeDefaults({ ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true }, SERIES_GLOW_BUCKETS),
         selection: SERIES_SELECTION_THEME,

@@ -11,6 +11,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     themeLineHeight,
+    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -24,7 +25,7 @@ export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
         strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
-        shadow: SHADOW_THEME_DEFAULTS,
+        ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,

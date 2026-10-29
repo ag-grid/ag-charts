@@ -19,6 +19,7 @@ import {
     fillThemeTemplate,
     interpolationThemeTemplate,
     themeLineHeight,
+    undocumentedThemeOptions,
     withGlowThemeDefaults,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -45,7 +46,7 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
         interpolation: interpolationThemeTemplate(),
         marker: {
             enabled: false,
-            shadow: SHADOW_THEME_DEFAULTS,
+            ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
             shape: 'circle',
             size: 7,
             fillOpacity: 1,

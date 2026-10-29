@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Rect, Sector, Shape, Transformable, overrideTintableShadows } from 'ag-charts-core';
-import type { Node } from 'ag-charts-core';
-import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
+import type { InternalAgDropShadowOptions, InternalAgGlowHighlightStyleOptions, Node } from 'ag-charts-core';
+import type { AgBarSeriesOptions, AgChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
@@ -23,6 +23,9 @@ import { HighlightState } from './seriesTypes';
 /** The four highlight styles that accept a `glow` on a series with series states. */
 const BUCKETS = ['highlightedItem', 'unhighlightedItem', 'highlightedSeries', 'unhighlightedSeries'] as const;
 
+/** The bar highlight buckets with an undocumented `glow`. */
+type BarGlowHighlight = { highlight?: Partial<Record<(typeof BUCKETS)[number], InternalAgGlowHighlightStyleOptions>> };
+
 const STATES = {
     highlightedItem: HighlightState.Item,
     unhighlightedItem: HighlightState.OtherItem,
@@ -35,7 +38,7 @@ const casts = (shape: Shape) => shape.fillShadow?.enabled === true;
 interface SeriesCase {
     name: string;
     /** The series options, with `shadow` placed where this series reads it from. */
-    series: (shadow: AgDropShadowOptions | undefined, extra: object) => object;
+    series: (shadow: InternalAgDropShadowOptions | undefined, extra: object) => object;
     data: object[];
     kind: abstract new (...args: any[]) => Shape;
 }
@@ -127,7 +130,7 @@ describe('highlight glow', () => {
 
     const hoverFirstItem = async (
         testCase: SeriesCase,
-        shadow: AgDropShadowOptions | undefined,
+        shadow: InternalAgDropShadowOptions | undefined,
         highlight: object = {},
         drawingMode: 'cutout' | 'overlay' = 'cutout'
     ) => {
@@ -233,7 +236,20 @@ describe('highlight glow', () => {
             }
         );
 
+        // AG-9003: the highlight copy casts the base shadow while there is no glow, as it did in 14.2.0.
         it.each(['cutout', 'overlay'] as const)(
+            'casts the base shadow from the highlight copy when there is no glow in %s mode',
+            async (drawingMode) => {
+                const { inPlace, highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {}, drawingMode);
+
+                expect(highlighted).toHaveLength(1);
+                expect(highlighted[0].fillShadow).toMatchObject(SERIES_SHADOW);
+                for (const shape of inPlace) expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
+            }
+        );
+
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip.each(['cutout', 'overlay'] as const)(
             'does not cast the base shadow from the highlight copy when there is no glow in %s mode',
             async (drawingMode) => {
                 const { inPlace, highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {}, drawingMode);
@@ -244,7 +260,8 @@ describe('highlight glow', () => {
             }
         );
 
-        it('casts no glow from the highlight copy when only the base shadow is configured', async () => {
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip('casts no glow from the highlight copy when only the base shadow is configured', async () => {
             const { highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {
                 highlightedItem: { fill: 'orange' },
             });
@@ -440,7 +457,8 @@ describe('highlight glow', () => {
             }
         );
 
-        it.each(['cutout', 'overlay'] as const)(
+        // AG-9003: 14.2.0 rendering restored for this release
+        it.skip.each(['cutout', 'overlay'] as const)(
             'keeps the base shadow of the hovered series beneath the neighbouring series in %s mode',
             async (drawingMode) => {
                 const { left, right, firstIsLeft } = await gapBetweenBars();
@@ -496,7 +514,7 @@ describe('highlight glow', () => {
 
         it('puts the glow theme defaults on the series buckets only, so a series glow reaches the items', async () => {
             await createBar('ag-default');
-            const { highlight } = getSeriesOptions<AgBarSeriesOptions>(chart);
+            const { highlight } = getSeriesOptions<AgBarSeriesOptions & BarGlowHighlight>(chart);
 
             expect(highlight?.highlightedSeries?.glow).toBeDefined();
             expect(highlight?.unhighlightedSeries?.glow).toBeDefined();
@@ -694,7 +712,7 @@ describe('highlight glow', () => {
         describe('where the item has no fill of its own to take', () => {
             const marker = (extra: object) => ({
                 ...SERIES[3],
-                series: (shadow: AgDropShadowOptions | undefined, options: object) => ({
+                series: (shadow: InternalAgDropShadowOptions | undefined, options: object) => ({
                     type: 'scatter',
                     xKey: 'x',
                     yKey: 'y',
@@ -1108,12 +1126,16 @@ describe('highlight glow', () => {
                 describe.each(PAINTS)('around an item with %s', (_name, testCase, options, fill) => {
                     describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
                         // Cut out of the item, a glow with no spread has nothing to show.
-                        it.skipIf(drawingMode === 'cutout')('casts something that the item does not hide', async () => {
-                            const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
-                            const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
+                        // AG-9003: 14.2.0 rendering restored for this release
+                        it.skipIf(drawingMode === 'cutout' || _name === 'a gradient fill that fades to transparent')(
+                            'casts something that the item does not hide',
+                            async () => {
+                                const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
+                                const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
 
-                            expect(cast).not.toEqual(none);
-                        });
+                                expect(cast).not.toEqual(none);
+                            }
+                        );
 
                         it('casts the same pixels where the canvas cannot tint as where it can', async () => {
                             const tinted = await regionOf(testCase, options, ZERO, drawingMode, undefined);

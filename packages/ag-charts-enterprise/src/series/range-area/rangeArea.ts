@@ -340,8 +340,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             clipFocusBox: false,
             usesPlacedLabels: true,
         });
-        // The fill is the only caster among the paths, so the group casts it through the chart-wide shadow root.
-        this.contentGroup.batchShadows = 'shared';
+        // AG-9003: shadows are not batched for this release, so each item casts its own shadow, as in 14.2.0.
+        this.contentGroup.batchShadows = false;
     }
 
     override renderToOffscreenCanvas(): boolean {

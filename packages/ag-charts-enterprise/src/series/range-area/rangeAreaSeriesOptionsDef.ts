@@ -49,7 +49,7 @@ export const rangeAreaSeriesItemLineThemeableOptionsDef: OptionsDefs<
 > = {
     marker: {
         enabled: boolean,
-        shadow: shadowOptionsDefs,
+        ...undocumentedDefs({ shadow: shadowOptionsDefs }),
         ...markerStyleOptionsDefs,
     },
     ...strokeOptionsDef,

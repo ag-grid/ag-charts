@@ -67,6 +67,7 @@ export * from './options/chartDefaults';
 export * from './options/chartOptionsDefs';
 export * from './options/chartThemeTemplate';
 export * from './options/geoJsonValidator';
+export * from './options/internalShadowOptions';
 export * from './options/optionsDefaults';
 export * from './options/themeUtil';
 export * from './options/validation';
