@@ -38,23 +38,34 @@ describe('charts theme builder param layout', () => {
 
     it('opens with the designed groups, each leading with its designed rows', () => {
         const DESIGNED: [string, (string | [string, string])[]][] = [
-            ['General', [['fontFamily', 'fontSize'], 'backgroundColor', 'foregroundColor', 'accentColor']],
-            ['Borders', ['borderColor', 'borderRadius']],
             [
-                'Axis & Grid',
-                ['axisTitleFontFamily', ['axisTitleColor', 'axisTitleFontSize'], 'axisLineColor', 'gridLineColor'],
+                'General',
+                [['fontFamily', 'fontSize'], 'backgroundColor', 'foregroundColor', 'accentColor', 'chartPadding'],
             ],
             [
-                'Titles & Footnote',
+                'Titles',
                 [
                     'titleFontFamily',
                     ['titleColor', 'titleFontSize'],
                     'subtitleFontFamily',
                     ['subtitleColor', 'subtitleFontSize'],
-                    'footnoteFontFamily',
-                    ['footnoteColor', 'footnoteFontSize'],
                 ],
             ],
+            [
+                'Axis & Grid',
+                [
+                    'axisTitleFontFamily',
+                    ['axisTitleColor', 'axisTitleFontSize'],
+                    'axisLineColor',
+                    'axisLineWidth',
+                    'gridLineColor',
+                    'axisLabelFontFamily',
+                    ['axisLabelColor', 'axisLabelFontSize'],
+                ],
+            ],
+            ['Legend', ['legendLabelFontFamily', ['legendLabelColor', 'legendLabelFontSize'], 'legendMarkerSize']],
+            ['Series Labels', ['seriesLabelFontFamily']],
+            ['Tooltips', ['tooltipBackgroundColor', 'tooltipBorder', 'tooltipBorderRadius']],
         ];
         const rowKeys = PARAM_GROUPS.map((group) =>
             group.params.map((row) => (Array.isArray(row) ? row.map(({ key }) => key) : row.key))
