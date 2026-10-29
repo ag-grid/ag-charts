@@ -102,8 +102,10 @@ import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLine
 import {
     cartesianMarkerDrawMode,
     computeLineAreaFocusBounds,
+    crossFilterHiddenKey,
     filterMarkerNodeData,
     getMarkerStyles,
+    hideMarkerWithSize0,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     maxMarkerStrokePickInflation,
@@ -126,6 +128,7 @@ type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
 interface AreaNoStylerPassCtx {
     marker: NormalisedAreaSeriesOptions['marker'];
     hideWithSize0: boolean;
+    selectedOnly: boolean;
     isHighlight: boolean;
 }
 
@@ -255,6 +258,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
     public nodeDatumContext: AreaSeriesCreateNodeDatumContext | undefined = undefined;
     private hideWithSize0 = false;
+    private selectedOnly = false;
     private markerNodesPickable = true;
 
     protected override hasPickableNodeShapes(): boolean {
@@ -1466,7 +1470,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
-        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
+        this.selectedOnly = markerDrawMode.selectedOnly === true;
+        this.markerNodesPickable = markerDrawMode.needsNodeData && (!markerDrawMode.hideWithSize0 || this.selectedOnly);
 
         if (this.markerDirty) {
             datumSelection.clear();
@@ -1493,7 +1498,12 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             ctx.marker,
             datum,
             undefined,
-            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
+            {
+                isHighlight: ctx.isHighlight,
+                highlightState,
+                selectionState,
+                hideWithSize0: hideMarkerWithSize0(ctx.hideWithSize0, ctx.selectedOnly, datum),
+            },
             stylerStyle.marker,
             {
                 stroke: stylerStyle.stroke,
@@ -1526,7 +1536,12 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             ctx.marker,
             datum,
             params,
-            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
+            {
+                isHighlight: ctx.isHighlight,
+                highlightState,
+                selectionState,
+                hideWithSize0: hideMarkerWithSize0(ctx.hideWithSize0, ctx.selectedOnly, datum),
+            },
             stylerStyle.marker,
             { stroke, strokeWidth, strokeOpacity }
         );
@@ -1536,7 +1551,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
         isHighlight: boolean;
     }) {
-        const { hideWithSize0 } = this;
+        const { hideWithSize0, selectedOnly } = this;
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.options;
         const { itemStyler } = marker;
@@ -1546,8 +1561,13 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             this.runMarkerStylePass<AreaNoStylerPassCtx, MarkerSelectionDatum, NormalisedSeriesMarkerStyle, AreaSeries>(
                 datumSelection,
                 isHighlight,
-                { marker, hideWithSize0, isHighlight },
-                { compute: AreaSeries.computeNoStylerMarkerStyle, apply: Series.assignCachedStyle }
+                { marker, hideWithSize0, selectedOnly, isHighlight },
+                {
+                    compute: AreaSeries.computeNoStylerMarkerStyle,
+                    apply: Series.assignCachedStyle,
+                    // The style differs between the datums cross-filtering hides and shows only for this combination.
+                    keyExtra: hideWithSize0 && selectedOnly ? crossFilterHiddenKey : undefined,
+                }
             );
             return;
         }
@@ -1555,6 +1575,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const ctx: AreaStylerPassCtx = {
             marker,
             hideWithSize0,
+            selectedOnly,
             isHighlight,
             dataModel: this.dataModel!,
             processedData: this.processedData!,
@@ -1575,7 +1596,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
-        const { contextNodeData, hideWithSize0 } = this;
+        const { contextNodeData, hideWithSize0, selectedOnly } = this;
         if (!contextNodeData) {
             return;
         }
@@ -1599,7 +1620,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             const style = datum.style ?? contextNodeData.styles[state];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 crossFilterSelected: datum.crossFilterSelected,
-                hideWithSize0,
+                hideWithSize0: hideMarkerWithSize0(hideWithSize0, selectedOnly, datum),
                 pickInflation,
                 shadow,
                 isHighlight,

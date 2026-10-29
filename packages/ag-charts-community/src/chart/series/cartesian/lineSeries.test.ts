@@ -3305,6 +3305,24 @@ describe('LineSeries', () => {
                 expect(nodes[1].fillOpacity).toBeLessThan(1);
                 expect(nodes[2].fillOpacity).toBeLessThan(1);
             });
+
+            it('draws the unselected markers faded when markers are enabled but denser than a pixel', async () => {
+                const denseData = Array.from({ length: 2000 }, (_, i) => ({ x: i, y: i % 7, selected: i === 0 }));
+                chart = await createChart({
+                    data: denseData,
+                    series: [
+                        withUndocumentedOptions(
+                            { type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } },
+                            { selectedKey: 'selected' }
+                        ),
+                    ],
+                });
+
+                const nodes = markerNodes();
+                expect(nodes).toHaveLength(denseData.length);
+                expect(nodes[0].fillOpacity).toBe(1);
+                expect(nodes[1].fillOpacity).toBeLessThan(1);
+            });
         });
     });
 

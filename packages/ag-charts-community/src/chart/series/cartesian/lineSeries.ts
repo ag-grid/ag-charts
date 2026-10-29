@@ -95,8 +95,10 @@ import {
 import {
     cartesianMarkerDrawMode,
     computeLineAreaFocusBounds,
+    crossFilterHiddenKey,
     filterMarkerNodeData,
     getMarkerStyles,
+    hideMarkerWithSize0,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     maxMarkerStrokePickInflation,
@@ -130,6 +132,7 @@ type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
 interface LineNoStylerPassCtx {
     marker: NormalisedLineSeriesOptions['marker'];
     hideWithSize0: boolean;
+    selectedOnly: boolean;
     isHighlight: boolean;
 }
 
@@ -192,6 +195,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     private readonly spanPointPool: LineSpanPointDatum[] = [];
     private spanPointCount = 0;
     private hideWithSize0 = false;
+    private selectedOnly = false;
     private markerNodesPickable = true;
 
     protected override hasPickableNodeShapes(): boolean {
@@ -881,7 +885,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
-        this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
+        this.selectedOnly = markerDrawMode.selectedOnly === true;
+        this.markerNodesPickable = markerDrawMode.needsNodeData && (!markerDrawMode.hideWithSize0 || this.selectedOnly);
         nodeData = filterMarkerNodeData(nodeData, markerDrawMode);
 
         if (this.markerDirty) {
@@ -908,7 +913,12 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             ctx.marker,
             datum,
             undefined,
-            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
+            {
+                isHighlight: ctx.isHighlight,
+                highlightState,
+                selectionState,
+                hideWithSize0: hideMarkerWithSize0(ctx.hideWithSize0, ctx.selectedOnly, datum),
+            },
             stylerStyle.marker,
             {
                 stroke: stylerStyle.stroke,
@@ -946,7 +956,12 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             ctx.marker,
             datum,
             params,
-            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
+            {
+                isHighlight: ctx.isHighlight,
+                highlightState,
+                selectionState,
+                hideWithSize0: hideMarkerWithSize0(ctx.hideWithSize0, ctx.selectedOnly, datum),
+            },
             markerStyle,
             { stroke, strokeWidth, strokeOpacity }
         );
@@ -956,7 +971,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
         isHighlight: boolean;
     }) {
-        const { hideWithSize0 } = this;
+        const { hideWithSize0, selectedOnly } = this;
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.options;
 
@@ -965,8 +980,13 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             this.runMarkerStylePass<LineNoStylerPassCtx, LineNodeDatum, NormalisedSeriesMarkerStyle, LineSeries>(
                 datumSelection,
                 isHighlight,
-                { marker, hideWithSize0, isHighlight },
-                { compute: LineSeries.computeNoStylerMarkerStyle, apply: Series.assignCachedStyle }
+                { marker, hideWithSize0, selectedOnly, isHighlight },
+                {
+                    compute: LineSeries.computeNoStylerMarkerStyle,
+                    apply: Series.assignCachedStyle,
+                    // The style differs between the datums cross-filtering hides and shows only for this combination.
+                    keyExtra: hideWithSize0 && selectedOnly ? crossFilterHiddenKey : undefined,
+                }
             );
             return;
         }
@@ -978,6 +998,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const ctx: LineStylerPassCtx = {
             marker,
             hideWithSize0,
+            selectedOnly,
             isHighlight,
             xColumn: dataModel.resolveColumnById(this, 'xValue', processedData, 'object'),
             yColumn: dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'mixed-numeric'),
@@ -999,7 +1020,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
-        const { contextNodeData, hideWithSize0 } = this;
+        const { contextNodeData, hideWithSize0, selectedOnly } = this;
         if (!contextNodeData) {
             return;
         }
@@ -1029,7 +1050,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             thisSeries.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyPosition,
                 crossFilterSelected: datum.crossFilterSelected,
-                hideWithSize0,
+                hideWithSize0: hideMarkerWithSize0(hideWithSize0, selectedOnly, datum),
                 pickInflation,
                 shadow,
                 isHighlight,
