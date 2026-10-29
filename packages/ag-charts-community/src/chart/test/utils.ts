@@ -549,6 +549,11 @@ export function getAxisBand(
     return { start: scale.convert(category), width: scale.bandwidth! };
 }
 
+/** Where `value` falls along the axis at `position`, in series coordinates. */
+export function getAxisCoordinate(chartOrProxy: ChartOrProxy<any>, position: string, value: unknown): number {
+    return findAxisInternals(chartOrProxy, position).scale.convert(value);
+}
+
 /** The label texts of the axis at `position`, in order along the axis. */
 export function getAxisTickLayoutLabelTexts(chartOrProxy: ChartOrProxy<any>, position: string): string[] {
     return getAxisTickLayout(chartOrProxy, position).labels.map((label) => label.text);

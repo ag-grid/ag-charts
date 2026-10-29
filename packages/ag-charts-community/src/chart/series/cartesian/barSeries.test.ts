@@ -72,6 +72,7 @@ import {
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
     getAxisBand,
+    getAxisCoordinate,
     getSeriesAggregationInternals,
     getSwapChainText,
     hoverAction,
@@ -3865,6 +3866,44 @@ describe('BarSeries', () => {
                     { type: 'bar', xKey: 'quarter', yKey: 'mac', widthRatio: 0.5 },
                 ]);
                 expectBarsCentredInSlots([0, 1], 2);
+            });
+
+            describe('on a number axis', () => {
+                const numberData = data.map((row, index) => ({ ...row, x: (index + 1) * 10 }));
+
+                const expectBarsCentredOnDatum = (seriesCount: number) => {
+                    for (const seriesIndex of Array.from({ length: seriesCount }, (_, index) => index)) {
+                        const { nodeData } = getBarSeriesContextNodeData(chart, seriesIndex);
+                        expect(nodeData).toHaveLength(numberData.length);
+                        for (const datum of nodeData) {
+                            const datumCentre = getAxisCoordinate(chart, 'bottom', datum.xValue);
+                            expect(
+                                Math.abs(datum.x + datum.width / 2 - datumCentre),
+                                `series ${seriesIndex}, x ${datum.xValue}: bar [${datum.x}, ${datum.x + datum.width}] on datum at ${datumCentre}`
+                            ).toBeLessThanOrEqual(TOLERANCE);
+                        }
+                    }
+                };
+
+                const createNumberAxisChart = async (series: AgBarSeriesOptions[]) => {
+                    chart = await createChart({
+                        data: numberData,
+                        series,
+                        axes: { x: { type: 'number' }, y: { type: 'number' } },
+                    });
+                    await compare();
+                };
+
+                it.each([
+                    ['without widthRatio', undefined],
+                    ['with widthRatio', 0.5],
+                ])('centres a single stack on its datum %s', async (_, widthRatio) => {
+                    await createNumberAxisChart([
+                        { type: 'bar', xKey: 'x', yKey: 'iphone', stacked: true, widthRatio },
+                        { type: 'bar', xKey: 'x', yKey: 'mac', stacked: true, widthRatio },
+                    ]);
+                    expectBarsCentredOnDatum(2);
+                });
             });
         });
     });
