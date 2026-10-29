@@ -4,7 +4,7 @@ import { ChartUpdateType } from 'ag-charts-core';
 import { CANVAS_WIDTH } from 'ag-charts-test';
 import type { AgCartesianAxisPosition, AgCartesianChartOptions } from 'ag-charts-types';
 
-import type { CartesianChart } from './cartesianChart';
+import type { Chart } from './chart';
 import { LayoutElement } from './layout/layoutManager';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
 
@@ -25,7 +25,7 @@ describe('CartesianChart series insets', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: CartesianChart | undefined;
+    let chart: Chart | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -33,11 +33,11 @@ describe('CartesianChart series insets', () => {
     });
 
     const create = async (options: AgCartesianChartOptions) => {
-        chart = deproxy(await createChart(options)) as CartesianChart;
+        chart = deproxy(await createChart(options)) as Chart;
         return chart;
     };
 
-    const relayoutWithInset = async (c: CartesianChart, position: AgCartesianAxisPosition, width: number) => {
+    const relayoutWithInset = async (c: Chart, position: AgCartesianAxisPosition, width: number) => {
         c.ctx.layoutManager.registerElement(LayoutElement.SeriesInset, (layout) => {
             layout.seriesInsets[position] = width;
         });
@@ -94,7 +94,7 @@ describe('CartesianChart series insets', () => {
     it('keeps the inset at a position without an axis through a resize', async () => {
         const options = structuredClone(OPTIONS);
         const proxy = await createChart(options);
-        chart = deproxy(proxy) as CartesianChart;
+        chart = deproxy(proxy) as Chart;
         const before = chart.seriesRect!.clone();
 
         chart.ctx.layoutManager.registerElement(LayoutElement.SeriesInset, (layout) => {

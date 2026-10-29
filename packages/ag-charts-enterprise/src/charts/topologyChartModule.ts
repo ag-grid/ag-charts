@@ -7,7 +7,7 @@ import {
     topologyChartOptionsDefs,
 } from 'ag-charts-core';
 
-import { TopologyChart } from './topologyChart';
+import { TopologyChartType } from './topologyChart';
 
 export const TopologyChartModule: ChartModuleDefinition<WithoutModuleOwnedOptions<AgTopologyChartOptions>> = {
     type: 'chart',
@@ -21,7 +21,7 @@ export const TopologyChartModule: ChartModuleDefinition<WithoutModuleOwnedOption
 
     themeTemplate: commonChartThemeTemplate,
 
-    create(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
-        return new TopologyChart(options, resources);
+    create(host: _ModuleSupport.ChartTypeHost) {
+        return new TopologyChartType(host);
     },
 };

@@ -6,7 +6,6 @@ import { ChartUpdateType } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import * as examples from './test/examples';
 import { getSeriesContextNodeData } from './test/seriesAccessors';
@@ -189,7 +188,7 @@ const OPTIONS: AgCartesianChartOptions = {
 describe('CartesianChart', () => {
     setupMockConsole();
 
-    let chart: CartesianChart;
+    let chart: Chart;
 
     afterEach(() => {
         if (chart != null) {
@@ -218,7 +217,7 @@ describe('CartesianChart', () => {
             }, []) ?? [];
 
         const buildChart = async (chartOptions: AgChartOptions, yKey: string) => {
-            chart = deproxy(await createChart(chartOptions)) as CartesianChart;
+            chart = deproxy(await createChart(chartOptions)) as Chart;
 
             const seriesImpl = chart.series.find((v) => {
                 const p: typeof v.options & { yKey?: unknown; yKeys?: unknown[][] } = v.options;
@@ -278,7 +277,7 @@ describe('CartesianChart', () => {
                 await createChart(
                     axesOptions({ x: { type: 'category' }, y: { type: 'number' }, y2: { type: 'number' } })
                 )
-            ) as CartesianChart;
+            ) as Chart;
 
             expect(axisPositions()).toEqual(['bottom', 'left', 'right']);
             expectWarningsCalls().toEqual([[expect.stringContaining('`axes.y2` is not used by any series.')]]);
@@ -287,7 +286,7 @@ describe('CartesianChart', () => {
         it('should render an untyped axis whose position is invalid', async () => {
             chart = deproxy(
                 await createChart(axesOptions({ x: { position: 'middle' }, y: { type: 'number' } }))
-            ) as CartesianChart;
+            ) as Chart;
 
             expect(axisPositions()).toEqual(['bottom', 'left']);
             expectWarningsCalls().toEqual([[expect.stringContaining('cannot be set to `"middle"`')]]);
@@ -302,7 +301,7 @@ describe('CartesianChart', () => {
                         y2: { type: 'number', position: 'top' },
                     })
                 )
-            ) as CartesianChart;
+            ) as Chart;
 
             await chart.publicApi?.update({
                 data: getData(),
@@ -328,7 +327,7 @@ describe('CartesianChart', () => {
             }) as AgCartesianChartOptions;
 
         it('should warn once about an axes key that no series uses', async () => {
-            chart = deproxy(await createChart(axesOptions({ orphanKey: { type: 'number' } }))) as CartesianChart;
+            chart = deproxy(await createChart(axesOptions({ orphanKey: { type: 'number' } }))) as Chart;
             chart.update(ChartUpdateType.FULL);
             await waitForChartStability(chart);
 
@@ -338,7 +337,7 @@ describe('CartesianChart', () => {
         it('should not warn when every axes key is used', async () => {
             chart = deproxy(
                 await createChart(axesOptions({ axisA: { type: 'number' }, axisB: { type: 'number' } }))
-            ) as CartesianChart;
+            ) as Chart;
 
             expectWarningsCalls().toEqual([]);
         });
@@ -352,7 +351,7 @@ describe('CartesianChart', () => {
                     y: { type: 'category', position: 'bottom' },
                 },
             } as AgCartesianChartOptions;
-            chart = deproxy(await createChart(options)) as CartesianChart;
+            chart = deproxy(await createChart(options)) as Chart;
 
             expect(chart.axes.map((axis) => [axis.type, axis.position, axis.boundSeries.length])).toEqual([
                 ['category', 'bottom', 1],
@@ -367,7 +366,7 @@ describe('CartesianChart', () => {
                 series: [{ type: 'bar', xKey: 'year', yKey: 'adults' }],
                 theme: { overrides: { bar: { series: { direction: 'horizontal' } } } },
             } as AgCartesianChartOptions;
-            chart = deproxy(await createChart(options)) as CartesianChart;
+            chart = deproxy(await createChart(options)) as Chart;
 
             expect(chart.axes.map((axis) => [axis.type, axis.position, axis.boundSeries.length])).toEqual([
                 ['number', 'bottom', 1],
@@ -409,7 +408,7 @@ describe('CartesianChart', () => {
             prepareTestOptions(options);
             options.width = width ?? options.width;
 
-            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options)) as Chart;
             await waitForChartStability(chart);
             await compare(chart);
         });
@@ -428,7 +427,7 @@ describe('CartesianChart', () => {
             prepareTestOptions(options);
             options.height = height ?? options.height;
 
-            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            chart = deproxy(AgCharts.create(options)) as Chart;
             await waitForChartStability(chart);
             await compare(chart);
         });

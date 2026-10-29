@@ -1,82 +1,95 @@
-import type { BBox, CanvasPoint, Scale } from 'ag-charts-core';
+import type { BBox, ChartAnimationPhase, Scale } from 'ag-charts-core';
 import { ChartAxisDirection, ZIndexMap, fitCircleToLabels } from 'ag-charts-core';
-import type { AgCoordinates } from 'ag-charts-types';
+import type { AgChartOptions } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
-import type { PolarAxis } from './axis/polarAxis';
-import type { TransferableResources } from './chart';
-import { Chart } from './chart';
 import { PolarChartAxes } from './chartAxes';
+import { ChartAxesComponent } from './chartAxesComponent';
+import type { ChartTypeHost, ChartTypeInstance, SeriesChangeType } from './chartTypeInstance';
 import type { LayoutContext } from './layout/layoutManager';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
-import type { Series } from './series/series';
-import type { SeriesNodeDatum } from './series/seriesTypes';
+import type { UnknownSeries } from './series/series';
 
-export class PolarChart extends Chart {
-    static override readonly className = 'PolarChart';
+export class PolarChartType implements ChartTypeInstance {
     static readonly type = 'polar' as const;
+    readonly type = PolarChartType.type;
 
-    declare series: Series<SeriesNodeDatum, { marker?: { size?: number } }>[];
+    private readonly axesComponent: ChartAxesComponent<PolarChartAxes>;
 
-    declare axes: PolarChartAxes;
-    override createChartAxes() {
-        return new PolarChartAxes();
+    constructor(private readonly host: ChartTypeHost) {
+        this.axesComponent = new ChartAxesComponent(host.ctx, this.type, () => new PolarChartAxes());
+        host.ctx.axisManager.axisGroup.zIndex = ZIndexMap.AXIS_FOREGROUND;
     }
 
-    constructor(options: ChartOptions, resources?: TransferableResources) {
-        super(options, resources);
-        this.ctx.axisManager.axisGroup.zIndex = ZIndexMap.AXIS_FOREGROUND;
+    get axes() {
+        return this.axesComponent.axes;
     }
 
-    override onAxisChange(newValue: PolarAxis[], oldValue?: PolarAxis[]) {
-        super.onAxisChange(newValue, oldValue);
-        if (this.ctx == null) return;
-
-        const { labelManager } = this.ctx;
-        for (const axis of oldValue ?? []) {
-            labelManager.unregisterSource(axis.labelSource.id, axis.labelSource);
-        }
-        for (const axis of newValue) {
-            labelManager.registerSource(axis.labelSource);
-        }
+    applyAxisOptions(
+        options: AgChartOptions,
+        chartOptions: ChartOptions,
+        seriesStatus: SeriesChangeType,
+        axesChanged: boolean
+    ) {
+        this.axesComponent.applyAxes(this.axesComponent, options, chartOptions, seriesStatus, axesChanged);
     }
 
-    override toAgCoordinates(_point: CanvasPoint): AgCoordinates | undefined {
-        return undefined; // TODO: stub
+    supportsLayoutOnlyDelta() {
+        return this.axes.length > 0;
     }
 
-    override getChartType() {
-        return 'polar' as const;
+    beforeProcessData() {
+        const { series } = this.host;
+        if (!series.some((s) => s.canHaveAxes)) return;
+        this.axesComponent.assignAxesToSeries(series);
+        this.axesComponent.assignSeriesToAxes(series);
     }
 
-    protected async performLayout(ctx: LayoutContext) {
-        const seriesRect = ctx.layoutBox.clone().shrink(this.getSeriesAreaPadding());
+    beforeSeriesDomains() {
+        this.axesComponent.processDomains();
+    }
 
-        this.seriesRect = seriesRect;
-        this.animationRect = seriesRect;
+    getResizeUpdateType() {
+        return this.axesComponent.getResizeUpdateType();
+    }
 
-        this.seriesRoot.translationX = seriesRect.x;
-        this.seriesRoot.translationY = seriesRect.y;
+    resetAnimations(phase: ChartAnimationPhase) {
+        this.axesComponent.resetAnimations(phase);
+    }
+
+    destroy() {
+        this.axesComponent.destroy();
+    }
+
+    async layout(ctx: LayoutContext) {
+        const { host } = this;
+        const seriesRect = ctx.layoutBox.clone().shrink(host.getSeriesAreaPadding());
+
+        host.setLayoutRects(seriesRect, seriesRect);
+
+        host.seriesRoot.translationX = seriesRect.x;
+        host.seriesRoot.translationY = seriesRect.y;
         await this.computeCircle(seriesRect);
         for (const axis of this.axes) {
             axis.update();
         }
 
         let maxMarkerSize = 0;
-        for (const series of this.series) {
-            maxMarkerSize = Math.max(maxMarkerSize, series.options.marker?.size ?? 0);
+        for (const series of host.series) {
+            const { marker } = series.options as { marker?: { size?: number } };
+            maxMarkerSize = Math.max(maxMarkerSize, marker?.size ?? 0);
         }
-        for (const series of filterPolarSeries(this.series)) {
+        for (const series of filterPolarSeries(host.series)) {
             series.maxChartMarkerSize = maxMarkerSize;
         }
 
-        this.ctx.layoutManager.emitLayoutComplete(ctx, {
+        host.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: true, rect: seriesRect, paddedRect: ctx.layoutBox },
             layoutBox: ctx.layoutBox,
         });
     }
 
-    protected updateAxes(seriesBox: BBox, cx: number, cy: number, radius: number) {
+    private updateAxes(seriesBox: BBox, cx: number, cy: number, radius: number) {
         if (this.axes.length === 0) return;
 
         const angleAxis = this.axes[ChartAxisDirection.Angle];
@@ -109,7 +122,7 @@ export class PolarChart extends Chart {
     }
 
     private computeCircle(seriesBox: BBox) {
-        const polarSeries = filterPolarSeries(this.series);
+        const polarSeries = filterPolarSeries(this.host.series);
         return fitCircleToLabels(seriesBox, [...this.axes, ...polarSeries], (cx, cy, r) => {
             this.updateAxes(seriesBox, cx, cy, r);
             for (const series of polarSeries) {
@@ -121,6 +134,10 @@ export class PolarChart extends Chart {
     }
 }
 
-function filterPolarSeries(series: any[]): UnknownPolarSeries[] {
-    return series.filter((s: any): s is UnknownPolarSeries => s instanceof PolarSeries);
+function filterPolarSeries(series: UnknownSeries[]): UnknownPolarSeries[] {
+    const result: UnknownPolarSeries[] = [];
+    for (const s of series) {
+        if (s instanceof PolarSeries) result.push(s);
+    }
+    return result;
 }

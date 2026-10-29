@@ -8,10 +8,9 @@ import {
 import type { AgStandaloneChartOptions } from 'ag-charts-types';
 
 import { communityModule } from '../module/moduleIdentity';
-import type { ChartOptions } from '../module/optionsModule';
 import { VERSION } from '../version';
-import type { TransferableResources } from './chart';
-import { StandaloneChart } from './standaloneChart';
+import type { ChartTypeHost } from './chartTypeInstance';
+import { StandaloneChartType } from './standaloneChart';
 
 export const StandaloneChartModule: ChartModuleDefinition<WithoutModuleOwnedOptions<AgStandaloneChartOptions>> =
     /* #__PURE__ */ communityModule({
@@ -25,7 +24,7 @@ export const StandaloneChartModule: ChartModuleDefinition<WithoutModuleOwnedOpti
 
         themeTemplate: commonChartThemeTemplate,
 
-        create(options: ChartOptions, resources?: TransferableResources) {
-            return new StandaloneChart(options, resources);
+        create(host: ChartTypeHost) {
+            return new StandaloneChartType(host);
         },
     });

@@ -1,10 +1,9 @@
 import * as fromToMotion from './motion/fromToMotion';
 import * as resetMotion from './motion/resetMotion';
 
-export { Chart } from './chart/chart';
 export type { ChartState } from './chart/chartState';
 export { FormatManager } from './chart/formatter/formatManager';
-export type { TransferableResources } from './chart/chart';
+export type { ChartTypeHost, ChartTypeInstance } from './chart/chartTypeInstance';
 export type { ChartService } from './chart/chartService';
 export type { IDataSelectionService } from './chart/data/dataSelectionServiceTypes';
 export { DataChangeDescription } from './chart/data/dataChangeDescription';

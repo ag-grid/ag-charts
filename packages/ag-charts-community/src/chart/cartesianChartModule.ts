@@ -13,10 +13,9 @@ import {
 } from 'ag-charts-core';
 
 import { communityModule } from '../module/moduleIdentity';
-import type { ChartOptions } from '../module/optionsModule';
 import { VERSION } from '../version';
-import { CartesianChart } from './cartesianChart';
-import type { TransferableResources } from './chart';
+import { CartesianChartType } from './cartesianChart';
+import type { ChartTypeHost } from './chartTypeInstance';
 
 const histogramAxisTypes = new Set(['number', 'log', 'time']);
 const invalidHistogramAxis = (axis: any) => isObject(axis) && axis.type != null && !histogramAxisTypes.has(axis.type);
@@ -37,8 +36,8 @@ export const CartesianChartModule: ChartModuleDefinition<CartesianChartDefOption
         x: { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
     },
 
-    create(options: ChartOptions, resources?: TransferableResources) {
-        return new CartesianChart(options, resources);
+    create(host: ChartTypeHost) {
+        return new CartesianChartType(host);
     },
     validate(options: any, optionsDefs, path, params) {
         const additionalErrors: ValidationError[] = [];
