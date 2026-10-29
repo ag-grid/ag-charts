@@ -241,13 +241,16 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     private getBarOffset(barWidth: number) {
         const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
         const xAxis = this.getCategoryAxis()!;
+
+        if (ContinuousScale.is(xAxis.scale)) {
+            // For continuous scales, simply centre the bar on its own width. A stack needs no further offset.
+            return -barWidth / 2;
+        }
+
         const isStacked = (this.seriesGrouping?.stackCount ?? 0) > 0;
 
         let barOffset = 0;
-        if (ContinuousScale.is(xAxis.scale)) {
-            // For continuous scales, simply centre the bar on its own width.
-            barOffset = -barWidth / 2;
-        } else if (this.seriesGrouping == null && groupScale) {
+        if (this.seriesGrouping == null && groupScale) {
             // For ungrouped series, centre the bar within the width of the group.
             const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
             barOffset = (rangeWidth - barWidth) / 2;
