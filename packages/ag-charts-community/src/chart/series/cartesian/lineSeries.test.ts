@@ -3238,6 +3238,74 @@ describe('LineSeries', () => {
 
             await compare();
         });
+
+        describe('AG-19127 markers', () => {
+            const data = [
+                { x: 'Jan', y: 10, selected: true },
+                { x: 'Feb', y: 20, selected: false },
+                { x: 'Mar', y: 15, selected: false },
+            ];
+            const markerNodes = () => getSeriesSelectionNodes<Marker>(chart, 'datumSelection', 0);
+
+            it('draws only the selected marker when markers are disabled', async () => {
+                chart = await createChart({
+                    data,
+                    series: [
+                        withUndocumentedOptions(
+                            { type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } },
+                            { selectedKey: 'selected' }
+                        ),
+                    ],
+                });
+
+                const nodes = markerNodes();
+                expect(nodes).toHaveLength(1);
+                expect(nodes[0].visible).toBe(true);
+                expect(nodes[0].fillOpacity).toBe(1);
+            });
+
+            it('draws no markers when markers are disabled and nothing is selected', async () => {
+                chart = await createChart({
+                    data: data.map((d) => ({ ...d, selected: false })),
+                    series: [
+                        withUndocumentedOptions(
+                            { type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } },
+                            { selectedKey: 'selected' }
+                        ),
+                    ],
+                });
+
+                expect(markerNodes()).toHaveLength(0);
+            });
+
+            it('draws no markers when markers are disabled and there is no selectedKey', async () => {
+                chart = await createChart({
+                    data,
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } }],
+                });
+
+                expect(markerNodes()).toHaveLength(0);
+            });
+
+            it('draws the unselected markers faded when markers are enabled', async () => {
+                chart = await createChart({
+                    data,
+                    series: [
+                        withUndocumentedOptions(
+                            { type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } },
+                            { selectedKey: 'selected' }
+                        ),
+                    ],
+                });
+
+                const nodes = markerNodes();
+                expect(nodes).toHaveLength(3);
+                expect(nodes.every((node) => node.visible)).toBe(true);
+                expect(nodes[0].fillOpacity).toBe(1);
+                expect(nodes[1].fillOpacity).toBeLessThan(1);
+                expect(nodes[2].fillOpacity).toBeLessThan(1);
+            });
+        });
     });
 
     describe('AG-17300 unit-time axis extrapolation', () => {

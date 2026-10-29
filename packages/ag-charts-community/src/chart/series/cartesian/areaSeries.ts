@@ -102,6 +102,7 @@ import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLine
 import {
     cartesianMarkerDrawMode,
     computeLineAreaFocusBounds,
+    filterMarkerNodeData,
     getMarkerStyles,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
@@ -1472,7 +1473,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             datumSelection.cleanup();
         }
 
-        const data = markerDrawMode.needsNodeData ? nodeData : [];
+        const data = filterMarkerNodeData(nodeData, markerDrawMode);
         if (!processedDataIsAnimatable(this.processedData!)) {
             // Optimised update path, no need to match nodes by id
             return datumSelection.update(data);

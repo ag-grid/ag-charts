@@ -252,7 +252,22 @@ function markerEnabled(
 export type MarkerDrawMode = {
     needsNodeData: boolean;
     hideWithSize0: boolean;
+    /**
+     * Markers are disabled but cross-filtering needs the selected datums' markers: draw only the datums that are
+     * not `crossFilterSelected === false`, as the unselected ones would otherwise be drawn faded.
+     */
+    selectedOnly?: boolean;
 };
+
+/** The datums to draw markers for: with `selectedOnly`, those cross-filtering has not unselected. */
+export function filterMarkerNodeData<T extends { crossFilterSelected: boolean | undefined }>(
+    nodeData: T[],
+    markerDrawMode: MarkerDrawMode
+): T[] {
+    if (!markerDrawMode.needsNodeData) return [];
+    return markerDrawMode.selectedOnly ? nodeData.filter((datum) => datum.crossFilterSelected !== false) : nodeData;
+}
+
 export function cartesianMarkerDrawMode(
     properties: { selection?: { enabled: boolean } },
     contextNodeData: { crossFiltering?: boolean } | undefined,
@@ -262,15 +277,20 @@ export function cartesianMarkerDrawMode(
     markerStyle: { enabled?: boolean } = marker,
     isMiniChart: boolean = false
 ): MarkerDrawMode {
-    const markersEnabled =
-        contextNodeData?.crossFiltering === true ||
-        markerEnabled(processedData.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
+    const markersEnabled = markerEnabled(
+        processedData.input.count,
+        axes[ChartAxisDirection.X]!.scale,
+        marker,
+        markerStyle
+    );
+    // Cross-filtering still draws the selected datums' markers when markers are disabled, but not the unselected ones.
+    const selectedOnly = !markersEnabled && contextNodeData?.crossFiltering === true;
 
     if (properties.selection?.enabled && !isMiniChart) {
         // selection.enabled needs NodeData for the selected-style overrides; mini-charts never render selection.
-        return { needsNodeData: true, hideWithSize0: !markersEnabled };
+        return { needsNodeData: true, hideWithSize0: !markersEnabled, selectedOnly };
     } else {
-        return { needsNodeData: markersEnabled, hideWithSize0: false };
+        return { needsNodeData: markersEnabled || selectedOnly, hideWithSize0: false, selectedOnly };
     }
 }
 

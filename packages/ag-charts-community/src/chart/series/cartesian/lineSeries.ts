@@ -95,6 +95,7 @@ import {
 import {
     cartesianMarkerDrawMode,
     computeLineAreaFocusBounds,
+    filterMarkerNodeData,
     getMarkerStyles,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
@@ -881,7 +882,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
         this.markerNodesPickable = markerDrawMode.needsNodeData && !markerDrawMode.hideWithSize0;
-        nodeData = markerDrawMode.needsNodeData ? nodeData : [];
+        nodeData = filterMarkerNodeData(nodeData, markerDrawMode);
 
         if (this.markerDirty) {
             datumSelection.clear();
