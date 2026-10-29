@@ -12,6 +12,12 @@ interface Props {
     preset: ChartsPreset;
 }
 
+// A lone web font falls back to the browser's serif default until it loads.
+const withSansFallback = (params: ChartsPreset['params']) =>
+    params.fontFamily == null
+        ? params
+        : { ...params, fontFamily: [params.fontFamily].flat().concat('system-ui', 'sans-serif') };
+
 /**
  * A theme thumbnail: a whole chart at card size, themed through the same path as
  * the main preview so a card cannot show something the tool would not produce.
@@ -23,7 +29,11 @@ export const PresetPreview = memo(({ preset }: Props) => {
         () => ({
             ...THUMBNAIL_OPTIONS,
             loadGoogleFonts: true,
-            theme: toChartTheme({ baseTheme: preset.baseTheme, params: preset.params, palette: preset.palette }),
+            theme: toChartTheme({
+                baseTheme: preset.baseTheme,
+                params: withSansFallback(preset.params),
+                palette: preset.palette,
+            }),
         }),
         [preset]
     );
