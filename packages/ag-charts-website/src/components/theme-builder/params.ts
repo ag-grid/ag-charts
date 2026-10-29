@@ -1,19 +1,15 @@
 /**
  * The curated editor layout. Value type and default are derived by the shared
- * layer, so only presentation hints live here. Every public param must appear in
- * exactly one group, which `params.test.ts` asserts so that a new API param
- * cannot quietly go missing from the builder.
+ * layer, so only presentation hints live here. A public param in no group is
+ * edited from the All Parameters search instead.
  */
 import type { ParamIcon } from '@ag-website-shared/components/theme-builder/icons';
 import { paramToVariableName } from '@ag-website-shared/theming/utils';
 
 import { CHARTS_PARAM_DEFAULTS, PUBLIC_PARAM_NAMES } from './chartsTheme';
 
-/** Named because the preview watches for them, to show what they style. See `editedGroup.ts`. */
+/** Named because the preview watches for it, to show what it styles. See `editedGroup.ts`. */
 export const TOOLTIPS_GROUP_ID = 'tooltips';
-export const UI_GROUP_ID = 'ui';
-export const CONTROLS_GROUP_ID = 'controls';
-export const SCROLLBAR_GROUP_ID = 'scrollbar';
 
 export interface ChartsParamConfig {
     key: string;
@@ -38,7 +34,6 @@ export interface ChartsParamGroup {
 
 export const GENERAL_GROUP_ID = 'general';
 
-// Each group leads with the params the design lists, in its order, then the rest of its area.
 export const PARAM_GROUPS: ChartsParamGroup[] = [
     {
         id: GENERAL_GROUP_ID,
@@ -53,11 +48,6 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'foregroundColor', label: 'Foreground Color' },
             { key: 'accentColor', label: 'Accent Color' },
             { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
-            { key: 'fontWeight', label: 'Font Weight' },
-            { key: 'lineHeight', label: 'Line Height' },
-            { key: 'textColor', label: 'Text Color' },
-            { key: 'subtleTextColor', label: 'Subtle Text Color' },
-            { key: 'chartBackgroundColor', label: 'Chart Background' },
         ],
     },
     {
@@ -74,17 +64,6 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
                 { key: 'subtitleColor', label: 'Subtitle Color' },
                 { key: 'subtitleFontSize', label: 'Font Size', min: 8, max: 32 },
             ],
-            { key: 'footnoteFontFamily', label: 'Footnote Font Family' },
-            [
-                { key: 'footnoteColor', label: 'Footnote Color' },
-                { key: 'footnoteFontSize', label: 'Font Size', min: 8, max: 32 },
-            ],
-            { key: 'titleFontWeight', label: 'Title Font Weight' },
-            { key: 'subtitleFontWeight', label: 'Subtitle Font Weight' },
-            { key: 'footnoteFontWeight', label: 'Footnote Font Weight' },
-            { key: 'titleLineHeight', label: 'Title Line Height' },
-            { key: 'subtitleLineHeight', label: 'Subtitle Line Height' },
-            { key: 'footnoteLineHeight', label: 'Footnote Line Height' },
         ],
     },
     {
@@ -104,15 +83,6 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
                 { key: 'axisLabelColor', label: 'Axis Label Color' },
                 { key: 'axisLabelFontSize', label: 'Font Size', min: 8, max: 24 },
             ],
-            { key: 'axisTitleFontWeight', label: 'Axis Title Font Weight' },
-            { key: 'axisTitleLineHeight', label: 'Axis Title Line Height' },
-            { key: 'axisLabelFontWeight', label: 'Axis Label Font Weight' },
-            { key: 'axisLabelLineHeight', label: 'Axis Label Line Height' },
-            { key: 'gridLineWidth', label: 'Grid Line Width', min: 0, max: 8 },
-            { key: 'groupedCategoryLineColor', label: 'Grouped Category Line' },
-            { key: 'bandHighlightColor', label: 'Band Highlight Color' },
-            { key: 'crosshairLabelBackgroundColor', label: 'Crosshair Label Background' },
-            { key: 'crosshairLabelTextColor', label: 'Crosshair Label Text' },
         ],
     },
     {
@@ -125,41 +95,18 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
                 { key: 'legendLabelFontSize', label: 'Font Size', min: 8, max: 24 },
             ],
             { key: 'legendMarkerSize', label: 'Marker Size', min: 4, max: 40 },
-            { key: 'legendBorder', label: 'Border', icon: 'legendBorder' },
-            { key: 'legendPadding', label: 'Padding', icon: 'horizontalSpacing', min: 0, max: 40 },
-            { key: 'legendBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
-            {
-                key: 'legendItemVerticalPadding',
-                label: 'Item Vertical Padding',
-                icon: 'verticalSpacing',
-                min: 0,
-                max: 40,
-            },
-            {
-                key: 'legendItemHorizontalPadding',
-                label: 'Item Horizontal Padding',
-                icon: 'horizontalSpacing',
-                min: 0,
-                max: 40,
-            },
-            { key: 'legendLabelFontWeight', label: 'Label Font Weight' },
-            { key: 'legendLabelLineHeight', label: 'Label Line Height' },
         ],
     },
     {
         id: 'seriesLabels',
         label: 'Series Labels',
         params: [
-            { key: 'seriesLabelFontFamily', label: 'Font Family' },
-            { key: 'seriesLabelFontSize', label: 'Font Size', min: 8, max: 24 },
-            { key: 'seriesLabelFontWeight', label: 'Font Weight' },
-            { key: 'seriesLabelLineHeight', label: 'Line Height' },
-            { key: 'seriesLabelInsideTextColor', label: 'Inside Text Color' },
-            { key: 'seriesLabelInsideBackgroundColor', label: 'Inside Background' },
-            { key: 'seriesLabelOutsideTextColor', label: 'Outside Text Color' },
-            { key: 'seriesLabelOutsideBackgroundColor', label: 'Outside Background' },
-            { key: 'seriesLabelBorder', label: 'Border', icon: 'seriesLabelBorder' },
-            { key: 'seriesLabelBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
+            { key: 'seriesLabelFontFamily', label: 'Label Font Family' },
+            [
+                { key: 'seriesLabelInsideTextColor', label: 'Inside Label Color' },
+                { key: 'seriesLabelFontSize', label: 'Font Size', min: 8, max: 24 },
+            ],
+            { key: 'seriesLabelOutsideTextColor', label: 'Outside Label Color' },
         ],
     },
     {
@@ -169,138 +116,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'tooltipBackgroundColor', label: 'Background Color' },
             { key: 'tooltipBorder', label: 'Border', icon: 'tooltipBorder' },
             { key: 'tooltipBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
-            { key: 'tooltipTextColor', label: 'Text Color' },
-            { key: 'tooltipSubtleTextColor', label: 'Subtle Text Color' },
-        ],
-    },
-    {
-        id: 'borders',
-        label: 'Borders',
-        params: [
-            { key: 'borderColor', label: 'Border Color' },
-            {
-                key: 'borderRadius',
-                label: 'Border Radius',
-                icon: 'radius',
-                swipeAdjustmentDivisor: 20,
-                min: 0,
-                max: 24,
-            },
-            {
-                key: 'borderWidth',
-                label: 'Border Width',
-                icon: 'borderWidth',
-                swipeAdjustmentDivisor: 20,
-                min: 0,
-                max: 8,
-            },
-        ],
-    },
-    {
-        id: UI_GROUP_ID,
-        label: 'UI Elements',
-        params: [
-            { key: 'chromeBackgroundColor', label: 'Background Color' },
-            { key: 'chromeTextColor', label: 'Text Color' },
-            { key: 'chromeSubtleTextColor', label: 'Subtle Text Color' },
-            { key: 'chromeFontFamily', label: 'Font Family' },
-            { key: 'chromeFontSize', label: 'Font Size', min: 8, max: 24 },
-            { key: 'chromeFontWeight', label: 'Font Weight' },
-            { key: 'chromeLineHeight', label: 'Line Height' },
-            { key: 'menuBackgroundColor', label: 'Menu Background' },
-            { key: 'menuTextColor', label: 'Menu Text' },
-            { key: 'menuBorder', label: 'Menu Border', icon: 'menuBorder' },
-            { key: 'menuBorderRadius', label: 'Menu Radius', icon: 'radius', min: 0, max: 24 },
-            { key: 'menuSeparatorColor', label: 'Menu Separator' },
-            { key: 'panelBackgroundColor', label: 'Panel Background' },
-            { key: 'panelSubtleTextColor', label: 'Panel Subtle Text' },
-            { key: 'dragHandleColor', label: 'Drag Handle' },
-            { key: 'colorPickerThumbSize', label: 'Color Picker Thumb Size', min: 8, max: 32 },
-            {
-                key: 'colorPickerThumbBorderWidth',
-                label: 'Color Picker Thumb Border',
-                icon: 'borderWidth',
-                swipeAdjustmentDivisor: 20,
-                min: 0,
-                max: 8,
-            },
-            { key: 'colorPickerTrackSize', label: 'Color Picker Track Size', min: 4, max: 24 },
-            {
-                key: 'colorPickerTrackBorderRadius',
-                label: 'Color Picker Track Radius',
-                icon: 'radius',
-                min: 0,
-                max: 24,
-            },
-            {
-                key: 'colorPickerColorBorderRadius',
-                label: 'Color Picker Swatch Radius',
-                icon: 'radius',
-                min: 0,
-                max: 8,
-            },
-        ],
-    },
-    {
-        id: CONTROLS_GROUP_ID,
-        label: 'Buttons & Inputs',
-        params: [
-            { key: 'buttonBackgroundColor', label: 'Button Background' },
-            { key: 'buttonTextColor', label: 'Button Text' },
-            { key: 'buttonBorder', label: 'Button Border', icon: 'buttonBorder' },
-            { key: 'buttonBorderRadius', label: 'Button Radius', icon: 'radius', min: 0, max: 24 },
-            { key: 'buttonFontWeight', label: 'Button Font Weight' },
-            { key: 'buttonHoverBackgroundColor', label: 'Button Hover Background' },
-            { key: 'buttonHoverTextColor', label: 'Button Hover Text' },
-            { key: 'buttonHoverBorder', label: 'Button Hover Border', icon: 'buttonBorder' },
-            { key: 'buttonActiveBackgroundColor', label: 'Button Active Background' },
-            { key: 'buttonActiveTextColor', label: 'Button Active Text' },
-            { key: 'buttonActiveBorder', label: 'Button Active Border', icon: 'buttonBorder' },
-            { key: 'buttonDisabledBackgroundColor', label: 'Button Disabled Background' },
-            { key: 'buttonDisabledTextColor', label: 'Button Disabled Text' },
-            { key: 'buttonDisabledBorder', label: 'Button Disabled Border', icon: 'buttonBorder' },
-            { key: 'inputBackgroundColor', label: 'Input Background' },
-            { key: 'inputTextColor', label: 'Input Text' },
-            { key: 'inputPlaceholderTextColor', label: 'Input Placeholder Text' },
-            { key: 'inputBorder', label: 'Input Border', icon: 'inputBorder' },
-            { key: 'inputBorderRadius', label: 'Input Radius', icon: 'radius', min: 0, max: 24 },
-        ],
-    },
-    {
-        id: SCROLLBAR_GROUP_ID,
-        label: 'Scrollbar',
-        params: [
-            { key: 'scrollbarThickness', label: 'Thickness', min: 4, max: 32 },
-            { key: 'scrollbarTrackBackgroundColor', label: 'Track Background' },
-            { key: 'scrollbarTrackBorder', label: 'Track Border', icon: 'scrollbarTrackBorder' },
-            { key: 'scrollbarTrackBorderRadius', label: 'Track Radius', icon: 'radius', min: 0, max: 16 },
-            { key: 'scrollbarThumbBackgroundColor', label: 'Thumb Background' },
-            { key: 'scrollbarThumbBorder', label: 'Thumb Border', icon: 'scrollbarThumbBorder' },
-            { key: 'scrollbarThumbBorderRadius', label: 'Thumb Radius', icon: 'radius', min: 0, max: 16 },
-            { key: 'scrollbarThumbHoverBackgroundColor', label: 'Thumb Hover Background' },
-            { key: 'scrollbarThumbHoverBorder', label: 'Thumb Hover Border', icon: 'scrollbarThumbBorder' },
-        ],
-    },
-    {
-        id: 'navigator',
-        label: 'Navigator',
-        params: [
-            { key: 'navigatorTrackBackgroundColor', label: 'Track Background' },
-            { key: 'navigatorTrackBorder', label: 'Track Border', icon: 'navigatorTrackBorder' },
-            { key: 'navigatorTrackBorderRadius', label: 'Track Radius', icon: 'radius', min: 0, max: 16 },
-            { key: 'navigatorThumbBackgroundColor', label: 'Thumb Background' },
-            { key: 'navigatorHandleBackgroundColor', label: 'Handle Background' },
-            { key: 'navigatorHandleBorder', label: 'Handle Border', icon: 'navigatorHandleBorder' },
-            { key: 'navigatorHandleBorderRadius', label: 'Handle Radius', icon: 'radius', min: 0, max: 16 },
-        ],
-    },
-    {
-        id: 'effects',
-        label: 'Effects',
-        params: [
-            { key: 'focusShadow', label: 'Focus Shadow' },
-            { key: 'popupShadow', label: 'Popup Shadow' },
-            { key: 'cardShadow', label: 'Card Shadow' },
+            { key: 'tooltipTextColor', label: 'Label Color' },
         ],
     },
 ];

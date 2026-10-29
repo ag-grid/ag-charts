@@ -13,13 +13,6 @@ import {
 } from './params';
 
 describe('charts theme builder param layout', () => {
-    it('covers every public AG Charts theme param', () => {
-        // A new param in the AG Charts API should show up here as a failure,
-        // not as a control the builder silently never offers.
-        const missing = PUBLIC_PARAM_NAMES.filter((name) => !CURATED_KEYS.includes(name));
-        expect(missing).toEqual([]);
-    });
-
     it('offers no param AG Charts does not have', () => {
         const unknown = CURATED_KEYS.filter((key) => !PUBLIC_PARAM_NAMES.includes(key));
         expect(unknown).toEqual([]);
@@ -36,7 +29,7 @@ describe('charts theme builder param layout', () => {
         expect(duplicated).toEqual([]);
     });
 
-    it('opens with the designed groups, each leading with its designed rows', () => {
+    it('shows only the designed groups and rows', () => {
         const DESIGNED: [string, (string | [string, string])[]][] = [
             [
                 'General',
@@ -64,16 +57,21 @@ describe('charts theme builder param layout', () => {
                 ],
             ],
             ['Legend', ['legendLabelFontFamily', ['legendLabelColor', 'legendLabelFontSize'], 'legendMarkerSize']],
-            ['Series Labels', ['seriesLabelFontFamily']],
-            ['Tooltips', ['tooltipBackgroundColor', 'tooltipBorder', 'tooltipBorderRadius']],
+            [
+                'Series Labels',
+                [
+                    'seriesLabelFontFamily',
+                    ['seriesLabelInsideTextColor', 'seriesLabelFontSize'],
+                    'seriesLabelOutsideTextColor',
+                ],
+            ],
+            ['Tooltips', ['tooltipBackgroundColor', 'tooltipBorder', 'tooltipBorderRadius', 'tooltipTextColor']],
         ];
         const rowKeys = PARAM_GROUPS.map((group) =>
             group.params.map((row) => (Array.isArray(row) ? row.map(({ key }) => key) : row.key))
         );
-        DESIGNED.forEach(([label, rows], index) => {
-            expect(PARAM_GROUPS[index].label).toBe(label);
-            expect(rowKeys[index].slice(0, rows.length), label).toEqual(rows);
-        });
+        expect(PARAM_GROUPS.map(({ label }) => label)).toEqual(DESIGNED.map(([label]) => label));
+        DESIGNED.forEach(([label, rows], index) => expect(rowKeys[index], label).toEqual(rows));
     });
 
     it('opens only the General group by default', () => {
@@ -99,10 +97,6 @@ describe('params with an inherited value', () => {
         expect(INHERITED_SOURCES.titleFontSize).toEqual(['fontSize']);
         expect(INHERITED_KEYS.has('axisTitleFontSize')).toBe(true);
         expect(INHERITED_SOURCES.axisTitleFontSize).toEqual(['fontSize']);
-    });
-
-    it('names only params the builder offers', () => {
-        expect([...INHERITED_KEYS].filter((key) => !CURATED_KEYS.includes(key))).toEqual([]);
     });
 
     it('classifies every stock theme the same way', () => {
@@ -160,13 +154,5 @@ describe('what a param inherits from', () => {
         // nothing to name would render an unfinished sentence.
         const unexplained = [...INHERITED_KEYS].filter((key) => (INHERITED_SOURCES[key]?.length ?? 0) === 0);
         expect(unexplained).toEqual([]);
-    });
-
-    it('inherits only from params the builder offers', () => {
-        const offered = new Set(CURATED_KEYS);
-        const dangling = Object.values(INHERITED_SOURCES)
-            .flat()
-            .filter((source) => !offered.has(source));
-        expect(dangling).toEqual([]);
     });
 });
