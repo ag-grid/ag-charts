@@ -114,6 +114,77 @@ describe('calcPanToBBoxRatios', () => {
         expectRatios(result.y, { min: 0.25, max: 0.5 });
     });
 
+    describe('letterboxed zoom rect', () => {
+        // The ratios span a zoom rect smaller than the visible viewport, as with aspect-preserving
+        // maps, so pixel distances are normalised against the zoom rect rather than the viewport.
+        test('pans down by the zoom rect scale when letterboxed vertically', () => {
+            // The 0.25 ratio span covers 80px, so 1px === 0.003125 ratio units.
+            const zoomRect = { x: 0, y: 10, width: 100, height: 80 };
+            const target = { x: 10, y: 110, width: 10, height: 10 };
+            const result = calcPanToBBoxRatios(None, viewport, { y: { min: 0.5, max: 0.75 } }, target, zoomRect);
+            expectRatios(result.y, { min: 0.4375, max: 0.6875 });
+        });
+
+        test('pans up by the zoom rect scale when letterboxed vertically', () => {
+            const zoomRect = { x: 0, y: 10, width: 100, height: 80 };
+            const target = { x: 10, y: -20, width: 10, height: 10 };
+            const result = calcPanToBBoxRatios(None, viewport, { y: { min: 0, max: 0.25 } }, target, zoomRect);
+            expectRatios(result.y, { min: 0.0625, max: 0.3125 });
+        });
+
+        test('pans by the zoom rect scale when the zoom rect is not centred', () => {
+            const zoomRect = { x: 0, y: 0, width: 100, height: 80 };
+            const target = { x: 10, y: 110, width: 10, height: 10 };
+            const result = calcPanToBBoxRatios(None, viewport, { y: { min: 0.5, max: 0.75 } }, target, zoomRect);
+            expectRatios(result.y, { min: 0.4375, max: 0.6875 });
+        });
+
+        test('pans right by the zoom rect scale when letterboxed horizontally', () => {
+            // The 0.3 ratio span covers 60px, so 1px === 0.005 ratio units.
+            const zoomRect = { x: 20, y: 0, width: 60, height: 100 };
+            const target = { x: 110, y: 10, width: 10, height: 10 };
+            const result = calcPanToBBoxRatios(None, viewport, { x: { min: 0, max: 0.3 } }, target, zoomRect);
+            expectRatios(result.x, { min: 0.1, max: 0.4 });
+        });
+
+        // A focus box around a marker on the map's edge extends past the world edge into the letterbox margin.
+        test('pans into the horizontal letterbox margin beyond the world edge', () => {
+            // The 0.3 ratio span covers 60px, so 1px === 0.005 ratio units and the world starts at x=-2.
+            const zoomRect = { x: 20, y: 0, width: 60, height: 100 };
+            const target = { x: -7, y: 10, width: 10, height: 10 };
+            const result = calcPanToBBoxRatios(None, viewport, { x: { min: 0.11, max: 0.41 } }, target, zoomRect);
+            expectRatios(result.x, { min: 0.075, max: 0.375 });
+        });
+
+        test('pans into the vertical letterbox margin beyond the world edge', () => {
+            // The 0.3 ratio span covers 60px, so 1px === 0.005 ratio units and the world's bottom is at y=102.
+            const zoomRect = { x: 0, y: 20, width: 100, height: 60 };
+            const target = { x: 10, y: 97, width: 10, height: 10 };
+            const result = calcPanToBBoxRatios(None, viewport, { y: { min: 0.11, max: 0.41 } }, target, zoomRect);
+            expectRatios(result.y, { min: 0.075, max: 0.375 });
+        });
+
+        test('clamps the zoom rect, not the viewport, at the world edge', () => {
+            const zoomRect = { x: 20, y: 0, width: 60, height: 100 };
+            const target = { x: -40, y: 10, width: 10, height: 10 };
+            const result = calcPanToBBoxRatios(None, viewport, { x: { min: 0.11, max: 0.41 } }, target, zoomRect);
+            expectRatios(result.x, { min: 0, max: 0.3 });
+        });
+
+        test('pans when scaling proportionally', () => {
+            const zoomRect = { x: 0, y: 10, width: 100, height: 80 };
+            const target = { x: 10, y: 110, width: 10, height: 10 };
+            const result = calcPanToBBoxRatios(
+                WhenViewportTooSmallScaleXYProportionally,
+                viewport,
+                { y: { min: 0.5, max: 0.75 } },
+                target,
+                zoomRect
+            );
+            expectRatios(result.y, { min: 0.4375, max: 0.6875 });
+        });
+    });
+
     test('pans in the y-up direction when scaling proportionally', () => {
         const target = { x: 10, y: -20, width: 10, height: 10 };
         const result = calcPanToBBoxRatios(

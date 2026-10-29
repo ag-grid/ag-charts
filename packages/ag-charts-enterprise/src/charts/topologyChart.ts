@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AxisID, CanvasPoint, FeatureCollection, Position } from 'ag-charts-core';
+import type { AxisID, BoxBounds, CanvasPoint, FeatureCollection, Position } from 'ag-charts-core';
 import { ChartAxisDirection, PanToBBoxScalingModeEnum, createId } from 'ag-charts-core';
 import type { AgCoordinates, AgTopologyChartOptions } from 'ag-charts-types';
 
@@ -78,6 +78,7 @@ export class TopologyChart extends Chart {
         }, undefined);
 
         let scale: MercatorScale | undefined;
+        let zoomRect: BoxBounds | undefined;
         if (combinedBbox != null) {
             const { lon0, lat0, lon1, lat1 } = combinedBbox;
             const domain: Position[] = [
@@ -111,6 +112,13 @@ export class TopologyChart extends Chart {
                 [xStart, yStart],
                 [xStart + xSpan, yStart + ySpan],
             ]);
+
+            // The zoom ratios span the letterboxed view box, not the whole series rect.
+            zoomRect = { x: seriesRect.x + x0, y: seriesRect.y + y0, width: x1 - x0, height: y1 - y0 };
+        }
+
+        if (this.ctx.zoomManager) {
+            this.ctx.zoomManager.panToBBoxZoomRect = zoomRect;
         }
 
         for (const series of mapSeries) {
