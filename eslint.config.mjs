@@ -127,6 +127,35 @@ const testHelperDefaults = {
     rules: sonarjsTestRules,
 };
 
+// --- NEEDS REVIEW AFTER ESLINT 10 / SONARJS 4 UPGRADE ---------------------------------------------------
+// Rules introduced or tightened by the upgrade, held at warning until the dev team decides whether the
+// source changes they ask for are wanted. Restore to error once reviewed, then delete this block.
+// The core block ends the default export; the sonarjs block ends `sonarjsConfig`, which package configs
+// spread after the default export.
+const needsReviewAfterEslint10Upgrade = [
+    {
+        rules: {
+            'no-useless-assignment': 1,
+            'preserve-caught-error': 1,
+        },
+    },
+    {
+        // Disable comments for rules sonarjs 4 no longer reports at these sites.
+        files: ['**/src/dom/attributeUtil.ts', '**/src/license/licenseManager.ts', '**/src/license/md5.ts'],
+        linterOptions: { reportUnusedDisableDirectives: 'warn' },
+    },
+];
+const needsReviewAfterSonarjs4Upgrade = [
+    {
+        files: ['**/*.{js,ts}'],
+        rules: {
+            'sonarjs/super-linear-regex': 1,
+            'sonarjs/no-redundant-optional': 1,
+        },
+    },
+];
+// --- END NEEDS REVIEW ----------------------------------------------------------------------------------
+
 export const sonarjsConfig = [
     sonarjs.configs.recommended,
     {
@@ -151,7 +180,6 @@ export const sonarjsConfig = [
             'sonarjs/different-types-comparison': 1,
             'sonarjs/public-static-readonly': 1,
             'sonarjs/regex-complexity': 1,
-            'sonarjs/no-redundant-optional': 1,
 
             // Duplicates @typescript-eslint
             'sonarjs/sonar-no-unused-vars': 0,
@@ -220,6 +248,7 @@ export const sonarjsConfig = [
             'unicorn/no-zero-fractions': 2,
         },
     },
+    ...needsReviewAfterSonarjs4Upgrade,
 ];
 
 /** @type {import('eslint').Linter.Config[]} */
@@ -387,4 +416,5 @@ export default [
             ],
         },
     },
+    ...needsReviewAfterEslint10Upgrade,
 ];

@@ -53,12 +53,15 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
 
         this.label.x = isRtl ? -spacing : length + spacing;
         this.label.textAlign = isRtl ? 'right' : 'left';
+
+        let centerTranslateX = 0;
+        let centerTranslateY = 0;
         if (marker.visible) {
             const { size } = marker;
 
             const anchor = Marker.anchor(marker.shape);
-            const centerTranslateX = (anchor.x - 0.5) * size + length / 2;
-            const centerTranslateY = (anchor.y - 0.5) * size;
+            centerTranslateX = (anchor.x - 0.5) * size + length / 2;
+            centerTranslateY = (anchor.y - 0.5) * size;
 
             marker.x = centerTranslateX;
             marker.y = centerTranslateY;
