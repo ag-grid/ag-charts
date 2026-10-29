@@ -1,15 +1,19 @@
 <script lang="ts">
-import { fmtPct } from '../format';
+import { fmtIndex, fmtPct, fmtPctWhole } from '../format';
 import type { SupplierTrendPoint } from '../types';
 
 /** Which metric the chart is reading off each month's point. */
 export type TrendMetric = 'price' | 'onTime' | 'quality';
 
-/** One month's row: the label plus one value per supplier, for the selected metric. */
+/** One month's row: its start and label plus one value per supplier, for the selected metric. */
 interface Row {
+    month: number;
     label: string;
     [supplierId: string]: string | number | null;
 }
+
+/** Each supplier's line is its own series, so the series id names the supplier. */
+const supplierIdOf = ({ seriesId }: { seriesId: string }) => seriesId;
 
 /** How each metric is read off a point, titled and formatted. */
 interface MetricSpec {
@@ -17,6 +21,8 @@ interface MetricSpec {
     axisTitle: string;
     tooltipLabel: string;
     format: (value: number) => string;
+    /** For the axis ticks, where they need fewer digits than a single reading. */
+    axisFormat: (value: number) => string;
     /** Axis ceiling, for a metric with a fixed one. Omitted where the domain is the data's own. */
     max?: number;
 }
@@ -26,17 +32,19 @@ function metricSpec(metric: TrendMetric): MetricSpec {
         case 'onTime':
             return {
                 read: (point) => point.onTimeRate,
-                axisTitle: 'Percent on time',
+                axisTitle: 'On-time delivery',
                 tooltipLabel: 'On time',
                 format: fmtPct,
+                axisFormat: fmtPctWhole,
                 max: 1,
             };
         case 'quality':
             return {
                 read: (point) => point.qualityRate,
-                axisTitle: 'Percent accepted at inspection',
+                axisTitle: 'Percent accepted',
                 tooltipLabel: 'Accepted',
                 format: fmtPct,
+                axisFormat: fmtPctWhole,
                 max: 1,
             };
         case 'price':
@@ -46,7 +54,8 @@ function metricSpec(metric: TrendMetric): MetricSpec {
                 read: (point) => point.index,
                 axisTitle: 'Price vs list price',
                 tooltipLabel: 'Price vs list',
-                format: (value) => `${value.toFixed(2)}×`,
+                format: fmtIndex,
+                axisFormat: (value) => fmtIndex(value, 1),
             };
     }
 }
@@ -55,10 +64,13 @@ function metricSpec(metric: TrendMetric): MetricSpec {
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import type { AgCartesianChartOptions, AgLineSeriesOptions } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgLineSeriesOptions, AgSelectionItemIds } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-vue3';
 
-import { NEUTRAL, THEME } from '../chartTheme';
+import { MONTH_AXIS, NEUTRAL, THEME } from '../chartTheme';
+import { fmtMonthYear } from '../format';
+import { stylerOwnedSelection } from './chartSelection';
+import { useSupplierSelection } from './useSupplierSelection';
 
 /**
  * One supplier trend, three ways: what she pays, whether it arrives, and whether it passes
@@ -79,46 +91,71 @@ const props = defineProps<{
     selectedSupplierId?: string;
 }>();
 
+const emit = defineEmits<{
+    /** The user selected a supplier's line, or clicked away to clear the selection. */
+    selectedSupplierChange: [supplierId: string | undefined];
+}>();
+
 const spec = computed(() => metricSpec(props.metric));
 
 const data = computed<Row[]>(() => {
-    const [first] = [...props.trend.values()];
-    if (!first) return [];
+    const { trend } = props;
+    const [first] = [...trend.values()];
+    if (first == null) return [];
     return first.map((point, index) => {
-        const row: Row = { label: point.label };
-        for (const [supplierId, points] of props.trend) {
+        const row: Row = { month: point.month, label: point.label };
+        for (const [supplierId, points] of trend) {
             row[supplierId] = spec.value.read(points[index]);
         }
         return row;
     });
 });
 
+const itemsFor = (supplierId: string): AgSelectionItemIds[] =>
+    props.supplierNames.has(supplierId) ? data.value.map((row) => ({ seriesId: supplierId, itemId: row.label })) : [];
+
+const { chartRef, onChartSelectionChange, onChartClick } = useSupplierSelection<Row>({
+    selectedSupplierId: () => props.selectedSupplierId,
+    onSelectedSupplierChange: (supplierId) => emit('selectedSupplierChange', supplierId),
+    supplierIdOf,
+    itemsFor,
+});
+
 const options = computed<AgCartesianChartOptions<Row>>(() => {
     const { supplierNames, supplierColors, selectedSupplierId } = props;
-    const { value: metricRead } = spec;
     const series = [...supplierNames.entries()].map<AgLineSeriesOptions<Row>>(([supplierId, name]) => {
         const dimmed = selectedSupplierId != null && supplierId !== selectedSupplierId;
         const color = supplierColors[supplierId] ?? NEUTRAL;
         return {
             type: 'line',
-            xKey: 'label',
+            id: supplierId,
+            xKey: 'month',
             yKey: supplierId,
             yName: name,
-            // interpolation: { type: 'step' },
             stroke: dimmed ? NEUTRAL : color,
             strokeWidth: dimmed ? 1 : 2,
             strokeOpacity: dimmed ? 0.35 : 1,
-            marker: { enabled: true, size: 5, fill: dimmed ? NEUTRAL : color, fillOpacity: dimmed ? 0.35 : 1 },
+            marker: {
+                enabled: true,
+                size: 6,
+                fill: dimmed ? NEUTRAL : color,
+                fillOpacity: dimmed ? 0.35 : 1,
+                stroke: 'var(--pc-panel)',
+                strokeWidth: 1,
+            },
             // A month a supplier has no record in is a gap, not a drop to zero.
             connectMissingData: false,
+            // The markers carry no outline of their own.
+            selection: stylerOwnedSelection(0),
             tooltip: {
                 renderer: ({ datum }) => {
                     const value = datum[supplierId];
                     return {
-                        title: `${name} · ${datum.label}`,
+                        heading: '',
+                        title: `${name} · ${fmtMonthYear(datum.month)}`,
                         data: [
                             typeof value === 'number'
-                                ? { label: metricRead.tooltipLabel, value: metricRead.format(value) }
+                                ? { label: spec.value.tooltipLabel, value: spec.value.format(value) }
                                 : { label: 'Record', value: 'nothing this month' },
                         ],
                     };
@@ -130,27 +167,30 @@ const options = computed<AgCartesianChartOptions<Row>>(() => {
     return {
         theme: THEME,
         data: data.value,
+        dataIdKey: 'label',
         series,
         // This box is shorter than the 300px a chart defaults to as its minimum, and a chart that
         // will not shrink to its box overflows it and swallows clicks meant for the card below.
         minHeight: 0,
         axes: {
-            x: { type: 'category', position: 'bottom' },
+            x: MONTH_AXIS,
             y: {
                 type: 'number',
                 position: 'left',
-                max: metricRead.max,
-                title: { enabled: true, text: metricRead.axisTitle },
-                label: { formatter: ({ value }) => metricRead.format(value) },
+                max: spec.value.max,
+                title: { enabled: true, text: spec.value.axisTitle },
+                label: { formatter: ({ value }) => spec.value.axisFormat(value) },
                 nice: false,
             },
         },
         legend: { enabled: true, position: 'bottom' },
         padding: { top: 8, right: 12, bottom: 4, left: 4 },
+        selection: { enabled: true },
+        listeners: { selectionChange: onChartSelectionChange, click: onChartClick },
     };
 });
 </script>
 
 <template>
-    <AgCharts :options="options" :style="{ height: '100%', width: '100%' }" />
+    <AgCharts ref="chartRef" :options="options" :style="{ height: '100%', width: '100%' }" />
 </template>
