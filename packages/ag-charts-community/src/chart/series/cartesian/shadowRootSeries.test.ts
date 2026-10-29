@@ -21,7 +21,7 @@ import {
 // A shadow with no blur and an exact offset, so that the alpha of a pixel is the strength of the shadow cast on it.
 const shadowAt = (xOffset: number, yOffset = 0): AgDropShadowOptions => ({
     enabled: true,
-    color: 'rgba(0, 0, 0, 0.5)',
+    fill: 'rgba(0, 0, 0, 0.5)',
     xOffset,
     yOffset,
     blur: 0,
@@ -367,7 +367,7 @@ describe('cartesian series shadow root', () => {
                     { type: 'line', xKey: 'x', yKey: 'low' },
                 ],
             });
-            const SOLID = { ...shadowAt(0, 20), color: 'black' };
+            const SOLID = { ...shadowAt(0, 20), fill: 'black' };
 
             const dim = async (shadow: AgDropShadowOptions) => {
                 await create(dimmed(shadow));
@@ -620,7 +620,7 @@ describe('cartesian series shadow root', () => {
             it('should still cast the shadow where it falls on nothing', async () => {
                 await create(lines(undefined));
                 const [second] = itemCentres(1);
-                await create(lines({ ...shadowAt(0, 40), color: SOLID }));
+                await create(lines({ ...shadowAt(0, 40), fill: SOLID }));
                 await hoverSeries(2);
                 expect(drawingModes(1)).toEqual(['cutout', 'cutout']);
 

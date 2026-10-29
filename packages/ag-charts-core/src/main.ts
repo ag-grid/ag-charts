@@ -232,6 +232,7 @@ export * from './scene/segmentedGroup';
 export * from './scene/selection';
 export * from './scene/shadowCompositor';
 export * from './scene/shadowEngine';
+export { overrideTintableShadows } from './scene/shadowColour';
 export * from './scene/shadowPass';
 export * from './scene/shadowRoot';
 export * from './scene/shape/arc';

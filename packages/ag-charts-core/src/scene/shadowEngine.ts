@@ -1,11 +1,14 @@
 import { arraysEqual } from '../data/arrays';
 import { isFiniteNumber } from '../data/typeGuards';
-import { Color } from '../format/color';
-import type { NormalisedDropShadowOptions } from '../options/normalised/normalisedCommonOptions';
+import type {
+    NormalisedDropShadowOptions,
+    ResolvedDropShadowOptions,
+} from '../options/normalised/normalisedCommonOptions';
 import { type SpreadCanvas, allocateCanvas, disposeCanvas, releaseSpreadCanvas } from './canvas/spreadCanvas';
 import type { MatrixFrame } from './matrix';
 import type { Node, RenderContext } from './node';
 import type { ShadowClip, ShadowFrame, ShadowRegion } from './shadowCollector';
+import { getShadowColour, scaleColourAlpha } from './shadowColour';
 import { shadowPass } from './shadowPass';
 import { Path } from './shape/path';
 import { Shape, type SilhouetteBounds } from './shape/shape';
@@ -55,6 +58,7 @@ export type ShadowScope = 'run' | 'layer' | 'root';
 
 /** The casters that share their shadow options and clip, and so one mask and one blur. */
 export interface ShadowKey {
+    /** The shadow options of its casters. A glow with no `fill` keeps none: each caster's silhouette has its own colour. */
     readonly shadow: NormalisedDropShadowOptions;
     /** The clip of a local key, in the coordinates of the group. A `root` key has {@link clips} instead. */
     readonly clip: ShadowClip | undefined;
@@ -67,9 +71,7 @@ export interface ShadowKey {
 
 /** The shadow options that a node casts through a shadow root, which a cutout may, or undefined if it casts none. */
 export function getRootShadow(node: Node): NormalisedDropShadowOptions | undefined {
-    if (!(node instanceof Shape)) return;
-    const shadow = node.__fillShadow;
-    return shadow?.enabled === true ? shadow : undefined;
+    return node instanceof Shape ? node.getBatchShadow() : undefined;
 }
 
 /** The shadow options that a node casts through the engine, or undefined if it casts none. */
@@ -120,7 +122,8 @@ function sameLayer(a: Node, b: Node) {
 function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
     return (
         a === b ||
-        (a.color === b.color &&
+        (a.fill === b.fill &&
+            (a.fillOpacity ?? 1) === (b.fillOpacity ?? 1) &&
             a.xOffset === b.xOffset &&
             a.yOffset === b.yOffset &&
             a.blur === b.blur &&
@@ -305,7 +308,8 @@ function matchSignature(
     if (unchanged && cache.signature.length > cache.cursor) return !cache.changed;
 
     for (const { shadow, clip, clips, casters, frames } of keys) {
-        putSignature(cache, shadow.color);
+        putSignature(cache, shadow.fill ?? '');
+        putSignature(cache, shadow.fillOpacity ?? 1);
         putSignature(cache, shadow.xOffset);
         putSignature(cache, shadow.yOffset);
         putSignature(cache, shadow.blur);
@@ -478,15 +482,18 @@ function renderPass(
     renderCtx: RenderContext,
     state: 'mask' | 'suppress',
     opaque: boolean = false,
+    tinted: boolean = false,
     resolution: { x: number; y: number } = FULL_RESOLUTION,
     before?: (index: number) => void
 ): boolean {
     let rendered = true;
     const previousState = shadowPass.state;
     const previousOpaque = shadowPass.opaque;
+    const previousTinted = shadowPass.tinted;
     const previousResolution = shadowPass.resolution;
     shadowPass.state = state;
     shadowPass.opaque = opaque;
+    shadowPass.tinted = tinted;
     shadowPass.resolution = resolution;
     try {
         for (let i = 0; i < casters.length; i++) {
@@ -496,6 +503,7 @@ function renderPass(
     } finally {
         shadowPass.state = previousState;
         shadowPass.opaque = previousOpaque;
+        shadowPass.tinted = previousTinted;
         shadowPass.resolution = previousResolution;
     }
     return rendered;
@@ -523,16 +531,6 @@ function getUniformSpreadStrength({ casters, frames }: ShadowKey): number | unde
     return uniform;
 }
 
-/** The colour with its alpha scaled, or undefined if it can't be read. */
-function scaleColourAlpha(colour: string, scale: number): string | undefined {
-    try {
-        const { r, g, b, a } = Color.fromString(colour);
-        return new Color(r, g, b, a * scale).toRgbaString();
-    } catch {
-        return;
-    }
-}
-
 /** How a key casts its shadow: where its mask goes, and how it is blurred. */
 interface MaskPlan {
     readonly key: ShadowKey;
@@ -545,6 +543,10 @@ interface MaskPlan {
     readonly maskHeight: number;
     readonly colour: string;
     readonly opaque: boolean;
+    /** Whether the mask holds silhouettes in the colours that they cast in, to blur once, rather than in one colour. */
+    readonly tinted: boolean;
+    /** The alpha that a tinted mask is cast at: the `fillOpacity`, and the strength of casters that cast one together. */
+    readonly alpha: number;
 }
 
 /** A {@link MaskPlan} with the canvas that its mask is drawn on, which is the mask at the resolution of the cast. */
@@ -591,12 +593,15 @@ function planKey(
 
     // Casters at one translucent strength are drawn solid, with the shadow cast at that strength. A `root` key's frames hold the layer alpha.
     const layerAlpha = key.frames == null ? ctx.globalAlpha : 1;
-    let colour = shadow.color;
+    const tinted = shadow.fill == null;
+    let colour = tinted ? '' : getShadowColour(shadow as ResolvedDropShadowOptions);
+    let alpha = tinted ? (shadow.fillOpacity ?? 1) : 1;
     let opaque = false;
     if (strength != null && strength * layerAlpha < 1) {
-        const scaled = scaleColourAlpha(shadow.color, strength * layerAlpha);
+        const scaled = tinted ? colour : scaleColourAlpha(colour, strength * layerAlpha);
         if (scaled != null) {
             colour = scaled;
+            alpha *= strength * layerAlpha;
             opaque = true;
         }
     }
@@ -612,6 +617,8 @@ function planKey(
         maskHeight,
         colour,
         opaque,
+        tinted,
+        alpha,
     };
 }
 
@@ -646,7 +653,7 @@ function castPlan(
     const { ctx } = renderCtx;
     let rendered: boolean;
     const { key, blur, offsetX, offsetY, padLeft, padTop, maskWidth, maskHeight, canvasWidth, canvasHeight } = plan;
-    const { scaleX, scaleY, colour, opaque } = plan;
+    const { scaleX, scaleY, colour, opaque, tinted, alpha } = plan;
     const { canvas, context } = scratch;
 
     context.save();
@@ -695,6 +702,7 @@ function castPlan(
             },
             'mask',
             opaque,
+            tinted,
             { x: scaleX, y: scaleY },
             before
         );
@@ -728,12 +736,39 @@ function castPlan(
         }
         target.resetTransform();
         target.translate(-originX, -originY);
-        target.globalAlpha = 1;
-        target.shadowColor = colour;
-        target.shadowOffsetX = offsetX + distance;
-        target.shadowOffsetY = offsetY;
-        target.shadowBlur = blur;
-        target.drawImage(canvas, 0, 0, canvasWidth, canvasHeight, -padLeft - distance, -padTop, maskWidth, maskHeight);
+        if (tinted) {
+            // The mask holds each silhouette in its own colour, which a shadow can't take, so the canvas blurs the mask itself.
+            target.globalAlpha = alpha;
+            target.filter = blur > 0 ? `blur(${blur / 2}px)` : 'none';
+            target.drawImage(
+                canvas,
+                0,
+                0,
+                canvasWidth,
+                canvasHeight,
+                offsetX - padLeft,
+                offsetY - padTop,
+                maskWidth,
+                maskHeight
+            );
+        } else {
+            target.globalAlpha = 1;
+            target.shadowColor = colour;
+            target.shadowOffsetX = offsetX + distance;
+            target.shadowOffsetY = offsetY;
+            target.shadowBlur = blur;
+            target.drawImage(
+                canvas,
+                0,
+                0,
+                canvasWidth,
+                canvasHeight,
+                -padLeft - distance,
+                -padTop,
+                maskWidth,
+                maskHeight
+            );
+        }
     } finally {
         target.restore();
     }

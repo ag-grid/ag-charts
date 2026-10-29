@@ -17,7 +17,7 @@ import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
 
 // A shadow with no blur, so that a pixel is lit by the shadow of a caster or it is not.
-const SHADOW: AgDropShadowOptions = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 24, yOffset: 24, blur: 0 };
+const SHADOW: AgDropShadowOptions = { enabled: true, fill: 'rgba(0, 0, 0, 0.7)', xOffset: 24, yOffset: 24, blur: 0 };
 
 const RED = [255, 0, 0, 255];
 
@@ -342,8 +342,8 @@ describe('series that cast their shadows through the shadow root', () => {
                 }) as AgChartOptions;
 
             // The first datum is at the top of the chart, so a shadow that falls below its marker is inside the area.
-            const SOLID: AgDropShadowOptions = { ...SHADOW, color: 'black', xOffset: 0, yOffset: 20 };
-            const ON_MARKER: AgDropShadowOptions = { ...SHADOW, color: 'black', xOffset: 0, yOffset: 0 };
+            const SOLID: AgDropShadowOptions = { ...SHADOW, fill: 'black', xOffset: 0, yOffset: 20 };
+            const ON_MARKER: AgDropShadowOptions = { ...SHADOW, fill: 'black', xOffset: 0, yOffset: 0 };
 
             // The mock canvas only backs the first chart a test creates, and these tests compare two.
             const canvasCtx = { getRenderContext2D: () => deproxy(chart!).ctx.scene.canvas.context };

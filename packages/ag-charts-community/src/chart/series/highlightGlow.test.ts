@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Rect, Sector, Shape, Transformable } from 'ag-charts-core';
+import { Rect, Sector, Shape, Transformable, overrideTintableShadows } from 'ag-charts-core';
 import type { Node } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
@@ -22,6 +22,13 @@ import { HighlightState } from './seriesTypes';
 
 /** The four highlight styles that accept a `glow` on a series with series states. */
 const BUCKETS = ['highlightedItem', 'unhighlightedItem', 'highlightedSeries', 'unhighlightedSeries'] as const;
+
+const STATES = {
+    highlightedItem: HighlightState.Item,
+    unhighlightedItem: HighlightState.OtherItem,
+    highlightedSeries: HighlightState.Series,
+    unhighlightedSeries: HighlightState.OtherSeries,
+} as const;
 
 const casts = (shape: Shape) => shape.fillShadow?.enabled === true;
 
@@ -220,7 +227,7 @@ describe('highlight glow', () => {
                 // ... and the highlight copy casts the glow alone, never merged with the base shadow.
                 expect(highlighted).toHaveLength(1);
                 expect(highlighted[0].fillShadow).toMatchObject(glowShadow(HIGHLIGHT_GLOW));
-                expect(highlighted[0].fillShadow?.color).not.toBe(SERIES_SHADOW.color);
+                expect(highlighted[0].fillShadow?.fill).not.toBe(SERIES_SHADOW.fill);
                 expect(highlighted[0].fillShadow?.xOffset).toBe(0);
                 expect(highlighted[0].fillShadow?.yOffset).toBe(0);
             }
@@ -247,14 +254,14 @@ describe('highlight glow', () => {
 
         it('takes the glow fields highlightedItem sets, and the rest from highlightedSeries', async () => {
             const { highlighted } = await hoverFirstItem(testCase, undefined, {
-                highlightedSeries: { glow: { enabled: true, color: '#0000ff', blur: 9, spread: 4 } },
-                highlightedItem: { glow: { color: '#ff0000', spread: 3 } },
+                highlightedSeries: { glow: { enabled: true, fill: '#0000ff', blur: 9, spread: 4 } },
+                highlightedItem: { glow: { fill: '#ff0000', spread: 3 } },
             });
 
             // The item bucket sets the colour and spread alone; `enabled` and `blur` fall through to the series bucket.
             expect(highlighted[0].fillShadow).toMatchObject({
                 enabled: true,
-                color: '#ff0000',
+                fill: '#ff0000',
                 blur: 9,
                 spread: 3,
                 xOffset: 0,
@@ -365,7 +372,13 @@ describe('highlight glow', () => {
                             second: {
                                 highlight: {
                                     highlightedItem: {
-                                        glow: { enabled: true, color: '#00aa00', blur: 0, spread: reach },
+                                        glow: {
+                                            enabled: true,
+                                            fill: '#00aa00',
+                                            fillOpacity: 1,
+                                            blur: 0,
+                                            spread: reach,
+                                        },
                                     },
                                 },
                             },
@@ -406,7 +419,8 @@ describe('highlight glow', () => {
                                     highlightedItem: {
                                         glow: {
                                             enabled: true,
-                                            color: '#00aa00',
+                                            fill: '#00aa00',
+                                            fillOpacity: 1,
                                             blur: 0,
                                             spread: Math.max(0, Math.floor(gap) - 2),
                                         },
@@ -436,7 +450,7 @@ describe('highlight glow', () => {
                         ? left.x + left.width / 2 - (right.x + right.width / 2)
                         : right.x + right.width / 2 - (left.x + left.width / 2)
                 );
-                const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset, yOffset: 0, blur: 0 };
+                const shadow = { enabled: true, fill: 'rgba(0, 0, 0, 0.5)', xOffset, yOffset: 0, blur: 0 };
                 await create(
                     bars(
                         {
@@ -444,7 +458,9 @@ describe('highlight glow', () => {
                                 shadow,
                                 highlight: {
                                     unhighlightedSeries: { opacity: 1 },
-                                    highlightedItem: { glow: { enabled: true, color: '#00aa00', blur: 0, spread: 1 } },
+                                    highlightedItem: {
+                                        glow: { enabled: true, fill: '#00aa00', fillOpacity: 1, blur: 0, spread: 1 },
+                                    },
                                 },
                             },
                         },
@@ -464,13 +480,6 @@ describe('highlight glow', () => {
     });
 
     describe('theme defaults', () => {
-        const STATES = {
-            highlightedItem: HighlightState.Item,
-            unhighlightedItem: HighlightState.OtherItem,
-            highlightedSeries: HighlightState.Series,
-            unhighlightedSeries: HighlightState.OtherSeries,
-        } as const;
-
         const createBar = async (theme: 'ag-default' | 'ag-default-dark') => {
             chart = deproxy(
                 await createChart({
@@ -500,30 +509,20 @@ describe('highlight glow', () => {
             async (bucket) => {
                 await createBar('ag-default');
 
-                expect(resolvedGlow(bucket)).toEqual({
-                    enabled: false,
-                    color: 'rgba(0, 0, 0, 0.35)',
-                    blur: 6,
-                    spread: 1,
-                });
+                expect(resolvedGlow(bucket)).toEqual({ enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 });
             }
         );
 
         it.each(BUCKETS)('has the %s glow off, with the dark values ready for when it is turned on', async (bucket) => {
             await createBar('ag-default-dark');
 
-            expect(resolvedGlow(bucket)).toEqual({
-                enabled: false,
-                color: 'rgba(255, 255, 255, 0.6)',
-                blur: 4,
-                spread: 1,
-            });
+            expect(resolvedGlow(bucket)).toEqual({ enabled: false, fillOpacity: 0.4, blur: 2, spread: 4 });
         });
 
-        it('does not apply the dark shadow colour to the glow', async () => {
+        it('leaves the glow fill to the item, whatever the theme', async () => {
             await createBar('ag-default-dark');
 
-            expect(resolvedGlow('highlightedItem')?.color).toBe('rgba(255, 255, 255, 0.6)');
+            expect(resolvedGlow('highlightedItem')?.fill).toBeUndefined();
         });
 
         it('casts the light default glow once it is enabled, without any other glow field', async () => {
@@ -533,12 +532,13 @@ describe('highlight glow', () => {
 
             expect(highlighted[0].fillShadow).toMatchObject({
                 enabled: true,
-                color: 'rgba(0, 0, 0, 0.35)',
-                blur: 6,
-                spread: 1,
+                fillOpacity: 0.4,
+                blur: 2,
+                spread: 4,
                 xOffset: 0,
                 yOffset: 0,
             });
+            expect(highlighted[0].getCastShadow()?.fill).toBe(highlighted[0].fill);
         });
     });
 
@@ -625,6 +625,588 @@ describe('highlight glow', () => {
 
             expect(warnings().filter((message) => message.includes('glow.spread'))).toHaveLength(1);
             vi.mocked(console.warn).mockClear();
+        });
+    });
+
+    describe('glow fill', () => {
+        const warnings = () => vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
+        const GLOW = { enabled: true } as const;
+
+        describe.each(SERIES)('$name', (testCase) => {
+            it('takes the fill of the item that it surrounds when it sets none', async () => {
+                const { highlighted } = await hoverFirstItem(testCase, undefined, { highlightedItem: { glow: GLOW } });
+
+                expect(highlighted).toHaveLength(1);
+                const [shape] = highlighted;
+                expect(typeof shape.fill).toBe('string');
+                expect(shape.getCastShadow()).toMatchObject({ enabled: true, fill: shape.fill, fillOpacity: 0.4 });
+            });
+
+            it('takes the fill of the highlight style, where the item is highlighted with another', async () => {
+                const { highlighted } = await hoverFirstItem(testCase, undefined, {
+                    highlightedItem: { fill: 'orange', glow: GLOW },
+                });
+
+                expect(highlighted[0].getCastShadow()?.fill).toBe('orange');
+            });
+
+            it('casts its own fill, and not that of the item, when it sets one', async () => {
+                const { highlighted } = await hoverFirstItem(testCase, undefined, {
+                    highlightedItem: { fill: 'orange', glow: { ...GLOW, fill: '#123456' } },
+                });
+
+                expect(highlighted[0].getCastShadow()).toMatchObject({ fill: '#123456', fillOpacity: 0.4 });
+            });
+
+            it('casts at the fillOpacity that it sets, and at that of the theme where it sets none', async () => {
+                const set = await hoverFirstItem(testCase, undefined, {
+                    highlightedItem: { glow: { ...GLOW, fillOpacity: 0.7 } },
+                });
+                expect(set.highlighted[0].getCastShadow()?.fillOpacity).toBe(0.7);
+                chart.destroy();
+
+                const unset = await hoverFirstItem(testCase, undefined, { highlightedItem: { glow: GLOW } });
+                expect(unset.highlighted[0].getCastShadow()?.fillOpacity).toBe(0.4);
+            });
+
+            it.each(BUCKETS)('takes fill and fillOpacity in the %s bucket', async (bucket) => {
+                const glow = { enabled: true, fill: '#abcdef', fillOpacity: 0.9, blur: 1, spread: 1 };
+                const { series } = await hoverFirstItem(testCase, undefined, { [bucket]: { glow } });
+
+                expect(warnings()).toEqual([]);
+                expect(series.getHighlightGlow(STATES[bucket])).toMatchObject(glow);
+            });
+
+            it('rejects a glow colour, which a glow no longer has', async () => {
+                const { highlighted } = await hoverFirstItem(testCase, undefined, {
+                    highlightedItem: { glow: { ...GLOW, color: '#ff00ff' } },
+                });
+
+                const messages = warnings().filter((message) => message.includes('glow.color'));
+                expect(messages).toHaveLength(1);
+                expect(messages[0]).toMatch(/unknown|not supported|invalid/i);
+                expect(highlighted[0].fillShadow).not.toHaveProperty('color');
+                expect(highlighted[0].getCastShadow()?.fill).toBe(highlighted[0].fill);
+                vi.mocked(console.warn).mockClear();
+            });
+        });
+
+        describe('where the item has no fill of its own to take', () => {
+            const marker = (extra: object) => ({
+                ...SERIES[3],
+                series: (shadow: AgDropShadowOptions | undefined, options: object) => ({
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: 'y',
+                    shadow,
+                    ...extra,
+                    ...options,
+                }),
+            });
+
+            it('takes the stroke of a marker with no fill', async () => {
+                const { highlighted } = await hoverFirstItem(
+                    marker({ fill: 'none', stroke: 'blue', strokeWidth: 2 }),
+                    undefined,
+                    {
+                        highlightedItem: { glow: GLOW },
+                    }
+                );
+
+                expect(highlighted[0].getCastShadow()?.fill).toBe('blue');
+            });
+
+            it('takes the stroke of a marker whose fill is fully transparent', async () => {
+                const { highlighted } = await hoverFirstItem(
+                    marker({ fill: 'red', fillOpacity: 0, stroke: 'blue', strokeWidth: 2 }),
+                    undefined,
+                    { highlightedItem: { glow: GLOW } }
+                );
+
+                expect(highlighted[0].getCastShadow()?.fill).toBe('blue');
+            });
+
+            it('takes the stroke of a marker whose fill is transparent in its own colour', async () => {
+                const { highlighted } = await hoverFirstItem(
+                    marker({ fill: 'rgba(255, 0, 0, 0)', fillOpacity: 1, stroke: 'blue', strokeWidth: 2 }),
+                    undefined,
+                    { highlightedItem: { glow: GLOW } }
+                );
+
+                expect(highlighted[0].getCastShadow()?.fill).toBe('blue');
+            });
+
+            it('prefers the fill to the stroke', async () => {
+                const { highlighted } = await hoverFirstItem(
+                    marker({ fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: 2 }),
+                    undefined,
+                    { highlightedItem: { glow: GLOW } }
+                );
+
+                expect(highlighted[0].getCastShadow()?.fill).toBe('red');
+            });
+
+            it('casts no glow, and not a black one, from a marker with neither a fill nor a stroke', async () => {
+                const { highlighted } = await hoverFirstItem(
+                    marker({ fill: 'none', stroke: 'none', strokeWidth: 2 }),
+                    undefined,
+                    { highlightedItem: { glow: GLOW } }
+                );
+
+                expect(highlighted).toHaveLength(1);
+                expect(highlighted[0].getCastShadow()).toBeUndefined();
+            });
+
+            it('still casts a glow with a fill of its own from a marker with neither', async () => {
+                const { highlighted } = await hoverFirstItem(
+                    marker({ fill: 'none', stroke: 'none', strokeWidth: 2 }),
+                    undefined,
+                    { highlightedItem: { glow: { ...GLOW, fill: 'green' } } }
+                );
+
+                expect(highlighted[0].getCastShadow()?.fill).toBe('green');
+            });
+
+            it('casts a solid colour, and not the gradient, from an item with a gradient fill', async () => {
+                const stops = [
+                    { color: '#ff0000', stop: 0 },
+                    { color: '#0000ff', stop: 1 },
+                ];
+                const { highlighted } = await hoverFirstItem(
+                    {
+                        ...SERIES[0],
+                        series: (shadow, options) => ({
+                            ...SERIES[0].series(shadow, options),
+                            fill: { type: 'gradient', colorStops: stops },
+                        }),
+                    },
+                    undefined,
+                    { highlightedItem: { glow: GLOW } }
+                );
+
+                const fill = highlighted[0].getCastShadow()?.fill;
+                expect(typeof fill).toBe('string');
+                expect(stops.map((stop) => stop.color)).toContain(fill);
+            });
+        });
+
+        describe('the pixels of a glow that takes the stroke of an item with no fill', () => {
+            const BLUE = [0, 0, 255, 255];
+            const WHITE = [255, 255, 255, 255];
+            const GREEN = [0, 255, 0, 255];
+            const GREEN_FILL = '#00ff00';
+            const glow = (extra: object) => ({ enabled: true, fillOpacity: 1, ...extra });
+
+            const hoveredPixels = async (
+                testCase: SeriesCase,
+                options: object,
+                bucketGlow: object,
+                drawingMode: 'cutout' | 'overlay' = 'cutout'
+            ) => {
+                const { highlighted } = await hoverFirstItem(
+                    {
+                        ...testCase,
+                        series: (shadow, extra) => ({ ...testCase.series(shadow, extra), ...options }),
+                    },
+                    undefined,
+                    { highlightedItem: { glow: bucketGlow } },
+                    drawingMode
+                );
+                const { x, y, width, height } = Transformable.toCanvas(highlighted[0]);
+                const pixelAt = (px: number, py: number) => [
+                    ...chart.ctx.scene.canvas.context.getImageData(Math.round(px), Math.round(py), 1, 1).data,
+                ];
+                // The shape and a margin round it, which any two renders of the same hover draw alike apart from the glow.
+                const region = () => [
+                    ...chart.ctx.scene.canvas.context.getImageData(
+                        Math.round(x) - 8,
+                        Math.round(y) - 8,
+                        Math.round(width) + 16,
+                        Math.round(height) + 16
+                    ).data,
+                ];
+                // Sampled above the shape and off its centre line, clear of the crosshair that the hover draws.
+                return {
+                    above: (offset: number) => pixelAt(x + width / 2 + 4, y - offset),
+                    /** A pixel inside the shape, `offset` pixels below its top edge, or above its bottom edge when negative. */
+                    inside: (offset: number) =>
+                        pixelAt(x + width / 2 + 4, offset < 0 ? y + height + offset : y + offset),
+                    region,
+                };
+            };
+
+            const NO_FILL_MARKER = { fill: 'none', stroke: 'blue', strokeWidth: 2, size: 24 };
+            const NO_FILL_BAR = { fill: 'red', fillOpacity: 0, stroke: 'blue', strokeWidth: 2 };
+
+            it.each([
+                ['a marker with no fill', SERIES[3], NO_FILL_MARKER],
+                ['a bar whose fill is fully transparent', SERIES[0], NO_FILL_BAR],
+            ] as const)('draws a spread glow in the stroke colour around %s', async (_name, testCase, options) => {
+                const pixels = await hoveredPixels(testCase, options, glow({ spread: 4, blur: 0 }));
+
+                expect(pixels.above(2)).toEqual(BLUE);
+                expect(pixels.above(12)).toEqual(WHITE);
+            });
+
+            it.each([
+                ['a marker with no fill', SERIES[3], NO_FILL_MARKER],
+                ['a bar whose fill is fully transparent', SERIES[0], NO_FILL_BAR],
+            ] as const)('draws a blur-only glow in the stroke colour around %s', async (_name, testCase, options) => {
+                const pixels = await hoveredPixels(testCase, options, glow({ spread: 0, blur: 8 }));
+                const [red, , blue] = pixels.above(2);
+
+                // Over the white background, a blue glow lowers red and keeps blue.
+                expect(red).toBeLessThan(blue);
+                expect(blue).toBe(255);
+            });
+
+            it('draws no glow around a marker with neither a fill nor a stroke', async () => {
+                const pixels = await hoveredPixels(
+                    SERIES[3],
+                    { fill: 'none', stroke: 'none', strokeWidth: 2, size: 24 },
+                    glow({ spread: 4, blur: 0 })
+                );
+
+                expect(pixels.above(2)).toEqual(WHITE);
+            });
+
+            it.each([
+                ['a marker with no fill', SERIES[3], NO_FILL_MARKER],
+                ['a bar whose fill is fully transparent', SERIES[0], NO_FILL_BAR],
+            ] as const)(
+                'draws a glow in its own fill around %s, cast from the stroke',
+                async (_name, testCase, options) => {
+                    const pixels = await hoveredPixels(
+                        testCase,
+                        options,
+                        glow({ spread: 4, blur: 0, fill: GREEN_FILL })
+                    );
+
+                    expect(pixels.above(2)).toEqual(GREEN);
+                    expect(pixels.above(12)).toEqual(WHITE);
+                }
+            );
+
+            it('draws a blur-only glow in its own fill around a marker with no fill', async () => {
+                const pixels = await hoveredPixels(
+                    SERIES[3],
+                    NO_FILL_MARKER,
+                    glow({ spread: 0, blur: 8, fill: GREEN_FILL })
+                );
+                const [red, green, blue] = pixels.above(2);
+
+                // Over the white background, a green glow lowers red and blue and keeps green.
+                expect(green).toBe(255);
+                expect(red).toBeLessThan(green);
+                expect(blue).toBeLessThan(green);
+            });
+
+            it('draws no glow in its own fill around a marker with neither a fill nor a stroke', async () => {
+                const pixels = await hoveredPixels(
+                    SERIES[3],
+                    { fill: 'none', stroke: 'none', strokeWidth: 2, size: 24 },
+                    glow({ spread: 4, blur: 0, fill: GREEN_FILL })
+                );
+
+                expect(pixels.above(2)).toEqual(WHITE);
+            });
+
+            it('draws a glow in its own fill from the fill alone, not the stroke, around a marker that has a fill', async () => {
+                // The stroke reaches 5px past the edge of the fill, which the 4px of spread of a glow cast from the fill stays within.
+                const pixels = await hoveredPixels(
+                    SERIES[3],
+                    { fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: 10, size: 24 },
+                    glow({ spread: 4, blur: 0, fill: GREEN_FILL })
+                );
+                const sampled = [0, 2, 4, 6, 8, 10, 12].map((offset) => pixels.above(offset));
+
+                expect(sampled).not.toContainEqual(GREEN);
+            });
+
+            it('draws a glow of the item fill, and not the stroke, around a marker that has a fill', async () => {
+                const pixels = await hoveredPixels(
+                    SERIES[3],
+                    { fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: 2, size: 24 },
+                    glow({ spread: 4, blur: 0 })
+                );
+
+                expect(pixels.above(3)).toEqual([255, 0, 0, 255]);
+            });
+
+            describe('around a stroked item whose fill has no colour to take', () => {
+                // 1x1 transparent PNG: an image fill has no colour, and the stroke gives the glow its colour.
+                const IMAGE = {
+                    type: 'image',
+                    url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+                };
+                const CLEAR_FIRST_STOP = {
+                    type: 'gradient',
+                    colorStops: [
+                        { color: 'rgba(255, 0, 0, 0)', stop: 0 },
+                        { color: 'rgba(255, 0, 0, 1)', stop: 1 },
+                    ],
+                };
+                const PAINTS = [
+                    ['an image fill', IMAGE],
+                    ['a gradient whose first stop is transparent', CLEAR_FIRST_STOP],
+                ] as const;
+                const SHAPES = [
+                    ['bar', SERIES[0], { stroke: 'blue', strokeWidth: 2 }],
+                    [
+                        'marker',
+                        SERIES[3],
+                        { shape: 'square', fillOpacity: 1, stroke: 'blue', strokeWidth: 2, size: 24 },
+                    ],
+                ] as const;
+
+                /** The pixels above the shape, one for each pixel of distance from its top edge. */
+                const column = async (testCase: SeriesCase, options: object, bucketGlow: object) => {
+                    const pixels = await hoveredPixels(testCase, options, bucketGlow);
+                    const sampled = Array.from({ length: 14 }, (_, offset) => pixels.above(offset));
+                    chart.destroy();
+                    return sampled;
+                };
+                const covered = (sampled: number[][]) => sampled.map((pixel) => pixel.join() !== WHITE.join());
+
+                describe.each(SHAPES)('a %s', (_shape, testCase, stroke) => {
+                    it.each(PAINTS)(
+                        'casts the same silhouette with and without a glow fill, with %s',
+                        async (_p, fill) => {
+                            const options = { ...stroke, fill };
+                            const inferred = await column(testCase, options, glow({ spread: 4, blur: 0 }));
+                            const explicit = await column(
+                                testCase,
+                                options,
+                                glow({ spread: 4, blur: 0, fill: GREEN_FILL })
+                            );
+
+                            expect(covered(inferred)).toContain(true);
+                            expect(covered(explicit)).toEqual(covered(inferred));
+                            // The colour of the glow is the only difference: the stroke's, or the fill that was set.
+                            expect(inferred[3]).toEqual(BLUE);
+                            expect(explicit[3]).toEqual(GREEN);
+                            // The glow of a fill reaches 4px past the fill, 3px past the stroke.
+                            expect(explicit[8]).toEqual(WHITE);
+                        }
+                    );
+                });
+            });
+
+            describe('parity of the routes that cast a glow', () => {
+                const TRANSLUCENT = { fill: 'rgba(255, 0, 0, 0.5)', fillOpacity: 1, strokeWidth: 0, size: 24 };
+                const TRANSLUCENT_FILL = 'rgba(255, 0, 0, 0.5)';
+                const PARITY_CASES = [
+                    ['bar', SERIES[0]],
+                    ['marker', SERIES[3]],
+                ] as const;
+
+                afterEach(() => overrideTintableShadows());
+
+                const glowPixel = async (
+                    testCase: SeriesCase,
+                    bucketGlow: object,
+                    drawingMode: 'cutout' | 'overlay',
+                    canTint: boolean | undefined
+                ) => {
+                    overrideTintableShadows(canTint);
+                    const pixels = await hoveredPixels(testCase, TRANSLUCENT, bucketGlow, drawingMode);
+                    const pixel = pixels.above(2);
+                    chart.destroy();
+                    return pixel;
+                };
+
+                describe.each(PARITY_CASES)('a %s', (_name, testCase) => {
+                    describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
+                        const spread = glow({ spread: 4, blur: 0 });
+
+                        it('applies the alpha of the colour to both the colour and the strength', async () => {
+                            const [red, green, blue, alpha] = await glowPixel(testCase, spread, drawingMode, undefined);
+
+                            // A half of a half, over white: 255 * (1 - 0.25).
+                            expect(red).toBe(255);
+                            expect(Math.abs(green - 191)).toBeLessThanOrEqual(2);
+                            expect(Math.abs(blue - 191)).toBeLessThanOrEqual(2);
+                            expect(alpha).toBe(255);
+                        });
+
+                        it.each([undefined, false])(
+                            'casts the same pixels from an inferred fill as from the same fill set, with tinting %s',
+                            async (canTint) => {
+                                const inferred = await glowPixel(testCase, spread, drawingMode, canTint);
+                                const explicit = await glowPixel(
+                                    testCase,
+                                    { ...spread, fill: TRANSLUCENT_FILL },
+                                    drawingMode,
+                                    canTint
+                                );
+
+                                for (let i = 0; i < 4; i++)
+                                    expect(Math.abs(inferred[i] - explicit[i])).toBeLessThanOrEqual(2);
+                            }
+                        );
+
+                        it.each([
+                            ['inferred', {}],
+                            ['set', { fill: TRANSLUCENT_FILL }],
+                        ])('casts the same pixels where the canvas cannot tint, with a fill %s', async (_f, extra) => {
+                            const tinted = await glowPixel(testCase, { ...spread, ...extra }, drawingMode, undefined);
+                            const perColour = await glowPixel(testCase, { ...spread, ...extra }, drawingMode, false);
+
+                            for (let i = 0; i < 4; i++)
+                                expect(Math.abs(tinted[i] - perColour[i])).toBeLessThanOrEqual(2);
+                        });
+                    });
+                });
+            });
+
+            describe('parity of the routes that cast a glow at a spread of 0', () => {
+                // With no spread and no blur the glow lies under the item, so it shows only where the item's paint lets it through.
+                const FADING = {
+                    type: 'gradient',
+                    colorStops: [
+                        { color: 'rgb(255, 0, 0)', stop: 0 },
+                        { color: 'rgba(255, 0, 0, 0)', stop: 1 },
+                    ],
+                };
+                const RED_FILL = '#ff0000';
+                const BLUE_FILL = '#0000ff';
+                const NO_GLOW = { enabled: false };
+                const ZERO = glow({ spread: 0, blur: 0 });
+
+                const PAINTS = [
+                    ['a gradient fill that fades to transparent', SERIES[0], { fill: FADING }, RED_FILL],
+                    [
+                        'a dashed stroke round a marker with no fill',
+                        SERIES[3],
+                        { fill: 'none', stroke: 'blue', strokeWidth: 4, lineDash: [4, 4], size: 28 },
+                        BLUE_FILL,
+                    ],
+                ] as const;
+
+                afterEach(() => overrideTintableShadows());
+
+                const regionOf = async (
+                    testCase: SeriesCase,
+                    options: object,
+                    bucketGlow: object,
+                    drawingMode: 'cutout' | 'overlay',
+                    canTint: boolean | undefined
+                ) => {
+                    overrideTintableShadows(canTint);
+                    const pixels = await hoveredPixels(testCase, options, bucketGlow, drawingMode);
+                    const region = pixels.region();
+                    chart.destroy();
+                    return region;
+                };
+
+                const sameWithin = (actual: number[], expected: number[], tolerance = 2) => {
+                    expect(actual.length).toBe(expected.length);
+                    const off = actual.filter((value, i) => Math.abs(value - expected[i]) > tolerance);
+                    expect(off.length).toBe(0);
+                };
+
+                describe.each(PAINTS)('around an item with %s', (_name, testCase, options, fill) => {
+                    describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
+                        // Cut out of the item, a glow with no spread has nothing to show.
+                        it.skipIf(drawingMode === 'cutout')('casts something that the item does not hide', async () => {
+                            const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
+                            const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
+
+                            expect(cast).not.toEqual(none);
+                        });
+
+                        it('casts the same pixels where the canvas cannot tint as where it can', async () => {
+                            const tinted = await regionOf(testCase, options, ZERO, drawingMode, undefined);
+                            const perColour = await regionOf(testCase, options, ZERO, drawingMode, false);
+
+                            sameWithin(tinted, perColour);
+                        });
+
+                        it.each([undefined, false])(
+                            'casts the same pixels from an inferred fill as from the same fill set, with tinting %s',
+                            async (canTint) => {
+                                const inferred = await regionOf(testCase, options, ZERO, drawingMode, canTint);
+                                const explicit = await regionOf(
+                                    testCase,
+                                    options,
+                                    { ...ZERO, fill },
+                                    drawingMode,
+                                    canTint
+                                );
+
+                                sameWithin(inferred, explicit);
+                            }
+                        );
+                    });
+                });
+
+                it.each([undefined, false])(
+                    'fades the glow with the gradient, and does not cast a uniform block, with tinting %s',
+                    async (canTint) => {
+                        const [, testCase, options] = PAINTS[0];
+                        const sample = async (bucketGlow: object) => {
+                            overrideTintableShadows(canTint);
+                            const pixels = await hoveredPixels(testCase, options, bucketGlow, 'overlay');
+                            const sampled = [pixels.inside(2), pixels.inside(-3)];
+                            chart.destroy();
+                            return sampled;
+                        };
+                        const cast = await sample(ZERO);
+                        const none = await sample(NO_GLOW);
+
+                        // The gradient is opaque at one end, which hides a glow of its own colour, and transparent at the other,
+                        // where a glow that fades with it adds nothing, but a uniform block would add its full colour.
+                        for (let end = 0; end < 2; end++)
+                            for (let i = 0; i < 4; i++)
+                                expect(Math.abs(cast[end][i] - none[end][i])).toBeLessThanOrEqual(8);
+                    }
+                );
+            });
+        });
+
+        it('casts no glow from an item that has no fill and no stroke, while the other items keep their shadow', async () => {
+            const { inPlace, highlighted } = await hoverFirstItem(
+                {
+                    ...SERIES[3],
+                    series: (shadow, options) => ({
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'y',
+                        shadow,
+                        fill: 'none',
+                        stroke: 'none',
+                        ...options,
+                    }),
+                },
+                SERIES_SHADOW,
+                { highlightedItem: { glow: GLOW } }
+            );
+
+            expect(highlighted[0].getCastShadow()).toBeUndefined();
+            for (const shape of inPlace) expect(shape.getCastShadow()).toMatchObject(SERIES_SHADOW);
+        });
+
+        it('takes the fill of each item in turn as the hover moves', async () => {
+            const colours = ['#ff0000', '#00ff00', '#0000ff'];
+            const testCase: SeriesCase = {
+                ...SERIES[0],
+                series: (shadow, options) => ({
+                    ...SERIES[0].series(shadow, options),
+                    itemStyler: ({ datum }: { datum: object }) => ({
+                        fill: colours[CATEGORY_DATA.indexOf(datum as never)],
+                    }),
+                }),
+            };
+            const { series } = await hoverFirstItem(testCase, undefined, { highlightedItem: { glow: GLOW } });
+            const nodeData = getSeriesNodeData<HighlightNodeDatum>(chart);
+
+            for (const datum of nodeData) {
+                chart.ctx.highlightManager.updateHighlight(chart.id, datum);
+                await waitForChartStability(chart);
+                const [shape] = shapesOf(series.highlightNodeGroup, Rect).filter((node) => node.visible);
+                expect(shape.getCastShadow()?.fill).toBe(shape.fill);
+                expect(shape.getCastShadow()?.fill).toBe(colours[datum.datumIndex]);
+            }
         });
     });
 });

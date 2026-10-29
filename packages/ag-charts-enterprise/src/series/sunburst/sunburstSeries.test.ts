@@ -1154,7 +1154,7 @@ describe('SunburstSeries', () => {
     });
 
     describe('shadow', () => {
-        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 8 };
+        const shadow = { enabled: true, fill: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 8 };
         const data = HIERARCHY_SHADOW_DATA;
         let proxy: AgChartInstance;
         const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({

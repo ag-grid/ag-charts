@@ -125,7 +125,7 @@ describe.each(SERIES)(
                 expect(others.length).toBeGreaterThan(0);
                 for (const rect of others) {
                     expect(rect.fillShadow).toMatchObject(GLOW_SHADOW);
-                    expect(rect.fillShadow?.color).not.toBe(SERIES_SHADOW.color);
+                    expect(rect.fillShadow?.fill).not.toBe(SERIES_SHADOW.fill);
                 }
                 // The other series is in no glowing state, so it keeps its shadow.
                 for (const rect of inPlace(1)) expect(rect.fillShadow).toMatchObject(SERIES_SHADOW);

@@ -13,6 +13,7 @@ import {
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    inheritedShadowFillTheme,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
 
@@ -79,7 +80,7 @@ const HLC_ITEM_MARKER: WithThemeParams<HlcItemMarkerOptions> = {
     lineDashOffset: { $path: '/series/$index/marker/lineDashOffset' },
     shadow: {
         enabled: { $path: '/series/$index/marker/shadow/enabled' },
-        color: { $path: '/series/$index/marker/shadow/color' },
+        ...inheritedShadowFillTheme('/series/$index/marker/shadow'),
         xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
         yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
         blur: { $path: '/series/$index/marker/shadow/blur' },

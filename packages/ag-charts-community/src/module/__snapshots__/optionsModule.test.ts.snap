@@ -304,18 +304,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -366,8 +366,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -427,18 +428,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -489,8 +490,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -550,18 +552,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -612,8 +614,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -1056,10 +1059,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -1067,10 +1070,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -1140,8 +1143,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -1180,10 +1184,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -1191,10 +1195,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -1264,8 +1268,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -1301,18 +1306,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -1363,8 +1368,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -1743,19 +1749,19 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -1806,8 +1812,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -1867,19 +1874,19 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -1930,8 +1937,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -1991,19 +1999,19 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -2054,8 +2062,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -2115,19 +2124,19 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -2178,8 +2187,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -2239,19 +2249,19 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -2302,8 +2312,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -2363,19 +2374,19 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -2426,8 +2437,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -2487,19 +2499,19 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -2550,8 +2562,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -2932,10 +2945,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -2943,10 +2956,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -3016,8 +3029,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -3057,10 +3071,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -3068,10 +3082,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -3141,8 +3155,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -3182,10 +3197,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -3193,10 +3208,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -3266,8 +3281,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -3307,10 +3323,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -3318,10 +3334,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -3391,8 +3407,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -3432,10 +3449,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -3443,10 +3460,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -3516,8 +3533,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -3557,10 +3575,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -3568,10 +3586,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -3641,8 +3659,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -3682,10 +3701,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -3693,10 +3712,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -3766,8 +3785,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -3807,10 +3827,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -3818,10 +3838,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -3891,8 +3911,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -4241,10 +4262,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -4252,10 +4273,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -4316,8 +4337,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -4695,18 +4717,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -4757,8 +4779,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -4818,18 +4841,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -4880,8 +4903,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -4941,18 +4965,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -5003,8 +5027,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -5064,18 +5089,18 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -5126,8 +5151,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -5506,19 +5532,19 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.1,
         },
@@ -5569,8 +5595,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -5600,8 +5627,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -5639,19 +5667,19 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.1,
         },
@@ -5702,8 +5730,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -5733,8 +5762,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -5772,19 +5802,19 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.1,
         },
@@ -5835,8 +5865,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -5866,8 +5897,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -5905,19 +5937,19 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.1,
         },
@@ -5968,8 +6000,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -5999,8 +6032,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -6038,19 +6072,19 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.1,
         },
@@ -6101,8 +6135,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -6132,8 +6167,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -6489,10 +6525,10 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -6500,10 +6536,10 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -6573,8 +6609,9 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -6933,10 +6970,10 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -6944,10 +6981,10 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -7019,8 +7056,9 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -7381,10 +7419,10 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -7392,10 +7430,10 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -7455,8 +7493,9 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -7816,10 +7855,10 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -7827,10 +7866,10 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -7892,8 +7931,9 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -8255,10 +8295,10 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -8266,10 +8306,10 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -8339,8 +8379,9 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -8377,10 +8418,10 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -8388,10 +8429,10 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -8461,8 +8502,9 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -8816,10 +8858,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -8828,10 +8870,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -8901,8 +8943,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -8941,10 +8984,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -8953,10 +8996,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -9026,8 +9069,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -9387,10 +9431,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -9399,10 +9443,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -9472,8 +9516,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -9514,10 +9559,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -9526,10 +9571,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -9599,8 +9644,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -9641,10 +9687,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -9653,10 +9699,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -9726,8 +9772,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -9768,10 +9815,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -9780,10 +9827,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -9853,8 +9900,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -9895,10 +9943,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -9907,10 +9955,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -9980,8 +10028,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -10022,10 +10071,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -10034,10 +10083,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -10107,8 +10156,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -10149,10 +10199,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -10161,10 +10211,10 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -10234,8 +10284,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -10591,19 +10642,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -10654,8 +10705,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -10715,19 +10767,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -10778,8 +10830,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -10839,19 +10892,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -10902,8 +10955,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -10963,19 +11017,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -11026,8 +11080,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -11087,19 +11142,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -11150,8 +11205,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -11211,19 +11267,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -11274,8 +11330,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -11335,19 +11392,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -11398,8 +11455,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -11459,19 +11517,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -11522,8 +11580,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -11583,19 +11642,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -11646,8 +11705,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -11707,19 +11767,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -11770,8 +11830,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -11831,19 +11892,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -11894,8 +11955,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -11955,19 +12017,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -12018,8 +12080,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -12079,19 +12142,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -12142,8 +12205,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -12203,19 +12267,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -12266,8 +12330,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -12327,19 +12392,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -12390,8 +12455,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -12451,19 +12517,19 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -12514,8 +12580,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -12888,18 +12955,18 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -12950,8 +13017,9 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -13330,19 +13398,19 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -13393,8 +13461,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -13432,8 +13501,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -13471,19 +13541,19 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -13534,8 +13604,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -13573,8 +13644,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -13612,19 +13684,19 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -13675,8 +13747,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -13714,8 +13787,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -13753,19 +13827,19 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -13816,8 +13890,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -13855,8 +13930,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -13894,19 +13970,19 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -13957,8 +14033,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -13996,8 +14073,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -14035,19 +14113,19 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -14098,8 +14176,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -14137,8 +14216,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -14176,19 +14256,19 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 4,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -14239,8 +14319,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -14278,8 +14359,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -14637,10 +14719,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -14649,10 +14731,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -14723,8 +14805,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -14763,10 +14846,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -14775,10 +14858,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -14849,8 +14932,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -14889,10 +14973,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -14901,10 +14985,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -14975,8 +15059,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -15333,10 +15418,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -15344,10 +15429,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -15418,8 +15503,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -15458,10 +15544,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -15469,10 +15555,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -15543,8 +15629,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -15583,10 +15670,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -15594,10 +15681,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -15668,8 +15755,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -15708,10 +15796,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -15719,10 +15807,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -15793,8 +15881,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -15833,10 +15922,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -15844,10 +15933,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -15918,8 +16007,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -15958,10 +16048,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -15969,10 +16059,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -16043,8 +16133,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -16428,18 +16519,18 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -16490,8 +16581,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -16521,8 +16613,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -16560,18 +16653,18 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -16622,8 +16715,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -16653,8 +16747,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -16692,18 +16787,18 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -16754,8 +16849,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -16785,8 +16881,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -16824,18 +16921,18 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -16886,8 +16983,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -16917,8 +17015,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -17275,10 +17374,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -17286,10 +17385,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -17361,8 +17460,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": true,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -17703,10 +17803,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -17714,10 +17814,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -17797,8 +17897,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -18196,19 +18297,19 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -18259,8 +18360,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -18319,19 +18421,19 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 3,
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -18382,8 +18484,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -18747,10 +18850,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -18758,10 +18861,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -18808,8 +18911,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -19172,10 +19276,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -19183,10 +19287,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -19244,8 +19348,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -19628,18 +19733,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -19690,8 +19795,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -19728,8 +19834,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -19767,18 +19874,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -19829,8 +19936,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -19867,8 +19975,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -19906,18 +20015,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -19968,8 +20077,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -20006,8 +20116,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -20045,18 +20156,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -20107,8 +20218,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -20145,8 +20257,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -20184,18 +20297,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -20246,8 +20359,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -20284,8 +20398,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -20323,18 +20438,18 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -20385,8 +20500,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -20423,8 +20539,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -20781,10 +20898,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -20793,10 +20910,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -20866,8 +20983,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -20906,10 +21024,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -20918,10 +21036,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -20991,8 +21109,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -21031,10 +21150,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -21043,10 +21162,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -21116,8 +21235,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -21156,10 +21276,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "strokeWidth": 1,
         },
@@ -21168,10 +21288,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -21241,8 +21361,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -21603,10 +21724,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -21614,10 +21735,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -21687,8 +21808,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -21730,10 +21852,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -21741,10 +21863,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -21814,8 +21936,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -21857,10 +21980,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -21868,10 +21991,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -21941,8 +22064,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -21984,10 +22108,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -21995,10 +22119,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -22068,8 +22192,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -22111,10 +22236,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -22122,10 +22247,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.3,
         },
@@ -22195,8 +22320,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -22579,10 +22705,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -22590,10 +22716,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -22666,8 +22792,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -23064,10 +23191,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -23075,10 +23202,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -23149,8 +23276,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -23549,10 +23677,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedItem": {
@@ -23560,10 +23688,10 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -23634,8 +23762,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },
@@ -24028,18 +24157,18 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -24092,8 +24221,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -24509,18 +24639,18 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -24572,8 +24702,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -24989,18 +25120,18 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -25052,8 +25183,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -25471,18 +25603,18 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "enabled": true,
         "highlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
         },
         "unhighlightedSeries": {
           "glow": {
-            "blur": 6,
-            "color": "rgba(0, 0, 0, 0.35)",
+            "blur": 2,
             "enabled": false,
-            "spread": 1,
+            "fillOpacity": 0.4,
+            "spread": 4,
           },
           "opacity": 0.2,
         },
@@ -25535,8 +25667,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
         "lineDashOffset": 0,
         "shadow": {
           "blur": 5,
-          "color": "#00000080",
           "enabled": false,
+          "fill": "#000",
+          "fillOpacity": 0.5,
           "xOffset": 3,
           "yOffset": 3,
         },
@@ -25566,8 +25699,9 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
       },
       "shadow": {
         "blur": 5,
-        "color": "#00000080",
         "enabled": false,
+        "fill": "#000",
+        "fillOpacity": 0.5,
         "xOffset": 3,
         "yOffset": 3,
       },

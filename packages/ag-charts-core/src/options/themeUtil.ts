@@ -661,24 +661,37 @@ export const FONT_THEME_DEFAULTS = {
     fontWeight: { $ref: 'fontWeight' },
 } as const;
 
+/** A user `color` is the shadow's `fill`. The fallback opacity goes with the fallback `fill` alone. */
+function shadowFillTheme(fallbackFill: Operation | string, fallbackFillOpacity: Operation) {
+    return {
+        fill: { $isUserOption: ['./color', { $path: './color' }, fallbackFill] },
+        fillOpacity: { $isUserOption: [['./color', './fill'], 1, fallbackFillOpacity] },
+    } as const satisfies Record<string, Operation>;
+}
+
+/**
+ * The `fill` and `fillOpacity` of an item's marker `shadow`, which start from those of the series' marker `shadow` at
+ * `seriesShadowPath`, the theme values included.
+ */
+export function inheritedShadowFillTheme(seriesShadowPath: string) {
+    return shadowFillTheme({ $path: `${seriesShadowPath}/fill` }, { $path: `${seriesShadowPath}/fillOpacity` });
+}
+
 /** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
 export const SHADOW_THEME_DEFAULTS = {
     enabled: false,
-    color: { $ref: 'shadowColor' },
+    ...shadowFillTheme('#000', { $ref: 'shadowFillOpacity' }),
     xOffset: 3,
     yOffset: 3,
     blur: 5,
 } as const;
 
-/**
- * Disabled glow; the theme value the highlight states that the others inherit from start with. The colour and blur follow
- * the theme, as the light theme's dark glow suits a light background and the dark theme's pale one a dark background.
- */
+/** Disabled glow. It has no `fill`, as it takes the fill of the item that it surrounds. */
 export const GLOW_THEME_DEFAULTS = {
     enabled: false,
-    color: { $ref: 'glowColor' },
-    blur: { $ref: 'glowBlur' },
-    spread: 1,
+    fillOpacity: 0.4,
+    blur: 2,
+    spread: 4,
 } as const;
 
 /** The highlight states of a series with only item states, and of a treemap group. */
@@ -702,17 +715,14 @@ export function withGlowThemeDefaults<T extends object>(highlight: T, buckets: r
     return result as T;
 }
 
-/**
- * The shadow that casts a `glow`: centred on the item, as a glow is the same blurred silhouette as a shadow with no
- * offset. A glow that is off, or has no colour or blur to cast, casts none.
- */
+/** The offset-free shadow that casts a `glow`. A glow with no `fill` leaves it unset, for the shape to fill in. */
 export function glowToShadow(glow: DeepPartial<AgGlowOptions> | undefined): NormalisedDropShadowOptions | undefined {
     if (glow?.enabled !== true) return;
 
-    const { color, blur, spread } = glow;
-    if (color == null || blur == null) return;
+    const { fill, fillOpacity, blur, spread } = glow;
+    if (blur == null) return;
 
-    return { enabled: true, color, xOffset: 0, yOffset: 0, blur, spread };
+    return { enabled: true, fill, fillOpacity, xOffset: 0, yOffset: 0, blur, spread, glow: true };
 }
 
 /**

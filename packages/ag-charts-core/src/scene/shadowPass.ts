@@ -2,7 +2,8 @@
  * Which part of a layer shadow batch is being drawn. See {@link renderChildrenWithShadowBatches}.
  *
  * - `none`: nodes cast their own shadows.
- * - `mask`: casters draw their silhouettes, with their real paint, into the batch's scratch canvas.
+ * - `mask`: casters draw their silhouettes, with their real paint, into the batch's scratch canvas. With a `spread`, or
+ *   when tinted, they draw them solid.
  * - `suppress`: casters draw as usual but cast no shadow, because the batch cast it beneath them.
  */
 export type ShadowPassState = 'none' | 'mask' | 'suppress';
@@ -16,8 +17,13 @@ export const shadowPass: {
      */
     opaque: boolean;
     /**
+     * During a `mask` pass, whether casters draw their silhouettes in the colour that their shadow takes, rather than in one
+     * colour, because the batch blurs the silhouettes of every colour once.
+     */
+    tinted: boolean;
+    /**
      * During a `mask` pass, how many device pixels the scratch canvas has per pixel of the layer, along each axis. It is
      * below 1 for a layer too large to mask at full resolution, and 1 otherwise.
      */
     resolution: { x: number; y: number };
-} = { state: 'none', opaque: false, resolution: { x: 1, y: 1 } };
+} = { state: 'none', opaque: false, tinted: false, resolution: { x: 1, y: 1 } };

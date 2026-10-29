@@ -405,7 +405,7 @@ describe('WaterfallSeries', () => {
         const nodes = getSeriesSelectionNodes<Rect>(chart, 'datumSelection');
         expect(nodes.length).toBeGreaterThan(0);
         for (const node of nodes) {
-            expect(node.fillShadow).toEqual({ ...DEFAULT_DISABLED_SHADOW, enabled: true, color: expect.any(String) });
+            expect(node.fillShadow).toEqual({ ...DEFAULT_DISABLED_SHADOW, enabled: true, fill: expect.any(String) });
         }
     });
 
