@@ -23,18 +23,19 @@ keep, and how to prove parity afterwards.
 
 ## File mapping
 
-| React source (`src/demos/procurement/`)                                                                                                                 | This seed (`src/`)                             | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `chartTheme.ts`, `data.ts`, `format.ts`, `geo.ts`, `grid.ts`, `types.ts`, `workspace.ts`, `procurement.css`, `data/**` (JSON, `source.ts`, `README.md`) | same names                                     | Copied byte for byte. A diff here means the React source moved; re-copy. Test files beside the source (`data/source.test.ts`) are not part of the seed, as in the React seed.                                                                                                                                                                                                                                                                                                                                                |
-| `routes.ts`                                                                                                                                             | `routes.ts`                                    | Copied from the **React seed**, not the demo source: the seed's copy imports `./vendored/web-analytics/topology` where the source imports the sibling demo. Byte for byte with the React seed's file.                                                                                                                                                                                                                                                                                                                        |
-| `../web-analytics/topology.ts`                                                                                                                          | `vendored/web-analytics/topology.ts`           | Vendored exactly as the React seed vendors it (the generator's `vendored` list), byte for byte.                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `ui.tsx` (Radix wrappers)                                                                                                                               | `ui.ts`                                        | `PcButton` directive, `Select` and `ToggleGroup` components (plus their `SelectItem` and `ToggleItem` item directives), the `Tabs`/`TabsList`/`TabTrigger`/`TabContent` directives standing in for the Radix Tabs that `WorkspaceApp.tsx` imports directly, and the `AfterRender` structural directive every chart mounts through (see below).                                                                                                                                                                               |
-| `WorkspaceApp.tsx`                                                                                                                                      | `workspace-app.ts`                             | `WorkspaceApp` component; host is the React root, the Radix `Tabs.Root` rendered as `.pc-app`, with `Tabs` as a host directive holding the selected tab.                                                                                                                                                                                                                                                                                                                                                                     |
-| `components/<Name>.tsx`                                                                                                                                 | `components/<kebab-name>.ts`                   | One component per file, class name unchanged (`AttentionAlert`, `BudgetBurnUp`, `CostReliabilityScatter`, `DeliveryMap`, `DeliverySlipHistograms`, `EmptyState`, `KpiStrip` + `KpiGaugeBar`/`KpiSegmentBar`/`KpiSegmentKeys`, `OrdersView`, `PurchaseOrderGrid` + `StatusCell`/`PoActionCell`, `QualityCostChart`, `ShipmentSchedule`, `SpendSunburst`, `SpendTrendChart`, `SpendView`, `StatusLegend`, `SupplierScorecard` + `SupplierCell`/`ContactActions`, `SupplierShareChart`, `SupplierTrendChart`, `SuppliersView`). |
-| `components/AttentionList.tsx`                                                                                                                          | inlined in `components/attention-alert.ts`     | The React component returns a different root element per state (`div.pc-attention-clear` or `ul.pc-attention`), which an attribute-selector component cannot do, so its two branches are the `@if`/`@else` of the panel body in `AttentionAlert`.                                                                                                                                                                                                                                                                            |
-| `index.tsx`                                                                                                                                             | `index.ts`                                     | Registers `AllEnterpriseModule`, exports the root `ProcurementDemo` component whose template is `<div pcWorkspaceApp>`. The CSS import moves to `angular.json` `styles`.                                                                                                                                                                                                                                                                                                                                                     |
-| `main.tsx` (React seed)                                                                                                                                 | `main.ts`                                      | Registers `AllCommunityModule`, appends `<main data-demo-id="procurement" style="position: fixed; inset: 0;">` to `#root`, then `bootstrapApplication(ProcurementDemo)` onto it (`ProcurementDemo`'s selector is `main[data-demo-id]`). The inline style is a seed-level invariant every port carries (the React generator emits it in `main.tsx`); `index.html` carries no `<style>` block.                                                                                                                                 |
-| no equivalent                                                                                                                                           | `styles.css`, `angular.json`, `tsconfig*.json` | `styles.css` imports the CDK overlay positioning CSS; the rest is the Angular CLI project. `tsconfig.json` adds `resolveJsonModule` for the JSON imports in `data/source.ts`. There is no `env.d.ts` and no `define`: this demo has no deterministic module (see below).                                                                                                                                                                                                                                                     |
+| React source (`src/demos/procurement/`)                                                                                                                                                                            | This seed (`src/`)                                                                                 | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chartTheme.ts`, `data.ts`, `format.ts`, `geo.ts`, `grid.ts`, `types.ts`, `workspace.ts`, `procurement.css`, `data/**` (JSON, `source.ts`, `README.md`), `components/chartSelection.ts`, `components/focusable.ts` | same names                                                                                         | Copied byte for byte (none has a React import). A diff here means the React source moved; re-copy. Test files beside the source (`data/source.test.ts`, `*.test.ts`) are not part of the seed, as in the React seed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `routes.ts`                                                                                                                                                                                                        | `routes.ts`                                                                                        | Copied from the **React seed**, not the demo source: the seed's copy imports `./vendored/web-analytics/topology` where the source imports the sibling demo. Byte for byte with the React seed's file.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `../web-analytics/topology.ts`                                                                                                                                                                                     | `vendored/web-analytics/topology.ts`                                                               | Vendored exactly as the React seed vendors it (the generator's `vendored` list), byte for byte.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `ui.tsx` (Radix wrappers)                                                                                                                                                                                          | `ui.ts`                                                                                            | `PcButton` directive, `Select` and `ToggleGroup` components (plus their `SelectItem` and `ToggleItem` item directives, and the `ToggleOption` type), the `Tabs`/`TabsList`/`TabTrigger`/`TabContent` directives standing in for the Radix Tabs that `WorkspaceApp.tsx` imports directly, and the `AfterRender` structural directive every chart mounts through (see below). `ToggleIcon` has no counterpart: its glyph is written by the `ToggleGroup` template from the option's `icon` (see the Radix rules).                                                                                                                                                                                                                                                                                     |
+| `WorkspaceApp.tsx`                                                                                                                                                                                                 | `workspace-app.ts`                                                                                 | `WorkspaceApp` component; host is the React root, the Radix `Tabs.Root` rendered as `.pc-app`, with `Tabs` as a host directive holding the selected tab. It also holds the `HelpCard`'s dismissed state (see below).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `components/<Name>.tsx`                                                                                                                                                                                            | `components/<kebab-name>.ts`                                                                       | One component per file, class name unchanged (`AttentionAlert`, `BudgetBurnUp`, `CostReliabilityScatter`, `DeliveryMap`, `DeliverySlipHistograms` + `SlipFacet`, `DemoNotice`, `EmptyState`, `HelpCard`, `KpiStrip` + `KpiGaugeBar`/`KpiSegmentBar`, `OrdersView`, `PurchaseOrderGrid` + `StatusCell`/`PoActionCell`, `QualityCostChart`, `ShipmentSchedule`, `ShipmentScheduleGrid`, `SidebarActions`, `SpendBreakdownGrid` + `SpendSupplierCell`, `SpendSunburst`, `SpendTrendChart`, `SpendView`, `StatusKeys`, `SupplierScorecard` + `SupplierCell`/`ContactActions`, `SupplierShareChart`, `SupplierTrendChart`, `SuppliersView`). Module-level helpers stay beside their component (`statusSegments` and `STATUS_ORDER` in `status-keys.ts`, `buildKpis`/`buildSpendKpis` in `kpi-strip.ts`). |
+| `components/AttentionList.tsx`                                                                                                                                                                                     | inlined in `components/attention-alert.ts`                                                         | The React component returns a different root element per state (`div.pc-attention-clear` or `ul.pc-attention`), which an attribute-selector component cannot do, so its two branches are the `@if`/`@else` of the panel body in `AttentionAlert`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `components/useShipmentSelection.ts`, `components/useSupplierSelection.ts`, `components/useClickAway.ts`                                                                                                           | `components/shipment-selection.ts`, `components/supplier-selection.ts`, `components/click-away.ts` | The hooks become functions called in a component's injection context (a field initialiser or the constructor): `shipmentSelection()`, `supplierSelection()` and `clickAway()`. See "Chart data selection" below.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `index.tsx`                                                                                                                                                                                                        | `index.ts`                                                                                         | Registers `AllEnterpriseModule`, exports the root `ProcurementDemo` component whose template is `<div pcWorkspaceApp>`. The CSS import moves to `angular.json` `styles`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `main.tsx` (React seed)                                                                                                                                                                                            | `main.ts`                                                                                          | Registers `AllCommunityModule`, appends `<main data-demo-id="procurement" style="position: fixed; inset: 0;">` to `#root`, then `bootstrapApplication(ProcurementDemo)` onto it (`ProcurementDemo`'s selector is `main[data-demo-id]`). The inline style is a seed-level invariant every port carries (the React generator emits it in `main.tsx`); `index.html` carries no `<style>` block.                                                                                                                                                                                                                                                                                                                                                                                                        |
+| no equivalent                                                                                                                                                                                                      | `styles.css`, `angular.json`, `tsconfig*.json`                                                     | `styles.css` imports the CDK overlay positioning CSS; the rest is the Angular CLI project. `tsconfig.json` adds `resolveJsonModule` for the JSON imports in `data/source.ts`. There is no `env.d.ts` and no `define`: this demo has no deterministic module (see below).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 ## Mapping rules
 
@@ -48,15 +49,27 @@ keep, and how to prove parity afterwards.
   the template holds the children. A host class that depends on state is bound
   (`'[class]': "recorded() ? 'pc-po-action-done' : 'pc-po-actions'"`), and a style custom property
   the React root set inline is a host style binding (`'[style.--pc-kpi-columns]'`).
-- Components whose React root is the chart wrapper itself (every chart component: `BudgetBurnUp`,
-  `CostReliabilityScatter`, `DeliveryMap`, `QualityCostChart`, `ShipmentSchedule`, `SpendSunburst`,
-  `SpendTrendChart`, `SupplierShareChart`, `SupplierTrendChart`) take a `div` host of their own,
-  styled `height: 100%; width: 100%` like the React wrapper, with the `<ag-charts>` element inside
-  it. This is the one place the tree gains an element (see the accepted differences).
+- Components whose React root is the chart wrapper itself (`BudgetBurnUp`, `CostReliabilityScatter`,
+  `QualityCostChart`, `ShipmentSchedule`, `SpendSunburst`, `SpendTrendChart`, `SupplierShareChart`,
+  `SupplierTrendChart`) take a `div` host of their own, styled `height: 100%; width: 100%` like the
+  React wrapper, with the `<ag-charts>` (or `<ag-quadrant-chart>`) element inside it. This is the one
+  place the tree gains an element (see the accepted differences). `DeliveryMap`'s React root is a
+  measured `div` around the wrapper, so its host is that `div` and the tree gains nothing there.
+  `SpendBreakdownGrid`'s React root is the `AgGridReact` wrapper sized by `containerStyle`; its
+  host is a `div` sized the same, with `<ag-grid-angular>` filling it.
+- A component that renders `null` in some state cannot drop its host, so the condition and the
+  state behind it move to the parent: `HelpCard` (host `section.pc-help`) emits `dismiss`, and
+  `WorkspaceApp` holds `helpDismissed` and the `@if` around it. The card moves focus to the next
+  focusable element before emitting, as the React card does before it unmounts.
+- A sub-component the React file declares inline gets a component of its own when it carries
+  per-instance state: `SlipFacet` (host `div.pc-facet`, bound `pc-facet--axis` on the last) holds
+  each supplier row's two chart selections.
 - Props become `input.required<T>()` signals (`input<T>()` for optional ones); callback props
   become `output<T>()`. A callback with two arguments becomes one payload object (`PoAction`
   `{ poId, kind }` for `onAction(poId, kind)`, `AttentionResolution` `{ item, action }` for
-  `onResolve(item, action)`). `useState` becomes a `signal`; `useMemo` a `computed`; `useCallback`
+  `onResolve(item, action)`, `ShipmentSelectionChange` `{ added, removed }` for
+  `onSelectionChange(added, removed)`). A callback prop named `on<X>Change` becomes an output named
+  `<x>Change` (`selectedSupplierChange`, `selectionChange`, `shipmentSelectionChange`). `useState` becomes a `signal`; `useMemo` a `computed`; `useCallback`
   a method. Module-level constants (`SUPPLIER_COLORS`, `ALL_ATTENTION_ITEMS`, `TABS`) stay
   module-level.
 - Selection toggles (`prev === id ? undefined : id`) are `signal.update` calls with the same
@@ -66,6 +79,15 @@ keep, and how to prove parity afterwards.
   and the effect re-runs when the signals it reads (`open`, `items`) change, with the same guards
   the React effect had and its cleanup returned through `onCleanup`.
 - A `ref` to a DOM element becomes `viewChild<ElementRef>()`.
+- A `useLayoutEffect` that acts on the DOM after a state change (the `.pc-body` scroll to the top
+  on a tab change) becomes an `afterRenderEffect` reading the same signals. `DeliveryMap` measures
+  its box for the initial zoom in an `afterNextRender` registered in its constructor, which runs
+  before the `AfterRender` directive mounts the chart; the React map measures in a layout effect
+  that re-renders the chart with the zoom straight after creating it.
+- A JSX glyph (`<svg>` children) is written out in the template, attribute for attribute, with
+  React's camel-cased SVG props in their DOM spelling (`stroke-width`, `stroke-linecap`).
+- Inline `style` objects with bare numbers (`DemoNotice`'s tip position) carry their `px` unit,
+  which React adds and Angular's `[style]` binding does not.
 - Whitespace: Angular collapses runs of template whitespace to one space and drops whitespace-only
   text nodes, but does not trim a text node the way JSX does. Keep text that sits next to an
   element tight (`>{{ kpi.label }}@if (...) {<span`, `>Clear selection</button>`), or the DOM gains
@@ -93,8 +115,32 @@ keep, and how to prove parity afterwards.
   changes identity, exactly as the React wrapper does on a new `options` prop. Mirror the React
   memoisation: each chart's options are one `computed` over the same inputs the React `useMemo`
   depended on, so they change identity when React's would and not otherwise.
-- Chart listeners (`seriesNodeClick`) are wrapped by the wrapper to re-enter the Angular zone, so
-  an `output.emit` from one drives change detection as a React state update would.
+- Chart listeners (`selectionChange`, `click`, `seriesNodeDoubleClick`) are wrapped by the wrapper to
+  re-enter the Angular zone, so an `output.emit` from one drives change detection as a React state
+  update would.
+- `AgQuadrantChart` becomes `<ag-quadrant-chart>`, mounted the same way.
+
+### Chart data selection
+
+The React charts mirror the workspace's selection into each chart's own data selection through
+`useShipmentSelection` / `useSupplierSelection` and `chartSelection.ts` (copied).
+
+- `shipmentSelection()` / `supplierSelection()` take the same options as the hooks, with the
+  workspace selection and `itemsFor` as signal getters (`itemsFor` is a `computed` returning the
+  lookup, as the React `useCallback` is memoised over its inputs). They return a `chart` signal,
+  set from the wrapper's `(chartReady)` output (the React `chartRef`), and the
+  `onChartSelectionChange` / `onChartClick` listeners the options `computed` puts in `listeners`.
+- The mirroring runs in an `afterRenderEffect`, not an `effect`: the React effect runs after the
+  wrapper has been handed the new options, so `waitForUpdate` waits for the update that holds the
+  new data. A component `effect` runs before its view's bindings reach `<ag-charts>`, and mirrors
+  ids into the old data (AG Charts warns "Skipping itemId (datum not found)", which the specs fail).
+- `clickAway()` is the `useClickAway` document listener, registered in an `effect` while `active()`.
+- `ShipmentScheduleGrid` keeps the grid API from `(gridReady)` and mirrors the shared selection in
+  an `afterRenderEffect` over the selection and the shipments, after the grid has taken the new
+  row data, as the React effect does.
+- `SuppliersView` renders its drill and Back buttons as one `<button>` whose label and action follow
+  the drill state: React keeps the element (and its focus) as the drill flips, which an
+  `@if`/`@else` pair would not.
 
 ### `ag-grid-react` to `ag-grid-angular`
 
@@ -161,12 +207,18 @@ Each component renders exactly what the Radix primitive renders, minus Radix's p
   group moves to the item that is on; arrow keys on both axes (the React demo gives the group no
   orientation) move focus and loop; Home/End and PageUp/PageDown jump; Shift+Tab leaves the group
   without stopping on it. A click selects; the selected item cannot be deselected (`valueChange`
-  only ever emits a value).
+  only ever emits a value). A `ToggleOption` with an `icon` (the `d` of each path of the React
+  `ToggleIcon`'s children) renders `class="pc-toggle-item pc-toggle-item--icon"` with `aria-label`
+  and `title` set to its label and the 16px `<svg viewBox="0 0 32 32" fill="currentColor"
+aria-hidden="true" focusable="false">` in place of the text. The React `ToggleGroup`'s `label`
+  wraps the group in `<div class="pc-labeled-select"><span aria-hidden="true">label</span>`; the
+  component's host is the group, so a caller with a label writes that wrapper around it.
 - `Select` (Root/Trigger/Value/Icon/Portal/Content/Viewport/Item/ItemText) -> `Select` on
   `label[pcSelect]`: the host is the Radix `Label.Root`, `<label class="pc-labeled-select">`
   (this demo's label carries no `for`), holding `<span>Period</span>` and the trigger
   `<button type="button" role="combobox" aria-controls aria-expanded aria-autocomplete="none" dir="ltr" data-state="closed|open" class="pc-btn pc-select-trigger" aria-label>`
-  with `<span style="pointer-events: none;">label</span><span aria-hidden="true">▾</span>`. While
+  with `<span style="pointer-events: none;">label</span>` and the Radix `Select.Icon`,
+  `<span aria-hidden="true" class="pc-select-icon">` around the 10px triangle `<svg>`. While
   open, a CDK connected overlay (`CdkConnectedOverlay`, positioned bottom-start with a 4px offset
   and flipping above when there is no room) holds
   `<div role="listbox" id data-state="open" data-side="bottom|top" data-align="start" dir="ltr" class="pc-portal pc-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none; pointer-events: auto;">`
@@ -194,26 +246,32 @@ The functional specs and the parity harness depend on these. Do not rename, wrap
   wrapper carries exactly `data-demo-id` and that inline style (Angular adds `ng-version` when it
   bootstraps onto it): the demo's own container is fixed-position, which would leave the wrapper
   with no box, so every port sizes it to the viewport as the React generator does in `main.tsx`.
-- `.pc-app` > `aside.pc-sidebar` (`.pc-brand`, `.pc-tabs-list` of three `.pc-tab-trigger`
-  `role="tab"` buttons named `My orders`, `My suppliers`, `My spend`, `.pc-sidebar-spacer`,
-  `.pc-stamp`, `.pc-account` with `.pc-account-name` and `.pc-account-title`) and `.pc-body` >
-  `.pc-view` > `.pc-page-head` (`h1.pc-page-title`, `.pc-page-actions` with either a
-  `.pc-page-controls` period select or the `.pc-alert`) then one `.pc-tab-content`
-  `role="tabpanel"` holding the active view (`.pc-view-content`).
+- `.pc-app` > `aside.pc-sidebar` (`.pc-brand-row` with `.pc-brand` and the `.pc-notice` demo
+  notice, `.pc-tabs-list` of three `.pc-tab-trigger` `role="tab"` buttons named `My orders`,
+  `My suppliers`, `My spend`, `.pc-sidebar-spacer`, the dismissible `section.pc-help`,
+  `ul.pc-side-actions`, `.pc-account` with `.pc-account-name` and `.pc-account-title`) and
+  `.pc-body` > `.pc-view` > `.pc-page-head` (`h1.pc-page-title`, `.pc-page-actions` with either a
+  `.pc-page-controls` period select, or on the orders tab a `.pc-page-controls` of the supplier and
+  subcategory selects followed by the `.pc-alert`) then one `.pc-tab-content` `role="tabpanel"`
+  holding the active view (`.pc-view-content`).
 - The worklist: `button.pc-alert-trigger` with `aria-haspopup="dialog"`, `aria-expanded` and, while
   open, `aria-controls="pc-attention-panel"`; `.pc-alert-scrim` and
   `#pc-attention-panel.pc-alert-panel[role="dialog"][aria-modal="true"][tabindex="-1"]` with
   `.pc-alert-panel-head`, then `ul.pc-attention` of `li.pc-attention-item` (`.pc-attention-body`
   button, `.pc-attention-actions` buttons) or `.pc-attention-clear`. Escape closes and returns
   focus to the trigger; Tab wraps inside the panel.
-- Chart counts per tab: the orders tab renders 4 `.ag-charts-wrapper`s (gauge, segment bar, map,
-  schedule), the suppliers tab 13, the spend tab 6.
+- Chart counts per tab: the orders tab renders 3 `.ag-charts-wrapper`s (segment bar, map,
+  schedule; the schedule's table view is a grid), the suppliers tab 13, the spend tab 6 (with the
+  sunburst, not its grouped table, showing).
+- The regions a click may land on without clearing a selection carry `data-keeps-selection`
+  (the chart boxes, the grid hosts, the `.pc-alert`), as in React.
 - The scorecard's rows are `.ag-row.pc-supplier`, `is-selected` on the selected supplier; the
   supplier cell is `button.pc-supplier-main[aria-pressed]`. The PO grid's action cell is
   `span.pc-po-actions` of `button.pc-link-btn` (Resolve, Reassign, Escalate) until a decision is
   recorded, then `span.pc-po-action-done`.
-- The chips row (`.pc-chips`) holds the shipment chip and the `Clear selection` button, disabled
-  until a shipment is selected.
+- The chips row (`.pc-chips`) holds one `.pc-chip` per selected shipment and the `Clear selection`
+  button, disabled until a shipment is selected. The PO grid stays mounted and empty with nothing
+  selected, showing its `noRows` overlay.
 - Every chart container has `height: 100%; width: 100%` (plus `display: block`, see above) and is
   the direct parent of `.ag-charts-wrapper`.
 
@@ -223,9 +281,13 @@ Known, accepted differences from the React render, none of which move a pixel:
   `pctabtrigger=""`, `cdkoverlayorigin=""`) and keeps static input attributes on the element
   (`label="Period"`, `value="orders"`); it also writes host attributes and bound attributes in its
   own order, so attribute order differs from the React render.
-- Each chart component's host `div` wraps an `<ag-charts>` or `<ag-gauge>` element with
-  `display: block` where React renders one `<div>`: the tree is one element deeper at every chart,
-  both elements filling their box. The grid host is `<ag-grid-angular>`.
+- Each chart component's host `div` wraps an `<ag-charts>`, `<ag-quadrant-chart>` or `<ag-gauge>`
+  element with `display: block` where React renders one `<div>`: the tree is one element deeper at
+  every chart, both elements filling their box (not at `DeliveryMap`, whose React root is a `div` of
+  its own). The grid host is `<ag-grid-angular>`, and `SpendBreakdownGrid` gains a sized `div` host
+  around it.
+- `SpendBreakdownGrid`'s group column inner renderer (`SpendSupplierCell`) has a `<span>` host on
+  group rows too, where the React renderer returns the bare value.
 - The tab ids are `pc-tabs-N-trigger-<value>` / `pc-tabs-N-content-<value>` rather than Radix's
   `radix-:rN:-...`; the `aria-controls` and `aria-labelledby` pairs match as Radix's do.
 - AG Grid's internal DOM differs because `ag-grid-react` renders the grid shell with React
