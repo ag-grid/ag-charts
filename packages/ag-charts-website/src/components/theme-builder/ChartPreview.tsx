@@ -24,7 +24,7 @@ export const ChartPreview = ({ theme, chartType, seriesCount, features }: Props)
         isFeatureActive(features, 'tooltip');
 
     const options = useMemo<AgChartOptions>(
-        () => ({ ...chartType.buildOptions(seriesCount, features), theme }),
+        () => ({ ...chartType.buildOptions(seriesCount, features), loadGoogleFonts: true, theme }),
         [chartType, seriesCount, features, theme]
     );
     const { containerRef } = useChart(options, {

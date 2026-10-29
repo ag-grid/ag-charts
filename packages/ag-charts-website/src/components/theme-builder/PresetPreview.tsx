@@ -5,18 +5,13 @@ import type { AgChartOptions } from 'ag-charts-community';
 
 import { THUMBNAIL_OPTIONS } from './chartTypes';
 import { toChartTheme } from './chartsThemeOutput';
+import { withSansFallback } from './fonts';
 import type { ChartsPreset } from './presets';
 import { useChart } from './useChart';
 
 interface Props {
     preset: ChartsPreset;
 }
-
-// A lone web font falls back to the browser's serif default until it loads.
-const withSansFallback = (params: ChartsPreset['params']) =>
-    params.fontFamily == null
-        ? params
-        : { ...params, fontFamily: [params.fontFamily].flat().concat('system-ui', 'sans-serif') };
 
 /**
  * A theme thumbnail: a whole chart at card size, themed through the same path as
