@@ -241,6 +241,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     private getBarOffset(barWidth: number) {
         const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
         const xAxis = this.getCategoryAxis()!;
+        const isStacked = (this.seriesGrouping?.stackCount ?? 0) > 0;
 
         let barOffset = 0;
         if (ContinuousScale.is(xAxis.scale)) {
@@ -250,9 +251,9 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
             // For ungrouped series, centre the bar within the width of the group.
             const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
             barOffset = (rangeWidth - barWidth) / 2;
-        } else if (groupScale && this.options.widthRatio != null) {
-            // For grouped series with fixed widths, centre the bar on its own width adjusted by the default width of
-            // bars within the group.
+        } else if (groupScale && this.options.widthRatio != null && !isStacked) {
+            // For unstacked grouped series, centre the bar on its own width adjusted by the default width of bars
+            // within the group. A stack is centred by its stack offset instead.
             barOffset = (groupScale.bandwidth - barWidth) / 2;
         }
 
