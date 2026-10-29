@@ -95,8 +95,8 @@ export const PaletteEditor = ({
                     aria-pressed={previewStrokes}
                     onClick={() => onPreviewStrokesChange(!previewStrokes)}
                 >
-                    {previewStrokes ? 'Hide stroke colours' : 'Preview stroke colours'}
-                    {previewStrokes ? <Eye size={18} /> : <EyeOff size={18} />}
+                    Preview stroke colours
+                    {previewStrokes ? <Eye size={20} /> : <EyeOff size={20} />}
                 </PreviewToggle>
             </FormField>
             <FormField label="Series Colors" docs={`${SERIES_DOCS} ${SERIES_STROKE_DOCS}`}>
@@ -374,11 +374,7 @@ const PreviewToggle = styled('button')`
         align-items: center;
         justify-content: space-between;
         width: 100%;
-        height: 32px;
-        padding: 0 10px;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: var(--text-regular);
+        font-weight: var(--text-semibold);
 
         svg {
             flex-shrink: 0;
