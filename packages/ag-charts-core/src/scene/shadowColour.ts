@@ -75,13 +75,26 @@ export function overrideTintableShadows(canTint?: boolean) {
 export function canTintShadows(): boolean {
     if (tintable == null) {
         try {
-            const context = new (getOffscreenCanvas())(1, 1).getContext('2d');
-            tintable = context != null && 'filter' in context;
+            tintable = blursWithFilter(new (getOffscreenCanvas())(3, 3).getContext('2d'));
         } catch {
             tintable = false;
         }
     }
     return tintable;
+}
+
+/**
+ * Whether the context blurs with its `filter`. A context can have the property and not apply it, so this draws a pixel
+ * through `blur()` and checks that it has spread to its neighbour, and has lost some of its own alpha.
+ */
+function blursWithFilter(context: OffscreenCanvasRenderingContext2D | null): boolean {
+    if (context == null || !('filter' in context)) return false;
+
+    context.filter = 'blur(1px)';
+    context.fillRect(1, 1, 1, 1);
+    const { data } = context.getImageData(0, 0, 3, 3);
+    // The alpha of the pixel at the centre, then of its neighbour on the left.
+    return data[3 + 4 * 4] < 255 && data[3 + 4 * 3] > 0;
 }
 
 interface ColourInfo {

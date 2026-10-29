@@ -3,12 +3,16 @@ import type { CssColor, Opacity, PixelSize } from './types';
 export interface AgDropShadowOptions {
     /** Whether the shadow is visible. */
     enabled?: boolean;
-    /** The fill colour of the shadow. */
+    /**
+     * The fill colour of the shadow.
+     *
+     * Default: `'#000'`
+     */
     fill?: CssColor;
     /**
      * The opacity of the shadow's fill, from `0` to `1`. It multiplies any alpha that `fill` already has.
      *
-     * Default: `1`
+     * Default: `1` if `fill` is set, otherwise the opacity of the theme's default shadow (`0.5` in the light theme, `1` in the dark theme)
      */
     fillOpacity?: Opacity;
     /**
