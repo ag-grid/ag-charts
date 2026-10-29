@@ -2614,6 +2614,52 @@ describe('Group shadow compositor', () => {
                 expect(blitsOf(nodes)).toBe(2);
             });
 
+            // Without a spread the mask draws the paint as it is, so an item that paints more than a solid fill is keyed by its
+            // colour even where the canvas can tint. This is accepted for a glow with no spread, which is not the default.
+            describe('without a spread', () => {
+                const NO_SPREAD = { ...GLOW, spread: 0 };
+                const fading = (colour: string) => ({
+                    type: 'gradient' as const,
+                    colorStops: [
+                        { color: colour, stop: 0 },
+                        { color: 'rgba(0, 0, 0, 0)', stop: 1 },
+                    ],
+                });
+
+                it('should blit one mask however many colours the items have, when they are a solid fill', () => {
+                    expect(blitsOf(items(COLOURS.length, NO_SPREAD))).toBe(1);
+                });
+
+                // A solid item that also paints strokes apart from its main path, as a candlestick does with its wicks.
+                class ExtrasPath extends Path {
+                    protected override getSilhouetteExtrasOpacity() {
+                        return 1;
+                    }
+                }
+                const withExtras = (x: number, y: number, width: number, height: number, mixin: Partial<Path>) => {
+                    const node = new ExtrasPath();
+                    Object.assign(node, { strokeWidth: 0, ...mixin });
+                    node.path.rect(x, y, width, height);
+                    node.shadowMode = 'silhouette';
+                    return node;
+                };
+
+                it.each([
+                    ['a stroke with no fill', (fill: string) => ({ fill: 'none', stroke: fill, strokeWidth: 4 })],
+                    ['a gradient fill', (fill: string) => ({ fill: fading(fill) })],
+                    ['extras', (fill: string) => ({ fill, stroke: fill })],
+                ] as const)('should make a mask for each colour of items with %s', (name, paint) => {
+                    const create = name === 'extras' ? withExtras : box;
+                    const nodes = (count: number) =>
+                        COLOURS.slice(0, count).map((colour, i) =>
+                            create(20 + i * 70, 60, 40, 40, { ...paint(colour), fillShadow: NO_SPREAD })
+                        );
+
+                    expect(blitsOf(nodes(1))).toBe(1);
+                    expect(blitsOf(nodes(COLOURS.length))).toBe(COLOURS.length);
+                });
+            });
+
             it('should draw the glow around each item in the colour of that item', () => {
                 renderNodes(items(3, GLOW));
 

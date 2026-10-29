@@ -843,8 +843,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const lineCap = this.__lineCap;
         let dilationCap: ShapeLineCap = lineCap == null || lineCap === 'butt' ? 'square' : lineCap;
         if (this.getShadowMode() === 'fill') dilationCap = 'round';
-        // With no spread nothing grows, so the strokes cap as they are painted.
-        if (spread <= 0) dilationCap = lineCap ?? 'butt';
         ctx.lineCap = dilationCap;
         ctx.lineJoin = drawsStroke ? (this.__lineJoin ?? 'miter') : 'miter';
         ctx.miterLimit = drawsStroke ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
@@ -880,7 +878,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         } else if (drawsFill && spread > 0) {
             this.dilateFill(ctx, path);
         }
-        if (this.getShadowMode() !== 'fill') {
+        if (this.getShadowMode() !== 'fill' && spread > 0) {
             this.dilateSilhouetteExtras(ctx, spread * 2);
         }
     }
