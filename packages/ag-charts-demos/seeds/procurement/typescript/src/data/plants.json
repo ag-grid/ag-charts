@@ -22,5 +22,45 @@
             "latitude": 20.59,
             "longitude": -100.39
         }
+    },
+    {
+        "plantId": "GRU",
+        "name": "São Paulo Plant",
+        "destination": {
+            "latitude": -23.55,
+            "longitude": -46.63
+        }
+    },
+    {
+        "plantId": "COR",
+        "name": "Córdoba Plant",
+        "destination": {
+            "latitude": -31.42,
+            "longitude": -64.18
+        }
+    },
+    {
+        "plantId": "SCL",
+        "name": "Santiago Plant",
+        "destination": {
+            "latitude": -33.45,
+            "longitude": -70.67
+        }
+    },
+    {
+        "plantId": "MEL",
+        "name": "Melbourne Plant",
+        "destination": {
+            "latitude": -37.81,
+            "longitude": 144.96
+        }
+    },
+    {
+        "plantId": "JNB",
+        "name": "Johannesburg Plant",
+        "destination": {
+            "latitude": -26.2,
+            "longitude": 28.05
+        }
     }
 ]

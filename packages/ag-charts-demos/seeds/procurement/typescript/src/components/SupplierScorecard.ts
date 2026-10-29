@@ -16,6 +16,9 @@ import { memo } from '../memo';
 import type { SupplierScorecard as Row } from '../types';
 import { button } from '../ui';
 
+/** A theme param, not the `rowHeight` prop, which leaves cell content above the row's centre. */
+const rosterGridTheme = compactGridTheme.withParams({ rowHeight: 46 });
+
 interface SupplierScorecardProps {
     rows: Row[];
     supplierColors: Record<string, string>;
@@ -81,7 +84,7 @@ function contactActions(): HTMLElement {
 export function createSupplierScorecard({ onSelect, ...props }: SupplierScorecardProps): SupplierScorecard {
     // `createGrid` inserts its own full-height div into this element and themes that, which is the
     // div ag-grid-react renders, so the class-named element is handed over as is.
-    const el = h('div', { class: 'pc-grid-host' });
+    const el = h('div', { class: 'pc-grid-host', 'data-keeps-selection': 'true' });
 
     // Wrapped headers let the figure columns be as narrow as their figures; "vs contract" sets the floor otherwise.
     const defaultColDef: ColDef<Row> = { ...baseColDef<Row>(), wrapHeaderText: true, autoHeaderHeight: true };
@@ -191,6 +194,7 @@ export function createSupplierScorecard({ onSelect, ...props }: SupplierScorecar
                 sortable: false,
                 filter: false,
                 resizable: false,
+                cellClass: 'pc-cell-centred',
                 cellRenderer: () => contactActions(),
             },
         ]
@@ -215,14 +219,13 @@ export function createSupplierScorecard({ onSelect, ...props }: SupplierScorecar
         el,
         mount() {
             api = createGrid<Row>(el, {
-                theme: compactGridTheme,
+                theme: rosterGridTheme,
                 rowData: rows,
                 columnDefs: columnDefs(supplierColors, selectedSupplierId),
                 defaultColDef,
                 getRowId: ({ data }) => data.supplierId,
                 rowClass: 'pc-supplier',
                 rowClassRules: rowClassRules(selectedSupplierId),
-                rowHeight: 46,
                 domLayout: 'autoHeight',
             });
         },

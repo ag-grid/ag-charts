@@ -1,5 +1,5 @@
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
-import type { AgGaugeOptions } from 'ag-charts-enterprise';
+import { type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import type { AgGaugeOptions, AgQuadrantChartOptions } from 'ag-charts-enterprise';
 
 import { h } from './dom';
 
@@ -20,6 +20,8 @@ export interface ChartHost<O> {
     mount(options: O): void;
     /** Apply new options, skipped while they are the object last applied (the wrapper's `[options]` effect). */
     update(options: O): void;
+    /** The chart instance, which the wrapper hands to a `ref`; undefined until mounted. */
+    instance(): AgChartInstance | undefined;
     destroy(): void;
 }
 
@@ -41,6 +43,7 @@ function host<O extends object>(create: (options: O) => ChartLike<O>): ChartHost
             applied = options;
             chart?.update({ ...options, container: el }).catch(logError);
         },
+        instance: () => chart as unknown as AgChartInstance | undefined,
         destroy() {
             chart?.destroy();
             chart = undefined;
@@ -54,3 +57,7 @@ export const chartHost = <O extends AgChartOptions>(): ChartHost<O> => host<O>((
 /** `<AgGauge options style={{ height: '100%', width: '100%' }} />`. */
 export const gaugeHost = <O extends AgGaugeOptions>(): ChartHost<O> =>
     host<O>((options) => AgCharts.createGauge(options));
+
+/** `<AgQuadrantChart options style={{ height: '100%', width: '100%' }} />`. */
+export const quadrantHost = <O extends AgQuadrantChartOptions<any>>(): ChartHost<O> =>
+    host<O>((options) => AgCharts.createQuadrantChart(options));

@@ -2,6 +2,7 @@ import { h, svg } from '../dom';
 import type { AttentionAction, AttentionItem } from '../types';
 import { button } from '../ui';
 import { attentionList } from './AttentionList';
+import { FOCUSABLE } from './focusable';
 
 interface AttentionAlertProps {
     items: AttentionItem[];
@@ -19,16 +20,6 @@ export interface AttentionAlert {
 }
 
 const PANEL_ID = 'pc-attention-panel';
-
-/**
- * What Tab can reach inside the panel.
- *
- * Queried live on each Tab rather than captured on open, because the list is the panel's content
- * and it changes underneath: resolving an item removes its buttons, and the last item's action is
- * exactly where the trap wraps.
- */
-const FOCUSABLE =
-    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 const triggerLabel = (count: number) =>
     count > 0 ? `${count} ${count === 1 ? 'item needs' : 'items need'} my attention` : 'Nothing needs my attention';
@@ -65,7 +56,7 @@ export function createAttentionAlert({ items, onSelect, onResolve }: AttentionAl
             svg('path', { d: 'M13.7 20a2 2 0 0 1-3.4 0' })
         )
     );
-    const el = h('div', { class: 'pc-alert' }, trigger);
+    const el = h('div', { class: 'pc-alert', 'data-keeps-selection': 'true' }, trigger);
 
     // The panel is modal, so Tab has to be contained or focus walks into unreachable controls.
     const onKeyDown = (event: KeyboardEvent) => {
@@ -76,6 +67,7 @@ export function createAttentionAlert({ items, onSelect, onResolve }: AttentionAl
         }
         if (event.key !== 'Tab') return;
 
+        // Queried on each Tab, not on open: resolving an item removes its buttons from under the trap.
         const focusable = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
             (element) => element.getClientRects().length > 0
         );

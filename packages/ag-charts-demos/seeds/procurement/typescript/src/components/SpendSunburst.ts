@@ -1,7 +1,7 @@
 import type { AgStandaloneChartOptions, AgSunburstSeriesOptions } from 'ag-charts-community';
 
 import { chartHost } from '../chart';
-import { COMMODITY_INK, MATERIAL_INK, NEUTRAL, SUBCATEGORY_RAMP, THEME } from '../chartTheme';
+import { NEUTRAL, SUBCATEGORY_RAMP, THEME } from '../chartTheme';
 import { SUBCATEGORIES } from '../data';
 import type { View } from '../dom';
 import { fmtCurrency, fmtCurrencyCompact, fmtPct } from '../format';
@@ -11,43 +11,40 @@ import { MANAGER } from '../workspace';
 
 interface SpendSunburstProps {
     /**
-     * Her commodity's spend tree: commodity at the centre, then subcategories, materials, and the
-     * suppliers each material is bought from.
+     * Her commodity's spend tree. The commodity itself is not drawn: the rings start at its
+     * subcategories, then materials, and the suppliers each material is bought from.
      */
     tree: SpendNode;
     /** Per-supplier colours, shared with the scatter and the scorecard cards. */
     supplierColors: Record<string, string>;
 }
 
-export interface SpendSunburst extends View {
-    update(props: SpendSunburstProps): void;
-}
-
 const SUBCATEGORY_INDEX = new Map(SUBCATEGORIES[MANAGER.commodity].map((name, index) => [name, index]));
 
 /**
- * Sector fill by ring: her commodity at the centre in chrome ink, subcategories in one hue's
- * steps, materials in a single lighter tone of it, and suppliers in their own identity colour —
- * the same colour that supplier carries on its bubble and its row.
+ * Sector fill by ring: subcategories in one hue's steps, materials in their parent
+ * subcategory's step, and suppliers in their own identity colour — the same colour that
+ * supplier carries on its bubble and its row.
  *
  * A supplier with no spend in the period is greyed: it is only present to hold its place in
  * the ring (see `buildSpendTree`), and must not read as a value.
  */
 function sectorFill(node: SpendNode, supplierColors: Record<string, string>): string {
-    if (node.path.length === 0) return COMMODITY_INK;
     if (node.supplierId != null) {
         return node.spend > 0 ? (supplierColors[node.supplierId] ?? NEUTRAL) : NEUTRAL;
     }
-    // Materials take one tone: their parent is the sector they sit in, not a shade of its colour.
-    if (node.path.length > 1) return MATERIAL_INK;
+    // A material takes its parent subcategory's colour, so each branch reads as one band.
     const index = SUBCATEGORY_INDEX.get(node.path[0]) ?? 0;
     return SUBCATEGORY_RAMP[index % SUBCATEGORY_RAMP.length];
 }
 
+export interface SpendSunburst extends View {
+    update(props: SpendSunburstProps): void;
+}
+
 export function createSpendSunburst(props: SpendSunburstProps): SpendSunburst {
     const chart = chartHost<AgStandaloneChartOptions<SpendNode>>();
-
-    const options = memo(
+    const optionsOf = memo(
         (tree: SpendNode, supplierColors: Record<string, string>): AgStandaloneChartOptions<SpendNode> => {
             const series: AgSunburstSeriesOptions<SpendNode> = {
                 type: 'sunburst',
@@ -56,33 +53,29 @@ export function createSpendSunburst(props: SpendSunburstProps): SpendSunburst {
                 sizeName: 'Spend',
                 // A hairline stroke rather than a gap: spacing narrow sectors apart breaks the ring into spikes.
                 sectorSpacing: 0,
-                cornerRadius: 0,
+                cornerRadius: 2,
                 strokes: ['var(--pc-panel)'],
                 strokeWidth: 1,
                 strokeOpacity: 1,
                 padding: 4,
-                label: { fontSize: 13, minimumFontSize: 9, spacing: 2 },
+                label: { fontSize: 10, minimumFontSize: 9, spacing: 2 },
                 secondaryLabel: {
                     fontSize: 11,
                     minimumFontSize: 8,
                     // `size` carries the sliver an empty leaf is drawn with, so the label must read the true spend.
                     formatter: ({ datum }) => (datum.spend > 0 ? fmtCurrencyCompact(datum.spend) : 'no spend'),
                 },
+                innerRadiusRatio: 0.3,
+                innerLabels: [{ text: MANAGER.commodity, fontSize: 14 }],
                 itemStyler: ({ datum }) => ({ fill: sectorFill(datum, supplierColors) }),
                 tooltip: {
                     renderer: ({ datum }) => {
-                        if (datum.path.length === 0) {
-                            return {
-                                title: datum.name,
-                                data: [{ label: 'My spend this period', value: fmtCurrency(datum.spend) }],
-                            };
-                        }
                         // The ring above this one: her commodity, the subcategory, or the material.
                         const parent = datum.path.length > 1 ? datum.path[datum.path.length - 2] : MANAGER.commodity;
                         return {
                             title:
                                 datum.path.length > 1
-                                    ? `${datum.path.slice(0, -1).join(' › ')} › ${datum.name}`
+                                    ? `${datum.path.slice(0, -1).join(' > ')} > ${datum.name}`
                                     : datum.name,
                             data:
                                 datum.spend > 0
@@ -99,21 +92,20 @@ export function createSpendSunburst(props: SpendSunburstProps): SpendSunburst {
 
             return {
                 theme: THEME,
-                // The root is included, so her commodity renders as the centre.
-                data: [tree],
+                data: tree.children ?? [],
                 series: [series],
                 padding: 0,
             };
         }
     );
-
     let current = props;
+    const options = () => optionsOf(current.tree, current.supplierColors);
     return {
         el: chart.el,
-        mount: () => chart.mount(options(current.tree, current.supplierColors)),
+        mount: () => chart.mount(options()),
         update(next) {
             current = next;
-            chart.update(options(next.tree, next.supplierColors));
+            chart.update(options());
         },
         destroy: chart.destroy,
     };
