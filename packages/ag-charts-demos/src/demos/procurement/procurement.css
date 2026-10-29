@@ -1,6 +1,6 @@
 /* Canvas text never triggers a font download, so the charts rely on the document
    FontFaceSet to load these and re-measure. */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Inter:wght@400;500;600&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap');
 /* Dashboard chrome, scoped under .pc-app so it never leaks into other demos. Chart
    visuals come from the AG Charts theme, not from here. */
 
@@ -12,7 +12,7 @@
        On the app root, not `:root`: the harness loads every demo's stylesheet into one
        document. Mirrored as literals in chartTheme.ts for canvas — change both. */
     --font-heading: 'Manrope', sans-serif;
-    --font-body: 'Red Hat Text', 'Inter', sans-serif;
+    --font-body: 'Red Hat Text', sans-serif;
 
     /* Surface */
     --color-bg: #f6f6f4;
@@ -22,7 +22,7 @@
 
     /* Text */
     --color-text-primary: #17181a;
-    --color-text-secondary: #6b6e72;
+    --color-text-secondary: #4f5256;
 
     /* Accent / CTA */
     --color-accent: #b23a2e;
@@ -102,6 +102,7 @@
 .pc-app :is(h1, h2, h3, h4, h5, h6),
 .pc-page-title,
 .pc-card-title,
+.pc-kpi-label,
 .pc-brand {
     font-family: var(--font-heading), system-ui, sans-serif;
 }
@@ -334,8 +335,9 @@
     height: 34px;
     flex: 0 0 auto;
     border-radius: 50%;
-    background: var(--pc-accent);
-    color: var(--color-on-accent);
+    background: var(--pc-panel-2);
+    box-shadow: inset 0 0 0 1px var(--pc-border);
+    color: var(--pc-text);
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -395,19 +397,20 @@
     color: var(--pc-text);
     background: var(--pc-panel-2);
 }
+/* Tint and an edge bar rather than a solid fill, so a solid red block only ever means danger. The
+   bar is an inset shadow so the label does not shift when the tab becomes active. */
 .pc-tab-trigger[data-state='active'] {
-    background: var(--pc-accent);
-    color: var(--color-on-accent);
+    background: var(--pc-accent-soft);
+    box-shadow: inset 3px 0 0 var(--pc-accent);
+    color: var(--pc-text);
+    /* The inset shadow follows the corners, so the bar's edge is squared to keep it straight. */
+    border-radius: 0 var(--pc-radius-sm) var(--pc-radius-sm) 0;
 }
 /* `all: unset` drops the UA focus ring, and Radix moves focus between triggers with the arrow
    keys, so the ring has to be restored explicitly. */
 .pc-tab-trigger:focus-visible {
     outline: 2px solid var(--pc-accent);
     outline-offset: 1px;
-}
-.pc-tab-trigger[data-state='active']:focus-visible {
-    outline-color: var(--pc-accent-strong);
-    outline-offset: 2px;
 }
 /* Only the active tab is mounted, so this shapes one view at a time: a column the view can
    grow inside. */
@@ -481,9 +484,14 @@
     gap: 12px;
     margin-bottom: 14px;
 }
+/* A head whose small button comes and goes keeps its height either way; 27px is `.pc-btn-sm`'s. */
+.pc-card-head--action {
+    min-height: 27px;
+    align-items: center;
+}
 .pc-card-title {
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: 0.01em;
     margin: 0;
 }
@@ -538,8 +546,9 @@
     border-radius: var(--pc-radius);
     overflow: hidden;
 }
+/* The card inset, so a tile's content lines up with the cards beneath it. */
 .pc-kpi {
-    padding: 14px 16px;
+    padding: 18px 20px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -549,11 +558,9 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--pc-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
 }
 .pc-kpi-value {
     font-size: 26px;
@@ -703,7 +710,7 @@
     background: var(--pc-panel);
     border: 1px solid var(--pc-border-strong);
     border-radius: var(--pc-radius);
-    box-shadow: 0 18px 40px rgb(15 23 42 / 18%);
+    box-shadow: var(--pc-shadow-popover);
 }
 .pc-alert-panel:focus-visible {
     outline: 2px solid var(--pc-accent);
@@ -1046,7 +1053,7 @@
     background: var(--pc-panel-2);
     color: var(--pc-text);
 }
-/* Ring and tint rather than a solid fill, which is reserved for the active sidebar tab. */
+/* Ring and tint: the ring tells a selected segment from the active sidebar tab's edge bar. */
 .pc-toggle-item[data-state='on'] {
     background: color-mix(in srgb, var(--pc-accent) 8%, var(--pc-panel));
     box-shadow: inset 0 0 0 1px var(--pc-accent);
@@ -1165,6 +1172,10 @@
        of scrolling. */
     width: 100%;
 }
+/* A grid standing in for a chart fills the chart's box and scrolls within it. */
+.pc-grid-host--fill {
+    height: 100%;
+}
 /* AG Grid 36 hides the last row's bottom border once the rows fill the grid, by toggling
    ag-body-vertical-content-no-gap on the grid body. ag-grid-react 36.2.0 never applies that class,
    so without this the React demo alone draws a line under the supplier roster's last row. Remove
@@ -1175,6 +1186,11 @@
     > .ag-row-last.pc-supplier:not(.ag-full-width-row)
     > :is(.ag-grid-pinned-left-cells, .ag-grid-pinned-right-cells, .ag-grid-scrolling-cells) {
     border-bottom-color: transparent;
+}
+/* A cell is one line of text, which seats a pill or button on the baseline, above the row's centre. */
+.pc-grid-host .ag-cell.pc-cell-centred {
+    display: flex;
+    align-items: center;
 }
 /* The indicator stays a status glyph rather than a plain dot: it is the non-colour channel this
    grid's accessibility rests on. */
@@ -1253,6 +1269,10 @@
         flex-direction: row;
         gap: 4px;
     }
+    .pc-tab-trigger[data-state='active'] {
+        box-shadow: inset 0 -2px 0 var(--pc-accent);
+        border-radius: var(--pc-radius-sm) var(--pc-radius-sm) 0 0;
+    }
     .pc-account {
         padding-top: 0;
         border-top: none;
@@ -1298,13 +1318,20 @@
     .pc-kpi-value {
         font-size: 23px;
     }
-    .pc-card {
+    .pc-card,
+    .pc-kpi {
         padding: 14px 14px;
     }
     .pc-card-head {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
+    }
+    /* Stacked, the button takes a row of its own, kept open while it is absent. */
+    .pc-card-head--action {
+        display: grid;
+        grid-template-rows: auto 27px;
+        justify-items: start;
     }
     .pc-select-trigger {
         min-width: 128px;

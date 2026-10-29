@@ -1,8 +1,8 @@
 {
     "demo": "procurement",
     "framework": "react",
-    "sourceHash": "sha256-4a18af9e23242b4a39ff9a8ef7315a60cfec3f3ba4f1b72b7c09a41c7ce8f033",
-    "sourceCommit": "7316405d07900bb5dd1016d0abd253742dc86e86",
+    "sourceHash": "sha256-6e7d34307818427e6714df054caa56dffb4f34e2626c12f35476e0644f4b42d6",
+    "sourceCommit": "7b2e1a7631a717cbc35a6f538e80466fa756fd22",
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",
     "vendored": ["web-analytics/topology.ts"]

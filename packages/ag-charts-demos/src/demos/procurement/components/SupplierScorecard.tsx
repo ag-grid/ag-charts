@@ -8,6 +8,9 @@ import { baseColDef, compactGridTheme } from '../grid';
 import type { SupplierScorecard as Row } from '../types';
 import { Button } from '../ui';
 
+/** A theme param, not the `rowHeight` prop, which leaves cell content above the row's centre. */
+const rosterGridTheme = compactGridTheme.withParams({ rowHeight: 46 });
+
 interface SupplierScorecardProps {
     rows: Row[];
     supplierColors: Record<string, string>;
@@ -170,6 +173,7 @@ export function SupplierScorecard({ rows, supplierColors, selectedSupplierId, on
                 sortable: false,
                 filter: false,
                 resizable: false,
+                cellClass: 'pc-cell-centred',
                 cellRenderer: () => <ContactActions />,
             },
         ],
@@ -192,14 +196,13 @@ export function SupplierScorecard({ rows, supplierColors, selectedSupplierId, on
     return (
         <div className="pc-grid-host" data-keeps-selection>
             <AgGridReact<Row>
-                theme={compactGridTheme}
+                theme={rosterGridTheme}
                 rowData={rows}
                 columnDefs={columnDefs}
                 defaultColDef={defaultColDef}
                 getRowId={({ data }) => data.supplierId}
                 rowClass="pc-supplier"
                 rowClassRules={rowClassRules}
-                rowHeight={46}
                 domLayout="autoHeight"
             />
         </div>

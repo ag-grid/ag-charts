@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 
-import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-community';
+import type { AgBarSeriesOptions, AgCartesianChartOptions, AgUnitTimeAxisOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
-import { SEGMENT_SEPARATOR, THEME } from '../chartTheme';
-import { fmtCurrency, fmtCurrencyMillions, fmtPct, wholeMillionStep } from '../format';
+import { MONTH_AXIS, SEGMENT_SEPARATOR, STACKED_BAR_GAP, THEME } from '../chartTheme';
+import { fmtCurrency, fmtCurrencyMillions, fmtMonth, fmtPct, wholeMillionStep } from '../format';
 import type { SpendTrendGrain, SpendTrendRow } from '../types';
 
 /** One stacked band: the row key it reads, the name it is shown under and its colour. */
@@ -21,6 +21,15 @@ interface SpendTrendChartProps {
     /** What one bar covers, which every figure in the tooltip has to name. */
     grain: SpendTrendGrain;
 }
+
+/** Months only: the monthly grain is year to date, so every month is in the same year. */
+const YEAR_TO_DATE_MONTH_AXIS: AgUnitTimeAxisOptions = {
+    ...MONTH_AXIS,
+    label: { format: { month: '%b' } },
+    parentLevel: { enabled: false },
+    crosshair: { label: { format: '%b' } },
+    paddingInner: STACKED_BAR_GAP,
+};
 
 /**
  * Committed spend per month or per week, stacked by subcategory or by supplier.
@@ -42,10 +51,12 @@ interface SpendTrendChartProps {
 export function SpendTrendChart({ rows, stacks, grain }: SpendTrendChartProps) {
     const options = useMemo<AgCartesianChartOptions<SpendTrendRow>>(() => {
         // A week's label is the day it starts on, which only reads as a span if it says so.
-        const spanOf = (label: string) => (grain === 'week' ? `week of ${label}` : label);
+        const spanOf = (row: SpendTrendRow) => (grain === 'week' ? `week of ${row.label}` : fmtMonth(row.start));
+        // Weeks stay categories: they start on the window's first day, not on a calendar week a time axis would snap to.
+        const monthly = grain === 'month';
         const series = stacks.map<AgBarSeriesOptions<SpendTrendRow>>(({ key, name, fill }) => ({
             type: 'bar',
-            xKey: 'label',
+            xKey: monthly ? 'start' : 'label',
             yKey: key,
             yName: name,
             stacked: true,
@@ -58,7 +69,7 @@ export function SpendTrendChart({ rows, stacks, grain }: SpendTrendChartProps) {
                     const total = stacks.reduce((sum, stack) => sum + Number(datum[stack.key] ?? 0), 0);
                     return {
                         heading: '',
-                        title: `${name} · ${spanOf(datum.label)}`,
+                        title: `${name} · ${spanOf(datum)}`,
                         data: [
                             { label: 'Committed', value: fmtCurrency(spend) },
                             { label: `Share of ${grain}`, value: total > 0 ? fmtPct(spend / total) : '—' },
@@ -79,7 +90,9 @@ export function SpendTrendChart({ rows, stacks, grain }: SpendTrendChartProps) {
             data: rows,
             series,
             axes: {
-                x: { type: 'category', position: 'bottom' },
+                x: monthly
+                    ? YEAR_TO_DATE_MONTH_AXIS
+                    : { type: 'category', position: 'bottom', paddingInner: STACKED_BAR_GAP },
                 y: {
                     type: 'number',
                     position: 'left',

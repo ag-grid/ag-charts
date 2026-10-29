@@ -37,7 +37,7 @@ interface QualityCostChartProps {
     selectedSupplierId?: string;
     /** The user selected a supplier's bar or marker, or clicked away to clear the selection. */
     onSelectedSupplierChange: (supplierId: string | undefined) => void;
-    /** Called with a supplier's id when its materials are chosen from the context menu. */
+    /** Called with a supplier's id when its bar or marker is double-clicked. */
     onDrill: (supplierId: string) => void;
 }
 
@@ -47,6 +47,8 @@ const RATE_AXIS = 'rate';
 const COST_SERIES_ID = 'cost';
 const RATE_SERIES_ID = 'rate';
 const RATE_MARKER_STROKE_WIDTH = 1;
+/** The reject rate a supplier is held to; a marker at or above it is drawn in the danger colour. */
+const RATE_TARGET = 0.03;
 
 const supplierIdOf = ({ datum }: { datum: Row }) => datum.supplierId;
 
@@ -75,7 +77,7 @@ function barTooltip(datum: Row, footer: string | undefined) {
  * variance for her attention, and the rate is what a supplier can actually be held to — a big bill on
  * a low rate is a volume problem, the same bill on a high rate is a process one. Sorted by the bill,
  * so a marker sitting high above a short bar is the supplier whose quality is worst but cheapest.
- * A supplier's context menu drills into the same two readings per material bought from it.
+ * Double-clicking a supplier drills into the same two readings per material bought from it.
  */
 export function QualityCostChart({
     rows,
@@ -148,7 +150,7 @@ export function QualityCostChart({
                 renderer: ({ datum }) =>
                     barTooltip(
                         datum,
-                        drilledSupplierId == null ? "Right-click to see this supplier's materials" : undefined
+                        drilledSupplierId == null ? "Double-click to see this supplier's materials" : undefined
                     ),
             },
             highlight: { bringToFront: false },
@@ -171,6 +173,8 @@ export function QualityCostChart({
             // The shared tooltip shows the bar's, which already carries the rate.
             tooltip: { enabled: false },
             highlight: { enabled: false, bringToFront: false },
+            itemStyler: ({ datum }) =>
+                !dimmed(datum.supplierId) && datum.rejectedRate >= RATE_TARGET ? { fill: 'var(--pc-bad-fill)' } : {},
         };
 
         return {
@@ -200,6 +204,23 @@ export function QualityCostChart({
                     label: { formatter: ({ value }) => fmtPctWhole(value) },
                     // One grid is enough: a second set of lines at different intervals reads as noise.
                     gridLine: { enabled: false },
+                    crossLines: [
+                        {
+                            type: 'line',
+                            value: RATE_TARGET,
+                            stroke: { ref: 'subtleTextColor' },
+                            strokeWidth: 1,
+                            lineDash: [5, 4],
+                            label: {
+                                enabled: true,
+                                text: '3% target',
+                                placement: 'top-right',
+                                color: { ref: 'subtleTextColor' },
+                                fontStyle: 'italic',
+                                fontSize: 12,
+                            },
+                        },
+                    ],
                 },
             },
             legend: { enabled: true },
@@ -208,22 +229,12 @@ export function QualityCostChart({
             minHeight: 0,
             padding: { top: 8, right: 8, bottom: 4, left: 4 },
             selection: { enabled: true },
-            listeners: { selectionChange: onChartSelectionChange, click: onChartClick },
-            contextMenu: {
-                // A click selects, so drilling is the menu's: the materials replace every supplier in the chart.
-                getItems: ({ allShowOnParams, defaultItems }) => {
-                    const node = allShowOnParams.find((params) => params.showOn === 'series-node');
-                    if (drilledSupplierId != null || node == null) return undefined;
-                    const { supplierId, label } = node.datum;
-                    return [
-                        {
-                            showOn: 'series-node',
-                            label: `Drill down into ${label}'s materials`,
-                            action: () => onDrill(supplierId),
-                        },
-                        'separator',
-                        ...defaultItems,
-                    ];
+            listeners: {
+                selectionChange: onChartSelectionChange,
+                click: onChartClick,
+                // The materials replace every supplier in the chart, so a level of materials has nothing beneath it.
+                seriesNodeDoubleClick: ({ datum }) => {
+                    if (drilledSupplierId == null) onDrill(datum.supplierId);
                 },
             },
             tooltip: {

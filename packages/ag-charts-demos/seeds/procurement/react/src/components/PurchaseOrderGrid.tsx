@@ -20,7 +20,7 @@ const STATUS_STYLE: Record<PoStatus, { className: string; icon: string }> = {
  * requirement is that this grid and the scorecard are the accessible table equivalents of
  * the sunburst and scatter, so it has to be legible on its own terms.
  */
-function StatusCell({ value }: { value: PoStatus }) {
+export function StatusCell({ value }: { value: PoStatus }) {
     const style = STATUS_STYLE[value];
     return (
         <span className={`pc-status-cell ${style.className}`}>
@@ -114,6 +114,7 @@ export function PurchaseOrderGrid({ orders, poActions, onAction }: PurchaseOrder
                 headerName: 'Status',
                 minWidth: 130,
                 filter: 'agSetColumnFilter',
+                cellClass: 'pc-cell-centred',
                 cellRenderer: StatusCell,
             },
             {

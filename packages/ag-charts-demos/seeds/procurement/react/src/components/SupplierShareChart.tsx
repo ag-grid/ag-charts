@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
-import { NEUTRAL, SEGMENT_SEPARATOR, THEME } from '../chartTheme';
+import { NEUTRAL, SEGMENT_SEPARATOR, STACKED_BAR_GAP, THEME } from '../chartTheme';
 import { fmtCurrency, fmtPct } from '../format';
 import type { SupplierShareRow } from '../types';
 
@@ -160,7 +160,7 @@ function stackedBarOptions(
         data: rows,
         series,
         axes: {
-            y: { type: 'category', position: 'left' },
+            y: { type: 'category', position: 'left', paddingInner: STACKED_BAR_GAP },
             x: {
                 type: 'number',
                 position: 'bottom',

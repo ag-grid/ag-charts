@@ -173,10 +173,10 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
             topologyIdKey: 'id',
             idKey: 'id',
             data: pointsByStatus.get(status),
-            stroke: STATUS_COLORS[status],
+            stroke: NEUTRAL,
             // Light weight: at a heavier one, overlapping lanes blend into a wash that reads as neither status colour.
             strokeWidth: 1,
-            strokeOpacity: 0.28,
+            strokeOpacity: 0.33,
             // The status key is rendered as HTML beside the card, so nothing needs a legend.
             showInLegend: false,
             itemStyler: ({ datum }) => (dimmed(datum.id) ? { strokeOpacity: 0.08 } : {}),
@@ -242,7 +242,7 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
             data: PLANT_POINTS,
             showInLegend: false,
             shape: 'square',
-            size: 9,
+            size: 8,
             fill: 'var(--pc-text)',
             stroke: 'var(--pc-panel)',
             strokeWidth: 1,
@@ -270,8 +270,8 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
             series: [
                 {
                     type: 'map-shape-background',
-                    fill: 'var(--pc-panel-2)',
-                    stroke: NEUTRAL,
+                    fill: 'var(--pc-border)',
+                    stroke: 'var(--pc-panel)',
                     strokeWidth: 0.5,
                     selection: { enabled: false },
                 },

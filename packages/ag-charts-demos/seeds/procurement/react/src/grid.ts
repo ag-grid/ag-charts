@@ -9,7 +9,7 @@ export const gridTheme = themeQuartz.withParams({
     backgroundColor: '#ffffff', // --color-panel
     foregroundColor: '#17181a', // --color-text-primary
     headerBackgroundColor: '#ffffff', // --color-panel: the header is type, not a band
-    headerTextColor: '#6b6e72', // --color-text-secondary
+    headerTextColor: '#4f5256', // --color-text-secondary
     borderColor: '#e6e6e3', // --color-border
     oddRowBackgroundColor: '#f0f0ee', // --color-panel-alt, the theme's alternating row
     accentColor: '#b23a2e', // --color-accent
@@ -18,7 +18,7 @@ export const gridTheme = themeQuartz.withParams({
     fontFamily: 'inherit',
     fontSize: 13,
     // The theme's data-grid pattern sets the header a step below body text, in the secondary ink.
-    headerFontSize: 11,
+    headerFontSize: 12,
     wrapperBorderRadius: 2,
     borderRadius: 2,
     cellHorizontalPadding: 14,
