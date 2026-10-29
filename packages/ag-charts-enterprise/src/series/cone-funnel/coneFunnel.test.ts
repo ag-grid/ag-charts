@@ -27,12 +27,13 @@ import {
     getSeriesOptions,
     getSeriesSelectionNodes,
     hoverAction,
+    internalOptions,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Transformable } from 'ag-charts-core';
+import { Transformable, type WithInternalShadow } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
 import {
@@ -303,10 +304,10 @@ describe('ConeFunnelSeries', () => {
 
     describe('shadow', () => {
         const buildOptions = (shadow?: typeof SHADOW): AgChartOptions => {
-            const options: AgChartOptions = {
+            const options: AgChartOptions = internalOptions<AgChartOptions>({
                 ...CONE_FUNNEL_EXAMPLE,
                 series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value', shadow }],
-            };
+            });
             return options;
         };
         const create = async (shadow?: typeof SHADOW) => {
@@ -318,7 +319,9 @@ describe('ConeFunnelSeries', () => {
         it('defaults to a disabled shadow', async () => {
             await create();
 
-            expect(getSeriesOptions<AgConeFunnelSeriesOptions>(chart).shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(getSeriesOptions<AgConeFunnelSeriesOptions & WithInternalShadow>(chart).shadow).toEqual(
+                DEFAULT_DISABLED_SHADOW
+            );
         });
 
         it('casts the shadows of its dividers through the shadow root', async () => {

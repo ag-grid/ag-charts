@@ -72,7 +72,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: 1,
                 strokeOpacity: 1,
                 cornerRadius: 0,
-                shadow: SHADOW_THEME_DEFAULTS,
+                ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
                 padding: 4,
                 gap: 2,
                 interactive: true,
@@ -126,7 +126,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
                 strokeOpacity: 1,
                 cornerRadius: 0,
-                shadow: SHADOW_THEME_DEFAULTS,
+                ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
                 padding: 3,
                 gap: 1,
                 highlight: withGlowThemeDefaults(

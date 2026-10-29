@@ -1,17 +1,18 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartInstance, AgChartOptions, AgGlowOptions } from 'ag-charts-community';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import {
     HIGHLIGHT_GLOW,
     deproxy,
     getSeriesNodeData,
     getSeriesSelectionNodes,
     glowShadow,
+    internalOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { Group, Rect, Shape } from 'ag-charts-core';
+import type { Group, InternalAgGlowOptions, Rect, Shape } from 'ag-charts-core';
 
 import {
     getFlowLinkData,
@@ -72,7 +73,7 @@ describe('highlight glow on every hierarchy bucket', () => {
 
     const SERIES: Array<{
         name: string;
-        series: (bucket: Bucket, glow: AgGlowOptions, shadow?: object) => object;
+        series: (bucket: Bucket, glow: InternalAgGlowOptions, shadow?: object) => object;
     }> = [
         {
             name: 'sunburst',
@@ -260,19 +261,21 @@ describe('highlight glow on treemap groups', () => {
 
     /** Hovers group A and returns, by group name, the group rects of each layer that cast a shadow. */
     const hoverGroupA = async (highlight: object, shadow?: object) => {
-        chart = await createEnterpriseChart({
-            data: SIBLING_DATA,
-            animation: { enabled: false },
-            legend: { enabled: false },
-            series: [
-                {
-                    type: 'treemap',
-                    labelKey: 'name',
-                    sizeKey: 'size',
-                    group: { shadow, gap: 12, padding: 10, interactive: true, highlight },
-                },
-            ],
-        } as AgChartOptions);
+        chart = await createEnterpriseChart(
+            internalOptions<AgChartOptions>({
+                data: SIBLING_DATA,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        group: { shadow, gap: 12, padding: 10, interactive: true, highlight },
+                    },
+                ],
+            })
+        );
 
         const groupA = getHierarchyRootNode(chart)!.children.find((node) => node.datum?.name === 'A')!;
         const { ctx, id } = deproxy(chart);

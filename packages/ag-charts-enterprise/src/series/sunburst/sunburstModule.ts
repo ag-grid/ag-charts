@@ -42,7 +42,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         strokeOpacity: 1,
         cornerRadius: 0,
-        shadow: SHADOW_THEME_DEFAULTS,
+        ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: true,

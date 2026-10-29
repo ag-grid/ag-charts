@@ -1,11 +1,16 @@
-import { type OptionsDefs, fillOptionsDef, glowOptionsDefs, ratio, strokeOptionsDef } from 'ag-charts-core';
-import type { AgGlowHighlightStyleOptions, FillOptions, Opacity, StrokeOptions } from 'ag-charts-types';
+import {
+    type OptionsDefs,
+    fillOptionsDef,
+    glowOptionsDefs,
+    ratio,
+    strokeOptionsDef,
+    undocumentedDefs,
+} from 'ag-charts-core';
+import type { FillOptions, Opacity, StrokeOptions } from 'ag-charts-types';
 
-export const hierarchyHighlightStyleOptionsDef: OptionsDefs<
-    FillOptions & StrokeOptions & AgGlowHighlightStyleOptions & { opacity?: Opacity }
-> = {
+export const hierarchyHighlightStyleOptionsDef: OptionsDefs<FillOptions & StrokeOptions & { opacity?: Opacity }> = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     opacity: ratio,
-    glow: glowOptionsDefs,
+    ...undocumentedDefs({ glow: glowOptionsDefs }),
 };

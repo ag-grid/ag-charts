@@ -16,6 +16,7 @@ import {
     type FittedLabelStack,
     type FontOptions,
     Group,
+    type InternalAgGlowOptions,
     type LabelFit,
     type LabelFitDescriptor,
     type NormalisedAutoSizedSecondaryLabelOptions,
@@ -55,7 +56,7 @@ import {
     withoutGlow,
     wrapText,
 } from 'ag-charts-core';
-import type { AgGlowOptions, PaddingOptions } from 'ag-charts-types';
+import type { PaddingOptions } from 'ag-charts-types';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 import {
@@ -164,7 +165,7 @@ enum TextNodeTag {
 
 type ItemStyle = Pick<NormalisedTreemapSeriesStyle, 'fill' | 'stroke'> &
     Omit<Required<NormalisedTreemapSeriesStyle>, 'fill' | 'stroke'>;
-type HighlightStyle = Partial<ItemStyle> & { opacity?: number; glow?: DeepPartial<AgGlowOptions> };
+type HighlightStyle = Partial<ItemStyle> & { opacity?: number; glow?: DeepPartial<InternalAgGlowOptions> };
 
 function nodeSize(node: TreemapNode) {
     return node.children.length > 0 ? node.sumSize - node.sizeValue : node.sizeValue;

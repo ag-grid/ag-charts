@@ -1,11 +1,23 @@
-import type { Group, Shape } from 'ag-charts-core';
-import type { AgDropShadowOptions, AgGlowOptions, AgMarkerShapeFn } from 'ag-charts-types';
+import type { Group, InternalAgDropShadowOptions, InternalAgGlowOptions, Shape } from 'ag-charts-core';
+import type { AgChartOptions, AgMarkerShapeFn } from 'ag-charts-types';
+
+/**
+ * Options that set shadow or glow fields which are accepted at runtime but are not part of the public option types.
+ * The type argument names the options the literal is a stand-in for.
+ */
+export const internalOptions = <T = AgChartOptions>(options: object): T => options as unknown as T;
 
 /** The shadow the marker shadow tests turn on. */
-export const MARKER_SHADOW: AgDropShadowOptions = { enabled: true, fill: '#000000', xOffset: 4, yOffset: 4, blur: 6 };
+export const MARKER_SHADOW: InternalAgDropShadowOptions = {
+    enabled: true,
+    fill: '#000000',
+    xOffset: 4,
+    yOffset: 4,
+    blur: 6,
+};
 
 /** The series-level shadow the highlight tests turn on. */
-export const SERIES_SHADOW: AgDropShadowOptions = {
+export const SERIES_SHADOW: InternalAgDropShadowOptions = {
     enabled: true,
     fill: '#112233',
     xOffset: 4,
@@ -14,10 +26,16 @@ export const SERIES_SHADOW: AgDropShadowOptions = {
 };
 
 /** The glow the highlight tests turn on, distinct from `SERIES_SHADOW` in every field. */
-export const HIGHLIGHT_GLOW: AgGlowOptions = { enabled: true, fill: '#00aa00', fillOpacity: 1, blur: 3, spread: 2 };
+export const HIGHLIGHT_GLOW: InternalAgGlowOptions = {
+    enabled: true,
+    fill: '#00aa00',
+    fillOpacity: 1,
+    blur: 3,
+    spread: 2,
+};
 
 /** The shadow a glow casts: the same blurred silhouette as a shadow, centred on the item. */
-export const glowShadow = (glow: AgGlowOptions) => ({ ...glow, xOffset: 0, yOffset: 0 });
+export const glowShadow = (glow: InternalAgGlowOptions) => ({ ...glow, xOffset: 0, yOffset: 0 });
 
 export const XY_DATA = [
     { x: 1, y: 5, size: 10 },

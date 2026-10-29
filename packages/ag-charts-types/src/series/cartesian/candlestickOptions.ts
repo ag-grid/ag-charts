@@ -1,11 +1,10 @@
 import type { Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgMultiSeriesGlowHighlightOptions,
+    AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 import type { AgBarSeriesStyle } from './barOptions';
 import type {
@@ -48,17 +47,12 @@ export interface AgCandlestickSeriesStyles {
 
 export interface AgCandlestickSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>, AgCandlestickSeriesStyles {
-    /** Configuration for the shadow used behind the series items, including the wicks. */
-    shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual columns, based on the given parameters.*/
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum, TContext>, AgCandlestickSeriesItemOptions>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesGlowHighlightOptions<
-        AgCandlestickHighlightStyleOptions,
-        AgCandlestickHighlightStyleOptions
-    >;
+    highlight?: AgMultiSeriesHighlightOptions<AgCandlestickHighlightStyleOptions, AgCandlestickHighlightStyleOptions>;
 }
 export interface AgCandlestickHighlightStyleOptions extends AgCandlestickSeriesItemOptions {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */

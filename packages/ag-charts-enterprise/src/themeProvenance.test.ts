@@ -77,6 +77,7 @@ const CASES: Array<ProvenanceCase> = [
         series: { angleKey: 'category', radiusKey: 'value' },
         data: DATA,
         coverage: { minChecked: 97, maxSkipped: 12, maxRejected: 1, maxIneffective: 0, minContainers: 5 },
+        unresolved: ['AgRadarHighlightStyleOptions'],
     },
     {
         seriesType: 'funnel',

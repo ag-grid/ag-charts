@@ -1,7 +1,6 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelCollisionFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
@@ -18,7 +17,7 @@ import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
     AgHighlightStyleOptions,
-    AgMultiSeriesGlowHighlightOptions,
+    AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 
 export interface AgMapMarkerSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
@@ -119,8 +118,6 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
      * Default: `'diameter'`
      */
     sizeMode?: AgMarkerSizeMode;
-    /** Configuration for the shadow used behind the markers. Not applied to custom marker shapes. */
-    shadow?: AgDropShadowOptions;
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
     /** Configuration for the labels shown on top of data points. */
@@ -130,7 +127,7 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** A callback function for adjusting the styles of a particular Map marker based on the input parameters. */
     itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<TDatum, TContext>, AgMapMarkerSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesGlowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgMapMarkerSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

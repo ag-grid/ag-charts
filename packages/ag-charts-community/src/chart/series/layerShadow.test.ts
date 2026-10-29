@@ -1,16 +1,17 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import type { InternalAgDropShadowOptions } from 'ag-charts-core';
 import { ChartUpdateType, Transformable } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { STRIPPED_NUMBER_AXES } from '../test/bigintExamples';
-import { CATEGORY_DATA, HISTOGRAM_DATA, SERIES_SHADOW, XY_DATA } from '../test/shadowFixtures';
+import { CATEGORY_DATA, HISTOGRAM_DATA, SERIES_SHADOW, XY_DATA, internalOptions } from '../test/shadowFixtures';
 import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 interface SeriesCase {
     name: string;
     /** The series options, with `shadow` placed where this series reads it from. */
-    series: (shadow: AgDropShadowOptions | undefined) => object;
+    series: (shadow: InternalAgDropShadowOptions | undefined) => object;
     data: object[];
 }
 
@@ -84,7 +85,7 @@ describe('layer shadow batching of series', () => {
     ];
 
     /** The mask is a scratch canvas, so a series that batches its shadows draws one more canvas than it does without. */
-    const canvasesInUse = async (testCase: SeriesCase, shadow: AgDropShadowOptions | undefined) => {
+    const canvasesInUse = async (testCase: SeriesCase, shadow: InternalAgDropShadowOptions | undefined) => {
         const before = new Set(ctx.getActiveOffscreenCanvasInstances());
         await create({
             data: testCase.data,
@@ -116,7 +117,7 @@ describe('layer shadow batching of series', () => {
     describe('shadow beneath overlapping items', () => {
         // A shadow with no blur, to the right of a marker that is clear of it, so that its alpha is the strength of the
         // shadow on the white of the chart.
-        const SHADOW: AgDropShadowOptions = {
+        const SHADOW: InternalAgDropShadowOptions = {
             enabled: true,
             fill: 'rgba(0, 0, 0, 0.5)',
             xOffset: 40,
@@ -129,15 +130,17 @@ describe('layer shadow batching of series', () => {
         };
 
         const createScatter = (data: object[], marker: object) =>
-            create({
-                data,
-                animation: { enabled: false },
-                legend: { enabled: false },
-                axes: AXES,
-                series: [
-                    { type: 'scatter', xKey: 'x', yKey: 'y', shape: 'square', size: 20, shadow: SHADOW, ...marker },
-                ],
-            } as AgCartesianChartOptions);
+            create(
+                internalOptions<AgCartesianChartOptions>({
+                    data,
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    axes: AXES,
+                    series: [
+                        { type: 'scatter', xKey: 'x', yKey: 'y', shape: 'square', size: 20, shadow: SHADOW, ...marker },
+                    ],
+                })
+            );
 
         /** The canvas position of the centre of each marker, in the order that they are drawn. */
         const markerCentres = () =>
@@ -233,25 +236,27 @@ describe('layer shadow batching of series', () => {
         const MARKERS = 40;
 
         it('should blur the shadow of aggregated markers as one batch, not once for each', async () => {
-            await create({
-                data: Array.from({ length: MARKERS }, (_, i) => ({
-                    x: i % 8,
-                    y: Math.floor(i / 8),
-                    size: 1 + (i % 5),
-                })),
-                animation: { enabled: false },
-                legend: { enabled: false },
-                series: [
-                    {
-                        type: 'bubble',
-                        xKey: 'x',
-                        yKey: 'y',
-                        sizeKey: 'size',
-                        maxRenderedItems: 10,
-                        shadow: SERIES_SHADOW,
-                    },
-                ],
-            } as AgChartOptions);
+            await create(
+                internalOptions<AgChartOptions>({
+                    data: Array.from({ length: MARKERS }, (_, i) => ({
+                        x: i % 8,
+                        y: Math.floor(i / 8),
+                        size: 1 + (i % 5),
+                    })),
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    series: [
+                        {
+                            type: 'bubble',
+                            xKey: 'x',
+                            yKey: 'y',
+                            sizeKey: 'size',
+                            maxRenderedItems: 10,
+                            shadow: SERIES_SHADOW,
+                        },
+                    ],
+                })
+            );
 
             // Aggregation gives each marker a zIndex of its own, which only orders them.
             const nodes = [...chart.series[0].datumSelection.nodes()].filter((node: any) => node.visible);
@@ -277,7 +282,7 @@ describe('layer shadow batching of series', () => {
     });
 
     describe('spread shadow of paint that casts nothing', () => {
-        const SPREAD_SHADOW: AgDropShadowOptions = {
+        const SPREAD_SHADOW: InternalAgDropShadowOptions = {
             enabled: true,
             fill: 'rgba(255, 0, 0, 0.5)',
             xOffset: 0,
@@ -302,7 +307,7 @@ describe('layer shadow batching of series', () => {
             strokeOpacity: 0,
         };
 
-        const render = async (fill: unknown, shadow: AgDropShadowOptions) => {
+        const render = async (fill: unknown, shadow: InternalAgDropShadowOptions) => {
             await create({
                 data: CATEGORY_DATA,
                 animation: { enabled: false },
@@ -337,12 +342,12 @@ describe('layer shadow batching of series', () => {
 
     describe('series without a shadow', () => {
         it('should render the same with a disabled shadow as with none', async () => {
-            const options = (shadow: AgDropShadowOptions | undefined) =>
-                ({
+            const options = (shadow: InternalAgDropShadowOptions | undefined) =>
+                internalOptions<AgCartesianChartOptions>({
                     data: XY_DATA,
                     animation: { enabled: false },
                     series: [{ type: 'scatter', xKey: 'x', yKey: 'y', shadow }],
-                }) as AgCartesianChartOptions;
+                });
 
             await create(options(undefined));
             const snapshot = () => [...chart.ctx.scene.canvas.context.getImageData(0, 0, 800, 600).data];

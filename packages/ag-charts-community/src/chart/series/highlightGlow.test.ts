@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Rect, Sector, Shape, Transformable, overrideTintableShadows } from 'ag-charts-core';
-import type { Node } from 'ag-charts-core';
-import type { AgBarSeriesOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
+import type { InternalAgDropShadowOptions, InternalAgGlowHighlightStyleOptions, Node } from 'ag-charts-core';
+import type { AgBarSeriesOptions, AgChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { Chart } from '../chart';
@@ -23,6 +23,9 @@ import { HighlightState } from './seriesTypes';
 /** The four highlight styles that accept a `glow` on a series with series states. */
 const BUCKETS = ['highlightedItem', 'unhighlightedItem', 'highlightedSeries', 'unhighlightedSeries'] as const;
 
+/** The bar highlight buckets with an undocumented `glow`. */
+type BarGlowHighlight = { highlight?: Partial<Record<(typeof BUCKETS)[number], InternalAgGlowHighlightStyleOptions>> };
+
 const STATES = {
     highlightedItem: HighlightState.Item,
     unhighlightedItem: HighlightState.OtherItem,
@@ -35,7 +38,7 @@ const casts = (shape: Shape) => shape.fillShadow?.enabled === true;
 interface SeriesCase {
     name: string;
     /** The series options, with `shadow` placed where this series reads it from. */
-    series: (shadow: AgDropShadowOptions | undefined, extra: object) => object;
+    series: (shadow: InternalAgDropShadowOptions | undefined, extra: object) => object;
     data: object[];
     kind: abstract new (...args: any[]) => Shape;
 }
@@ -127,7 +130,7 @@ describe('highlight glow', () => {
 
     const hoverFirstItem = async (
         testCase: SeriesCase,
-        shadow: AgDropShadowOptions | undefined,
+        shadow: InternalAgDropShadowOptions | undefined,
         highlight: object = {},
         drawingMode: 'cutout' | 'overlay' = 'cutout'
     ) => {
@@ -496,7 +499,7 @@ describe('highlight glow', () => {
 
         it('puts the glow theme defaults on the series buckets only, so a series glow reaches the items', async () => {
             await createBar('ag-default');
-            const { highlight } = getSeriesOptions<AgBarSeriesOptions>(chart);
+            const { highlight } = getSeriesOptions<AgBarSeriesOptions & BarGlowHighlight>(chart);
 
             expect(highlight?.highlightedSeries?.glow).toBeDefined();
             expect(highlight?.unhighlightedSeries?.glow).toBeDefined();
@@ -694,7 +697,7 @@ describe('highlight glow', () => {
         describe('where the item has no fill of its own to take', () => {
             const marker = (extra: object) => ({
                 ...SERIES[3],
-                series: (shadow: AgDropShadowOptions | undefined, options: object) => ({
+                series: (shadow: InternalAgDropShadowOptions | undefined, options: object) => ({
                     type: 'scatter',
                     xKey: 'x',
                     yKey: 'y',

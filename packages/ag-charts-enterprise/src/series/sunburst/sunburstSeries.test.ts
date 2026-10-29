@@ -40,6 +40,7 @@ import {
     getSeriesSelectionNodes,
     hierarchyChartAssertions,
     hoverAction,
+    internalOptions,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -1157,12 +1158,13 @@ describe('SunburstSeries', () => {
         const shadow = { enabled: true, fill: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 8 };
         const data = HIERARCHY_SHADOW_DATA;
         let proxy: AgChartInstance;
-        const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
-            data,
-            series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', shadow: seriesShadow }],
-            legend: { enabled: false },
-            animation: { enabled: false },
-        });
+        const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions =>
+            internalOptions<AgChartOptions>({
+                data,
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', shadow: seriesShadow }],
+                legend: { enabled: false },
+                animation: { enabled: false },
+            });
         const renderSeries = async (seriesShadow?: typeof shadow) => {
             proxy = await createEnterpriseChart(shadowOptions(seriesShadow));
             chart = deproxy(proxy);
