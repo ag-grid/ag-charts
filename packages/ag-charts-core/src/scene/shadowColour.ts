@@ -63,6 +63,11 @@ export function withShadowFill(shadow: NormalisedDropShadowOptions, fill: string
 
 let tintable: boolean | undefined;
 
+/** Makes {@link canTintShadows} answer `canTint` in place of the canvas, or probe the canvas again if it is undefined. */
+export function overrideTintableShadows(canTint?: boolean) {
+    tintable = canTint;
+}
+
 /**
  * Whether a canvas can blur a mask that holds silhouettes of many colours once, with its `filter`, so that a glow with no
  * `fill` makes one shadow for all of its items. Without it, a glow makes a shadow for each colour.
@@ -81,6 +86,7 @@ export function canTintShadows(): boolean {
 
 interface ColourInfo {
     visible: boolean;
+    alpha: number;
     /** The colour with its alpha removed, or the colour itself if it can't be read. */
     opaque: string;
 }
@@ -92,9 +98,9 @@ function getColourInfo(colour: string): ColourInfo {
     if (info == null) {
         try {
             const { r, g, b, a } = Color.fromString(colour);
-            info = { visible: a > 0, opaque: new Color(r, g, b, 1).toRgbaString() };
+            info = { visible: a > 0, alpha: a, opaque: new Color(r, g, b, 1).toRgbaString() };
         } catch {
-            info = { visible: false, opaque: colour };
+            info = { visible: false, alpha: 0, opaque: colour };
         }
         if (colourInfos.size >= MAX_FILLS_PER_SHADOW) colourInfos.delete(colourInfos.keys().next().value!);
         colourInfos.set(colour, info);
@@ -109,6 +115,11 @@ function isVisibleColour(colour: string): boolean {
 /** The colour with its alpha removed, or the colour itself if it can't be read. */
 export function getOpaqueColour(colour: string): string {
     return getColourInfo(colour).opaque;
+}
+
+/** The alpha of the colour, or 0 if it can't be read. */
+export function getColourAlpha(colour: string): number {
+    return getColourInfo(colour).alpha;
 }
 
 /** A paint's solid colour: a gradient's first stop or a pattern's fill. Undefined for an image or no paint. */

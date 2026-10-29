@@ -44,7 +44,14 @@ import { Image } from '../image/image';
 import type { MatrixFrame } from '../matrix';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { canTintShadows, getOpaqueColour, getShadowColour, getSolidColour, withShadowFill } from '../shadowColour';
+import {
+    canTintShadows,
+    getColourAlpha,
+    getOpaqueColour,
+    getShadowColour,
+    getSolidColour,
+    withShadowFill,
+} from '../shadowColour';
 import { shadowPass } from '../shadowPass';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
@@ -425,9 +432,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         stroke: unknown;
         strokeOpacity: number;
         resolved: ResolvedDropShadowOptions | undefined;
-        fromStroke: boolean;
         /** The colour of the shadow with no alpha, which a batch draws the silhouette in, as the alpha is its strength. */
         tint: string;
+        /** The alpha that the shadow's colour has, which a batch casts the silhouette at, as a shadow drawn by the shape does. */
+        tintAlpha: number;
     };
 
     /** How much wider than the shape the spread shadow's stroke is drawn. Zero except while that stroke is drawn. */
@@ -517,8 +525,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             const fillColour = getSolidColour(fill, fillOpacity);
             const colour = fillColour ?? getSolidColour(stroke, strokeOpacity);
             const resolved = colour == null ? undefined : withShadowFill(shadow, colour);
-            const fromStroke = resolved != null && fillColour == null;
             const tint = colour == null ? '#000' : getOpaqueColour(colour);
+            const tintAlpha = colour == null ? 1 : getColourAlpha(colour);
             cast = this.castShadowMemo = {
                 shadow,
                 fill,
@@ -526,8 +534,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 stroke,
                 strokeOpacity,
                 resolved,
-                fromStroke,
                 tint,
+                tintAlpha,
             };
         }
         return cast.resolved;
@@ -538,9 +546,17 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * of every colour share a mask and a blur: each silhouette is drawn in its colour, see {@link getCastTint}.
      */
     getBatchShadow(): NormalisedDropShadowOptions | undefined {
-        const resolved = this.getCastShadow();
-        const shadow = this.__fillShadow;
-        return resolved != null && shadow?.fill == null && canTintShadows() ? shadow : resolved;
+        return this.isBatchTinted() ? this.__fillShadow : this.getCastShadow();
+    }
+
+    /** Whether a batch casts this shape's glow in the shape's own colour, rather than keyed by it. */
+    private isBatchTinted(): boolean {
+        return this.__fillShadow?.fill == null && this.getCastShadow() != null && canTintShadows();
+    }
+
+    /** The alpha that the colour of this shape's glow has. */
+    private getCastAlpha(): number {
+        return this.getCastShadow() == null ? 1 : this.castShadowMemo!.tintAlpha;
     }
 
     /** The colour that this shape draws its silhouette in, in a mask whose shadow takes the colour of each caster. */
@@ -557,9 +573,6 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const shadow = this.__fillShadow;
         if (mode !== 'fill' || shadow?.enabled !== true || shadow.glow !== true) return mode;
 
-        if (shadow.fill == null) {
-            return this.getCastShadow() != null && this.castShadowMemo!.fromStroke ? 'stroke' : mode;
-        }
         return !this.hasCastableFill() && this.hasCastableStroke() ? 'stroke' : mode;
     }
 
@@ -610,6 +623,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             return;
         }
 
+        // The paint is drawn as it is, with its own alpha, so a tinted batch casts the alpha of the glow's colour on top of it.
+        const maskAlpha = ctx.globalAlpha;
+        if (shadowPass.tinted) ctx.globalAlpha *= this.getCastAlpha();
+
         if (drawsFill) {
             this.renderFill(ctx, logger, path, bboxOverride, fillBBoxOverride);
         }
@@ -633,6 +650,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (hasExtras) {
             this.renderSilhouetteExtras(ctx);
         }
+        ctx.globalAlpha = maskAlpha;
     }
 
     /** Whether the fill is part of the silhouette that casts the shadow. A fill with no alpha casts nothing. */
@@ -652,9 +670,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     /**
      * The strength that a spread shadow's silhouette casts at, before the alpha of the layer it is drawn into: the fill's
-     * strongest alpha, else the stroke's, else the extras', or 0 if the shape casts nothing.
+     * strongest alpha, else the stroke's, else the extras', or 0 if the shape casts nothing. A silhouette drawn for a
+     * tinted batch also casts at the alpha of its colour, which the colour of a shadow that the shape casts itself keeps.
      */
-    private getSpreadStrength(drawsFill: boolean, drawsStroke: boolean, hasExtras: boolean): number {
+    private getSpreadStrength(drawsFill: boolean, drawsStroke: boolean, hasExtras: boolean, tinted: boolean): number {
         const { __opacity: opacity = 1, __fillOpacity: fillOpacity = 1, __strokeOpacity: strokeOpacity = 1 } = this;
         let strength: number;
         if (drawsFill) {
@@ -666,7 +685,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         } else {
             return 0;
         }
-        return strength * this.getPaintOpacityScale();
+        strength *= this.getPaintOpacityScale();
+        return tinted ? strength * this.getCastAlpha() : strength;
     }
 
     /**
@@ -688,7 +708,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             return;
         }
 
-        const strength = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras);
+        const strength = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras, this.isBatchTinted());
         return isFiniteNumber(strength) ? strength : undefined;
     }
 
@@ -714,7 +734,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         hasExtras: boolean,
         bboxOverride?: BBox
     ) {
-        const base = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras);
+        const base = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras, shadowPass.tinted);
         // A batch that casts at its casters' shared strength draws each silhouette solid. See `getSpreadMaskStrength`.
         const strength = shadowPass.opaque && base > 0 ? 1 : base * ctx.globalAlpha;
         if (strength <= 0 || !isFiniteNumber(strength)) return;
@@ -803,6 +823,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const lineCap = this.__lineCap;
         let dilationCap: ShapeLineCap = lineCap == null || lineCap === 'butt' ? 'square' : lineCap;
         if (this.getShadowMode() === 'fill') dilationCap = 'round';
+        // With no spread nothing grows, so the strokes cap as they are painted.
+        if (spread <= 0) dilationCap = lineCap ?? 'butt';
         ctx.lineCap = dilationCap;
         ctx.lineJoin = drawsStroke ? (this.__lineJoin ?? 'miter') : 'miter';
         ctx.miterLimit = drawsStroke ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
@@ -838,7 +860,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         } else if (drawsFill && spread > 0) {
             this.dilateFill(ctx, path);
         }
-        if (this.getShadowMode() !== 'fill' && spread > 0) {
+        if (this.getShadowMode() !== 'fill') {
             this.dilateSilhouetteExtras(ctx, spread * 2);
         }
     }
