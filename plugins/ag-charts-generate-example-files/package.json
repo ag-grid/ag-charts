@@ -3,7 +3,7 @@
   "version": "14.3.0",
   "private": true,
   "dependencies": {
-    "@nx/devkit": "21.6.11",
+    "@nx/devkit": "22.7.12",
     "@swc/helpers": "0.5.23",
     "ag-charts-community": "14.3.0",
     "ag-charts-test": "14.3.0",
