@@ -664,18 +664,12 @@ describe('AgCharts', () => {
             expect(deproxy(chart).getChartType()).toBe('standalone');
         });
 
-        it('renders a series-less chart without reporting a series module when none is registered', async () => {
-            await withOnlyRegistered([CategoryAxisModule, NumberAxisModule], async () => {
-                expect(
-                    () => (chart = AgCharts.create({ container, title: { text: 'Implicit' } } as AgChartOptions))
-                ).not.toThrow();
-                await chart.waitForUpdate();
+        it('throws for a series-less chart when only axis modules are registered', async () => {
+            await withOnlyRegistered([CategoryAxisModule, NumberAxisModule], () => {
+                expect(() => AgCharts.create({ container, title: { text: 'Implicit' } } as AgChartOptions)).toThrow(
+                    /No series modules have been registered/
+                );
             });
-
-            expect(console.error).not.toHaveBeenCalled();
-            expect(console.warn).not.toHaveBeenCalled();
-            expectEmptyChartWithDefaults('Implicit');
-            expect(axisTypesByDirection()).toEqual({ x: 'category', y: 'number' });
         });
 
         it('gives a series-less chart the cartesian default axes whichever series modules are registered', async () => {

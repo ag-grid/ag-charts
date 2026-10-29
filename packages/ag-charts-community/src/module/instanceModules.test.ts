@@ -482,6 +482,12 @@ describe('instance modules', () => {
             );
         });
 
+        it('throws when the modules in scope hold no series type', () => {
+            expect(() =>
+                AgCharts.create(prepareTestOptions({ ...LINE_CHART }), { modules: [CategoryAxisModule] })
+            ).toThrow(/No series modules have been registered/);
+        });
+
         it('renders identically whether modules are registered globally or per instance', async () => {
             ModuleRegistry.registerModules([...LINE_MODULES, LegendModule]);
             chart = await createChart({ ...LINE_CHART });

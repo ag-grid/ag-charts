@@ -346,7 +346,7 @@ class AgChartsInternal {
 
         const moduleScope =
             proxy?.chart?.chartOptions.moduleRegistry ?? resolveInstanceModuleScope(optionsMetadata.modules);
-        if (moduleScope.listModulesByType(ModuleType.Chart).next().done) {
+        if (moduleScope.listModulesByType(ModuleType.Series).next().done) {
             throw new Error(
                 [
                     moduleScope.listModules().next().done
