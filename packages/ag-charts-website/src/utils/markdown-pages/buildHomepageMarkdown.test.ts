@@ -13,9 +13,7 @@ describe('buildHomepageMarkdown', () => {
 
     it('renders the hero subheading and its CTA link', () => {
         expect(output).toContain('The professional choice for developers building enterprise applications');
-        expect(output).toContain(
-            '[See the charts](https://www.ag-grid.com/gallery/)'
-        );
+        expect(output).toContain('[See the charts](https://www.ag-grid.com/gallery/)');
     });
 
     it('renders each landing section heading', () => {
@@ -28,9 +26,7 @@ describe('buildHomepageMarkdown', () => {
     });
 
     it('resolves section CTA links absolutely', () => {
-        expect(output).toContain(
-            '[Explore the Docs](https://www.ag-grid.com/react/quick-start/)'
-        );
+        expect(output).toContain('[Explore the Docs](https://www.ag-grid.com/react/quick-start/)');
     });
 
     it("renders the gallery section's CTAs as one row", () => {
