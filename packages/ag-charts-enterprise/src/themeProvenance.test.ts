@@ -14,38 +14,38 @@ const DATA = [
 /**
  * See the community suite for what `coverage` pins and how to update it. Each `maxSkipped` counts
  * the four `highlight` buckets, which are containers with no value of their own to compare, except radial-bar's and
- * cone-funnel's: neither series has the `glow` option. Range-bar's `maxIneffective` counts `grouped`, which resolves into `seriesGrouping`.
+ * cone-funnel's: neither series has the `glow` option. Cartesian cases also count the `collector` callback. Range-bar's `maxIneffective` counts `grouped`, which resolves into `seriesGrouping`.
  */
 const CASES: Array<ProvenanceCase> = [
     {
         seriesType: 'range-bar',
         series: { xKey: 'category', yLowKey: 'low', yHighKey: 'high' },
         data: DATA,
-        coverage: { minChecked: 127, maxSkipped: 13, maxRejected: 1, maxIneffective: 1, minContainers: 5 },
+        coverage: { minChecked: 127, maxSkipped: 14, maxRejected: 1, maxIneffective: 1, minContainers: 5 },
     },
     {
         seriesType: 'range-area',
         series: { xKey: 'category', yLowKey: 'low', yHighKey: 'high' },
         data: DATA,
-        coverage: { minChecked: 157, maxSkipped: 14, maxRejected: 1, maxIneffective: 0, minContainers: 9 },
+        coverage: { minChecked: 157, maxSkipped: 15, maxRejected: 1, maxIneffective: 0, minContainers: 9 },
     },
     {
         seriesType: 'waterfall',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 226, maxSkipped: 20, maxRejected: 4, maxIneffective: 0, minContainers: 17 },
+        coverage: { minChecked: 226, maxSkipped: 21, maxRejected: 4, maxIneffective: 0, minContainers: 17 },
     },
     {
         seriesType: 'box-plot',
         series: { xKey: 'category', minKey: 'low', q1Key: 'open', medianKey: 'value', q3Key: 'close', maxKey: 'high' },
         data: DATA,
-        coverage: { minChecked: 111, maxSkipped: 11, maxRejected: 4, maxIneffective: 0, minContainers: 3 },
+        coverage: { minChecked: 111, maxSkipped: 12, maxRejected: 4, maxIneffective: 0, minContainers: 3 },
     },
     {
         seriesType: 'heatmap',
         series: { xKey: 'category', yKey: 'value', colorKey: 'numeric' },
         data: DATA,
-        coverage: { minChecked: 75, maxSkipped: 11, maxRejected: 2, maxIneffective: 0, minContainers: 4 },
+        coverage: { minChecked: 75, maxSkipped: 12, maxRejected: 2, maxIneffective: 0, minContainers: 4 },
     },
     {
         seriesType: 'radial-bar',
@@ -100,19 +100,19 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'candlestick',
         series: { xKey: 'category', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
         data: DATA,
-        coverage: { minChecked: 114, maxSkipped: 9, maxRejected: 4, maxIneffective: 0, minContainers: 2 },
+        coverage: { minChecked: 114, maxSkipped: 10, maxRejected: 4, maxIneffective: 0, minContainers: 2 },
     },
     {
         seriesType: 'ohlc',
         series: { xKey: 'category', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' },
         data: DATA,
-        coverage: { minChecked: 66, maxSkipped: 9, maxRejected: 8, maxIneffective: 0, minContainers: 2 },
+        coverage: { minChecked: 66, maxSkipped: 10, maxRejected: 8, maxIneffective: 0, minContainers: 2 },
     },
     {
         seriesType: 'hlc',
         series: { xKey: 'category', highKey: 'high', lowKey: 'low', closeKey: 'close' },
         data: DATA,
-        coverage: { minChecked: 125, maxSkipped: 7, maxRejected: 0, maxIneffective: 0, minContainers: 7 },
+        coverage: { minChecked: 125, maxSkipped: 8, maxRejected: 0, maxIneffective: 0, minContainers: 7 },
     },
 ];
 

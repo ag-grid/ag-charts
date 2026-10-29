@@ -341,6 +341,12 @@
                         },
                         {
                             "type": "item",
+                            "title": "Status Bar",
+                            "path": "status-bar",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
                             "title": "Synchronization",
                             "path": "sync",
                             "isEnterprise": true

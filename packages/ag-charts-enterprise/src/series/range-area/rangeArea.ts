@@ -7,6 +7,7 @@ import {
     type AgRangeAreaSeriesStyle,
     type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
+    type SeriesFormatterSource,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -41,6 +42,7 @@ import {
     type SizedPoint,
     type Writeable,
     cachedTextMeasurer,
+    drawnItemColor,
     extent,
     findMinMax,
     isContinuous,
@@ -53,7 +55,7 @@ import {
     toArray,
     toNumber,
 } from 'ag-charts-core';
-import type { Path, Segment, SegmentedPath, Selection, Text } from 'ag-charts-core';
+import type { DrawnItemStyle, Path, Segment, SegmentedPath, Selection, SeriesDatumValue, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
@@ -1622,14 +1624,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         return { xKey, yLowKey, yHighKey, itemType };
     }
 
-    override getTooltipContent(
-        datumIndex: number,
-        removeThisDatum: RangeAreaMarkerDatum | undefined
-    ): _ModuleSupport.TooltipContent | undefined {
-        const itemType: AgRangeAreaSeriesItemType = removeThisDatum?.itemType ?? 'high';
-
-        const { id: seriesId, dataModel, processedData, axes, options } = this;
-        const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip, legendItemName } = options;
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource, itemType: AgRangeAreaSeriesItemType = 'high') {
+        const { dataModel, processedData, axes, options } = this;
+        const { xName, yLowKey, yLowName, xKey, yHighKey, yHighName, legendItemName } = options;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -1645,29 +1642,78 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const stylerStyle = this.getStyle(undefined);
-        const params = this.makeItemStylerParams(itemType);
-        const format = this.getMarkerStyle(
-            this.itemMarkers[itemType],
-            { datumIndex, datum },
-            params,
-            { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
-            stylerStyle.item[itemType].marker
-        ) as RequireOptional<AgSeriesMarkerStyle>;
+        const markerStyle = (type: AgRangeAreaSeriesItemType) =>
+            this.getMarkerStyle(
+                this.itemMarkers[type],
+                { datumIndex, datum },
+                this.makeItemStylerParams(type),
+                { isHighlight: false, resolveMarkerSubPath: ['item', type, 'marker'] },
+                stylerStyle.item[type].marker
+            ) as RequireOptional<AgSeriesMarkerStyle>;
+        const style = markerStyle(itemType);
 
-        const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
+        const itemValue = (
+            type: AgRangeAreaSeriesItemType,
+            key: string,
+            name: string | undefined,
+            value: AgNumericValue
+        ): SeriesDatumValue => {
+            let drawnStyle: DrawnItemStyle = stylerStyle.item[type];
+            if (this.itemMarkers[type].enabled) drawnStyle = type === itemType ? style : markerStyle(type);
+            return {
+                key,
+                name,
+                value,
+                formattedValue: this.getAxisValueText(yAxis, source, value, datum, key, legendItemName),
+                missing: _ModuleSupport.isTooltipValueMissing(value),
+                color: drawnItemColor(drawnStyle),
+            };
+        };
+
+        return {
+            datum,
+            style,
+            values: [
+                {
+                    key: xKey,
+                    name: xName,
+                    value: xValue,
+                    formattedValue: this.getAxisValueText(xAxis, source, xValue, datum, xKey, legendItemName),
+                    category: true,
+                },
+                itemValue('low', yLowKey, yLowName, yLowValue),
+                itemValue('high', yHighKey, yHighName, yHighValue),
+            ],
+        };
+    }
+
+    override getTooltipContent(
+        datumIndex: number,
+        removeThisDatum: RangeAreaMarkerDatum | undefined
+    ): _ModuleSupport.TooltipContent | undefined {
+        const itemType: AgRangeAreaSeriesItemType = removeThisDatum?.itemType ?? 'high';
+
+        const { id: seriesId, options } = this;
+        const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip, legendItemName } = options;
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip', itemType);
+        if (datumValues == null) return;
+        const {
+            datum,
+            style,
+            values: [x, low, high],
+        } = datumValues;
+
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                heading: x.formattedValue,
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
                         label: yName,
                         fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
-                        value,
-                        missing:
-                            _ModuleSupport.isTooltipValueMissing(yHighValue) &&
-                            _ModuleSupport.isTooltipValueMissing(yLowValue),
+                        value: `${low.formattedValue} - ${high.formattedValue}`,
+                        missing: low.missing && high.missing,
                     },
                 ],
             },
@@ -1684,7 +1730,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 yHighKey,
                 yHighName,
                 legendItemName,
-                ...format,
+                ...style,
             }
         );
     }

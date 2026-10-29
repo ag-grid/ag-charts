@@ -8,6 +8,7 @@ import {
     type OptionsDefs,
     autoSizedLabelOptionsDefs,
     boolean,
+    callback,
     callbackDefs,
     colorScaleOptionsDef,
     commonSeriesOptionsDefs,
@@ -46,6 +47,7 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
         { rememberResults: true }
     ),
     showInMiniChart: boolean,
+    collector: callback,
     label: {
         ...autoSizedLabelOptionsDefs,
         // The full `textAlign` union: the deprecated top-level option forwards into here, so it must

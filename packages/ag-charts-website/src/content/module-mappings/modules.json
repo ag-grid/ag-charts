@@ -410,6 +410,12 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "StatusBarModule",
+                    "name": "Status Bar",
+                    "path": "status-bar",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "SyncModule",
                     "name": "Synchronization",
                     "path": "sync",

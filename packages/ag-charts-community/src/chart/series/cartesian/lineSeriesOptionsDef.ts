@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     boolean,
+    callback,
     callbackDefs,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -36,6 +37,7 @@ const lineStyler = callbackDefs<AgLineSeriesStylerResult>({
 export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOptions> = {
     title: string,
     showInMiniChart: boolean,
+    collector: callback,
     connectMissingData: boolean,
     interpolation: interpolationOptionsDefs,
     label: placedSeriesLabelOptionsDefs,

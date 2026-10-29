@@ -66,7 +66,10 @@ export interface AgConeFunnelSeriesTooltipRendererParams<TDatum = DatumDefault, 
 
 export interface AgConeFunnelSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInMiniChart' | 'showInLegend' | 'selection'>,
+        Omit<
+            AgBaseCartesianThemeableOptions<TDatum, TContext>,
+            'showInMiniChart' | 'showInLegend' | 'selection' | 'collector'
+        >,
         LineDashOptions {
     /** The colours to cycle through for the fills of the drop-offs. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];

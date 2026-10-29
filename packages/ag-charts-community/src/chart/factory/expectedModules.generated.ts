@@ -518,6 +518,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         contributes: [
             {
                 path: 'statusBar',
+                options: object,
             },
         ],
     },

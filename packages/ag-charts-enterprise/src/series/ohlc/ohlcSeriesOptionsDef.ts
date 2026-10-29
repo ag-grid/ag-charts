@@ -2,6 +2,7 @@ import type { AgOhlcSeriesItemOptions, AgOhlcSeriesOptions, AgOhlcSeriesThemeabl
 import {
     type OptionsDefs,
     boolean,
+    callback,
     callbackDefs,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -19,6 +20,7 @@ import {
 
 export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOptions> = {
     showInMiniChart: boolean,
+    collector: callback,
     itemStyler: callbackDefs<AgOhlcSeriesItemOptions>({
         ...strokeOptionsDef,
         ...lineDashOptionsDef,

@@ -15,43 +15,44 @@ const DATA = [
  * The `maxIneffective` allowances cover `errorBar`, whose module is enterprise and so strips on both routes
  * here — nothing this suite can demonstrate. Each `maxSkipped` counts the four `highlight` buckets, which are containers with no
  * value of their own to compare; their `glow` leaves are checked individually.
+ * Cartesian cases also count the `collector` callback.
  */
 const CASES: Array<ProvenanceCase> = [
     {
         seriesType: 'bar',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 127, maxSkipped: 13, maxRejected: 1, maxIneffective: 15, minContainers: 6 },
+        coverage: { minChecked: 127, maxSkipped: 14, maxRejected: 1, maxIneffective: 15, minContainers: 6 },
     },
     {
         seriesType: 'line',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 118, maxSkipped: 14, maxRejected: 1, maxIneffective: 15, minContainers: 5 },
+        coverage: { minChecked: 118, maxSkipped: 15, maxRejected: 1, maxIneffective: 15, minContainers: 5 },
     },
     {
         seriesType: 'area',
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 127, maxSkipped: 14, maxRejected: 1, maxIneffective: 0, minContainers: 7 },
+        coverage: { minChecked: 127, maxSkipped: 15, maxRejected: 1, maxIneffective: 0, minContainers: 7 },
     },
     {
         seriesType: 'scatter',
         series: { xKey: 'numeric', yKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 116, maxSkipped: 14, maxRejected: 3, maxIneffective: 15, minContainers: 4 },
+        coverage: { minChecked: 116, maxSkipped: 15, maxRejected: 3, maxIneffective: 15, minContainers: 4 },
     },
     {
         seriesType: 'bubble',
         series: { xKey: 'numeric', yKey: 'value', sizeKey: 'size' },
         data: DATA,
-        coverage: { minChecked: 117, maxSkipped: 15, maxRejected: 3, maxIneffective: 0, minContainers: 4 },
+        coverage: { minChecked: 117, maxSkipped: 16, maxRejected: 3, maxIneffective: 0, minContainers: 4 },
     },
     {
         seriesType: 'histogram',
         series: { xKey: 'numeric' },
         data: DATA,
-        coverage: { minChecked: 96, maxSkipped: 13, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
+        coverage: { minChecked: 96, maxSkipped: 14, maxRejected: 1, maxIneffective: 0, minContainers: 4 },
     },
     {
         seriesType: 'pie',

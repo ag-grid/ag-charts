@@ -23,6 +23,7 @@ import type {
     FormatterParams,
     Padding,
     RichFormatter,
+    SeriesFormatterSource,
     Styler,
     TextOptions,
     TextWrap,
@@ -79,7 +80,7 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     formatDatum(
         contextProvider: { context?: unknown },
         value: any,
-        source: 'tooltip' | 'series-label',
+        source: SeriesFormatterSource,
         seriesId: string,
         legendItemName: string | undefined,
         datum: any,
@@ -105,7 +106,7 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     formatDatum<Params extends object>(
         contextProvider: { context?: unknown } | undefined,
         value: any,
-        source: 'tooltip' | 'series-label',
+        source: SeriesFormatterSource,
         seriesId: string,
         legendItemName: string | undefined,
         datum: any,

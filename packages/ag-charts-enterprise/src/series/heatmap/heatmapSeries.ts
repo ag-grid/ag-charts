@@ -3,6 +3,7 @@ import type {
     AgHeatmapSeriesLabelFormatterParams,
     FontStyle,
     FontWeight,
+    SeriesFormatterSource,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-community';
@@ -35,6 +36,8 @@ import {
     type SizedPoint,
     arraysEqual,
     configureColorScale,
+    datumValueTooltipRow,
+    drawnItemColor,
     extent,
     findDiscreteColorBinLabel,
     formatValue,
@@ -49,7 +52,7 @@ import {
     upsertNodeDatum,
     writeLabelBoxCentre,
 } from 'ag-charts-core';
-import type { PlainObject, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
+import type { PlainObject, QuadtreeNearest, Selection, SeriesDatumValue, Text } from 'ag-charts-core';
 import type { PaddingOptions } from 'ag-charts-types';
 
 import { autoSizedLabelFit } from '../util/autoSizedLabelFit';
@@ -1274,10 +1277,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         };
     }
 
-    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
+    getDatumValues(datumIndex: number, source: SeriesFormatterSource) {
         const { id: seriesId, dataModel, processedData, axes, options, colorScale, ctx } = this;
         const { formatManager } = ctx;
-        const { xKey, xName, yKey, yName, colorKey, colorName, title, tooltip } = options;
+        const { xKey, xName, yKey, yName, colorKey, colorName } = options;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -1294,20 +1297,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const allowNullKeys = this.options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
 
-        // Independent of `isColorScaleValid()` so an invalidly-configured scale doesn't take out
-        // tooltips for datums whose own data is fine.
+        const style = this.getItemStyle({ datumIndex, datum, colorValue }, false);
+        let fill: InternalAgColorType = style.fill ?? options.colorScale.fills[0]?.color ?? 'black';
+        const values: SeriesDatumValue[] = [];
+
         if (colorKey != null && colorValue == null) {
-            return;
-        }
-
-        const data: _ModuleSupport.TooltipContentDataRow[] = [];
-
-        // Reachable only when colorKey is null (missing-colour datums returned above).
-        let fill: InternalAgColorType;
-        if (colorValue == null) {
-            fill = options.colorScale.fills[0]?.color ?? 'black';
-        } else {
-            fill = colorScale.convert(colorValue);
+            values.push({ key: colorKey, name: colorName, value: undefined, missing: true });
+        } else if (colorValue != null) {
+            fill = style.fill ?? colorScale.convert(colorValue);
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
@@ -1316,7 +1313,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 seriesId,
                 legendItemName: undefined,
                 key: colorKey!,
-                source: 'tooltip',
+                source,
                 property: 'color',
                 domain,
                 boundSeries: this.getFormatterContext('color'),
@@ -1324,30 +1321,43 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 visibleDomain: undefined,
             });
             const binLabel = findDiscreteColorBinLabel(colorScale, options.colorScale.fills, colorValue, formatValue);
-            data.push({
-                label: colorName,
-                fallbackLabel: colorKey!,
-                value: content ?? binLabel ?? formatValue(colorValue),
+            values.push({
+                key: colorKey!,
+                name: colorName,
+                value: colorValue,
+                formattedValue: content ?? binLabel ?? formatValue(colorValue),
             });
         }
 
-        data.push(
+        values.push(
             {
-                label: xName,
-                fallbackLabel: xKey,
-                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, undefined),
+                key: xKey,
+                name: xName,
+                value: xValue,
+                formattedValue: this.getAxisValueText(xAxis, source, xValue, datum, xKey, undefined),
+                category: true,
             },
             {
-                label: yName,
-                fallbackLabel: yKey,
-                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, undefined),
+                key: yKey,
+                name: yName,
+                value: yValue,
+                formattedValue: this.getAxisValueText(yAxis, source, yValue, datum, yKey, undefined),
+                category: true,
             }
         );
 
-        const format = this.getItemStyle({ datumIndex, datum, colorValue }, false);
-        if (format.fill != null) {
-            fill = format.fill;
-        }
+        const color = drawnItemColor({ fill });
+        return { datum, style, fill, values: values.map((value) => ({ ...value, color })) };
+    }
+
+    override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
+        const { id: seriesId, options } = this;
+        const { xKey, xName, yKey, yName, colorKey, colorName, title, tooltip } = options;
+        const datumValues = this.getDatumValues(datumIndex, 'tooltip');
+        // Independent of `isColorScaleValid()` so an invalidly-configured scale doesn't take out
+        // tooltips for datums whose own data is fine.
+        if (datumValues == null || datumValues.values.some(({ missing }) => missing)) return;
+        const { datum, style, fill, values } = datumValues;
 
         const symbol: _ModuleSupport.LegendSymbolOptions | undefined =
             fill == null
@@ -1365,7 +1375,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         return this.formatTooltipWithContext(
             tooltip,
-            { title, symbol, data },
+            { title, symbol, data: values.map(datumValueTooltipRow) },
             {
                 seriesId,
                 datum,
@@ -1376,7 +1386,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 yName,
                 colorKey,
                 colorName,
-                ...(format as any as Required<ItemStyle>),
+                ...(style as any as Required<ItemStyle>),
             }
         );
     }
