@@ -3,7 +3,7 @@
   "version": "9.0.1-beta.20231211",
   "private": true,
   "dependencies": {
-    "@nx/devkit": "^18.3.4",
+    "@nx/devkit": "21.6.11",
     "tslib": "^2.8.1"
   },
   "type": "module",
