@@ -270,5 +270,8 @@
   },
   "disabledNxCloudAccessToken": "ZDJhN2YwMWMtYWZiMS00MzY2LWFiZDgtZTc0ZTg4MTk4ZDE2fHJlYWQ=",
   "defaultProject": "all",
-  "defaultBase": "latest"
+  "defaultBase": "latest",
+  "affected": {
+    "legacy": true
+  }
 }
