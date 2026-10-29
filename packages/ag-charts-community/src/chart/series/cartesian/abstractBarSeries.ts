@@ -247,14 +247,12 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
             return -barWidth / 2;
         }
 
-        const isStacked = (this.seriesGrouping?.stackCount ?? 0) > 0;
-
         let barOffset = 0;
         if (this.seriesGrouping == null && groupScale) {
             // For ungrouped series, centre the bar within the width of the group.
             const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
             barOffset = (rangeWidth - barWidth) / 2;
-        } else if (groupScale && this.options.widthRatio != null && !isStacked) {
+        } else if (groupScale && this.options.widthRatio != null && (this.seriesGrouping?.stackCount ?? 0) < 1) {
             // For unstacked grouped series, centre the bar on its own width adjusted by the default width of bars
             // within the group. A stack is centred by its stack offset instead.
             barOffset = (groupScale.bandwidth - barWidth) / 2;
