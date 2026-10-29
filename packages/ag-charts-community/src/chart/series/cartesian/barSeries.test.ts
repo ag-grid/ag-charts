@@ -3824,6 +3824,7 @@ describe('BarSeries', () => {
                     series,
                     axes: { x: { type: 'category', paddingInner: 0, paddingOuter: 0, groupPaddingInner: 0 } },
                 });
+                await compare();
             };
 
             it.each([
