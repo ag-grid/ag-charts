@@ -1,5 +1,6 @@
 <div class="example-controls">
     <div class="controls-row">
+        <span>Size Mode:</span>
         <div class="button-group" role="group" aria-label="Size Mode">
             <input
                 type="radio"
@@ -12,6 +13,70 @@
             <label for="size-mode-diameter">Diameter</label>
             <input type="radio" id="size-mode-area" name="size-mode" value="area" onchange="setSizeMode(event)" />
             <label for="size-mode-area">Area</label>
+        </div>
+        <label for="min-size">Min Size:</label>
+        <input
+            type="range"
+            id="min-size"
+            min="0"
+            max="30"
+            value="4"
+            step="1"
+            oninput="setMinSize(event)"
+            onchange="setMinSize(event)"
+        />
+        <span id="minSizeValue" class="slider-value">4</span>
+        <label for="max-size">Max Size:</label>
+        <input
+            type="range"
+            id="max-size"
+            min="30"
+            max="80"
+            value="60"
+            step="1"
+            oninput="setMaxSize(event)"
+            onchange="setMaxSize(event)"
+        />
+        <span id="maxSizeValue" class="slider-value">60</span>
+    </div>
+    <div class="controls-row">
+        <span>Size Domain:</span>
+        <div class="button-group" role="group" aria-label="Size Domain">
+            <input type="radio" id="size-domain-data" name="size-domain" value="data" onchange="setSizeDomain(event)" />
+            <label for="size-domain-data">Data</label>
+            <input
+                type="radio"
+                id="size-domain-fixed"
+                name="size-domain"
+                value="0,250"
+                checked
+                onchange="setSizeDomain(event)"
+            />
+            <label for="size-domain-fixed">0–250</label>
+            <input
+                type="radio"
+                id="size-domain-wide"
+                name="size-domain"
+                value="0,500"
+                onchange="setSizeDomain(event)"
+            />
+            <label for="size-domain-wide">0–500</label>
+            <input
+                type="radio"
+                id="size-domain-narrow"
+                name="size-domain"
+                value="100,200"
+                onchange="setSizeDomain(event)"
+            />
+            <label for="size-domain-narrow">100–200</label>
+            <input
+                type="radio"
+                id="size-domain-reversed"
+                name="size-domain"
+                value="250,0"
+                onchange="setSizeDomain(event)"
+            />
+            <label for="size-domain-reversed">250–0</label>
         </div>
     </div>
 </div>

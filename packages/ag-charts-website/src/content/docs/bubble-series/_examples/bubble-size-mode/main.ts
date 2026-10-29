@@ -34,6 +34,12 @@ const options: AgCartesianChartOptions = {
             sizeMode: 'diameter',
             minSize: 4,
             maxSize: 60,
+            sizeDomain: [0, 250],
+            label: {
+                enabled: true,
+                placement: ['inside', 'top', 'bottom'],
+                formatter: ({ datum }) => `$${datum.revenue}m`,
+            },
         },
     ],
     axes: {
@@ -62,5 +68,28 @@ const chart = AgCharts.create(options);
 function setSizeMode(event: Event) {
     (options.series![0] as AgBubbleSeriesOptions).sizeMode = (event.target as HTMLInputElement)
         .value as AgMarkerSizeMode;
+    chart.update(options);
+}
+
+function setMinSize(event: Event) {
+    const value = Number((event.target as HTMLInputElement).value);
+    (options.series![0] as AgBubbleSeriesOptions).minSize = value;
+    chart.update(options);
+
+    document.getElementById('minSizeValue')!.innerHTML = String(value);
+}
+
+function setMaxSize(event: Event) {
+    const value = Number((event.target as HTMLInputElement).value);
+    (options.series![0] as AgBubbleSeriesOptions).maxSize = value;
+    chart.update(options);
+
+    document.getElementById('maxSizeValue')!.innerHTML = String(value);
+}
+
+function setSizeDomain(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    (options.series![0] as AgBubbleSeriesOptions).sizeDomain =
+        value === 'data' ? undefined : (value.split(',').map(Number) as [number, number]);
     chart.update(options);
 }
