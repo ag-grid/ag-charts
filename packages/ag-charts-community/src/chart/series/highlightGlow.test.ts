@@ -812,12 +812,27 @@ describe('highlight glow', () => {
                     { highlightedItem: { glow: bucketGlow } },
                     drawingMode
                 );
-                const { x, y, width } = Transformable.toCanvas(highlighted[0]);
+                const { x, y, width, height } = Transformable.toCanvas(highlighted[0]);
                 const pixelAt = (px: number, py: number) => [
                     ...chart.ctx.scene.canvas.context.getImageData(Math.round(px), Math.round(py), 1, 1).data,
                 ];
+                // The shape and a margin round it, which any two renders of the same hover draw alike apart from the glow.
+                const region = () => [
+                    ...chart.ctx.scene.canvas.context.getImageData(
+                        Math.round(x) - 8,
+                        Math.round(y) - 8,
+                        Math.round(width) + 16,
+                        Math.round(height) + 16
+                    ).data,
+                ];
                 // Sampled above the shape and off its centre line, clear of the crosshair that the hover draws.
-                return { above: (offset: number) => pixelAt(x + width / 2 + 4, y - offset) };
+                return {
+                    above: (offset: number) => pixelAt(x + width / 2 + 4, y - offset),
+                    /** A pixel inside the shape, `offset` pixels below its top edge, or above its bottom edge when negative. */
+                    inside: (offset: number) =>
+                        pixelAt(x + width / 2 + 4, offset < 0 ? y + height + offset : y + offset),
+                    region,
+                };
             };
 
             const NO_FILL_MARKER = { fill: 'none', stroke: 'blue', strokeWidth: 2, size: 24 };
@@ -1042,6 +1057,110 @@ describe('highlight glow', () => {
                         });
                     });
                 });
+            });
+
+            describe('parity of the routes that cast a glow at a spread of 0', () => {
+                // With no spread and no blur the glow lies under the item, so it shows only where the item's paint lets it through.
+                const FADING = {
+                    type: 'gradient',
+                    colorStops: [
+                        { color: 'rgb(255, 0, 0)', stop: 0 },
+                        { color: 'rgba(255, 0, 0, 0)', stop: 1 },
+                    ],
+                };
+                const RED_FILL = '#ff0000';
+                const BLUE_FILL = '#0000ff';
+                const NO_GLOW = { enabled: false };
+                const ZERO = glow({ spread: 0, blur: 0 });
+
+                const PAINTS = [
+                    ['a gradient fill that fades to transparent', SERIES[0], { fill: FADING }, RED_FILL],
+                    [
+                        'a dashed stroke round a marker with no fill',
+                        SERIES[3],
+                        { fill: 'none', stroke: 'blue', strokeWidth: 4, lineDash: [4, 4], size: 28 },
+                        BLUE_FILL,
+                    ],
+                ] as const;
+
+                afterEach(() => overrideTintableShadows());
+
+                const regionOf = async (
+                    testCase: SeriesCase,
+                    options: object,
+                    bucketGlow: object,
+                    drawingMode: 'cutout' | 'overlay',
+                    canTint: boolean | undefined
+                ) => {
+                    overrideTintableShadows(canTint);
+                    const pixels = await hoveredPixels(testCase, options, bucketGlow, drawingMode);
+                    const region = pixels.region();
+                    chart.destroy();
+                    return region;
+                };
+
+                const sameWithin = (actual: number[], expected: number[], tolerance = 2) => {
+                    expect(actual.length).toBe(expected.length);
+                    const off = actual.filter((value, i) => Math.abs(value - expected[i]) > tolerance);
+                    expect(off.length).toBe(0);
+                };
+
+                describe.each(PAINTS)('around an item with %s', (_name, testCase, options, fill) => {
+                    describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
+                        // Cut out of the item, a glow with no spread has nothing to show.
+                        it.skipIf(drawingMode === 'cutout')('casts something that the item does not hide', async () => {
+                            const cast = await regionOf(testCase, options, ZERO, drawingMode, undefined);
+                            const none = await regionOf(testCase, options, NO_GLOW, drawingMode, undefined);
+
+                            expect(cast).not.toEqual(none);
+                        });
+
+                        it('casts the same pixels where the canvas cannot tint as where it can', async () => {
+                            const tinted = await regionOf(testCase, options, ZERO, drawingMode, undefined);
+                            const perColour = await regionOf(testCase, options, ZERO, drawingMode, false);
+
+                            sameWithin(tinted, perColour);
+                        });
+
+                        it.each([undefined, false])(
+                            'casts the same pixels from an inferred fill as from the same fill set, with tinting %s',
+                            async (canTint) => {
+                                const inferred = await regionOf(testCase, options, ZERO, drawingMode, canTint);
+                                const explicit = await regionOf(
+                                    testCase,
+                                    options,
+                                    { ...ZERO, fill },
+                                    drawingMode,
+                                    canTint
+                                );
+
+                                sameWithin(inferred, explicit);
+                            }
+                        );
+                    });
+                });
+
+                it.each([undefined, false])(
+                    'fades the glow with the gradient, and does not cast a uniform block, with tinting %s',
+                    async (canTint) => {
+                        const [, testCase, options] = PAINTS[0];
+                        const sample = async (bucketGlow: object) => {
+                            overrideTintableShadows(canTint);
+                            const pixels = await hoveredPixels(testCase, options, bucketGlow, 'overlay');
+                            const sampled = [pixels.inside(2), pixels.inside(-3)];
+                            chart.destroy();
+                            return sampled;
+                        };
+                        const cast = await sample(ZERO);
+                        const none = await sample(NO_GLOW);
+
+                        // The gradient is opaque at one end, which hides a glow of its own colour, and transparent at the other,
+                        // where a glow that fades with it adds nothing, but a uniform block would add its full colour.
+                        for (let end = 0; end < 2; end++)
+                            for (let i = 0; i < 4; i++)
+                                expect(Math.abs(cast[end][i] - none[end][i])).toBeLessThanOrEqual(8);
+                    }
+                );
             });
         });
 

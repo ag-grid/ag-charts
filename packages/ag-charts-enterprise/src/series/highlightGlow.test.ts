@@ -14,7 +14,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Color, RadialColumnShape, Rect, Sector, Transformable } from 'ag-charts-core';
+import { Color, RadialColumnShape, Rect, Sector, Transformable, overrideTintableShadows } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
 import { getFlowLinkData, getFlowNodeData, getSeriesGroup } from '../test/enterpriseSeriesAccessors';
@@ -607,6 +607,84 @@ describe('highlight glow (enterprise series)', () => {
 
             expect(near).not.toEqual(WHITE);
             expect(far).toEqual(WHITE);
+        });
+    });
+
+    describe('parity of the routes that cast a glow at a spread of 0, around a candlestick', () => {
+        const candlestick = SERIES.find((testCase) => testCase.name === 'candlestick')!;
+        const ZERO = { enabled: true, spread: 0, blur: 0, fillOpacity: 1 };
+        const NO_GLOW = { enabled: false };
+
+        // A body that is half transparent under a stroke that is opaque, and wicks of the same stroke.
+        const stroked: SeriesCase = {
+            ...candlestick,
+            series: (shadow, highlight): AgCandlestickSeriesOptions => ({
+                type: 'candlestick',
+                xKey: 'x',
+                openKey: 'open',
+                highKey: 'high',
+                lowKey: 'low',
+                closeKey: 'close',
+                shadow,
+                highlight,
+                item: {
+                    up: { fill: 'red', fillOpacity: 0.5, stroke: 'blue', strokeWidth: 6 },
+                    down: { fill: 'red', fillOpacity: 0.5, stroke: 'blue', strokeWidth: 6 },
+                },
+            }),
+        };
+
+        afterEach(() => overrideTintableShadows());
+
+        const regionOf = async (
+            glow: AgGlowOptions,
+            drawingMode: 'cutout' | 'overlay',
+            canTint: boolean | undefined
+        ) => {
+            overrideTintableShadows(canTint);
+            const { highlighted } = await hoverItem(stroked, undefined, { highlightedItem: { glow } }, drawingMode);
+            const { x, y, width, height } = Transformable.toCanvas(highlighted[0]);
+            const region = [
+                ...deproxy(chart).ctx.scene.canvas.context.getImageData(
+                    Math.round(x) - 8,
+                    Math.round(y) - 8,
+                    Math.round(width) + 16,
+                    Math.round(height) + 16
+                ).data,
+            ];
+            chart.destroy();
+            return region;
+        };
+
+        const sameWithin = (actual: number[], expected: number[], tolerance = 2) => {
+            expect(actual.length).toBe(expected.length);
+            expect(actual.filter((value, i) => Math.abs(value - expected[i]) > tolerance).length).toBe(0);
+        };
+
+        describe.each(['cutout', 'overlay'] as const)('in %s mode', (drawingMode) => {
+            it.skipIf(drawingMode === 'cutout')('casts something that the item does not hide', async () => {
+                const cast = await regionOf(ZERO, drawingMode, undefined);
+                const none = await regionOf(NO_GLOW, drawingMode, undefined);
+
+                expect(cast).not.toEqual(none);
+            });
+
+            it('casts the same pixels where the canvas cannot tint as where it can', async () => {
+                const tinted = await regionOf(ZERO, drawingMode, undefined);
+                const perColour = await regionOf(ZERO, drawingMode, false);
+
+                sameWithin(tinted, perColour);
+            });
+
+            it.each([undefined, false])(
+                'casts the same pixels from an inferred fill as from the same fill set, with tinting %s',
+                async (canTint) => {
+                    const inferred = await regionOf(ZERO, drawingMode, canTint);
+                    const explicit = await regionOf({ ...ZERO, fill: '#ff0000' }, drawingMode, canTint);
+
+                    sameWithin(inferred, explicit);
+                }
+            );
         });
     });
 
