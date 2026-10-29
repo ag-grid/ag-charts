@@ -1,5 +1,5 @@
 import { createNodesFromFiles } from '@nx/devkit';
-import type { CreateDependencies, CreateNodesResult, CreateNodesV2, TargetConfiguration } from '@nx/devkit';
+import type { CreateDependencies, CreateNodes, CreateNodesResult, TargetConfiguration } from '@nx/devkit';
 import { readFileSync } from 'fs';
 import { dirname } from 'path';
 
@@ -18,7 +18,7 @@ function generateThumbnails(projectName: string) {
     return projectName.indexOf('gallery') >= 0 && !IGNORE_THUMBNAILS.includes(projectName);
 }
 
-export const createNodesV2: CreateNodesV2 = [
+export const createNodes: CreateNodes = [
     'packages/*/src/**/_examples/*/main.ts',
     (configFilePaths, options, context) => createNodesFromFiles(createExampleNodes, configFilePaths, options, context),
 ];
