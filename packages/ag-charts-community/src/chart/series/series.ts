@@ -538,11 +538,11 @@ export abstract class Series<
         );
     }
 
-    attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined) {
+    attachSeries(seriesContentNode: Group, seriesNode: Group, _annotationNode: Group | undefined) {
         seriesContentNode.appendChild(this.contentGroup);
         seriesNode.appendChild(this.highlightGroup);
         seriesNode.appendChild(this.labelGroup);
-        annotationNode?.appendChild(this.annotationGroup);
+        seriesNode.appendChild(this.annotationGroup);
     }
 
     detachSeries(_seriesContentNode: Group | undefined, _seriesNode: Group, _annotationNode: Group | undefined) {
@@ -571,7 +571,7 @@ export abstract class Series<
         this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND];
         this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.HIGHLIGHT];
         this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.LABEL];
-        this.annotationGroup.zIndex = zIndex;
+        this.annotationGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.ANNOTATION];
     }
 
     renderToOffscreenCanvas() {
