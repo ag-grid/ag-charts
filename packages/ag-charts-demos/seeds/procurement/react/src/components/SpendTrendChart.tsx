@@ -27,7 +27,6 @@ const YEAR_TO_DATE_MONTH_AXIS: AgUnitTimeAxisOptions = {
     ...MONTH_AXIS,
     label: { format: { month: '%b' } },
     parentLevel: { enabled: false },
-    crosshair: { label: { format: '%b' } },
     paddingInner: STACKED_BAR_GAP,
 };
 
