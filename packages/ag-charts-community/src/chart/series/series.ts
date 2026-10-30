@@ -1900,7 +1900,7 @@ export abstract class Series<
         };
     }
 
-    /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
+    /** The series-area containment rect unless the label may overflow it (`collideWith.seriesArea: true`). */
     protected resolveLabelPlotRegion(collision: NormalisedChartLabelCollisionOptions): BoxBounds | undefined {
         return resolveLabelAvoidance(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
     }

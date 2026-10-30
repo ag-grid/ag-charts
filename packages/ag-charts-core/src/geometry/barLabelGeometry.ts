@@ -279,7 +279,7 @@ export function labelFootprintBox(
 /**
  * Builds the {@link PointLabelDatum} routing a bar label through the placement engine: centred on its
  * glyph box, constrained to `region` (its bar rect, or `undefined` for the plot bounds), offering the
- * `orientations` candidates, avoiding the obstacle categories `collideWith` enables. The `region` doubles
+ * `orientations` candidates, avoiding the obstacle categories its `avoid` enables. The `region` doubles
  * as the label's own-shape box: it lies within the bar rect, so a `shape` obstacle for the label's
  * own bar (which the region overlaps) is excluded while neighbouring bars — which the region cannot reach
  * — are still avoided.

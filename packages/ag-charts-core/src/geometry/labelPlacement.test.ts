@@ -923,7 +923,7 @@ describe('placeLabels', () => {
             box: { x: 80, y: 96, width: 60, height: 16 },
             category: 'shape',
         };
-        const label = (seriesItemEnabled: boolean): PointLabelDatum => ({
+        const label = (shapeEnabled: boolean): PointLabelDatum => ({
             point: { x: 100, y: 100, size: 0 },
             label: { text: 'X', width: 30, height: 12 },
             anchor: undefined,
@@ -934,7 +934,7 @@ describe('placeLabels', () => {
             avoid: {
                 marker: true,
                 label: true,
-                shape: seriesItemEnabled,
+                shape: shapeEnabled,
             },
         });
 
@@ -959,14 +959,14 @@ describe('placeLabels', () => {
                 };
             }
         }
-        const seriesItemObstacles: LabelObstacle[] = Array.from({ length: 30 }, (_, i) => ({
+        const shapeObstacles: LabelObstacle[] = Array.from({ length: 30 }, (_, i) => ({
             kind: 'rect',
             box: { x: (i % 6) * 90, y: Math.floor(i / 6) * 70, width: 80, height: 60 },
             category: 'shape',
         }));
 
         const without = placeLabels(structuredClone(data), bounds, 5);
-        const with_ = placeLabels(structuredClone(data), bounds, 5, seriesItemObstacles);
+        const with_ = placeLabels(structuredClone(data), bounds, 5, shapeObstacles);
         expect(normalise(with_)).toEqual(normalise(without));
     });
 
@@ -1664,7 +1664,7 @@ describe('placeLabels positioned candidates', () => {
         return { placed, target };
     };
 
-    const seriesItemRect = (box: BoxBounds): LabelObstacle => ({ kind: 'rect', box, category: 'shape' });
+    const shapeRect = (box: BoxBounds): LabelObstacle => ({ kind: 'rect', box, category: 'shape' });
 
     it('returns the first candidate that fits its region', () => {
         const first: BarCandidate = {
@@ -1879,7 +1879,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(55, 98),
                 placement: 'inside-center',
             };
-            const { placed } = place([beside, inside], [seriesItemRect(ownBar), seriesItemRect(neighbourBar)], ownBar);
+            const { placed } = place([beside, inside], [shapeRect(ownBar), shapeRect(neighbourBar)], ownBar);
             expect(placed[0].candidate).toBe(inside);
         });
 
@@ -1899,11 +1899,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(131, 88),
                 placement: 'outside-end',
             };
-            const { placed } = place(
-                [insideOwn, elsewhere],
-                [seriesItemRect(ownColumn), seriesItemRect(sibling)],
-                ownColumn
-            );
+            const { placed } = place([insideOwn, elsewhere], [shapeRect(ownColumn), shapeRect(sibling)], ownColumn);
             expect(placed[0].candidate).toBe(insideOwn);
         });
 
@@ -1924,11 +1920,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(131, 108),
                 placement: 'outside-end',
             };
-            const { placed } = place(
-                [insideFront, elsewhere],
-                [seriesItemRect(frontBar), seriesItemRect(behindBar)],
-                frontBar
-            );
+            const { placed } = place([insideFront, elsewhere], [shapeRect(frontBar), shapeRect(behindBar)], frontBar);
             expect(placed[0].candidate).toBe(insideFront);
         });
     });
@@ -1963,7 +1955,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(132, 98),
                 placement: 'beside-after-center',
             };
-            const { placed } = place([beside], [seriesItemRect(ownBar), seriesItemRect(neighbourBar)], ownBar, false);
+            const { placed } = place([beside], [shapeRect(ownBar), shapeRect(neighbourBar)], ownBar, false);
             expect(placed).toHaveLength(0);
         });
 
@@ -1975,7 +1967,7 @@ describe('placeLabels positioned candidates', () => {
                 anchor: anchorOf(55, 98),
                 placement: 'inside-center',
             };
-            const { placed } = place([inside], [seriesItemRect(ownBar)], ownBar, false);
+            const { placed } = place([inside], [shapeRect(ownBar)], ownBar, false);
             expect(placed).toHaveLength(1);
             expect(placed[0].candidate).toBe(inside);
         });

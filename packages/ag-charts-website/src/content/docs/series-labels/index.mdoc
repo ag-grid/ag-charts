@@ -248,7 +248,7 @@ The defaults depend on the series type:
 | `seriesArea` | The edges of the series area, including its padding.        | `true` on line, area, range-area, scatter, bubble, map-line and map-marker; otherwise `false`. |
 | `axisLabels` | Axis labels.                                                | `true`                                                                                         |
 
-A label avoids an element by moving to its next [fallback placement](#placement). When no placement is clear, the label is hidden only if `collision.alwaysShow` is `false`. A bar-family label with a single placement and no fitting options keeps `alwaysShow: true`, so colliding labels stay where they are. Give it a fallback placement such as `placement: ['inside', 'outside']` to separate them.
+A label avoids an element by moving to its next [fallback placement](#placement). When no placement is clear, the label is hidden only if `collision.alwaysShow` is `false`. On line, area, range-area, bar-family and funnel-family series, a label with a single placement and orientation and no fitting options keeps `alwaysShow: true`, so colliding labels stay where they are. Give it a fallback placement, such as `placement: ['outside-end', 'inside-end']` on a bar series, to separate them.
 
 ## API Reference
 

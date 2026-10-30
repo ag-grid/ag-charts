@@ -636,6 +636,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 existingNode.label = label;
                 existingNode.fit = fit;
                 existingNode.gap = gap;
+                existingNode.region = ctx.labelRegion;
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({

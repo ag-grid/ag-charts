@@ -706,6 +706,13 @@ describe('label collision avoidance', () => {
             y: { position: 'left', type: 'number', min: 0, max: 10 },
         };
 
+        const seriesOptions = (markerSize: number) => ({
+            scatter: { labelKey: 'label', size: markerSize },
+            bubble: { labelKey: 'label', sizeKey: 'size', minSize: markerSize, maxSize: markerSize },
+            line: { marker: { enabled: true, size: markerSize } },
+            area: { marker: { enabled: true, size: markerSize } },
+        });
+
         const render = async (
             type: 'scatter' | 'bubble' | 'line' | 'area',
             opts: {
@@ -727,10 +734,7 @@ describe('label collision avoidance', () => {
                         type,
                         xKey: 'x',
                         yKey: 'y',
-                        ...(type === 'bubble' || type === 'scatter' ? { labelKey: 'label' } : {}),
-                        ...(type === 'bubble' ? { sizeKey: 'size', minSize: markerSize, maxSize: markerSize } : {}),
-                        ...(type === 'scatter' ? { size: markerSize } : {}),
-                        ...(type === 'line' || type === 'area' ? { marker: { enabled: true, size: markerSize } } : {}),
+                        ...seriesOptions(markerSize)[type],
                         label: {
                             enabled: true,
                             formatter: () => 'Edge',
@@ -746,6 +750,37 @@ describe('label collision avoidance', () => {
             chart = await createChart(options);
             return placedLabelPlacements();
         };
+
+        // Over the animatable-node limit, so the update reuses the line's existing node data in place.
+        it('line: drops a label overflowing the series area after seriesArea is updated to false', async () => {
+            const data = Array.from({ length: 1001 }, (_, x) => ({ x, y: x === 500 ? 10 : 0 }));
+            const options = (seriesArea: boolean): AgCartesianChartOptions => ({
+                data,
+                legend: { enabled: false },
+                padding: { top: 80, right: 10, bottom: 10, left: 10 },
+                axes: { x: { type: 'number' }, y: { type: 'number', min: 0, max: 10 } },
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            enabled: true,
+                            formatter: ({ value }) => (value === 10 ? 'Edge' : ''),
+                            collision: { alwaysShow: false, collideWith: { seriesArea } },
+                        },
+                    },
+                ],
+            });
+            const edgeLabels = () => renderedLabelTexts().filter((text) => text === 'Edge');
+
+            chart = await createChart(options(true));
+            expect(edgeLabels()).toHaveLength(1);
+
+            await chart.update(options(false));
+            await waitForChartStability(chart);
+            expect(edgeLabels()).toHaveLength(0);
+        });
 
         for (const type of ['scatter', 'bubble', 'line', 'area'] as const) {
             it(`${type}: keeps a label overflowing the series area by default`, async () => {
@@ -849,6 +884,38 @@ describe('label collision avoidance', () => {
                     expect(placements).toEqual(['outside-end', 'outside-end']);
                 }
             );
+        });
+
+        describe('shapes', () => {
+            // Closely spaced bars, so each beside-after-center label lands on its neighbouring bar.
+            const besideData = Array.from({ length: 10 }, (_, i) => ({ x: `c${i}`, y: 10 }));
+
+            const render = async (collideWith: object) => {
+                chart = await createChart({
+                    data: besideData,
+                    legend: { enabled: false },
+                    axes: barAxes,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            label: {
+                                placement: 'beside-after-center',
+                                formatter: () => 'WWWW',
+                                collision: { alwaysShow: false, collideWith },
+                            },
+                        },
+                    ],
+                } as AgCartesianChartOptions);
+                return visibleBarLabelCount();
+            };
+
+            it('keeps avoiding neighbouring bars when another collideWith key is set', async () => {
+                const avoiding = await render({ seriesArea: true });
+                const overlapping = await render({ seriesArea: true, shapes: true });
+                expect(avoiding).toBeLessThan(overlapping);
+            });
         });
 
         describe('labels', () => {
