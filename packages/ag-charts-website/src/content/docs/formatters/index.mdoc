@@ -77,6 +77,8 @@ For example an axis label will be formatted as follows:
 
 Additionally, if only an `axes[].label.formatter` is provided in the chart, the tooltip and crosshair formats will inherit based on this.
 
+Normalised series (`normalizedTo`) are the exception. Their tooltips and series labels show raw values, which are not in the axis's units, so they do not inherit the axis label format. The crosshair shows the normalised axis value and still inherits it.
+
 ## Format Strings
 
 A formatter can also be specified as a format string, which is a static string that represents a time or number format. This has less flexibility than the formatter function, but can be serialised.

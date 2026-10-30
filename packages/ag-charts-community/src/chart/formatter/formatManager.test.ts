@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgCartesianAxisLabelOptions,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgPolarChartOptions,
+} from 'ag-charts-types';
 
 import { getSeriesContextNodeData } from '../test/seriesAccessors';
 import {
@@ -661,7 +666,11 @@ describe('Format Manager', () => {
     describe('AG-16823 normalised series values and the axis label format', () => {
         type StackedSeriesType = 'bar' | 'line' | 'area';
 
-        function stackedOptions(type: StackedSeriesType, normalizedTo: number | undefined): AgCartesianChartOptions {
+        function stackedOptions(
+            type: StackedSeriesType,
+            normalizedTo: number | undefined,
+            yAxisLabel: AgCartesianAxisLabelOptions = { format: '#{.0f}%' }
+        ): AgCartesianChartOptions {
             return {
                 data: [
                     { product: 'iPhone', sales: 347000, returns: 42000 },
@@ -680,7 +689,7 @@ describe('Format Manager', () => {
                 ),
                 axes: {
                     x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left', label: { format: '#{.0f}%' } },
+                    y: { type: 'number', position: 'left', label: yAxisLabel },
                 },
                 tooltip: { mode: 'shared' },
             };
@@ -718,5 +727,15 @@ describe('Format Manager', () => {
                 expect(await hoverFirstCategory()).toBe('iPhone sales 347000% returns 42000%');
             }
         );
+
+        it('bar - an axis label formatter callback is kept off normalised tooltips and series labels', async () => {
+            chart = await createChart(
+                stackedOptions('bar', 100, { formatter: ({ value }) => `${Math.round(value)}%` })
+            );
+
+            expect(getAxisTickLayoutLabelTexts(chart, 'left')).toContain('100%');
+            expect(seriesLabelTexts('bar')).toEqual(['347000', '24801']);
+            expect(await hoverFirstCategory()).toBe('iPhone sales 347000 returns 42000');
+        });
     });
 });
