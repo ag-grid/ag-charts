@@ -173,8 +173,11 @@ export function QualityCostChart({
             // The shared tooltip shows the bar's, which already carries the rate.
             tooltip: { enabled: false },
             highlight: { enabled: false, bringToFront: false },
-            itemStyler: ({ datum }) =>
-                !dimmed(datum.supplierId) && datum.rejectedRate >= RATE_TARGET ? { fill: 'var(--pc-bad-fill)' } : {},
+            // Dimmed by opacity, as the bars are, so red still marks every supplier over target.
+            itemStyler: ({ datum }) => ({
+                ...(datum.rejectedRate >= RATE_TARGET ? { fill: 'var(--pc-bad-fill)' } : {}),
+                ...(dimmed(datum.supplierId) ? { fillOpacity: 0.3 } : {}),
+            }),
         };
 
         return {
@@ -213,7 +216,7 @@ export function QualityCostChart({
                             lineDash: [5, 4],
                             label: {
                                 enabled: true,
-                                text: '3% target',
+                                text: `${fmtPctWhole(RATE_TARGET)} target`,
                                 placement: 'top-right',
                                 color: { ref: 'subtleTextColor' },
                                 fontStyle: 'italic',
