@@ -116,9 +116,8 @@ describe('NumberAxis bigint bounds and interval (AG-16608)', () => {
     });
 });
 
-// Explicit `interval.values` leave the axis domain to be niced against the tick count, as in 14.2.0,
-// rather than being fitted tightly to the data (AG-19132).
-describe('NumberAxis interval values domain (AG-19132)', () => {
+// Explicit `interval.values` leave the domain niced against the tick count, not fitted tightly to the data.
+describe('NumberAxis interval values domain', () => {
     setupMockConsole();
     setupMockCanvas();
 
