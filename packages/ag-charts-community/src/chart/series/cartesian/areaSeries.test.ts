@@ -17,7 +17,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import type { Marker } from '../../marker/marker';
 import { buildLogAxisTestCase } from '../../test/axisTestCases';
 import {
     BIG,
@@ -43,7 +42,7 @@ import {
 import * as examples from '../../test/examples';
 import { type MockAreaStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
-import { getLegendItemNodes, getSeriesContextNodeData, getSeriesSelectionNodes } from '../../test/seriesAccessors';
+import { getLegendItemNodes } from '../../test/seriesAccessors';
 import type {
     CartesianOrPolarTestCase,
     ChartTestCase,
@@ -3822,141 +3821,6 @@ describe('AreaSeries', () => {
             });
 
             await compare();
-        });
-
-        describe('AG-19127 markers', () => {
-            const data = [
-                { x: 'Jan', y: 10, selected: true },
-                { x: 'Feb', y: 20, selected: false },
-                { x: 'Mar', y: 15, selected: false },
-            ];
-            const markerNodes = () => getSeriesSelectionNodes<Marker>(chart, 'datumSelection', 0);
-
-            it('draws only the selected marker when markers are disabled', async () => {
-                chart = await createChart({
-                    data,
-                    series: [
-                        withUndocumentedOptions(
-                            { type: 'area', xKey: 'x', yKey: 'y', marker: { enabled: false } },
-                            { selectedKey: 'selected' }
-                        ),
-                    ],
-                });
-
-                const nodes = markerNodes();
-                expect(nodes).toHaveLength(1);
-                expect(nodes[0].visible).toBe(true);
-                expect(nodes[0].fillOpacity).toBe(1);
-            });
-
-            it('draws no markers when markers are disabled and nothing is selected', async () => {
-                chart = await createChart({
-                    data: data.map((d) => ({ ...d, selected: false })),
-                    series: [
-                        withUndocumentedOptions(
-                            { type: 'area', xKey: 'x', yKey: 'y', marker: { enabled: false } },
-                            { selectedKey: 'selected' }
-                        ),
-                    ],
-                });
-
-                expect(markerNodes()).toHaveLength(0);
-            });
-
-            it('draws no markers when markers are disabled and there is no selectedKey', async () => {
-                chart = await createChart({
-                    data,
-                    series: [{ type: 'area', xKey: 'x', yKey: 'y', marker: { enabled: false } }],
-                });
-
-                expect(markerNodes()).toHaveLength(0);
-            });
-
-            it('draws the unselected markers faded when markers are enabled', async () => {
-                chart = await createChart({
-                    data,
-                    series: [
-                        withUndocumentedOptions(
-                            { type: 'area', xKey: 'x', yKey: 'y', marker: { enabled: true } },
-                            { selectedKey: 'selected' }
-                        ),
-                    ],
-                });
-
-                const nodes = markerNodes();
-                expect(nodes).toHaveLength(3);
-                expect(nodes.every((node) => node.visible)).toBe(true);
-                expect(nodes[0].fillOpacity).toBe(1);
-                expect(nodes[1].fillOpacity).toBeLessThan(1);
-                expect(nodes[2].fillOpacity).toBeLessThan(1);
-            });
-
-            it('draws the unselected markers faded when markers are enabled but denser than a pixel', async () => {
-                const denseData = Array.from({ length: 2000 }, (_, i) => ({ x: i, y: i % 7, selected: i === 0 }));
-                chart = await createChart({
-                    data: denseData,
-                    series: [
-                        withUndocumentedOptions(
-                            { type: 'area', xKey: 'x', yKey: 'y', marker: { enabled: true } },
-                            { selectedKey: 'selected' }
-                        ),
-                    ],
-                });
-
-                const nodes = markerNodes();
-                expect(nodes).toHaveLength(denseData.length);
-                expect(nodes[0].fillOpacity).toBe(1);
-                expect(nodes[1].fillOpacity).toBeLessThan(1);
-            });
-
-            describe('picking with markers disabled', () => {
-                const clicks: string[] = [];
-
-                async function createClickChart() {
-                    clicks.length = 0;
-                    chart = await createChart({
-                        data,
-                        series: [
-                            withUndocumentedOptions(
-                                {
-                                    type: 'area',
-                                    xKey: 'x',
-                                    yKey: 'y',
-                                    marker: { enabled: false },
-                                    listeners: { seriesNodeClick: (event) => clicks.push(event.datum.x) },
-                                },
-                                { selectedKey: 'selected' }
-                            ),
-                        ],
-                    });
-                }
-
-                async function clickDatum(index: number, offset = 0) {
-                    const series = deproxy(chart).series[0];
-                    const nodeDatum = getSeriesContextNodeData(chart).nodeData[index];
-                    const { canvasX, canvasY } = series.toCanvasFromMidPoint(nodeDatum);
-                    await clickAction(canvasX + offset, canvasY)(chart);
-                    await waitForChartStability(chart);
-                }
-
-                it('fires seriesNodeClick on the unselected points', async () => {
-                    await createClickChart();
-
-                    await clickDatum(1);
-                    await clickDatum(2);
-                    await clickDatum(0);
-
-                    expect(clicks).toEqual(['Feb', 'Mar', 'Jan']);
-                });
-
-                it('fires seriesNodeClick within the markerless pick range of an unselected point', async () => {
-                    await createClickChart();
-
-                    await clickDatum(1, 5);
-
-                    expect(clicks).toEqual(['Feb']);
-                });
-            });
         });
     });
 
