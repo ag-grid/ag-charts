@@ -5,6 +5,7 @@ import type { AgChartOptions } from 'ag-charts-community';
 
 import { THUMBNAIL_OPTIONS } from './chartTypes';
 import { toChartTheme } from './chartsThemeOutput';
+import { withSansFallback } from './fonts';
 import type { ChartsPreset } from './presets';
 import { useChart } from './useChart';
 
@@ -23,7 +24,11 @@ export const PresetPreview = memo(({ preset }: Props) => {
         () => ({
             ...THUMBNAIL_OPTIONS,
             loadGoogleFonts: true,
-            theme: toChartTheme({ baseTheme: preset.baseTheme, params: preset.params, palette: preset.palette }),
+            theme: toChartTheme({
+                baseTheme: preset.baseTheme,
+                params: withSansFallback(preset.params),
+                palette: preset.palette,
+            }),
         }),
         [preset]
     );

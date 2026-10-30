@@ -10,6 +10,7 @@ import { PresetSelector } from './PresetSelector';
 import { PreviewPane } from './PreviewPane';
 import { PREVIEW_PANES } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
+import { withSansFallback } from './fonts';
 import {
     completePalette,
     setStoredPalette,
@@ -56,7 +57,10 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
         }),
         [baseTheme, preset, overriddenParams, storedPalette, strokeDirection]
     );
-    const previewTheme = useMemo(() => toChartTheme(selection), [selection]);
+    const previewTheme = useMemo(
+        () => toChartTheme({ ...selection, params: withSansFallback(selection.params) }),
+        [selection]
+    );
 
     // Measured rather than `100vh - header`: the docs layout can also put an
     // announcement banner above the island, and a fixed offset then overflows.
