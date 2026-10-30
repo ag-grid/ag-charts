@@ -128,16 +128,21 @@ interface LineSeriesTypes extends PlacedLabelSeriesTypes {
 
 type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
 
-/** Per-pass context for the no-itemStyler marker-style pass. */
-interface LineNoStylerPassCtx {
+/** Per-pass context shared by both marker-style passes. */
+interface LineMarkerPassCtx {
     marker: NormalisedLineSeriesOptions['marker'];
     hideWithSize0: boolean;
-    selectedOnly: boolean;
     isHighlight: boolean;
 }
 
+/** Per-pass context for the no-itemStyler marker-style pass. */
+interface LineNoStylerPassCtx extends LineMarkerPassCtx {
+    // An `itemStyler` is not kept while markers are disabled, so only this pass can run with `selectedOnly`.
+    selectedOnly: boolean;
+}
+
 /** Per-pass context for the itemStyler marker-style pass. */
-interface LineStylerPassCtx extends LineNoStylerPassCtx {
+interface LineStylerPassCtx extends LineMarkerPassCtx {
     xColumn: any[];
     yColumn: any[];
     xDomain: any[];
@@ -957,12 +962,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             ctx.marker,
             datum,
             params,
-            {
-                isHighlight: ctx.isHighlight,
-                highlightState,
-                selectionState,
-                hideWithSize0: hideMarkerWithSize0(ctx.hideWithSize0, ctx.selectedOnly, datum),
-            },
+            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
             markerStyle,
             { stroke, strokeWidth, strokeOpacity }
         );
@@ -999,7 +999,6 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const ctx: LineStylerPassCtx = {
             marker,
             hideWithSize0,
-            selectedOnly,
             isHighlight,
             xColumn: dataModel.resolveColumnById(this, 'xValue', processedData, 'object'),
             yColumn: dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'mixed-numeric'),

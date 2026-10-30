@@ -124,16 +124,21 @@ import { calculateSegments } from './util';
 
 type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
 
-/** Per-pass context for the no-itemStyler marker-style pass. */
-interface AreaNoStylerPassCtx {
+/** Per-pass context shared by both marker-style passes. */
+interface AreaMarkerPassCtx {
     marker: NormalisedAreaSeriesOptions['marker'];
     hideWithSize0: boolean;
-    selectedOnly: boolean;
     isHighlight: boolean;
 }
 
+/** Per-pass context for the no-itemStyler marker-style pass. */
+interface AreaNoStylerPassCtx extends AreaMarkerPassCtx {
+    // An `itemStyler` is not kept while markers are disabled, so only this pass can run with `selectedOnly`.
+    selectedOnly: boolean;
+}
+
 /** Per-pass context for the itemStyler marker-style pass. */
-interface AreaStylerPassCtx extends AreaNoStylerPassCtx {
+interface AreaStylerPassCtx extends AreaMarkerPassCtx {
     dataModel: DataModel<any, any, any>;
     processedData: ProcessedData<any>;
 }
@@ -1537,12 +1542,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             ctx.marker,
             datum,
             params,
-            {
-                isHighlight: ctx.isHighlight,
-                highlightState,
-                selectionState,
-                hideWithSize0: hideMarkerWithSize0(ctx.hideWithSize0, ctx.selectedOnly, datum),
-            },
+            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
             stylerStyle.marker,
             { stroke, strokeWidth, strokeOpacity }
         );
@@ -1576,7 +1576,6 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const ctx: AreaStylerPassCtx = {
             marker,
             hideWithSize0,
-            selectedOnly,
             isHighlight,
             dataModel: this.dataModel!,
             processedData: this.processedData!,
