@@ -16,6 +16,7 @@ ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, ErrorBarsMo
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
+    seriesArea: { padding: { top: 10 } },
     title: {
         text: 'Monthly Dividends with 95% Confidence Intervals (%)',
     },
@@ -27,6 +28,9 @@ const options: AgCartesianChartOptions = {
             yName: 'Monthly Dividends (%)',
             label: {
                 placement: 'outside-end',
+                border: {},
+                fill: { ref: 'backgroundColor' },
+                collision: { alwaysShow: true },
             },
             errorBar: {
                 yLowerKey: 'lowerCI',
@@ -38,8 +42,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setOffsetLabels(offsetLabels: boolean) {
+function offsetLabelsChange(event: Event) {
     const series = options.series![0] as AgBarSeriesOptions;
-    series.errorBar!.offsetLabels = offsetLabels;
+    series.errorBar!.offsetLabels = (event.target as HTMLInputElement).value === 'true';
     chart.update(options);
 }

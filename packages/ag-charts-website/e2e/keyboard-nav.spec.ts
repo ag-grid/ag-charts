@@ -764,52 +764,119 @@ test.describe('keyboard-nav', () => {
         await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'CRT-1047-after-change-font.png');
     });
 
-    test.describe('initial-focus', () => {
-        let canvas: Locator;
+    for (const example of ['initial-focus', 'initial-focus-large-dataset']) {
+        test.describe(example, () => {
+            let canvas: Locator;
 
-        async function selectOption(page: Page, initialFocus: AgInitialFocus): Promise<void> {
-            await page.selectOption('#myInitialFocus', initialFocus);
-            await page.locator('#above-chart').focus();
-            await page.keyboard.press('Tab');
+            async function selectOption(page: Page, initialFocus: AgInitialFocus): Promise<void> {
+                await page.selectOption('#myInitialFocus', initialFocus);
+                await page.locator('#above-chart').focus();
+                await page.keyboard.press('Tab');
+            }
+
+            async function selectMode(page: Page, mode: 'create' | 'updateDelta'): Promise<void> {
+                await page.selectOption('#myUpdateMode', mode);
+            }
+
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('accessibility-e2e', example, 'vanilla').url);
+                canvas = page.locator(SELECTORS.canvasCenter).first();
+            });
+
+            test('data-start', async ({ page }) => {
+                await selectOption(page, 'data-start');
+                await expectChartScreenshot(page, canvas, `${example}-data-start.png`);
+            });
+
+            test('data-end', async ({ page }) => {
+                await selectOption(page, 'data-end');
+                await expectChartScreenshot(page, canvas, `${example}-data-end.png`);
+            });
+
+            test('viewport-start', async ({ page }) => {
+                await selectOption(page, 'viewport-start');
+                await expectChartScreenshot(page, canvas, `${example}-viewport-start.png`);
+            });
+
+            test('viewport-end', async ({ page }) => {
+                await selectOption(page, 'viewport-end');
+                await expectChartScreenshot(page, canvas, `${example}-viewport-end.png`);
+            });
+
+            test('only the first focus event reads the initialFocus value', async ({ page }) => {
+                await selectMode(page, 'updateDelta');
+
+                await selectOption(page, 'viewport-start');
+                await expectChartScreenshot(page, canvas, `${example}-viewport-start.png`);
+
+                await selectOption(page, 'viewport-end');
+                await expectChartScreenshot(page, canvas, `${example}-viewport-start.png`);
+            });
+        });
+    }
+
+    test.describe('keyboard-click-listeners', () => {
+        async function popEvents(page: Page): Promise<unknown> {
+            return evalPageFunction(page, 'popEvents');
         }
 
-        async function selectMode(page: Page, mode: 'create' | 'updateDelta'): Promise<void> {
-            await page.selectOption('#myUpdateMode', mode);
+        async function getActiveElementText(page: Page): Promise<string | null | undefined> {
+            return page.evaluate(() => document.activeElement?.textContent);
+        }
+
+        function seriesAreaFocus(page: Page): Locator {
+            return page.locator(`${SELECTORS.seriesArea} :focus`);
+        }
+
+        function crossLinesFocus(page: Page): Locator {
+            return page.locator('.ag-charts-proxy-cross-lines :focus');
         }
 
         test.beforeEach(async ({ page }) => {
-            await gotoExample(page, toExamplePageUrl('accessibility-e2e', 'initial-focus', 'vanilla').url);
-            canvas = page.locator(SELECTORS.canvasCenter).first();
+            await gotoExample(page, toExamplePageUrl('accessibility-e2e', 'keyboard-click-listeners', 'vanilla').url);
+            await page.locator('#above-chart').focus();
         });
 
-        test('data-start', async ({ page }) => {
-            await selectOption(page, 'data-start');
-            await expectChartScreenshot(page, canvas, 'initial-focus-data-start.png');
+        test('Tab visits title, series, footnote, cross lines, then legend', async ({ page }) => {
+            await page.keyboard.press('Tab');
+            expect(await getActiveElementText(page)).toBe('Number of Cars Sold');
+
+            await page.keyboard.press('Tab');
+            await expect(seriesAreaFocus(page)).toHaveCount(1);
+
+            await page.keyboard.press('Tab');
+            expect(await getActiveElementText(page)).toBe('Source: Internal sales data');
+
+            await page.keyboard.press('Tab');
+            await expect(crossLinesFocus(page)).toHaveCount(1);
+
+            await page.keyboard.press('Tab');
+            await expect(page.locator(SELECTORS.legendItems).first()).toBeFocused();
         });
 
-        test('data-end', async ({ page }) => {
-            await selectOption(page, 'data-end');
-            await expectChartScreenshot(page, canvas, 'initial-focus-data-end.png');
+        test('arrows move between cross lines with listeners, Enter fires them', async ({ page }) => {
+            await repeat(4, async () => await page.keyboard.press('Tab'));
+            await expect(crossLinesFocus(page)).toHaveCount(1);
+
+            await page.keyboard.press('Enter');
+            expect(await popEvents(page)).toEqual(['promotion']);
+
+            // 'floor' has no listener, so it is not a stop between 'promotion' and 'target'.
+            await page.keyboard.press('ArrowRight');
+            await page.keyboard.press('Enter');
+            expect(await popEvents(page)).toEqual(['target']);
         });
 
-        test('viewport-start', async ({ page }) => {
-            await selectOption(page, 'viewport-start');
-            await expectChartScreenshot(page, canvas, 'initial-focus-viewport-start.png');
-        });
+        test('turning listeners off removes the caption and cross line stops', async ({ page }) => {
+            await page.getByText('Listeners: on').click();
+            await waitForAllChartUpdates(page);
+            await page.locator('#above-chart').focus();
 
-        test('viewport-end', async ({ page }) => {
-            await selectOption(page, 'viewport-end');
-            await expectChartScreenshot(page, canvas, 'initial-focus-viewport-end.png');
-        });
+            await page.keyboard.press('Tab');
+            await expect(seriesAreaFocus(page)).toHaveCount(1);
 
-        test('only the first focus event reads the initialFocus value', async ({ page }) => {
-            await selectMode(page, 'updateDelta');
-
-            await selectOption(page, 'viewport-start');
-            await expectChartScreenshot(page, canvas, 'initial-focus-viewport-start.png');
-
-            await selectOption(page, 'viewport-end');
-            await expectChartScreenshot(page, canvas, 'initial-focus-viewport-start.png');
+            await page.keyboard.press('Tab');
+            await expect(page.locator(SELECTORS.legendItems).first()).toBeFocused();
         });
     });
 

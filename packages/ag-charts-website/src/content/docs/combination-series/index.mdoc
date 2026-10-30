@@ -7,11 +7,11 @@ A combination chart combines two or more series types allowing for flexible data
 
 ## Combination Series Types
 
-Series types can be combined with other series types used in the same kind of chart:
+Series types can be combined with other series sharing the same axis type.
 
-- **Cartesian charts**: `bar`, `line`, `area`, `scatter`, `bubble`, `histogram`, `range-bar`, `range-area`, `box-plot`, `candlestick`, `hlc` and `ohlc`.
-- **Polar charts**: `radar-line`, `radar-area` and `nightingale`.
-- **Pie and donut charts**: `pie` and `donut`.
+- **Cartesian**: `bar`, `line`, `area`, `scatter`, `bubble`, `histogram`, `range-bar`, `range-area`, `box-plot`, `candlestick`, `hlc` and `ohlc`.
+- **Polar**: `radar-line`, `radar-area`, `radial-column` and `nightingale`.
+- `pie` and `donut`.
 
 The `type` property must be specified explicitly on each individual series object in the `series` options array, as shown below:
 
@@ -42,14 +42,6 @@ The example below demonstrates two common combination chart types. You can switc
 - The area and line series are plotted on a [Secondary Axis](./axes-secondary/) with a different scale.
 
 {% chartExampleRunner title="Combination Charts" name="combination" type="generated" /%}
-
-### Restrictions
-
-- Series types used in different kinds of chart cannot be combined. For example, a `bar` series cannot be combined with a `radar-line` series. The first series in the `series` array determines the kind of chart, and any series that doesn't suit it is ignored.
-- The following series types cannot be combined with any other series. If one of them is the first series in the `series` array, only that series is processed. Otherwise, it is ignored:
-    - [`waterfall`](./waterfall-series/), [`funnel`](./funnel-series/) and [`cone-funnel`](./cone-funnel-series/)
-    - [`pyramid`](./pyramid-series/), [`sankey`](./sankey-series/), [`sunburst`](./sunburst-series/), [`treemap`](./treemap-series/), [`chord`](./chord-series/) and [`organization`](./org-chart/)
-    - [`radial-gauge`](./radial-gauge/) and [`linear-gauge`](./linear-gauge/)
 
 ## Combination Chart Examples
 

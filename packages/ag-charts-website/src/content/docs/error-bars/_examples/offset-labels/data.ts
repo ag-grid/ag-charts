@@ -1,16 +1,16 @@
 export function getData(): any[] {
     return [
-        { month: 'Jan', dividends: 2.5, lowerCI: 1.5, upperCI: 3.5 },
-        { month: 'Feb', dividends: 3.0, lowerCI: 2.3, upperCI: 3.7 },
-        { month: 'Mar', dividends: 2.8, lowerCI: 2.1, upperCI: 3.5 },
-        { month: 'Apr', dividends: 3.2, lowerCI: 2.4, upperCI: 3.9 },
-        { month: 'May', dividends: 2.9, lowerCI: 2.2, upperCI: 3.6 },
-        { month: 'Jun', dividends: 3.1, lowerCI: 2.3, upperCI: 3.9 },
-        { month: 'Jul', dividends: 2.7, lowerCI: 2.0, upperCI: 3.4 },
-        { month: 'Aug', dividends: 3.3, lowerCI: 2.5, upperCI: 3.8 },
-        { month: 'Sep', dividends: 3.0, lowerCI: 2.2, upperCI: 3.8 },
-        { month: 'Oct', dividends: 2.6, lowerCI: 1.8, upperCI: 3.4 },
-        { month: 'Nov', dividends: 2.8, lowerCI: 2.0, upperCI: 3.6 },
-        { month: 'Dec', dividends: 2.9, lowerCI: 2.1, upperCI: 3.7 },
+        { month: 'Jan', dividends: 25, lowerCI: 15, upperCI: 35 },
+        { month: 'Feb', dividends: 30, lowerCI: 23, upperCI: 37 },
+        { month: 'Mar', dividends: 28, lowerCI: 21, upperCI: 35 },
+        { month: 'Apr', dividends: 32, lowerCI: 24, upperCI: 39 },
+        { month: 'May', dividends: 29, lowerCI: 22, upperCI: 36 },
+        { month: 'Jun', dividends: 31, lowerCI: 23, upperCI: 39 },
+        { month: 'Jul', dividends: 27, lowerCI: 20, upperCI: 34 },
+        { month: 'Aug', dividends: 33, lowerCI: 25, upperCI: 38 },
+        { month: 'Sep', dividends: 30, lowerCI: 22, upperCI: 38 },
+        { month: 'Oct', dividends: 26, lowerCI: 18, upperCI: 34 },
+        { month: 'Nov', dividends: 28, lowerCI: 20, upperCI: 36 },
+        { month: 'Dec', dividends: 29, lowerCI: 21, upperCI: 37 },
     ];
 }

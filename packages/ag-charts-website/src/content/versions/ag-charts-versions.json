@@ -15,7 +15,11 @@
                 "path": "./financial-charts-volume-profile/"
             },
             {
-                "text": "Accessibility Improvements"
+                "text": "HLC Series",
+                "path": "./hlc-series/"
+            },
+            {
+                "text": "Performance Improvements"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-14-3"
