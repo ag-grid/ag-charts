@@ -24,7 +24,7 @@ function getNavigationProperty(page: Page, matcher: string | RegExp): Locator {
 }
 
 function getNavigationClickable(page: Page, matcher: string | RegExp): Locator {
-    return getNavigationProperty(page, matcher).locator('span').first();
+    return getNavigationProperty(page, matcher).locator('a').first();
 }
 
 function getNavigationHighlight(page: Page, matcher: string | RegExp): Locator {
@@ -541,6 +541,34 @@ test.describe('api-ref-page', () => {
 
         await seriesLink.click();
         await expect(getNavigationHighlight(page, /^series\b/)).toHaveCount(1);
+    });
+
+    test('nav entries link to the page or anchor they select', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        await expect(getNavigationClickable(page, /^series\b/)).toHaveAttribute(
+            'href',
+            /\/options\/#reference-AgChartOptions-series$/
+        );
+
+        await expandNavNode(page, /^series\b/);
+        const barLink = getNavigationTree(page).getByRole('link', { name: "{ type = 'bar'" });
+        await expect(barLink).toHaveAttribute('href', /\/options\/series\/bar\/#reference-AgBarSeriesOptions-type$/);
+
+        await barLink.click();
+        await expect(page).toHaveURL(/\/options\/series\/bar\/#reference-AgBarSeriesOptions-type$/);
+        await expect(page.locator('header h1')).toContainText("type = 'bar'");
+    });
+
+    test('keeps links to the reference pages in collapsed branches', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        const barPageLink = page.locator('a[href$="/options/series/bar/"]');
+        await expect(barPageLink).toHaveCount(1);
+        await expect(barPageLink).toBeHidden();
+        await expect(page.locator('a[href$="/options/axes/number/"]')).toHaveCount(1);
     });
 });
 

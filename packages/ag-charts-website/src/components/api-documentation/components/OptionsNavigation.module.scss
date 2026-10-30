@@ -154,6 +154,15 @@ pre.navContainer {
     }
 }
 
+.navLink {
+    color: inherit;
+    font-weight: inherit;
+
+    &:hover {
+        color: inherit;
+    }
+}
+
 .propertyExpander {
     --icon-size: 1em;
     --icon-color: var(--color-fg-primary);
