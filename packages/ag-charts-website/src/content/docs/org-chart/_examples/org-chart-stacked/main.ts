@@ -29,7 +29,6 @@ const options: AgStandaloneChartOptions = {
                 nodeIndentation: 26,
             },
             node: {
-                // clickToExpand: false,
                 image: {
                     key: 'avatar',
                     height: 50,

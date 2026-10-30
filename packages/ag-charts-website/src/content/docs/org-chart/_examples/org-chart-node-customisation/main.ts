@@ -24,7 +24,6 @@ const options: AgChartOptions = {
             parentIdKey: 'parentId',
             node: {
                 width: 180,
-                // height: 120,
                 cornerRadius: 12,
                 image: { key: 'avatar', position: 'left', height: 50, width: 50, cornerRadius: 25 },
                 itemStyler: ({ datum }) => {

@@ -341,9 +341,9 @@ In this configuration:
 
 - `shape` is a [marker shape](#reference-AgLinearGaugeOptions-targets-shape).
 - `placement` indicates the relative placement to the gauge - either `before`, `after`, or `middle`.
-- `size` is the size of the marker, in pixels.
+- `size` can be set to change the size of the marker, in pixels.
 - `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
-- `label` styles the target text. Set `maxWidth` or `maxHeight` to fit long text, and `collision` to hide a label that overlaps another label.
+- `label` styles the target text. Set `maxWidth` or `maxHeight` to fit long text, and `collision` to hide a label that overlaps another label. Setting `collision` also gives the target label priority over overlapping scale labels, which are hidden instead.
 
 ## Bullet Series
 
@@ -380,7 +380,7 @@ The Linear Gauge is used to create a Bullet Series.
 
 In the above configuration:
 
-- The bar `thickness` is set to less that the gauge thickness.
+- The bar `thickness` is set to less than the gauge thickness.
 - The scale has a number of `fills` and a `fillMode` of `discrete`.
 - The target has `line` shape with a `strokeWidth` of 2 and is placed in the `middle`.
 

@@ -60,14 +60,17 @@ Each node can display a `title`, `subtitle` as well as an array of `labels`.
                     {
                         key: 'status',
                         textAlign: 'right',
-                        itemStyler: ({ datum }) => ({
-                            fill: datum.status === 'Remote' ? '#fff3e0' : '#e8f5e9',
-                            stroke: datum.status === 'Remote' ? '#ff9800' : '#4caf50',
-                            color: datum.status === 'Remote' ? '#e65100' : '#2e7d32',
-                            cornerRadius: 8,
-                            padding: 4,
-                            fontWeight: 'bold',
-                        }),
+                        itemStyler: ({ datum }) => {
+                            const isRemote = datum.status === 'Remote';
+                            return {
+                                fill: isRemote ? '#fff3e0' : '#e8f5e9',
+                                stroke: isRemote ? '#ff9800' : '#4caf50',
+                                color: isRemote ? '#e65100' : '#2e7d32',
+                                cornerRadius: 8,
+                                padding: 4,
+                                fontWeight: 'bold',
+                            };
+                        },
                     },
                 ],
             },
@@ -334,7 +337,13 @@ Nodes with children can be collapsed and expanded by clicking the expander. They
 ```js format="snippet"
 {
     initialState: {
-        collapsed: ['Lawrence Martinez', 'Eric Jensen'],
+        collapsed: [
+            'Mr. Jeffrey Brown',
+            'Nathan Jones',
+            'Justin Contreras',
+            'Lawrence Martinez',
+            'Eric Jensen',
+        ],
     },
     series: [
         {
@@ -359,12 +368,12 @@ Nodes with children can be collapsed and expanded by clicking the expander. They
 
 In this example:
 
-- The subtrees under 'Lawrence Martinez' and 'Eric Jensen' will start in a collapsed state. This uses the `initialState.collapsed` property to specify which subtrees start collapsed.
+- The subtrees under 'Mr. Jeffrey Brown', 'Nathan Jones', 'Justin Contreras', 'Lawrence Martinez' and 'Eric Jensen' will start in a collapsed state. This uses the `initialState.collapsed` property to specify which subtrees start collapsed.
 - Use `node.clickToExpand` to toggle collapsing/expanding by clicking anywhere on the card instead of the expander only.
     - Defaults to `false` when node has a [click listener](./events/#seriesnodeclick-and-seriesnodedoubleclick) or has [Data Selection](./selection/) enabled, otherwise defaults to `true`.
-- The `collapsed` array contains the identifiers of all currently collapsed nodes.
+- The `collapsed` array in the chart state contains the identifiers of all currently collapsed nodes.
     - See the [State API](./api-state/#collapsed) page for more details.
-- Changes in the collapsed items can be listened to with the `collapsedChange` event, logged to the console here showing the `itemId` of each newly collapsed and expanded node.
+- Changes in the collapsed items can be listened to with the `collapsedChange` event, logged to the console here showing the `itemId` of each newly collapsed and expanded node. The `collapsed` and `expanded` arrays in the event contain only the nodes changed by that interaction, not every collapsed node.
     - See the [Events API](./events/#collapsedchange) page for more details.
 
 ### Zoom
@@ -413,7 +422,7 @@ Organisation Charts support full keyboard navigation and screen readers.
 
 The following keys are available:
 
-- {% kbd "←" /%}{% kbd "→" /%}{% kbd "↑" /%}{% kbd "↓" /%} moves focus between nodes.
+- {% kbd "←" /%}{% kbd "→" /%}{% kbd "↑" /%}{% kbd "↓" /%} moves focus between nodes. {% kbd "↓" /%} on a collapsed node also expands it before moving focus to its first child.
 - {% kbd "Alt" /%}+{% kbd "↓" /%} and {% kbd "Alt" /%}+{% kbd "↑" /%} expand and collapse the focused node.
 - {% kbd "↵ Enter" /%} or {% kbd "␣ Space" /%} trigger any click listeners, and also toggle the focused node when `clickToExpand` is enabled.
 

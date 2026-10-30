@@ -98,7 +98,7 @@ In the above example:
 - Right click on the series area to see the translated context menu options.
 - Click on the legend item to see the translated "no visible series" overlay.
 
-If a locale is provided but is missing values, the default English values will be used for the missing values.
+If a locale is provided but is missing values, the translation key is displayed for each missing value rather than falling back to English. To override only some values, spread a complete locale such as `AG_CHARTS_LOCALE_EN_US` first, as in the example below.
 
 ## Customising Text Values
 
@@ -130,7 +130,7 @@ In this configuration, `localeText` is a dictionary mapping translation keys to 
 
 Some translations have parameters, which can be included in the translation using `'${value}'` syntax. Provided strings should not use backticks.
 
-Values can be formatted by appending a format style in square brackets, like `'${value}[percent]'`. The available formatters are `[number]`, `[percent]`, `[date]`, `[time]`, and `[datetime]`.
+Values can be formatted by appending a format style in square brackets, like `'${value}[percent]'`. The available formatters are `[number]`, `[percent]`, `[percent0to2dp]`, `[date]`, `[time]`, and `[datetime]`. `[percent]` always shows two decimal places, whereas `[percent0to2dp]` shows up to two.
 
 ```js format="snippet"
 {

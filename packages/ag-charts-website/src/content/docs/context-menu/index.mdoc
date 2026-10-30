@@ -87,7 +87,7 @@ If there are multiple elements that match the `showOn` value, all of them are sh
             {
                 showOn: 'axis',
                 label: 'Say hello to an axis',
-                action: (ev) => console.log(`Hello in axis "${ev.axisId}":"`, ev),
+                action: (ev) => console.log(`Hello in axis "${ev.axisId}":`, ev),
             },
             {
                 showOn: 'series-area',
@@ -108,7 +108,7 @@ If there are multiple elements that match the `showOn` value, all of them are sh
 
 In this configuration:
 
-- A single custom action is added for the entire chart, the captions, the axes, the series area, the series node and the legend items.
+- A single custom action is added for the entire chart, the captions, the axes, the series area, the series node, the cross lines and the legend items.
 - Multiple entries per `showOn` element can be specified within the array if required.
 - Right clicking on one of these areas will show these additional actions in the Context Menu.
 - Clicking these extra actions will display information in the console, demonstrating that the action is aware of details about the right-clicked item.
@@ -227,26 +227,6 @@ The `getItems` callback can be used to change the state or appearance of a data 
 {
     contextMenu: {
         getItems: (params) => {
-            if (params.showOn === 'series-node') {
-                const { seriesId } = params;
-                const year = String(params.datum[params.xKey]);
-                const yKey = params.yKey;
-                const isEmphasised = emphasisedPoints.has(pointKey(seriesId, year));
-                return [
-                    {
-                        type: 'action',
-                        showOn: 'series-node',
-                        label: `${isEmphasised ? 'Remove Emphasis from' : 'Emphasise'} "${year}" Point`,
-                        action: () => toggleEmphasis(seriesId, year),
-                    },
-                    {
-                        type: 'action',
-                        showOn: 'series-node',
-                        label: `Remove "${year}" Point`,
-                        action: () => removeDataPoint(year, yKey),
-                    },
-                ];
-            }
             if (params.showOn === 'legend-item') {
                 const { seriesId } = params;
                 return [
@@ -270,6 +250,31 @@ The `getItems` callback can be used to change the state or appearance of a data 
                     },
                 ];
             }
+            // Every series node under the right-click is listed in `allShowOnParams`
+            const items = [];
+            for (const entry of params.allShowOnParams) {
+                if (entry.showOn === 'series-node') {
+                    const { seriesId, xKey, yKey } = entry;
+                    const year = String(entry.datum[xKey]);
+                    const formattedDatum = `${yKey} ${year}`;
+                    const isEmphasised = emphasisedPoints.has(pointKey(seriesId, year));
+                    items.push(
+                        {
+                            type: 'action',
+                            showOn: 'series-node',
+                            label: `${isEmphasised ? 'Remove Emphasis from' : 'Emphasise'} "${formattedDatum}" Point`,
+                            action: () => toggleEmphasis(seriesId, year),
+                        },
+                        {
+                            type: 'action',
+                            showOn: 'series-node',
+                            label: `Remove "${formattedDatum}" Point`,
+                            action: () => removeDataPoint(year, yKey),
+                        }
+                    );
+                }
+            }
+            return items;
         },
     },
 }

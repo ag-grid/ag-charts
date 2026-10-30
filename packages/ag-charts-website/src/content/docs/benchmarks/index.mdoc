@@ -110,7 +110,7 @@ Exercise:
 
 ### Bigint Values
 
-1,000,000 points where `y` is a `bigint` beyond `Number.MAX_SAFE_INTEGER`, plotted on number axes.
+1,000,000 points where `y` is a `bigint` beyond `Number.MAX_SAFE_INTEGER`, drawn on number axes.
 
 {% chartExampleRunner title="Bigint Values" name="high-volume-bigint" type="generated" initialLoadDeferred=true /%}
 
@@ -149,6 +149,8 @@ Exercise:
 
 ## Shadow Layering Test
 
+Shadow `spread` and highlight `glow` are undocumented options accepted at runtime only; they are not part of the public API.
+
 Exercise:
 
 - Initial load and redraw time of series whose shadows overlap: grouped bars with a shadow `spread`, overlapping areas with marker shadows, and 20 lines of 1,000 markers with shadows.
@@ -158,6 +160,8 @@ Exercise:
 {% chartExampleRunner title="Shadow Layering" name="shadow-root" type="generated" initialLoadDeferred=true /%}
 
 ## Heatmap Glow Test
+
+The highlight `glow` is an undocumented option accepted at runtime only; it is not part of the public API.
 
 Exercise:
 

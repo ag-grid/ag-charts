@@ -99,7 +99,7 @@ Use `colorScale` to control how `colorKey` values map to colours.
 
 In this example:
 
-- Use the toggle to switch between discrete mode with named stops shown in a category legend, and a continuous gradient shown in a gradient legend.
+- Use the radio buttons to switch between discrete mode with named stops shown in a category legend, and a continuous gradient shown in a gradient legend. The snippet above corresponds to the "Named Stops" option.
 
 See the [Colour Scale](./colour-scale/) page for the full range of colour scale options including discrete mode, named stops, fixed domains, missing data, and gradient legend customisation.
 
@@ -177,7 +177,6 @@ In this configuration:
 - `fontSize` sets the size of the font.
 - `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space.
 - `spacing` controls the amount of space below a label.
-- `padding` adds space between the edge of a group or tile and its contents.
 - `formatter` allows customising the value of a label using a function.
 
 ## Layout
@@ -224,7 +223,7 @@ Treemap Series supports multiple levels within a hierarchy.
 
 {% chartExampleRunner title="Highlighting" name="highlight" type="generated" /%}
 
-Treemaps leaf tiles are configured via `tile.highlight`, while group rectangles use `group.highlight`.
+Treemap leaf tiles are configured via `tile.highlight`, while group rectangles use `group.highlight`.
 
 The leaf tiles support the following states:
 
@@ -245,8 +244,8 @@ When a group is hovered, its `fillOpacity` and `strokeOpacity` styles are inheri
     series: [
         {
             type: 'treemap',
-            labelKey: 'title',
-            sizeKey: 'total',
+            labelKey: 'name',
+            sizeKey: 'value',
             group: {
                 highlight: {
                     highlightedItem: { stroke: 'lightgreen', strokeWidth: 4 },

@@ -11,7 +11,7 @@ Each validation issue is reported as one of three severities: `error`, `warning`
 
 `consoleOn`, `showOverlayOn` and `throwOn` each take an array of one or more of these severities, and apply only to the ones listed. An empty array disables that option entirely.
 
-The `issueRaised` event reports every issue and includes a `severity` property in the parameters.
+The `issueRaised` event reports each distinct issue once and includes a `severity` property in the parameters.
 
 ## Validation Overlay
 
@@ -32,7 +32,7 @@ In this example:
 - Any errors or warnings present would be shown in the overlay, but deprecations would not, since `showOverlayOn` only lists `'error'` and `'warning'`.
 - Issues are grouped and sorted by severity, with a count in each group's heading.
 - Each issue shows a message with relevant information to enable easy debugging.
-- There is a Copy button for pasting into a bug report and dismissing the overlay hides it without suppressing future issues.
+- There is a Copy button for pasting into a bug report, shown only where the browser's clipboard API is available, and dismissing the overlay hides it without suppressing future issues.
 - While shown, the validation overlay takes priority over the loading and no-data overlays.
 
 ## Console Output
@@ -89,7 +89,7 @@ Subscribe to the `validations.issueRaised` event to programmatically handle vali
 In this example:
 
 - The `issueRaised` event is logged to the console when invalid options are applied.
-- Unlike `consoleOn`, `showOverlayOn`, and `throwOn`, `issueRaised` is not filtered by severity.
+- Unlike `consoleOn`, `showOverlayOn` and `throwOn`, `issueRaised` is not filtered by severity.
 
 ## API Reference
 

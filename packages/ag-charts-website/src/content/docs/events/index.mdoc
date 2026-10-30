@@ -48,13 +48,13 @@ In this example:
 
 These are fired on click or double-click of a series node such as a bar or marker and are defined on the series or chart options.
 
-The parameters of these events differ depending on the series type, but always include:
+The parameters of these events differ depending on the series type, but include:
 
 - The `seriesId` the node belongs to and the [`itemId`](#item-identifiers) of the clicked node.
 - The data object being visualised, usually `datum`.
 - The specific keys in that `datum` that were used to fetch the values represented by the clicked node.
 - `allMatchedParams` - every other node matched at the click point. See [allMatchedParams](#allmatchedparams).
-- `coordinates` - the coordinates of the click point, in the same form as the [chart click](#click-and-doubleclick) events.
+- `coordinates` - where available, the coordinates of the click point, in the same form as the [chart click](#click-and-doubleclick) events.
 - The [`context`](./context/) object, if set.
 
 {% chartExampleRunner title="Node Click Event" name="series-node-click-event" type="generated" /%}
@@ -293,7 +293,7 @@ In this example:
 
 ## allMatchedParams
 
-Most click events include an `allMatchedParams` array listing every element found at the click point, not only the one that won the event. This is useful for scenarios where multiple elements overlap, such as a Cross Line and a series node.
+The series node and Cross Line click events include an `allMatchedParams` array listing every element found at the click point, not only the one that won the event. This is useful for scenarios where multiple elements overlap, such as a Cross Line and a series node.
 
 Each entry is identified by its own `type`, matching the specific event it would have delivered for that interaction and includes the same properties as it would have carried. The winning event is also included in the array.
 
@@ -497,8 +497,8 @@ The events that can be prevented are:
 
 In this example:
 
-- When a legend item is clicked, the visibility change is prevented and a counter decreases instead, by calling `preventDefault` on the `legendItemClick` event.
-- When the counter hits zero, the toggle is allowed to occur and the [seriesVisibilityChange](#seriesvisibilitychange) event fires.
+- Every other click on a legend item is prevented by calling `preventDefault` on the `legendItemClick` event, and the counter shows `0` when the click was prevented.
+- On the alternate clicks the counter shows `1`, the toggle is allowed to occur and the [seriesVisibilityChange](#seriesvisibilitychange) event fires.
 
 ## Item Identifiers
 

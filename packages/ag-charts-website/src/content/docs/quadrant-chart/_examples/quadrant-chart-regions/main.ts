@@ -36,7 +36,7 @@ const options: AgQuadrantChartOptions = {
                 data: [
                     { label: 'Category', value: params.datum.category },
                     { label: 'Revenue growth', value: `${params.datum.revenueGrowth}%` },
-                    { label: 'Margin change', value: `${params.datum.marginChange}%` },
+                    { label: 'Margin change', value: `${params.datum.marginChange}% points` },
                 ],
             };
         },
