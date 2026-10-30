@@ -44,6 +44,9 @@ After meaningful chart changes, also run:
 ## Review guidelines
 
 -   **Hot-path impact:** a chart renders up to a million datums at 60Hz, so the same edit is free in one file and costs frame time in another. Gate every review with `node tools/hot-paths/detect.js --range <base>...<head>` (sub-second); when it reports `triggered`, load the `hot-paths` skill, which also documents the detector's other modes and output. Do not assert a performance cost without naming the loop or caller that makes it hot.
+-   **Must-fix here, whatever the default priority:** per-datum allocation or re-parsing in a hot path; a helper or fixture copied where a util already exists (e.g. `seedRandom` in `chart/test/random.ts`) or test blocks copied instead of parameterised; comment bloat past the `pr-review` budget; tests that copy production logic or cannot fail.
+-   **Readers of a series' datum selection:** when a change alters a selection's size, order or membership, check each consumer. Animation matches nodes by `createDatumId` keys (usually `xValue`, e.g. `datumSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue))`) on the animatable path; unkeyed updates and some series (heatmap, box plot) match by position or index. Highlight, keyboard focus (`pickFocus`) and tooltips (`getTooltipContent`) address a datum by `datumIndex`. Picking (`pickNodes`, `unsafeClosestDatum`) reads the selection too. Name which consumers you checked.
+-   **Test shortcuts:** reuse shared utilities from `chart/test/` and `enterprise/src/test/` rather than reaching into internals such as `(chart.series[0] as any).labelSelection`.
 
 ## Tooling Health Check
 
