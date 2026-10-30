@@ -26,7 +26,7 @@ export class ApproximateOrdinalTimeScale extends OrdinalTimeScale {
 
         // Set up property delegation using Object.defineProperty
         // This allows reads/writes to delegate to the source scale
-        const delegateProperty = (prop: keyof OrdinalTimeScale) => {
+        const delegateProperty = (prop: 'domain' | 'range' | 'paddingInner' | 'paddingOuter' | 'round') => {
             Object.defineProperty(this, prop, {
                 get: () => scale[prop],
                 set: (value: unknown) => {
@@ -44,7 +44,7 @@ export class ApproximateOrdinalTimeScale extends OrdinalTimeScale {
         delegateProperty('round');
 
         // Delegate computed properties (read-only)
-        const delegateReadOnly = (prop: keyof OrdinalTimeScale) => {
+        const delegateReadOnly = (prop: 'bandwidth' | 'step' | 'inset' | 'rawBandwidth') => {
             Object.defineProperty(this, prop, {
                 get: () => scale[prop],
                 configurable: true,

@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "@types/node": "^16.0.0",
-    "@types/pixelmatch": "^5.2.4",
+    "@types/pixelmatch": "^5.2.6",
     "@types/pngjs": "6.0.5",
     "ag-charts-test": "14.2.0-beta.20261028",
     "jest-image-snapshot": "^6.5.2",

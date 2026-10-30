@@ -9,10 +9,10 @@
     "ag-charts-test": "14.2.0-beta.20261028",
     "ag-shared": "0.0.1",
     "cheerio": "^1.2.0",
-    "glob": "8.0.3",
+    "glob": "8.1.0",
     "jscodeshift": "^0.16.1",
     "json5": "2.2.3",
-    "prettier": "3.9.9",
+    "prettier": "3.9.10",
     "sucrase": "^3.35.1",
     "typescript": "~5.8.3"
   },
