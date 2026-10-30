@@ -38,6 +38,7 @@ const options: AgCartesianChartOptions = {
             label: {
                 enabled: true,
                 placement: ['inside', 'top', 'bottom'],
+                truncate: false,
                 formatter: ({ datum }) => `$${datum.revenue}m`,
             },
         },

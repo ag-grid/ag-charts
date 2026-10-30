@@ -316,6 +316,12 @@ In this configuration:
             fill: 'white',
             strokeWidth: 2,
             spacing: 8,
+            text: 'Minimum',
+            label: {
+                fontSize: 12,
+                fontWeight: 'bold',
+                color: '#d14d41',
+            },
         },
         {
             value: 75,
@@ -324,6 +330,12 @@ In this configuration:
             fill: 'white',
             strokeWidth: 2,
             spacing: 8,
+            text: 'Stretch',
+            label: {
+                fontSize: 14,
+                fontStyle: 'italic',
+                fontFamily: 'Georgia, serif',
+            },
         },
         {
             value: 90,
@@ -343,7 +355,7 @@ In this configuration:
 - `placement` indicates the relative placement to the gauge - either `before`, `after`, or `middle`.
 - `size` is the size of the marker, in pixels.
 - `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
-- `label` styles the target text. Set `maxWidth` or `maxHeight` to fit long text, and `collision` to hide a label that overlaps another label.
+- `label` styles the target text, including `maxWidth`, `maxHeight`, and `collision` options.
 
 ## Bullet Series
 

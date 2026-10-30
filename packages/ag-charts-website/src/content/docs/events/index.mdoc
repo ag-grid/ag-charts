@@ -172,6 +172,8 @@ In this example:
 These are fired on click or double-click of a [Cross Line](./axes-cross-lines/), including its label.
 This can be defined on the Cross Line itself, the axis or the chart.
 
+Cross Lines with a `crossLineClick` or `click` listener can be reached with {% kbd "⇥ Tab" /%}, and {% kbd "←" /%}{% kbd "→" /%} move between them. Pressing {% kbd "↵ Enter" /%} fires the listener. See [Keyboard Navigation](./accessibility/#keyboard-navigation).
+
 These events contain:
 
 - The `crossLineId`, as specified on the Cross Line or automatically generated.
@@ -260,6 +262,8 @@ In this example:
 ## captionClick and captionDoubleClick
 
 These are fired on click or double-click of the chart's `title`, `subtitle` or `footnote`. These are defined on the caption itself or on the chart.
+
+A caption with a `captionClick` or `click` listener can be reached with {% kbd "⇥ Tab" /%}, and pressing {% kbd "↵ Enter" /%} fires the listener. See [Keyboard Navigation](./accessibility/#keyboard-navigation).
 
 These events contain:
 
@@ -517,6 +521,8 @@ Many events expose an `itemId` to identify the item within its series. How it is
 
 {% tabItem id="AgSeriesListeners" label="Series Events" %}
 All series event options have similar interface contracts. See the series-specific documentation for variations.
+
+These can also be set on the chart itself, which will catch all series events.
 {% apiReference id="AgSeriesListeners" include=["seriesNodeClick", "seriesNodeDoubleClick"] /%}
 {% apiReference id="AgBaseSeriesOptions" include=["nodeClickRange"] /%}
 {% /tabItem %}
@@ -526,24 +532,28 @@ All series event options have similar interface contracts. See the series-specif
 {% /tabItem %}
 
 {% tabItem id="AgAxisListeners" label="Axis Events" %}
-{% apiReference id="AgAxisListeners" include=["click", "doubleClick"] /%}
+{% apiReference id="AgAxisListeners" include=["click", "doubleClick", "crossLineClick", "crossLineDoubleClick"] /%}
 {% /tabItem %}
 
 {% tabItem id="AgCrossLineListeners" label="Cross Line Events" %}
-Cross Line listeners can also be set on the axis that owns the Cross Line.
+Cross Line listeners can also be set on the axis that owns the Cross Line or on the chart itself.
+
 {% apiReference id="AgCrossLineListeners" /%}
-{% apiReference id="AgAxisListeners" include=["crossLineClick", "crossLineDoubleClick"] /%}
-{% apiReference id="AgAxesChartListeners" include=["crossLineClick", "crossLineDoubleClick"] /%}
 {% /tabItem %}
 
 {% tabItem id="AgCaptionListeners" label="Caption Events" %}
 Caption listeners can be set on the chart's `title`, `subtitle` and `footnote`.
+These can also be set on the chart itself, which will catch all caption events.
+
 {% apiReference id="AgCaptionListeners" /%}
-{% apiReference id="AgBaseChartListeners" include=["captionClick", "captionDoubleClick"] /%}
 {% /tabItem %}
 
 {% tabItem id="AgBaseChartListeners" label="Chart Events" %}
 {% apiReference id="AgBaseChartListeners" /%}
+
+{% br /%}
+Cartesian charts also accept Cross Line listeners.
+{% apiReference id="AgAxesChartListeners" include=["crossLineClick", "crossLineDoubleClick"] hideHeader=true /%}
 {% /tabItem %}
 
 {% /tabs %}
