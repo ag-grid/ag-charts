@@ -32,6 +32,7 @@ export enum SeriesZIndexMap {
 export enum SeriesContentZIndexMap {
     FOREGROUND,
     HIGHLIGHT,
+    ANNOTATION,
     LABEL,
 }
 
