@@ -67,7 +67,7 @@ In this configuration:
     - `yRange` has no `start`, so it extends to the bottom edge.
 - "Both Bounds" has both `start` and `end` defined for `xRange` and `yRange`, so the region is bounded on all sides.
 - "Full Width" has no `xRange`, so it spans the full width of the series area, while `yRange` is bounded on both sides.
-- On a continuous axis, values outside the axis domain are clamped to the edge of the series area. On a category axis, values must exist in the domain, otherwise the region is ignored with a warning.
+- Values outside the axis domain are clamped to the edge of the series area.
 
 ## Labels
 
@@ -98,7 +98,7 @@ In this example:
 - Position names give the edge first, then the alignment along it. `top-left` sits above the region, aligned left, and `left-top` sits to its left, aligned top.
 - An `inside` prefix places the label within the region.
 - `xOffset` and `yOffset` move the label from its position by the specified number of pixels.
-- Long labels can be wrapped, truncated or shrunk to fit once `maxWidth` or `maxHeight` is set. See [Series Labels: Collision Avoidance](./series-labels/#collision-avoidance).
+- Long labels can be wrapped, truncated or shrunk to fit. See [Series Labels: Collision Avoidance](./series-labels/#collision-avoidance).
 
 ## Multiple Axes
 

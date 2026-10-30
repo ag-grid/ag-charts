@@ -293,7 +293,7 @@ In this example:
 
 ## allMatchedParams
 
-The series node and Cross Line click events include an `allMatchedParams` array listing every element found at the click point, not only the one that won the event. This is useful for scenarios where multiple elements overlap, such as a Cross Line and a series node.
+Most click events include an `allMatchedParams` array listing every element found at the click point, not only the one that won the event. This is useful for scenarios where multiple elements overlap, such as a Cross Line and a series node.
 
 Each entry is identified by its own `type`, matching the specific event it would have delivered for that interaction and includes the same properties as it would have carried. The winning event is also included in the array.
 
@@ -497,8 +497,8 @@ The events that can be prevented are:
 
 In this example:
 
-- Every other click on a legend item is prevented by calling `preventDefault` on the `legendItemClick` event, and the counter shows `0` when the click was prevented.
-- On the alternate clicks the counter shows `1`, the toggle is allowed to occur and the [seriesVisibilityChange](#seriesvisibilitychange) event fires.
+- When a legend item is clicked, the visibility change is prevented and a counter decreases instead, by calling `preventDefault` on the `legendItemClick` event.
+- When the counter hits zero, the toggle is allowed to occur and the [seriesVisibilityChange](#seriesvisibilitychange) event fires.
 
 ## Item Identifiers
 
