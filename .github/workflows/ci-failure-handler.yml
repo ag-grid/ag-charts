@@ -27,6 +27,12 @@ name: CI failure handler
 # third-party or fuzzed strings even on `latest` (test fixtures, dependency
 # output, snapshot diffs), i.e. a prompt-injection surface. Mitigations that
 # make this acceptable:
+#   - Only trusted runs: this repo is public and CI runs on pull_request, and
+#     `workflow_run` fires (with this repo's secrets) for a fork's PR run too.
+#     The `branches` filter matches the run's head branch, which for a fork PR
+#     is the fork's branch name, so a fork branch named `latest` would pass it.
+#     The preflight `if` therefore also requires the run to come from this
+#     repository and from a push or manual dispatch, never a pull request.
 #   - No auto-merge: the agent's only write outcomes are a `ci-fix/*` branch
 #     push and a fix PR; every fix still goes through human review and normal
 #     PR CI before it can land.
@@ -99,8 +105,13 @@ env:
 
 jobs:
     preflight:
-        # Only for genuine failures (workflow_run) or a manual dry-run.
-        if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure'
+        # Only for a manual dry-run, or a genuine failure of a trusted run (see the
+        # security model above): from this repository, and not from a pull request.
+        if: >
+            github.event_name == 'workflow_dispatch' ||
+            (github.event.workflow_run.conclusion == 'failure' &&
+             github.event.workflow_run.head_repository.full_name == github.repository &&
+             contains(fromJSON('["push","workflow_dispatch"]'), github.event.workflow_run.event))
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
