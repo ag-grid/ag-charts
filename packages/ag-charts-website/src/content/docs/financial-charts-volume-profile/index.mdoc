@@ -39,7 +39,7 @@ Use `AgCharts.createVolumeProfileChart()` to show a Volume Profile on its own, a
 
 ## Total Segment
 
-Set `totalSegment.enabled` to show a column on the side of the series area that the bars extend from, with a block at each price level labelled with the total volume traded at that price. The series area narrows to make room for it, in the same way as it does for an axis.
+Set `totalSegment.enabled` to show a column between the price axis and the bars, with a block at each price level labelled with the total volume traded at that price. The series area narrows to make room for it, in the same way as it does for an axis.
 
 {% chartExampleRunner title="Total Segment" name="total-segment" type="generated" /%}
 
@@ -81,7 +81,7 @@ In this example:
 
 In a Financial Chart, the Volume Profile bars cannot be hovered and show no tooltip. Instead, moving the pointer over the chart shows the details of the price level at the pointer's price in the status bar, after the values of the hovered candle:
 
-- `Price`: the range of prices the level covers, which is its price plus or minus half the level height. See [Tick Size](#tick-size).
+- `Price`: the range of prices the level covers, which is its price plus or minus half the `tickSize`.
 - `Up`: the up volume traded in the level, in the up colour.
 - `Down`: the down volume traded in the level, in the down colour.
 - `Total`: the total volume traded in the level.
@@ -116,9 +116,9 @@ In this example:
 
 ## Tick Size
 
-Set `tickSize` to the price increment of the instrument, in a Financial Chart or a Volume Profile Chart. Each Volume Profile price level is then one `tickSize` high. If `tickSize` is not set, the height of each level is the smallest gap between the prices in the data.
+In a Financial Chart, set `tickSize` to the price increment of the instrument. Each Volume Profile price level is then one `tickSize` high.
 
-In a Financial Chart, when `tickSize` is set, the price crosshair snaps to the nearest multiple of `tickSize`, so its label always shows a valid price. The axis button for adding a horizontal line snaps in the same way.
+When `tickSize` is set, the price crosshair snaps to the nearest multiple of `tickSize`, so its label always shows a valid price. The axis button for adding a horizontal line snaps in the same way.
 
 To have the price crosshair follow the pointer instead, set `snap` to `false` on the number axis crosshair in the theme overrides:
 
