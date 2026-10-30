@@ -44,7 +44,7 @@ const BASELINE_ITEM_LABEL = {
         '"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
     fontSize: 12,
     fontWeight: 400,
-    collision: { threshold: 4, alwaysShow: true, collideWith: { seriesItems: true } },
+    collision: { threshold: 4, alwaysShow: true, collideWith: { shapes: false } },
     insideStyle: { color: '#ffffff', border: { enabled: false } },
     outsideStyle: { color: '#181d1f', border: { enabled: false } },
     placement: 'outside-end',
@@ -75,16 +75,15 @@ describe('waterfall series-level label', () => {
                 maxHeight: 40,
                 wrapping: 'on-space',
                 truncate: false,
-                collision: { threshold: 12, alwaysShow: false, collideWith: { seriesItems: true } },
+                collision: { threshold: 12, alwaysShow: false, collideWith: { shapes: false } },
             });
             expect(labels.negative).toStrictEqual(BASELINE_ITEM_LABEL);
             expect(labels.total).toStrictEqual(BASELINE_ITEM_LABEL);
         });
     });
 
-    // One row per public leaf of `AgWaterfallSeriesLabelOptions`, plus the undocumented
-    // `collision.collideWith` the theme already carried. `maxIneffective: 0` in the theme-provenance
-    // suite is blind to absent inheritance, so a missed leaf must fail here or nowhere.
+    // One row per public leaf of `AgWaterfallSeriesLabelOptions`. `maxIneffective: 0` in the
+    // theme-provenance suite is blind to absent inheritance, so a missed leaf must fail here or nowhere.
     const leaves: [leaf: string, seriesValue: unknown, itemValue: unknown][] = [
         ['fontSize', 20, 30],
         ['fontFamily', 'Arial', 'Courier'],
@@ -105,8 +104,11 @@ describe('waterfall series-level label', () => {
         ['wrapping', 'always', 'never'],
         ['collision.threshold', 12, 16],
         ['collision.alwaysShow', false, true],
-        ['collision.collideWith.seriesItems', false, true],
+        ['collision.collideWith.markers', true, false],
+        ['collision.collideWith.shapes', true, false],
+        ['collision.collideWith.labels', true, false],
         ['collision.collideWith.seriesArea', true, false],
+        ['collision.collideWith.axisLabels', false, true],
         ['insideStyle.color', '#aa0000', '#bb0000'],
         ['insideStyle.fill', '#aa1111', '#bb1111'],
         ['insideStyle.fillOpacity', 0.7, 0.8],
@@ -295,7 +297,7 @@ describe('waterfall series-level label', () => {
 
     // `collision.collideWith` is inherited toggle by toggle, not as a block: a lower-priority edge
     // is dropped once its vertex has user-defined children, so an item setting one toggle would
-    // otherwise lose its siblings — and `resolveCollideWith` reads an absent one as `false`.
+    // otherwise lose its siblings — and `resolveLabelAvoidance` reads an absent `shapes` as `true`.
     describe('collideWith partial overrides', () => {
         it('keeps the inherited theme default when an item sets another toggle', () => {
             const labels = resolveLabels({
@@ -303,31 +305,31 @@ describe('waterfall series-level label', () => {
                 item: { positive: { label: { collision: { collideWith: { seriesArea: true } } } } },
             });
 
-            expect(labels.positive.collision.collideWith).toStrictEqual({ seriesItems: true, seriesArea: true });
-            expect(labels.negative.collision.collideWith).toStrictEqual({ seriesItems: true });
+            expect(labels.positive.collision.collideWith).toStrictEqual({ shapes: false, seriesArea: true });
+            expect(labels.negative.collision.collideWith).toStrictEqual({ shapes: false });
         });
 
         it('keeps an explicit series-level sibling when an item sets another toggle', () => {
             const labels = resolveLabels({
-                label: { enabled: true, collision: { collideWith: { markers: false, seriesItems: false } } },
-                item: { positive: { label: { collision: { collideWith: { seriesArea: false } } } } },
+                label: { enabled: true, collision: { collideWith: { markers: true, shapes: true } } },
+                item: { positive: { label: { collision: { collideWith: { seriesArea: true } } } } },
             });
 
             expect(labels.positive.collision.collideWith).toStrictEqual({
-                markers: false,
-                seriesItems: false,
-                seriesArea: false,
+                markers: true,
+                shapes: true,
+                seriesArea: true,
             });
         });
 
         it('lets an item override a toggle the series set explicitly', () => {
             const labels = resolveLabels({
-                label: { enabled: true, collision: { collideWith: { seriesItems: false, labels: false } } },
-                item: { positive: { label: { collision: { collideWith: { seriesItems: true } } } } },
+                label: { enabled: true, collision: { collideWith: { shapes: true, labels: true } } },
+                item: { positive: { label: { collision: { collideWith: { shapes: false } } } } },
             });
 
-            expect(labels.positive.collision.collideWith).toStrictEqual({ labels: false, seriesItems: true });
-            expect(labels.negative.collision.collideWith).toStrictEqual({ labels: false, seriesItems: false });
+            expect(labels.positive.collision.collideWith).toStrictEqual({ labels: true, shapes: false });
+            expect(labels.negative.collision.collideWith).toStrictEqual({ labels: true, shapes: true });
         });
     });
 

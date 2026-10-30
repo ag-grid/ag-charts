@@ -67,7 +67,6 @@ export type NormalisedOrganizationNodeTextStyle = Normalised<
         fill: CssColor | undefined;
         stroke: CssColor | undefined;
         padding: NormalisedPaddingOptions;
-        collision: { threshold: number; alwaysShow: boolean };
     }
 >;
 

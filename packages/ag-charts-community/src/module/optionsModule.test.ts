@@ -993,7 +993,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1117,7 +1117,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1241,7 +1241,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1365,7 +1365,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1485,6 +1485,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1608,6 +1611,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1746,7 +1752,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1870,7 +1876,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -1994,7 +2000,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2118,7 +2124,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2238,6 +2244,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2361,6 +2370,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -2499,7 +2511,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2623,7 +2635,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2747,7 +2759,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2871,7 +2883,7 @@ describe('ChartOptions', () => {
                     "collision": {
                       "alwaysShow": true,
                       "collideWith": {
-                        "seriesItems": true,
+                        "shapes": false,
                       },
                       "threshold": 4,
                     },
@@ -2991,6 +3003,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -3114,6 +3129,9 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "alwaysShow": true,
+                      "collideWith": {
+                        "seriesArea": true,
+                      },
                     },
                     "cornerRadius": 4,
                     "enabled": false,

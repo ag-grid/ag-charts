@@ -1319,10 +1319,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fontWeight: props.fontWeight,
             lineHeight: props.lineHeight,
             truncate: props.truncate,
-            collision: {
-                threshold: props.collision.threshold,
-                alwaysShow: props.collision.alwaysShow,
-            },
             spacing: props.spacing,
             textAlign: props.textAlign,
             wrapping: props.wrapping,

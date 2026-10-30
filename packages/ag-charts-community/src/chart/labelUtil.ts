@@ -8,11 +8,11 @@ import type {
     CallbackParam,
     CandidateLabelStyle,
     CandidateStyleResolver,
-    CollideWith,
     DynamicContext,
     FitRegion,
     FontOptions,
     IsAny,
+    LabelAvoidance,
     LabelFit,
     LabelFitDescriptor,
     LabelObstacle,
@@ -48,7 +48,7 @@ import {
     measureLabelText,
     mergeDefaults,
     orientationAngles,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     resolveLabelFitDescriptors,
     rotatedGlyphDrift,
     rotatedLabelInset,
@@ -404,7 +404,7 @@ export interface BarLabelDataContext {
     /** Per-side extent of the drawn box (padding plus border) around the glyph. */
     readonly box: Required<PaddingOptions>;
     readonly alwaysShow: boolean;
-    readonly collideWith: CollideWith;
+    readonly avoid: LabelAvoidance;
     readonly threshold: number;
     /** Drawn-box footprint of `text` under the configured label font: the measured glyph plus {@link box}. */
     readonly measureBox: (text: NormalisedTextOrSegments) => { width: number; height: number };
@@ -424,7 +424,7 @@ export function barLabelDataContext<TParams>(label: BarLabelSurface<TParams>): B
     return {
         box,
         alwaysShow,
-        collideWith: resolveCollideWith(label.collision),
+        avoid: resolveLabelAvoidance(label.collision),
         threshold: label.collision.threshold ?? 0,
         measureBox: (text) => {
             const { width, height } = measureLabelText(text, label);

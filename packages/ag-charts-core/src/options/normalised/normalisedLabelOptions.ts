@@ -1,5 +1,4 @@
 import type {
-    AgChartLabelCollisionOptions,
     AgChartLabelCollisionPlacement,
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -7,6 +6,7 @@ import type {
     AgChartLabelPlacementStyleOptions,
     AgChartLabelStyleOptions,
     AgChartLabelStylerParams,
+    AgSeriesLabelCollisionOptions,
     BorderOptions,
     ContextDefault,
     CssColor,
@@ -27,18 +27,7 @@ export type NormalisedChartLabelStyleOptions = Normalised<
     { color?: CssColor; fill?: NormalisedColorType; border?: Normalised<BorderOptions, never, { stroke?: CssColor }> }
 >;
 
-/** Undocumented per-category toggle for the obstacles a label avoids. */
-export interface NormalisedLabelCollideWithOptions {
-    markers?: boolean;
-    labels?: boolean;
-    seriesItems?: boolean;
-    seriesArea?: boolean;
-    axisLabels?: boolean;
-}
-
-export type NormalisedChartLabelCollisionOptions = Normalised<AgChartLabelCollisionOptions, 'alwaysShow'> & {
-    collideWith?: NormalisedLabelCollideWithOptions;
-};
+export type NormalisedChartLabelCollisionOptions = Normalised<AgSeriesLabelCollisionOptions, 'alwaysShow'>;
 
 export type NormalisedChartLabelPlacementStyleOptions = Normalised<
     AgChartLabelPlacementStyleOptions,
@@ -59,7 +48,7 @@ export interface NormalisedLabelFitOptions {
 export type NormalisedSeriesLabelOptions<TParams = never, TDatum = any> = Normalised<
     AgChartLabelOptions<TDatum, RequireOptional<TParams>> &
         NormalisedLabelFitOptions & {
-            collision?: AgChartLabelCollisionOptions;
+            collision?: AgSeriesLabelCollisionOptions;
             orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
         },
     'enabled' | 'fontSize' | 'fontFamily' | 'collision',
@@ -89,7 +78,7 @@ export type NormalisedAutoSizedSecondaryLabelOptions<TParams = never, TDatum = a
 > & {
     wrapping: TextWrap;
     truncate: boolean;
-    collision?: AgChartLabelCollisionOptions;
+    collision?: AgSeriesLabelCollisionOptions;
     lineHeight?: number;
 };
 

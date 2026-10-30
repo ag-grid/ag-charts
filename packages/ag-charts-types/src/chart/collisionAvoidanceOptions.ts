@@ -102,3 +102,46 @@ export interface AgChartLabelCollisionOptions {
      */
     alwaysShow?: boolean;
 }
+
+/**
+ * The kinds of chart element a series label may overlap. Setting a kind to `true` lets labels overlap it;
+ * `false` makes labels avoid it.
+ */
+export interface AgSeriesLabelCollideWithOptions {
+    /**
+     * Whether labels may overlap series markers.
+     *
+     * Default: `false`
+     */
+    markers?: boolean;
+    /**
+     * Whether labels may overlap series shapes such as bars, funnel stages and Sankey nodes. Markers are controlled separately.
+     *
+     * Default: `false` on bar, histogram, range-bar, waterfall, funnel, pyramid and Sankey series; `true` otherwise.
+     */
+    shapes?: boolean;
+    /**
+     * Whether labels may overlap other labels, including cross line labels.
+     *
+     * Default: `false`
+     */
+    labels?: boolean;
+    /**
+     * Whether labels may extend outside the series area.
+     *
+     * Default: `true` on line, area, range-area, scatter, bubble, map-line and map-marker series; `false` otherwise.
+     */
+    seriesArea?: boolean;
+    /**
+     * Whether labels may overlap axis labels.
+     *
+     * Default: `true`
+     */
+    axisLabels?: boolean;
+}
+
+/** Configuration controlling how a series label behaves when it collides with other chart elements. */
+export interface AgSeriesLabelCollisionOptions extends AgChartLabelCollisionOptions {
+    /** The kinds of chart element the label may overlap. */
+    collideWith?: AgSeriesLabelCollideWithOptions;
+}

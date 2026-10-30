@@ -50,7 +50,7 @@ import {
     isSupportedMarkerShape,
     jsonDiff,
     nearestSquared,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     without,
 } from 'ag-charts-core';
 import type {
@@ -1902,7 +1902,7 @@ export abstract class Series<
 
     /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
     protected resolveLabelPlotRegion(collision: NormalisedChartLabelCollisionOptions): BoxBounds | undefined {
-        return resolveCollideWith(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
+        return resolveLabelAvoidance(collision).seriesArea ? this.getSeriesPlotRegion() : undefined;
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;

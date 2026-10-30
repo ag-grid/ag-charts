@@ -1264,7 +1264,12 @@ describe('ErrorBars', () => {
         it.each([
             ['without error bars', undefined, {}, 'inside'],
             ['off their own whiskers', SERIES_BOYLESLAW.errorBar, {}, 'bottom'],
-            ['off the whiskers with marker collision off', SERIES_BOYLESLAW.errorBar, { markers: false }, 'bottom'],
+            [
+                'off the whiskers when allowed to overlap markers',
+                SERIES_BOYLESLAW.errorBar,
+                { markers: true },
+                'bottom',
+            ],
         ])('places inside marker labels %s', async (_, errorBar, collideWith, expected) => {
             chart = await createEnterpriseChart({
                 series: [

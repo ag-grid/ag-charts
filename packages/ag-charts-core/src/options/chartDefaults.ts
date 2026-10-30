@@ -26,6 +26,8 @@ import {
     type AgInitialFocus,
     type AgInterpolationType,
     type AgLineSeriesLabelOptions,
+    type AgSeriesLabelCollideWithOptions,
+    type AgSeriesLabelCollisionOptions,
     type AgSeriesMarkerOptions,
     type AgSeriesMarkerStyle,
     type AgSeriesTooltip,
@@ -746,18 +748,24 @@ export const labelCollisionPlacementDef = unionOrArray(
 /** Label orientation accepting a single value or an ordered fallback list. */
 export const labelOrientationDef = unionOrArray('horizontal', 'vertical', 'vertical-reversed');
 
+const collideWithOptionsDef: OptionsDefs<AgSeriesLabelCollideWithOptions> = {
+    markers: boolean,
+    shapes: boolean,
+    labels: boolean,
+    seriesArea: boolean,
+    axisLabels: boolean,
+};
+
 export const collisionOptionsDef: OptionsDefs<AgChartLabelCollisionOptions> = {
     threshold: number,
     alwaysShow: boolean,
-    ...undocumentedDefs({
-        collideWith: {
-            markers: boolean,
-            labels: boolean,
-            seriesItems: boolean,
-            seriesArea: boolean,
-            axisLabels: boolean,
-        },
-    }),
+    ...undocumentedDefs({ collideWith: collideWithOptionsDef }),
+};
+
+const seriesLabelCollisionOptionsDef: OptionsDefs<AgSeriesLabelCollisionOptions> = {
+    threshold: number,
+    alwaysShow: boolean,
+    collideWith: collideWithOptionsDef,
 };
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
@@ -797,7 +805,7 @@ export const labelAutoFontSizeOptionsDefs: OptionsDefs<AgChartLabelAutoFontSizeO
 /** Label-fit defs plus the collision object, for series that place their labels against obstacles. */
 export const labelCollisionFitOptionsDefs: OptionsDefs<AgChartLabelCollisionFitOptions> = {
     ...labelFitOptionsDefs,
-    collision: collisionOptionsDef,
+    collision: seriesLabelCollisionOptionsDef,
 };
 
 /** Style overrides applied to a label for its resolved inside/outside placement. */
@@ -827,7 +835,7 @@ export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOpt
     minimumFontSize: and(positiveNumber, lessThanOrEqual('fontSize')),
     wrapping: textWrap,
     truncate: boolean,
-    collision: collisionOptionsDef,
+    collision: seriesLabelCollisionOptionsDef,
     overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
 };
 
