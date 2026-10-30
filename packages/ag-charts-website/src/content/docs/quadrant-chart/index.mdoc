@@ -103,7 +103,7 @@ data() {
 In this configuration:
 
 - `data` is an array of objects, each representing a point on the chart.
-- `xKey` and `yKey` map the two measures being compared, with the optional `labelKey` providing a name for each marker's label.
+- `xKey` and `yKey` map the two measures being compared, with the optional `labelKey` providing a third measure for the marker text.
 - `xAxis` and `yAxis` options can be used to set titles, labels and other axis features.
 - Marker labels are shown by default when `labelKey` or a `label` object is set, and hidden otherwise; set `label.enabled` to override either way.
 
@@ -151,7 +151,7 @@ In this configuration:
 The fill and stroke of each region, as well as the style of their markers and labels are configured under the region specific properties within the `regions` options.
 There is also a shared `regions.label` property which each region can override as necessary.
 
-Callbacks such as `itemStyler`, `tooltip.renderer`, label callbacks and `contextMenu.getItems` receive the region of each point to allow for region specific styling.
+Callbacks such as `itemStyler`, `tooltip.renderer` and label callbacks receive the region of each point to allow for region specific styling.
 
 ### Labels
 
