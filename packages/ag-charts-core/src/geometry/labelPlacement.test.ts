@@ -948,7 +948,7 @@ describe('placeLabels', () => {
 
     it('disabled-category obstacles do not perturb placement of other categories', () => {
         const data = makeFixture(2, 40, bounds, 12345);
-        // Stamp a avoid that disables shape on every datum (matches a series that opts
+        // Stamp an `avoid` that skips shapes on every datum (matches a series that opts
         // into avoidance but not cross-series geometry).
         for (const { datums } of data.values()) {
             for (const d of datums) {
