@@ -1,7 +1,14 @@
 import type { TextValue } from '../series/cartesian/commonOptions';
 import type { AgTimeIntervalUnit } from './axisOptions';
 import type { AgNumericValue } from './dataValues';
-import type { ContextDefault, DatumDefault, ResolvedDatumKey } from './types';
+import type {
+    AnyFormatterSource,
+    ChartFormatterSource,
+    ContextDefault,
+    DatumDefault,
+    ResolvedDatumKey,
+    SeriesFormatterSource,
+} from './types';
 
 export type FormatterPropertyType =
     | 'x'
@@ -15,10 +22,6 @@ export type FormatterPropertyType =
     | 'calloutLabel'
     | 'sectorLabel'
     | 'legendItem';
-
-export type SeriesFormatterSource = 'tooltip' | 'series-label';
-export type ChartFormatterSource = 'axis-label' | 'gradient-legend' | 'legend-label' | 'crosshair' | 'annotation-label';
-export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
 
 interface FormatterBoundSeries {
     /** ID used by the series for values. */

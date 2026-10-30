@@ -3,6 +3,7 @@ import type { RichFormatter, Styler } from './callbackOptions';
 import type { AgNumericValue, AgTimeValue } from './dataValues';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type {
+    AnyFormatterSource,
     ContextDefault,
     CssColor,
     Degree,
@@ -256,6 +257,8 @@ export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
     readonly context?: TContext;
     /** The currently visible domain. [min, max] */
     readonly visibleDomain?: [AgNumericValue, AgNumericValue];
+    /** The chart element being formatted. `axis-label` for the axis's own labels; a tooltip, series label or crosshair that inherits the axis label formatter is reported as its own element, such as `tooltip`. */
+    readonly source?: AnyFormatterSource;
 }
 
 export interface AgAxisLabelStylerParams<TContext = ContextDefault> extends AgBaseAxisLabelStyleOptions {
