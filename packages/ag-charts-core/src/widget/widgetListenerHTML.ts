@@ -1,14 +1,13 @@
 import { entries } from '../data/iterators';
-import type { WidgetEventMap_HTML, WidgetSourceEventMap_HTML } from './widgetEvents';
+import type { WidgetEventMap_HTML, WidgetSourceEventMap_HTML, WidgetTarget } from './widgetEvents';
 import { WidgetEventUtil } from './widgetEvents';
 
 type EventMap = WidgetEventMap_HTML;
 type EventType = keyof WidgetEventMap_HTML;
 type SourceEventMap = WidgetSourceEventMap_HTML;
-type Targetable = { getElement(): HTMLElement };
 type Handler<T, K extends EventType> = (event: EventMap[K], current: T) => unknown;
 
-type WidgetListener<K extends EventType> = (widgetEvent: EventMap[K], current: Targetable) => unknown;
+type WidgetListener<K extends EventType> = (widgetEvent: EventMap[K], current: WidgetTarget) => unknown;
 type SourceListener<K extends EventType> = (this: HTMLElement, sourceEvent: SourceEventMap[K]) => void;
 
 export class WidgetListenerHTML {
@@ -21,10 +20,13 @@ export class WidgetListenerHTML {
         this.sourceListeners[type] = handler;
     }
 
-    private lazyGetWidgetListeners<T extends Targetable, K extends EventType>(type: K, target: T): WidgetListener<K>[] {
+    private lazyGetWidgetListeners<T extends WidgetTarget, K extends EventType>(
+        type: K,
+        target: T
+    ): WidgetListener<K>[] {
         if (!(type in (this.sourceListeners ?? {}))) {
             const sourceHandler = (sourceEvent: SourceEventMap[K]): void => {
-                const widgetEvent = WidgetEventUtil.alloc(type, sourceEvent, target.getElement());
+                const widgetEvent = WidgetEventUtil.alloc(type, sourceEvent, target);
                 this.dispatch(type, target, widgetEvent);
             };
             const opts: AddEventListenerOptions = {};
@@ -39,20 +41,20 @@ export class WidgetListenerHTML {
         return this.widgetListeners[type] as NonNullable<(typeof this.widgetListeners)[K]>;
     }
 
-    add<T extends Targetable, K extends EventType>(type: K, target: T, handler: Handler<T, K>): void;
-    add<T extends Targetable, K extends EventType>(type: K, target: T, handler: Handler<unknown, K>): void {
+    add<T extends WidgetTarget, K extends EventType>(type: K, target: T, handler: Handler<T, K>): void;
+    add<T extends WidgetTarget, K extends EventType>(type: K, target: T, handler: Handler<unknown, K>): void {
         const listeners = this.lazyGetWidgetListeners(type, target);
         listeners.push(handler);
     }
 
-    remove<T extends Targetable, K extends EventType>(type: K, target: T, handler: Handler<T, K>): void;
-    remove<T extends Targetable, K extends EventType>(type: K, target: T, handler: Handler<unknown, K>): void {
+    remove<T extends WidgetTarget, K extends EventType>(type: K, target: T, handler: Handler<T, K>): void;
+    remove<T extends WidgetTarget, K extends EventType>(type: K, target: T, handler: Handler<unknown, K>): void {
         const listeners = this.lazyGetWidgetListeners(type, target);
         const index = listeners.indexOf(handler);
         if (index > -1) listeners.splice(index, 1);
     }
 
-    destroy<T extends Targetable>(target: T): void {
+    destroy<T extends WidgetTarget>(target: T): void {
         this.widgetListeners = undefined;
         if (this.sourceListeners) {
             for (const [key, sourceHandler] of entries(this.sourceListeners)) {
@@ -62,7 +64,7 @@ export class WidgetListenerHTML {
         }
     }
 
-    dispatch<T extends Targetable, K extends EventType>(type: K, target: T, event: EventMap[K]): void {
+    dispatch<T extends WidgetTarget, K extends EventType>(type: K, target: T, event: EventMap[K]): void {
         for (const widgetListener of this.widgetListeners?.[type] ?? []) {
             widgetListener(event, target);
         }

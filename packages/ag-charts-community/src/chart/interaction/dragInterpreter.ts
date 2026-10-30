@@ -19,8 +19,8 @@ const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px² */
 function makeSynthetic(type: 'click', event: DragWidgetEvent): ClickWidgetEvent;
 function makeSynthetic(type: 'dblclick', event: DragWidgetEvent): DblClickWidgetEvent;
 function makeSynthetic(type: 'click' | 'dblclick', event: DragWidgetEvent): ClickWidgetEvent | DblClickWidgetEvent {
-    const { device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent } = event;
-    return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+    const { device, offsetX, offsetY, clientX, clientY, currentX, currentY, canvasX, canvasY, sourceEvent } = event;
+    return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, canvasX, canvasY, sourceEvent };
 }
 
 function checkDragDistance(dx: number, dy: number) {

@@ -1,5 +1,5 @@
 import type { AreExact, DeepReadonly } from '../types/global';
-import type { ClientPoint, CurrentPoint } from '../types/scene';
+import type { CanvasPoint, ClientPoint, CurrentPoint } from '../types/scene';
 import type { CollapseWidgetEvent, ExpandControlledWidgetEvent, ExpandWidgetEvent } from './expandableWidget';
 
 // These types cannot be derived from `WIDGET_META`, because that would cause cyclical-referencing:
@@ -26,6 +26,15 @@ true satisfies AreExact<KeyboardWidgetEventType, DerivedKeysForWidgetEvent<Keybo
 true satisfies AreExact<MouseWidgetEventType, DerivedKeysForWidgetEvent<MouseWidgetEvent>>;
 true satisfies AreExact<TouchWidgetEventType, DerivedKeysForWidgetEvent<TouchWidgetEvent>>;
 true satisfies AreExact<DragWidgetEventType, DerivedKeysForWidgetEvent<DragWidgetEvent>>;
+
+export interface CanvasOrigin {
+    toCanvasPoint(event: ClientPoint): CanvasPoint;
+}
+
+export interface WidgetTarget {
+    getElement(): HTMLElement;
+    getCanvasOrigin(): CanvasOrigin | undefined;
+}
 
 export type WidgetEvent<T extends WidgetEventType = WidgetEventType> = {
     readonly type: T;
@@ -62,6 +71,8 @@ export type PointerSyntheticWidgetEvent<T extends 'click' | 'dblclick'> = {
     readonly clientY: number;
     readonly currentX: number;
     readonly currentY: number;
+    readonly canvasX: number;
+    readonly canvasY: number;
     readonly sourceEvent: PointerEvent;
 };
 
@@ -74,6 +85,8 @@ export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventTy
     readonly clientY: number;
     readonly currentX: number;
     readonly currentY: number;
+    readonly canvasX: number;
+    readonly canvasY: number;
     readonly sourceEvent: MouseEvent;
 };
 
@@ -89,6 +102,8 @@ export type WheelWidgetEvent = {
     readonly clientY: number;
     readonly currentX: number;
     readonly currentY: number;
+    readonly canvasX: number;
+    readonly canvasY: number;
     readonly deltaX: number;
     readonly deltaY: number;
     readonly sourceEvent: WheelEvent;
@@ -105,18 +120,33 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
     readonly clientY: number;
     readonly currentX: number;
     readonly currentY: number;
+    readonly canvasX: number;
+    readonly canvasY: number;
     readonly originDeltaX: number;
     readonly originDeltaY: number;
     readonly sourceEvent: PointerEvent;
 };
 
-function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: MouseEvent, current: HTMLElement) {
+function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: MouseEvent, target: WidgetTarget) {
     const { offsetX, offsetY, clientX, clientY } = sourceEvent;
-    const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current, sourceEvent);
-    return { type, device: 'mouse' as const, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+    const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(target, sourceEvent);
+    const { canvasX, canvasY } = WidgetEventUtil.calcCanvasXY(target, sourceEvent);
+    return {
+        type,
+        device: 'mouse' as const,
+        offsetX,
+        offsetY,
+        clientX,
+        clientY,
+        currentX,
+        currentY,
+        canvasX,
+        canvasY,
+        sourceEvent,
+    };
 }
 
-function allocTouchEvent<T extends TouchWidgetEventType>(type: T, sourceEvent: TouchEvent, _current: HTMLElement) {
+function allocTouchEvent<T extends TouchWidgetEventType>(type: T, sourceEvent: TouchEvent, _target: WidgetTarget) {
     return { type, sourceEvent };
 }
 
@@ -135,7 +165,7 @@ const WIDGET_META = {
     // Event
     change: {
         isNative: true,
-        allocator(sourceEvent: Event, _current: HTMLElement): WidgetEvent<'change'> {
+        allocator(sourceEvent: Event, _target: WidgetTarget): WidgetEvent<'change'> {
             return { type: 'change', sourceEvent };
         },
     },
@@ -143,13 +173,13 @@ const WIDGET_META = {
     // FocusEvent
     blur: {
         isNative: true,
-        allocator(sourceEvent: FocusEvent, _current: HTMLElement): FocusWidgetEvent<'blur'> {
+        allocator(sourceEvent: FocusEvent, _target: WidgetTarget): FocusWidgetEvent<'blur'> {
             return { type: 'blur', sourceEvent };
         },
     },
     focus: {
         isNative: true,
-        allocator(sourceEvent: FocusEvent, _current: HTMLElement): FocusWidgetEvent<'focus'> {
+        allocator(sourceEvent: FocusEvent, _target: WidgetTarget): FocusWidgetEvent<'focus'> {
             return { type: 'focus', sourceEvent };
         },
     },
@@ -171,49 +201,50 @@ const WIDGET_META = {
     // MouseEvent
     contextmenu: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'contextmenu'> {
-            return allocMouseEvent('contextmenu', sourceEvent, current);
+        allocator(sourceEvent: MouseEvent, target: WidgetTarget): MouseWidgetEvent<'contextmenu'> {
+            return allocMouseEvent('contextmenu', sourceEvent, target);
         },
     },
     click: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'click'> {
-            return allocMouseEvent('click', sourceEvent, current);
+        allocator(sourceEvent: MouseEvent, target: WidgetTarget): MouseWidgetEvent<'click'> {
+            return allocMouseEvent('click', sourceEvent, target);
         },
         sythetics: undefined as ClickWidgetEvent | undefined,
     },
     dblclick: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'dblclick'> {
-            return allocMouseEvent('dblclick', sourceEvent, current);
+        allocator(sourceEvent: MouseEvent, target: WidgetTarget): MouseWidgetEvent<'dblclick'> {
+            return allocMouseEvent('dblclick', sourceEvent, target);
         },
         sythetics: undefined as DblClickWidgetEvent | undefined,
     },
     mouseenter: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mouseenter'> {
-            return allocMouseEvent('mouseenter', sourceEvent, current);
+        allocator(sourceEvent: MouseEvent, target: WidgetTarget): MouseWidgetEvent<'mouseenter'> {
+            return allocMouseEvent('mouseenter', sourceEvent, target);
         },
     },
     mousemove: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mousemove'> {
-            return allocMouseEvent('mousemove', sourceEvent, current);
+        allocator(sourceEvent: MouseEvent, target: WidgetTarget): MouseWidgetEvent<'mousemove'> {
+            return allocMouseEvent('mousemove', sourceEvent, target);
         },
     },
     mouseleave: {
         isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mouseleave'> {
-            return allocMouseEvent('mouseleave', sourceEvent, current);
+        allocator(sourceEvent: MouseEvent, target: WidgetTarget): MouseWidgetEvent<'mouseleave'> {
+            return allocMouseEvent('mouseleave', sourceEvent, target);
         },
     },
 
     // WheelEvent
     wheel: {
         isNative: true,
-        allocator(sourceEvent: WheelEvent, current: HTMLElement): WheelWidgetEvent {
+        allocator(sourceEvent: WheelEvent, target: WidgetTarget): WheelWidgetEvent {
             const { offsetX, offsetY, clientX, clientY } = sourceEvent;
-            const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current, sourceEvent);
+            const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(target, sourceEvent);
+            const { canvasX, canvasY } = WidgetEventUtil.calcCanvasXY(target, sourceEvent);
 
             // Chrome (Windows) reports wheel clicks as deltaMode 0 with deltaY ±100; scale to a single step.
             const factor = sourceEvent.deltaMode === 0 ? 0.01 : 1;
@@ -234,6 +265,8 @@ const WIDGET_META = {
                 clientY,
                 currentX,
                 currentY,
+                canvasX,
+                canvasY,
                 deltaX,
                 deltaY,
                 sourceEvent,
@@ -244,26 +277,26 @@ const WIDGET_META = {
     // TouchEvent
     touchstart: {
         isNative: true,
-        allocator(sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchstart'> {
-            return allocTouchEvent('touchstart', sourceEvent, current);
+        allocator(sourceEvent: TouchEvent, target: WidgetTarget): TouchWidgetEvent<'touchstart'> {
+            return allocTouchEvent('touchstart', sourceEvent, target);
         },
     },
     touchmove: {
         isNative: true,
-        allocator(sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchmove'> {
-            return allocTouchEvent('touchmove', sourceEvent, current);
+        allocator(sourceEvent: TouchEvent, target: WidgetTarget): TouchWidgetEvent<'touchmove'> {
+            return allocTouchEvent('touchmove', sourceEvent, target);
         },
     },
     touchend: {
         isNative: true,
-        allocator(sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchend'> {
-            return allocTouchEvent('touchend', sourceEvent, current);
+        allocator(sourceEvent: TouchEvent, target: WidgetTarget): TouchWidgetEvent<'touchend'> {
+            return allocTouchEvent('touchend', sourceEvent, target);
         },
     },
     touchcancel: {
         isNative: true,
-        allocator(sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchcancel'> {
-            return allocTouchEvent('touchcancel', sourceEvent, current);
+        allocator(sourceEvent: TouchEvent, target: WidgetTarget): TouchWidgetEvent<'touchcancel'> {
+            return allocTouchEvent('touchcancel', sourceEvent, target);
         },
     },
 
@@ -280,12 +313,12 @@ const WIDGET_META = {
               readonly isNative: true;
               readonly isInternal?: never;
               readonly allocator:
-                  | ((sourceEvent: Event, current: HTMLElement) => WidgetEvent)
-                  | ((sourceEvent: FocusEvent, current: HTMLElement) => FocusWidgetEvent)
-                  | ((sourceEvent: KeyboardEvent, current: HTMLElement) => KeyboardWidgetEvent)
-                  | ((sourceEvent: MouseEvent, current: HTMLElement) => MouseWidgetEvent)
-                  | ((sourceEvent: WheelEvent, current: HTMLElement) => WheelWidgetEvent)
-                  | ((sourceEvent: TouchEvent, current: HTMLElement) => TouchWidgetEvent);
+                  | ((sourceEvent: Event, target: WidgetTarget) => WidgetEvent)
+                  | ((sourceEvent: FocusEvent, target: WidgetTarget) => FocusWidgetEvent)
+                  | ((sourceEvent: KeyboardEvent, target: WidgetTarget) => KeyboardWidgetEvent)
+                  | ((sourceEvent: MouseEvent, target: WidgetTarget) => MouseWidgetEvent)
+                  | ((sourceEvent: WheelEvent, target: WidgetTarget) => WheelWidgetEvent)
+                  | ((sourceEvent: TouchEvent, target: WidgetTarget) => TouchWidgetEvent);
               readonly sythetics?: { readonly type: K };
           }
         | {
@@ -349,10 +382,10 @@ export class WidgetEventUtil {
     static alloc<K extends DerivedKeysWhereIsNative>(
         type: K,
         sourceEvent: DerivedSourceEventsWhereIsNative[K],
-        current: HTMLElement
+        target: WidgetTarget
     ): DerivedWidgetEventsWhereIsNative[K] {
-        const unsafeAllocator: (sourceEvent: any, current: HTMLElement) => any = WIDGET_META[type].allocator;
-        return unsafeAllocator(sourceEvent, current);
+        const unsafeAllocator: (sourceEvent: any, target: WidgetTarget) => any = WIDGET_META[type].allocator;
+        return unsafeAllocator(sourceEvent, target);
     }
 
     static isHTMLEvent(type: WidgetMetaKeys): type is WidgetMetaKeys & keyof HTMLElementEventMap {
@@ -360,7 +393,8 @@ export class WidgetEventUtil {
         return meta[type]?.isNative === true;
     }
 
-    static calcCurrentXY(current: HTMLElement, event: ClientPoint): CurrentPoint {
+    static calcCurrentXY(target: WidgetTarget, event: ClientPoint): CurrentPoint {
+        const current = target.getElement();
         const currentRect = current.getBoundingClientRect();
         // Ratio of layout size to post-transform screen size recovers ancestor CSS scale per axis.
         const clientWidth = current.clientWidth;
@@ -371,5 +405,9 @@ export class WidgetEventUtil {
             currentX: (event.clientX - currentRect.x) * scaleX,
             currentY: (event.clientY - currentRect.y) * scaleY,
         };
+    }
+
+    static calcCanvasXY(target: WidgetTarget, event: ClientPoint): CanvasPoint {
+        return target.getCanvasOrigin()?.toCanvasPoint(event) ?? { canvasX: Number.NaN, canvasY: Number.NaN };
     }
 }
