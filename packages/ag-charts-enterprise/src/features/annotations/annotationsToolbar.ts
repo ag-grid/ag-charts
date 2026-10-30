@@ -55,6 +55,8 @@ export class AnnotationsToolbar {
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
     private readonly cleanup = new CleanupRegistry();
     private readonly menuMargin: number = 6;
+    private menuItemPicked = false;
+    private menuHideRegistered = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('annotations');
@@ -263,9 +265,6 @@ export class AnnotationsToolbar {
     ) {
         this.events.emit('pressed-show-menu', null);
 
-        const index = this.buttons.findIndex((button) => button.value === menu);
-        this.toolbar.toggleActiveButtonByIndex(index);
-
         const anchorX = this.ctx.domManager.isRtl
             ? buttonBounds.x - this.menuMargin
             : buttonBounds.x + buttonBounds.width + this.menuMargin;
@@ -277,8 +276,23 @@ export class AnnotationsToolbar {
             class: 'ag-charts-annotations__toolbar-menu',
             sourceEvent: event.sourceEvent,
             onPress: this.onButtonPressMenuCreateAnnotation.bind(this, menu),
+            // `Popover` keeps every `onHide` for its lifetime, so register ours once.
+            onHide: this.menuHideRegistered ? undefined : this.onMenuHide,
         });
+        this.menuHideRegistered = true;
+
+        // Must run after `show()`, which hides the previous menu and so clears the active button.
+        this.menuItemPicked = false;
+        const index = this.buttons.findIndex((button) => button.value === menu);
+        this.toolbar.toggleActiveButtonByIndex(index);
     }
+
+    // Picking an item keeps the button active while drawing.
+    private readonly onMenuHide = () => {
+        if (!this.menuItemPicked) {
+            this.toolbar.clearActiveButton();
+        }
+    };
 
     private onButtonPressMenuCreateAnnotation(
         menu: AnnotationsToolbarButtonValue,
@@ -286,6 +300,7 @@ export class AnnotationsToolbar {
     ) {
         const index = this.buttons.findIndex((button) => button.value === menu);
         this.updateButtonByIndex(index, { icon: item.icon });
+        this.menuItemPicked = true;
         this.events.emit('pressed-create-annotation', { annotation: item.value });
         this.annotationMenu.hide();
     }

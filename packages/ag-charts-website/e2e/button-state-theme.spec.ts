@@ -81,3 +81,74 @@ test.describe('button state theme params', () => {
         });
     });
 });
+
+test.describe('shared toolbar button state', () => {
+    setupIntrinsicAssertions(test);
+
+    const ACTIVE_CLASS = /ag-charts-toolbar__button--active/;
+
+    test.beforeEach(async ({ page }) => {
+        const { url } = toExamplePageUrl('financial-charts-e2e', 'button-state-borders', 'vanilla');
+        await gotoExample(page, url);
+    });
+
+    test('the button below an open menu keeps its button border colour', async ({ page }) => {
+        await page.getByTitle('Chart Type').click();
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(TRANSITION_SETTLE_MS);
+        await expect(page.getByTitle('Trend Lines')).toHaveCSS('border-inline-start-color', BLACK);
+
+        await page.keyboard.press('Escape');
+        await page.getByTitle('Trend Lines').click();
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(TRANSITION_SETTLE_MS);
+        await expect(page.getByTitle('Fibonacci')).toHaveCSS('border-inline-start-color', BLACK);
+    });
+
+    test('the button below an open menu takes its hover border colour', async ({ page }) => {
+        await page.getByTitle('Chart Type').click();
+        const below = page.getByTitle('Trend Lines');
+        await below.hover();
+        await expect(below).toHaveCSS('border-inline-start-color', ORANGE);
+    });
+
+    test('an annotation menu button is no longer active once its menu is dismissed', async ({ page }) => {
+        const fibonacci = page.getByTitle('Fibonacci');
+
+        await fibonacci.click();
+        await expect(fibonacci).toHaveClass(ACTIVE_CLASS);
+        await page.mouse.click(0, 0);
+        await expect(fibonacci).not.toHaveClass(ACTIVE_CLASS);
+
+        await fibonacci.click();
+        await expect(fibonacci).toHaveClass(ACTIVE_CLASS);
+        await page.keyboard.press('Escape');
+        await expect(fibonacci).not.toHaveClass(ACTIVE_CLASS);
+    });
+
+    test('switching between toolbar menus activates only the pressed button', async ({ page }) => {
+        const chartType = page.getByTitle('Chart Type');
+        const trendLines = page.getByTitle('Trend Lines');
+        const fibonacci = page.getByTitle('Fibonacci');
+
+        await chartType.click();
+        await trendLines.click();
+        await expect(trendLines).toHaveClass(ACTIVE_CLASS);
+        await expect(chartType).not.toHaveClass(ACTIVE_CLASS);
+
+        await fibonacci.click();
+        await expect(fibonacci).toHaveClass(ACTIVE_CLASS);
+        await expect(trendLines).not.toHaveClass(ACTIVE_CLASS);
+
+        await chartType.click();
+        await expect(chartType).toHaveClass(ACTIVE_CLASS);
+        await expect(fibonacci).not.toHaveClass(ACTIVE_CLASS);
+    });
+
+    test('an annotation menu button stays active after picking a menu item', async ({ page }) => {
+        const trendLines = page.getByTitle('Trend Lines');
+        await trendLines.click();
+        await page.locator('.ag-charts-menu__row').first().click();
+        await expect(trendLines).toHaveClass(ACTIVE_CLASS);
+    });
+});
