@@ -1,5 +1,6 @@
 ---
 import {
+    FALLBACK_NAV_DEPTH,
     buildFallbackNav,
     findCurrentPage,
     getNestedAnchors,
@@ -11,13 +12,6 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import ApiReferenceFallbackList from './ApiReferenceFallbackList.astro';
 import ApiReferenceFallbackNav from './ApiReferenceFallbackNav.astro';
 import styles from './ApiReferenceFallback.module.scss';
-
-/**
- * Levels of the navigation tree to list. Each level multiplies the links on every page in the section,
- * and the content renders a target for each, so it stays at the depth that reaches every reference
- * page while keeping the served HTML small.
- */
-const NAV_DEPTH = 2;
 
 interface Props {
     rootInterface: string;
@@ -51,7 +45,7 @@ const nav = buildFallbackNav({
     basePath: urlWithBaseUrl('/' + basePath) + '/',
     config: { specialTypes, noExpand },
     pageInterface,
-    depth: NAV_DEPTH,
+    depth: FALLBACK_NAV_DEPTH,
 });
 // Members the navigation links to beneath the top level, so each link has a target.
 const currentPage = findCurrentPage(nav);
