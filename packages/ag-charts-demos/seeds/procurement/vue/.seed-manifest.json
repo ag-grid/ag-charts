@@ -6,7 +6,5 @@
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",
     "dist": "dist",
-    "vendored": [
-        "web-analytics/topology.ts"
-    ]
+    "vendored": ["web-analytics/topology.ts"]
 }
