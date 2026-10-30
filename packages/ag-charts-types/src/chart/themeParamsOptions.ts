@@ -51,16 +51,12 @@ export interface AgBaseChartThemeParams {
      * Background colour of the chart. Most text, borders and backgrounds are defined as a blend between the background
      * and foreground colours. A colour string, or a theme-colour reference object.
      *
-     * Default: `#ffffff`
-     *
      * @group Foundations
      */
     backgroundColor?: AgCssColorOrRef;
     /**
      * Default colour for neutral UI elements. Most text, borders and backgrounds are defined as a blend between the
      * background and foreground colours. A colour string, or a theme-colour reference object.
-     *
-     * Default: `#181d1f`
      *
      * @group Foundations
      */
@@ -69,15 +65,13 @@ export interface AgBaseChartThemeParams {
      * The 'brand colour' for the chart, used wherever a non-neutral colour is required. Selections, focus outlines and
      * checkboxes use the accent colour by default. A colour string, or a theme-colour reference object.
      *
-     * Default: `#2196f3`
-     *
      * @group Foundations
      */
     accentColor?: AgCssColorOrRef;
     /**
      * Default colour for borders. A colour string, or a theme-colour reference object.
      *
-     * Default: `foregroundColor 15% + backgroundColor 85%`
+     * Default: `foregroundColor + backgroundColor`
      *
      * @group Borders
      */
@@ -85,15 +79,11 @@ export interface AgBaseChartThemeParams {
     /**
      * Default corner radius for many UI elements such as menus and dialogs.
      *
-     * Default: `4`
-     *
      * @group Borders
      */
     borderRadius?: PixelSize;
     /**
      * Default width for borders.
-     *
-     * Default: `1`
      *
      * @group Borders
      */
@@ -102,7 +92,7 @@ export interface AgBaseChartThemeParams {
      * Background colour of buttons in the active (toggled or selected) state, such as a toggled toolbar button or a
      * selected menu item. A colour string, or a theme-colour reference object.
      *
-     * Default: `backgroundColor 88% + accentColor 12%`
+     * Default: `backgroundColor + accentColor`
      *
      * @group Buttons
      */
@@ -151,15 +141,13 @@ export interface AgBaseChartThemeParams {
     /**
      * Font weight of standard action buttons.
      *
-     * Default: `400`
-     *
      * @group Buttons
      */
     buttonFontWeight?: FontWeight;
     /**
      * Background colour of buttons when hovered. A colour string, or a theme-colour reference object.
      *
-     * Default: `backgroundColor 88% + accentColor 12%`
+     * Default: `backgroundColor + accentColor`
      *
      * @group Buttons
      */
@@ -175,7 +163,7 @@ export interface AgBaseChartThemeParams {
     /**
      * Background colour of disabled buttons. A colour string, or a theme-colour reference object.
      *
-     * Default: `buttonBackgroundColor 94% + foregroundColor 6%`
+     * Default: `buttonBackgroundColor + foregroundColor`
      *
      * @group Buttons
      */
@@ -192,7 +180,7 @@ export interface AgBaseChartThemeParams {
     /**
      * Text colour of disabled buttons. A colour string, or a theme-colour reference object.
      *
-     * Default: `chromeBackgroundColor 50% + buttonTextColor 50%`
+     * Default: `chromeBackgroundColor + buttonTextColor`
      *
      * @group Buttons
      */
@@ -225,7 +213,7 @@ export interface AgBaseChartThemeParams {
     /**
      * Corner radius of the colour swatch in the colour picker. Defaults to half of `borderRadius`.
      *
-     * Default: `0.5 × borderRadius`
+     * Default: `borderRadius`
      *
      * @group Colour Picker
      */
@@ -233,15 +221,11 @@ export interface AgBaseChartThemeParams {
     /**
      * Width of the ring drawn around the draggable thumbs of the colour picker.
      *
-     * Default: `3`
-     *
      * @group Colour Picker
      */
     colorPickerThumbBorderWidth?: PixelSize;
     /**
      * Size of the draggable thumbs of the colour picker.
-     *
-     * Default: `18`
      *
      * @group Colour Picker
      */
@@ -249,15 +233,13 @@ export interface AgBaseChartThemeParams {
     /**
      * Corner radius of the hue and opacity tracks of the colour picker. Defaults to 99 times `borderRadius`.
      *
-     * Default: `99 × borderRadius`
+     * Default: `borderRadius`
      *
      * @group Colour Picker
      */
     colorPickerTrackBorderRadius?: PixelSize;
     /**
      * Height of the hue and opacity tracks of the colour picker.
-     *
-     * Default: `12`
      *
      * @group Colour Picker
      */
@@ -274,15 +256,11 @@ export interface AgBaseChartThemeParams {
     /**
      * Shadow around UI controls that have focus e.g. text inputs and buttons. The value must be a valid CSS box-shadow.
      *
-     * Default: `0 0 0 3px color-mix(in srgb, var(--ag-charts-accent-color) 50%, transparent)`
-     *
      * @group Inputs
      */
     focusShadow?: CssShadow;
     /**
      * Font family used for all text. A single family name, or an array of names used as fallbacks.
-     *
-     * Default: `"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif`
      *
      * @group Foundations
      */
@@ -290,15 +268,11 @@ export interface AgBaseChartThemeParams {
     /**
      * Default font size used for all text. Titles and some other text are scaled to this font size.
      *
-     * Default: `12`
-     *
      * @group Foundations
      */
     fontSize?: FontSize;
     /**
      * Default font weight used for all text.
-     *
-     * Default: `400`
      *
      * @group Foundations
      */
@@ -370,8 +344,6 @@ export interface AgBaseChartThemeParams {
     menuTextColor?: AgCssColorOrRef;
     /**
      * Default shadow for elements that float above the chart and are intended to appear separated from it, e.g. dialogs, floating toolbars and context menus.
-     *
-     * Default: `0 0 16px rgba(0, 0, 0, 0.15)`
      *
      * @group Menus & Popups
      */
@@ -496,8 +468,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Default width for axis lines. Does not apply to ticks.
      *
-     * Default: `1`
-     *
      * @group Axes
      */
     axisLineWidth?: PixelSize;
@@ -519,8 +489,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     axisTitleFontFamily?: FontFamilyFull;
     /**
      * Font size of axis titles. Follows fontSize, keeping the same proportion to it.
-     *
-     * Default: `13`
      *
      * @group Axes
      */
@@ -561,8 +529,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     chartBackgroundColor?: AgCssColorOrRef;
     /**
      * The outer chart padding.
-     *
-     * Default: `20`
      *
      * @group Spacing & Sizing
      */
@@ -657,8 +623,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Font size of the chart title. Follows fontSize, keeping the same proportion to it.
      *
-     * Default: `17`
-     *
      * @group Titles
      */
     titleFontSize?: FontSize;
@@ -696,8 +660,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     subtitleFontFamily?: FontFamilyFull;
     /**
      * Font size of the chart subtitle. Follows fontSize, keeping the same proportion to it.
-     *
-     * Default: `13`
      *
      * @group Titles
      */
@@ -737,8 +699,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Font size of the chart footnote. Follows fontSize, keeping the same proportion to it.
      *
-     * Default: `13`
-     *
      * @group Titles
      */
     footnoteFontSize?: FontSize;
@@ -761,15 +721,13 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Default width for grid lines.
      *
-     * Default: `1`
-     *
      * @group Axes
      */
     gridLineWidth?: PixelSize;
     /**
      * Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object.
      *
-     * Default: `foregroundColor 17% + backgroundColor 83%`
+     * Default: `foregroundColor + backgroundColor`
      *
      * @group Axes
      */
@@ -777,15 +735,13 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Default colour for grid lines. A colour string, or a theme-colour reference object.
      *
-     * Default: `axisLineColor 65% + backgroundColor 35%`
+     * Default: `axisLineColor + backgroundColor`
      *
      * @group Axes
      */
     gridLineColor?: AgCssColorOrRef;
     /**
      * Border around the legend and the gradient legend. `true` for the default border, `false` to disable, or an object to customise it.
-     *
-     * Default: `false`
      *
      * @group Legend
      */
@@ -801,15 +757,11 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Horizontal padding around each legend item. Applies to the legend only, not the gradient legend.
      *
-     * Default: `8`
-     *
      * @group Legend
      */
     legendItemHorizontalPadding?: PixelSize;
     /**
      * Vertical padding around each legend item. Applies to the legend only, not the gradient legend.
-     *
-     * Default: `4`
      *
      * @group Legend
      */
@@ -857,23 +809,17 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Size of the legend item markers. Applies to the legend only, not the gradient legend.
      *
-     * Default: `15`
-     *
      * @group Legend
      */
     legendMarkerSize?: PixelSize;
     /**
      * Padding inside the legend and the gradient legend. Applied only when the legend has a border or a `fill` set in its options.
      *
-     * Default: `5`
-     *
      * @group Legend
      */
     legendPadding?: PixelSize;
     /**
      * Thickness of the scrollbar track.
-     *
-     * Default: `12`
      *
      * @group Scrollbars
      */
@@ -897,8 +843,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Corner radius of the scrollbar thumb.
      *
-     * Default: `6`
-     *
      * @group Scrollbars
      */
     scrollbarThumbBorderRadius?: PixelSize;
@@ -920,8 +864,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     scrollbarTrackBorder?: boolean | AgBorderThemeParam;
     /**
      * Corner radius of the scrollbar track.
-     *
-     * Default: `6`
      *
      * @group Scrollbars
      */
@@ -969,8 +911,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Background colour of the navigator thumb, the selected range between the handles. A colour string, or a theme-colour reference object.
      *
-     * Default: `transparent`
-     *
      * @group Navigator
      */
     navigatorThumbBackgroundColor?: AgCssColorOrRef;
@@ -1000,8 +940,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     navigatorTrackBorderRadius?: PixelSize;
     /**
      * Border around series labels. A border otherwise shows only where a series enables `label.border`. `true` for the default border, `false` to disable, or an object to customise it.
-     *
-     * Default: `false`
      *
      * @group Series Labels
      */
@@ -1041,8 +979,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Background colour of series labels placed inside series shapes, such as bar labels with an `inside-*` placement and pie sector labels. A fully transparent colour, such as `'transparent'`, draws no background box; any other colour boxes the label, which adds padding and can hide labels that no longer fit. A colour string, or a theme-colour reference object.
      *
-     * Default: `'transparent'`
-     *
      * @group Series Labels
      */
     seriesLabelInsideBackgroundColor?: AgCssColorOrRef;
@@ -1064,8 +1000,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     seriesLabelLineHeight?: Ratio;
     /**
      * Background colour of series labels placed outside series shapes, such as bar labels with an `outside-*` placement and pie callout labels. A fully transparent colour, such as `'transparent'`, draws no background box; any other colour boxes the label, which adds padding and can hide labels that no longer fit. A colour string, or a theme-colour reference object.
-     *
-     * Default: `'transparent'`
      *
      * @group Series Labels
      */

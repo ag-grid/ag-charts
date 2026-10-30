@@ -57,27 +57,35 @@ See the [Themes API page](/themes-api/) for the complete options structure.
 
 ## Order of Application
 
-A theme is applied in layers, and each layer takes precedence over the ones before it:
+Theme options can be set at multiple levels, with later levels taking priority. The order of application is as follows, from lowest to highest priority:
 
-1. The base theme, set by `baseTheme`.
+1. The `baseTheme`.
 2. `params`.
 3. `overrides`.
 4. The options passed to the chart.
 
 ```js format="snippet"
 const myTheme = {
-    params: { textColor: '#0000ff' },
-    overrides: { common: { title: { color: '#00ff00' } } },
+    baseTheme: 'ag-default',
+    params: { textColor: 'blue' },
+    overrides: { common: { title: { color: 'green' } } },
 };
 
 AgCharts.create({
     theme: myTheme,
-    title: { text: 'Sales', color: '#ff00ff' },
+    title: { text: 'Sales', color: 'pink' },
     // ...
 });
 ```
 
-The title is `'#ff00ff'` because the chart option comes last. Without the chart option it is `'#00ff00'` from `overrides`, and without that it is `'#0000ff'` from `params`, as `textColor` is the default title colour.
+In this snippet, the title colour is set in four places, each overriding the previous one:
+
+- `baseTheme` is `'ag-default'`, which sets the default title colour to black.
+- `params.textColor` sets it to blue, as this sets the default for all text.
+- `overrides.common.title.color` sets it to green.
+- The chart option `title.color` sets it to pink.
+
+The final colour of the title is pink, because the chart option takes priority over the theme.
 
 ## Palette
 
@@ -132,23 +140,11 @@ In the above example:
 
 ### Parameter Inheritance
 
-The foundation parameters `foregroundColor`, `backgroundColor`, `accentColor`, `fontFamily` and `fontSize` set the defaults for more specific parameters. Changing a foundation parameter changes every parameter that inherits from it.
+The foundation parameters such as `foregroundColor`, `backgroundColor`, `accentColor`, `fontFamily` and `fontSize` set the defaults for more specific parameters.
+Changing any parameter replaces its inherited default, and affects any parameters that inherit from it.
 
-For example, `textColor` defaults to `foregroundColor`, and `subtleTextColor` defaults to a blend of `textColor` and the chart background. Setting `foregroundColor` therefore changes `textColor`, which in turn changes `subtleTextColor`.
-
-```js format="snippet"
-const myTheme = {
-    params: { foregroundColor: '#1a3a5c' },
-};
-```
-
-Setting a specific parameter replaces its inherited default. Here `textColor` no longer follows `foregroundColor`, while `subtleTextColor` follows the new `textColor`. `foregroundColor` still sets other parameters that inherit from it, such as `borderColor`.
-
-```js format="snippet"
-const myTheme = {
-    params: { foregroundColor: '#1a3a5c', textColor: '#b00020' },
-};
-```
+For example, `textColor` defaults to `foregroundColor`, and `subtleTextColor` defaults to a blend of `textColor` and `chartBackgroundColor`.
+Changing `foregroundColor` therefore changes `textColor`, which in turn changes `subtleTextColor`.
 
 See the [Theme Parameters reference](/theme-parameters-api/) for the default of every parameter.
 
