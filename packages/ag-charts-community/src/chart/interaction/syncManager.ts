@@ -1,4 +1,4 @@
-import type { BBox, ChartAxisDirection, EventEmitter } from 'ag-charts-core';
+import type { BBox, ChartAxisDirection, EventEmitter, SyncStatus } from 'ag-charts-core';
 
 import type { EventsHubMap } from '../../core/eventsHub';
 import type { ModuleMap } from '../../module/moduleMap';
@@ -19,8 +19,6 @@ export type SyncAxisLike = {
     nice: boolean;
     options: { min?: unknown; max?: unknown; reverse?: boolean };
 };
-
-export type SyncStatus = 'init' | 'domains-calculated' | 'ready';
 
 /** Breaks circular dependencies which occur when importing Chart. */
 export type SyncChartLike = {

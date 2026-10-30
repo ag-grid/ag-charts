@@ -1,5 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AxisID, BoxBounds, FeatureCollection, Position } from 'ag-charts-core';
+import type {
+    AxisID,
+    BoxBounds,
+    ChartTypeHost,
+    ChartTypeInstance,
+    DynamicContext,
+    FeatureCollection,
+    Position,
+} from 'ag-charts-core';
 import { ChartAxisDirection, PanToBBoxScalingModeEnum, createId } from 'ag-charts-core';
 
 import type { LonLatBBox } from '../series/map-util/lonLatBbox';
@@ -16,7 +24,13 @@ function isTopologySeries(series: _ModuleSupport.UnknownSeries): series is _Modu
     );
 }
 
-export class TopologyChartType implements _ModuleSupport.ChartTypeInstance {
+export interface TopologyChartEnv {
+    ctx: DynamicContext<_ModuleSupport.ChartRegistry>;
+    series: _ModuleSupport.UnknownSeries;
+    layoutContext: _ModuleSupport.LayoutContext;
+}
+
+export class TopologyChartType implements ChartTypeInstance<TopologyChartEnv> {
     static readonly type = 'topology' as const;
     readonly type = TopologyChartType.type;
     readonly pageNavigation = false;
@@ -26,7 +40,7 @@ export class TopologyChartType implements _ModuleSupport.ChartTypeInstance {
 
     topology?: FeatureCollection;
 
-    constructor(private readonly host: _ModuleSupport.ChartTypeHost) {
+    constructor(private readonly host: ChartTypeHost<TopologyChartEnv>) {
         if (host.ctx.zoomManager) {
             host.ctx.zoomManager.setAxes([this.xAxis, this.yAxis]);
             host.ctx.zoomManager.panToBBoxScalingMode =
@@ -108,8 +122,8 @@ export class TopologyChartType implements _ModuleSupport.ChartTypeInstance {
             zoomRect = { x: seriesRect.x + x0, y: seriesRect.y + y0, width: x1 - x0, height: y1 - y0 };
         }
 
-        if (this.ctx.zoomManager) {
-            this.ctx.zoomManager.panToBBoxZoomRect = zoomRect;
+        if (host.ctx.zoomManager) {
+            host.ctx.zoomManager.panToBBoxZoomRect = zoomRect;
         }
 
         for (const series of mapSeries) {

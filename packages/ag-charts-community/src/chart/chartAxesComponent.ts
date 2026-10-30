@@ -1,4 +1,11 @@
-import type { AxisID, AxisPluginModuleInstance, ChartAnimationPhase, DynamicContext } from 'ag-charts-core';
+import type {
+    AxisID,
+    AxisPluginModuleInstance,
+    ChartAnimationPhase,
+    ChartType,
+    DynamicContext,
+    SeriesChangeType,
+} from 'ag-charts-core';
 import {
     ChartUpdateType,
     Debug,
@@ -13,8 +20,7 @@ import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import type { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
-import type { ChartType } from './chartType';
-import type { AxesHost, SeriesChangeType } from './chartTypeInstance';
+import type { AxesHost } from './chartTypeEnv';
 import type { AxisLabelSource } from './layout/axisLabelSource';
 import type { Series, UnknownSeries } from './series/series';
 import type { SeriesNodeDatum } from './series/seriesTypes';

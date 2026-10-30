@@ -1,9 +1,9 @@
 import type { AgChartOptions, AgCoordinates, SeriesType } from 'ag-charts-types';
 
+import type { BBox } from '../scene/bbox';
 import type { TranslatableGroup } from '../scene/group';
 import type { ChartAnimationPhase } from '../types/animationPhase';
 import type { ChartAxisDirection } from '../types/axisDirection';
-import type { BBox } from '../scene/bbox';
 import type { CanvasPoint } from '../types/scene';
 
 export type ChartType = 'cartesian' | 'polar' | 'topology' | 'standalone';

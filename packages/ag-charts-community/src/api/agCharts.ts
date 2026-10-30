@@ -29,7 +29,7 @@ import type {
 
 import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
-import type { ChartTypeHost, ChartTypeInstance } from '../chart/chartTypeInstance';
+import type { ChartTypeHost } from '../chart/chartTypeEnv';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
 import { detectChartType } from '../chart/mapping/types';
 import { resolveInstanceModuleScope } from '../module/instanceModuleScope';
@@ -604,7 +604,7 @@ class AgChartsInternal {
         const chartDef = options.moduleRegistry.getChartModule(chartTypeName);
         const chartType = {
             name: chartDef.name,
-            create: (host: ChartTypeHost) => chartDef.create(host) as ChartTypeInstance,
+            create: (host: ChartTypeHost) => chartDef.create(host),
         };
         return new Chart(options, chartType, transferableResource);
     }

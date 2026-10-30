@@ -2,7 +2,7 @@ import type { AxisID, BBox } from 'ag-charts-core';
 import { ChartAxisDirection, PanToBBoxScalingModeEnum, createId } from 'ag-charts-core';
 
 import { Axis } from './axis/axis';
-import type { ChartTypeHost, ChartTypeInstance } from './chartTypeInstance';
+import type { ChartTypeHost, ChartTypeInstance } from './chartTypeEnv';
 import type { LayoutContext } from './layout/layoutManager';
 import type { SeriesAreaLayout, UnknownSeries } from './series/series';
 

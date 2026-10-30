@@ -5,6 +5,8 @@ import type {
     ChartAnimationPhase,
     ModuleInstance,
     RequireOptional,
+    RequiredRange,
+    SeriesChangeType,
     Size,
 } from 'ag-charts-core';
 import { ChartAxisDirection, ContinuousScale, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
@@ -25,13 +27,7 @@ import { stackCartesianSeries } from './cartesianUtil';
 import { CartesianChartAxes, ChartAxes } from './chartAxes';
 import { ChartAxesComponent } from './chartAxesComponent';
 import type { ChartAxis } from './chartAxis';
-import type {
-    ChartTypeHost,
-    ChartTypeInstance,
-    RequiredRange,
-    SeriesAxesHost,
-    SeriesChangeType,
-} from './chartTypeInstance';
+import type { ChartTypeHost, ChartTypeInstance, SeriesAxesHost } from './chartTypeEnv';
 import type { LayoutContext, ScrollbarLayoutMap, SeriesInsetMap } from './layout/layoutManager';
 import { deriveMiniChartOptions, filterMiniChartSeries } from './miniChartOptions';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';

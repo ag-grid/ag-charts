@@ -9,22 +9,24 @@ import type { AgPolarChartOptions } from 'ag-charts-types';
 
 import { communityModule } from '../module/moduleIdentity';
 import { VERSION } from '../version';
-import type { ChartTypeHost } from './chartTypeInstance';
+import type { ChartEnv, ChartTypeHost } from './chartTypeEnv';
 import { PolarChartType } from './polarChart';
 
-export const PolarChartModule: ChartModuleDefinition<WithoutModuleOwnedOptions<AgPolarChartOptions>> =
-    /* #__PURE__ */ communityModule({
-        type: 'chart',
-        name: 'polar',
-        version: VERSION,
+export const PolarChartModule: ChartModuleDefinition<
+    WithoutModuleOwnedOptions<AgPolarChartOptions>,
+    ChartEnv
+> = /* #__PURE__ */ communityModule({
+    type: 'chart',
+    name: 'polar',
+    version: VERSION,
 
-        options: polarChartOptionsDefs,
+    options: polarChartOptionsDefs,
 
-        themeOptions: commonChartOptionsDefs,
+    themeOptions: commonChartOptionsDefs,
 
-        themeTemplate: commonChartThemeTemplate,
+    themeTemplate: commonChartThemeTemplate,
 
-        create(host: ChartTypeHost) {
-            return new PolarChartType(host);
-        },
-    });
+    create(host: ChartTypeHost) {
+        return new PolarChartType(host);
+    },
+});

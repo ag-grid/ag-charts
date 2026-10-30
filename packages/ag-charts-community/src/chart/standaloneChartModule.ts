@@ -9,22 +9,24 @@ import type { AgStandaloneChartOptions } from 'ag-charts-types';
 
 import { communityModule } from '../module/moduleIdentity';
 import { VERSION } from '../version';
-import type { ChartTypeHost } from './chartTypeInstance';
+import type { ChartEnv, ChartTypeHost } from './chartTypeEnv';
 import { StandaloneChartType } from './standaloneChart';
 
-export const StandaloneChartModule: ChartModuleDefinition<WithoutModuleOwnedOptions<AgStandaloneChartOptions>> =
-    /* #__PURE__ */ communityModule({
-        type: 'chart',
-        name: 'standalone',
-        version: VERSION,
+export const StandaloneChartModule: ChartModuleDefinition<
+    WithoutModuleOwnedOptions<AgStandaloneChartOptions>,
+    ChartEnv
+> = /* #__PURE__ */ communityModule({
+    type: 'chart',
+    name: 'standalone',
+    version: VERSION,
 
-        options: standaloneChartOptionsDefs,
+    options: standaloneChartOptionsDefs,
 
-        themeOptions: commonChartOptionsDefs,
+    themeOptions: commonChartOptionsDefs,
 
-        themeTemplate: commonChartThemeTemplate,
+    themeTemplate: commonChartThemeTemplate,
 
-        create(host: ChartTypeHost) {
-            return new StandaloneChartType(host);
-        },
-    });
+    create(host: ChartTypeHost) {
+        return new StandaloneChartType(host);
+    },
+});

@@ -1,4 +1,5 @@
-import { type AgTopologyChartOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgTopologyChartOptions, VERSION } from 'ag-charts-community';
+import type { ChartTypeHost } from 'ag-charts-core';
 import {
     type ChartModuleDefinition,
     type WithoutModuleOwnedOptions,
@@ -7,9 +8,12 @@ import {
     topologyChartOptionsDefs,
 } from 'ag-charts-core';
 
-import { TopologyChartType } from './topologyChart';
+import { type TopologyChartEnv, TopologyChartType } from './topologyChart';
 
-export const TopologyChartModule: ChartModuleDefinition<WithoutModuleOwnedOptions<AgTopologyChartOptions>> = {
+export const TopologyChartModule: ChartModuleDefinition<
+    WithoutModuleOwnedOptions<AgTopologyChartOptions>,
+    TopologyChartEnv
+> = {
     type: 'chart',
     name: 'topology',
     enterprise: true,
@@ -21,7 +25,7 @@ export const TopologyChartModule: ChartModuleDefinition<WithoutModuleOwnedOption
 
     themeTemplate: commonChartThemeTemplate,
 
-    create(host: _ModuleSupport.ChartTypeHost) {
+    create(host: ChartTypeHost<TopologyChartEnv>) {
         return new TopologyChartType(host);
     },
 };

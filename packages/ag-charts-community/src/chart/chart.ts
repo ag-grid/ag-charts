@@ -1,12 +1,15 @@
 import type {
     CanvasPoint,
     ChartAnimationPhase,
+    ChartType,
     DeepPartial,
     DynamicContext,
     ModuleInstance,
     NormalisedTextOrSegments,
     RegistryRevision,
     Scene,
+    SeriesChangeType,
+    SyncStatus,
 } from 'ag-charts-core';
 import {
     AgDocument,
@@ -62,13 +65,12 @@ import { ChartCaptions } from './chartCaptions';
 import { createChartContext } from './chartContext';
 import type { ChartEventMap, ChartEventType, ChartListeners, ChartService } from './chartService';
 import type { ChartState } from './chartState';
-import type { ChartType } from './chartType';
-import type { ChartTypeHost, ChartTypeInstance, SeriesChangeType, SeriesHost } from './chartTypeInstance';
+import type { ChartTypeHost, ChartTypeInstance, SeriesHost } from './chartTypeEnv';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
 import { replaceDataSet } from './data/dataSetUtil';
-import { SyncManager, type SyncStatus } from './interaction/syncManager';
+import { SyncManager } from './interaction/syncManager';
 import { LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';

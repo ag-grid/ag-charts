@@ -33,7 +33,7 @@ describe('CartesianChart series insets', () => {
     });
 
     const create = async (options: AgCartesianChartOptions) => {
-        chart = deproxy(await createChart(options)) as Chart;
+        chart = deproxy(await createChart(options));
         return chart;
     };
 
@@ -94,7 +94,7 @@ describe('CartesianChart series insets', () => {
     it('keeps the inset at a position without an axis through a resize', async () => {
         const options = structuredClone(OPTIONS);
         const proxy = await createChart(options);
-        chart = deproxy(proxy) as Chart;
+        chart = deproxy(proxy);
         const before = chart.seriesRect!.clone();
 
         chart.ctx.layoutManager.registerElement(LayoutElement.SeriesInset, (layout) => {

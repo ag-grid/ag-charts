@@ -1,11 +1,11 @@
-import type { BBox, ChartAnimationPhase, Scale } from 'ag-charts-core';
+import type { BBox, ChartAnimationPhase, Scale, SeriesChangeType } from 'ag-charts-core';
 import { ChartAxisDirection, ZIndexMap, fitCircleToLabels } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { PolarChartAxes } from './chartAxes';
 import { ChartAxesComponent } from './chartAxesComponent';
-import type { ChartTypeHost, ChartTypeInstance, SeriesChangeType } from './chartTypeInstance';
+import type { ChartTypeHost, ChartTypeInstance } from './chartTypeEnv';
 import type { LayoutContext } from './layout/layoutManager';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
 import type { UnknownSeries } from './series/series';
