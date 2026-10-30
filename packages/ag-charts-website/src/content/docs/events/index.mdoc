@@ -48,13 +48,13 @@ In this example:
 
 These are fired on click or double-click of a series node such as a bar or marker and are defined on the series or chart options.
 
-The parameters of these events differ depending on the series type, but always include:
+The parameters of these events differ depending on the series type, but include:
 
 - The `seriesId` the node belongs to and the [`itemId`](#item-identifiers) of the clicked node.
 - The data object being visualised, usually `datum`.
 - The specific keys in that `datum` that were used to fetch the values represented by the clicked node.
 - `allMatchedParams` - every other node matched at the click point. See [allMatchedParams](#allmatchedparams).
-- `coordinates` - the coordinates of the click point, in the same form as the [chart click](#click-and-doubleclick) events.
+- `coordinates` - where available, the coordinates of the click point, in the same form as the [chart click](#click-and-doubleclick) events.
 - The [`context`](./context/) object, if set.
 
 {% chartExampleRunner title="Node Click Event" name="series-node-click-event" type="generated" /%}

@@ -35,9 +35,9 @@ export interface AgLinearGaugeScaleLabel<TContext = ContextDefault> extends AgGa
 }
 
 export interface AgLinearGaugeScale<TContext = ContextDefault> extends AgLinearGaugeSeriesStyle, FillsOptions {
-    /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
+    /** Minimum value of the scale. Any values below this number will be clipped to this minimum. */
     min?: AgNumericValue;
-    /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
+    /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     max?: AgNumericValue;
     /** Configuration for the scale labels. */
     label?: AgLinearGaugeScaleLabel<TContext>;

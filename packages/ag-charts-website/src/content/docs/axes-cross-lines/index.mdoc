@@ -17,7 +17,6 @@ A Cross Line can either be a `line` or a `range`, and multiple Cross Lines can b
 {
     axes: {
         y: {
-            position: 'left',
             type: 'number',
             crossLines: [
                 {
@@ -27,7 +26,6 @@ A Cross Line can either be a `line` or a `range`, and multiple Cross Lines can b
             ],
         },
         x: {
-            position: 'bottom',
             type: 'category',
             crossLines: [
                 {
@@ -90,7 +88,7 @@ In this example:
     crossLines: [
         {
             type: 'line',
-            value: 142.45,
+            value: 250,
             label: {
                 text: 'Target',
                 placement: ['inside-end', 'end'],
@@ -162,7 +160,7 @@ Cross Lines are also available for Polar Axes. They share the line and range opt
 Polar Cross Lines are not included in `CrossLinesModule`. Register `PolarCrossLinesModule` separately when using [module imports](./module-registry/).
 {% /note %}
 
-{% chartExampleRunner title="Polar Axis Angle Crosslines" name="polar-axes-crosslines-angle" type="generated" /%}
+{% chartExampleRunner title="Polar Axes Cross Lines" name="polar-axes-crosslines-angle" type="generated" /%}
 
 ```js format="snippet"
 {

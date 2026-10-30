@@ -54,7 +54,7 @@ function changeOuterSpacing(event: any) {
 
 function changeDepthSpacing(event: any) {
     const value = Number(event.target.value);
-    document.getElementById('depthSpacing')!.innerHTML = String(value);
+    document.getElementById('depthSpacingValue')!.innerHTML = String(value);
     (options.series![0] as AgOrganizationSeriesOptions).depthSpacing = value;
     chart.update(options);
 }

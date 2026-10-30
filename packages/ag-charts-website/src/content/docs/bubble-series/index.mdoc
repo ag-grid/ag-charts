@@ -101,7 +101,7 @@ Please see the [Series Markers](./markers/) page for more information or the [AP
 
 ## Labels
 
-To show labels for a Bubble Series set the `label.enabled` config of a series to `true` and specify which key should be used to fetch the label values.
+To show labels for a Bubble Series set the `label.enabled` config of a series to `true` and set `labelKey` to specify which key should be used to fetch the label values.
 
 {% chartExampleRunner title="Bubble Chart with Labels" name="bubble-chart-labels" type="generated" /%}
 
@@ -113,8 +113,7 @@ Bubble Series label placement is constrained so that:
 If these constraints are not satisfied, a label is not placed.
 
 Try opening the above example in a larger window to see that more labels are placed as the chart gets bigger.
-You can also try changing the size of the markers and the font size of the labels to see how that affects
-label placement.
+You can also try changing the font size of the labels to see how that affects label placement.
 
 See [Series Labels: Collision Avoidance](./series-labels/#collision-avoidance) for more details.
 

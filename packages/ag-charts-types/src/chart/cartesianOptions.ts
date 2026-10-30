@@ -138,7 +138,7 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
      * - `'on-space'` will only wrap on white space: spaces, tabs and zero-width spaces (`\u200B`), but not on a non-breaking space (`\u00A0`).
      * - `'never'` disables text wrapping.
      *
-     * Default: `'on-space'`
+     * Default: `'on-space'` for category axes, `'never'` for all other axes
      */
     wrapping?: TextWrap;
     /**

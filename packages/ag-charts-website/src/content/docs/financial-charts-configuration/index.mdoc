@@ -43,7 +43,7 @@ const ChartExample = () => {
         data: getData(),
     });
 
-    return <AgFinancialCharts options={options as any} />;
+    return <AgFinancialCharts options={options} />;
 };
 
 const root = createRoot(document.getElementById('root')!);
@@ -89,6 +89,8 @@ import { createApp } from 'vue';
 
 import 'ag-charts-enterprise';
 import { AgFinancialCharts } from 'ag-charts-vue3';
+
+import { getData } from './data';
 
 const ChartExample = {
     template: `
@@ -163,6 +165,8 @@ End users can use the [Chart Type Selection Tool](./financial-charts-toolbar/#ch
 However, this can also be done programmatically.
 
 The default chart type is `candlestick`. To use a different chart type, set the `chartType` property.
+
+{% chartExampleRunner title="Chart Types" name="chart-types" type="generated" /%}
 
 ```ts
 const options: AgFinancialChartOptions = {

@@ -148,7 +148,7 @@ In this configuration:
 
 ## Regions
 
-The fill and stroke of each region, as well as the style of their markers and labels is configured under the region specific properties within the `regions` options.
+The fill and stroke of each region, as well as the style of their markers and labels are configured under the region specific properties within the `regions` options.
 There is also a shared `regions.label` property which each region can override as necessary.
 
 Callbacks such as `itemStyler`, `tooltip.renderer` and label callbacks receive the region of each point to allow for region specific styling.
@@ -171,7 +171,7 @@ Callbacks such as `itemStyler`, `tooltip.renderer` and label callbacks receive t
 
 In this example:
 
-- Use the dropdown to change the `label.position`, moving a region label to any corner, any edge or the center of each region.
+- Use the dropdown to change the `label.position`, moving a region label to any corner, any edge or the centre of each region.
 - All regions use the shared `label` option.
 - Each region has its own `label.text` to set the text for that region.
 - Long labels can be wrapped, truncated or shrunk to fit. See [Series Labels: Collision Avoidance](./series-labels/#collision-avoidance).
@@ -245,7 +245,7 @@ the edge of the chart.
 
 In this configuration:
 
-- `alignAxesToPivot` toggles whether the axis lines to cross at the pivot point or remain at the edge.
+- `alignAxesToPivot` toggles whether the axis lines cross at the pivot point or remain at the edge.
 - `axisPlacement.title`, `.label` and `.crosshairLabel` each default to `'edge'`. Set any to `'crossing'` to move them
   to the pivot while `alignAxesToPivot` is `true`.
 - The `xAxis` and `yAxis` properties allow customising the axes which are both [Number Axes](./axes-types/#number).

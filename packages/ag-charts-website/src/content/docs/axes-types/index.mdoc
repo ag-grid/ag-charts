@@ -124,7 +124,7 @@ By default, if the data domain has `5` or more orders of magnitude, the `log` ax
 `10` ticks (the logarithm base) is rendered per order of magnitude. For example a data domain of `[1, 100]` with `2` orders
 of magnitude, will show `1`, `2`, `3`, `4`,`5`, `6`, `7`, `8`, `9`, `10`, `20`, `30`, `40`, `50`, `60`, `70`, `80`, `90`, `100`.
 
-Depending on the data domain and chart size, using a larger value for the `tick: { minSpacing: xxx }` config might be
+Depending on the data domain and chart size, using a larger value for the `interval: { minSpacing: xxx }` config might be
 necessary to reduce the number of ticks.
 
 ```js format="snippet"
@@ -132,7 +132,7 @@ necessary to reduce the number of ticks.
     axes: {
         y: {
             type: 'log',
-            minSpacing: 200,
+            interval: { minSpacing: 200 },
         },
     },
 }
@@ -170,7 +170,7 @@ There are three methods of displaying time along an axis.
 - [Ordinal Time Axis](./axes-time/#ordinal-time) - Only provided values are shown, with missing values omitted.
 - [Continuous Time Axis](./axes-time/#continuous-time) - Data is shown on a continuous scale.
 
-The difference between a [Unit Time Axis](./axes-time/#unit-time), an [Ordinal Time Axis](./axes-time/#ordinal-time), and a continuous [Continuous Time Axis](./axes-time/#continuous-time) is demonstrated in the following example:
+The difference between a [Unit Time Axis](./axes-time/#unit-time), an [Ordinal Time Axis](./axes-time/#ordinal-time), and a [Continuous Time Axis](./axes-time/#continuous-time) is demonstrated in the following example:
 
 {% chartExampleRunner title="Time Axis Types" name="time-vs-unit-time-vs-ordinal-time" type="generated" /%}
 

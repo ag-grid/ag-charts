@@ -39,6 +39,7 @@ In this example:
 The available label positions are series-specific. These include `'inside-start'` or `'outside-end'` for a bar series, and `'top'` or `'left'` for a bubble series.
 
 See the [API Reference](/options/) for the full list of placement values per series type.
+
 {% chartExampleRunner title="Label Placement" name="label-position" type="generated" /%}
 
 ```js format="snippet"
@@ -58,7 +59,7 @@ See the [API Reference](/options/) for the full list of placement values per ser
 
 In this example:
 
-- Providing `placement` as an ordered array allows the label to fallback to an alternative position if the first doesn't fit or collides with another item.
+- Providing `placement` as an ordered array allows the label to fall back to an alternative position if the first doesn't fit or collides with another item.
     - This is affected by [Orientation](#orientation) and other [Collision Avoidance](#collision-avoidance) options.
     - Resize the example to see the fallback placements in action.
 - `spacing` sets the pixel distance between a label and its anchor and is ignored when the resolved placement is centred.
@@ -87,9 +88,9 @@ Bar-family series can rotate their labels using the `label.orientation` option. 
 
 In this example:
 
-- Providing `orientation` as an ordered array allows the label to fallback to an alternative orientation if the first doesn't fit or collides with another item.
+- Providing `orientation` as an ordered array allows the label to fall back to an alternative orientation if the first doesn't fit or collides with another item.
     - This is affected by [Placement](#placement) and other [Collision Avoidance](#collision-avoidance) options.
-    - Resize the example to see the fallback placements in action.
+    - Resize the example to see the fallback orientations in action.
 
 ## Collision Avoidance
 
@@ -113,7 +114,7 @@ As well as using [fallback placement](#placement) and [fallback orientation](#or
                 maxHeight: 54,
                 wrapping: 'on-space',
                 truncate: true,
-                minimumFontSize: 8,
+                minimumFontSize: 10,
             },
         },
     ],
@@ -145,11 +146,13 @@ These series configure the same fitting options on `calloutLabel` and `sectorLab
                 maxWidth: 70,
                 wrapping: 'on-space',
                 truncate: true,
+                minimumFontSize: 10,
             },
             sectorLabel: {
+                maxWidth: 70,
                 wrapping: 'on-space',
                 truncate: true,
-                minimumFontSize: 8,
+                minimumFontSize: 10,
             },
         },
     ],
@@ -169,7 +172,7 @@ When any of these strategies are used but fail to find a satisfactory resolution
 
 Use `collision.alwaysShow: true` to force the label to remain visible, or `collision.alwaysShow: false` to allow labels to be hidden even when no other strategies are enabled.
 
-{% chartExampleRunner title="Label Collision Threshold" name="label-threshold" type="generated" /%}
+{% chartExampleRunner title="Label Collision" name="label-threshold" type="generated" /%}
 
 ```js format="snippet"
 {

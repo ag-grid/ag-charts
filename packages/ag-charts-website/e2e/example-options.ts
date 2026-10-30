@@ -29,7 +29,6 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     },
     events: {
         'interaction-ranges': { skipCanvasUpdateCheck: true },
-        'node-click-select': { skipCanvasUpdateCheck: true },
     },
     'examples-controls-test': {
         // A style guide for the controls themselves — none of them drive the chart.
