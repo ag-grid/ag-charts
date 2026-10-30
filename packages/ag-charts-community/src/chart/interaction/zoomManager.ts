@@ -257,6 +257,9 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private readonly debug = Debug.create(true, 'zoom');
 
     public panToBBoxScalingMode = PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYDisproportionally;
+    // The canvas rect spanned by the current zoom ratios, when it differs from the series rect (e.g. aspect-preserving
+    // maps, which letterbox inside the series rect). Undefined means the zoom ratios span the whole series rect.
+    public panToBBoxZoomRect?: BoxBounds;
 
     // The initial state memento can not be restored until the chart has performed its first layout. Instead save it as
     // pending and restore then delete it on the first layout.
@@ -552,7 +555,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             return false;
         }
 
-        const newZoom: ZoomState = calcPanToBBoxRatios(panToBBoxScalingMode, seriesRect, zoom, target);
+        const newZoom: ZoomState = calcPanToBBoxRatios(
+            panToBBoxScalingMode,
+            seriesRect,
+            zoom,
+            target,
+            this.panToBBoxZoomRect
+        );
         const changes = this.toCoreZoomState(newZoom);
         return this.updateChanges({
             source: 'user-interaction',

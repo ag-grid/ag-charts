@@ -11,6 +11,7 @@ import type {
     DatumDefault,
 } from 'ag-charts-types';
 
+import type { WithInternalShadow } from '../internalShadowOptions';
 import type { BivariantCallback, Normalised } from './normalise';
 import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions } from './normalisedLabelOptions';
@@ -63,7 +64,7 @@ export type NormalisedRadarLineSeriesOwnOptions = Normalised<
     RadarAxisKeys;
 
 export type NormalisedRadarAreaSeriesOwnOptions = Normalised<
-    AgRadarAreaSeriesOptions,
+    AgRadarAreaSeriesOptions & WithInternalShadow,
     RadarRequiredKeys | 'fill' | 'fillOpacity' | 'shadow',
     RadarOverrides & { fill: NormalisedColorType; shadow: NormalisedDropShadowOptions }
 > &

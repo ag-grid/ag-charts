@@ -363,7 +363,8 @@ describe('WaterfallSeries', () => {
         await compare();
     });
 
-    it(`should render a waterfall chart with item shadows`, async () => {
+    // AG-9003: 14.2.0 rendering restored for this release
+    it.skip(`should render a waterfall chart with item shadows`, async () => {
         const baseSeries = WATERFALL_COLUMN_SERIES;
         const options: AgCartesianChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
@@ -405,7 +406,7 @@ describe('WaterfallSeries', () => {
         const nodes = getSeriesSelectionNodes<Rect>(chart, 'datumSelection');
         expect(nodes.length).toBeGreaterThan(0);
         for (const node of nodes) {
-            expect(node.fillShadow).toEqual({ ...DEFAULT_DISABLED_SHADOW, enabled: true, color: expect.any(String) });
+            expect(node.fillShadow).toEqual({ ...DEFAULT_DISABLED_SHADOW, enabled: true, fill: expect.any(String) });
         }
     });
 

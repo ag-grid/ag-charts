@@ -57,14 +57,14 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
                 fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
-                shadow: SHADOW_THEME_DEFAULTS,
+                ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
                 tension: 0.4,
-                shadow: SHADOW_THEME_DEFAULTS,
+                ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

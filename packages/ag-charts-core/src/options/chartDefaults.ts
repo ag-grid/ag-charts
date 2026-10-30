@@ -22,7 +22,6 @@ import {
     type AgDropShadowOptions,
     type AgErrorBarOptions,
     type AgErrorBarThemeableOptions,
-    type AgGlowOptions,
     type AgGradientLegendOptions,
     type AgInitialFocus,
     type AgInterpolationType,
@@ -40,6 +39,7 @@ import {
 } from 'ag-charts-types';
 
 import { isValidNumberFormat } from '../format/numberFormat';
+import type { InternalAgGlowOptions } from './internalShadowOptions';
 import {
     borderOptionsDef,
     colorOrRef,
@@ -676,20 +676,25 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     xOffset: number,
     yOffset: number,
     blur: positiveNumber,
-    spread: positiveNumber,
     color: colorOrRef,
+    ...undocumentedDefs({
+        spread: positiveNumber,
+        fill: colorOrRef,
+        fillOpacity: ratio,
+    }),
 };
 
-export const glowOptionsDefs: OptionsDefs<AgGlowOptions> = {
+export const glowOptionsDefs: OptionsDefs<InternalAgGlowOptions> = {
     enabled: boolean,
     blur: positiveNumber,
     spread: positiveNumber,
-    color: colorOrRef,
+    fill: colorOrRef,
+    fillOpacity: ratio,
 };
 
 /** Validation for a series whose highlighted and unhighlighted items can also cast a `glow`. */
 export function glowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {
-    const itemDef = { ...itemHighlightOptionsDef, glow: glowOptionsDefs };
+    const itemDef = { ...itemHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) };
     return highlightOptionsDef(itemDef);
 }
 
@@ -699,8 +704,8 @@ export function multiSeriesGlowHighlightOptionsDef<I extends object, S extends o
     seriesHighlightOptionsDef: S
 ) {
     return multiSeriesHighlightOptionsDef(
-        { ...itemHighlightOptionsDef, glow: glowOptionsDefs },
-        { ...seriesHighlightOptionsDef, glow: glowOptionsDefs }
+        { ...itemHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) },
+        { ...seriesHighlightOptionsDef, ...undocumentedDefs({ glow: glowOptionsDefs }) }
     );
 }
 
@@ -714,7 +719,7 @@ export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
 
 export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
-    shadow: shadowOptionsDefs,
+    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
     itemStyler: callbackDefs<AgSeriesMarkerStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,

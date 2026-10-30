@@ -1,5 +1,4 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
@@ -8,16 +7,11 @@ import type {
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type {
-    AgBaseSeriesOptions,
-    AgBaseSeriesThemeableOptions,
-    AgGlowHighlightOptions,
-    AgHighlightStyleOptions,
-} from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight' | 'focusIndex'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'focusIndex'>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
         AgSankeySeriesThemeableOptions<TDatum, TContext> {
@@ -79,8 +73,6 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     link?: AgSankeySeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
-    /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgGlowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
@@ -101,8 +93,6 @@ export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault>
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgSankeySeriesLinkOptions<TDatum, TContext = ContextDefault> extends AgSankeySeriesLinkStyle {
-    /** Configuration for the shadow used behind the links. */
-    shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual links, based on the given parameters.*/
     itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<TDatum, TContext>, AgSankeySeriesLinkStyle>;
 }
@@ -110,8 +100,6 @@ export interface AgSankeySeriesLinkOptions<TDatum, TContext = ContextDefault> ex
 export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgSankeySeriesNodeStyle {
-    /** Configuration for the shadow used behind the nodes. */
-    shadow?: AgDropShadowOptions;
     /**
      * Spacing between the nodes.
      *

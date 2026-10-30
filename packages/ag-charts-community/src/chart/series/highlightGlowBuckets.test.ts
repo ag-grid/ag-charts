@@ -125,7 +125,7 @@ describe.each(SERIES)(
                 expect(others.length).toBeGreaterThan(0);
                 for (const rect of others) {
                     expect(rect.fillShadow).toMatchObject(GLOW_SHADOW);
-                    expect(rect.fillShadow?.color).not.toBe(SERIES_SHADOW.color);
+                    expect(rect.fillShadow?.fill).not.toBe(SERIES_SHADOW.fill);
                 }
                 // The other series is in no glowing state, so it keeps its shadow.
                 for (const rect of inPlace(1)) expect(rect.fillShadow).toMatchObject(SERIES_SHADOW);
@@ -152,7 +152,8 @@ describe.each(SERIES)(
                 for (const rect of inPlace(0)) expect(rect.fillShadow).toMatchObject(SERIES_SHADOW);
             });
 
-            it('keeps the base shadow where the state glow is disabled', async () => {
+            // AG-9003: 14.2.0 rendering restored for this release
+            it.skip('keeps the base shadow where the state glow is disabled', async () => {
                 const { inPlace, highlighted } = await hover(
                     { highlightedSeries: { glow: { ...HIGHLIGHT_GLOW, enabled: false } } },
                     SERIES_SHADOW

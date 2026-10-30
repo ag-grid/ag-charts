@@ -71,6 +71,8 @@ import {
     expectSceneTrajectory,
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
+    getAxisBand,
+    getAxisCoordinate,
     getSeriesAggregationInternals,
     getSwapChainText,
     hoverAction,
@@ -3795,6 +3797,178 @@ describe('BarSeries', () => {
             for (const datum of nodeData) {
                 expect(datum.width).toBe(fixedWidth);
             }
+        });
+
+        describe('width ratio centring', () => {
+            // A pixel of slack for the whole-pixel rounding of band widths.
+            const TOLERANCE = 1;
+
+            // The stacks of a category share its band equally, as `groupPaddingInner` is zero.
+            const expectBarsCentredInSlots = (stackOfSeries: number[], stackCount: number) => {
+                for (const [seriesIndex, stack] of stackOfSeries.entries()) {
+                    const { nodeData } = getBarSeriesContextNodeData(chart, seriesIndex);
+                    expect(nodeData).toHaveLength(data.length);
+                    for (const [categoryIndex, datum] of nodeData.entries()) {
+                        const band = getAxisBand(chart, 'bottom', data[categoryIndex].quarter);
+                        const slotCentre = band.start + (stack + 0.5) * (band.width / stackCount);
+                        expect(
+                            Math.abs(datum.x + datum.width / 2 - slotCentre),
+                            `series ${seriesIndex}, category ${categoryIndex}: bar [${datum.x}, ${datum.x + datum.width}] in slot centred on ${slotCentre}`
+                        ).toBeLessThanOrEqual(TOLERANCE);
+                    }
+                }
+            };
+
+            const createStackedChart = async (series: AgBarSeriesOptions[]) => {
+                chart = await createChart({
+                    data,
+                    series,
+                    axes: { x: { type: 'category', paddingInner: 0, paddingOuter: 0, groupPaddingInner: 0 } },
+                });
+                await compare();
+            };
+
+            it.each([
+                ['without widthRatio', undefined],
+                ['with widthRatio', 0.5],
+            ])('centres a single stack %s', async (_, widthRatio) => {
+                await createStackedChart([
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true, widthRatio },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', stacked: true, widthRatio },
+                ]);
+                expectBarsCentredInSlots([0, 0], 1);
+            });
+
+            it.each([
+                ['without widthRatio', undefined],
+                ['with widthRatio', 0.5],
+            ])('centres each of two stacks in its slot %s', async (_, widthRatio) => {
+                await createStackedChart([
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', stackGroup: 'one', widthRatio },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', stackGroup: 'one', widthRatio },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', stackGroup: 'two', widthRatio },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', stackGroup: 'two', widthRatio },
+                ]);
+                expectBarsCentredInSlots([0, 0, 1, 1], 2);
+            });
+
+            it('centres a single stack with a fixed width and widthRatio', async () => {
+                await createStackedChart([
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true, width: 40, widthRatio: 0.5 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', stacked: true, width: 40, widthRatio: 0.5 },
+                ]);
+                expectBarsCentredInSlots([0, 0], 1);
+            });
+
+            it('centres unstacked grouped bars with widthRatio in their slots', async () => {
+                await createStackedChart([
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', widthRatio: 0.5 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', widthRatio: 0.5 },
+                ]);
+                expectBarsCentredInSlots([0, 1], 2);
+            });
+
+            const barCentre = ({ x, width }: { x: number; width: number }) => x + width / 2;
+
+            const expectBarsCentredOnDatum = (seriesCount: number, datumCount: number) => {
+                for (const seriesIndex of Array.from({ length: seriesCount }, (_, index) => index)) {
+                    const { nodeData } = getBarSeriesContextNodeData(chart, seriesIndex);
+                    expect(nodeData).toHaveLength(datumCount);
+                    for (const datum of nodeData) {
+                        const datumCentre = getAxisCoordinate(chart, 'bottom', datum.xValue);
+                        expect(
+                            Math.abs(barCentre(datum) - datumCentre),
+                            `series ${seriesIndex}, x ${datum.xValue}: bar [${datum.x}, ${datum.x + datum.width}] on datum at ${datumCentre}`
+                        ).toBeLessThanOrEqual(TOLERANCE);
+                    }
+                }
+            };
+
+            describe('on a number axis', () => {
+                const numberData = data.map((row, index) => ({ ...row, x: (index + 1) * 10 }));
+                const numberAxes: AgCartesianChartOptions['axes'] = { x: { type: 'number' }, y: { type: 'number' } };
+
+                const createNumberAxisChart = async (series: AgBarSeriesOptions[]) => {
+                    chart = await createChart({ data: numberData, series, axes: numberAxes });
+                    await compare();
+                };
+
+                it.each([
+                    ['without widthRatio', undefined],
+                    ['with widthRatio', 0.5],
+                ])('centres a single stack on its datum %s', async (_, widthRatio) => {
+                    await createNumberAxisChart([
+                        { type: 'bar', xKey: 'x', yKey: 'iphone', stacked: true, widthRatio },
+                        { type: 'bar', xKey: 'x', yKey: 'mac', stacked: true, widthRatio },
+                    ]);
+                    expectBarsCentredOnDatum(2, numberData.length);
+                });
+
+                it('centres the bars of a stack with different widths on one another', async () => {
+                    chart = await createChart({
+                        data: numberData,
+                        series: [
+                            { type: 'bar', xKey: 'x', yKey: 'iphone', stacked: true, width: 20 },
+                            { type: 'bar', xKey: 'x', yKey: 'mac', stacked: true, width: 40 },
+                        ],
+                        axes: numberAxes,
+                    });
+                    const narrow = getBarSeriesContextNodeData(chart, 0).nodeData;
+                    const wide = getBarSeriesContextNodeData(chart, 1).nodeData;
+                    expect(narrow).toHaveLength(numberData.length);
+                    expect(wide).toHaveLength(numberData.length);
+                    for (const [index, datum] of narrow.entries()) {
+                        expect(datum.width).toBeLessThan(wide[index].width);
+                        expect(Math.abs(barCentre(datum) - barCentre(wide[index]))).toBeLessThanOrEqual(TOLERANCE);
+                    }
+                });
+
+                it('keeps the centre of each of two stacks when widthRatio is set', async () => {
+                    const createStacks = async (widthRatio: number | undefined) => {
+                        const series: AgBarSeriesOptions[] = [
+                            { type: 'bar', xKey: 'x', yKey: 'iphone', stackGroup: 'one', widthRatio },
+                            { type: 'bar', xKey: 'x', yKey: 'mac', stackGroup: 'one', widthRatio },
+                            { type: 'bar', xKey: 'x', yKey: 'ipad', stackGroup: 'two', widthRatio },
+                            { type: 'bar', xKey: 'x', yKey: 'wearables', stackGroup: 'two', widthRatio },
+                        ];
+                        const created = await createChart({ data: numberData, series, axes: numberAxes });
+                        const centres = series.map((_, seriesIndex) =>
+                            getBarSeriesContextNodeData(created, seriesIndex).nodeData.map(barCentre)
+                        );
+                        created.destroy();
+                        return centres;
+                    };
+
+                    const withoutWidthRatio = await createStacks(undefined);
+                    const withWidthRatio = await createStacks(0.5);
+
+                    for (const [seriesIndex, centres] of withoutWidthRatio.entries()) {
+                        expect(centres).toHaveLength(numberData.length);
+                        for (const [index, centre] of centres.entries()) {
+                            expect(
+                                Math.abs(withWidthRatio[seriesIndex][index] - centre),
+                                `series ${seriesIndex}, datum ${index}`
+                            ).toBeLessThanOrEqual(TOLERANCE);
+                        }
+                    }
+                });
+            });
+
+            describe('on a time axis', () => {
+                const timeData = data.map((row, index) => ({ ...row, x: new Date(2018, index * 3, 1) }));
+
+                it('centres a single stack on its datum with widthRatio', async () => {
+                    chart = await createChart({
+                        data: timeData,
+                        series: [
+                            { type: 'bar', xKey: 'x', yKey: 'iphone', stacked: true, widthRatio: 0.5 },
+                            { type: 'bar', xKey: 'x', yKey: 'mac', stacked: true, widthRatio: 0.5 },
+                        ],
+                        axes: { x: { type: 'time' }, y: { type: 'number' } },
+                    });
+                    expectBarsCentredOnDatum(2, timeData.length);
+                });
+            });
         });
     });
 

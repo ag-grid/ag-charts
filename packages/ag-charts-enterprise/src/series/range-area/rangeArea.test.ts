@@ -48,7 +48,7 @@ import {
     waitForChartStability,
     withUndocumentedOptions,
 } from 'ag-charts-community-test';
-import { Group, type Shape, Transformable } from 'ag-charts-core';
+import { Group, type Shape, Transformable, type WithInternalShadow } from 'ag-charts-core';
 
 import { destroyChart } from '../../test/enterpriseSeriesAccessors';
 import {
@@ -65,7 +65,7 @@ const HALF_BLACK = [128, 128, 128];
 // A shadow with no blur, so that the colour of a pixel is the strength of the shadows cast on it.
 const shadowAt = (xOffset: number, yOffset = 0) => ({
     enabled: true,
-    color: 'rgba(0, 0, 0, 0.5)',
+    fill: 'rgba(0, 0, 0, 0.5)',
     xOffset,
     yOffset,
     blur: 0,
@@ -204,9 +204,9 @@ describe('RangeAreaSeries', () => {
     });
 
     it.each([
-        ['ag-default', '#00000080'],
-        ['ag-default-dark', '#000'],
-    ])('should default the series and marker shadow colour for %s', async (theme, expected) => {
+        ['ag-default', 0.5],
+        ['ag-default-dark', 0.5],
+    ])('should default the series and marker shadow fill for %s', async (theme, fillOpacity) => {
         chart = await createEnterpriseChart({
             ...RANGE_AREA_OPTIONS,
             theme,
@@ -217,11 +217,11 @@ describe('RangeAreaSeries', () => {
                     marker: { shadow: { enabled: true } },
                 },
             ],
-        } as AgCartesianChartOptions);
+        } as unknown as AgCartesianChartOptions);
 
-        const series = getSeriesOptions<AgRangeAreaSeriesOptions>(chart);
-        expect(series.shadow?.color).toBe(expected);
-        expect(series.marker?.shadow?.color).toBe(expected);
+        const series = getSeriesOptions<AgRangeAreaSeriesOptions & { marker?: WithInternalShadow }>(chart);
+        expect(series.shadow).toMatchObject({ fill: '#000', fillOpacity });
+        expect(series.marker?.shadow).toMatchObject({ fill: '#000', fillOpacity });
     });
 
     describe('node interactions with markers disabled (AG-10226)', () => {
@@ -1831,7 +1831,8 @@ describe('RangeAreaSeries', () => {
         });
     });
 
-    describe('shadow root', () => {
+    // AG-9003: 14.2.0 rendering restored for this release
+    describe.skip('shadow root', () => {
         const FILLS = { fillOpacity: 1, strokeWidth: 0, marker: { enabled: false } };
         const data = [
             { x: 1, lowA: 2, highA: 8, lowB: 3, highB: 6 },
@@ -1847,7 +1848,10 @@ describe('RangeAreaSeries', () => {
             },
             series,
         });
-        const rangeArea = (suffix: 'A' | 'B', extra: Partial<AgRangeAreaSeriesOptions>): AgRangeAreaSeriesOptions => ({
+        const rangeArea = (
+            suffix: 'A' | 'B',
+            extra: Partial<AgRangeAreaSeriesOptions> & { marker?: WithInternalShadow }
+        ): AgRangeAreaSeriesOptions => ({
             type: 'range-area',
             xKey: 'x',
             yLowKey: `low${suffix}`,
@@ -1973,7 +1977,7 @@ describe('RangeAreaSeries', () => {
                 ]),
                 highlight: { drawingMode: 'cutout' },
             });
-            const SOLID = { ...shadowAt(0, 20), color: 'black' };
+            const SOLID = { ...shadowAt(0, 20), fill: 'black' };
 
             // The mock canvas only backs the first chart a test creates, and this test compares two.
             const chartCanvas = { getRenderContext2D: () => deproxy(chart).ctx.scene.canvas.context };

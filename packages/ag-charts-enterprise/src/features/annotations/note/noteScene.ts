@@ -46,7 +46,7 @@ export class NoteScene extends TextualPointScene<NoteDatum> {
 
         this.iconBackground.fillShadow = {
             enabled: true,
-            color: 'rgba(0, 0, 0, 0.5)',
+            fill: 'rgba(0, 0, 0, 0.5)',
             xOffset: 0,
             yOffset: 0,
             blur: 5,
@@ -156,9 +156,9 @@ export class NoteScene extends TextualPointScene<NoteDatum> {
         iconLines.fill = datum.stroke;
 
         if (active) {
-            iconBackground.fillShadow!.color = datum.fill ?? 'rgba(0, 0, 0, 0.22)';
+            iconBackground.fillShadow!.fill = datum.fill ?? 'rgba(0, 0, 0, 0.22)';
         } else {
-            iconBackground.fillShadow!.color = 'rgba(0, 0, 0, 0.22)';
+            iconBackground.fillShadow!.fill = 'rgba(0, 0, 0, 0.22)';
         }
     }
 

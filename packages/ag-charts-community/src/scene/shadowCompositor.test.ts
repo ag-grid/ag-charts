@@ -16,10 +16,11 @@ import {
     Translatable,
     castShadows,
     joinsShadowKey,
+    overrideTintableShadows,
     releaseShadowScratch,
     shadowPass,
 } from 'ag-charts-core';
-import type { RenderContext, ShadowCaster, ShadowKey, Shape } from 'ag-charts-core';
+import type { RenderContext, ResolvedDropShadowOptions, ShadowCaster, ShadowKey, Shape } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { BLACK, type Pixel, box, isHalfRed } from '../util/test/shadowPixels';
@@ -28,9 +29,9 @@ const WIDTH = 400;
 const HEIGHT = 220;
 
 // The layer is transparent, so the alpha of a pixel is the strength of the shadow cast on it.
-const RED_HALF = { enabled: true, color: 'rgba(255, 0, 0, 0.5)', xOffset: 100, yOffset: 0, blur: 0 };
-const BLUE = { enabled: true, color: 'rgba(0, 0, 255, 1)', xOffset: 100, yOffset: 0, blur: 0 };
-const IN_PLACE = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+const RED_HALF = { enabled: true, fill: 'rgba(255, 0, 0, 0.5)', xOffset: 100, yOffset: 0, blur: 0 };
+const BLUE = { enabled: true, fill: 'rgba(0, 0, 255, 1)', xOffset: 100, yOffset: 0, blur: 0 };
+const IN_PLACE = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
 const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
 
@@ -332,7 +333,7 @@ describe('Group shadow compositor', () => {
                     backgroundFillOpacity: 0.5,
                     strokeWidth: 0,
                 };
-                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+                const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 10 };
                 renderNodes(
                     [
                         box(20, 40, 40, 50, { fill: pattern, fillShadow: shadow }),
@@ -349,7 +350,7 @@ describe('Group shadow compositor', () => {
         );
 
         it('should fade the shadow of a crisp rectangle that is narrower than a pixel, as the rectangle fades', () => {
-            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 4 };
+            const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 4 };
             const thin = () => [
                 box(20, 40, 0.4, 50, { crisp: true, fillShadow: shadow }),
                 box(20, 130, 0.4, 50, { crisp: true, fillShadow: shadow }),
@@ -366,7 +367,7 @@ describe('Group shadow compositor', () => {
         });
 
         describe('a crisp rectangle that is narrower than a pixel', () => {
-            const SOLID = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 4 };
+            const SOLID = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 4 };
             // A bar that is 0.4 across, or high, which crisp rendering fades rather than widening to a pixel.
             const bars = {
                 thin: () => [
@@ -440,7 +441,7 @@ describe('Group shadow compositor', () => {
         });
 
         describe('a pattern of several parts', () => {
-            const SOLID = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+            const SOLID = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 10 };
 
             it.each([false, true])(
                 'should cast the shadow of a pattern with a background, a fill and a visible stroke (batched: %s)',
@@ -484,7 +485,7 @@ describe('Group shadow compositor', () => {
                         gradient: 'linear' as const,
                         colorStops: [{ color: 'rgba(0, 0, 255, 0.4)', stop: 0 }, { stop: 1 }],
                     };
-                    const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+                    const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 10 };
                     renderNodes(
                         [
                             box(20, 40, 40, 50, { fill: gradient, fillShadow: shadow }),
@@ -503,7 +504,7 @@ describe('Group shadow compositor', () => {
         });
 
         describe('line patterns', () => {
-            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+            const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 10 };
 
             it.each([['forward-slanted-lines'], ['backward-slanted-lines'], ['vertical-lines'], ['horizontal-lines']])(
                 'should cast no shadow from a %s pattern with no stroke, as its fill is open segments that paint nothing',
@@ -612,7 +613,7 @@ describe('Group shadow compositor', () => {
             }
 
             it('should cast its spread shadow at the scaled opacity, whether or not the shadow is batched', () => {
-                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 4 };
+                const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 4 };
                 const extras = (x: number, y: number) => {
                     const node = new ExtrasPath();
                     Object.assign(node, { fill: 'none', stroke: undefined, strokeWidth: 0, fillShadow: shadow });
@@ -633,7 +634,7 @@ describe('Group shadow compositor', () => {
         });
 
         describe('the strength of the casters of a batch', () => {
-            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 12 };
+            const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 12 };
             const item = (y: number, alpha: number) =>
                 box(20, y, 40, 50, { fill: `rgba(0, 0, 255, ${alpha})`, fillShadow: shadow });
             const alphaAt = (x: number, y: number) => at(x, y)[3];
@@ -727,7 +728,7 @@ describe('Group shadow compositor', () => {
     });
 
     describe('knock-out of a translucent item', () => {
-        const INK = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+        const INK = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
         const translucent = (y: number, spread?: number) =>
             box(60, y, 60, 50, { fill: 'rgba(0, 0, 255, 0.5)', fillShadow: { ...INK, spread } });
@@ -822,7 +823,7 @@ describe('Group shadow compositor', () => {
                         fill,
                         stroke: 'black',
                         strokeWidth: 6,
-                        fillShadow: { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 8 },
+                        fillShadow: { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 8 },
                         shadowMode: 'silhouette',
                     });
                 // Outside the edge, on the stroke, inside its footprint and in the middle of the fill.
@@ -844,7 +845,7 @@ describe('Group shadow compositor', () => {
                 pathBox(40, y, 60, 50, {
                     stroke: 'black',
                     strokeWidth: 6,
-                    fillShadow: { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 8 },
+                    fillShadow: { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 8 },
                     shadowMode: 'silhouette',
                     ...mixin,
                 });
@@ -913,7 +914,7 @@ describe('Group shadow compositor', () => {
                 pathBox(60.5, y + 0.25, 40.25, 30.5, {
                     stroke: 'black',
                     strokeWidth: 3,
-                    fillShadow: { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 6 },
+                    fillShadow: { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 6 },
                     shadowMode: 'silhouette',
                     ...mixin,
                 });
@@ -1058,7 +1059,7 @@ describe('Group shadow compositor', () => {
 
     describe('strength of a spread batch', () => {
         // The shadow is opaque and lands 100px right of the items, so that its alpha is that of the mask under it.
-        const SPREAD = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 100, yOffset: 0, blur: 0, spread: 6 };
+        const SPREAD = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 100, yOffset: 0, blur: 0, spread: 6 };
 
         // Two items that overlap at 50 to 80 across, and 60 to 90 down, so their shadows overlap there.
         const overlapping = (first: Partial<Rect>, second: Partial<Rect>) => [
@@ -1465,7 +1466,7 @@ describe('Group shadow compositor', () => {
 
         it('should keep the mask within what a browser can allocate, with a blur wider than the layer at 2x', () => {
             const before = offscreenCanvases();
-            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, blur: 3000 };
+            const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, blur: 3000 };
             renderGroup(
                 createGroup([
                     box(20, 40, 40, 40, { fillShadow: shadow }),
@@ -1523,7 +1524,7 @@ describe('Group shadow compositor', () => {
             ])(
                 'should cast the shadow through a mask of a lower resolution, for a layer of %i x %i',
                 (width, height) => {
-                    const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 8 };
+                    const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)', spread: 8 };
                     const before = offscreenCanvases();
                     const group = createGroup([
                         box(20, 40, 40, 50, { fill: transparentGradient, fillShadow: shadow }),
@@ -1547,7 +1548,7 @@ describe('Group shadow compositor', () => {
             );
 
             it('should cast the shadow of a segmented path past the width that the mask reaches at its resolution', () => {
-                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)' };
+                const shadow = { ...RED_HALF, fill: 'rgba(255, 0, 0, 1)' };
                 // A segment that no item reaches, so that the item is drawn in the gap between segments.
                 const segments = [{ clipRect: { x0: 0, y0: 0, x1: 10, y1: 10 } }];
                 const segmentedBox = (x: number) => {
@@ -2460,7 +2461,7 @@ describe('Group shadow compositor', () => {
             debugNodes: {},
         });
 
-        const keyOf = (caster: Shape, shadow: NonNullable<Shape['fillShadow']>): ShadowKey => ({
+        const keyOf = (caster: Shape, shadow: ResolvedDropShadowOptions): ShadowKey => ({
             shadow,
             clip: undefined,
             casters: [caster as ShadowCaster],
@@ -2550,6 +2551,221 @@ describe('Group shadow compositor', () => {
                 } finally {
                     blits.mockRestore();
                 }
+            });
+        });
+
+        // A glow with no `fill` takes the colour of each item it surrounds, and is keyed without one, so the items of many
+        // colours share a mask, which is blurred and blitted once.
+        describe('a glow with no fill around items of different colours', () => {
+            const GLOW = {
+                enabled: true,
+                xOffset: 0,
+                yOffset: 0,
+                blur: 0,
+                spread: 8,
+                fillOpacity: 1,
+                glow: true as const,
+            };
+            const COLOURS = [
+                'rgb(255, 0, 0)',
+                'rgb(0, 255, 0)',
+                'rgb(0, 0, 255)',
+                'rgb(255, 255, 0)',
+                'rgb(0, 255, 255)',
+            ];
+            const items = (count: number, fillShadow: Shape['fillShadow'] | ((i: number) => Shape['fillShadow'])) =>
+                COLOURS.slice(0, count).map((fill, i) =>
+                    box(20 + i * 70, 60, 40, 40, {
+                        fill,
+                        fillShadow: typeof fillShadow === 'function' ? fillShadow(i) : fillShadow,
+                    })
+                );
+
+            const blitsOf = (nodes: Shape[], batchShadows: Group['batchShadows'] = true) => {
+                const blits = vi.spyOn(ctx(), 'drawImage');
+                try {
+                    renderNodes(nodes, batchShadows);
+                    return blits.mock.calls.length;
+                } finally {
+                    blits.mockRestore();
+                }
+            };
+
+            it.each([true, 'by-layer'] as const)(
+                'should blit one mask however many colours the items have, in a group that batches %s',
+                (batchShadows) => {
+                    expect(blitsOf(items(1, GLOW), batchShadows)).toBe(1);
+                    expect(blitsOf(items(COLOURS.length, GLOW), batchShadows)).toBe(1);
+                }
+            );
+
+            it('should make a mask for each colour of a glow that has a fill, as the colour is part of its key', () => {
+                const blits = blitsOf(items(COLOURS.length, (i) => ({ ...GLOW, fill: COLOURS[i] })));
+
+                expect(blits).toBe(COLOURS.length);
+            });
+
+            it('should still make a mask for each spread, however many colours the items have', () => {
+                const nodes = [
+                    ...items(2, GLOW),
+                    box(300, 60, 40, 40, { fill: 'rgb(255, 0, 255)', fillShadow: { ...GLOW, spread: 2 } }),
+                ];
+
+                expect(blitsOf(nodes)).toBe(2);
+            });
+
+            // Without a spread the mask draws the paint as it is, so an item that paints more than a solid fill is keyed by its
+            // colour even where the canvas can tint. This is accepted for a glow with no spread, which is not the default.
+            describe('without a spread', () => {
+                const NO_SPREAD = { ...GLOW, spread: 0 };
+                const fading = (colour: string) => ({
+                    type: 'gradient' as const,
+                    colorStops: [
+                        { color: colour, stop: 0 },
+                        { color: 'rgba(0, 0, 0, 0)', stop: 1 },
+                    ],
+                });
+
+                it('should blit one mask however many colours the items have, when they are a solid fill', () => {
+                    expect(blitsOf(items(COLOURS.length, NO_SPREAD))).toBe(1);
+                });
+
+                // A solid item that also paints strokes apart from its main path, as a candlestick does with its wicks.
+                class ExtrasPath extends Path {
+                    protected override getSilhouetteExtrasOpacity() {
+                        return 1;
+                    }
+                }
+                const withExtras = (x: number, y: number, width: number, height: number, mixin: Partial<Path>) => {
+                    const node = new ExtrasPath();
+                    Object.assign(node, { strokeWidth: 0, ...mixin });
+                    node.path.rect(x, y, width, height);
+                    node.shadowMode = 'silhouette';
+                    return node;
+                };
+
+                it.each([
+                    ['a stroke with no fill', (fill: string) => ({ fill: 'none', stroke: fill, strokeWidth: 4 })],
+                    ['a gradient fill', (fill: string) => ({ fill: fading(fill) })],
+                    ['extras', (fill: string) => ({ fill, stroke: fill })],
+                ] as const)('should make a mask for each colour of items with %s', (name, paint) => {
+                    const create = name === 'extras' ? withExtras : box;
+                    const nodes = (count: number) =>
+                        COLOURS.slice(0, count).map((colour, i) =>
+                            create(20 + i * 70, 60, 40, 40, { ...paint(colour), fillShadow: NO_SPREAD })
+                        );
+
+                    expect(blitsOf(nodes(1))).toBe(1);
+                    expect(blitsOf(nodes(COLOURS.length))).toBe(COLOURS.length);
+                });
+            });
+
+            it('should draw the glow around each item in the colour of that item', () => {
+                renderNodes(items(3, GLOW));
+
+                // 4px outside the edge of each item, clear of the others, within the 8px of spread of the glow.
+                const glowAt = (i: number) => at(20 + i * 70 + 20, 60 - 4);
+                const [red, green, blue] = [0, 1, 2].map(glowAt);
+                expect([red[0], red[1], red[2]]).toEqual([255, 0, 0]);
+                expect([green[0], green[1], green[2]]).toEqual([0, 255, 0]);
+                expect([blue[0], blue[1], blue[2]]).toEqual([0, 0, 255]);
+                for (const pixel of [red, green, blue]) expect(pixel[3]).toBe(255);
+                // Beyond the spread there is none.
+                expect(at(20 + 20, 60 - 12)).toEqual(CLEAR);
+            });
+
+            describe('translucent items', () => {
+                afterEach(() => overrideTintableShadows());
+
+                // The colour of an item has an alpha of a half, which applies to the colour of its glow and to its strength.
+                const translucent = (fillShadow: Shape['fillShadow']) => [
+                    box(20, 60, 40, 40, { fill: 'rgba(255, 0, 0, 0.5)', fillShadow }),
+                ];
+                const glowPixel = (fillShadow: Shape['fillShadow'], canTint: boolean | undefined) => {
+                    overrideTintableShadows(canTint);
+                    renderNodes(translucent(fillShadow));
+                    return at(20 + 20, 60 - 4);
+                };
+                const EXPLICIT = { ...GLOW, fill: 'rgba(255, 0, 0, 0.5)' };
+
+                it('should cast the alpha of the colour once in the colour and once in the strength', () => {
+                    // A half of a half.
+                    const [red, green, blue, alpha] = glowPixel(GLOW, true);
+
+                    expect([red, green, blue]).toEqual([255, 0, 0]);
+                    expect(Math.abs(alpha - 64)).toBeLessThanOrEqual(2);
+                });
+
+                it.each([true, false])(
+                    'should cast the same pixels from the inferred colour as from the same fill, where tinting is %s',
+                    (canTint) => {
+                        const inferred = glowPixel(GLOW, canTint);
+                        const explicit = glowPixel(EXPLICIT, canTint);
+
+                        for (let i = 0; i < 4; i++) expect(Math.abs(inferred[i] - explicit[i])).toBeLessThanOrEqual(1);
+                    }
+                );
+
+                it.each([GLOW, EXPLICIT])(
+                    'should cast the same pixels whether or not the canvas can tint',
+                    (shadow) => {
+                        const tinted = glowPixel(shadow, true);
+                        const perColour = glowPixel(shadow, false);
+
+                        for (let i = 0; i < 4; i++) expect(Math.abs(tinted[i] - perColour[i])).toBeLessThanOrEqual(1);
+                    }
+                );
+            });
+
+            describe('where the canvas cannot blur a mask of many colours', () => {
+                beforeEach(() => overrideTintableShadows(false));
+                afterEach(() => overrideTintableShadows());
+
+                it('should make a mask for each colour of the items, which the glow has no fill to key by', () => {
+                    expect(blitsOf(items(1, GLOW))).toBe(1);
+                    expect(blitsOf(items(COLOURS.length, GLOW))).toBe(COLOURS.length);
+                });
+
+                it('should share a mask between neighbouring items of the same colour', () => {
+                    // A cast ends where an item of another colour comes between, as it would draw over the glow.
+                    const nodes = [0, 0, 1, 1].map((colour, i) =>
+                        box(20 + i * 70, 60, 40, 40, { fill: COLOURS[colour], fillShadow: GLOW })
+                    );
+
+                    expect(blitsOf(nodes)).toBe(2);
+                });
+
+                it('should draw the glow around each item in the colour of that item', () => {
+                    renderNodes(items(3, GLOW));
+
+                    const glowAt = (i: number) => at(20 + i * 70 + 20, 60 - 4);
+                    for (const [i, rgb] of [
+                        [255, 0, 0],
+                        [0, 255, 0],
+                        [0, 0, 255],
+                    ].entries()) {
+                        expect(glowAt(i)).toEqual([...rgb, 255]);
+                    }
+                    expect(at(20 + 20, 60 - 12)).toEqual(CLEAR);
+                });
+
+                it('should cast the glow of each translucent item at the strength of its alpha', () => {
+                    renderNodes(
+                        COLOURS.slice(0, 2).map((colour, i) =>
+                            box(20 + i * 70, 60, 40, 40, {
+                                fill: colour.replace('rgb', 'rgba').replace(')', ', 0.5)'),
+                                fillShadow: GLOW,
+                            })
+                        )
+                    );
+
+                    const [red, green, blue, alpha] = at(20 + 20, 60 - 4);
+                    expect([red, green, blue]).toEqual([255, 0, 0]);
+                    expect(Math.abs(alpha - 64)).toBeLessThanOrEqual(2);
+                    const second = at(20 + 70 + 20, 60 - 4);
+                    expect([second[0], second[1], second[2]]).toEqual([0, 255, 0]);
+                    expect(Math.abs(second[3] - 64)).toBeLessThanOrEqual(2);
+                });
             });
         });
 

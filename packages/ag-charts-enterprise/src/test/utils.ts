@@ -157,16 +157,23 @@ export function collectShapes(root: Group): Shape[] {
 }
 
 /** The theme-resolved `shadow` defaults of a fill series: present but disabled. */
-export const DEFAULT_DISABLED_SHADOW = { enabled: false, xOffset: 3, yOffset: 3, blur: 5, color: '#00000080' };
+export const DEFAULT_DISABLED_SHADOW = {
+    enabled: false,
+    xOffset: 3,
+    yOffset: 3,
+    blur: 5,
+    fill: '#000',
+    fillOpacity: 0.5,
+};
 
 /** The shadow the series tests turn on. */
-export const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
+export const SHADOW = { enabled: true, fill: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
 
 /** A smaller shadow than `SHADOW`, for the tests that turn on a second, distinct shadow (flow-proportion, map-shape, waterfall). */
-export const SMALL_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
+export const SMALL_SHADOW = { enabled: true, fill: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
 
 /** A red shadow with no offset or blur, so a node test sees the shadow as exactly the node's own pixels. */
-export const RED_SHADOW = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+export const RED_SHADOW = { enabled: true, fill: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
 export const shadowedShapes = (group: Group) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
 

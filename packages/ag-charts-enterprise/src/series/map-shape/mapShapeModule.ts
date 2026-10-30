@@ -40,7 +40,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             ...undocumentedThemeOptions({ topologyIdKey: 'name' }),
             fill: applyMapPalette(fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS)),
             stroke: { $ref: 'chartBackgroundColor' },
-            shadow: SHADOW_THEME_DEFAULTS,
+            ...undocumentedThemeOptions({ shadow: SHADOW_THEME_DEFAULTS }),
             colorScale: MAP_COLOR_SCALE_THEME,
             fillOpacity: 1,
             strokeWidth: 1,

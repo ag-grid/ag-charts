@@ -45,6 +45,7 @@ import {
     getSeriesRect,
     getSeriesSelectionNodes,
     hoverAction,
+    internalOptions,
     isoEpochPair,
     magnitudePair,
     newFreezableMock,
@@ -306,15 +307,15 @@ describe('RangeBarSeries', () => {
     });
 
     it(`should render a range-bar chart with a shadow`, async () => {
-        const options: AgChartOptions = {
+        const options = internalOptions<AgChartOptions>({
             ...RANGE_COLUMN_OPTIONS,
             series: [
                 {
                     ...RANGE_COLUMN_SERIES,
-                    shadow: { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 },
+                    shadow: { enabled: true, fill: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 },
                 },
             ],
-        };
+        });
 
         chart = await createEnterpriseChart(options);
         await compare();
@@ -331,7 +332,7 @@ describe('RangeBarSeries', () => {
         const nodes = getSeriesSelectionNodes<Shape>(chart, 'datumSelection');
         expect(nodes.length).toBeGreaterThan(0);
         for (const node of nodes) {
-            expect(node.fillShadow).toEqual({ ...DEFAULT_DISABLED_SHADOW, enabled: true, color: expect.any(String) });
+            expect(node.fillShadow).toEqual({ ...DEFAULT_DISABLED_SHADOW, enabled: true, fill: expect.any(String) });
         }
     });
 

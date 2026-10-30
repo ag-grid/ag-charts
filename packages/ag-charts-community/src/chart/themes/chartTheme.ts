@@ -3,6 +3,7 @@ import {
     Color,
     type ContributionHost,
     FONT_SIZE_RATIO,
+    type InternalAgThemeParams,
     ModuleRegistry,
     type ModuleScope,
     ModuleType,
@@ -294,7 +295,7 @@ export class ChartTheme {
         };
     }
 
-    protected getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
+    protected getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams & InternalAgThemeParams>> {
         return {
             focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
             annotationColor: this.getDefaultColors().fills.BLUE,
@@ -304,9 +305,7 @@ export class ChartTheme {
             annotationTextboxBackgroundColor: '#fafafa',
             annotationTextboxBorderColor: '#ddd',
             annotationDividerColor: '#181d1f',
-            shadowColor: '#00000080',
-            glowColor: 'rgba(0, 0, 0, 0.35)',
-            glowBlur: 6,
+            shadowFillOpacity: 0.5,
             captionLayoutStyle: 'block',
             captionAlignment: 'center',
         };

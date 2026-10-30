@@ -40,7 +40,7 @@ export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesTh
         ...undocumentedLabelFitOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
-    shadow: shadowOptionsDefs,
+    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,

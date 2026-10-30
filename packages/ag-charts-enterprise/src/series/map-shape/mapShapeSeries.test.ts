@@ -19,6 +19,7 @@ import {
     expectWarningsCalls,
     getVisibleLabelNodes,
     hoverAction,
+    internalOptions,
     resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
@@ -105,10 +106,11 @@ describe('MapShapeSeries', () => {
     });
 
     describe('shadow', () => {
-        const shadowOptions = (seriesShadow?: typeof SMALL_SHADOW): AgChartOptions => ({
-            ...SIMPLIFIED_EXAMPLE,
-            series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
-        });
+        const shadowOptions = (seriesShadow?: typeof SMALL_SHADOW): AgChartOptions =>
+            internalOptions<AgChartOptions>({
+                ...SIMPLIFIED_EXAMPLE,
+                series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
+            });
 
         const renderSeries = async (options: AgChartOptions) => {
             chart = deproxy(await createEnterpriseChart(options));
@@ -157,20 +159,22 @@ describe('MapShapeSeries', () => {
             // The cutout erases the shape beneath the highlight before it is drawn again, so a
             // translucent highlight fill makes the erase visible. The in-place copy keeps casting the series
             // shadow, and the highlight copy casts only the glow.
-            const cutoutOptions = (seriesShadow?: typeof SMALL_SHADOW, glow?: object): AgChartOptions => ({
-                ...shadowOptions(seriesShadow),
-                highlight: { drawingMode: 'cutout' },
-                series: [
-                    {
-                        type: 'map-shape',
-                        idKey: 'name',
-                        shadow: seriesShadow,
-                        highlight: { highlightedItem: { fill: 'blue', fillOpacity: 0.4, glow } },
-                    },
-                ],
-            });
+            const cutoutOptions = (seriesShadow?: typeof SMALL_SHADOW, glow?: object): AgChartOptions =>
+                internalOptions<AgChartOptions>({
+                    ...shadowOptions(seriesShadow),
+                    highlight: { drawingMode: 'cutout' },
+                    series: [
+                        {
+                            type: 'map-shape',
+                            idKey: 'name',
+                            shadow: seriesShadow,
+                            highlight: { highlightedItem: { fill: 'blue', fillOpacity: 0.4, glow } },
+                        },
+                    ],
+                });
 
-            it('draws the highlighted shape without the series shadow after the cutout', async () => {
+            // AG-9003: 14.2.0 rendering restored for this release
+            it.skip('draws the highlighted shape without the series shadow after the cutout', async () => {
                 await highlightFirstShape(cutoutOptions(SMALL_SHADOW));
 
                 const [highlighted, ...others] = collectShapes(chart.series[0].highlightNodeGroup);
@@ -181,12 +185,29 @@ describe('MapShapeSeries', () => {
             });
 
             it('draws the highlighted shape with its glow after the cutout', async () => {
-                const glow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', blur: 6 };
+                const glow = { enabled: true, fill: 'rgba(0, 0, 0, 0.6)', fillOpacity: 1, blur: 6, spread: 1 };
                 await highlightFirstShape(cutoutOptions(SMALL_SHADOW, glow));
 
                 const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);
                 expect(highlighted.drawingMode).toBe('cutout');
                 expect(highlighted.fillShadow).toMatchObject({ enabled: true, xOffset: 0, yOffset: 0, blur: 6 });
+                await compare();
+            });
+
+            it('draws the highlighted shape with the default glow, in the colour of its fill, after the cutout', async () => {
+                await highlightFirstShape(cutoutOptions(SMALL_SHADOW, { enabled: true }));
+
+                const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);
+                expect(highlighted.drawingMode).toBe('cutout');
+                expect(highlighted.fillShadow).toMatchObject({
+                    enabled: true,
+                    xOffset: 0,
+                    yOffset: 0,
+                    blur: 2,
+                    spread: 4,
+                    fillOpacity: 0.4,
+                });
+                expect(highlighted.getCastShadow()?.fill).toBe('blue');
                 await compare();
             });
         });

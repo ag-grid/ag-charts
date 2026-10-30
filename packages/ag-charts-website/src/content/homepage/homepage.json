@@ -4,7 +4,7 @@
         "subHeading": "The professional choice for developers building enterprise applications",
         "cta": {
             "title": "See the charts",
-            "url": "/gallery/?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta"
+            "url": "/gallery/"
         }
     },
     "sections": {
@@ -14,18 +14,18 @@
             "ctas": [
                 {
                     "title": "Explore the Docs",
-                    "url": "/r/quick-start/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta",
+                    "url": "/r/quick-start/",
                     "id": "get-started-for-free"
                 },
                 {
                     "title": "Free Trial",
-                    "url": "/react/community-vs-enterprise/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta#request-a-30-day-enterprise-bundle-trial-licence",
+                    "url": "/react/community-vs-enterprise/#request-a-30-day-enterprise-bundle-trial-licence",
                     "id": "gallery-section-free-trial-cta",
                     "followsFramework": true
                 },
                 {
                     "title": "Buy Now",
-                    "url": "/license-pricing/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta",
+                    "url": "/license-pricing/",
                     "id": "gallery-section-buy-now-cta"
                 }
             ]
@@ -35,7 +35,7 @@
             "heading": "Interactive Financial Charts for Trading and Analysis",
             "subHeading": "Build interactive financial charts featuring advanced annotations with minimal configuration - just provide your data. Use the toolbar in the example below to add annotations, change the chart type, and interact with the data in real-time.",
             "ctaTitle": "View Financial Charts Features",
-            "ctaUrl": "/react/financial-charts/?utm_source=charts-homepage&utm_medium=financial-charts-section&utm_campaign=homepage-cta",
+            "ctaUrl": "/react/financial-charts/",
             "ctaId": "financial-charts-cta"
         },
         "maps": {
@@ -43,7 +43,7 @@
             "heading": "Customisable JavaScript Map Charts for Geographical Data Visualisation",
             "subHeading": "Visualise Geographical Areas, Overlay Routes & Connections, Add Markers & Points Of Interest.",
             "ctaTitle": "View Map Charts Features",
-            "ctaUrl": "/react/maps/?utm_source=charts-homepage&utm_medium=maps-section&utm_campaign=homepage-cta",
+            "ctaUrl": "/react/maps/",
             "ctaId": "map-charts-cta",
             "cards": [
                 {
@@ -70,7 +70,7 @@
             "heading": "Regular Releases, Updates, and Enhancements",
             "subHeading": "Browse the latest updates to AG Charts JavaScript Charting Library, including new features, series types, functionality and more.",
             "ctaTitle": "See What's New",
-            "ctaUrl": "/whats-new/?utm_source=charts-homepage&utm_medium=whats-new-section&utm_campaign=homepage-cta",
+            "ctaUrl": "/whats-new/",
             "ctaId": "whats-new-cta"
         },
         "faqs": {

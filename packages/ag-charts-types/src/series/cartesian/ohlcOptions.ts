@@ -1,11 +1,10 @@
 import type { Styler } from '../../chart/callbackOptions';
-import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgMultiSeriesGlowHighlightOptions,
+    AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 import type { AgBaseCartesianSeriesAxisOptions, AxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 import type {
@@ -41,14 +40,12 @@ export interface AgOhlcSeriesStyles {
 
 export interface AgOhlcSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>, AgOhlcSeriesStyles {
-    /** Configuration for the shadow used behind the series items. */
-    shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual items, based on the given parameters.*/
     itemStyler?: Styler<AgOhlcSeriesItemStylerParams<TDatum, TContext>, AgOhlcSeriesItemOptions>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesGlowHighlightOptions<AgOhlcHighlightStyleOptions, AgOhlcHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgOhlcHighlightStyleOptions, AgOhlcHighlightStyleOptions>;
 }
 export interface AgOhlcHighlightStyleOptions extends AgOhlcSeriesItemOptions {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */

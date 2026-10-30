@@ -26,6 +26,7 @@ import {
     strokeOptionsDef,
     textAlign,
     tooltipOptionsDefs,
+    undocumentedDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -36,7 +37,7 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
     verticalAlign: deprecated(union('top', 'middle', 'bottom'), 'Use `label.verticalAlign` instead.'),
     itemPadding: positiveNumber,
     cornerRadius: positiveNumber,
-    shadow: shadowOptionsDefs,
+    ...undocumentedDefs({ shadow: shadowOptionsDefs }),
     itemStyler: callbackDefs<AgHeatmapSeriesStyle>(
         {
             ...fillOptionsDef,
