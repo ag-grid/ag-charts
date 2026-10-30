@@ -522,13 +522,6 @@
     min-height: clamp(280px, 30vh, 380px);
     min-width: 0;
 }
-/* For a chart whose row is sized by the card beside it — a grid that hugs its rows, say. The
-   minimum is a legibility floor, low enough that the neighbour is what sets the height. */
-.pc-chart-box--match {
-    flex: 1 1 auto;
-    min-height: 200px;
-    min-width: 0;
-}
 /* The sunburst is radial, so its legible size is bounded by the shorter side of its
    box — a wide, shallow box wastes most of the width. */
 .pc-chart-box-md {

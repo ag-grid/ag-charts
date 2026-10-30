@@ -182,15 +182,15 @@ export class DeliveryMap {
         const initialZoom = this.initialZoom();
         const dimmed = (id: string) => selectedShipmentIds.length > 0 && !selectedShipmentIds.includes(id);
 
-        // One route series per status, so a lane's line and marker agree on colour without a per-datum styler.
-        const routeSeries = STATUS_DRAW_ORDER.map<AgMapLineSeriesOptions<MapPoint>>((status) => ({
+        // Every lane is drawn alike, so one series carries them all; the markers carry the status.
+        const routes: AgMapLineSeriesOptions<MapPoint> = {
             type: 'map-line',
             topology: ROUTE_TOPOLOGY,
             topologyIdKey: 'id',
             idKey: 'id',
-            data: pointsByStatus.get(status),
+            data: STATUS_DRAW_ORDER.flatMap((status) => pointsByStatus.get(status)!),
             stroke: NEUTRAL,
-            // Light weight: at a heavier one, overlapping lanes blend into a wash that reads as neither status colour.
+            // Light weight: at a heavier one, lanes converging on a plant merge into a single dark band.
             strokeWidth: 1,
             strokeOpacity: 0.33,
             // The status key is rendered as HTML beside the card, so nothing needs a legend.
@@ -200,7 +200,7 @@ export class DeliveryMap {
             tooltip: { enabled: false },
             highlight: { enabled: false },
             selection: { enabled: false },
-        }));
+        };
 
         // One series per status, so status never rests on colour alone.
         const markerSeries = STATUS_DRAW_ORDER.map<AgMapMarkerSeriesOptions<MapPoint>>((status) => ({
@@ -291,7 +291,7 @@ export class DeliveryMap {
                     strokeWidth: 0.5,
                     selection: { enabled: false },
                 },
-                ...routeSeries,
+                routes,
                 plants,
                 ...markerSeries,
             ],
