@@ -9,7 +9,7 @@ import { Fragment } from 'react';
 
 import { InheritedValueNote } from './InheritedValueNote';
 import { useSetEditedGroup } from './editedGroup';
-import { usePalette } from './paletteModel';
+import { usePalette, usePreviewStrokes, useStrokeDirection } from './paletteModel';
 import { type ChartsParamConfig, type ChartsParamRow, GENERAL_GROUP_ID, PARAM_GROUPS } from './params';
 
 const PALETTE_SECTION = 'Palette';
@@ -44,6 +44,8 @@ const paramRow = (row: ChartsParamRow) =>
 export const EditorPanel = () => {
     const sectionProps = useCollapsibleSections(DEFAULT_OPEN_SECTIONS);
     const [palette, setPalette] = usePalette();
+    const [previewStrokes, setPreviewStrokes] = usePreviewStrokes();
+    const strokeDirection = useStrokeDirection();
     const setEditedGroup = useSetEditedGroup();
 
     // See `editedGroup.ts`. Capture handlers, so the panel clears the group and
@@ -71,7 +73,13 @@ export const EditorPanel = () => {
                     </CollapsibleSection>
                     {group.id === GENERAL_GROUP_ID && (
                         <CollapsibleSection {...sectionProps(PALETTE_SECTION)}>
-                            <PaletteEditor value={palette} onChange={setPalette} />
+                            <PaletteEditor
+                                value={palette}
+                                onChange={setPalette}
+                                strokeDirection={strokeDirection}
+                                previewStrokes={previewStrokes}
+                                onPreviewStrokesChange={setPreviewStrokes}
+                            />
                         </CollapsibleSection>
                     )}
                 </Fragment>

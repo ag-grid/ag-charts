@@ -1,7 +1,14 @@
-import { type Palette, withPaletteDefaults } from '@ag-website-shared/components/theme-builder/palette';
+import {
+    type Palette,
+    type StrokeDirection,
+    withPaletteDefaults,
+} from '@ag-website-shared/components/theme-builder/palette';
 import { atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
+import { RGBAColor } from '@ag-website-shared/theming/RGBAColor';
 import { addChangedModelItem } from '@ag-website-shared/theming/changed-model-items';
+import { useRenderedTheme } from '@ag-website-shared/theming/rendered-theme';
 import type { Store } from '@ag-website-shared/theming/store';
+import { paramToVariableName } from '@ag-website-shared/theming/utils';
 import { useAtom, useAtomValue, useStore } from 'jotai';
 import { useCallback } from 'react';
 
@@ -41,3 +48,23 @@ export const useStoredPalette = () => useAtomValue(paletteAtom);
 export const setStoredPalette = (store: Store, palette: Palette | undefined) => store.set(paletteAtom, palette);
 
 export const getStoredPalette = (store: Store) => store.get(paletteAtom);
+
+/** Whether the previews outline their series. Not part of the palette: a theme cannot switch strokes on. */
+const previewStrokesAtom = atomWithJSONStorage<boolean>('charts-preview-strokes', false);
+
+export const usePreviewStrokes = () => useAtom(previewStrokesAtom);
+
+const resolveParamColor = (param: string) => RGBAColor.reinterpretCss(`var(${paramToVariableName(param)})`);
+
+/**
+ * Linked strokes lighten their fill when the text is lighter than the background,
+ * as the stock dark themes' strokes do. Resolved through the rendered theme's CSS,
+ * since either colour may be a reference or a mix.
+ */
+export const useStrokeDirection = (): StrokeDirection => {
+    // Subscribed for the re-render on a param edit; the colours are read from the CSS it installs.
+    useRenderedTheme();
+    const foreground = resolveParamColor('foregroundColor');
+    const background = resolveParamColor('backgroundColor');
+    return foreground && background && foreground.grayscale() > background.grayscale() ? 'lighten' : 'darken';
+};

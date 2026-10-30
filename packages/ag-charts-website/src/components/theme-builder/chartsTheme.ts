@@ -148,6 +148,7 @@ export const getStackParams = (themeName: AgChartThemeName): Record<string, unkn
 const toAccent = ({ fill, stroke }: AgPaletteColors): PaletteAccent => ({
     fill: typeof fill === 'string' ? fill : undefined,
     stroke,
+    strokeDerived: false,
 });
 
 /**
@@ -164,7 +165,8 @@ export const getPalette = (themeName: AgChartThemeName): Palette => {
             console.warn(`[charts theme builder] Theme "${themeName}" palette fill ${index} is not a plain colour`);
             return;
         }
-        series.push({ fill, stroke: strokes[index] ?? fill });
+        // Unlinked, so the stock theme's hand-tuned strokes survive as shipped.
+        series.push({ fill, stroke: strokes[index] ?? fill, strokeDerived: false });
     });
     return fromSeriesColors(
         { ...EMPTY_PALETTE, up: toAccent(up), down: toAccent(down), neutral: toAccent(neutral) },
