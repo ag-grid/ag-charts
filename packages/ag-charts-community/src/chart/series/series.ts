@@ -1537,6 +1537,14 @@ export abstract class Series<
         return this.moduleContext;
     }
 
+    /**
+     * Whether the series draws the values of `key` normalised (`normalizedTo`). Tooltips and labels show the raw
+     * values, which are then not in the axis's units, so they must not be formatted like the axis labels.
+     */
+    protected isNormalizedKey(_key: string): boolean {
+        return false;
+    }
+
     protected getAxisValueText(
         axis: ChartAxis,
         source: 'tooltip',
@@ -1559,7 +1567,8 @@ export abstract class Series<
             undefined,
             undefined,
             undefined,
-            allowNull
+            allowNull,
+            !this.isNormalizedKey(key)
         );
     }
 
@@ -1611,7 +1620,8 @@ export abstract class Series<
                 domain,
                 label,
                 params,
-                allowNullValue
+                allowNullValue,
+                !this.isNormalizedKey(key)
             );
         }
 

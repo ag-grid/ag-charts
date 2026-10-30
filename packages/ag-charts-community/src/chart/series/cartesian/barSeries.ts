@@ -396,6 +396,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.phantomHighlightGroup.opacity = 0.2;
     }
 
+    protected override isNormalizedKey(key: string) {
+        return isFiniteNumber(this.options.normalizedTo) && key === this.options.yKey;
+    }
+
     override async processData(dataController: DataController) {
         if (!this.data) return;
 

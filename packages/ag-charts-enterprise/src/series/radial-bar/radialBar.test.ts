@@ -1129,4 +1129,30 @@ describe('RadialBarSeries', () => {
             }
         );
     });
+
+    // Series labels show raw values, which on a normalised angle axis are not in the axis's units.
+    it('AG-16823 normalised series labels do not take the angle axis label format', async () => {
+        const options: AgPolarChartOptions = {
+            data: [
+                { quarter: 'Q1', sales: 24801, returns: 4052 },
+                { quarter: 'Q2', sales: 347000, returns: 42000 },
+            ],
+            series: ['sales', 'returns'].map((angleKey) => ({
+                type: 'radial-bar' as const,
+                angleKey,
+                radiusKey: 'quarter',
+                stacked: true,
+                normalizedTo: 100,
+                label: { enabled: true },
+            })),
+            axes: {
+                angle: { type: 'angle-number', label: { format: '#{.0f}%' } },
+                radius: { type: 'radius-category' },
+            },
+        };
+        chart = await createEnterpriseChart(options);
+
+        const { nodeData } = getSeriesContextNodeData<RadialBarSeriesNodeDatum>(chart);
+        expect(nodeData.map((datum) => datum.label?.text)).toEqual(['24801', '347000']);
+    });
 });

@@ -228,6 +228,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         return this.options.normalizedTo != null;
     }
 
+    protected override isNormalizedKey(key: string) {
+        return this.isNormalized() && key === this.options.yKey;
+    }
+
     override renderToOffscreenCanvas(): boolean {
         const hasMarkers = (this.contextNodeData?.nodeData?.length ?? 0) > 0;
         return (hasMarkers && this.getDrawingMode(false) === 'cutout') || super.renderToOffscreenCanvas();

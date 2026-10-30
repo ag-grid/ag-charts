@@ -1168,7 +1168,9 @@ export abstract class Axis<
         key: string,
         domain: any[],
         label: AxisFormattableLabel<Params>,
-        labelParams: Params
+        labelParams: Params,
+        allowNull?: boolean,
+        axisLabelFallback?: boolean
     ): string;
     formatDatum(
         contextProvider: { context?: unknown } | undefined,
@@ -1181,7 +1183,8 @@ export abstract class Axis<
         domain?: any[],
         label?: AxisFormattableLabel<any>,
         params?: any,
-        allowNull?: boolean
+        allowNull?: boolean,
+        axisLabelFallback = true
     ): NormalisedTextOrSegments {
         // Handle null/undefined values with empty string unless allowNull is true (for formatter access)
         if (input == null && !allowNull) return '';
@@ -1248,10 +1251,12 @@ export abstract class Axis<
             );
         };
 
+        // A value outside the axis's units, such as a raw value on a normalised axis, must not take the
+        // axis label's formatting: a '%' tick format would otherwise turn a raw 24801 into '24801%'.
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams, { allowNull }) ??
-            formatWithAxisLabel() ??
+            (axisLabelFallback ? formatWithAxisLabel() : undefined) ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);

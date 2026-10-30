@@ -135,6 +135,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         }
     }
 
+    protected override isNormalizedKey(key: string) {
+        return isDefined(this.options.normalizedTo) && key === this.options.angleKey;
+    }
+
     override async processData(dataController: _ModuleSupport.DataController) {
         const { angleKey, radiusKey, normalizedTo } = this.options;
         const animationEnabled = !this.ctx.animationManager.isSkipped();

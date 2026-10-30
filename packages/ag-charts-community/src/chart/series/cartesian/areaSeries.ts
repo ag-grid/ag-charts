@@ -340,6 +340,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         return this.options.normalizedTo != null;
     }
 
+    protected override isNormalizedKey(key: string) {
+        return this.isNormalized() && key === this.options.yKey;
+    }
+
     private _isStacked: boolean | undefined = undefined;
     override setSeriesIndex(index: number) {
         const isStacked = this.isStacked();

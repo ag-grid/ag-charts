@@ -2,12 +2,15 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgPolarChartOptions } from 'ag-charts-types';
 
+import { getSeriesContextNodeData } from '../test/seriesAccessors';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     createChart,
     deproxy,
     expectWarningsCalls,
+    getAxisTickLayoutLabelTexts,
+    getTooltipElement,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -651,5 +654,69 @@ describe('Format Manager', () => {
                 });
             });
         });
+    });
+
+    // Tooltips and series labels show raw values, which on a normalised axis are not in the axis's units, so the
+    // axis label format must not apply to them.
+    describe('AG-16823 normalised series values and the axis label format', () => {
+        type StackedSeriesType = 'bar' | 'line' | 'area';
+
+        function stackedOptions(type: StackedSeriesType, normalizedTo: number | undefined): AgCartesianChartOptions {
+            return {
+                data: [
+                    { product: 'iPhone', sales: 347000, returns: 42000 },
+                    { product: 'Mac', sales: 24801, returns: 4052 },
+                ],
+                series: ['sales', 'returns'].map(
+                    (yKey) =>
+                        ({
+                            type,
+                            xKey: 'product',
+                            yKey,
+                            stacked: true,
+                            normalizedTo,
+                            label: { enabled: true },
+                        }) as NonNullable<AgCartesianChartOptions['series']>[number]
+                ),
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', label: { format: '#{.0f}%' } },
+                },
+                tooltip: { mode: 'shared' },
+            };
+        }
+
+        async function hoverFirstCategory() {
+            await hoverAction(200, 300)(chart);
+            await waitForChartStability(chart);
+            return getTooltipElement(deproxy(chart))?.textContent;
+        }
+
+        function seriesLabelTexts(type: StackedSeriesType) {
+            const { labelData } = getSeriesContextNodeData<unknown, { label?: { text: string }; labelText?: string }>(
+                chart
+            );
+            return labelData.map((datum) => (type === 'bar' ? datum.label?.text : datum.labelText));
+        }
+
+        it.each<StackedSeriesType>(['bar', 'line', 'area'])(
+            '%s - tooltips and series labels show raw values, the axis keeps its format',
+            async (type) => {
+                chart = await createChart(stackedOptions(type, 100));
+
+                expect(getAxisTickLayoutLabelTexts(chart, 'left')).toContain('100%');
+                expect(seriesLabelTexts(type)).toEqual(['347000', '24801']);
+                expect(await hoverFirstCategory()).toBe('iPhone sales 347000 returns 42000');
+            }
+        );
+
+        it.each<StackedSeriesType>(['bar', 'line', 'area'])(
+            '%s - without normalizedTo, tooltips still fall back to the axis label format',
+            async (type) => {
+                chart = await createChart(stackedOptions(type, undefined));
+
+                expect(await hoverFirstCategory()).toBe('iPhone sales 347000% returns 42000%');
+            }
+        );
     });
 });

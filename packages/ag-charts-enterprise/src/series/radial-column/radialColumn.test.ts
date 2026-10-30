@@ -1495,4 +1495,33 @@ describe('RadialColumnSeries', () => {
             });
         });
     });
+
+    // Series labels show raw values, which on a normalised radius axis are not in the axis's units.
+    it.each(['radial-column', 'nightingale'] as const)(
+        'AG-16823 %s - normalised series labels do not take the radius axis label format',
+        async (type) => {
+            const options: AgPolarChartOptions = {
+                data: [
+                    { quarter: 'Q1', sales: 24801, returns: 4052 },
+                    { quarter: 'Q2', sales: 347000, returns: 42000 },
+                ],
+                series: ['sales', 'returns'].map((radiusKey) => ({
+                    type,
+                    angleKey: 'quarter',
+                    radiusKey,
+                    stacked: true,
+                    normalizedTo: 100,
+                    label: { enabled: true },
+                })),
+                axes: {
+                    angle: { type: 'angle-category' },
+                    radius: { type: 'radius-number', label: { format: '#{.0f}%' } },
+                },
+            };
+            chart = await createEnterpriseChart(options);
+
+            const { nodeData } = getSeriesContextNodeData<RadialColumnNodeDatum>(chart);
+            expect(nodeData.map((datum) => datum.label?.text)).toEqual(['24801', '347000']);
+        }
+    );
 });

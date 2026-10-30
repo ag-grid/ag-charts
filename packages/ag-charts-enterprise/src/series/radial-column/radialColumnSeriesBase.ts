@@ -151,6 +151,10 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract getStackId(): string;
 
+    protected override isNormalizedKey(key: string) {
+        return isDefined(this.options.normalizedTo) && key === this.options.radiusKey;
+    }
+
     override async processData(dataController: _ModuleSupport.DataController) {
         const { angleKey, radiusKey } = this.options;
         const normalizedTo: number | undefined = this.options.normalizedTo;

@@ -87,7 +87,8 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
         domain?: undefined,
         label?: undefined,
         params?: undefined,
-        allowNull?: boolean
+        allowNull?: boolean,
+        axisLabelFallback?: boolean
     ): string;
     formatDatum<Params extends object>(
         contextProvider: { context?: unknown } | undefined,
@@ -113,7 +114,8 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
         domain: any[],
         label: AxisFormattableLabel<Params>,
         params: Params,
-        allowNull?: boolean
+        allowNull?: boolean,
+        axisLabelFallback?: boolean
     ): string;
     getBBox(): BBox;
     getLayoutState(): AxisLayout;
