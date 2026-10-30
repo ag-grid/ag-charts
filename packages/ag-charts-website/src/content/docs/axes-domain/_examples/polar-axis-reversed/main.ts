@@ -49,7 +49,7 @@ const options: AgPolarChartOptions = {
 const chart = AgCharts.create(options);
 
 function toggleAxisReverse() {
-    const radiusNumberAxisOptions = options.axes!.y!;
+    const radiusNumberAxisOptions = options.axes!.radius!;
     radiusNumberAxisOptions.reverse = !radiusNumberAxisOptions.reverse;
     chart.update(options);
 }
