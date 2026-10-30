@@ -110,6 +110,10 @@ export type DatumDefault = any;
 
 export type ContextDefault = unknown;
 
+export type SeriesFormatterSource = 'tooltip' | 'series-label';
+export type ChartFormatterSource = 'axis-label' | 'gradient-legend' | 'legend-label' | 'crosshair' | 'annotation-label';
+export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
+
 // Depth counter: index N yields N-1; index 0 yields `never`, terminating recursion.
 type DatumKeyDepth = [never, 0, 1, 2, 3];
 

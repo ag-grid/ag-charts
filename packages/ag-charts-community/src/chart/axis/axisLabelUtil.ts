@@ -172,7 +172,7 @@ export function formatAxisLabelValue(
 ): NormalisedTextOrSegments | undefined {
     const formatter = label?.formatter;
     const format = label?.format;
-    const { type, value, domain, boundSeries } = params;
+    const { type, value, domain, boundSeries, source } = params;
     const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
     const unit = params.type === 'date' ? params.unit : undefined;
 
@@ -191,6 +191,7 @@ export function formatAxisLabelValue(
             step,
             boundSeries,
             visibleDomain,
+            source,
         });
     }
 
