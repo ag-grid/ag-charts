@@ -1,11 +1,18 @@
 <script lang="ts">
-import type { ValueFormatterParams } from 'ag-grid-community';
+import type { OverlayComponentUserParams, ValueFormatterParams } from 'ag-grid-community';
 
 import { fmtDate } from '../format';
 import type { PurchaseOrder } from '../types';
 
 const dateFormatter = ({ value }: ValueFormatterParams<PurchaseOrder, number | null>) =>
     value == null ? '—' : fmtDate(value);
+
+// No selection means no rows at all, so the grid shows `noRows`; `noMatchingRows`
+// needs rows that the column filters then exclude.
+const overlayComponentParams: OverlayComponentUserParams = {
+    noRows: { overlayText: 'Select a shipment on the map or arrival schedule above to display its order lines.' },
+    noMatchingRows: { overlayText: 'No order lines match the current filters. Try adjusting your filters.' },
+};
 </script>
 
 <script setup lang="ts">
@@ -20,6 +27,7 @@ import PurchaseOrderActionCell from './PurchaseOrderActionCell.vue';
 import StatusCell from './StatusCell.vue';
 
 const props = defineProps<{
+    /** The lines on the selected shipments; empty until one is selected, which shows the `noRows` prompt. */
     orders: PurchaseOrder[];
     /** What she has already recorded against a line, by PO id. */
     poActions: Record<string, PoActionKind>;
@@ -90,6 +98,7 @@ const columnDefs = computed<ColDef<PurchaseOrder>[]>(() => [
         headerName: 'Status',
         minWidth: 130,
         filter: 'agSetColumnFilter',
+        cellClass: 'pc-cell-centred',
         cellRenderer: StatusCell,
     },
     {
@@ -110,12 +119,13 @@ const columnDefs = computed<ColDef<PurchaseOrder>[]>(() => [
 </script>
 
 <template>
-    <div class="pc-grid-host">
+    <div class="pc-grid-host" data-keeps-selection="true">
         <AgGridVue
             :theme="gridTheme"
             :row-data="orders"
             :column-defs="columnDefs"
             :default-col-def="defaultColDef"
+            :overlay-component-params="overlayComponentParams"
             :row-height="36"
             :header-height="38"
             dom-layout="autoHeight"

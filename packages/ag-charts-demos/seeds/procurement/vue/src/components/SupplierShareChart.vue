@@ -1,68 +1,157 @@
-<script setup lang="ts">
-import { computed } from 'vue';
-
+<script lang="ts">
 import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-vue3';
 
-import { NEUTRAL, SEGMENT_SEPARATOR, THEME } from '../chartTheme';
+import { NEUTRAL, SEGMENT_SEPARATOR, STACKED_BAR_GAP, THEME } from '../chartTheme';
 import { fmtCurrency, fmtPct } from '../format';
 import type { SupplierShareRow } from '../types';
 
-/**
- * Supplier share of each subcategory, normalised to 100%.
- *
- * The single-sourcing view: a subcategory drawn as one unbroken band has no second source, and
- * that is a supply risk regardless of how well the incumbent is performing. The sunburst holds
- * the same data, but as angles inside separate parents — which makes comparing concentration
- * *across* subcategories much harder than comparing bands on a shared 0–100% axis.
- *
- * Reads the whole period rather than the current selection, and emits none of its own: the two
- * spend charts answer the same question at different grains, and dimming one from the other's
- * selection hides exactly the comparison the pair exists to support.
- */
-const props = defineProps<{
-    rows: SupplierShareRow[];
-    supplierNames: Map<string, string>;
-    supplierColors: Record<string, string>;
-}>();
+export type SupplierShareView = 'heatmap' | 'bar';
 
-const options = computed<AgCartesianChartOptions<SupplierShareRow>>(() => {
-    const { supplierNames, supplierColors } = props;
-    const series = [...supplierNames.entries()].map<AgBarSeriesOptions<SupplierShareRow>>(([supplierId, name]) => {
-        const color = supplierColors[supplierId] ?? NEUTRAL;
-        return {
-            type: 'bar',
-            direction: 'horizontal',
-            xKey: 'subcategory',
-            yKey: name,
-            yName: name,
-            stacked: true,
-            normalizedTo: 100,
-            fill: color,
-            ...SEGMENT_SEPARATOR,
-            tooltip: {
-                renderer: ({ datum }) => {
-                    const spend = Number(datum[name] ?? 0);
-                    const total = [...supplierNames.values()].reduce((sum, key) => sum + Number(datum[key] ?? 0), 0);
-                    return {
-                        title: `${name} · ${datum.subcategory}`,
-                        data: [
-                            { label: 'Spend', value: fmtCurrency(spend) },
-                            { label: 'Share of subcategory', value: total > 0 ? fmtPct(spend / total) : '—' },
-                        ],
-                    };
-                },
-            },
-        };
+/** One cell of the matrix: a supplier's spend within a subcategory, and its share of that subcategory. */
+interface ShareCell {
+    subcategory: string;
+    supplier: string;
+    spend: number;
+    /** Unset where the supplier took no spend, so the cell takes the missing-data fill rather than the ramp's floor. */
+    share?: number;
+}
+
+/**
+ * Sequential ramp for share of subcategory spend, light to dark.
+ *
+ * Built on the slate family of `SUBCATEGORY_RAMP` rather than a categorical slot:
+ * a categorical colour means supplier identity everywhere in the workspace, and here colour encodes
+ * a quantity. The floor is kept clearly darker than `EMPTY_FILL`, so a 2% share never reads as none.
+ */
+const SHARE_RAMP = ['#c7d5e1', '#162b3c'];
+
+/** Cells where the supplier took no spend — the panel's alternate tone, so they read as gaps in the grid. */
+const EMPTY_FILL = 'var(--pc-panel-2)';
+
+/** Share above which a cell is dark enough to need light label ink. */
+const DARK_CELL_SHARE = 0.4;
+
+/**
+ * Supplier share of each subcategory, as a supplier × subcategory matrix.
+ *
+ * The single-sourcing view: a subcategory column with one dark cell and the rest empty has no second
+ * source, and that is a supply risk regardless of how well the incumbent is performing. Reading
+ * across a row shows the other side of the same risk — a supplier carrying several subcategories at
+ * once. The colour scale is fixed at 0–100%, so the darkest cell always means sole supplier rather
+ * than merely the largest share in the period.
+ */
+function heatmapOptions(
+    rows: SupplierShareRow[],
+    supplierNames: Map<string, string>
+): AgCartesianChartOptions<ShareCell> {
+    const names = [...supplierNames.values()];
+    const cells = rows.flatMap<ShareCell>((row) => {
+        const total = names.reduce((sum, name) => sum + Number(row[name] ?? 0), 0);
+        return names.map((supplier) => {
+            const spend = Number(row[supplier] ?? 0);
+            return {
+                subcategory: row.subcategory,
+                supplier,
+                spend,
+                share: spend > 0 && total > 0 ? spend / total : undefined,
+            };
+        });
     });
 
     return {
         theme: THEME,
-        data: props.rows,
-        series,
-        // Horizontal bars: the subcategory axis sits on the left, share on the bottom.
+        data: cells,
+        series: [
+            {
+                type: 'heatmap',
+                yKey: 'subcategory',
+                yName: 'Subcategory',
+                xKey: 'supplier',
+                xName: 'Supplier',
+                colorKey: 'share',
+                colorName: 'Share of subcategory',
+                colorScale: {
+                    fills: [
+                        { color: SHARE_RAMP[0], stop: 0.2 },
+                        { color: SHARE_RAMP[1], stop: 0.7 },
+                    ],
+                    domain: [0, 1],
+                    missingDataFill: EMPTY_FILL,
+                },
+                ...SEGMENT_SEPARATOR,
+                cornerRadius: 3,
+                label: {
+                    enabled: true,
+                    formatter: ({ datum }) => (datum.share == null ? '' : fmtPct(datum.share)),
+                    itemStyler: ({ datum }) => ({
+                        color: (datum.share ?? 0) >= DARK_CELL_SHARE ? '#ffffff' : 'var(--pc-text)',
+                    }),
+                },
+                tooltip: {
+                    renderer: ({ datum }) => ({
+                        title: `${datum.supplier} · ${datum.subcategory}`,
+                        data: [
+                            { label: 'Spend', value: fmtCurrency(datum.spend) },
+                            {
+                                label: 'Share of subcategory',
+                                value: datum.share == null ? '—' : fmtPct(datum.share),
+                            },
+                        ],
+                    }),
+                },
+            },
+        ],
         axes: {
+            x: { type: 'category', position: 'bottom' },
             y: { type: 'category', position: 'left' },
+        },
+        gradientLegend: { enabled: false },
+        padding: { top: 8, right: 12, bottom: 4, left: 4 },
+    };
+}
+
+/**
+ * Supplier share of each subcategory as horizontal bars normalised to 100%: a subcategory drawn as
+ * one unbroken band has no second source. Keeps supplier identity colours, which the heatmap gives up.
+ */
+function stackedBarOptions(
+    rows: SupplierShareRow[],
+    supplierNames: Map<string, string>,
+    supplierColors: Record<string, string>
+): AgCartesianChartOptions<SupplierShareRow> {
+    const series = [...supplierNames.entries()].map<AgBarSeriesOptions<SupplierShareRow>>(([supplierId, name]) => ({
+        type: 'bar',
+        direction: 'horizontal',
+        xKey: 'subcategory',
+        yKey: name,
+        yName: name,
+        stacked: true,
+        normalizedTo: 100,
+        fill: supplierColors[supplierId] ?? NEUTRAL,
+        cornerRadius: 3,
+        ...SEGMENT_SEPARATOR,
+        tooltip: {
+            renderer: ({ datum }) => {
+                const spend = Number(datum[name] ?? 0);
+                const total = [...supplierNames.values()].reduce((sum, key) => sum + Number(datum[key] ?? 0), 0);
+                return {
+                    heading: '',
+                    title: `${name} · ${datum.subcategory}`,
+                    data: [
+                        { label: 'Spend', value: fmtCurrency(spend) },
+                        { label: 'Share of subcategory', value: total > 0 ? fmtPct(spend / total) : '—' },
+                    ],
+                };
+            },
+        },
+    }));
+
+    return {
+        theme: THEME,
+        data: rows,
+        series,
+        axes: {
+            y: { type: 'category', position: 'left', paddingInner: STACKED_BAR_GAP },
             x: {
                 type: 'number',
                 position: 'bottom',
@@ -73,6 +162,33 @@ const options = computed<AgCartesianChartOptions<SupplierShareRow>>(() => {
         legend: { enabled: true, position: 'bottom' },
         padding: { top: 8, right: 12, bottom: 4, left: 4 },
     };
+}
+</script>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+
+import { AgCharts } from 'ag-charts-vue3';
+
+/**
+ * Supplier share of each subcategory, as a heatmap or a normalised stacked bar.
+ *
+ * Reads the whole period rather than the current selection, and emits none of its own: the two
+ * spend charts answer the same question at different grains, and dimming one from the other's
+ * selection hides exactly the comparison the pair exists to support.
+ */
+const props = defineProps<{
+    rows: SupplierShareRow[];
+    supplierNames: Map<string, string>;
+    supplierColors: Record<string, string>;
+    view: SupplierShareView;
+}>();
+
+const options = computed<AgCartesianChartOptions>(() => {
+    const { rows, supplierNames, supplierColors, view } = props;
+    return view === 'heatmap'
+        ? heatmapOptions(rows, supplierNames)
+        : stackedBarOptions(rows, supplierNames, supplierColors);
 });
 </script>
 

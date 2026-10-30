@@ -1,30 +1,39 @@
 import { supplierColors as buildSupplierColors } from './chartTheme';
 import { type AttentionAlert, createAttentionAlert } from './components/AttentionAlert';
+import { demoNotice } from './components/DemoNotice';
+import { helpCard } from './components/HelpCard';
 import { buildKpis, buildSpendKpis } from './components/KpiStrip';
 import { type OrdersView, createOrdersView } from './components/OrdersView';
+import { sidebarActions } from './components/SidebarActions';
 import { type SpendView, createSpendView } from './components/SpendView';
 import { type SuppliersView, createSuppliersView } from './components/SuppliersView';
-import { DEMO_NOW, SUBCATEGORIES } from './data';
+import { SUBCATEGORIES } from './data';
 import { type View, h, svg } from './dom';
 import { fmtDate, fmtInt } from './format';
 import { memo } from './memo';
-import type { AttentionAction, AttentionItem, DateRange, PoActionKind } from './types';
+import type { AttentionAction, AttentionItem, DateRange, PoActionKind, PurchaseOrder } from './types';
 import { type Select, createSelect, createTabs } from './ui';
 import {
+    ALL_FILTER,
+    DEFAULT_ORDERS_FILTER,
     DEFAULT_PERIOD,
     DEFAULT_SPEND_PERIOD,
     MANAGER,
-    MY_OPEN_ORDERS,
-    MY_ORDERS,
     MY_SUPPLIERS,
     MY_TRACKED_SHIPMENTS,
+    type OrdersFilter,
+    type OrdersScope,
     PERIOD_OPTIONS,
     type PeriodMonths,
     SPEND_PERIOD_OPTIONS,
     type SpendPeriod,
+    applySelectionChange,
     myAttentionItems,
     myBurnUp,
+    myMaterialQualityCost,
+    myOrdersFilterOptions,
     myOrdersInRange,
+    myOrdersScope,
     myPeriod,
     myQualityCost,
     myScorecard,
@@ -36,7 +45,7 @@ import {
     mySummary,
     mySupplierShare,
     mySupplierTrend,
-    ordersOnShipment,
+    ordersOnShipments,
     periodLabel,
     shipmentCarryingOrder,
     spendKpiLabel,
@@ -65,12 +74,6 @@ const INITIALS = MANAGER.name
     .join('');
 
 /**
- * When the dataset is current to. Fixed, because the data is: a moving wall-clock stamp would
- * claim a freshness the workspace does not have.
- */
-const DATA_AS_OF = fmtDate(DEMO_NOW);
-
-/**
  * The tabs follow her own working cadences, which the spec spells out: she checks the workspace
  * daily, reviews scorecard trends weekly, and does spend and contract work quarterly. Grouping by
  * cadence rather than by chart type is what keeps each tab answerable in one screen.
@@ -88,7 +91,8 @@ const TAB_LABELS = new Map<string, string>(TABS.map((entry) => [entry.value, ent
 interface TabScene {
     tab: string;
     controls?: HTMLDivElement;
-    select?: Select;
+    range?: HTMLSpanElement;
+    selects: Select[];
     alert?: AttentionAlert;
     view: OrdersView | SuppliersView | SpendView;
 }
@@ -104,7 +108,7 @@ export function createWorkspaceApp(): View {
      * carried across would rescope a grid on a tab the reader is not looking at — and the two
      * scopes rarely intersect, so it would as often empty a view as narrow it.
      */
-    let selectedShipmentId: string | undefined;
+    let selectedShipmentIds: string[] = [];
     let selectedSupplierId: string | undefined;
     /** Items she has acted on, and what she chose — resolved items leave the list. */
     let resolved: Record<string, string> = {};
@@ -113,8 +117,27 @@ export function createWorkspaceApp(): View {
     let months: PeriodMonths = DEFAULT_PERIOD;
     /** The calendar window the spend tab is read over, and budgeted against. */
     let spendPeriod: SpendPeriod = DEFAULT_SPEND_PERIOD;
+    /** The supplier and material subcategory the orders tab is narrowed to. */
+    let ordersFilter: OrdersFilter = DEFAULT_ORDERS_FILTER;
 
     // The React `useMemo`s: each recomputes only when its inputs change identity.
+    const ordersScope = memo((ordersFilter: OrdersFilter) => myOrdersScope(ordersFilter));
+
+    /** Each filter's choices, led by the option that narrows nothing. */
+    const ordersFilterOptions = memo((ordersFilter: OrdersFilter) => {
+        const { supplierIds, subcategories } = myOrdersFilterOptions(ordersFilter);
+        return {
+            suppliers: [
+                { value: ALL_FILTER, label: 'All suppliers' },
+                ...supplierIds.map((supplierId) => ({ value: supplierId, label: SUPPLIER_NAMES.get(supplierId)! })),
+            ],
+            subcategories: [
+                { value: ALL_FILTER, label: 'All subcategories' },
+                ...subcategories.map((subcategory) => ({ value: subcategory, label: subcategory })),
+            ],
+        };
+    });
+
     const supplierRange = memo((months: PeriodMonths) => myPeriod(months));
     const supplierOrders = memo(myOrdersInRange);
     const spendRange = memo((spendPeriod: SpendPeriod) => mySpendPeriod(spendPeriod));
@@ -125,12 +148,13 @@ export function createWorkspaceApp(): View {
     const tree = memo(mySpendTree);
     // The roster is never narrowed by the selected supplier — that would leave a single card,
     // defeating the comparison it exists for. Selection dims the other cards instead.
-    const scorecardRows = memo((orders: ReturnType<typeof myOrdersInRange>, months: PeriodMonths) =>
+    const scorecardRows = memo((orders: PurchaseOrder[], months: PeriodMonths) =>
         myScorecard(orders, MY_TRACKED_SHIPMENTS, months)
     );
     const slipDistributions = memo(mySlipDistributions);
     const supplierTrend = memo(mySupplierTrend);
     const qualityCost = memo(myQualityCost);
+    const materialQualityCost = memo(myMaterialQualityCost);
     const shareRows = memo(mySupplierShare);
     // Fixed to the current quarter, matching the allocation it is paced against.
     const burnUp = memo(myBurnUp);
@@ -138,14 +162,21 @@ export function createWorkspaceApp(): View {
     // so neither needs to recompute when it changes.
     const spendTrend = memo(mySpendTrend);
     /**
-     * A selected shipment scopes the grid over her whole order book rather than her open lines: a
-     * shipment is a live entity, and its lines were typically raised long before the tab's default
-     * view of what is still outstanding.
+     * The grid starts empty and is filled by selecting a shipment on the map or the schedule. A
+     * shipment's lines are read over her filtered order book, delivered lines included: a shipment
+     * is a live entity, and its lines were typically raised long before they were due.
      */
-    const gridOrders = memo((selectedShipmentId: string | undefined) =>
-        selectedShipmentId == null ? MY_OPEN_ORDERS : ordersOnShipment(MY_ORDERS, selectedShipmentId)
+    const gridOrders = memo((scope: OrdersScope, selectedShipmentIds: string[]) =>
+        ordersOnShipments(scope.orders, selectedShipmentIds)
     );
-    const summary = memo(mySummary);
+    const summary = memo((orders: PurchaseOrder[], scope: OrdersScope) => mySummary(orders, scope));
+    const filterLabel = memo((ordersFilter: OrdersFilter) => {
+        const parts = [
+            ordersFilter.supplierId === ALL_FILTER ? undefined : SUPPLIER_NAMES.get(ordersFilter.supplierId),
+            ordersFilter.subcategory === ALL_FILTER ? undefined : ordersFilter.subcategory,
+        ].filter((part) => part != null);
+        return parts.length > 0 ? parts.join(' · ') : undefined;
+    });
     const kpis = memo(buildKpis);
     const spendPosition = memo(mySpendPosition);
     const spendKpis = memo((position: ReturnType<typeof mySpendPosition>, spendPeriod: SpendPeriod) =>
@@ -155,29 +186,41 @@ export function createWorkspaceApp(): View {
             projectionLabel: spendProjectionLabel(spendPeriod),
         })
     );
-    const gridSubtitle = memo((shownCount: number, selectedShipmentId: string | undefined) => {
-        const shown = fmtInt(shownCount);
-        // A shipment's lines are read over her whole order book, delivered ones included, so this
-        // one cannot claim to be showing open lines.
-        return selectedShipmentId == null
-            ? `${shown} of my open order lines`
-            : `${shown} of my order lines on ${selectedShipmentId}`;
+    const gridSubtitle = memo((shownCount: number, selectedShipmentIds: string[]) => {
+        if (selectedShipmentIds.length === 0) return 'No shipment selected.';
+        // Delivered lines are included, so this cannot claim to be showing open lines.
+        const on =
+            selectedShipmentIds.length === 1
+                ? selectedShipmentIds[0]
+                : `${fmtInt(selectedShipmentIds.length)} shipments`;
+        return `${fmtInt(shownCount)} of my order lines on ${on}`;
     });
 
-    // Selecting the same thing again clears it, on both tabs.
-    const onSelectSupplier = (supplierId: string) => {
-        selectedSupplierId = selectedSupplierId === supplierId ? undefined : supplierId;
+    // The grid lists the selected shipments' lines, so a shipment the filters hide cannot stay selected.
+    const onOrdersFilterChange = (change: Partial<OrdersFilter>) => {
+        const next = { ...ordersFilter, ...change };
+        const visible = new Set(myOrdersScope(next).shipments.map((shipment) => shipment.shipmentId));
+        ordersFilter = next;
+        selectedShipmentIds = selectedShipmentIds.filter((id) => visible.has(id));
         render();
     };
 
-    const onSelectShipment = (shipmentId: string) => {
-        selectedShipmentId = selectedShipmentId === shipmentId ? undefined : shipmentId;
+    const onShipmentSelectionChange = (added: string[], removed: string[]) => {
+        selectedShipmentIds = applySelectionChange(selectedShipmentIds, added, removed);
         render();
     };
 
-    // The worklist sits on the orders tab, so following an item selects within it.
+    const onSelectedSupplierChange = (supplierId: string | undefined) => {
+        selectedSupplierId = supplierId;
+        render();
+    };
+
+    // The worklist ignores the filters, so following an item clears any that hide its shipment.
     const onSelectAttention = (shipmentId: string) => {
-        selectedShipmentId = shipmentId;
+        if (!ordersScope(ordersFilter).shipments.some((shipment) => shipment.shipmentId === shipmentId)) {
+            ordersFilter = DEFAULT_ORDERS_FILTER;
+        }
+        selectedShipmentIds = [shipmentId];
         render();
     };
 
@@ -199,7 +242,7 @@ export function createWorkspaceApp(): View {
     };
 
     const clearSelection = () => {
-        selectedShipmentId = undefined;
+        selectedShipmentIds = [];
         render();
     };
 
@@ -219,25 +262,41 @@ export function createWorkspaceApp(): View {
 
     const pageTitle = h('h1', { class: 'pc-page-title' });
     const pageActions = h('div', { class: 'pc-page-actions' });
+    const body = h(
+        'div',
+        { class: 'pc-body' },
+        h(
+            'div',
+            { class: 'pc-view' },
+            h('div', { class: 'pc-page-head' }, pageTitle, pageActions),
+            ...TABS.map((entry) => tabs.content(entry.value))
+        )
+    );
 
     tabs.root.append(
         h(
             'aside',
             { class: 'pc-sidebar' },
             h(
-                'span',
-                { class: 'pc-brand' },
-                svg(
-                    'svg',
-                    { class: 'pc-brand-mark', viewBox: '0 0 24 24', 'aria-hidden': 'true' },
-                    svg('path', { d: 'M12 2.5 21 7v10l-9 4.5L3 17V7z', class: 'pc-brand-mark-box' }),
-                    svg('path', { d: 'M3 7l9 4.5L21 7M12 11.5V21.5', class: 'pc-brand-mark-edge' })
+                'div',
+                { class: 'pc-brand-row' },
+                h(
+                    'span',
+                    { class: 'pc-brand' },
+                    svg(
+                        'svg',
+                        { class: 'pc-brand-mark', viewBox: '0 0 24 24', 'aria-hidden': 'true' },
+                        svg('path', { d: 'M12 2.5 21 7v10l-9 4.5L3 17V7z', class: 'pc-brand-mark-box' }),
+                        svg('path', { d: 'M3 7l9 4.5L21 7M12 11.5V21.5', class: 'pc-brand-mark-edge' })
+                    ),
+                    'Supply Desk'
                 ),
-                'Procurement Workspace'
+                demoNotice()
             ),
             tabs.list,
             h('span', { class: 'pc-sidebar-spacer' }),
-            h('span', { class: 'pc-stamp' }, `Data as of ${DATA_AS_OF}`),
+            helpCard(),
+            sidebarActions(),
             h(
                 'div',
                 { class: 'pc-account' },
@@ -251,16 +310,7 @@ export function createWorkspaceApp(): View {
                 )
             )
         ),
-        h(
-            'div',
-            { class: 'pc-body' },
-            h(
-                'div',
-                { class: 'pc-view' },
-                h('div', { class: 'pc-page-head' }, pageTitle, pageActions),
-                ...TABS.map((entry) => tabs.content(entry.value))
-            )
-        )
+        body
     );
 
     /**
@@ -277,15 +327,16 @@ export function createWorkspaceApp(): View {
     }
 
     function ordersProps() {
-        const orders = gridOrders(selectedShipmentId);
+        const scope = ordersScope(ordersFilter);
+        const orders = gridOrders(scope, selectedShipmentIds);
         return {
-            kpis: kpis(summary(spendOrders(spendRange(spendPeriod)))),
-            shipments: MY_TRACKED_SHIPMENTS,
-            selectedShipmentId,
+            kpis: kpis(summary(spendOrders(spendRange(spendPeriod)), scope), filterLabel(ordersFilter)),
+            shipments: scope.shipments,
+            selectedShipmentIds,
             orders,
-            gridSubtitle: gridSubtitle(orders.length, selectedShipmentId),
+            gridSubtitle: gridSubtitle(orders.length, selectedShipmentIds),
             poActions,
-            canClearSelection: selectedShipmentId != null,
+            canClearSelection: selectedShipmentIds.length > 0,
         };
     }
 
@@ -298,6 +349,7 @@ export function createWorkspaceApp(): View {
             selectedSupplierId,
             slipDistributions: slipDistributions(months),
             qualityCost: qualityCost(months),
+            materialQualityCost: materialQualityCost(months),
             trend: supplierTrend(months),
         };
     }
@@ -321,8 +373,8 @@ export function createWorkspaceApp(): View {
     /**
      * The period control belongs to the tab it scopes, and the two tabs that have one do not
      * share a window — so it is rendered per tab rather than once for the workspace. The orders
-     * tab has none: its grid is her open order book and its KPIs are absolute, so there is
-     * nothing for a period to narrow.
+     * tab has none: its KPIs follow the supplier and subcategory filters and its grid the shipment
+     * selection, so there is nothing for a period to narrow.
      */
     function createScene(): TabScene {
         if (tab === 'suppliers') {
@@ -338,8 +390,8 @@ export function createWorkspaceApp(): View {
                 options: PERIOD_OPTIONS.map((option) => ({ value: String(option), label: periodLabel(option) })),
             });
             const controls = h('div', { class: 'pc-page-controls' }, range, select.el);
-            const view = createSuppliersView({ ...suppliersProps(), onSelectSupplier });
-            return { tab, controls, select, view };
+            const view = createSuppliersView({ ...suppliersProps(), onSelectedSupplierChange });
+            return { tab, controls, range, selects: [select], view };
         }
         if (tab === 'spend') {
             const range = h('span', { class: 'pc-page-range' }, periodRange(spendRange(spendPeriod)));
@@ -355,10 +407,26 @@ export function createWorkspaceApp(): View {
             });
             const controls = h('div', { class: 'pc-page-controls' }, range, select.el);
             const view = createSpendView(spendProps());
-            return { tab, controls, select, view };
+            return { tab, controls, range, selects: [select], view };
         }
         // Her landing view only: the worklist's items resolve into the order book and the grid
         // below it, so the alert lives where they land.
+        const options = ordersFilterOptions(ordersFilter);
+        const supplierSelect = createSelect({
+            label: 'Supplier',
+            ariaLabel: 'Supplier my orders are narrowed to',
+            value: ordersFilter.supplierId,
+            onValueChange: (supplierId) => onOrdersFilterChange({ supplierId }),
+            options: options.suppliers,
+        });
+        const subcategorySelect = createSelect({
+            label: 'Subcategory',
+            ariaLabel: 'Material subcategory my orders are narrowed to',
+            value: ordersFilter.subcategory,
+            onValueChange: (subcategory) => onOrdersFilterChange({ subcategory }),
+            options: options.subcategories,
+        });
+        const controls = h('div', { class: 'pc-page-controls' }, supplierSelect.el, subcategorySelect.el);
         const alert = createAttentionAlert({
             items: attentionItems(resolved),
             onSelect: onSelectAttention,
@@ -366,16 +434,16 @@ export function createWorkspaceApp(): View {
         });
         const view = createOrdersView({
             ...ordersProps(),
-            onSelectShipment,
+            onShipmentSelectionChange,
             onPoAction,
             onClearSelection: clearSelection,
         });
-        return { tab, alert, view };
+        return { tab, controls, selects: [supplierSelect, subcategorySelect], alert, view };
     }
 
     function destroyScene(current: TabScene) {
         current.alert?.destroy();
-        current.select?.destroy();
+        current.selects.forEach((select) => select.destroy());
         current.view.destroy();
         current.view.el.remove();
         current.controls?.remove();
@@ -395,20 +463,28 @@ export function createWorkspaceApp(): View {
             if (scene.controls) pageActions.append(scene.controls);
             if (scene.alert) pageActions.append(scene.alert.el);
             tabs.content(tab).append(scene.view.el);
+            // The tabs share one scroll region, so each would otherwise open at the last one's offset.
+            body.scrollTo({ top: 0 });
             if (mounted) scene.view.mount();
             return;
         }
 
         // The same tab re-rendered: hand the views their new props, as React would.
         if (scene.tab === 'suppliers') {
-            scene.controls!.firstElementChild!.textContent = periodRange(supplierRange(months));
-            scene.select!.setValue(String(months));
+            scene.range!.textContent = periodRange(supplierRange(months));
+            scene.selects[0].setValue(String(months));
             (scene.view as SuppliersView).update(suppliersProps());
         } else if (scene.tab === 'spend') {
-            scene.controls!.firstElementChild!.textContent = periodRange(spendRange(spendPeriod));
-            scene.select!.setValue(spendPeriod);
+            scene.range!.textContent = periodRange(spendRange(spendPeriod));
+            scene.selects[0].setValue(spendPeriod);
             (scene.view as SpendView).update(spendProps());
         } else {
+            const options = ordersFilterOptions(ordersFilter);
+            const [supplierSelect, subcategorySelect] = scene.selects;
+            supplierSelect.setOptions(options.suppliers);
+            supplierSelect.setValue(ordersFilter.supplierId);
+            subcategorySelect.setOptions(options.subcategories);
+            subcategorySelect.setValue(ordersFilter.subcategory);
             scene.alert!.update(attentionItems(resolved));
             (scene.view as OrdersView).update(ordersProps());
         }

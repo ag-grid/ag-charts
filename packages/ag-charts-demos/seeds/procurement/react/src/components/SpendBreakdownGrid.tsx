@@ -58,7 +58,7 @@ export function SpendBreakdownGrid({ tree, supplierColors }: SpendBreakdownGridP
             { field: 'material', rowGroup: true, hide: true },
             {
                 field: 'spend',
-                headerName: 'Spend',
+                headerName: 'Total spend',
                 minWidth: 110,
                 type: 'rightAligned',
                 aggFunc: 'sum',
@@ -72,7 +72,7 @@ export function SpendBreakdownGrid({ tree, supplierColors }: SpendBreakdownGridP
             },
             {
                 field: 'shareOfTotal',
-                headerName: 'Share',
+                headerName: 'Total share',
                 minWidth: 80,
                 type: 'rightAligned',
                 aggFunc: 'sum',
@@ -119,6 +119,7 @@ export function SpendBreakdownGrid({ tree, supplierColors }: SpendBreakdownGridP
             getRowId={({ data }) => `${data.subcategory}/${data.material}/${data.supplierId}`}
             groupDefaultExpanded={1}
             grandTotalRow="pinnedBottom"
+            suppressAggFuncInHeader
             rowHeight={36}
             headerHeight={38}
             containerStyle={{ height: '100%', width: '100%' }}

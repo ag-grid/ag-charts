@@ -1,7 +1,8 @@
 // AG Charts theme and the demo's shared data-viz palette. Every chart pulls its
 // colours from here. Kept in sync with the --pc-* tokens in procurement.css.
-import type { AgChartTheme } from 'ag-charts-community';
+import type { AgChartTheme, AgUnitTimeAxisOptions } from 'ag-charts-community';
 
+import { fmtMonth } from './format';
 import type { ShipmentStatus } from './types';
 
 /**
@@ -126,6 +127,29 @@ export const STATUS_ICONS: Record<ShipmentStatus, string> = {
  */
 export const SEGMENT_SEPARATOR = { stroke: 'var(--pc-panel)', strokeWidth: 1 } as const;
 
+/** A stacked bar's gap, set as the band axis's `paddingInner`: `widthRatio` draws a stacked bar off-centre. */
+export const STACKED_BAR_GAP = 0.55;
+
+/** A month name, with the year beneath it for January. */
+const monthTick = (value: number | Date) => {
+    const date = new Date(value);
+    return date.getMonth() === 0 ? `${fmtMonth(date)}\n${date.getFullYear()}` : fmtMonth(date);
+};
+
+/**
+ * A monthly x axis: month names, with the year beneath each January, in the labels' own weight since
+ * the year is a waypoint rather than a heading. The parent level keeps a year boundary from being
+ * thinned out; the label formatter covers a January the range starts on, which is not a boundary.
+ */
+export const MONTH_AXIS: AgUnitTimeAxisOptions = {
+    type: 'unit-time',
+    unit: 'month',
+    position: 'bottom',
+    label: { formatter: ({ value }) => monthTick(value) },
+    parentLevel: { label: { formatter: ({ value }) => monthTick(value), fontWeight: 'normal' } },
+    crosshair: { label: { format: "%b '%y" } },
+};
+
 export const THEME: AgChartTheme = {
     baseTheme: 'ag-default',
     palette: {
@@ -134,7 +158,7 @@ export const THEME: AgChartTheme = {
     },
     params: {
         chartBackgroundColor: 'var(--pc-panel)',
-        fontFamily: ['Red Hat Text', 'Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        fontFamily: ['Red Hat Text', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
         fontSize: 13,
         textColor: 'var(--pc-text)',
         subtleTextColor: 'var(--pc-muted)',

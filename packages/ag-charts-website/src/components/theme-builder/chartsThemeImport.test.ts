@@ -85,20 +85,20 @@ describe('importing an AG Charts theme', () => {
         expect(summaryOf(result)).toBe('Found 10 theme parameters, a palette and the ag-default-dark base theme');
     });
 
-    it('brings back strokes that were switched off', () => {
-        // Their colours do not survive - an AG Charts palette says "no stroke"
-        // by matching each stroke to its fill, and that is what was exported -
-        // but the toggle does, which is what the user set.
-        const strokesOff: ChartsThemeSelection = {
-            baseTheme: 'ag-vivid',
-            params: {},
-            palette: { ...getPalette('ag-vivid'), strokesEnabled: false },
-        };
+    it('keeps the strokes a theme names as chosen, rather than linking them to their fills', () => {
         const store = createStore();
-        importInto(store, renderChartsThemeCode(strokesOff));
+        importInto(
+            store,
+            "export const myTheme = { palette: { fills: ['#FF0000'], strokes: ['#00FF00'], up: { fill: '#0000FF', stroke: '#000088' } } };"
+        );
 
-        expect(getStoredPalette(store)?.strokesEnabled).toBe(false);
-        expect(toChartTheme(selectionFromStore(store))).toEqual(toChartTheme(strokesOff));
+        const stored = getStoredPalette(store);
+        expect(stored?.strokesDerived).toEqual([false]);
+        expect(stored?.up?.strokeDerived).toBe(false);
+        expect(toChartTheme(selectionFromStore(store)).palette).toMatchObject({
+            strokes: ['#00FF00'],
+            up: { stroke: '#000088' },
+        });
     });
 
     it('replaces the theme rather than merging into it', () => {
@@ -173,17 +173,13 @@ describe('importing an AG Charts theme', () => {
         expect(getStoredPalette(store)).toMatchObject({ fills: ['#FF0000'], strokes: ['#220000'] });
     });
 
-    it('derives a stroke for a palette that carries fills alone', () => {
+    it('links every stroke to its fill for a palette that carries fills alone', () => {
         const store = createStore();
         importInto(store, "export const myTheme = { palette: { fills: ['#FF0000'] } };");
 
         const stored = getStoredPalette(store);
         expect(stored?.fills).toEqual(['#FF0000']);
-        expect(stored?.strokes).toHaveLength(1);
-        // Derived, not the fill: a palette carrying no strokes is one AG Charts
-        // outlines for itself, which is not the same as strokes being off.
-        expect(stored?.strokes[0]).not.toBe('#FF0000');
-        expect(stored?.strokesEnabled).toBeUndefined();
+        expect(stored?.strokesDerived).toEqual([true]);
     });
 
     it('warns about a base theme it does not know, and applies the rest', () => {

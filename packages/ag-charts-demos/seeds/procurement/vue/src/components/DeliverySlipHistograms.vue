@@ -1,17 +1,8 @@
 <script lang="ts">
-import type {
-    AgBarSeriesOptions,
-    AgCartesianChartOptions,
-    AgPieSeriesOptions,
-    AgPolarChartOptions,
-} from 'ag-charts-community';
-
-import { NEUTRAL, THEME } from '../chartTheme';
-import { fmtInt, fmtPct } from '../format';
 import type { SlipDistribution } from '../types';
 
 /** One day of slip, and how many deliveries landed on it. */
-interface Bar {
+export interface Bar {
     /** The day held as a category, which is what puts the axis label under its own bar. */
     day: string;
     count: number;
@@ -86,82 +77,22 @@ export function binned(rows: SlipDistribution[]): Binned {
 
     return { bars, maxCount };
 }
-
-/** One slice of a facet's split: how many deliveries landed either side of the promised date. */
-interface Slice {
-    outcome: string;
-    deliveries: number;
-    fill: string;
-    /** Recedes the ground slice. Omitted is solid — a sector only takes what `itemStyler` returns. */
-    fillOpacity?: number;
-}
-
-/**
- * The same deliveries as the histogram beside it, as one proportion.
- *
- * The histogram says how late; this says how often, which is the figure she quotes in a supplier
- * conversation. Two slices only — the promised date splits them, exactly as the bands over the
- * histogram do, so the two charts can never disagree about what counts as late.
- *
- * The late slice carries the supplier's own colour, tying it to that supplier's bars, and the
- * remainder is a pale ground so the coloured arc is the reading. Late is not marked in the status red
- * here: the row already names the count in words, and a supplier's identity colour cannot double as a
- * severity signal without one meaning undermining the other.
- */
-function splitOptions(row: SlipDistribution, lateCount: number, color: string): AgPolarChartOptions<Slice> {
-    const series: AgPieSeriesOptions<Slice> = {
-        type: 'pie',
-        angleKey: 'deliveries',
-        angleName: 'Deliveries',
-        calloutLabelKey: 'outcome',
-        calloutLabel: { enabled: false },
-        sectorLabel: { enabled: false },
-        strokeWidth: 0,
-        itemStyler: ({ datum }) => ({ fill: datum.fill, fillOpacity: datum.fillOpacity ?? 1 }),
-        tooltip: {
-            renderer: ({ datum }) => ({
-                title: `${row.supplier} · ${datum.outcome}`,
-                data: [
-                    { label: 'Deliveries', value: fmtInt(datum.deliveries) },
-                    { label: 'Share', value: fmtPct(datum.deliveries / row.slips.length) },
-                ],
-            }),
-        },
-    };
-
-    return {
-        theme: THEME,
-        data: [
-            { outcome: 'Late', deliveries: lateCount, fill: color },
-            {
-                outcome: 'On time',
-                deliveries: row.slips.length - lateCount,
-                fill: NEUTRAL,
-                fillOpacity: 0.3,
-            },
-        ],
-        series: [series],
-        legend: { enabled: false },
-        // Below the 300px chart minimum; a chart that will not shrink overflows its box and swallows clicks.
-        minWidth: 0,
-        minHeight: 0,
-        padding: { top: 0, right: 0, bottom: 0, left: 0 },
-    };
-}
 </script>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { AgCharts } from 'ag-charts-vue3';
+import { NEUTRAL } from '../chartTheme';
+import SlipFacet from './SlipFacet.vue';
 
 /**
  * Each supplier's delivery slip as its own distribution, on one shared scale.
  *
- * The box chart beside this says where the middle half of each supplier's deliveries sits; this says
- * what the distribution is actually shaped like, which the quartiles flatten. A supplier clustered
- * tightly a day or two late is a scheduling problem she can plan around; one with a second cluster
- * out in the tail is a supplier that will stop a line occasionally, and the two can share a median.
+ * The box-and-whisker chart beside this says where the middle half of each supplier's deliveries
+ * sits; this says what the distribution is actually shaped like, which the quartiles flatten. A
+ * supplier clustered tightly a day or two late is a scheduling problem she can plan around; one
+ * with a second cluster out in the tail is a supplier that will stop a line occasionally, and the
+ * two can share a median.
  *
  * Small multiples rather than overlaid series: five translucent distributions on one pair of axes
  * occlude each other exactly where they differ, and the comparison here is between shapes.
@@ -174,109 +105,26 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    /** Selecting the same supplier again clears it. */
-    select: [supplierId: string];
+    /** The user selected a supplier's bars or split, or clicked away to clear the selection. */
+    selectedSupplierChange: [supplierId: string | undefined];
 }>();
 
 const scale = computed(() => binned(props.rows));
-
-const facets = computed(() =>
-    props.rows.map((row, index) => {
-        // The x axis is drawn once, under the bottom facet: every facet shares the same categories.
-        const isLast = index === props.rows.length - 1;
-        const dimmed = props.selectedSupplierId != null && row.supplierId !== props.selectedSupplierId;
-        const color = dimmed ? NEUTRAL : (props.supplierColors[row.supplierId] ?? NEUTRAL);
-
-        const series: AgBarSeriesOptions<Bar> = {
-            type: 'bar',
-            xKey: 'day',
-            yKey: 'count',
-            xName: 'Slip',
-            yName: 'Deliveries',
-            fill: color,
-            fillOpacity: dimmed ? 0.3 : 0.85,
-            cornerRadius: 3,
-            tooltip: {
-                renderer: ({ datum }) => ({
-                    heading: '',
-                    title: '',
-                    data: [
-                        { label: 'Slip', value: datum.slipLabel },
-                        { label: 'Deliveries', value: fmtInt(datum.count) },
-                    ],
-                }),
-            },
-            listeners: { seriesNodeClick: () => emit('select', row.supplierId) },
-        };
-
-        const options: AgCartesianChartOptions<Bar> = {
-            theme: THEME,
-            data: scale.value.bars.get(row.supplierId) ?? [],
-            series: [series],
-            // Below the 300px chart minimum; a chart that will not shrink overflows its box and swallows clicks.
-            minWidth: 0,
-            minHeight: 0,
-            axes: {
-                x: {
-                    type: 'category',
-                    position: 'bottom',
-                    bandHighlight: { enabled: true },
-                    // Bars all but touching, so a run of days reads as one distribution.
-                    paddingInner: 0.12,
-                    paddingOuter: 0.05,
-                    label: { enabled: isLast },
-                    // Ticks and labels centred on the band rather than on the gap between two.
-                    interval: { placement: 'on' },
-                },
-                y: {
-                    type: 'number',
-                    position: 'left',
-                    min: 0,
-                    max: scale.value.maxCount,
-                    nice: false,
-                    label: { enabled: false },
-                    // A facet this short has room only for the two ticks that bound the shared scale.
-                    interval: { values: [0, scale.value.maxCount] },
-                },
-            },
-            legend: { enabled: false },
-            padding: { top: 4, right: 8, bottom: 0, left: 0 },
-        };
-
-        // Same boundary the bands draw: a delivery on its promised day is not late.
-        const lateCount = row.slips.filter((slip) => slip > 0).length;
-
-        return { row, options, split: splitOptions(row, lateCount, color), isLast, lateCount };
-    })
-);
 </script>
 
 <template>
     <div class="pc-facets">
-        <!-- The bottom facet is taller by its axis-label band, so every series area keeps the same height. -->
-        <div
-            v-for="{ row, options, split, isLast, lateCount } in facets"
+        <!-- The x axis is drawn once, under the bottom facet: every facet shares the same categories. -->
+        <SlipFacet
+            v-for="(row, index) in rows"
             :key="row.supplierId"
-            :class="isLast ? 'pc-facet pc-facet--axis' : 'pc-facet'"
-        >
-            <span class="pc-facet-head">
-                <span class="pc-facet-name">{{ row.supplier }}</span>
-                <span
-                    class="pc-facet-note"
-                    v-text="`${fmtInt(lateCount)} late out of ${fmtInt(row.slips.length)} deliveries`"
-                />
-            </span>
-            <!-- The share of deliveries that ran late, against the shape of how late. The inner
-                 box is what the chart fills; the outer one spans the series area beside it, so the
-                 two stay centred on each other whatever height the facet takes. -->
-            <div class="pc-facet-split">
-                <div class="pc-facet-pie">
-                    <AgCharts :options="split" :style="{ height: '100%', width: '100%' }" />
-                </div>
-            </div>
-            <div class="pc-facet-chart">
-                <AgCharts :options="options" :style="{ height: '100%', width: '100%' }" />
-            </div>
-        </div>
+            :row="row"
+            :bars="scale.bars.get(row.supplierId) ?? []"
+            :max-count="scale.maxCount"
+            :is-last="index === rows.length - 1"
+            :color="supplierColors[row.supplierId] ?? NEUTRAL"
+            :selected-supplier-id="selectedSupplierId"
+            @selected-supplier-change="(supplierId) => emit('selectedSupplierChange', supplierId)"
+        />
     </div>
 </template>

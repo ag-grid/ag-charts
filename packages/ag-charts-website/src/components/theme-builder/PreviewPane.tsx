@@ -17,7 +17,7 @@ import { useSetEditedGroup } from './editedGroup';
 interface Props {
     pane: PreviewPaneId;
     theme: AgChartTheme;
-    /** Whether the palette has strokes for an outline to be drawn in. */
+    /** Whether the series are outlined, which the palette editor's preview toggle decides. */
     strokesEnabled: boolean;
 }
 
@@ -33,18 +33,11 @@ export const PreviewPane = ({ pane, theme, strokesEnabled }: Props) => {
     const [features, setFeatures] = usePreviewFeatures(pane);
     const setEditedGroup = useSetEditedGroup();
 
-    // With the palette's strokes off an outline would be drawn in the fill's own
-    // colour, so the feature is withheld rather than left doing nothing. What the
-    // pane chose stays in storage and comes back with the strokes.
-    const availableFeatures = strokesEnabled
-        ? chartType.features
-        : chartType.features.filter((id) => id !== 'seriesStrokes');
+    // Withheld from the popup: the palette editor's toggle switches it for both panes.
+    const availableFeatures = chartType.features.filter((id) => id !== 'seriesStrokes');
     // Memoised: the chart rebuilds its options on an identity change, so a fresh
     // object each render would restart the animation on any parent render.
-    const activeFeatures = useMemo(
-        () => (strokesEnabled ? features : { ...features, seriesStrokes: false }),
-        [strokesEnabled, features]
-    );
+    const activeFeatures = useMemo(() => ({ ...features, seriesStrokes: strokesEnabled }), [strokesEnabled, features]);
 
     return (
         // Reaching for the preview releases any tooltip the panel holds open

@@ -1,15 +1,31 @@
 import { Component, computed, input } from '@angular/core';
 
 import { AgCharts } from 'ag-charts-angular';
-import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-community';
+import type { AgBarSeriesOptions, AgCartesianChartOptions, AgUnitTimeAxisOptions } from 'ag-charts-community';
 
-import { SEGMENT_SEPARATOR, SUBCATEGORY_RAMP, THEME } from '../chartTheme';
-import { fmtCurrency, fmtCurrencyCompact, fmtPct } from '../format';
+import { MONTH_AXIS, SEGMENT_SEPARATOR, STACKED_BAR_GAP, THEME } from '../chartTheme';
+import { fmtCurrency, fmtCurrencyMillions, fmtMonth, fmtPct, wholeMillionStep } from '../format';
 import type { SpendTrendGrain, SpendTrendRow } from '../types';
 import { AfterRender } from '../ui';
 
+/** One stacked band: the row key it reads, the name it is shown under and its colour. */
+export interface SpendTrendStack {
+    key: string;
+    name: string;
+    fill: string;
+}
+
+/** Months only: the monthly grain is year to date, so every month is in the same year. */
+const YEAR_TO_DATE_MONTH_AXIS: AgUnitTimeAxisOptions = {
+    ...MONTH_AXIS,
+    label: { format: { month: '%b' } },
+    parentLevel: { enabled: false },
+    crosshair: { label: { format: '%b' } },
+    paddingInner: STACKED_BAR_GAP,
+};
+
 /**
- * Committed spend per month or per week, stacked by subcategory.
+ * Committed spend per month or per week, stacked by subcategory or by supplier.
  *
  * The tab's other charts all collapse time: the sunburst is a snapshot, the burn-up is cumulative
  * within one quarter, and the waterfall reduces a whole period's movement to three bars. So a mix
@@ -21,9 +37,9 @@ import { AfterRender } from '../ui';
  * grouped bars make four subcategories comparable to each other but lose the month's total, which
  * is the run rate she is being measured on.
  *
- * Takes the subcategory ramp rather than the categorical palette, matching the sunburst's inner
- * ring — the same "what did I buy" question in the same hue, leaving categorical colour to mean
- * supplier identity everywhere in the workspace.
+ * The caller picks the colours: the subcategory ramp when split by material, matching the
+ * sunburst's inner ring, and the suppliers' identity colours when split by supplier — so
+ * categorical colour still means supplier identity everywhere in the workspace.
  *
  * The host is the chart's container, the `<div>` the React `AgCharts` wrapper renders.
  */
@@ -35,31 +51,36 @@ import { AfterRender } from '../ui';
 })
 export class SpendTrendChart {
     readonly rows = input.required<SpendTrendRow[]>();
-    /** Her commodity's subcategories, in the order the sunburst rings them. */
-    readonly subcategories = input.required<string[]>();
+    /** The bands, bottom first — her subcategories in sunburst order, or her suppliers in roster order. */
+    readonly stacks = input.required<SpendTrendStack[]>();
     /** What one bar covers, which every figure in the tooltip has to name. */
     readonly grain = input.required<SpendTrendGrain>();
 
     protected readonly options = computed<AgCartesianChartOptions<SpendTrendRow>>(() => {
-        const subcategories = this.subcategories();
+        const rows = this.rows();
+        const stacks = this.stacks();
         const grain = this.grain();
 
         // A week's label is the day it starts on, which only reads as a span if it says so.
-        const spanOf = (label: string) => (grain === 'week' ? `week of ${label}` : label);
-        const series = subcategories.map<AgBarSeriesOptions<SpendTrendRow>>((subcategory, index) => ({
+        const spanOf = (row: SpendTrendRow) => (grain === 'week' ? `week of ${row.label}` : fmtMonth(row.start));
+        // Weeks stay categories: they start on the window's first day, not on a calendar week a time axis would snap to.
+        const monthly = grain === 'month';
+        const series = stacks.map<AgBarSeriesOptions<SpendTrendRow>>(({ key, name, fill }) => ({
             type: 'bar',
-            xKey: 'label',
-            yKey: subcategory,
-            yName: subcategory,
+            xKey: monthly ? 'start' : 'label',
+            yKey: key,
+            yName: name,
             stacked: true,
-            fill: SUBCATEGORY_RAMP[index % SUBCATEGORY_RAMP.length],
+            fill,
+            cornerRadius: 3,
             ...SEGMENT_SEPARATOR,
             tooltip: {
                 renderer: ({ datum }) => {
-                    const spend = Number(datum[subcategory] ?? 0);
-                    const total = subcategories.reduce((sum, key) => sum + Number(datum[key] ?? 0), 0);
+                    const spend = Number(datum[key] ?? 0);
+                    const total = stacks.reduce((sum, stack) => sum + Number(datum[stack.key] ?? 0), 0);
                     return {
-                        title: `${subcategory} · ${spanOf(datum.label)}`,
+                        heading: '',
+                        title: `${name} · ${spanOf(datum)}`,
                         data: [
                             { label: 'Committed', value: fmtCurrency(spend) },
                             { label: `Share of ${grain}`, value: total > 0 ? fmtPct(spend / total) : '—' },
@@ -70,17 +91,25 @@ export class SpendTrendChart {
             },
         }));
 
+        const yMax = Math.max(
+            0,
+            ...rows.map((row) => stacks.reduce((sum, stack) => sum + Number(row[stack.key] ?? 0), 0))
+        );
+
         return {
             theme: THEME,
-            data: this.rows(),
+            data: rows,
             series,
             axes: {
-                x: { type: 'category', position: 'bottom' },
+                x: monthly
+                    ? YEAR_TO_DATE_MONTH_AXIS
+                    : { type: 'category', position: 'bottom', paddingInner: STACKED_BAR_GAP },
                 y: {
                     type: 'number',
                     position: 'left',
                     title: { enabled: true, text: 'Committed spend' },
-                    label: { formatter: ({ value }) => fmtCurrencyCompact(value) },
+                    interval: { step: wholeMillionStep(yMax) },
+                    label: { formatter: ({ value }) => fmtCurrencyMillions(value) },
                 },
             },
             legend: { enabled: true, position: 'bottom' },

@@ -61,6 +61,12 @@ export const fmtSignedPct = (fraction: number) =>
 export const fmtDate = (value: number | Date) =>
     new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
+export const fmtMonth = (value: number | Date) => new Date(value).toLocaleDateString('en-US', { month: 'short' });
+
+/** A month with its abbreviated year, `Mar '26`, matching the chart axes' `%b '%y`. */
+export const fmtMonthYear = (value: number | Date) =>
+    `${fmtMonth(value)} '${String(new Date(value).getFullYear() % 100).padStart(2, '0')}`;
+
 /**
  * Days remaining as a buyer would say it. `days` is signed: positive is time left,
  * negative is time already lost.

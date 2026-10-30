@@ -1,17 +1,20 @@
-import type { AgCartesianChartOptions, AgLineSeriesOptions } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgLineSeriesOptions, AgSelectionItemIds } from 'ag-charts-community';
 
 import { chartHost } from '../chart';
-import { NEUTRAL, THEME } from '../chartTheme';
+import { MONTH_AXIS, NEUTRAL, THEME } from '../chartTheme';
 import type { View } from '../dom';
-import { fmtPct } from '../format';
+import { fmtIndex, fmtMonthYear, fmtPct, fmtPctWhole } from '../format';
 import { memo } from '../memo';
 import type { SupplierTrendPoint } from '../types';
+import { stylerOwnedSelection } from './chartSelection';
+import { createSupplierSelection } from './useSupplierSelection';
 
 /** Which metric the chart is reading off each month's point. */
 export type TrendMetric = 'price' | 'onTime' | 'quality';
 
-/** One month's row: the label plus one value per supplier, for the selected metric. */
+/** One month's row: its start and label plus one value per supplier, for the selected metric. */
 interface Row {
+    month: number;
     label: string;
     [supplierId: string]: string | number | null;
 }
@@ -24,11 +27,18 @@ interface SupplierTrendChartProps {
     metric: TrendMetric;
     /** The supplier currently selected, if any — its line is brought forward. */
     selectedSupplierId?: string;
+    /** The user selected a supplier's line, or clicked away to clear the selection. */
+    onSelectedSupplierChange: (supplierId: string | undefined) => void;
 }
 
+type Props = Omit<SupplierTrendChartProps, 'onSelectedSupplierChange'>;
+
 export interface SupplierTrendChart extends View {
-    update(props: SupplierTrendChartProps): void;
+    update(props: Props): void;
 }
+
+/** Each supplier's line is its own series, so the series id names the supplier. */
+const supplierIdOf = ({ seriesId }: { seriesId: string }) => seriesId;
 
 /** How each metric is read off a point, titled and formatted. */
 interface MetricSpec {
@@ -36,6 +46,8 @@ interface MetricSpec {
     axisTitle: string;
     tooltipLabel: string;
     format: (value: number) => string;
+    /** For the axis ticks, where they need fewer digits than a single reading. */
+    axisFormat: (value: number) => string;
     /** Axis ceiling, for a metric with a fixed one. Omitted where the domain is the data's own. */
     max?: number;
 }
@@ -45,17 +57,19 @@ function metricSpec(metric: TrendMetric): MetricSpec {
         case 'onTime':
             return {
                 read: (point) => point.onTimeRate,
-                axisTitle: 'Percent on time',
+                axisTitle: 'On-time delivery',
                 tooltipLabel: 'On time',
                 format: fmtPct,
+                axisFormat: fmtPctWhole,
                 max: 1,
             };
         case 'quality':
             return {
                 read: (point) => point.qualityRate,
-                axisTitle: 'Percent accepted at inspection',
+                axisTitle: 'Percent accepted',
                 tooltipLabel: 'Accepted',
                 format: fmtPct,
+                axisFormat: fmtPctWhole,
                 max: 1,
             };
         case 'price':
@@ -65,7 +79,8 @@ function metricSpec(metric: TrendMetric): MetricSpec {
                 read: (point) => point.index,
                 axisTitle: 'Price vs list price',
                 tooltipLabel: 'Price vs list',
-                format: (value) => `${value.toFixed(2)}×`,
+                format: fmtIndex,
+                axisFormat: (value) => fmtIndex(value, 1),
             };
     }
 }
@@ -79,16 +94,19 @@ function metricSpec(metric: TrendMetric): MetricSpec {
  * carry an observation across: the supplier whose price drifted up is the one to check for on-time
  * and quality before a renewal.
  */
-export function createSupplierTrendChart(props: SupplierTrendChartProps): SupplierTrendChart {
+export function createSupplierTrendChart({
+    onSelectedSupplierChange,
+    ...props
+}: SupplierTrendChartProps): SupplierTrendChart {
     const chart = chartHost<AgCartesianChartOptions<Row>>();
 
-    const spec = memo(metricSpec);
+    const specOf = memo(metricSpec);
 
-    const data = memo((trend: Map<string, SupplierTrendPoint[]>, spec: MetricSpec): Row[] => {
+    const dataOf = memo((trend: Map<string, SupplierTrendPoint[]>, spec: MetricSpec): Row[] => {
         const [first] = [...trend.values()];
-        if (!first) return [];
+        if (first == null) return [];
         return first.map((point, index) => {
-            const row: Row = { label: point.label };
+            const row: Row = { month: point.month, label: point.label };
             for (const [supplierId, points] of trend) {
                 row[supplierId] = spec.read(points[index]);
             }
@@ -96,7 +114,19 @@ export function createSupplierTrendChart(props: SupplierTrendChartProps): Suppli
         });
     });
 
-    const options = memo(
+    const itemsForOf = memo(
+        (data: Row[], supplierNames: Map<string, string>) =>
+            (supplierId: string): AgSelectionItemIds[] =>
+                supplierNames.has(supplierId) ? data.map((row) => ({ seriesId: supplierId, itemId: row.label })) : []
+    );
+
+    const { onChartSelectionChange, onChartClick, ...selection } = createSupplierSelection<Row>({
+        chart: chart.instance,
+        onSelectedSupplierChange,
+        supplierIdOf,
+    });
+
+    const optionsOf = memo(
         (
             data: Row[],
             supplierNames: Map<string, string>,
@@ -109,21 +139,30 @@ export function createSupplierTrendChart(props: SupplierTrendChartProps): Suppli
                 const color = supplierColors[supplierId] ?? NEUTRAL;
                 return {
                     type: 'line',
-                    xKey: 'label',
+                    id: supplierId,
+                    xKey: 'month',
                     yKey: supplierId,
                     yName: name,
-                    // interpolation: { type: 'step' },
                     stroke: dimmed ? NEUTRAL : color,
                     strokeWidth: dimmed ? 1 : 2,
                     strokeOpacity: dimmed ? 0.35 : 1,
-                    marker: { enabled: true, size: 5, fill: dimmed ? NEUTRAL : color, fillOpacity: dimmed ? 0.35 : 1 },
+                    marker: {
+                        enabled: true,
+                        size: 6,
+                        fill: dimmed ? NEUTRAL : color,
+                        fillOpacity: dimmed ? 0.35 : 1,
+                        stroke: 'var(--pc-panel)',
+                        strokeWidth: 1,
+                    },
                     // A month a supplier has no record in is a gap, not a drop to zero.
                     connectMissingData: false,
+                    selection: stylerOwnedSelection(1),
                     tooltip: {
                         renderer: ({ datum }) => {
                             const value = datum[supplierId];
                             return {
-                                title: `${name} · ${datum.label}`,
+                                heading: '',
+                                title: `${name} · ${fmtMonthYear(datum.month)}`,
                                 data: [
                                     typeof value === 'number'
                                         ? { label: spec.tooltipLabel, value: spec.format(value) }
@@ -138,46 +177,51 @@ export function createSupplierTrendChart(props: SupplierTrendChartProps): Suppli
             return {
                 theme: THEME,
                 data,
+                dataIdKey: 'label',
                 series,
                 // This box is shorter than the 300px a chart defaults to as its minimum, and a chart that
                 // will not shrink to its box overflows it and swallows clicks meant for the card below.
                 minHeight: 0,
                 axes: {
-                    x: { type: 'category', position: 'bottom' },
+                    x: MONTH_AXIS,
                     y: {
                         type: 'number',
                         position: 'left',
                         max: spec.max,
                         title: { enabled: true, text: spec.axisTitle },
-                        label: { formatter: ({ value }) => spec.format(value) },
+                        label: { formatter: ({ value }) => spec.axisFormat(value) },
                         nice: false,
                     },
                 },
                 legend: { enabled: true, position: 'bottom' },
                 padding: { top: 8, right: 12, bottom: 4, left: 4 },
+                selection: { enabled: true },
+                listeners: { selectionChange: onChartSelectionChange, click: onChartClick },
             };
         }
     );
 
-    const compute = (next: SupplierTrendChartProps) => {
-        const metric = spec(next.metric);
-        return options(
-            data(next.trend, metric),
-            next.supplierNames,
-            next.supplierColors,
-            next.selectedSupplierId,
-            metric
-        );
-    };
+    let current: Props = props;
+    const spec = () => specOf(current.metric);
+    const data = () => dataOf(current.trend, spec());
+    const options = () =>
+        optionsOf(data(), current.supplierNames, current.supplierColors, current.selectedSupplierId, spec());
+    const sync = () => selection.sync(current.selectedSupplierId, itemsForOf(data(), current.supplierNames));
 
-    let current = props;
     return {
         el: chart.el,
-        mount: () => chart.mount(compute(current)),
+        mount() {
+            chart.mount(options());
+            sync();
+        },
         update(next) {
             current = next;
-            chart.update(compute(next));
+            chart.update(options());
+            sync();
         },
-        destroy: chart.destroy,
+        destroy() {
+            selection.destroy();
+            chart.destroy();
+        },
     };
 }

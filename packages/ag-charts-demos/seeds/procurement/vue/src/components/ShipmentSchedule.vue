@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { TrackedShipment } from '../types';
+import type { ShipmentStatus, TrackedShipment } from '../types';
 
 /** One row of the schedule: a shipment's transit window plus the date it is needed. */
 interface Leg {
@@ -11,27 +11,52 @@ interface Leg {
     projected: number;
     required: number;
     status: TrackedShipment['status'];
-    slackDays: number;
     value: number;
+    /** The transit window again, under its status's keys only, so each status series draws just its own bars. */
+    onTimeDepart?: number;
+    onTimeProjected?: number;
+    atRiskDepart?: number;
+    atRiskProjected?: number;
+    lateDepart?: number;
+    lateProjected?: number;
 }
+
+const STATUSES: ShipmentStatus[] = ['On time', 'At risk', 'Late'];
+
+const STATUS_KEYS: Record<ShipmentStatus, { low: keyof Leg; high: keyof Leg }> = {
+    'On time': { low: 'onTimeDepart', high: 'onTimeProjected' },
+    'At risk': { low: 'atRiskDepart', high: 'atRiskProjected' },
+    Late: { low: 'lateDepart', high: 'lateProjected' },
+};
 
 /**
  * Fixed bar thickness. This is what makes the chart scrollable: a fixed width means the rows
  * need whatever height they need, and the scrollbar pans the overflow rather than the axis
  * squeezing every bar to a hairline.
  */
-const BAR_WIDTH = 16;
+const BAR_WIDTH = 14;
+
+const transitSeriesId = (status: ShipmentStatus) => `transit-${status}`;
+
+const shipmentIdOf = (leg: Leg) => leg.shipmentId;
 </script>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import type { AgCartesianChartOptions, AgRangeBarSeriesOptions, AgScatterSeriesOptions } from 'ag-charts-community';
+import type {
+    AgCartesianChartOptions,
+    AgRangeBarSeriesOptions,
+    AgScatterSeriesOptions,
+    AgSelectionItemIds,
+} from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-vue3';
 
-import { NEUTRAL, STATUS_COLORS, THEME } from '../chartTheme';
+import { STATUS_COLORS, THEME } from '../chartTheme';
 import { DEMO_NOW } from '../data';
-import { fmtCurrencyCompact, fmtDate, fmtSlack } from '../format';
+import { fmtCurrencyCompact, fmtDate } from '../format';
+import { stylerOwnedSelection } from './chartSelection';
+import { useShipmentSelection } from './useShipmentSelection';
 
 /**
  * Every shipment's transit window against the date production needs it.
@@ -43,13 +68,13 @@ import { fmtCurrencyCompact, fmtDate, fmtSlack } from '../format';
  */
 const props = defineProps<{
     shipments: TrackedShipment[];
-    /** The shipment currently selected, if any. */
-    selectedShipmentId?: string;
+    /** The shipments currently selected; empty when none is. */
+    selectedShipmentIds: string[];
 }>();
 
 const emit = defineEmits<{
-    /** Selecting the same shipment again clears it. */
-    select: [shipmentId: string];
+    /** The user changed the selection on the schedule. */
+    selectionChange: [added: string[], removed: string[]];
 }>();
 
 // Soonest required first, so what is most urgent is at the top of the axis.
@@ -57,6 +82,8 @@ const legs = computed<Leg[]>(() =>
     [...props.shipments]
         .sort((a, b) => a.requiredDate - b.requiredDate)
         .map((shipment) => ({
+            [STATUS_KEYS[shipment.status].low]: shipment.departDate,
+            [STATUS_KEYS[shipment.status].high]: shipment.projectedDate,
             shipmentId: shipment.shipmentId,
             supplier: shipment.supplierName,
             material: shipment.material,
@@ -65,47 +92,62 @@ const legs = computed<Leg[]>(() =>
             projected: shipment.projectedDate,
             required: shipment.requiredDate,
             status: shipment.status,
-            slackDays: shipment.slackDays,
             value: shipment.value,
         }))
 );
 
-const options = computed<AgCartesianChartOptions<Leg>>(() => {
-    const { selectedShipmentId } = props;
-    const dimmed = (shipmentId: string) => selectedShipmentId != null && shipmentId !== selectedShipmentId;
+const itemsFor = (shipmentId: string): AgSelectionItemIds[] => {
+    const leg = legs.value.find((l) => l.shipmentId === shipmentId);
+    return leg == null ? [] : [{ seriesId: transitSeriesId(leg.status), itemId: shipmentId }];
+};
 
-    const transit: AgRangeBarSeriesOptions<Leg> = {
+const { chartRef, onChartSelectionChange } = useShipmentSelection({
+    selectedShipmentIds: () => props.selectedShipmentIds,
+    onSelectionChange: (added, removed) => emit('selectionChange', added, removed),
+    shipmentIdOf,
+    itemsFor,
+});
+
+const options = computed<AgCartesianChartOptions<Leg>>(() => {
+    const { selectedShipmentIds } = props;
+    // From the shared selection, not the styler's `selectionState`: a selection set through the
+    // API does not re-run a cached styler, and this chart's selection mostly arrives that way.
+    const dimmed = (shipmentId: string) => selectedShipmentIds.length > 0 && !selectedShipmentIds.includes(shipmentId);
+
+    // One series per status, so the legend keys each status colour; ungrouped, so each row keeps
+    // a single full-width slot rather than three side by side with two left empty.
+    const transit = STATUSES.map<AgRangeBarSeriesOptions<Leg>>((status) => ({
         type: 'range-bar',
+        id: transitSeriesId(status),
         direction: 'horizontal',
         xKey: 'shipmentId',
-        yLowKey: 'depart',
-        yHighKey: 'projected',
-        yName: 'In transit',
+        yLowKey: STATUS_KEYS[status].low,
+        yHighKey: STATUS_KEYS[status].high,
+        yName: status,
+        grouped: false,
         width: BAR_WIDTH,
-        cornerRadius: 3,
+        cornerRadius: 2,
+        fill: STATUS_COLORS[status],
+        fillOpacity: 0.9,
         strokeWidth: 0,
-        itemStyler: ({ datum }) =>
-            dimmed(datum.shipmentId)
-                ? { fill: NEUTRAL, fillOpacity: 0.3 }
-                : { fill: STATUS_COLORS[datum.status], fillOpacity: 0.9 },
+        itemStyler: ({ datum }) => (dimmed(datum.shipmentId) ? { fillOpacity: 0.3 } : {}),
+        selection: stylerOwnedSelection(0),
+        highlight: { enabled: false },
         tooltip: {
             renderer: ({ datum }) => ({
+                heading: '',
                 title: `${datum.shipmentId} · ${datum.status}`,
                 data: [
                     { label: 'Lane', value: `${datum.supplier} → ${datum.plant}` },
                     { label: 'Cargo', value: datum.material },
-                    { label: 'Despatched', value: fmtDate(datum.depart) },
+                    { label: 'Dispatched', value: fmtDate(datum.depart) },
                     { label: 'Projected arrival', value: fmtDate(datum.projected) },
                     { label: 'Required by', value: fmtDate(datum.required) },
-                    { label: 'Against required', value: fmtSlack(datum.slackDays) },
                     { label: 'Value', value: fmtCurrencyCompact(datum.value) },
                 ],
             }),
         },
-        listeners: {
-            seriesNodeClick: ({ datum }) => emit('select', datum.shipmentId),
-        },
-    };
+    }));
 
     // The date production needs it, as a separate mark so it reads against the bar's end
     // rather than as part of it.
@@ -117,25 +159,32 @@ const options = computed<AgCartesianChartOptions<Leg>>(() => {
         shape: 'diamond',
         size: 11,
         fill: 'var(--pc-text)',
-        stroke: 'var(--pc-text)',
-        strokeWidth: 2,
+        stroke: 'var(--pc-bg)',
+        strokeWidth: 1,
+        itemStyler: ({ datum }) => (dimmed(datum.shipmentId) ? { fillOpacity: 0.3, strokeOpacity: 0.3 } : {}),
         tooltip: { enabled: false },
         highlight: { enabled: false },
-        listeners: {
-            seriesNodeClick: ({ datum }) => emit('select', datum.shipmentId),
+        // Selectable only as a click target: the sync moves its shipment's selection onto the bar.
+        selection: {
+            enabled: true,
+            unselectedItem: { opacity: 1 },
+            unselectedSeries: { opacity: 1 },
         },
     };
 
     return {
         theme: THEME,
         data: legs.value,
-        series: [transit, required],
+        // Addresses selection items by shipment, so a selection survives the rows re-sorting.
+        dataIdKey: 'shipmentId',
+        series: [...transit, required],
         // Horizontal bars: shipments down the left, time along the bottom.
         axes: {
             y: { type: 'category', position: 'left', label: { fontSize: 11 } },
             x: {
                 type: 'time',
                 position: 'bottom',
+                crosshair: { label: { formatter: ({ value }) => fmtDate(value) } },
                 crossLines: [
                     {
                         type: 'line',
@@ -145,7 +194,7 @@ const options = computed<AgCartesianChartOptions<Leg>>(() => {
                         label: {
                             enabled: true,
                             text: 'Today',
-                            position: 'top',
+                            placement: 'top',
                             color: 'var(--pc-text)',
                             fontSize: 11,
                         },
@@ -153,15 +202,18 @@ const options = computed<AgCartesianChartOptions<Leg>>(() => {
                 ],
             },
         },
-        legend: { enabled: false },
+        legend: { enabled: true, position: 'bottom' },
         // The rows overflow a short card, so panning is by scrollbar rather than by the
         // card growing to fit however many shipments are in transit.
         scrollbar: { enabled: true, vertical: { position: 'right' } },
-        padding: { top: 8, right: 16, bottom: 4, left: 4 },
+        padding: { top: 0, right: 16, bottom: 4, left: 4 },
+        // Ctrl/Cmd-click adds or removes a shipment; a click off the bars clears.
+        selection: { enabled: true },
+        listeners: { selectionChange: onChartSelectionChange },
     };
 });
 </script>
 
 <template>
-    <AgCharts :options="options" :style="{ height: '100%', width: '100%' }" />
+    <AgCharts ref="chartRef" :options="options" :style="{ height: '100%', width: '100%' }" />
 </template>

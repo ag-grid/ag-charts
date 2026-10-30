@@ -1,31 +1,40 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, computed, inject, signal, viewChild } from '@angular/core';
 
 import { supplierColors as buildSupplierColors } from './chartTheme';
 import { AttentionAlert, type AttentionResolution } from './components/attention-alert';
+import { DemoNotice } from './components/demo-notice';
+import { HelpCard } from './components/help-card';
 import { buildKpis, buildSpendKpis } from './components/kpi-strip';
 import { OrdersView } from './components/orders-view';
 import { type PoAction } from './components/purchase-order-grid';
+import type { ShipmentSelectionChange } from './components/shipment-selection';
+import { SidebarActions } from './components/sidebar-actions';
 import { SpendView } from './components/spend-view';
 import { SuppliersView } from './components/suppliers-view';
-import { DEMO_NOW, SUBCATEGORIES } from './data';
+import { SUBCATEGORIES } from './data';
 import { fmtDate, fmtInt } from './format';
 import type { PoActionKind } from './types';
 import { Select, TabContent, TabTrigger, Tabs, TabsList } from './ui';
 import {
+    ALL_FILTER,
+    DEFAULT_ORDERS_FILTER,
     DEFAULT_PERIOD,
     DEFAULT_SPEND_PERIOD,
     MANAGER,
-    MY_OPEN_ORDERS,
-    MY_ORDERS,
     MY_SUPPLIERS,
     MY_TRACKED_SHIPMENTS,
+    type OrdersFilter,
     PERIOD_OPTIONS,
     type PeriodMonths,
     SPEND_PERIOD_OPTIONS,
     type SpendPeriod,
+    applySelectionChange,
     myAttentionItems,
     myBurnUp,
+    myMaterialQualityCost,
+    myOrdersFilterOptions,
     myOrdersInRange,
+    myOrdersScope,
     myPeriod,
     myQualityCost,
     myScorecard,
@@ -37,7 +46,7 @@ import {
     mySummary,
     mySupplierShare,
     mySupplierTrend,
-    ordersOnShipment,
+    ordersOnShipments,
     periodLabel,
     shipmentCarryingOrder,
     spendKpiLabel,
@@ -66,12 +75,6 @@ const INITIALS = MANAGER.name
     .join('');
 
 /**
- * When the dataset is current to. Fixed, because the data is: a moving wall-clock stamp would
- * claim a freshness the workspace does not have.
- */
-const DATA_AS_OF = fmtDate(DEMO_NOW);
-
-/**
  * The tabs follow her own working cadences, which the spec spells out: she checks the workspace
  * daily, reviews scorecard trends weekly, and does spend and contract work quarterly. Grouping by
  * cadence rather than by chart type is what keeps each tab answerable in one screen.
@@ -97,25 +100,43 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
  */
 @Component({
     selector: 'div[pcWorkspaceApp]',
-    imports: [AttentionAlert, OrdersView, Select, SpendView, SuppliersView, TabContent, TabTrigger, TabsList],
+    imports: [
+        AttentionAlert,
+        DemoNotice,
+        HelpCard,
+        OrdersView,
+        Select,
+        SidebarActions,
+        SpendView,
+        SuppliersView,
+        TabContent,
+        TabTrigger,
+        TabsList,
+    ],
     hostDirectives: [Tabs],
     host: { class: 'pc-app' },
     template: `
         <aside class="pc-sidebar">
-            <span class="pc-brand"
-                ><svg class="pc-brand-mark" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 2.5 21 7v10l-9 4.5L3 17V7z" class="pc-brand-mark-box" />
-                    <path d="M3 7l9 4.5L21 7M12 11.5V21.5" class="pc-brand-mark-edge" />
-                </svg>
-                Procurement Workspace</span
-            >
+            <div class="pc-brand-row">
+                <span class="pc-brand"
+                    ><svg class="pc-brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 2.5 21 7v10l-9 4.5L3 17V7z" class="pc-brand-mark-box" />
+                        <path d="M3 7l9 4.5L21 7M12 11.5V21.5" class="pc-brand-mark-edge" />
+                    </svg>
+                    Supply Desk</span
+                >
+                <span pcDemoNotice></span>
+            </div>
             <div pcTabsList class="pc-tabs-list" aria-label="Workspace views">
                 @for (entry of tabs; track entry.value) {
                     <button pcTabTrigger class="pc-tab-trigger" [value]="entry.value">{{ entry.label }}</button>
                 }
             </div>
             <span class="pc-sidebar-spacer"></span>
-            <span class="pc-stamp">Data as of {{ dataAsOf }}</span>
+            @if (!helpDismissed()) {
+                <section pcHelpCard (dismiss)="helpDismissed.set(true)"></section>
+            }
+            <ul pcSidebarActions></ul>
             <div class="pc-account">
                 <!-- Titled because the name beside it is hidden in the collapsed layout. -->
                 <span class="pc-avatar" [title]="manager.name + ' · ' + manager.title">{{ initials }}</span>
@@ -126,7 +147,7 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
             </div>
         </aside>
 
-        <div class="pc-body">
+        <div #body class="pc-body">
             <div class="pc-view">
                 <div class="pc-page-head">
                     <h1 class="pc-page-title">{{ pageTitle() }}</h1>
@@ -134,9 +155,9 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
                         <!--
                             The period control belongs to the tab it scopes, and the two tabs that
                             have one do not share a window — so it is rendered per tab rather than
-                            once for the workspace. The orders tab has none: its grid is her open
-                            order book and its KPIs are absolute, so there is nothing for a period
-                            to narrow.
+                            once for the workspace. The orders tab has none: its KPIs follow the
+                            supplier and subcategory filters and its grid the shipment selection,
+                            so there is nothing for a period to narrow.
                         -->
                         @if (tab() === 'suppliers') {
                             <div class="pc-page-controls">
@@ -172,6 +193,24 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
                         <!-- Her landing view only: the worklist's items resolve into the order
                             book and the grid below it, so the alert lives where they land. -->
                         @if (tab() === 'orders') {
+                            <div class="pc-page-controls">
+                                <label
+                                    pcSelect
+                                    label="Supplier"
+                                    ariaLabel="Supplier my orders are narrowed to"
+                                    [value]="ordersFilter().supplierId"
+                                    (valueChange)="onOrdersFilterChange({ supplierId: $event })"
+                                    [options]="ordersFilterOptions().suppliers"
+                                ></label>
+                                <label
+                                    pcSelect
+                                    label="Subcategory"
+                                    ariaLabel="Material subcategory my orders are narrowed to"
+                                    [value]="ordersFilter().subcategory"
+                                    (valueChange)="onOrdersFilterChange({ subcategory: $event })"
+                                    [options]="ordersFilterOptions().subcategories"
+                                ></label>
+                            </div>
                             <div
                                 pcAttentionAlert
                                 [items]="attentionItems()"
@@ -188,15 +227,15 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
                         <div
                             pcOrdersView
                             [kpis]="kpis()"
-                            [shipments]="trackedShipments"
-                            [selectedShipmentId]="selectedShipmentId()"
-                            (selectShipment)="onSelectShipment($event)"
+                            [shipments]="ordersScope().shipments"
+                            [selectedShipmentIds]="selectedShipmentIds()"
+                            (shipmentSelectionChange)="onShipmentSelectionChange($event)"
                             [orders]="gridOrders()"
                             [gridSubtitle]="gridSubtitle()"
                             [poActions]="poActions()"
                             (poAction)="onPoAction($event)"
                             (clearSelection)="clearSelection()"
-                            [canClearSelection]="selectedShipmentId() != null"
+                            [canClearSelection]="selectedShipmentIds().length > 0"
                         ></div>
                     }
                 </div>
@@ -209,9 +248,10 @@ const SPEND_PERIOD_SELECT_OPTIONS = SPEND_PERIOD_OPTIONS.map((option) => ({
                             [supplierNames]="supplierNames"
                             [supplierColors]="supplierColors"
                             [selectedSupplierId]="selectedSupplierId()"
-                            (selectSupplier)="onSelectSupplier($event)"
+                            (selectedSupplierChange)="selectedSupplierId.set($event)"
                             [slipDistributions]="slipDistributions()"
                             [qualityCost]="qualityCost()"
+                            [materialQualityCost]="materialQualityCost()"
                             [trend]="supplierTrend()"
                         ></div>
                     }
@@ -241,8 +281,6 @@ export class WorkspaceApp {
     protected readonly tabs = TABS;
     protected readonly manager = MANAGER;
     protected readonly initials = INITIALS;
-    protected readonly dataAsOf = DATA_AS_OF;
-    protected readonly trackedShipments = MY_TRACKED_SHIPMENTS;
     protected readonly supplierNames = SUPPLIER_NAMES;
     protected readonly supplierColors = SUPPLIER_COLORS;
     protected readonly subcategories = SUBCATEGORIES[MANAGER.commodity];
@@ -261,7 +299,7 @@ export class WorkspaceApp {
      * carried across would rescope a grid on a tab the reader is not looking at — and the two
      * scopes rarely intersect, so it would as often empty a view as narrow it.
      */
-    protected readonly selectedShipmentId = signal<string | undefined>(undefined);
+    protected readonly selectedShipmentIds = signal<string[]>([]);
     protected readonly selectedSupplierId = signal<string | undefined>(undefined);
     /** Items she has acted on, and what she chose — resolved items leave the list. */
     private readonly resolved = signal<Record<string, string>>({});
@@ -270,6 +308,27 @@ export class WorkspaceApp {
     protected readonly months = signal<PeriodMonths>(DEFAULT_PERIOD);
     /** The calendar window the spend tab is read over, and budgeted against. */
     protected readonly spendPeriod = signal<SpendPeriod>(DEFAULT_SPEND_PERIOD);
+    /** The supplier and material subcategory the orders tab is narrowed to. */
+    protected readonly ordersFilter = signal<OrdersFilter>(DEFAULT_ORDERS_FILTER);
+    /** The React `HelpCard`'s own `dismissed` state, held here so the card's `@if` can read it. */
+    protected readonly helpDismissed = signal(false);
+
+    protected readonly ordersScope = computed(() => myOrdersScope(this.ordersFilter()));
+
+    /** Each filter's choices, led by the option that narrows nothing. */
+    protected readonly ordersFilterOptions = computed(() => {
+        const { supplierIds, subcategories } = myOrdersFilterOptions(this.ordersFilter());
+        return {
+            suppliers: [
+                { value: ALL_FILTER, label: 'All suppliers' },
+                ...supplierIds.map((supplierId) => ({ value: supplierId, label: SUPPLIER_NAMES.get(supplierId)! })),
+            ],
+            subcategories: [
+                { value: ALL_FILTER, label: 'All subcategories' },
+                ...subcategories.map((subcategory) => ({ value: subcategory, label: subcategory })),
+            ],
+        };
+    });
 
     protected readonly pageTitle = computed(() => TAB_LABELS.get(this.tab()) ?? '');
 
@@ -295,6 +354,7 @@ export class WorkspaceApp {
     protected readonly slipDistributions = computed(() => mySlipDistributions(this.months()));
     protected readonly supplierTrend = computed(() => mySupplierTrend(this.months()));
     protected readonly qualityCost = computed(() => myQualityCost(this.months()));
+    protected readonly materialQualityCost = computed(() => myMaterialQualityCost(this.months()));
 
     protected readonly shareRows = computed(() => mySupplierShare(this.spendOrders()));
     // Fixed to the current quarter, matching the allocation it is paced against.
@@ -304,17 +364,24 @@ export class WorkspaceApp {
     protected readonly spendTrend = computed(() => mySpendTrend(this.spendPeriod()));
 
     /**
-     * A selected shipment scopes the grid over her whole order book rather than her open lines: a
-     * shipment is a live entity, and its lines were typically raised long before the tab's default
-     * view of what is still outstanding.
+     * The grid starts empty and is filled by selecting a shipment on the map or the schedule. A
+     * shipment's lines are read over her filtered order book, delivered lines included: a shipment
+     * is a live entity, and its lines were typically raised long before they were due.
      */
-    protected readonly gridOrders = computed(() => {
-        const selectedShipmentId = this.selectedShipmentId();
-        return selectedShipmentId == null ? MY_OPEN_ORDERS : ordersOnShipment(MY_ORDERS, selectedShipmentId);
-    });
+    protected readonly gridOrders = computed(() =>
+        ordersOnShipments(this.ordersScope().orders, this.selectedShipmentIds())
+    );
 
-    private readonly summary = computed(() => mySummary(this.spendOrders()));
-    protected readonly kpis = computed(() => buildKpis(this.summary()));
+    private readonly summary = computed(() => mySummary(this.spendOrders(), this.ordersScope()));
+    private readonly filterLabel = computed(() => {
+        const ordersFilter = this.ordersFilter();
+        const parts = [
+            ordersFilter.supplierId === ALL_FILTER ? undefined : SUPPLIER_NAMES.get(ordersFilter.supplierId),
+            ordersFilter.subcategory === ALL_FILTER ? undefined : ordersFilter.subcategory,
+        ].filter((part) => part != null);
+        return parts.length > 0 ? parts.join(' · ') : undefined;
+    });
+    protected readonly kpis = computed(() => buildKpis(this.summary(), this.filterLabel()));
     protected readonly spendPosition = computed(() => mySpendPosition(this.spendPeriod()));
     protected readonly spendKpis = computed(() =>
         buildSpendKpis({
@@ -324,31 +391,45 @@ export class WorkspaceApp {
         })
     );
     protected readonly gridSubtitle = computed(() => {
-        const shown = fmtInt(this.gridOrders().length);
-        const selectedShipmentId = this.selectedShipmentId();
-        // A shipment's lines are read over her whole order book, delivered ones included, so this
-        // one cannot claim to be showing open lines.
-        return selectedShipmentId == null
-            ? `${shown} of my open order lines`
-            : `${shown} of my order lines on ${selectedShipmentId}`;
+        const selectedShipmentIds = this.selectedShipmentIds();
+        if (selectedShipmentIds.length === 0) return 'No shipment selected.';
+        // Delivered lines are included, so this cannot claim to be showing open lines.
+        const on =
+            selectedShipmentIds.length === 1
+                ? selectedShipmentIds[0]
+                : `${fmtInt(selectedShipmentIds.length)} shipments`;
+        return `${fmtInt(this.gridOrders().length)} of my order lines on ${on}`;
     });
+
+    private readonly body = viewChild.required<ElementRef<HTMLDivElement>>('body');
 
     constructor() {
         this.tab.set('orders');
+        // The tabs share one scroll region, so each would otherwise open at the last one's offset.
+        afterRenderEffect(() => {
+            this.tab();
+            this.body().nativeElement.scrollTo({ top: 0 });
+        });
     }
 
-    // Selecting the same thing again clears it, on both tabs.
-    protected onSelectSupplier(supplierId: string): void {
-        this.selectedSupplierId.update((prev) => (prev === supplierId ? undefined : supplierId));
+    // The grid lists the selected shipments' lines, so a shipment the filters hide cannot stay selected.
+    protected onOrdersFilterChange(change: Partial<OrdersFilter>): void {
+        const next = { ...this.ordersFilter(), ...change };
+        const visible = new Set(myOrdersScope(next).shipments.map((shipment) => shipment.shipmentId));
+        this.ordersFilter.set(next);
+        this.selectedShipmentIds.update((selected) => selected.filter((id) => visible.has(id)));
     }
 
-    protected onSelectShipment(shipmentId: string): void {
-        this.selectedShipmentId.update((prev) => (prev === shipmentId ? undefined : shipmentId));
+    protected onShipmentSelectionChange({ added, removed }: ShipmentSelectionChange): void {
+        this.selectedShipmentIds.update((prev) => applySelectionChange(prev, added, removed));
     }
 
-    // The worklist sits on the orders tab, so following an item selects within it.
+    // The worklist ignores the filters, so following an item clears any that hide its shipment.
     protected onSelectAttention(shipmentId: string): void {
-        this.selectedShipmentId.set(shipmentId);
+        if (!this.ordersScope().shipments.some((shipment) => shipment.shipmentId === shipmentId)) {
+            this.ordersFilter.set(DEFAULT_ORDERS_FILTER);
+        }
+        this.selectedShipmentIds.set([shipmentId]);
     }
 
     /** Acting on an item resolves it in place. */
@@ -367,7 +448,7 @@ export class WorkspaceApp {
     }
 
     protected clearSelection(): void {
-        this.selectedShipmentId.set(undefined);
+        this.selectedShipmentIds.set([]);
     }
 
     protected setMonths(value: string): void {

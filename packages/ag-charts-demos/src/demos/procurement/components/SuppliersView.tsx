@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
     MaterialQualityCost,
@@ -72,6 +72,24 @@ export function SuppliersView({
         [onSelectedSupplierChange]
     );
 
+    // The keyboard's way into a drill, as a chart's double-click has no key of its own.
+    const drillableSupplierId =
+        drilledSupplierId == null &&
+        selectedSupplierId != null &&
+        qualityCost.some((row) => row.supplierId === selectedSupplierId) &&
+        (materialQualityCost.get(selectedSupplierId)?.length ?? 0) > 0
+            ? selectedSupplierId
+            : undefined;
+
+    const qualityCostBoxRef = useRef<HTMLDivElement>(null);
+    const onBack = useCallback(() => {
+        setDrilledSupplierId(undefined);
+        // With nothing selected no drill button replaces Back, so focus moves to the chart rather than the page.
+        if (selectedSupplierId == null) {
+            qualityCostBoxRef.current?.querySelector<HTMLElement>('.ag-charts-series-area')?.focus();
+        }
+    }, [selectedSupplierId]);
+
     // A drill shows one supplier's materials, so selecting another supplier leaves it; clearing the selection does not.
     useEffect(() => {
         if (selectedSupplierId == null) return;
@@ -140,20 +158,27 @@ export function SuppliersView({
 
             <div className="pc-grid-2">
                 <section className="pc-card">
-                    <div className="pc-card-head">
+                    <div className="pc-card-head pc-card-head--action">
                         <div className="pc-card-title-inline">
                             <h2 className="pc-card-title">Cost of rejected material</h2>
                             {drilledSupplierId != null && (
                                 <span className="pc-card-sub">from {supplierNames.get(drilledSupplierId)}</span>
                             )}
                         </div>
-                        {drilledSupplierId != null && (
-                            <Button className="pc-btn-sm" onClick={() => setDrilledSupplierId(undefined)}>
+                        {/* Both buttons share one slot, so React keeps the element and its focus as the drill flips. */}
+                        {drilledSupplierId == null ? (
+                            drillableSupplierId != null && (
+                                <Button className="pc-btn-sm" onClick={() => onDrill(drillableSupplierId)}>
+                                    {`See ${supplierNames.get(drillableSupplierId)}'s materials →`}
+                                </Button>
+                            )
+                        ) : (
+                            <Button className="pc-btn-sm" onClick={onBack}>
                                 ← Back to all suppliers
                             </Button>
                         )}
                     </div>
-                    <div className="pc-chart-box" data-keeps-selection>
+                    <div className="pc-chart-box" ref={qualityCostBoxRef} data-keeps-selection>
                         {qualityCost.length > 0 && (drilledSupplierId == null || drilledMaterials.length > 0) ? (
                             <QualityCostChart
                                 rows={qualityCost}
@@ -185,8 +210,7 @@ export function SuppliersView({
                             options={METRIC_OPTIONS}
                         />
                     </div>
-                    {/* Sized by the scorecard beside it, which hugs its grid. */}
-                    <div className="pc-chart-box--match" data-keeps-selection>
+                    <div className="pc-chart-box" data-keeps-selection>
                         <SupplierTrendChart
                             trend={trend}
                             supplierNames={supplierNames}
