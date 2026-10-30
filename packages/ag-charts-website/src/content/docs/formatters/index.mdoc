@@ -77,22 +77,6 @@ For example an axis label will be formatted as follows:
 
 Additionally, if only an `axes[].label.formatter` is provided in the chart, the tooltip and crosshair formats will inherit based on this.
 
-The `source` property tells an `axes[].label.formatter` which element it is formatting, so it can return `undefined` for elements that should not inherit its format. For example, a `%` axis on a normalised series can leave raw values in tooltips and series labels unformatted:
-
-```js format="snippet"
-{
-    axes: {
-        y: {
-            type: 'number',
-            label: {
-                formatter: ({ value, source }) =>
-                    source === 'tooltip' || source === 'series-label' ? undefined : `${value}%`,
-            },
-        },
-    },
-}
-```
-
 ## Format Strings
 
 A formatter can also be specified as a format string, which is a static string that represents a time or number format. This has less flexibility than the formatter function, but can be serialised.
