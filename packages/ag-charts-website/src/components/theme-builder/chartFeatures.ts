@@ -42,7 +42,7 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
     { id: 'crosshairs', label: 'Crosshairs', hint: 'Axis labels on hover - hover the chart to see them' },
     { id: 'contextMenu', label: 'Context Menu', hint: 'Opened by right-click' },
     { id: 'zoom', label: 'Zoom', hint: 'Zoom buttons, and scrolling to zoom' },
-    { id: 'scrollbar', label: 'Scrollbar', hint: 'Shown once zoomed in' },
+    { id: 'scrollbar', label: 'Scrollbar', hint: 'The track and thumb beside each axis' },
     { id: 'navigator', label: 'Navigator', hint: 'The mini chart and its handles below the axis' },
     {
         id: 'rangeButtons',
@@ -53,7 +53,7 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
     },
 ];
 
-/** On by default, because a feature nobody switches on is a param nobody sees. */
+/** Mostly on by default, because a feature nobody switches on is a param nobody sees. */
 export const DEFAULT_CHART_FEATURES: ChartFeatures = {
     seriesStrokes: true,
     legend: true,
@@ -61,8 +61,8 @@ export const DEFAULT_CHART_FEATURES: ChartFeatures = {
     crosshairs: true,
     contextMenu: true,
     zoom: true,
-    scrollbar: true,
-    navigator: true,
+    scrollbar: false,
+    navigator: false,
     rangeButtons: true,
 };
 

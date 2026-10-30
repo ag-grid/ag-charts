@@ -148,7 +148,8 @@ const commonOptions = (features: ChartFeatures) => ({
 
 const navigationOptions = (features: ChartFeatures) => ({
     zoom: { enabled: isFeatureActive(features, 'zoom') },
-    scrollbar: { enabled: isFeatureActive(features, 'scrollbar') },
+    // Always shown, as one appearing mid-drag resizes the chart under the navigator handle and the drag flickers.
+    scrollbar: { enabled: isFeatureActive(features, 'scrollbar'), visible: 'always' as const },
     navigator: { enabled: isFeatureActive(features, 'navigator') },
 });
 
