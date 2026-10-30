@@ -156,8 +156,7 @@ export function createSupplierTrendChart({
                     },
                     // A month a supplier has no record in is a gap, not a drop to zero.
                     connectMissingData: false,
-                    // The markers carry no outline of their own.
-                    selection: stylerOwnedSelection(0),
+                    selection: stylerOwnedSelection(1),
                     tooltip: {
                         renderer: ({ datum }) => {
                             const value = datum[supplierId];
