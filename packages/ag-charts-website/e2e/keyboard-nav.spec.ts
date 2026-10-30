@@ -1146,23 +1146,10 @@ test.describe('keyboard-nav', () => {
                 await selectTestMode(page, 'Local doubleClick (title)');
             });
 
-            // Keyboard activation only dispatches `click`, so double-click-only listeners are not fired by Space.
-            test('Tab stops on the title but Space fires nothing', async ({ page }) => {
-                await page.keyboard.press('Tab');
-                await expectChartScreenshot(page, chartContainer, 'AG-17708-title-focused.png');
-                expect(await getActiveElementText(page)).toBe(TITLE);
-
-                await page.keyboard.press('Space');
-                expect(await popEvents(page)).toEqual([]);
-
-                await page.keyboard.press('Tab');
-                await expect(seriesAreaFocus(page)).toHaveCount(1);
-            });
-
             test('only the caption with a listener is interactive', async ({ page }) => {
-                await expect(captionProxy(page, TITLE)).toMatchAriaSnapshot(`- button "${TITLE}"`);
-                await expect(captionProxy(page, TITLE)).toHaveAttribute('tabindex', '0');
-                await expect(captionProxy(page, TITLE)).toHaveCSS('cursor', 'pointer');
+                await expect(captionProxy(page, TITLE)).toMatchAriaSnapshot(`- text: "${TITLE}"`);
+                await expect(captionProxy(page, TITLE)).not.toHaveAttribute('tabindex');
+                await expect(captionProxy(page, TITLE)).not.toHaveCSS('cursor', 'pointer');
                 await expect(captionProxy(page, SUBTITLE)).toMatchAriaSnapshot(`- text: "${SUBTITLE}"`);
                 await expect(captionProxy(page, SUBTITLE)).not.toHaveAttribute('tabindex');
                 await expect(captionProxy(page, SUBTITLE)).not.toHaveCSS('cursor', 'pointer');
