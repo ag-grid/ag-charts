@@ -4,7 +4,7 @@ import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { getAxisDomain, getAxisLabelTexts } from '../test/axisAccessors';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
-import { createChart, expectWarningMessages, setupMockCanvas, setupMockConsole } from '../test/utils';
+import { createChart, setupMockCanvas, setupMockConsole } from '../test/utils';
 
 // BigInt numeric-axis ticks must render at full precision end-to-end, so these drive a real chart.
 describe('NumberAxis BigInt labels', () => {
@@ -116,9 +116,9 @@ describe('NumberAxis bigint bounds and interval (AG-16608)', () => {
     });
 });
 
-// A fixed `interval` — step or values — must never let the label-overlap search widen the domain
-// beyond the data: each pass lowers tickCount until the scale stops honouring the interval.
-describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
+// Explicit `interval.values` leave the axis domain to be niced against the tick count, as in 14.2.0,
+// rather than being fitted tightly to the data (AG-19132).
+describe('NumberAxis interval values domain (AG-19132)', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -131,107 +131,36 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         }
     });
 
-    // Nine bars spanning 0..11000, as in the reporter's repro.
-    const data = [
-        { x: 0, value: 2 },
-        { x: 1000, value: 5 },
-        { x: 2000, value: 3 },
-        { x: 3000, value: 1 },
-        { x: 4000, value: 2 },
-        { x: 5000, value: 3 },
-        { x: 9000, value: 1 },
-        { x: 10000, value: 2 },
-        { x: 11000, value: 2 },
-    ];
-
-    const barOptions = (xAxis: object, chartData: object[] = data): AgCartesianChartOptions => ({
-        data: chartData as AgCartesianChartOptions['data'],
-        series: [{ type: 'bar', xKey: 'x', yKey: 'value' }],
-        axes: {
-            x: { type: 'number', position: 'bottom', ...xAxis },
-            y: { type: 'number', position: 'left' },
-        },
-    });
-
-    const xDomain = (): number[] => getAxisDomain(chart, 'bottom').map(Number);
-
-    it('keeps the x domain fitted to the data when interval.step is dense', async () => {
-        chart = await createChart(barOptions({ interval: { step: 100 } }));
-
-        // Bars pad the 0..11000 keys by half the 1000 key interval, then the domain snaps to the 100 step.
-        expect(xDomain()).toEqual([-500, 11500]);
-    });
-
-    it('keeps the x domain fitted to the data when interval.values is dense', async () => {
-        // 116 explicit values at spacing 100 cover the padded data extent.
-        const values = Array.from({ length: 116 }, (_, i) => -500 + i * 100);
-        chart = await createChart(barOptions({ interval: { values } }));
-
-        // Pinned ticks leave no tick count for the bounds to be niced against, so they stay on the data.
-        expect(xDomain()).toEqual([-500, 11500]);
-    });
-
-    it('fits the x domain to decimal values whose spacing does not subtract exactly', async () => {
-        // (-500 + i * 100) / 10000 is spaced 0.01 apart, but adjacent subtractions disagree in the
-        // last bits, so an exact comparison would miss the spacing and leave the bounds on [-1, 2].
-        const values = Array.from({ length: 116 }, (_, i) => (-500 + i * 100) / 10000);
-        chart = await createChart(
-            barOptions(
-                { interval: { values } },
-                data.map(({ x, value }) => ({ x: x / 10000, value }))
-            )
-        );
-
-        const [d0, d1] = xDomain();
-        expect(d0).toBeCloseTo(-0.05, 10);
-        expect(d1).toBeCloseTo(1.15, 10);
-    });
-
-    it('leaves the y domain on the data when two sparse values imply a wide step', async () => {
-        // Any two values are evenly spaced, so the implied step is the whole gap between them, and
-        // rounding the bounds out to a multiple of that gap would leave the data in a narrow band.
-        const options: AgCartesianChartOptions = {
+    it('shows the 100 tick for values 50, 88, 100 over the axes-intervals values example data', async () => {
+        chart = await createChart({
             data: [
-                { x: 0, y: 1 },
-                { x: 1, y: -64.2 },
-                { x: 2, y: -148.1 },
+                { os: 'Windows', share: 88.07 },
+                { os: 'macOS', share: 9.44 },
+                { os: 'Linux', share: 1.87 },
             ],
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            series: [{ type: 'bar', xKey: 'os', yKey: 'share' }],
             axes: {
-                x: { type: 'number', position: 'bottom' },
-                y: { type: 'number', position: 'left', interval: { values: [0, -148.1] } },
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left', interval: { values: [50, 88, 100] } },
             },
-        };
-        chart = await createChart(options);
+        });
 
-        expect(getAxisDomain(chart, 'left').map(Number)).toEqual([-150, 50]);
+        expect(getAxisLabelTexts(chart, 'left')).toEqual(['50', '88', '100']);
+        expect(getAxisDomain(chart, 'left').map(Number)).toEqual([0, 100]);
     });
 
-    it('still reduces colliding labels when the step is too dense for the scale to honour', async () => {
-        // Over an 8000-wide domain this is far more than one tick per pixel, so the scale rejects the
-        // step and falls back to automatic ticks driven by the tick count.
-        chart = await createChart(
-            barOptions(
-                {
-                    interval: { step: 1 },
-                    label: {
-                        formatter: ({ value }: { value: any }) =>
-                            `an extremely long axis label text for value ${value}`,
-                    },
-                },
-                Array.from({ length: 9 }, (_, i) => ({ x: i * 1000, value: i }))
-            )
-        );
+    it('keeps the earliest bubble-with-images datum inside the x domain', async () => {
+        const years = [1500, 1000, -5000, 1896, 1892, 1100, -600, 300, 1920, 1761];
+        chart = await createChart({
+            data: years.map((year, i) => ({ year, difficulty: i % 10 })),
+            series: [{ type: 'scatter', xKey: 'year', yKey: 'difficulty' }],
+            axes: {
+                x: { type: 'number', position: 'bottom', interval: { values: [-250, 250] } },
+                y: { type: 'number', position: 'right', min: 0, max: 10, interval: { values: [0, 10] } },
+            },
+        });
 
-        expectWarningMessages([
-            'AG Charts - the configured interval results in more than 1 item per pixel, ignoring. Supply a larger interval or omit this configuration',
-        ]);
-
-        // Automatic ticks are not pinned, so the overlap search is still free to thin them:
-        // ending the search after the first pass would leave three labels colliding here.
-        expect(getAxisLabelTexts(chart, 'bottom').length).toBe(2);
-        // The search does keep decaying tickCount here, so this is the path that proves niceDomain
-        // itself honours the configured interval rather than widening to a power of ten.
-        expect(xDomain()).toEqual([-500, 8500]);
+        // The earliest datum (-5000) sits well inside the domain rather than on its left edge, as in 14.2.0.
+        expect(getAxisDomain(chart, 'bottom').map(Number)).toEqual([-6000, 2000]);
     });
 });
