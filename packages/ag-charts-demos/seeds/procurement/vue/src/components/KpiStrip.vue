@@ -1,53 +1,33 @@
 <script lang="ts">
-import { STATUS_COLORS, STATUS_ICONS } from '../chartTheme';
 import { fmtCurrencyCompact, fmtInt, fmtPct } from '../format';
-import type { Kpi, ShipmentStatus } from '../types';
-import { type MySpendPosition, type MySummary, ON_TIME_TARGET } from '../workspace';
-
-/** Bands of the shipment breakdown, worst first. */
-const SEGMENT_ORDER: ShipmentStatus[] = ['Late', 'At risk', 'On time'];
+import type { Kpi } from '../types';
+import type { MySpendPosition, MySummary } from '../workspace';
+import { STATUS_ORDER, statusSegments } from './StatusKeys.vue';
 
 /**
- * Her delivery headlines, with the threshold logic that selects each tile's state.
+ * Her delivery headline: the freight from her suppliers that needs watching.
  *
- * These are her scorecard, not a portfolio summary: every one is scoped to her commodity, so
- * the labels say "my" and the denominators are her commodity's, not the company's.
+ * Scoped to her commodity rather than the portfolio, so the denominator is her commodity's
+ * in-transit count, not the company's. Spend against allocation is a spend-tab
+ * figure — see `buildSpendKpis`.
  *
- * Every tile is absolute rather than period-scoped, and says which window it covers — see
- * `mySummary`. Spend against allocation is a spend-tab figure — see `buildSpendKpis`.
+ * `filterLabel` names what the orders tab's filters narrow to, so the detail line says the figure is filtered.
  */
-export function buildKpis(summary: MySummary): Kpi[] {
-    const belowTarget = summary.onTimeRate < ON_TIME_TARGET;
-    const inTransit = SEGMENT_ORDER.reduce((total, status) => total + summary.shipmentsByStatus[status], 0);
+export function buildKpis(summary: MySummary, filterLabel?: string): Kpi[] {
+    const inTransit = STATUS_ORDER.reduce((total, status) => total + summary.shipmentsByStatus[status], 0);
 
     return [
         {
-            key: 'onTime',
-            label: 'My on-time delivery',
-            value: fmtPct(summary.onTimeRate),
-            detail: `${fmtInt(summary.deliveredCount)} deliveries, rolling 12 months · ${fmtPct(ON_TIME_TARGET)} target`,
-            tone: belowTarget ? 'bad' : 'good',
-            icon: belowTarget ? '▼' : '▲',
-            gauge: {
-                value: summary.onTimeRate,
-                target: ON_TIME_TARGET,
-                targetLabel: `${fmtPct(ON_TIME_TARGET)} target`,
-            },
-        },
-        {
             key: 'atRisk',
-            label: 'My at-risk shipments',
+            label: 'At-risk shipments',
             value: fmtInt(summary.atRiskShipments),
-            detail: `Of ${fmtInt(inTransit)} in transit from my suppliers`,
-            tone: summary.atRiskShipments > 0 ? 'bad' : 'good',
-            icon: summary.atRiskShipments > 0 ? '▲' : '●',
-            // Worst first, so the bands she is being measured on lead the bar.
-            segments: SEGMENT_ORDER.map((status) => ({
-                label: status,
-                count: summary.shipmentsByStatus[status],
-                color: STATUS_COLORS[status],
-                icon: STATUS_ICONS[status],
-            })),
+            detail:
+                filterLabel == null
+                    ? `Out of ${fmtInt(inTransit)} in transit from my suppliers`
+                    : `Out of ${fmtInt(inTransit)} in transit · filtered to ${filterLabel}`,
+            // The segmented bar already shows how many are late, so the tile carries no threshold state.
+            tone: 'neutral',
+            segments: statusSegments(summary.shipmentsByStatus),
         },
     ];
 }
@@ -84,7 +64,6 @@ export function buildSpendKpis({ position, label, projectionLabel }: SpendKpis):
             value: fmtCurrencyCompact(position.spend),
             detail: `${fmtPct(position.used)} of my ${fmtCurrencyCompact(position.budget)} ${position.budgetLabel} · ${fmtPct(position.elapsed)} of the ${position.windowLabel} elapsed`,
             tone,
-            icon: tone === 'neutral' ? '●' : '▲',
             // The allocation is the ceiling, so the target sits at the far end of the scale.
             gauge: { value: position.used, target: 1, targetLabel: position.budgetLabel },
         },
@@ -95,7 +74,6 @@ export function buildSpendKpis({ position, label, projectionLabel }: SpendKpis):
             // Says the assumption out loud: a run rate is a projection, not a commitment.
             detail: `${fmtCurrencyCompact(Math.abs(overrun))} ${overrun >= 0 ? 'over' : 'under'} my ${fmtCurrencyCompact(position.budget)} ${position.budgetLabel} at my recent run rate`,
             tone: overrun > 0 ? 'bad' : 'good',
-            icon: overrun > 0 ? '▲' : '▼',
             gauge: { value: projectedShare, target: 1, targetLabel: position.budgetLabel },
         },
     ];
@@ -105,28 +83,30 @@ export function buildSpendKpis({ position, label, projectionLabel }: SpendKpis):
 <script setup lang="ts">
 import KpiGaugeBar from './KpiGaugeBar.vue';
 import KpiSegmentBar from './KpiSegmentBar.vue';
-import KpiSegmentKeys from './KpiSegmentKeys.vue';
+import StatusKeys from './StatusKeys.vue';
 
-/** Tiles share the row evenly, however many of them a view passes. */
-defineProps<{ kpis: Kpi[] }>();
+/**
+ * Tiles share one card evenly, however many of them a view passes. `stacked` puts each chart under
+ * its figure rather than beside it.
+ */
+withDefaults(defineProps<{ kpis: Kpi[]; stacked?: boolean }>(), { stacked: false });
 </script>
 
 <template>
-    <div class="pc-kpis" :style="{ '--pc-kpi-columns': kpis.length }">
-        <div v-for="kpi in kpis" :key="kpi.key" :class="kpi.tone === 'neutral' ? 'pc-kpi' : `pc-kpi is-${kpi.tone}`">
-            <!-- The glyph restates the threshold state the accent colour carries. -->
-            <span class="pc-kpi-label"
-                >{{ kpi.label
-                }}<span v-if="kpi.tone !== 'neutral'" class="pc-kpi-icon" aria-hidden="true">{{ kpi.icon }}</span></span
-            >
-            <span class="pc-kpi-value">{{ kpi.value }}</span>
-            <KpiGaugeBar v-if="kpi.gauge" :gauge="kpi.gauge" :tone="kpi.tone" />
-            <KpiSegmentBar v-if="kpi.segments" :segments="kpi.segments" />
+    <div :class="stacked ? 'pc-kpis pc-kpis--stacked' : 'pc-kpis'" :style="{ '--pc-kpi-columns': kpis.length }">
+        <div v-for="kpi in kpis" :key="kpi.key" class="pc-kpi">
+            <span class="pc-kpi-label">{{ kpi.label }}</span>
+            <!-- The chart the figure is read against: beside it, or under it when `stacked`. -->
+            <span class="pc-kpi-figure">
+                <span class="pc-kpi-value">{{ kpi.value }}</span>
+                <KpiGaugeBar v-if="kpi.gauge" :gauge="kpi.gauge" :tone="kpi.tone" />
+                <KpiSegmentBar v-if="kpi.segments" :segments="kpi.segments" />
+            </span>
             <!-- The line explaining the figure and the bands it is drawn from read as one
                  row: the sentence on the left, the counts it refers to ranged right. -->
             <span v-if="kpi.detail != null || kpi.segments != null" class="pc-kpi-foot">
                 <span v-if="kpi.detail" class="pc-kpi-detail">{{ kpi.detail }}</span>
-                <KpiSegmentKeys v-if="kpi.segments" :segments="kpi.segments" />
+                <StatusKeys v-if="kpi.segments" :segments="kpi.segments" />
             </span>
         </div>
     </div>

@@ -1,13 +1,64 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, signal } from '@angular/core';
 
-import type { BurnUpPoint, Kpi, SpendNode, SpendTrend, SupplierShareRow } from '../types';
+import { SUBCATEGORY_RAMP } from '../chartTheme';
+import type { BurnUpPoint, Kpi, SpendNode, SpendTrend, SpendTrendSplit, SupplierShareRow } from '../types';
+import { ToggleGroup, type ToggleOption } from '../ui';
 import type { MySpendPosition } from '../workspace';
 import { BudgetBurnUp } from './budget-burn-up';
 import { EmptyState } from './empty-state';
 import { KpiStrip } from './kpi-strip';
+import { SpendBreakdownGrid } from './spend-breakdown-grid';
 import { SpendSunburst } from './spend-sunburst';
-import { SpendTrendChart } from './spend-trend-chart';
-import { SupplierShareChart } from './supplier-share-chart';
+import { SpendTrendChart, type SpendTrendStack } from './spend-trend-chart';
+import { SupplierShareChart, type SupplierShareView } from './supplier-share-chart';
+
+/** Icons are Carbon's `HeatMap_03` and `ChartBar` (Apache-2.0), as used for these series on the AG website. */
+const SHARE_VIEW_OPTIONS: (ToggleOption & { value: SupplierShareView })[] = [
+    {
+        value: 'heatmap',
+        label: 'Heatmap',
+        icon: [
+            'M27,3H5A2.0023,2.0023,0,0,0,3,5V27a2.0023,2.0023,0,0,0,2,2H27a2.0023,2.0023,0,0,0,2-2V5A2.0023,2.0023,0,0,0,27,3ZM19,9H13V5h6Zm0,2v4H13V11Zm-8,0v4H5V11Zm0,6v4H5V17Zm2,0h6v4H13Zm8-2V11h6l0,4ZM5,23h6v4H5Zm16,4V23h6v4Z',
+        ],
+    },
+    {
+        value: 'bar',
+        label: 'Stacked bar',
+        icon: ['M4,2H2V28a2,2,0,0,0,2,2H30V28H4V25H26V17H4V13H18V5H4ZM24,19v4H4V19ZM16,7v4H4V7Z'],
+    },
+];
+
+type BreakdownView = 'sunburst' | 'grid';
+
+/** Icons are Carbon's `ChartSunburst` and `DataTable` (Apache-2.0). */
+const BREAKDOWN_VIEW_OPTIONS: (ToggleOption & { value: BreakdownView })[] = [
+    {
+        value: 'sunburst',
+        label: 'Sunburst',
+        icon: [
+            'M16,2a1,1,0,0,0-1,1v7.09a5.9618,5.9618,0,0,0-2.46,1.043L7.8384,6.4311a1.4554,1.4554,0,0,0-2.087.0244A14.05,14.05,0,0,0,9.8047,28.5972a10.8482,10.8482,0,0,0,1.8989.7676,14.0982,14.0982,0,0,0,13.8443-3.1319,1.4336,1.4336,0,0,0,.0278-2.0639L20.877,19.47A5.963,5.963,0,0,0,21.91,17H29a1,1,0,0,0,1-1A14.0158,14.0158,0,0,0,16,2Zm0,10a4,4,0,1,1-4,4A4.0045,4.0045,0,0,1,16,12ZM6.83,8.251l4.2959,4.2959a5.91,5.91,0,0,0-.0113,6.9243L6.8381,23.7481A12.0168,12.0168,0,0,1,6.83,8.251Zm1.4228,16.91,4.2759-4.2759A5.9589,5.9589,0,0,0,15,21.91v6.042A11.8783,11.8783,0,0,1,8.2529,25.1612ZM17,27.9561V21.9092a5.9631,5.9631,0,0,0,2.4609-1.0273l4.2818,4.2817A11.8905,11.8905,0,0,1,17,27.9561ZM21.91,15A6.0063,6.0063,0,0,0,17,10.09V4.041A12.0208,12.0208,0,0,1,27.9585,15Z',
+        ],
+    },
+    {
+        value: 'grid',
+        label: 'Grouped table',
+        icon: [
+            'M8 18H12V20H8z',
+            'M14 18H18V20H14z',
+            'M8 14H12V16H8z',
+            'M14 22H18V24H14z',
+            'M20 14H24V16H20z',
+            'M20 22H24V24H20z',
+            'M27,3H5A2.0025,2.0025,0,0,0,3,5V27a2.0025,2.0025,0,0,0,2,2H27a2.0025,2.0025,0,0,0,2-2V5A2.0025,2.0025,0,0,0,27,3Zm0,2,0,4H5V5ZM5,27V11H27l0,16Z',
+        ],
+    },
+];
+
+/** Material leads: it is the split the sunburst beside it opens on. */
+const SPLIT_OPTIONS: { value: SpendTrendSplit; label: string }[] = [
+    { value: 'material', label: 'Material' },
+    { value: 'supplier', label: 'Supplier' },
+];
 
 /**
  * The quarterly review: where her spend goes, whether it is on plan, and why it moved.
@@ -20,10 +71,19 @@ import { SupplierShareChart } from './supplier-share-chart';
  */
 @Component({
     selector: 'div[pcSpendView]',
-    imports: [BudgetBurnUp, EmptyState, KpiStrip, SpendSunburst, SpendTrendChart, SupplierShareChart],
+    imports: [
+        BudgetBurnUp,
+        EmptyState,
+        KpiStrip,
+        SpendBreakdownGrid,
+        SpendSunburst,
+        SpendTrendChart,
+        SupplierShareChart,
+        ToggleGroup,
+    ],
     host: { class: 'pc-view-content' },
     template: `
-        <div pcKpiStrip [kpis]="kpis()"></div>
+        <div pcKpiStrip [kpis]="kpis()" [stacked]="true"></div>
 
         <div class="pc-grid-2">
             <section class="pc-card">
@@ -32,30 +92,37 @@ import { SupplierShareChart } from './supplier-share-chart';
                         <h2 class="pc-card-title">Remaining runway</h2>
                     </div>
                 </div>
-                <div class="pc-chart-box">
+                <div class="pc-chart-box--grow">
                     <div pcBudgetBurnUp [points]="burnUp()" [budget]="spendPosition().budget"></div>
                 </div>
             </section>
             <section class="pc-card">
                 <div class="pc-card-head">
                     <div>
-                        <h2 class="pc-card-title">My spend over time</h2>
+                        <h2 class="pc-card-title">Spend over time</h2>
+                        <!-- The bucket still in progress is left out, so the bars can stop short of today. -->
+                        <span class="pc-card-sub"
+                            >{{ trendBuckets() }} complete {{ spendTrend().grain
+                            }}{{ trendBuckets() === 1 ? '' : 's' }} to {{ trendEndLabel() }}</span
+                        >
                     </div>
-                    <!--
-                        Names the grain and where the bars stop: the window follows the period
-                        selector, and the bucket still in progress is excluded from it.
-                    -->
-                    <span class="pc-card-sub"
-                        >{{ trendBuckets() }} complete {{ spendTrend().grain }}{{ trendBuckets() === 1 ? '' : 's' }} to
-                        {{ trendEndLabel() }}</span
-                    >
+                    <div class="pc-labeled-select">
+                        <span aria-hidden="true">Split by</span>
+                        <div
+                            pcToggleGroup
+                            ariaLabel="Split by"
+                            [value]="split()"
+                            (valueChange)="setSplit($event)"
+                            [options]="splitOptions"
+                        ></div>
+                    </div>
                 </div>
                 <div class="pc-chart-box">
                     @if (trendBuckets() > 0) {
                         <div
                             pcSpendTrendChart
-                            [rows]="spendTrend().rows"
-                            [subcategories]="subcategories()"
+                            [rows]="split() === 'material' ? spendTrend().rows : spendTrend().supplierRows"
+                            [stacks]="trendStacks()"
                             [grain]="spendTrend().grain"
                         ></div>
                     } @else {
@@ -73,12 +140,26 @@ import { SupplierShareChart } from './supplier-share-chart';
             <section class="pc-card">
                 <div class="pc-card-head">
                     <div>
-                        <h2 class="pc-card-title">My spend breakdown</h2>
+                        <h2 class="pc-card-title">Spend breakdown</h2>
+                    </div>
+                    <div class="pc-labeled-select">
+                        <span aria-hidden="true">View as</span>
+                        <div
+                            pcToggleGroup
+                            ariaLabel="View as: breakdown"
+                            [value]="breakdownView()"
+                            (valueChange)="setBreakdownView($event)"
+                            [options]="breakdownViewOptions"
+                        ></div>
                     </div>
                 </div>
                 <div class="pc-chart-box-md">
                     @if (tree().spend > 0) {
-                        <div pcSpendSunburst [tree]="tree()" [supplierColors]="supplierColors()"></div>
+                        @if (breakdownView() === 'sunburst') {
+                            <div pcSpendSunburst [tree]="tree()" [supplierColors]="supplierColors()"></div>
+                        } @else {
+                            <div pcSpendBreakdownGrid [tree]="tree()" [supplierColors]="supplierColors()"></div>
+                        }
                     } @else {
                         <div
                             pcEmptyState
@@ -93,6 +174,16 @@ import { SupplierShareChart } from './supplier-share-chart';
                     <div>
                         <h2 class="pc-card-title">Supplier concentration</h2>
                     </div>
+                    <div class="pc-labeled-select">
+                        <span aria-hidden="true">View as</span>
+                        <div
+                            pcToggleGroup
+                            ariaLabel="View as: concentration"
+                            [value]="shareView()"
+                            (valueChange)="setShareView($event)"
+                            [options]="shareViewOptions"
+                        ></div>
+                    </div>
                 </div>
                 <div class="pc-chart-box-md">
                     @if (tree().spend > 0) {
@@ -101,6 +192,7 @@ import { SupplierShareChart } from './supplier-share-chart';
                             [rows]="shareRows()"
                             [supplierNames]="supplierNames()"
                             [supplierColors]="supplierColors()"
+                            [view]="shareView()"
                         ></div>
                     } @else {
                         <div
@@ -128,6 +220,11 @@ export class SpendView {
     readonly spendTrend = input.required<SpendTrend>();
     readonly subcategories = input.required<string[]>();
 
+    protected readonly shareViewOptions = SHARE_VIEW_OPTIONS;
+    protected readonly breakdownViewOptions = BREAKDOWN_VIEW_OPTIONS;
+    protected readonly splitOptions = SPLIT_OPTIONS;
+
+    protected readonly trendBuckets = computed(() => this.spendTrend().rows.length);
     // Weeks are named by their day, months by their month — the granularity the bars are drawn at.
     protected readonly trendEndLabel = computed(() => {
         const spendTrend = this.spendTrend();
@@ -136,5 +233,33 @@ export class SpendView {
             spendTrend.grain === 'week' ? { month: 'short', day: 'numeric' } : { month: 'short', year: 'numeric' }
         );
     });
-    protected readonly trendBuckets = computed(() => this.spendTrend().rows.length);
+
+    protected readonly split = signal<SpendTrendSplit>('material');
+    protected readonly trendStacks = computed<SpendTrendStack[]>(() =>
+        this.split() === 'material'
+            ? this.subcategories().map((subcategory, index) => ({
+                  key: subcategory,
+                  name: subcategory,
+                  fill: SUBCATEGORY_RAMP[index % SUBCATEGORY_RAMP.length],
+              }))
+            : Array.from(this.supplierNames(), ([supplierId, name]) => ({
+                  key: supplierId,
+                  name,
+                  fill: this.supplierColors()[supplierId],
+              }))
+    );
+    protected readonly shareView = signal<SupplierShareView>('heatmap');
+    protected readonly breakdownView = signal<BreakdownView>('sunburst');
+
+    protected setSplit(value: string): void {
+        this.split.set(value as SpendTrendSplit);
+    }
+
+    protected setShareView(value: string): void {
+        this.shareView.set(value as SupplierShareView);
+    }
+
+    protected setBreakdownView(value: string): void {
+        this.breakdownView.set(value as BreakdownView);
+    }
 }

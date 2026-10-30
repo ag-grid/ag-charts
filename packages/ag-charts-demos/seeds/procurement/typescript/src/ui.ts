@@ -3,7 +3,7 @@
 // styled by the same procurement.css. Each reproduces the DOM Radix renders (roles, aria attributes,
 // `data-state` and class names) so the stylesheet, the functional specs and the parity states apply
 // unchanged; the plain button helper is a styled native element, as in the React demo.
-import { type Attrs, type Child, h } from './dom';
+import { type Attrs, type Child, h, svg } from './dom';
 
 let nextId = 0;
 const uid = (prefix: string) => `pc-${prefix}-${++nextId}`;
@@ -21,9 +21,12 @@ export interface SelectOption {
 }
 
 export interface Select {
-    el: HTMLLabelElement;
+    /** The label wrapping the trigger, or the trigger itself when the select has no label. */
+    el: HTMLElement;
     /** Reflect a value set by the owner (Radix `value` prop). */
     setValue(value: string): void;
+    /** Reflect the options the owner now offers (Radix `Item` children), read when the list next opens. */
+    setOptions(options: SelectOption[]): void;
     /**
      * The React unmount: closes an open listbox without moving focus, undoing what opening did to
      * the page and dropping its document listeners, cancels pending timers and removes the select.
@@ -150,7 +153,7 @@ export function createSelect({
     onValueChange: (value: string) => void;
     options: SelectOption[];
     ariaLabel: string;
-    label: string;
+    label?: string;
 }): Select {
     const contentId = uid('select-content');
     const labelOf = (current: string) => options.find((option) => option.value === current)?.label ?? '';
@@ -216,7 +219,22 @@ export function createSelect({
             },
         },
         valueNode,
-        h('span', { 'aria-hidden': 'true' }, '▾')
+        h(
+            'span',
+            { 'aria-hidden': 'true', class: 'pc-select-icon' },
+            svg(
+                'svg',
+                {
+                    width: '10',
+                    height: '10',
+                    viewBox: '0 0 10 10',
+                    fill: 'currentColor',
+                    'aria-hidden': 'true',
+                    focusable: 'false',
+                },
+                svg('path', { d: 'M1 2.5h8L5 7.5z' })
+            )
+        )
     );
 
     let popover: HTMLDivElement | undefined;
@@ -258,6 +276,9 @@ export function createSelect({
 
     function open() {
         if (popover) return;
+        // A focus move still pending from the last close would pull focus off the list opening now.
+        for (const timer of timers) clearTimeout(timer);
+        timers.clear();
         const items = options.map((option) => {
             const textId = uid('select-item-text');
             const selected = option.value === value;
@@ -370,25 +391,32 @@ export function createSelect({
         });
     }
 
-    const el = h(
-        'label',
-        {
-            class: 'pc-labeled-select',
-            onmousedown: (event: MouseEvent) => {
-                // Radix Label: a double click on the text must not select it.
-                if ((event.target as Element).closest('button, input, select, textarea')) return;
-                if (event.detail > 1) event.preventDefault();
-            },
-        },
-        h('span', {}, label),
-        trigger
-    );
+    const el =
+        label == null || label === ''
+            ? trigger
+            : h(
+                  'label',
+                  {
+                      class: 'pc-labeled-select',
+                      onmousedown: (event: MouseEvent) => {
+                          // Radix Label: a double click on the text must not select it.
+                          if ((event.target as Element).closest('button, input, select, textarea')) return;
+                          if (event.detail > 1) event.preventDefault();
+                      },
+                  },
+                  h('span', {}, label),
+                  trigger
+              );
 
     return {
         el,
         setValue(next) {
             value = next;
             valueNode.textContent = labelOf(next);
+        },
+        setOptions(next) {
+            options = next;
+            valueNode.textContent = labelOf(value);
         },
         destroy() {
             unmount();
@@ -486,7 +514,29 @@ function rovingFocus({
     }
 }
 
+export interface ToggleOption extends SelectOption {
+    /** Shown in place of the text; the label is kept as the item's accessible name and tooltip. */
+    icon?: SVGSVGElement;
+}
+
+/** `ToggleIcon`: a 16px filled glyph on Carbon's 32-unit grid, inked in the item's text colour. */
+export function toggleIcon(...paths: string[]): SVGSVGElement {
+    return svg(
+        'svg',
+        {
+            width: '16',
+            height: '16',
+            viewBox: '0 0 32 32',
+            fill: 'currentColor',
+            'aria-hidden': 'true',
+            focusable: 'false',
+        },
+        ...paths.map((d) => svg('path', { d }))
+    );
+}
+
 export interface ToggleGroup {
+    /** The group, or the labelled wrapper holding it when it has a label. */
     el: HTMLDivElement;
     /** Reflect a value set by the owner (Radix `value` prop). */
     setValue(value: string): void;
@@ -496,18 +546,22 @@ export interface ToggleGroup {
  * Radix ToggleGroup, `type="single"`: a `role="radiogroup"` of `role="radio"` buttons whose
  * `data-state` is `on` or `off`, with roving focus (above, on both axes as the React demo gives it
  * no orientation) that lands on the pressed item. A click or Enter/Space selects; the pressed item
- * cannot be deselected.
+ * cannot be deselected. An option with an icon shows only the icon, named by its label. With a
+ * `label`, the group sits in a `.pc-labeled-select` beside a visual-only caption, as the React
+ * `ToggleGroup` wraps it.
  */
 export function createToggleGroup({
     value,
     onValueChange,
     options,
     ariaLabel,
+    label,
 }: {
     value: string;
     onValueChange: (value: string) => void;
-    options: SelectOption[];
+    options: ToggleOption[];
     ariaLabel: string;
+    label?: string;
 }): ToggleGroup {
     const items = options.map((option) =>
         h(
@@ -517,7 +571,9 @@ export function createToggleGroup({
                 'data-state': 'off',
                 role: 'radio',
                 'aria-checked': 'false',
-                class: 'pc-toggle-item',
+                class: option.icon == null ? 'pc-toggle-item' : 'pc-toggle-item pc-toggle-item--icon',
+                'aria-label': option.icon == null ? undefined : option.label,
+                title: option.icon == null ? undefined : option.label,
                 tabindex: '-1',
                 onclick: () => {
                     // Pressing the pressed item would clear the group; the demo ignores that, so
@@ -525,11 +581,11 @@ export function createToggleGroup({
                     if (option.value !== value) onValueChange(option.value);
                 },
             },
-            option.label
+            option.icon ?? option.label
         )
     );
 
-    const el = h(
+    const group = h(
         'div',
         {
             dir: 'ltr',
@@ -541,7 +597,11 @@ export function createToggleGroup({
         },
         ...items
     );
-    rovingFocus({ group: el, items, isActive: (item) => item.getAttribute('data-state') === 'on' });
+    rovingFocus({ group, items, isActive: (item) => item.getAttribute('data-state') === 'on' });
+    const el =
+        label == null || label === ''
+            ? group
+            : h('div', { class: 'pc-labeled-select' }, h('span', { 'aria-hidden': 'true' }, label), group);
 
     function render() {
         options.forEach((option, index) => {

@@ -51,6 +51,8 @@ const SPEND_PERIOD = {
     options: ['YTD', 'This quarter'],
     initial: 'YTD',
 };
+/** The arrival-schedule view toggle of My orders. */
+const SCHEDULE_VIEW = { name: 'View as: arrival schedule', options: ['Range bar', 'Table'], initial: 'Range bar' };
 /** The supplier-trend metric toggle group of My suppliers. */
 const METRIC = { name: 'Trend metric', options: ['Price', 'On time', 'Quality'], initial: 'Price' };
 /** The toggle groups of My spend. */
@@ -88,6 +90,11 @@ async function openWorklist(page: Page) {
     await expect(page.locator('.pc-alert-panel')).toBeVisible();
 }
 
+const focusedLabel = (card: Locator) =>
+    card
+        .locator('.ag-charts-series-area [aria-hidden="false"][aria-labelledby]')
+        .evaluate((el) => document.getElementById(el.getAttribute('aria-labelledby') ?? '')?.textContent ?? '');
+
 /**
  * The shipment the schedule's keyboard focus is on, read from the chart's own announcement.
  *
@@ -95,9 +102,7 @@ async function openWorklist(page: Page) {
  * for a Ctrl-click, without needing a datum's on-screen position.
  */
 async function focusedShipment(card: Locator): Promise<{ shipmentId: string; supplier: string }> {
-    const label = await card
-        .locator('.ag-charts-series-area [aria-hidden="false"][aria-labelledby]')
-        .evaluate((el) => document.getElementById(el.getAttribute('aria-labelledby') ?? '')?.textContent ?? '');
+    const label = await focusedLabel(card);
     const shipmentId = /SHP-\d+/.exec(label)?.[0];
     const supplier = /Lane; ([^;]+?) →/.exec(label)?.[1];
     if (shipmentId == null || supplier == null) throw new Error(`no shipment in "${label}"`);
@@ -109,6 +114,45 @@ async function focusNextShipment(page: Page, card: Locator) {
     const { shipmentId } = await focusedShipment(card);
     await page.keyboard.press('ArrowRight');
     await expect.poll(async () => (await focusedShipment(card)).shipmentId).not.toBe(shipmentId);
+}
+
+/** Focuses the schedule onto a shipment: the chart scrolls, and a scrolling chart takes focus without announcing one. */
+async function focusSchedule(page: Page, card: Locator) {
+    await card.locator('.ag-charts-series-area').focus();
+    await page.keyboard.press('ArrowRight');
+}
+
+/** The shipments the schedule chart itself has selected: the chips show the page's selection, not the chart's. */
+async function scheduleSelection(page: Page, card: Locator): Promise<string[]> {
+    await focusSchedule(page, card);
+    const selected = new Set<string>();
+    // A series per status: Left and Right walk one to either end, where focus stays put, and Down moves to the next.
+    for (let label = await focusedLabel(card); /^SHP-\d+ · /.test(label);) {
+        for (const key of ['ArrowLeft', 'ArrowRight']) {
+            for (let previous; label !== previous;) {
+                if (label.endsWith(', selected')) selected.add(label.slice(0, label.indexOf(' ')));
+                previous = label;
+                await page.keyboard.press(key);
+                label = await focusedLabel(card);
+            }
+        }
+        const last = label;
+        await page.keyboard.press('ArrowDown');
+        label = await focusedLabel(card);
+        if (label === last) break;
+    }
+    return [...selected];
+}
+
+/** Moves the delivery map's keyboard focus down through its series onto a shipment's marker. */
+async function focusMapShipment(page: Page, card: Locator) {
+    await card.locator('.ag-charts-series-area').focus();
+    await expect
+        .poll(async () => {
+            await page.keyboard.press('ArrowDown');
+            return focusedLabel(card);
+        })
+        .toMatch(/^SHP-\d+ · /);
 }
 
 /** Picks an option from one of the orders tab's filter selects. */
@@ -143,11 +187,10 @@ async function focusedBarCentre(card: Locator) {
     return { x: bar!.x + bar!.width / 2, y: bar!.y + bar!.height / 2 };
 }
 
-/** Drills the quality-cost chart into its first bar's supplier, through the bar's context menu. */
+/** Drills the quality-cost chart into its first bar's supplier by double-clicking the bar. */
 async function drillIntoFirstSupplier(page: Page, card: Locator) {
     const { x, y } = await focusedBarCentre(card);
-    await page.mouse.click(x, y, { button: 'right' });
-    await page.getByRole('menuitem', { name: /^Drill down into .+'s materials$/ }).click();
+    await page.mouse.dblclick(x, y);
     await waitForAllChartUpdates(page);
 }
 
@@ -304,7 +347,7 @@ test.describe(DEMO_ID, () => {
     test('Ctrl-click adds to the schedule selection, and a plain click narrows it to one', async ({ page }) => {
         const popConsoleIssues = watchConsole(page);
         const card = chartCard(page, 'Arrival schedule');
-        await card.locator('.ag-charts-series-area').focus();
+        await focusSchedule(page, card);
 
         const first = await focusedShipment(card);
         await page.keyboard.press('Space');
@@ -326,10 +369,53 @@ test.describe(DEMO_ID, () => {
         expect(popConsoleIssues(), 'console output while selecting on the schedule').toEqual([]);
     });
 
+    test('the schedule table mirrors the shared selection and selects into it', async ({ page }) => {
+        const popConsoleIssues = watchConsole(page);
+        const card = chartCard(page, 'Arrival schedule');
+        await focusSchedule(page, card);
+        const fromChart = await focusedShipment(card);
+        await page.keyboard.press('Space');
+        await expect(chips(page)).toHaveText([fromChart.shipmentId]);
+
+        const viewAs = card.getByRole('radiogroup', { name: SCHEDULE_VIEW.name, exact: true });
+        await viewAs.getByRole('radio', { name: 'Table' }).click();
+        const row = (shipmentId: string) => card.getByRole('row', { name: new RegExp(`^${shipmentId} `) });
+        await expect(card.getByRole('row', { selected: true })).toHaveCount(1);
+        await expect(row(fromChart.shipmentId)).toHaveAttribute('aria-selected', 'true');
+
+        const shown = (await card.getByRole('row').allInnerTexts()).map((text) => /SHP-\d+/.exec(text)?.[0]);
+        const others = shown.filter((id): id is string => id != null && id !== fromChart.shipmentId);
+        expect(others.length, 'two more shipments to select').toBeGreaterThanOrEqual(2);
+        const [second, third] = others;
+
+        await row(second).click();
+        await expect(chips(page)).toHaveText([second]);
+        await row(third).click({ modifiers: ['ControlOrMeta'] });
+        await expect(chips(page)).toHaveCount(2);
+        await expect(chips(page)).toContainText([second, third]);
+        await row(second).click({ modifiers: ['ControlOrMeta'] });
+        await expect(chips(page)).toHaveText([third]);
+
+        await page.getByRole('button', { name: 'Clear selection' }).click();
+        await expect(card.getByRole('row', { selected: true })).toHaveCount(0);
+        await focusMapShipment(page, chartCard(page, 'Orders in transit'));
+        await page.keyboard.press('Space');
+        await expect(chips(page)).toHaveCount(1);
+        const fromMap = await chips(page).innerText();
+        await expect(card.getByRole('row', { selected: true })).toHaveCount(1);
+        await expect(row(fromMap)).toHaveAttribute('aria-selected', 'true');
+
+        await viewAs.getByRole('radio', { name: 'Range bar' }).click();
+        await waitForAllChartUpdates(page);
+        expect(await scheduleSelection(page, card)).toEqual([fromMap]);
+
+        expect(popConsoleIssues(), 'console output while selecting on the schedule table').toEqual([]);
+    });
+
     test('the supplier filter narrows the freight, and drops a selected shipment it hides', async ({ page }) => {
         const popConsoleIssues = watchConsole(page);
         const card = chartCard(page, 'Arrival schedule');
-        await card.locator('.ag-charts-series-area').focus();
+        await focusSchedule(page, card);
         const selected = await focusedShipment(card);
         await page.keyboard.press('Space');
         await expect(chips(page)).toHaveText([selected.shipmentId]);
@@ -344,7 +430,7 @@ test.describe(DEMO_ID, () => {
         await expect(page.locator('.pc-kpi-detail').first()).toContainText(`filtered to ${other}`);
         // Refocusing repeats the last announcement; a key press reads the filtered rows afresh.
         await card.locator('.ag-charts-series-area').focus();
-        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowDown');
         await expect.poll(async () => (await focusedShipment(card)).supplier).toBe(other);
 
         await setOrdersFilter(page, SUPPLIER_FILTER, 'All suppliers');
@@ -381,7 +467,7 @@ test.describe(DEMO_ID, () => {
         expect(popConsoleIssues(), 'console output while selecting a supplier on a chart').toEqual([]);
     });
 
-    test("a quality-cost bar's context menu drills into that supplier's materials, and back", async ({ page }) => {
+    test("double-clicking a quality-cost bar drills into that supplier's materials, and back", async ({ page }) => {
         const popConsoleIssues = watchConsole(page);
         await openTab(page, 'My suppliers');
         const card = chartCard(page, 'Cost of rejected material');
@@ -393,11 +479,45 @@ test.describe(DEMO_ID, () => {
         await expect(card.locator('.pc-card-sub', { hasText: /^from / })).toBeVisible();
         await expect(page.locator('.pc-supplier-main[aria-pressed="true"]')).toHaveCount(1);
 
+        // With nothing selected no drill button takes Back's place, so focus goes to the chart.
+        await page.locator('.pc-page-title').click();
+        await expect(page.locator('.pc-supplier-main[aria-pressed="true"]')).toHaveCount(0);
         await back.click();
         await waitForAllChartUpdates(page);
         await expect(back).toHaveCount(0);
+        await expect(card.locator('.ag-charts-wrapper:focus-within')).toHaveCount(1);
 
         expect(popConsoleIssues(), 'console output while drilling into a supplier').toEqual([]);
+    });
+
+    test("the keyboard drills a selected supplier into its materials from the card's button, and back", async ({
+        page,
+    }) => {
+        const popConsoleIssues = watchConsole(page);
+        await openTab(page, 'My suppliers');
+        const card = chartCard(page, 'Cost of rejected material');
+        const drill = card.getByRole('button', { name: /^See .+'s materials →$/ });
+        const back = card.getByRole('button', { name: '← Back to all suppliers' });
+
+        await expect(drill).toHaveCount(0);
+        const cardHeight = async () => (await card.boundingBox())?.height;
+        const heightWithoutButton = await cardHeight();
+        await card.locator('.ag-charts-series-area').focus();
+        await page.keyboard.press('Space');
+        await expect(drill).toBeVisible();
+        expect(await cardHeight(), 'card height once the button appears').toBe(heightWithoutButton);
+
+        await drill.focus();
+        await page.keyboard.press('Enter');
+        await waitForAllChartUpdates(page);
+        await expect(card.locator('.pc-card-sub', { hasText: /^from / })).toBeVisible();
+        await expect(back).toBeFocused();
+
+        await page.keyboard.press('Enter');
+        await waitForAllChartUpdates(page);
+        await expect(drill).toBeFocused();
+
+        expect(popConsoleIssues(), 'console output while drilling from the keyboard').toEqual([]);
     });
 
     test.describe('selection on My suppliers', () => {
@@ -649,6 +769,10 @@ test.describe(DEMO_ID, () => {
             await expectSelectOpenTypeahead(page, PERIOD);
             await openTab(page, 'My spend');
             await expectSelectOpenTypeahead(page, SPEND_PERIOD);
+        });
+
+        test('the schedule view group roves focus with the arrow keys', async ({ page }) => {
+            await expectRadioGroupContract(page, SCHEDULE_VIEW);
         });
 
         test('the trend-metric group roves focus with the arrow keys', async ({ page }) => {

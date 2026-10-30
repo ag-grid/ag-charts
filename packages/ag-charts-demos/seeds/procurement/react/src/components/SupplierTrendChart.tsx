@@ -3,8 +3,8 @@ import { useCallback, useMemo } from 'react';
 import type { AgCartesianChartOptions, AgLineSeriesOptions, AgSelectionItemIds } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
-import { NEUTRAL, THEME } from '../chartTheme';
-import { fmtIndex, fmtPct, fmtPctWhole } from '../format';
+import { MONTH_AXIS, NEUTRAL, THEME } from '../chartTheme';
+import { fmtIndex, fmtMonthYear, fmtPct, fmtPctWhole } from '../format';
 import type { SupplierTrendPoint } from '../types';
 import { stylerOwnedSelection } from './chartSelection';
 import { useSupplierSelection } from './useSupplierSelection';
@@ -12,8 +12,9 @@ import { useSupplierSelection } from './useSupplierSelection';
 /** Which metric the chart is reading off each month's point. */
 export type TrendMetric = 'price' | 'onTime' | 'quality';
 
-/** One month's row: the label plus one value per supplier, for the selected metric. */
+/** One month's row: its start and label plus one value per supplier, for the selected metric. */
 interface Row {
+    month: number;
     label: string;
     [supplierId: string]: string | number | null;
 }
@@ -101,7 +102,7 @@ export function SupplierTrendChart({
         const [first] = [...trend.values()];
         if (first == null) return [];
         return first.map((point, index) => {
-            const row: Row = { label: point.label };
+            const row: Row = { month: point.month, label: point.label };
             for (const [supplierId, points] of trend) {
                 row[supplierId] = spec.read(points[index]);
             }
@@ -129,23 +130,29 @@ export function SupplierTrendChart({
             return {
                 type: 'line',
                 id: supplierId,
-                xKey: 'label',
+                xKey: 'month',
                 yKey: supplierId,
                 yName: name,
                 stroke: dimmed ? NEUTRAL : color,
                 strokeWidth: dimmed ? 1 : 2,
                 strokeOpacity: dimmed ? 0.35 : 1,
-                marker: { enabled: true, size: 5, fill: dimmed ? NEUTRAL : color, fillOpacity: dimmed ? 0.35 : 1 },
+                marker: {
+                    enabled: true,
+                    size: 6,
+                    fill: dimmed ? NEUTRAL : color,
+                    fillOpacity: dimmed ? 0.35 : 1,
+                    stroke: 'var(--pc-panel)',
+                    strokeWidth: 1,
+                },
                 // A month a supplier has no record in is a gap, not a drop to zero.
                 connectMissingData: false,
-                // The markers carry no outline of their own.
-                selection: stylerOwnedSelection(0),
+                selection: stylerOwnedSelection(1),
                 tooltip: {
                     renderer: ({ datum }) => {
                         const value = datum[supplierId];
                         return {
                             heading: '',
-                            title: `${name} · ${datum.label}`,
+                            title: `${name} · ${fmtMonthYear(datum.month)}`,
                             data: [
                                 typeof value === 'number'
                                     ? { label: spec.tooltipLabel, value: spec.format(value) }
@@ -166,7 +173,7 @@ export function SupplierTrendChart({
             // will not shrink to its box overflows it and swallows clicks meant for the card below.
             minHeight: 0,
             axes: {
-                x: { type: 'category', position: 'bottom' },
+                x: MONTH_AXIS,
                 y: {
                     type: 'number',
                     position: 'left',

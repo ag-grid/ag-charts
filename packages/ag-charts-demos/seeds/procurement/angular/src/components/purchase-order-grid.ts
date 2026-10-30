@@ -1,6 +1,6 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { AgGridAngular, type ICellRendererAngularComp } from 'ag-grid-angular';
-import type { ColDef, ICellRendererParams, ValueFormatterParams } from 'ag-grid-community';
+import type { ColDef, ICellRendererParams, OverlayComponentUserParams, ValueFormatterParams } from 'ag-grid-community';
 
 import { STATUS_ICONS } from '../chartTheme';
 import { fmtCurrency, fmtDate, fmtInt, fmtPrice } from '../format';
@@ -111,11 +111,18 @@ export class PoActionCell implements ICellRendererAngularComp {
     }
 }
 
+// No selection means no rows at all, so the grid shows `noRows`; `noMatchingRows`
+// needs rows that the column filters then exclude.
+const overlayComponentParams: OverlayComponentUserParams = {
+    noRows: { overlayText: 'Select a shipment on the map or arrival schedule above to display its order lines.' },
+    noMatchingRows: { overlayText: 'No order lines match the current filters. Try adjusting your filters.' },
+};
+
 /** The host is the React root `.pc-grid-host`. */
 @Component({
     selector: 'div[pcPurchaseOrderGrid]',
     imports: [AgGridAngular],
-    host: { class: 'pc-grid-host' },
+    host: { class: 'pc-grid-host', 'data-keeps-selection': '' },
     template: `
         <ag-grid-angular
             style="display: block; height: 100%;"
@@ -123,6 +130,7 @@ export class PoActionCell implements ICellRendererAngularComp {
             [rowData]="orders()"
             [columnDefs]="columnDefs()"
             [defaultColDef]="defaultColDef"
+            [overlayComponentParams]="overlayComponentParams"
             [rowHeight]="36"
             [headerHeight]="38"
             domLayout="autoHeight"
@@ -133,12 +141,14 @@ export class PoActionCell implements ICellRendererAngularComp {
     `,
 })
 export class PurchaseOrderGrid {
+    /** The lines on the selected shipments; empty until one is selected, which shows the `noRows` prompt. */
     readonly orders = input.required<PurchaseOrder[]>();
     /** What she has already recorded against a line, by PO id. */
     readonly poActions = input.required<Record<string, PoActionKind>>();
     readonly action = output<PoAction>();
 
     protected readonly gridTheme = gridTheme;
+    protected readonly overlayComponentParams = overlayComponentParams;
     protected readonly pageSizes = [12, 25, 50, 100];
     protected readonly defaultColDef = baseColDef<PurchaseOrder>();
 
@@ -203,6 +213,7 @@ export class PurchaseOrderGrid {
                 headerName: 'Status',
                 minWidth: 130,
                 filter: 'agSetColumnFilter',
+                cellClass: 'pc-cell-centred',
                 cellRenderer: StatusCell,
             },
             {

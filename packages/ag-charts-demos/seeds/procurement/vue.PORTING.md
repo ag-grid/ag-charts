@@ -28,44 +28,54 @@ person or an agent performs it.
 
 ## File mapping
 
-| React source (`src/demos/procurement/`)                                                                                 | Vue seed (`seeds/procurement/vue/src/`)                                                                                  | Treatment                           |
-| ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
-| `chartTheme.ts`                                                                                                         | `chartTheme.ts`                                                                                                          | copied unchanged                    |
-| `data.ts`                                                                                                               | `data.ts`                                                                                                                | copied unchanged                    |
-| `data/**` (`source.ts`, `README.md`, nine `.json` files)                                                                | `data/**`                                                                                                                | copied unchanged                    |
-| `format.ts`                                                                                                             | `format.ts`                                                                                                              | copied unchanged                    |
-| `geo.ts`                                                                                                                | `geo.ts`                                                                                                                 | copied unchanged                    |
-| `grid.ts`                                                                                                               | `grid.ts`                                                                                                                | copied unchanged                    |
-| `procurement.css`                                                                                                       | `procurement.css`                                                                                                        | copied unchanged                    |
-| `routes.ts`                                                                                                             | `routes.ts`                                                                                                              | from the React seed, see below      |
-| `types.ts`                                                                                                              | `types.ts`                                                                                                               | copied unchanged                    |
-| `workspace.ts`                                                                                                          | `workspace.ts`                                                                                                           | copied unchanged                    |
-| `../web-analytics/topology.ts` (vendored by the React seed)                                                             | `vendored/web-analytics/topology.ts`                                                                                     | copied unchanged                    |
-| `index.tsx`                                                                                                             | `Procurement.vue`                                                                                                        | ported                              |
-| `WorkspaceApp.tsx`                                                                                                      | `WorkspaceApp.vue`                                                                                                       | ported                              |
-| `ui.tsx` (`Button`, `Select`, `ToggleGroup`, `SelectOption`)                                                            | `ui/Button.vue`, `ui/Select.vue`, `ui/SelectControl.vue`, `ui/ToggleGroup.vue`, `ui/types.ts`                            | ported, one file per export (below) |
-| —                                                                                                                       | `ui/typeahead.ts`                                                                                                        | port-only (below)                   |
-| `components/AttentionAlert.tsx`                                                                                         | `components/AttentionAlert.vue`                                                                                          | ported                              |
-| `components/AttentionList.tsx`                                                                                          | `components/AttentionList.vue`                                                                                           | ported                              |
-| `components/BudgetBurnUp.tsx`                                                                                           | `components/BudgetBurnUp.vue`                                                                                            | ported                              |
-| `components/CostReliabilityScatter.tsx`                                                                                 | `components/CostReliabilityScatter.vue`                                                                                  | ported                              |
-| `components/DeliveryMap.tsx`                                                                                            | `components/DeliveryMap.vue`                                                                                             | ported                              |
-| `components/DeliverySlipHistograms.tsx` (`MAX_SLIP_DAYS`, `Binned`, `binned`, the component)                            | `components/DeliverySlipHistograms.vue`                                                                                  | ported                              |
-| `components/EmptyState.tsx`                                                                                             | `components/EmptyState.vue`                                                                                              | ported                              |
-| `components/KpiStrip.tsx` (`KpiStrip`, `KpiGaugeBar`, `KpiSegmentBar`, `KpiSegmentKeys`, `buildKpis`, `buildSpendKpis`) | `components/KpiStrip.vue`, `components/KpiGaugeBar.vue`, `components/KpiSegmentBar.vue`, `components/KpiSegmentKeys.vue` | ported, one file per component      |
-| `components/OrdersView.tsx`                                                                                             | `components/OrdersView.vue`                                                                                              | ported                              |
-| `components/PurchaseOrderGrid.tsx` (`PurchaseOrderGrid`, `StatusCell`, the action cell)                                 | `components/PurchaseOrderGrid.vue`, `components/StatusCell.vue`, `components/PurchaseOrderActionCell.vue`                | ported, one file per component      |
-| `components/QualityCostChart.tsx`                                                                                       | `components/QualityCostChart.vue`                                                                                        | ported                              |
-| `components/ShipmentSchedule.tsx`                                                                                       | `components/ShipmentSchedule.vue`                                                                                        | ported                              |
-| `components/SpendSunburst.tsx`                                                                                          | `components/SpendSunburst.vue`                                                                                           | ported                              |
-| `components/SpendTrendChart.tsx`                                                                                        | `components/SpendTrendChart.vue`                                                                                         | ported                              |
-| `components/SpendView.tsx`                                                                                              | `components/SpendView.vue`                                                                                               | ported                              |
-| `components/StatusLegend.tsx` (`STATUS_CLASS`, the component)                                                           | `components/StatusLegend.vue`                                                                                            | ported                              |
-| `components/SupplierScorecard.tsx` (`SupplierScorecard`, `ContactActions`, the supplier cell)                           | `components/SupplierScorecard.vue`, `components/SupplierCell.vue`, `components/ContactActions.vue`                       | ported, one file per component      |
-| `components/SupplierShareChart.tsx`                                                                                     | `components/SupplierShareChart.vue`                                                                                      | ported                              |
-| `components/SupplierTrendChart.tsx` (`TrendMetric`, the component)                                                      | `components/SupplierTrendChart.vue`                                                                                      | ported                              |
-| `components/SuppliersView.tsx`                                                                                          | `components/SuppliersView.vue`                                                                                           | ported                              |
-| React seed `src/main.tsx`                                                                                               | `main.ts`                                                                                                                | ported (mount)                      |
+| React source (`src/demos/procurement/`)                                                                   | Vue seed (`seeds/procurement/vue/src/`)                                                                                                         | Treatment                           |
+| --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `chartTheme.ts`                                                                                           | `chartTheme.ts`                                                                                                                                 | copied unchanged                    |
+| `data.ts`                                                                                                 | `data.ts`                                                                                                                                       | copied unchanged                    |
+| `data/**` (`source.ts`, `README.md`, nine `.json` files)                                                  | `data/**`                                                                                                                                       | copied unchanged                    |
+| `format.ts`                                                                                               | `format.ts`                                                                                                                                     | copied unchanged                    |
+| `geo.ts`                                                                                                  | `geo.ts`                                                                                                                                        | copied unchanged                    |
+| `grid.ts`                                                                                                 | `grid.ts`                                                                                                                                       | copied unchanged                    |
+| `procurement.css`                                                                                         | `procurement.css`                                                                                                                               | copied unchanged                    |
+| `routes.ts`                                                                                               | `routes.ts`                                                                                                                                     | from the React seed, see below      |
+| `types.ts`                                                                                                | `types.ts`                                                                                                                                      | copied unchanged                    |
+| `workspace.ts`                                                                                            | `workspace.ts`                                                                                                                                  | copied unchanged                    |
+| `../web-analytics/topology.ts` (vendored by the React seed)                                               | `vendored/web-analytics/topology.ts`                                                                                                            | copied unchanged                    |
+| `index.tsx`                                                                                               | `Procurement.vue`                                                                                                                               | ported                              |
+| `WorkspaceApp.tsx`                                                                                        | `WorkspaceApp.vue`                                                                                                                              | ported                              |
+| `ui.tsx` (`Button`, `Select`, `ToggleGroup`, `ToggleIcon`, `SelectOption`, `ToggleOption`)                | `ui/Button.vue`, `ui/Select.vue`, `ui/SelectControl.vue`, `ui/ToggleGroup.vue`, `ui/ToggleGroupControl.vue`, `ui/ToggleIcon.vue`, `ui/types.ts` | ported, one file per export (below) |
+| —                                                                                                         | `ui/typeahead.ts`                                                                                                                               | port-only (below)                   |
+| `components/AttentionAlert.tsx`                                                                           | `components/AttentionAlert.vue`                                                                                                                 | ported                              |
+| `components/AttentionList.tsx`                                                                            | `components/AttentionList.vue`                                                                                                                  | ported                              |
+| `components/BudgetBurnUp.tsx`                                                                             | `components/BudgetBurnUp.vue`                                                                                                                   | ported                              |
+| `components/CostReliabilityScatter.tsx`                                                                   | `components/CostReliabilityScatter.vue`                                                                                                         | ported                              |
+| `components/DeliveryMap.tsx`                                                                              | `components/DeliveryMap.vue`                                                                                                                    | ported                              |
+| `components/DeliverySlipHistograms.tsx` (`MAX_SLIP_DAYS`, `Binned`, `binned`, the component, `SlipFacet`) | `components/DeliverySlipHistograms.vue`, `components/SlipFacet.vue`                                                                             | ported, one file per component      |
+| `components/DemoNotice.tsx`                                                                               | `components/DemoNotice.vue`                                                                                                                     | ported                              |
+| `components/EmptyState.tsx`                                                                               | `components/EmptyState.vue`                                                                                                                     | ported                              |
+| `components/HelpCard.tsx`                                                                                 | `components/HelpCard.vue`                                                                                                                       | ported                              |
+| `components/KpiStrip.tsx` (`KpiStrip`, `KpiGaugeBar`, `KpiSegmentBar`, `buildKpis`, `buildSpendKpis`)     | `components/KpiStrip.vue`, `components/KpiGaugeBar.vue`, `components/KpiSegmentBar.vue`                                                         | ported, one file per component      |
+| `components/OrdersView.tsx`                                                                               | `components/OrdersView.vue`                                                                                                                     | ported                              |
+| `components/PurchaseOrderGrid.tsx` (`PurchaseOrderGrid`, `StatusCell`, the action cell)                   | `components/PurchaseOrderGrid.vue`, `components/StatusCell.vue`, `components/PurchaseOrderActionCell.vue`                                       | ported, one file per component      |
+| `components/QualityCostChart.tsx`                                                                         | `components/QualityCostChart.vue`                                                                                                               | ported                              |
+| `components/ShipmentSchedule.tsx`                                                                         | `components/ShipmentSchedule.vue`                                                                                                               | ported                              |
+| `components/ShipmentScheduleGrid.tsx`                                                                     | `components/ShipmentScheduleGrid.vue`                                                                                                           | ported                              |
+| `components/SidebarActions.tsx`                                                                           | `components/SidebarActions.vue`                                                                                                                 | ported                              |
+| `components/SpendBreakdownGrid.tsx`                                                                       | `components/SpendBreakdownGrid.vue`                                                                                                             | ported                              |
+| `components/SpendSunburst.tsx`                                                                            | `components/SpendSunburst.vue`                                                                                                                  | ported                              |
+| `components/SpendTrendChart.tsx`                                                                          | `components/SpendTrendChart.vue`                                                                                                                | ported                              |
+| `components/SpendView.tsx`                                                                                | `components/SpendView.vue`                                                                                                                      | ported                              |
+| `components/StatusKeys.tsx` (`STATUS_ORDER`, `statusSegments`, the component)                             | `components/StatusKeys.vue`                                                                                                                     | ported                              |
+| `components/SupplierScorecard.tsx` (`SupplierScorecard`, `ContactActions`, the supplier cell)             | `components/SupplierScorecard.vue`, `components/SupplierCell.vue`, `components/ContactActions.vue`                                              | ported, one file per component      |
+| `components/SupplierShareChart.tsx`                                                                       | `components/SupplierShareChart.vue`                                                                                                             | ported                              |
+| `components/SupplierTrendChart.tsx` (`TrendMetric`, the component)                                        | `components/SupplierTrendChart.vue`                                                                                                             | ported                              |
+| `components/SuppliersView.tsx`                                                                            | `components/SuppliersView.vue`                                                                                                                  | ported                              |
+| `components/chartSelection.ts`                                                                            | `components/chartSelection.ts`                                                                                                                  | copied unchanged                    |
+| `components/focusable.ts`                                                                                 | `components/focusable.ts`                                                                                                                       | copied unchanged                    |
+| `components/useClickAway.ts`                                                                              | `components/useClickAway.ts`                                                                                                                    | ported (composable)                 |
+| `components/useShipmentSelection.ts`                                                                      | `components/useShipmentSelection.ts`                                                                                                            | ported (composable)                 |
+| `components/useSupplierSelection.ts`                                                                      | `components/useSupplierSelection.ts`                                                                                                            | ported (composable)                 |
+| React seed `src/main.tsx`                                                                                 | `main.ts`                                                                                                                                       | ported (mount)                      |
 
 `routes.ts` is copied byte for byte from the React seed (`seeds/procurement/react/src/routes.ts`),
 not from the demo source: the seed's copy imports `./vendored/web-analytics/topology` where the
@@ -73,16 +83,27 @@ source imports the sibling demo's `../web-analytics/topology`, and that import i
 difference.
 
 A React file's non-component exports (`buildKpis`, `buildSpendKpis`, `SpendKpis`, `MAX_SLIP_DAYS`,
-`binned`, `Binned`, `STATUS_CLASS`, `TrendMetric`) stay in the `.vue` file of the component they
-sit beside, in a plain `<script lang="ts">` block, so imports such as
+`binned`, `Binned`, `STATUS_ORDER`, `statusSegments`, `TrendMetric`, `SpendTrendStack`,
+`SupplierShareView`, `fitWidthZoom`) stay in the `.vue` file of the component they sit beside, in a plain `<script lang="ts">` block, so imports such as
 `import { buildKpis } from './components/KpiStrip.vue'` keep the React import path modulo the
 extension.
 
-`ui.tsx` splits four ways: `Button.vue` is the forwarded-ref button; `Select.vue` keeps the React
+`ui.tsx` splits by export: `Button.vue` is the forwarded-ref button; `Select.vue` keeps the React
 `Select` contract (`options`, `ariaLabel`, optional `label`, the controlled value as `v-model`) and
 wraps `SelectControl.vue`, which holds the reka-ui Select tree, because a Vue template cannot hold
 a fragment in a variable the way the React helper holds `trigger` and then either returns it bare
-or wraps it in a `Label`; `ToggleGroup.vue` is the toggle group; `types.ts` is `SelectOption`.
+or wraps it in a `Label`; `ToggleGroup.vue` and `ToggleGroupControl.vue` split the toggle group the
+same way, for its optional `label` wrapper; `ToggleIcon.vue` is the 16px glyph frame; `types.ts`
+holds `SelectOption` and `ToggleOption`. A `ToggleOption`'s `icon` is a JSX element in React and a
+functional component here (`() => h(ToggleIcon, null, () => [h('path', …)])`), which the toggle
+item renders with `<component :is>`; `SidebarActions.vue` holds its icons' strokes the same way.
+
+`SlipFacet`, the per-supplier row defined inside `DeliverySlipHistograms.tsx`, is its own
+`SlipFacet.vue`; the module constants only it reads (`BARS_SERIES_ID`, `SPLIT_SERIES_ID`,
+`SPLIT_OUTCOMES`, `Slice`, `splitOptions`) move with it, and it imports the `Bar` type back from
+`DeliverySlipHistograms.vue` type-only, so there is no runtime import cycle. Icon components private
+to one React file (`DemoNotice`'s `InfoIcon`, `HelpCard`'s `CloseIcon`, `SidebarActions`' `Icon`)
+are inlined into the template as their `svg`, since nothing else renders them.
 `typeahead.ts` has no React counterpart: it is Radix's typeahead search, which `SelectControl.vue`
 runs on the closed trigger (below).
 
@@ -154,21 +175,30 @@ content is what `procurement.css` styles.
 
 ### Hooks to composables and Vue reactivity
 
-| React                                                           | Vue                                                                                                                        |
-| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `useState` of a scalar                                          | `ref`                                                                                                                      |
-| `useState` of a record replaced whole (`resolved`, `poActions`) | `shallowRef`, replaced whole (`x.value = { ...x.value, [k]: v }`) as React's setter is called                              |
-| `useMemo` on a value                                            | `computed`                                                                                                                 |
-| `useMemo` on a chart options object                             | `computed`; the wrapper runs `chart.update` when it yields a new object, exactly when React's `useEffect([options])` does  |
-| `useMemo` on grid `columnDefs` or `rowClassRules`               | `computed` whose body reads every prop React's dependency list names (see below)                                           |
-| `useRef` for a DOM element                                      | template `ref`; for a `Button` component the element is `ref.value?.$el`                                                   |
-| `useEffect([deps])`                                             | `watch([...deps], handler)`; `{ flush: 'post' }` where React's effect reads the DOM it just rendered                       |
-| `useEffect` cleanup                                             | `onCleanup` argument of the `watch` handler                                                                                |
-| `useCallback`                                                   | a plain function                                                                                                           |
-| `forwardRef` on `Button`                                        | a plain component; Vue exposes the root element as `$el`                                                                   |
-| props callback `onSelectSupplier(id)`                           | `defineEmits<{ selectSupplier: [supplierId: string] }>()`, bound as `@select-supplier`                                     |
-| controlled `value`/`onValueChange` pair                         | `defineModel`; a writable `computed` where the parent's state is a `number` (`PeriodMonths`) and the Select speaks strings |
-| module-scope constants next to a component                      | a separate plain `<script lang="ts">` block in the same `.vue` file; imports live in one block or the other, never both    |
+| React                                                                        | Vue                                                                                                                        |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `useState` of a scalar                                                       | `ref`                                                                                                                      |
+| `useState` of a record replaced whole (`resolved`, `poActions`)              | `shallowRef`, replaced whole (`x.value = { ...x.value, [k]: v }`) as React's setter is called                              |
+| `useMemo` on a value                                                         | `computed`                                                                                                                 |
+| `useMemo` on a chart options object                                          | `computed`; the wrapper runs `chart.update` when it yields a new object, exactly when React's `useEffect([options])` does  |
+| `useMemo` on grid `columnDefs` or `rowClassRules`                            | `computed` whose body reads every prop React's dependency list names (see below)                                           |
+| `useRef` for a DOM element                                                   | template `ref`; for a `Button` component the element is `ref.value?.$el`                                                   |
+| `useEffect([deps])`                                                          | `watch([...deps], handler)`; `{ flush: 'post' }` where React's effect reads the DOM it just rendered                       |
+| `useEffect` cleanup                                                          | `onCleanup` argument of the `watch` handler                                                                                |
+| `useCallback`                                                                | a plain function                                                                                                           |
+| `forwardRef` on `Button`                                                     | a plain component; Vue exposes the root element as `$el`                                                                   |
+| props callback `onSelectedSupplierChange(id)`                                | `defineEmits<{ selectedSupplierChange: [supplierId: string \| undefined] }>()`, bound as `@selected-supplier-change`       |
+| controlled `value`/`onValueChange` pair                                      | `defineModel`; a writable `computed` where the parent's state is a `number` (`PeriodMonths`) and the Select speaks strings |
+| module-scope constants next to a component                                   | a separate plain `<script lang="ts">` block in the same `.vue` file; imports live in one block or the other, never both    |
+| custom hook (`useClickAway`, `useShipmentSelection`, `useSupplierSelection`) | a composable of the same name in a `.ts` file of the same name; prop values it reads are passed as getters                 |
+| `ref` on `AgCharts` / `AgQuadrantChart` (the chart instance)                 | template `ref` on the component; the instance is its `chart`, which the wrapper sets in `mounted`                          |
+
+The selection composables take the selection as a getter (`() => props.selectedShipmentIds`) and
+watch `[chartRef, () => wanted items]` with `flush: 'post'`: the template ref changes from `null`
+once the chart component has mounted, which is when React's effect first sees `chartRef.current`,
+and `itemsFor` is read inside the source so the rows it looks up are dependencies, as they are of
+React's `useCallback`. `useClickAway` watches its `active` getter with `immediate` and adds or
+removes the document listener in the handler, as React's effect does on `[active]`.
 
 A `computed` tracks only what its body reads while it runs. A prop read inside a closure the
 computed returns (a `rowClassRules` rule, a `cellRenderer` callback) is not a dependency, so the
@@ -193,6 +223,14 @@ close over the local.
   so every cell renderer has a single root element. The on-time cell, which React renders as a
   fragment (text plus an optional `<abbr>`), is a `cellRenderer` function returning the same HTML
   string instead of a component, so the cell's DOM is React's.
+- `AgGridReact` always wraps the grid in a `div` styled `height: 100%; width: 100%`; `AgGridVue`
+  renders no such style. A grid that fills its box rather than using `domLayout="autoHeight"`
+  (`ShipmentScheduleGrid.vue`, and `SpendBreakdownGrid.vue`, whose React `containerStyle` is the
+  same) passes `:style="{ height: '100%', width: '100%' }"`, or it collapses inside its host.
+- The grid API, which React reaches through the `AgGridReact` ref, is taken from `@grid-ready`.
+- The breakdown grid's group-column `innerRenderer`, which React returns as either the bare value
+  or a swatch-and-name `span`, is a function returning an HTML string (text escaped), for the same
+  reason as the on-time cell: a component would add a wrapping element to the group rows.
 - A `cellRenderer` that is a plain function of `params` (the action cell's `pc-po-action-done`
   branch in React is JSX, not a function) is a component here too, `PurchaseOrderActionCell.vue`,
   with `v-if`/`v-else-if` selecting the same two roots React renders.
@@ -222,12 +260,16 @@ exactly as the React output:
 - `data-` attributes read by the CSS: `data-state="active"` on the tab triggers and contents,
   `data-state="on"` on the selected toggle item and `data-state="open"` on the select trigger,
   all rendered by reka-ui as Radix renders them, and `data-highlighted` on the focused select item.
+- `data-keeps-selection` on the regions React marks with it, rendered `data-keeps-selection="true"`
+  as React renders a boolean `data-*` attribute; `useClickAway` keys off it.
+- The drill button in the quality-cost card is one `Button` whose label and handler follow the drill
+  state, so the element and its focus survive the flip, as React keeps its single slot.
 - The `is-selected` row class the scorecard's `rowClassRules` adds, and the `aria-pressed` state
   on `.pc-supplier-main`, which the e2e specs and the `supplier-selected` parity state read.
 - Text content: a Vue template condenses the whitespace around an inline element into a single
   space, where JSX drops it. Text React renders from an expression next to markup is bound with
   `v-text` (`pc-page-range` in `WorkspaceApp.vue`, `pc-card-sub` in `SpendView.vue`,
-  `pc-facet-note` in `DeliverySlipHistograms.vue`); elsewhere inline children are written with the
+  `pc-facet-note` in `SlipFacet.vue`); elsewhere inline children are written with the
   `><` wrapping Prettier produces so no stray text node appears.
 - Attributes the e2e specs and parity states rely on: `role="tab"` with the tab names,
   `role="radio"` + `aria-checked` on the trend metric buttons with `aria-label="Trend metric"` on
@@ -236,7 +278,7 @@ exactly as the React output:
   `aria-labelledby`, `aria-selected` (the value, while focused), `data-state` and `data-highlighted`
   on their options, `role="dialog"` with `aria-label="Needs my attention"` on `.pc-alert-panel`,
   `aria-expanded`/`aria-controls` on `.pc-alert-trigger`, the `Clear selection` and `Resolve`
-  button names, `.pc-attention-item`, `.pc-po-action-done`, `.pc-stamp`, `.pc-chip`,
+  button names, `.pc-attention-item`, `.pc-po-action-done`, `.pc-chip`,
   `.ag-row .pc-supplier-main`, `.ag-row.is-selected`, `.ag-charts-wrapper`.
 
 Acceptable, invisible differences from reka-ui: `tabindex`, `dir`, `data-orientation`,
@@ -315,10 +357,12 @@ from the repository root, one Nx command at a time:
 
 ## Known deviations
 
-- `ui.tsx`, `components/KpiStrip.tsx`, `components/PurchaseOrderGrid.tsx` and
-  `components/SupplierScorecard.tsx` each define several components; Vue allows one component per
-  file, so they are split as in the file mapping. `Select.vue` gains a `SelectControl.vue` child
-  for the reason given under the table.
+- `ui.tsx`, `components/KpiStrip.tsx`, `components/PurchaseOrderGrid.tsx`,
+  `components/SupplierScorecard.tsx` and `components/DeliverySlipHistograms.tsx` each define several
+  components; Vue allows one component per file, so they are split as in the file mapping.
+  `Select.vue` and `ToggleGroup.vue` gain `SelectControl.vue` and `ToggleGroupControl.vue`
+  children for the reason given under the table.
+- The breakdown grid's group-column `innerRenderer` is an HTML string (above).
 - `main.ts` mounts with a render function (`h('main', …, h(Procurement))`) rather than a root
   component, to keep the `<main data-demo-id>` wrapper out of the demo itself as in React.
 - `Button.vue` has no forwarded ref; `AttentionAlert.vue` reaches the trigger element through the
