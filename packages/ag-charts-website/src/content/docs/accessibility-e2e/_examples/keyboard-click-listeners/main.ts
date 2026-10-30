@@ -19,8 +19,19 @@ function listeners(name: string) {
     return listenersEnabled ? { click: () => events.push(name) } : undefined;
 }
 
-function getAxes(): AgCartesianChartOptions['axes'] {
-    return {
+const options: AgCartesianChartOptions = {
+    container: document.getElementById('myChart'),
+    title: { text: 'Number of Cars Sold', listeners: listeners('title') },
+    subtitle: { text: 'Monthly sales (no listener)' },
+    footnote: { text: 'Source: Internal sales data', listeners: listeners('footnote') },
+    data: [
+        { month: 'March', units: 25 },
+        { month: 'April', units: 27 },
+        { month: 'May', units: 42 },
+        { month: 'June', units: 38 },
+    ],
+    series: [{ type: 'bar', xKey: 'month', yKey: 'units', yName: 'Units' }],
+    axes: {
         x: {
             type: 'category',
             crossLines: [
@@ -46,22 +57,7 @@ function getAxes(): AgCartesianChartOptions['axes'] {
                 },
             ],
         },
-    };
-}
-
-const options: AgCartesianChartOptions = {
-    container: document.getElementById('myChart'),
-    title: { text: 'Number of Cars Sold', listeners: listeners('title') },
-    subtitle: { text: 'Monthly sales (no listener)' },
-    footnote: { text: 'Source: Internal sales data', listeners: listeners('footnote') },
-    data: [
-        { month: 'March', units: 25 },
-        { month: 'April', units: 27 },
-        { month: 'May', units: 42 },
-        { month: 'June', units: 38 },
-    ],
-    series: [{ type: 'bar', xKey: 'month', yKey: 'units', yName: 'Units' }],
-    axes: getAxes(),
+    },
     legend: { enabled: true },
 };
 
@@ -71,7 +67,14 @@ function toggleListeners() {
     listenersEnabled = !listenersEnabled;
     options.title = { ...options.title, listeners: listeners('title') };
     options.footnote = { ...options.footnote, listeners: listeners('footnote') };
-    options.axes = getAxes();
+    for (const axis of [options.axes?.x, options.axes?.y]) {
+        if (!axis?.crossLines) continue;
+        axis.crossLines = axis.crossLines.map((crossLine) =>
+            crossLine.id === 'promotion' || crossLine.id === 'target'
+                ? { ...crossLine, listeners: listeners(crossLine.id) }
+                : crossLine
+        );
+    }
     chart.update(options);
     const button = document.getElementById('toggleListeners');
     if (button) button.textContent = `Listeners: ${listenersEnabled ? 'on' : 'off'}`;
