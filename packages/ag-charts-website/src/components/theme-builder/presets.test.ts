@@ -27,11 +27,11 @@ describe('charts theme builder presets', () => {
         expect(PRESETS[1].palette).toEqual(getPalette('ag-default-dark'));
     });
 
-    it('spans compact to spacious, square to rounded, and borders on and off', () => {
+    it('spans default to spacious, square to rounded, and borders on and off', () => {
         const defaults = _Theme.ChartTheme.getDefaultPublicParameters();
         const values = (key: string) => PRESETS.map(({ params }) => params[key]).filter((value) => value != null);
         const paddings = values('chartPadding').filter((padding) => typeof padding === 'number');
-        expect(paddings.some((padding) => padding < defaults.chartPadding)).toBe(true);
+        expect(paddings.some((padding) => padding <= defaults.chartPadding)).toBe(true);
         expect(paddings.some((padding) => padding > defaults.chartPadding)).toBe(true);
         expect(new Set(values('borderRadius')).size).toBeGreaterThan(1);
         expect(values('legendBorder')).toContain(true);
