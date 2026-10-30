@@ -14,7 +14,7 @@ import type {
     TypeParameterNode,
     TypeReferenceNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
-import type Flexsearch from 'flexsearch';
+import type { Document } from 'flexsearch';
 
 import { entries } from 'ag-charts-core';
 
@@ -25,7 +25,7 @@ type PossibleTypeNode = NodeTypes | undefined | PossibleTypeNode[];
 
 export type SearchDatum = { label: string; searchable: string; navPath: NavigationPath[] };
 export type SearchIndexDatum = SearchDatum & { id: number };
-export type SearchIndex = Flexsearch.Document<SearchIndexDatum>;
+export type SearchIndex = Document<SearchIndexDatum>;
 
 export type SpecialTypesMap = Record<string, 'InterfaceArray' | 'InterfaceRecord' | 'NestedPage'>;
 type HasProperty<T, K extends PropertyKey> = T extends { [P in K]: any } ? T : never;
@@ -42,10 +42,10 @@ export interface NavigationData {
     pageTitle: PageTitle;
 }
 
-export interface NavigationPath {
+export type NavigationPath = {
     name: string;
     type: string;
-}
+};
 
 const hiddenInterfaces = new Set([
     'AxisValue',

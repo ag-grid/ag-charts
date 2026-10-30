@@ -77,6 +77,23 @@ if (process.env.CI != null) {
     env = 'nx-task';
 }
 
+const sonarjsTestRules = {
+    'sonarjs/assertions-in-tests': 0,
+    'sonarjs/no-empty-test-file': 0,
+    'sonarjs/stable-tests': 0,
+    'sonarjs/slow-regex': 0,
+    'sonarjs/super-linear-regex': 0,
+    'sonarjs/no-duplicate-string': 0,
+    'sonarjs/no-nested-functions': 0,
+    'sonarjs/pseudo-random': 0,
+    'sonarjs/prefer-specific-assertions': 0,
+    'sonarjs/no-floating-point-equality': 0,
+    'sonarjs/parameterized-tests': 0,
+    'sonarjs/no-duplicate-test-title': 0,
+    'sonarjs/hooks-before-test-cases': 0,
+    'sonarjs/no-trivial-assertions': 0,
+};
+
 export const testDefaults = {
     files: ['**/*.test.ts', '**/*.test.tsx', '**/*.test.js', '**/*.test.jsx'],
     languageOptions: {
@@ -100,15 +117,44 @@ export const testDefaults = {
         '@typescript-eslint/no-unsafe-call': 0,
         '@typescript-eslint/no-unsafe-member-access': 0,
         '@typescript-eslint/unbound-method': 0,
-        'sonarjs/assertions-in-tests': 0,
-        'sonarjs/no-empty-test-file': 0,
-        'sonarjs/stable-tests': 0,
-        'sonarjs/slow-regex': 0,
-        'sonarjs/no-duplicate-string': 0,
-        'sonarjs/no-nested-functions': 0,
-        'sonarjs/pseudo-random': 0,
+        ...sonarjsTestRules,
     },
 };
+
+// Shared test modules outside `*.test.*` files, which declare test cases and assertions for suites to call.
+const testHelperDefaults = {
+    files: ['**/src/chart/test/**/*.ts', '**/src/test/**/*.ts'],
+    rules: sonarjsTestRules,
+};
+
+// --- NEEDS REVIEW AFTER ESLINT 10 / SONARJS 4 UPGRADE ---------------------------------------------------
+// Rules introduced or tightened by the upgrade, held at warning until the dev team decides whether the
+// source changes they ask for are wanted. Restore to error once reviewed, then delete this block.
+// The core block ends the default export; the sonarjs block ends `sonarjsConfig`, which package configs
+// spread after the default export.
+const needsReviewAfterEslint10Upgrade = [
+    {
+        rules: {
+            'no-useless-assignment': 1,
+            'preserve-caught-error': 1,
+        },
+    },
+    {
+        // Disable comments for rules sonarjs 4 no longer reports at these sites.
+        files: ['**/src/dom/attributeUtil.ts', '**/src/license/licenseManager.ts', '**/src/license/md5.ts'],
+        linterOptions: { reportUnusedDisableDirectives: 'warn' },
+    },
+];
+const needsReviewAfterSonarjs4Upgrade = [
+    {
+        files: ['**/*.{js,ts}'],
+        rules: {
+            'sonarjs/super-linear-regex': 1,
+            'sonarjs/no-redundant-optional': 1,
+        },
+    },
+];
+// --- END NEEDS REVIEW ----------------------------------------------------------------------------------
 
 export const sonarjsConfig = [
     sonarjs.configs.recommended,
@@ -202,6 +248,7 @@ export const sonarjsConfig = [
             'unicorn/no-zero-fractions': 2,
         },
     },
+    ...needsReviewAfterSonarjs4Upgrade,
 ];
 
 /** @type {import('eslint').Linter.Config[]} */
@@ -343,6 +390,7 @@ export default [
         },
     },
     testDefaults,
+    testHelperDefaults,
     {
         files: ['packages/*/tools/*.ts'],
         rules: {
@@ -368,4 +416,5 @@ export default [
             ],
         },
     },
+    ...needsReviewAfterEslint10Upgrade,
 ];
