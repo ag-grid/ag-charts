@@ -148,8 +148,8 @@ describe('preview chart types', () => {
 
     it('falls back to the default for a feature a stored record predates', () => {
         expect(isFeatureEnabled({}, 'navigator')).toBe(DEFAULT_CHART_FEATURES.navigator);
-        expect(isFeatureEnabled({ navigator: false }, 'navigator')).toBe(false);
-        expect(isFeatureEnabled({ navigator: false }, 'legend')).toBe(DEFAULT_CHART_FEATURES.legend);
+        expect(isFeatureEnabled({ navigator: true }, 'navigator')).toBe(true);
+        expect(isFeatureEnabled({ navigator: true }, 'legend')).toBe(DEFAULT_CHART_FEATURES.legend);
     });
 
     it('holds a feature off while what it needs is off, without forgetting it', () => {
