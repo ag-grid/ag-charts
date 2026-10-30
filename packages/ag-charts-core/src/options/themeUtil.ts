@@ -680,10 +680,16 @@ export function inheritedShadowFillTheme(seriesShadowPath: string) {
 /** `shadowFillOpacity` is a private theme param that the public `Operation` type does not list. */
 const SHADOW_FILL_OPACITY_REF = { $ref: 'shadowFillOpacity' } as unknown as Operation;
 
+/** `fill` is undocumented, so `color` resolves to the colour the shadow casts, for readers of the options. */
+const SHADOW_COLOR_THEME: Operation = {
+    $isUserOption: ['./fill', { $path: './fill' }, { $opacity: [{ $path: './fill' }, { $path: './fillOpacity' }] }],
+};
+
 /** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
 export const SHADOW_THEME_DEFAULTS = {
     enabled: false,
     ...shadowFillTheme('#000', SHADOW_FILL_OPACITY_REF),
+    color: SHADOW_COLOR_THEME,
     xOffset: 3,
     yOffset: 3,
     blur: 5,
