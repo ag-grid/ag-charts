@@ -164,6 +164,7 @@ export const DEFAULT_DISABLED_SHADOW = {
     blur: 5,
     fill: '#000',
     fillOpacity: 0.5,
+    color: 'rgba(0, 0, 0, 0.5)',
 };
 
 /** The shadow the series tests turn on. */
