@@ -17,6 +17,13 @@ import {
     processMembers,
 } from './apiReferenceHelpers';
 
+/**
+ * Levels of the navigation tree to list. Each level multiplies the links on every page in the section,
+ * and the server-rendered content renders a target for each, so it stays at the depth that reaches every
+ * reference page while keeping the served HTML small.
+ */
+export const FALLBACK_NAV_DEPTH = 2;
+
 export interface FallbackNavItem {
     label: string;
     href: string;

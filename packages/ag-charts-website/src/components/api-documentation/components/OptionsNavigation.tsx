@@ -8,6 +8,7 @@ import {
     type AllHTMLAttributes,
     type CSSProperties,
     type Dispatch,
+    type MouseEvent,
     type MouseEventHandler,
     type ReactNode,
     type SetStateAction,
@@ -38,7 +39,7 @@ import {
     normalizeType,
     processMembers,
 } from '../apiReferenceHelpers';
-import { navigateToSelection, useApiReferenceLocation } from '../apiReferenceRouting';
+import { hrefFor, navigateToSelection, useApiReferenceLocation } from '../apiReferenceRouting';
 import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
@@ -281,7 +282,7 @@ function NavProperty({
                     )}
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
-                    <span onClick={() => onClick?.(navData)}>
+                    <NavLink navData={navData} onClick={onClick}>
                         {isStringLiteralType(memberType) ? (
                             <>
                                 {member.name} <span className={styles.punctuation}>= '</span>
@@ -297,7 +298,7 @@ function NavProperty({
                         ) : (
                             ''
                         )}
-                    </span>
+                    </NavLink>
                     {expandable && (
                         <OpeningBrackets
                             isOpen={isExpanded}
@@ -425,13 +426,13 @@ function NavTypedUnionProperty({
                             <span className={styles.punctuation}>{'{'}</span>
                         ) : (
                             <>
-                                <span onClick={() => onClick?.(navData)}>
+                                <NavLink navData={navData} onClick={onClick}>
                                     <span className={styles.punctuation}>{'{ '}</span>
                                     {discriminatorKey}
                                     <span className={styles.punctuation}> = '</span>
                                     <span className={styles.unionDiscriminator}>{path[path.length - 1].name}</span>
                                     <span className={styles.punctuation}>'</span>
-                                </span>
+                                </NavLink>
                                 <span className={styles.punctuation} onClick={toggleExpanded}>
                                     {' ... }'}
                                 </span>
@@ -481,11 +482,11 @@ function NavUnionPrimitive({
     return (
         <div className={classnames(styles.navItem, isSelected && 'highlight')}>
             <span className={classnames(styles.propertyName, depth > 1 && styles.propertyWhisker)}>
-                <span onClick={() => onClick?.(navData)}>
+                <NavLink navData={navData} onClick={onClick}>
                     {name}
                     <span className={styles.punctuation}>: </span>
                     <span className={styles.primitiveType}>{typeName}</span>
-                </span>
+                </NavLink>
             </span>
         </div>
     );
@@ -504,13 +505,13 @@ function NavBreadcrumb({
 }) {
     const selection = useContext(SelectionContext);
     const isSelected = selection?.selection.pageInterface === rootInterface && !selection?.selection.hash;
+    const navData: NavigationData = {
+        pathname: basePath,
+        hash: '',
+        pageInterface: rootInterface,
+        pageTitle: { name: rootInterface },
+    };
     const handleClick = () => {
-        const navData = {
-            pathname: basePath,
-            hash: '',
-            pageInterface: rootInterface,
-            pageTitle: { name: rootInterface },
-        };
         selection?.setSelection(navData);
         window.scrollTo({ behavior: 'smooth', top: 0 });
         navigateToSelection(navData);
@@ -527,9 +528,11 @@ function NavBreadcrumb({
                             isSelected && index + 1 === breadcrumbs.length && 'highlight'
                         )}
                     >
-                        <span className={classnames(styles.propertyName)} onClick={handleClick}>
-                            {index > 0 && <PropertyExpander isExpanded />}
-                            {breadcrumb}
+                        <span className={styles.propertyName}>
+                            <NavLink navData={navData} onClick={handleClick}>
+                                {index > 0 && <PropertyExpander isExpanded />}
+                                {breadcrumb}
+                            </NavLink>
                         </span>
                         {': {'}
                     </div>
@@ -542,6 +545,35 @@ function NavBreadcrumb({
                 </NavGroup>
             ))}
         </>
+    );
+}
+
+/**
+ * A link to an entry's page or anchor, so the tree's entries are real links that can be opened in a new
+ * tab and followed by crawlers. A plain click navigates within the reference instead of reloading it.
+ */
+function NavLink({
+    navData,
+    onClick,
+    children,
+}: {
+    navData: NavigationData;
+    onClick?: (navData: NavigationData) => void;
+    children: ReactNode;
+}) {
+    const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+        // Leave clicks that open a new tab or window to the browser.
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+        event.preventDefault();
+        onClick?.(navData);
+    };
+
+    return (
+        <a className={styles.navLink} href={hrefFor(navData)} onClick={handleClick}>
+            {children}
+        </a>
     );
 }
 

@@ -16,6 +16,7 @@ import {
     queryClient,
     queryOptions,
 } from './ApiReference';
+import { ApiReferenceNavLinks } from './ApiReferenceNavLinks';
 import styles from './ApiReferencePage.module.scss';
 import { OptionsNavigation, SelectionContext } from './OptionsNavigation';
 import { PropertyType } from './Properties';
@@ -95,6 +96,15 @@ function ApiReferencePageInner({
                                 basePath={basePath}
                                 breadcrumbs={breadcrumbs}
                                 rootInterface={rootInterface}
+                            />
+                            <ApiReferenceNavLinks
+                                reference={reference}
+                                rootInterface={rootInterface}
+                                rootLabel={breadcrumbs[breadcrumbs.length - 1]}
+                                basePath={basePath}
+                                pageInterface={selection.pageInterface}
+                                specialTypes={specialTypes}
+                                noExpand={noExpand}
                             />
                         </div>
                         <ApiReferencePageContent
