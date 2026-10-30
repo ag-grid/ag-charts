@@ -1,6 +1,7 @@
 import {
     type BaseAttributeTypeMap,
     ButtonWidget,
+    createElement,
     getIconClassNames,
     hasNoModifiers,
     setAttribute,
@@ -113,13 +114,37 @@ function isArrowRightPredicate(widgetEvent: KeyboardWidgetEvent): boolean {
     return hasNoModifiers(widgetEvent.sourceEvent) && widgetEvent.sourceEvent.code === 'ArrowRight';
 }
 
+interface ToolbarButtonContent {
+    icon?: AgIconName;
+    iconAfter: boolean;
+    label?: string;
+}
+
+function createButtonChildren({ icon, iconAfter, label }: ToolbarButtonContent): HTMLElement[] {
+    const children: HTMLElement[] = [];
+    if (label != null) {
+        const labelElem = createElement('span', 'ag-charts-toolbar__label');
+        labelElem.textContent = label;
+        children.push(labelElem);
+    }
+    if (icon != null) {
+        const iconElem = createElement('span', `${getIconClassNames(icon)} ag-charts-toolbar__icon`);
+        if (iconAfter) {
+            children.push(iconElem);
+        } else {
+            children.unshift(iconElem);
+        }
+    }
+    return children;
+}
+
 function falsePredicate(_widgetEvent: KeyboardWidgetEvent): boolean {
     return false;
 }
 
 export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
-    private lastInnerHTML?: string;
+    private lastContent?: ToolbarButtonContent;
     private lastTooltip?: string;
     private lastButtonSize?: number;
     private lastIconSize?: number;
@@ -146,20 +171,11 @@ export class ToolbarButtonWidget extends ButtonWidget {
             }
         }
 
-        let innerHTML = '';
-
-        if (options.icon != null && options.iconPosition !== 'after') {
-            innerHTML = `<span class="${getIconClassNames(options.icon)} ag-charts-toolbar__icon"></span>`;
-        }
-
-        if (options.label != null) {
-            const label = localeManager.t(options.label);
-            innerHTML = `${innerHTML}<span class="ag-charts-toolbar__label">${label}</span>`;
-        }
-
-        if (options.icon != null && options.iconPosition === 'after') {
-            innerHTML = `${innerHTML}<span class="${getIconClassNames(options.icon)} ag-charts-toolbar__icon"></span>`;
-        }
+        const content: ToolbarButtonContent = {
+            icon: options.icon,
+            iconAfter: options.iconPosition === 'after',
+            label: options.label == null ? undefined : localeManager.t(options.label),
+        };
 
         const haspopup = getAriaHasPopupOfValue(options.value);
         if (haspopup == 'false') {
@@ -172,10 +188,16 @@ export class ToolbarButtonWidget extends ButtonWidget {
             this.arrowKeyPredicate = interactionOptions.isRtl ? isArrowLeftPredicate : isArrowRightPredicate;
         }
 
-        // Only update innerHTML if content changed - avoids HTML parsing and style recalculation
-        if (innerHTML !== this.lastInnerHTML) {
-            this.elem.innerHTML = innerHTML;
-            this.lastInnerHTML = innerHTML;
+        // Only rebuild the children if content changed - avoids style recalculation
+        const last = this.lastContent;
+        if (
+            last == null ||
+            last.icon !== content.icon ||
+            last.iconAfter !== content.iconAfter ||
+            last.label !== content.label
+        ) {
+            this.elem.replaceChildren(...createButtonChildren(content));
+            this.lastContent = content;
         }
 
         this.updateButtonSize(
