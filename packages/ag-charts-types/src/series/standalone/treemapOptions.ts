@@ -4,6 +4,7 @@ import type {
     HierarchyHighlightState,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -43,8 +44,13 @@ export interface AgTreemapSeriesGroupStyle extends FillOptions, StrokeOptions {}
 export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>,
-        AgChartLabelCollisionFitOptions,
+        Omit<AgChartLabelCollisionFitOptions, 'collision'>,
         AgChartLabelAutoFontSizeOptions {
+    /**
+     * Configuration controlling the spacing kept from obstacles and whether a label that cannot be
+     * placed clear of every obstacle is kept at its least-overflowing placement or hidden.
+     */
+    collision?: AgChartLabelCollisionOptions;
     /** The distance between the tiles and the title. */
     spacing?: PixelSize;
     /**
@@ -108,13 +114,22 @@ export interface AgTreemapSeriesTileLabelAlignmentOptions {
 
 export interface AgTreemapSeriesTileLabelOptions<TDatum, TContext = ContextDefault>
     extends
-        AgChartAutoSizedLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>,
-        AgTreemapSeriesTileLabelAlignmentOptions {}
+        Omit<AgChartAutoSizedLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>, 'collision'>,
+        AgTreemapSeriesTileLabelAlignmentOptions {
+    /** Configuration controlling whether a label that still does not fit its bounds is kept or hidden. */
+    collision?: AgChartLabelCollisionOptions;
+}
 
 export interface AgTreemapSeriesTileSecondaryLabelOptions<TDatum, TContext = ContextDefault>
     extends
-        AgChartAutoSizedSecondaryLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>,
-        AgTreemapSeriesTileLabelAlignmentOptions {}
+        Omit<
+            AgChartAutoSizedSecondaryLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>,
+            'collision'
+        >,
+        AgTreemapSeriesTileLabelAlignmentOptions {
+    /** Configuration controlling whether a label that still does not fit its bounds is kept or hidden. */
+    collision?: AgChartLabelCollisionOptions;
+}
 
 export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
     /** Options for the label in a tile. */

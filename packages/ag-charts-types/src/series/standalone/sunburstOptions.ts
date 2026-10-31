@@ -4,6 +4,7 @@ import type {
     HierarchyHighlightState,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, Opacity, PixelSize, Ratio } from '../../chart/types';
@@ -67,18 +68,30 @@ export interface AgSunburstInnerCircle {
     fillOpacity?: Opacity;
 }
 
+export interface AgSunburstSeriesLabelOptions<TDatum, TContext = ContextDefault> extends Omit<
+    AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>,
+    'collision'
+> {
+    /** Configuration controlling whether a label that still does not fit its bounds is kept or hidden. */
+    collision?: AgChartLabelCollisionOptions;
+}
+
+export interface AgSunburstSeriesSecondaryLabelOptions<TDatum, TContext = ContextDefault> extends Omit<
+    AgChartAutoSizedSecondaryLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>,
+    'collision'
+> {
+    /** Configuration controlling whether a label that still does not fit its bounds is kept or hidden. */
+    collision?: AgChartLabelCollisionOptions;
+}
+
 export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
     AgBaseSeriesThemeableOptions<TDatum, TContext>,
     'highlight' | 'showInLegend'
 > {
     /** Options for the label in a sector. */
-    label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>;
+    label?: AgSunburstSeriesLabelOptions<TDatum, TContext>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
-    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<
-        TDatum,
-        AgSunburstSeriesLabelFormatterParams<TDatum>,
-        TContext
-    >;
+    secondaryLabel?: AgSunburstSeriesSecondaryLabelOptions<TDatum, TContext>;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
     /** The ratio of the inner radius of the series. Carves a hole at the centre of the series. */
