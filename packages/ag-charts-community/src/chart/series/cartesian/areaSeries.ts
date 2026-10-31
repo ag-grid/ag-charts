@@ -1105,6 +1105,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelInsideOffset: labelContext.labelInsideOffset,
             labelInsideSize: labelContext.labelInsideSize,
             labelAnchor: labelContext.labelAnchor,
+            labelRegion: labelContext.labelRegion,
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -1255,6 +1256,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 anchor: ctx.labelAnchor,
                 insideOffset: ctx.labelInsideOffset,
                 insideSize: ctx.labelInsideSize,
+                region: ctx.labelRegion,
                 placement: 'top',
                 // Markerless points still nudge their label clear of the area with a small fixed gap.
                 gap: ctx.markerSize > 0 ? ctx.markerSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP,

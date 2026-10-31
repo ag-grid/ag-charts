@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     type BoxBounds,
-    type CollideWith,
+    type LabelAvoidance,
     type LabelObstacle,
     type Node,
     type NormalisedTextOrSegments,
@@ -11,7 +11,7 @@ import {
     Text,
     type TextBoxingProperties,
     lineHeightAtSize,
-    resolveCollideWith,
+    resolveLabelAvoidance,
 } from 'ag-charts-core';
 import type { AgChartLabelCollisionOptions, FontStyle, FontWeight, PaddingOptions, TextWrap } from 'ag-charts-types';
 
@@ -19,7 +19,7 @@ import { formatSingleLabel } from '../util/labelFormatter';
 
 const { expandLabelBoxExtent } = _ModuleSupport;
 
-const COLLIDE_WITH_NOTHING: CollideWith = { marker: false, label: false, seriesItem: false, seriesArea: false };
+const AVOID_NOTHING: LabelAvoidance = { marker: false, label: false, shape: false, seriesArea: false };
 
 export interface GaugeLabelCandidate {
     /** Reported back by {@link gaugeLabelPlacements} when the label manager picks this candidate. */
@@ -49,12 +49,12 @@ export function gaugeLabelDatum(
     const [first] = candidates;
     if (first == null) return;
 
-    const collideWith =
+    const avoid =
         collision == null
-            ? COLLIDE_WITH_NOTHING
-            : resolveCollideWith({ ...collision, alwaysShow: collision.alwaysShow === true });
+            ? AVOID_NOTHING
+            : resolveLabelAvoidance({ ...collision, alwaysShow: collision.alwaysShow === true });
     const keep = collision == null ? keepWithoutCollision : collision.alwaysShow === true;
-    const area = collideWith.seriesArea === true ? seriesArea : undefined;
+    const area = avoid.seriesArea === true ? seriesArea : undefined;
 
     return {
         key,
@@ -65,7 +65,7 @@ export function gaugeLabelDatum(
         placement: undefined,
         alwaysShow: keep,
         neverDrop: keep,
-        collideWith,
+        avoid,
         threshold: collision?.threshold,
         labelGroup,
         outranks: collision != null,
@@ -124,7 +124,7 @@ interface GaugeTargetObstacleDatum {
     readonly label: { readonly collision: AgChartLabelCollisionOptions | undefined };
 }
 
-const SCALE_LABEL_COLLIDE_WITH: CollideWith = { marker: true, label: true, seriesItem: false, seriesArea: false };
+const SCALE_LABEL_AVOID: LabelAvoidance = { marker: true, label: true, shape: false, seriesArea: false };
 
 function scaleLabelKey(index: number) {
     return `scale-${index}`;
@@ -147,7 +147,7 @@ export function gaugeScaleLabelData<T>(selection: Selection<T, Text<T>>, enabled
             anchor: undefined,
             placement: undefined,
             alwaysShow: false,
-            collideWith: SCALE_LABEL_COLLIDE_WITH,
+            avoid: SCALE_LABEL_AVOID,
             obstacle: false,
             yields: true,
             positionedCandidates: [

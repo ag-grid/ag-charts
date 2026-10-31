@@ -71,7 +71,7 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             padding: 8,
-            collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
+            collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW, collideWith: { seriesArea: true } },
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
             placement: 'top',

@@ -2,7 +2,7 @@ import type { PaddingOptions } from 'ag-charts-types';
 
 import {
     type CandidateFitTarget,
-    type CollideWith,
+    type LabelAvoidance,
     type LabelFitDescriptor,
     type LabelObstacle,
     type PlacedLabel,
@@ -49,10 +49,10 @@ function isPolarPointLabelDatum(datum: unknown): datum is PolarPointLabelDatum {
 }
 
 // Polar labels hold their position: they avoid nothing, yet every other label sees them.
-const FIXED_LABEL_COLLISIONS: CollideWith = {
+const FIXED_LABEL_COLLISIONS: LabelAvoidance = {
     marker: false,
     label: false,
-    seriesItem: false,
+    shape: false,
     seriesArea: false,
     axisLabel: false,
 };
@@ -99,7 +99,7 @@ export function polarLabelDatum(
         fit: labelFit,
         anchor: undefined,
         placement: undefined,
-        collideWith: FIXED_LABEL_COLLISIONS,
+        avoid: FIXED_LABEL_COLLISIONS,
         // A never-drop fit refuses a bare ellipsis, which a fixed label should still draw.
         neverDrop: labelFit == null,
         positionedCandidates: [{ box, unbounded: true, fitTo }],
@@ -141,7 +141,7 @@ export function polarLabelsBBox(
     return BBox.merge(placed.map(({ x, y, width, height }) => new BBox(x - centreX, y - centreY, width, height)));
 }
 
-/** Centre-relative sectors as `seriesItem` obstacles in the label solve's space. */
+/** Centre-relative sectors as `shape` obstacles in the label solve's space. */
 export function polarSectorObstacles(
     sectors: Iterable<SectorBoundaries>,
     centreX: number,
@@ -155,7 +155,7 @@ export function polarSectorObstacles(
             box,
             overlaps: ({ x, y, width, height }) =>
                 boxOverlapsSector({ x: x - centreX, y: y - centreY, width, height }, sector),
-            category: 'seriesItem',
+            category: 'shape',
         });
     }
     return obstacles;

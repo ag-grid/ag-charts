@@ -47,7 +47,7 @@ import {
     measurePlacedLabel,
     placedLabelFit,
     rescaleVisibleRange,
-    resolveCollideWith,
+    resolveLabelAvoidance,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
     toArray,
@@ -700,7 +700,7 @@ export abstract class BubbleScatterSeries<
         // Only fit to the marker when `inside` is the sole placement, so directional fallbacks stay full-size.
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const insideRect = placements.includes('inside') ? markerLabelRect(marker.shape) : undefined;
-        const collideWith = resolveCollideWith(label.collision);
+        const avoid = resolveLabelAvoidance(label.collision);
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow, insideOnly);
 
         const xScale = xAxis.scale;
@@ -782,7 +782,7 @@ export abstract class BubbleScatterSeries<
             labelStyled: label.itemStyler != null,
             label,
             // Inside-only labels ride with their marker, so only directional placements can spill out.
-            plotRegion: insideOnly || !collideWith.seriesArea ? undefined : this.getSeriesPlotRegion(),
+            plotRegion: insideOnly || !avoid.seriesArea ? undefined : this.getSeriesPlotRegion(),
 
             // Other state
             animationEnabled: !this.ctx.animationManager.isSkipped(),

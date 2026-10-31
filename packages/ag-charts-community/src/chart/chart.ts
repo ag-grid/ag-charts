@@ -1512,7 +1512,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const relayout = this.ctx.labelManager.updateLabels(
             this.series.filter((s) => s.visible),
             this.ctx.chartState.getValue('options', 'padding'),
-            this.seriesRect
+            this.seriesRect,
+            this.getSeriesAreaPadding()
         );
         if (relayout) {
             this.update(ChartUpdateType.PERFORM_LAYOUT);

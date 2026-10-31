@@ -2647,7 +2647,6 @@ describe('OrganizationSeries', () => {
             },
             { id: 'cto', name: 'Bob', job: 'Chief Technology Officer', location: 'Edinburgh', parentId: 'ceo' },
         ];
-        const LONG_WORD_DATA = [{ id: 'ceo', name: 'Supercalifragilisticexpialidocious', job: 'CEO', parentId: null }];
 
         type NodeTexts = { id: string; title?: string; subtitle?: string; labels: (string | undefined)[] };
 
@@ -2688,13 +2687,12 @@ describe('OrganizationSeries', () => {
             expect(titleOf((await render(node(60))).texts)).toBe('Alexandra…');
         });
 
-        it('should default to truncate: true and collision { threshold: 0, alwaysShow: false } on every tier', async () => {
+        it('should default to truncate: true on every tier', async () => {
             const { series } = await render(BASE_NODE);
             const { title, subtitle, labels } = series.options.node;
             expect(labels).toHaveLength(1);
             for (const tier of [title, subtitle, labels![0]]) {
                 expect(tier.truncate).toBe(true);
-                expect(tier.collision).toEqual({ threshold: 0, alwaysShow: false });
             }
         });
 
@@ -2759,77 +2757,29 @@ describe('OrganizationSeries', () => {
             `);
         });
 
-        it('should hide text that does not fit with truncate: false alone, keeping the other defaults', async () => {
-            const { texts, series } = await render({
+        it('should hide text that does not fit with truncate: false', async () => {
+            const { texts } = await render({
                 ...BASE_NODE,
                 title: { key: 'name', wrapping: 'never', truncate: false },
             });
             expect(titleOf(texts)).toBe('');
             expect(titleOf(texts, 'cto')).toBe('Bob');
-            expect(series.options.node.title.collision).toEqual({ threshold: 0, alwaysShow: false });
         });
 
-        it('should keep truncating with collision.alwaysShow alone', async () => {
-            const { texts, series } = await render({
-                ...BASE_NODE,
-                title: { key: 'name', wrapping: 'never', collision: { alwaysShow: true } },
-            });
-            expect(titleOf(texts)).toContain('…');
-            expect(series.options.node.title.truncate).toBe(true);
-            expect(series.options.node.title.collision.threshold).toBe(0);
-        });
-
-        it.each([false, true])(
-            'should keep text that does not fit at all when alwaysShow is true (truncate: %s)',
-            async (truncate) => {
-                // A 30px card leaves a 1px text budget, narrower than any character, so the tier would be emptied.
-                const node: OrgNodeOptions = { width: 30, title: { key: 'name', truncate }, subtitle: { key: 'job' } };
-                const { texts: hidden } = await render(node, {}, LONG_WORD_DATA);
-                expect(titleOf(hidden)).toBe('');
-
-                const { texts: kept } = await render(
-                    { ...node, title: { key: 'name', truncate, collision: { alwaysShow: true } } },
-                    {},
-                    LONG_WORD_DATA
-                );
-                expect(titleOf(kept)).not.toBe('');
-                expect(titleOf(kept)).not.toContain('…');
-            }
-        );
-
-        it('should fit text into less space with a positive threshold and more with a negative one', async () => {
-            const renderTitle = async (threshold: number) =>
-                titleOf(
-                    (
-                        await render({
-                            ...BASE_NODE,
-                            maxWidth: 160,
-                            title: { key: 'name', wrapping: 'never', collision: { threshold } },
-                        })
-                    ).texts
-                )!;
-            const atZero = await renderTitle(0);
-            const positive = await renderTitle(40);
-            const negative = await renderTitle(-40);
-            expect(positive.length).toBeLessThan(atZero.length);
-            expect(negative.length).toBeGreaterThan(atZero.length);
-        });
-
-        it('should apply truncate and collision from theme overrides', async () => {
+        it('should apply truncate from theme overrides', async () => {
             const { texts, series } = await render(
                 { ...BASE_NODE, title: { key: 'name', wrapping: 'never' } },
                 {
                     theme: {
                         overrides: {
                             organization: {
-                                series: { node: { title: { truncate: false, collision: { threshold: 5 } } } },
+                                series: { node: { title: { truncate: false } } },
                             },
                         },
                     },
                 }
             );
             expect(series.options.node.title.truncate).toBe(false);
-            expect(series.options.node.title.collision).toEqual({ threshold: 5, alwaysShow: false });
             expect(titleOf(texts)).toBe('');
         });
 
@@ -2861,12 +2811,10 @@ describe('OrganizationSeries', () => {
             `);
         });
 
-        it('should pass truncate and collision to text itemStyler params', async () => {
+        it('should pass truncate to text itemStyler params', async () => {
             const itemStyler = vi.fn(() => ({}));
             await render({ ...BASE_NODE, title: { key: 'name', itemStyler } });
-            expect(itemStyler).toHaveBeenCalledWith(
-                expect.objectContaining({ truncate: true, collision: { threshold: 0, alwaysShow: false } })
-            );
+            expect(itemStyler).toHaveBeenCalledWith(expect.objectContaining({ truncate: true }));
         });
 
         it('should not fit text vertically when no card height is configured', async () => {
@@ -2876,18 +2824,12 @@ describe('OrganizationSeries', () => {
             expect(ceo.labels).toEqual(['London']);
         });
 
-        it('should truncate or hide the lower tiers when a configured maxHeight leaves them no room', async () => {
+        it('should empty the lower tiers when a configured maxHeight leaves them no room', async () => {
             const node: OrgNodeOptions = { ...BASE_NODE, maxWidth: undefined, maxHeight: 40 };
             const { texts: truncated } = await render(node);
             const ceo = truncated.find((t) => t.id === 'ceo')!;
             expect(ceo.title).toBe('Alexandra Montgomery-Fairweather');
             expect(ceo.labels).toEqual(['']);
-
-            const { texts: kept } = await render({
-                ...node,
-                labels: [{ key: 'location', collision: { alwaysShow: true } }],
-            });
-            expect(kept.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
         });
 
         // A single node, so no expander widens the bottom padding.
@@ -2990,12 +2932,6 @@ describe('OrganizationSeries', () => {
             });
             expect(hidden.find((t) => t.id === 'ceo')!.labels).toEqual(['']);
 
-            const { texts: kept } = await render({
-                ...node,
-                labels: [{ key: 'location', wrapping: 'never', truncate: false, collision: { alwaysShow: true } }],
-            });
-            expect(kept.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
-
             const multiline = [{ id: 'ceo', name: 'First line\nSecond line\nThird line', parentId: null }];
             const { texts: truncated } = await render(
                 { maxHeight: 40, title: { key: 'name', wrapping: 'never' }, subtitle: { enabled: false } },
@@ -3006,7 +2942,7 @@ describe('OrganizationSeries', () => {
         });
 
         // One chart per budget, each node rendering a different fit configuration through the text stylers.
-        type FitVariant = Pick<AgOrganizationSeriesNodeTextStyle, 'truncate' | 'collision' | 'wrapping'>;
+        type FitVariant = Pick<AgOrganizationSeriesNodeTextStyle, 'truncate' | 'wrapping'>;
         const renderFitVariants = async (variants: Record<string, FitVariant>, node: OrgNodeOptions, data: object) => {
             const variantStyler = ({ datum }: { datum: { name: string } }) => variants[datum.name];
             const options: AgChartOptions = {
@@ -3034,10 +2970,7 @@ describe('OrganizationSeries', () => {
                 {
                     default: {},
                     'truncate: false': { truncate: false },
-                    'alwaysShow: true': { truncate: false, collision: { alwaysShow: true } },
                     "wrapping: 'never'": { wrapping: 'never' },
-                    'threshold: 30': { collision: { threshold: 30 } },
-                    'threshold: -30': { collision: { threshold: -30 } },
                 },
                 { maxWidth: 120 },
                 { job: 'Supercalifragilisticexpialidocious Officer', location: 'Edinburgh and the Lothians' }
@@ -3049,9 +2982,7 @@ describe('OrganizationSeries', () => {
                 {
                     default: {},
                     'no truncate': { truncate: false },
-                    alwaysShow: { truncate: false, collision: { alwaysShow: true } },
                     'never wrap': { wrapping: 'never' },
-                    'threshold: 15': { collision: { threshold: 15 } },
                 },
                 { maxWidth: 120, maxHeight: 100 },
                 { job: 'Head of IT', location: 'London\nEdinburgh\nManchester\nGlasgow\nCardiff' }

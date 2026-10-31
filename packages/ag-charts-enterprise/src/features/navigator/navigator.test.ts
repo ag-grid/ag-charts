@@ -528,7 +528,6 @@ describe('Navigator', () => {
                     x: { position: 'bottom', type: 'number', crossAt: { value: 0 }, interval: { step: 2 } },
                     y: { position: 'left', type: 'number' },
                 },
-                // `collideWith` is not in the public label collision options, hence the cast.
                 series: [
                     {
                         type: 'line',
@@ -538,7 +537,7 @@ describe('Navigator', () => {
                             enabled: true,
                             formatter: ({ datum }: { datum: { x: number } }) => `x${datum.x}`,
                             placement: ['bottom', 'top'],
-                            collision: { alwaysShow: false, collideWith: { axisLabels: true } },
+                            collision: { alwaysShow: false, collideWith: { axisLabels: false } },
                             truncate: false,
                         },
                     } as AgLineSeriesOptions,

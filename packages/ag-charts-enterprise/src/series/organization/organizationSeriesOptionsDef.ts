@@ -148,10 +148,6 @@ const nodeTextStyleDef = {
     enabled: boolean,
     overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
     truncate: boolean,
-    collision: {
-        threshold: number,
-        alwaysShow: boolean,
-    },
     spacing: number,
     textAlign: textAlign,
     wrapping: textWrap,

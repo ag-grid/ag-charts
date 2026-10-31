@@ -2,7 +2,6 @@ import {
     BBox,
     ExtendedPath2D,
     Group,
-    type MeasuredSegment,
     type NormalisedPaddingOptions,
     type NormalisedTextOrSegments,
     Path,
@@ -16,7 +15,6 @@ import {
     clipLines,
     isArray,
     resolveTextAlign,
-    toTextString,
     wrapTextOrSegments,
 } from 'ag-charts-core';
 import type { AgNetworkSeriesTreeLayoutDirection, TextAlign } from 'ag-charts-types';
@@ -91,11 +89,6 @@ function hasTextBoxing(tierStyles: NormalisedOrganizationNodeTextStyle): boolean
     return tierStyles.fill != null || (tierStyles.stroke != null && tierStyles.strokeWidth > 0);
 }
 
-function hasVisibleContent(text: NormalisedTextOrSegments | MeasuredSegment[]): boolean {
-    if (!isArray(text)) return toTextString(text).trim() !== '';
-    return text.some((segment) => !('text' in segment) || toTextString(segment.text).trim() !== '');
-}
-
 // OPTIMIZATION: an unbounded card needs no vertical budget, so skip measuring the tier.
 function remainingTextHeight(
     maxHeight: number,
@@ -112,10 +105,10 @@ function wrapTextTier(
     maxWidth: number,
     maxHeight: number
 ): NormalisedTextOrSegments {
-    const { padding, collision } = tierStyles;
-    const tierWidth = Math.max(maxWidth - (padding.left + padding.right) - collision.threshold, 1);
+    const { padding } = tierStyles;
+    const tierWidth = Math.max(maxWidth - (padding.left + padding.right), 1);
     const verticalPadding = hasTextBoxing(tierStyles) ? padding.top + padding.bottom : 0;
-    const tierHeight = Math.max(maxHeight - verticalPadding - collision.threshold, 0);
+    const tierHeight = Math.max(maxHeight - verticalPadding, 0);
     if (!Number.isFinite(tierWidth) && !Number.isFinite(tierHeight)) return text;
 
     const options: WrapOptions = {
@@ -126,15 +119,12 @@ function wrapTextTier(
         textWrap: tierStyles.wrapping,
         overflow: tierStyles.truncate ? 'ellipsis' : 'hide',
     };
-    let wrapped = wrapTextOrSegments(text, options);
+    const wrapped = wrapTextOrSegments(text, options);
     if (options.maxHeight != null && options.textWrap === 'never' && !isArray(wrapped)) {
         // The wrapper's 'never' path only fits the width, so apply the height limit to its lines here.
-        wrapped = clipLines(wrapped.split('\n'), cachedTextMeasurer(tierStyles), options).join('\n');
+        return clipLines(wrapped.split('\n'), cachedTextMeasurer(tierStyles), options).join('\n');
     }
-    if (!collision.alwaysShow || hasVisibleContent(wrapped) || !hasVisibleContent(text)) return wrapped;
-
-    // Keep text that does not fit at all: wrap it to the width and leave the card clip to bound it.
-    return wrapTextOrSegments(text, { ...options, maxHeight: undefined, overflow: 'preserve' });
+    return wrapped;
 }
 
 // The expander pill straddles the card's edge: the exclusion is punched out of the border only, so

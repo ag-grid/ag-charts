@@ -1,6 +1,7 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type {
     BBox,
+    BoxBounds,
     CallbackParamRules,
     DynamicContext,
     Feature,
@@ -272,7 +273,8 @@ export class MapLineSeries
         labelValue: string | undefined,
         projectedGeometry: Geometry | undefined,
         labelFit: LabelFit | undefined,
-        labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number }
+        labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number },
+        labelRegion: BoxBounds | undefined
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null || idValue == null) return;
 
@@ -311,6 +313,7 @@ export class MapLineSeries
             label: { width, height, text: fittedText },
             anchor: undefined,
             placement: undefined,
+            region: labelRegion,
             datumIndex,
             idValue,
         };
@@ -405,6 +408,7 @@ export class MapLineSeries
             undefined
         );
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
+        const labelRegion = this.resolveLabelPlotRegion(label.collision);
 
         const projectedGeometries = this.prepareProjectedLineGeometries(
             columns.idValues,
@@ -437,7 +441,8 @@ export class MapLineSeries
                 dataValues.labelValue,
                 projectedGeometry,
                 labelFit,
-                labelStyle
+                labelStyle,
+                labelRegion
             );
             if (labelDatum != null) {
                 labelData.push(labelDatum);

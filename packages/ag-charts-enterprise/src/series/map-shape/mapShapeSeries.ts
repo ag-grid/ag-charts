@@ -1,12 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type {
     CallbackParamRules,
-    CollideWith,
     DynamicContext,
     Feature,
     FeatureCollection,
     FontOptions,
     Geometry,
+    LabelAvoidance,
     LabelFit,
     LabelFitDescriptor,
     Node,
@@ -124,10 +124,10 @@ function placedLabelDatum(placed: PlacedLabel<unknown>): MapShapePlacedLabelDatu
 }
 
 // Shape labels hold their fitted position and leave other labels free to sit over them.
-const SHAPE_LABEL_COLLISIONS: CollideWith = {
+const SHAPE_LABEL_COLLISIONS: LabelAvoidance = {
     marker: false,
     label: false,
-    seriesItem: false,
+    shape: false,
     seriesArea: false,
     axisLabel: false,
 };
@@ -594,7 +594,7 @@ export class MapShapeSeries
                 anchor: undefined,
                 placement: undefined,
                 alwaysShow: true,
-                collideWith: SHAPE_LABEL_COLLISIONS,
+                avoid: SHAPE_LABEL_COLLISIONS,
                 obstacle: false,
                 positionedCandidates: [
                     {

@@ -1119,7 +1119,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
         const { label } = this.options;
-        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
+        const { alwaysShow, avoid, threshold, measureBox, fitFor } = barLabelDataContext(label);
         // The positioned path serves hideable, fitted and placement-cascading labels; an orientation-only
         // array stays on the baked path below, which resolves orientation against the bar region.
         if (barLabelPropsUsePositionedCandidates(label)) {
@@ -1139,7 +1139,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         nodeLabel,
                         ownBox,
                         alwaysShow,
-                        collideWith,
+                        avoid,
                         threshold,
                         false,
                         fitFor(nodeLabel.text),
@@ -1173,7 +1173,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 label: nodeLabel,
                 config: label,
                 size: styledBox?.size ?? (hasText ? measureBox(nodeLabel.text) : undefined),
-                collideWith,
+                avoid,
                 threshold,
                 fit:
                     fit == null || styledBox == null

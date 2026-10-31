@@ -2070,7 +2070,7 @@ describe('BarSeries', () => {
         });
 
         // A beside-after-center label sits to the right of its bar; with many closely-spaced bars it
-        // lands on the neighbouring bar (a real seriesItem collision) and, being hideable, is dropped.
+        // lands on the neighbouring bar (a real shape collision) and, being hideable, is dropped.
         const besideData = Array.from({ length: 10 }, (_, i) => ({ x: `c${i}`, y: 100 }));
         const beside = (alwaysShow: boolean): AgChartOptions => ({
             data: besideData,
@@ -4733,7 +4733,7 @@ describe('BarSeries', () => {
     });
 
     describe('getLabelObstacles', () => {
-        it('contributes a seriesItem rect obstacle per bar', async () => {
+        it('contributes a shape rect obstacle per bar', async () => {
             const options: AgChartOptions = {
                 data: [
                     { x: 'A', y: 3 },
@@ -4751,7 +4751,7 @@ describe('BarSeries', () => {
                 nodeData.map(({ x, y, width, height }) => ({
                     kind: 'rect',
                     box: { x, y, width, height },
-                    category: 'seriesItem',
+                    category: 'shape',
                 }))
             );
         });

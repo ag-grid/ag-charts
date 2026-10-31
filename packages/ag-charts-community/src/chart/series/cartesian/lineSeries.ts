@@ -546,6 +546,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelInsideOffset: labelContext.labelInsideOffset,
             labelInsideSize: labelContext.labelInsideSize,
             labelAnchor: labelContext.labelAnchor,
+            labelRegion: labelContext.labelRegion,
             emptyLabel: { text: '', width: 0, height: 0 },
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
@@ -635,6 +636,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 existingNode.label = label;
                 existingNode.fit = fit;
                 existingNode.gap = gap;
+                existingNode.region = ctx.labelRegion;
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({
@@ -656,6 +658,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     anchor: ctx.labelAnchor,
                     insideOffset: ctx.labelInsideOffset,
                     insideSize: ctx.labelInsideSize,
+                    region: ctx.labelRegion,
                     placement: 'top',
                     gap,
                     crossFilterSelected: scratch.crossFilterSelected,
@@ -746,6 +749,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             anchor: ctx.labelAnchor,
             insideOffset: ctx.labelInsideOffset,
             insideSize: ctx.labelInsideSize,
+            region: ctx.labelRegion,
             placement: 'top',
             crossFilterSelected: undefined,
         };

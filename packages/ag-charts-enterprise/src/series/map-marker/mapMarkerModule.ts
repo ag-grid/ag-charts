@@ -61,7 +61,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
                 fontFamily: { $ref: 'seriesLabelFontFamily' },
                 fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
-                collision: { alwaysShow: false },
+                collision: { alwaysShow: false, collideWith: { seriesArea: true } },
             },
             tooltip: SERIES_TOOLTIP_THEME,
             highlight: applyMapPalette(withGlowThemeDefaults(MULTI_SERIES_HIGHLIGHT_STYLE, SERIES_GLOW_BUCKETS)),

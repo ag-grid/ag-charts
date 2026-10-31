@@ -212,6 +212,44 @@ Use a `collision.threshold` value to ensure labels are a minimum pixel distance 
 }
 ```
 
+### Collide With
+
+Use `collision.collideWith` to choose which chart elements a label may overlap. Set a key to `true` to let the label overlap that element, or `false` to make the label avoid it.
+
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            label: {
+                enabled: true,
+                collision: {
+                    collideWith: {
+                        markers: false,
+                        shapes: true,
+                        labels: false,
+                        seriesArea: false,
+                        axisLabels: true,
+                    },
+                },
+            },
+        },
+    ],
+}
+```
+
+The defaults depend on the series type:
+
+| Key          | Element                                                     | Default                                                                                        |
+| ------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `markers`    | Series markers.                                             | `false`                                                                                        |
+| `shapes`     | Series shapes such as bars, funnel stages and Sankey nodes. | `false` on bar, histogram, range-bar, waterfall, funnel, pyramid and Sankey; otherwise `true`. |
+| `labels`     | Other labels, including cross line labels.                  | `false`                                                                                        |
+| `seriesArea` | The edges of the series area, including its padding.        | `true` on line, area, range-area, scatter, bubble, map-line and map-marker; otherwise `false`. |
+| `axisLabels` | Axis labels.                                                | `true`                                                                                         |
+
+A label avoids an element by moving to its next [fallback placement](#placement). When no placement is clear, the label is hidden only if `collision.alwaysShow` is `false`. On line, area, range-area, bar-family and funnel-family series, a label with a single placement and orientation and no fitting options keeps `alwaysShow: true`, so colliding labels stay where they are. Give it a fallback placement, such as `placement: ['outside-end', 'inside-end']` on a bar series, to separate them.
+
 ## API Reference
 
 {% tabs %}
@@ -222,6 +260,10 @@ Use a `collision.threshold` value to ensure labels are a minimum pixel distance 
 
 {% tabItem id="AgChartLabelCollisionFitOptions" label="Collision Avoidance" %}
 {% apiReference id="AgChartLabelCollisionFitOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgSeriesLabelCollideWithOptions" label="Collide With" %}
+{% apiReference id="AgSeriesLabelCollideWithOptions" /%}
 {% /tabItem %}
 
 {% tabItem id="AgChartLabelAutoFontSizeOptions" label="Font Reduction" %}

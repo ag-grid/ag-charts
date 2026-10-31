@@ -610,7 +610,7 @@ export const LABEL_OVERFLOW_ALWAYS_SHOW: Operation = {
 export const BAR_LABEL_COLLISION_THEME = {
     threshold: 4,
     alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
-    ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
+    collideWith: { shapes: false },
 };
 
 export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {

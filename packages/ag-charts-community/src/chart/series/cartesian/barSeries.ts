@@ -1930,14 +1930,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
         const { label } = this.options;
-        const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
+        const { alwaysShow, avoid, threshold, measureBox, fitFor } = barLabelDataContext(label);
         if (barLabelPropsUsePositionedCandidates(label)) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
                 const nodeLabel = node.label;
                 if (nodeLabel?.candidates == null || nodeLabel.text === '') continue;
                 const { width, height } = measureBox(nodeLabel.text);
-                // Own bar rect (full-column geometry, matching this node's `seriesItem` obstacle box)
+                // Own bar rect (full-column geometry, matching this node's `shape` obstacle box)
                 // so a positioned candidate avoids neighbouring bars but never its own bar/stack.
                 const ownBox = { x: node.x, y: node.y, width: node.width, height: node.height };
                 data.push(
@@ -1949,7 +1949,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                         nodeLabel,
                         ownBox,
                         alwaysShow,
-                        collideWith,
+                        avoid,
                         threshold,
                         false,
                         fitFor(nodeLabel.text),
@@ -1984,7 +1984,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 label: nodeLabel,
                 config: label,
                 size: styled?.size ?? (hasText ? measureBox(nodeLabel.text) : undefined),
-                collideWith,
+                avoid,
                 threshold,
                 fit: fit == null || styled == null ? fit : { ...fit, font: styled.font, boxPadding: styled.boxPadding },
             };
