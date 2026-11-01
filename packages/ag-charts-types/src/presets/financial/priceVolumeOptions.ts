@@ -8,8 +8,6 @@ export type AgPriceVolumeChartType =
 export interface AgPriceVolumePreset {
     /** Series type used for the OHLC data.
      *
-     * The series has the fixed id `'price'` for every chart type, for use in callbacks.
-     *
      *  Default: `'candlestick'`
      */
     chartType?: AgPriceVolumeChartType;
@@ -50,20 +48,13 @@ export interface AgPriceVolumePreset {
     navigator?: boolean;
     /** Whether to show the volume series at the bottom of the chart.
      *
-     *  If set to `false`, no volume data is required.
-     *
-     * The series has the fixed id `'volume'`, for use in callbacks.
-     *
      * Default: `true`
      */
     volume?: boolean;
     /** Configuration for a Volume Profile, showing the traded volume at each price level as horizontal bars against the price axis. */
     volumeProfile?: AgVolumeProfileOptions;
     /** The height of each Volume Profile price level, in price units.
-     *
      * If not set, the smallest gap between the prices in `volumeProfile.data` is used.
-     *
-     * When set, the price crosshair snaps to the nearest multiple of `tickSize`.
      */
     tickSize?: number;
     /** Whether to show the range buttons.
@@ -101,15 +92,9 @@ export interface AgVolumeProfileOptions extends Toggleable {
      * Default: `'price'`
      */
     priceKey?: string;
-    /** The key used to retrieve the up volume of each level from the data.
-     *
-     * The series has the fixed id `'volumeProfileUp'`, for use in callbacks.
-     */
+    /** The key used to retrieve the up volume of each level from the data.     */
     upKey: string;
-    /** The key used to retrieve the down volume of each level from the data.
-     *
-     * The series has the fixed id `'volumeProfileDown'`, for use in callbacks.
-     */
+    /** The key used to retrieve the down volume of each level from the data.    */
     downKey: string;
     /** The edge of the series area the bars extend from.
      *
@@ -131,7 +116,7 @@ export interface AgVolumeProfileSelectionOptions extends Toggleable {
      * Default: `'single'`
      */
     clickMode?: AgSelectionClickMode;
-    /** Whether dragging a rectangle across the chart selects every price level it covers. Holding Control (or Command) while dragging adds to the selection instead of replacing it.
+    /** Whether dragging a rectangle across the chart selects every price level it covers.
      *
      * Default: `false`
      */
@@ -173,27 +158,23 @@ export interface AgVolumeProfileSelectedBandOptions {
 }
 
 export interface AgVolumeProfileTotalSegmentOptions extends Toggleable {
-    /** The fill of each level's block.
-     *
-     * Default: the theme's blue
-     */
+    /** The fill of each level's block.   */
     fill?: CssColor;
-    /** The width of the segment, in pixels. The series area shrinks to make room for it.
+    /** The width of the segment in pixels.
      *
-     * Default: just wide enough for the widest label, but no less than `minWidth`
      */
     width?: PixelSize;
-    /** The least width of the segment, in pixels, when `width` is not set.
+    /** The minimum width of the segment in pixels, when `width` is not set.
      *
      * Default: `60`
      */
     minWidth?: PixelSize;
-    /** The space between the segment and the up and down bars, in pixels. The series area shrinks to make room for it.
+    /** The space between the segment and the up and down bars, in pixels.
      *
      * Default: `2`
      */
     gap?: PixelSize;
-    /** The label showing each level's total volume. Text too wide for the segment is truncated. */
+    /** The label showing each level's total volume. */
     label?: AgVolumeProfileTotalSegmentLabelOptions;
 }
 
