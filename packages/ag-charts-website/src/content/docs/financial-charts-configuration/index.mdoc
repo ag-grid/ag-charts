@@ -139,13 +139,14 @@ Financial Chart features can be enabled or disabled via the following properties
 ```ts
 const options: AgFinancialChartOptions = {
     // ...
-    navigator: false, // disabled by default
     toolbar: true,
     rangeButtons: true,
     volume: true,
     statusBar: true,
     zoom: true,
-    volumeProfile: { data: profile, upKey: 'upVolume', downKey: 'downVolume' }, // not shown by default
+    // disabled by default
+    navigator: false,
+    volumeProfile: {enabled: false, /*other volume profile options*/},
 };
 ```
 
