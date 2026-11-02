@@ -1421,6 +1421,25 @@ describe('Legend', () => {
 
                 expect(hiddenItems()).toEqual(['inner:1', 'inner:2', 'outer:0', 'outer:2']);
             });
+
+            it.each([
+                ['a single ring', ['inner'], ['inner:0', 'inner:2']],
+                ['linked rings', ['inner', 'outer'], ['inner:0', 'inner:2', 'outer:0', 'outer:2']],
+            ])('hides repeated rows one at a time until one is left in %s', async (_name, ringIds, expectedHidden) => {
+                chart = deproxy(
+                    await createChart({
+                        legend: { preventHidingAll: true },
+                        series: ringIds.map((id) => donutRing(id, ['Alpha', 'Alpha', 'Beta'])),
+                    })
+                );
+
+                for (const legendIndex of [2, 0, 1]) {
+                    await clickLegendItem(chart, legendIndex);
+                    await waitForChartStability(chart);
+                }
+
+                expect(hiddenItems()).toEqual(expectedHidden);
+            });
         });
     });
 
