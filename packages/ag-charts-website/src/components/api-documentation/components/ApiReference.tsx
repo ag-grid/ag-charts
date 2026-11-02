@@ -51,7 +51,7 @@ import {
 } from '../apiReferenceHelpers';
 import { navigateToSelection, useApiReferenceLocation } from '../apiReferenceRouting';
 import { SelectionContext } from './OptionsNavigation';
-import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
+import { type CollapsibleType, PropertyTitle, PropertyType, formatPropertyPath } from './Properties';
 
 export const ApiReferenceContext = createContext<Map<string, NodeTypes> | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
@@ -71,6 +71,21 @@ interface UnionTypesDetails {
     signature?: string;
 }
 type MemberAdditionalDetails = NodeTypes | NodeTypes[] | UnionTypesDetails | undefined;
+/** The row a recursive type was first expanded at, which a repeat of that type links back to. */
+interface RecursionTarget {
+    anchorId: string;
+    path: string[];
+}
+/** Types expanded by the ancestors of a row, keyed by type name. */
+type AncestorTypes = ReadonlyMap<string, RecursionTarget>;
+
+function withAncestorType(
+    ancestorTypes: AncestorTypes | undefined,
+    typeName: string,
+    target: RecursionTarget
+): AncestorTypes {
+    return new Map(ancestorTypes).set(typeName, target);
+}
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
 // loaded on the client side
@@ -111,6 +126,8 @@ interface ApiReferenceRowOptions {
     nestedPath?: string;
     typeArguments?: string[];
     genericsMap?: Record<string, TypeNode>;
+    ancestorTypes?: AncestorTypes;
+    recursionTarget?: RecursionTarget;
     onDetailsToggle?: () => void;
     isSignatureExpanded?: boolean;
     onSignatureToggle?: () => void;
@@ -209,10 +226,12 @@ function UnionVariantNode({
     variant,
     anchorId,
     prefixPath,
+    ancestorTypes,
 }: {
     variant: UnionVariant;
     anchorId: string;
     prefixPath: string[];
+    ancestorTypes?: AncestorTypes;
 }) {
     const [isExpanded, toggleExpanded, setExpanded] = useToggle();
     const config = useContext(ApiReferenceConfigContext);
@@ -286,6 +305,10 @@ function UnionVariantNode({
                             anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
                             prefixPath={prefixPath.concat(displayName)}
                             genericsMap={variant.node.genericsMap}
+                            ancestorTypes={withAncestorType(ancestorTypes, variant.node.name, {
+                                anchorId,
+                                path: prefixPath.concat(displayName),
+                            })}
                         />
                     ))}
                 </div>
@@ -355,16 +378,33 @@ export function ApiReference({
     );
 }
 
-function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props }: ApiReferenceRowOptions) {
+function NodeFactory({
+    member,
+    anchorId,
+    genericsMap,
+    prefixPath = [],
+    ancestorTypes,
+    ...props
+}: ApiReferenceRowOptions) {
     const [isExpanded, toggleExpanded, setExpanded] = useToggle();
     const [isSignatureExpanded, toggleSignature, setSignatureExpanded] = useToggle();
-    const interfaceRef = useMemberAdditionalDetails(member);
+    const additionalDetails = useMemberAdditionalDetails(member);
+    const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const location = useApiReferenceLocation();
 
+    const memberType = getMemberType(member);
+    // A type that recurses (e.g. a context-menu item's submenu `items`) would expand without end, so a repeat
+    // of an ancestor's type links back to that ancestor instead of expanding.
+    const recursionTarget = ancestorTypes?.get(memberType);
+    const interfaceRef = recursionTarget ? undefined : additionalDetails;
     const hasMembers = hasMembersNode(interfaceRef);
-    const hasNestedPages = config.specialTypes?.[getMemberType(member)] === 'NestedPage';
+    const hasNestedPages = config.specialTypes?.[memberType] === 'NestedPage';
     const canExpand = hasMembers || isUnionTypesDetails(interfaceRef);
+    // Only a named type can recur; `getMemberType` falls back to the node kind (e.g. `typeLiteral`) otherwise.
+    const childAncestorTypes = reference?.has(memberType)
+        ? withAncestorType(ancestorTypes, memberType, { anchorId, path: prefixPath.concat(member.name) })
+        : undefined;
 
     const typeArguments = hasMembers ? buildTypeArguments(member, genericsMap) : undefined;
 
@@ -388,6 +428,7 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
                 member={member}
                 anchorId={anchorId}
                 prefixPath={prefixPath}
+                recursionTarget={recursionTarget}
                 isExpanded={isExpanded}
                 onDetailsToggle={toggleExpanded}
                 isSignatureExpanded={isSignatureExpanded}
@@ -402,6 +443,7 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
                             anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
                             prefixPath={prefixPath.concat(member.name)}
                             genericsMap={isInterfaceNode(interfaceRef) ? interfaceRef.genericsMap : undefined}
+                            ancestorTypes={childAncestorTypes}
                             nestedPath={
                                 hasNestedPages
                                     ? `${location?.pathname}/${member.name}/${cleanupName(childMember.name)}`
@@ -419,6 +461,7 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
                             variant={variant}
                             anchorId={`${anchorId}-${variant.anchorSegment}`}
                             prefixPath={prefixPath.concat(cleanupName(member.name))}
+                            ancestorTypes={childAncestorTypes}
                         />
                     ))}
                 </div>
@@ -433,6 +476,7 @@ function ApiReferenceRow({
     prefixPath,
     isExpanded,
     nestedPath,
+    recursionTarget,
     onDetailsToggle,
     isSignatureExpanded,
     onSignatureToggle,
@@ -441,7 +485,8 @@ function ApiReferenceRow({
     const selection = useContext(SelectionContext);
     const memberName = cleanupName(member.name);
     const memberType = normalizeType(member.type);
-    const additionalDetails = useMemberAdditionalDetails(member);
+    const memberAdditionalDetails = useMemberAdditionalDetails(member);
+    const additionalDetails = recursionTarget ? undefined : memberAdditionalDetails;
     const collapsibleType = getCollapsibleType(additionalDetails, nestedPath);
     const hasChildProps = collapsibleType === 'childrenProperties';
     const isUnionTypes = collapsibleType === 'unionTypes';
@@ -496,6 +541,12 @@ function ApiReferenceRow({
                     )}
                     {isUnionTypes && (
                         <UnionTypesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
+                    )}
+                    {recursionTarget && (
+                        <a tabIndex={0} href={`#${recursionTarget.anchorId}`} className="meta-link">
+                            Recursive, see <code>{formatPropertyPath(recursionTarget.path)}</code>{' '}
+                            <Icon name="arrowUp" />
+                        </a>
                     )}
                 </div>
                 {nestedPath != null && nestedPath !== '' && (
