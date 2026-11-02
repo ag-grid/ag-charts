@@ -1,4 +1,4 @@
-export function getVolumeProfile() {
+export function getRegularVolumeProfile() {
     return [
         { price: 135, upVolume: 3873690, downVolume: 3499965, total: 7373655 },
         { price: 137.5, upVolume: 15861342, downVolume: 13138794, total: 29000136 },
