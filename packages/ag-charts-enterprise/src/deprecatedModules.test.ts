@@ -36,7 +36,12 @@ const candlestickWithFeatures: AgChartOptions = {
     series: [
         { type: 'candlestick', xKey: 'category', openKey: 'open', closeKey: 'close', highKey: 'high', lowKey: 'low' },
     ],
-    axes: { x: { type: 'category', listeners: { click() {} } } },
+    axes: {
+        x: { type: 'category', listeners: { click() {} } },
+        y: { type: 'number', crossLines: [{ type: 'line', value: 3 }] },
+    },
+    legend: { enabled: true },
+    locale: { localeText: {} },
     zoom: { enabled: true },
     seriesArea: { backgroundRegions: [{ xRange: { start: 'A', end: 'B' } }] },
 };

@@ -1,3 +1,4 @@
+import { CrossLinesModule, LegendModule, LocaleModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
 import { AnimationModule } from '../features/animation/animationModule';
@@ -33,10 +34,13 @@ export const AllCartesianModule: ModuleDefinition[] = [
     ChartToolbarModule,
     ContextMenuModule,
     CrosshairModule,
+    CrossLinesModule,
     DataSourceModule,
     ErrorBarsModule,
     FlashOnUpdateModule,
     GradientLegendModule,
+    LegendModule,
+    LocaleModule,
     NavigatorModule,
     RangesModule,
     ScrollbarModule,
