@@ -24,16 +24,18 @@ let siteParamDocs: Record<string, string> = {};
 setParamDocsProvider((property) => siteParamDocs[property]);
 
 /**
- * A param's row in the Themes API reference, which the page expands and scrolls
- * to on a matching hash. The shape is `anchorId`'s, from `ApiReference.tsx`.
+ * A param's row on the Theme Parameters API page, which the page scrolls to on a
+ * matching hash. The shape is `anchorId`'s, from `ApiReference.tsx`.
  * Linked only where a description was found, a param the reference does not
  * carry having no row to anchor on.
  */
-const paramAnchor = (property: string) => `reference-AgChartTheme-params-${property}`;
+const paramAnchor = (property: string) => `reference-AgChartThemeParams-${property}`;
 
 setParamDocsUrlProvider((property) => {
     const doc = siteParamDocs[property];
-    return doc == null || doc === '' ? undefined : `${urlWithBaseUrl('/themes-api/')}#${paramAnchor(property)}`;
+    return doc == null || doc === ''
+        ? undefined
+        : `${urlWithBaseUrl('/theme-parameters-api/')}#${paramAnchor(property)}`;
 });
 
 export function ThemeBuilderShared({ paramDocs }: { paramDocs: Record<string, string> }) {
