@@ -74,56 +74,48 @@ In this configuration:
 
 ## Label Placement
 
-Use `label.placement` to choose where a label sits relative to its Cross Line. The available placements depend on the Cross Line type and on the axis it belongs to, and the default is `top`.
+Use `label.placement` to choose where a label sits relative to its Cross Line. The default is `top`.
 
 {% chartExampleRunner title="Label Placement" name="label-placement" type="generated" /%}
 
-In this example:
-
-- Use the buttons to change the Cross Line `type` and the axis it belongs to.
-- The dropdown lists the placements that apply to the selected type and axis.
-
 ```js format="snippet"
 {
-    crossLines: [
-        {
-            type: 'line',
-            value: 250,
-            label: {
-                text: 'Target',
-                placement: ['inside-end', 'end'],
-            },
+    axes: {
+        x: {
+            type: 'time',
+            crossLines: [
+                {
+                    type: 'line',
+                    value: new Date(2025, 9, 1),
+                    label: { text: 'Launch', placement: 'left-top' },
+                },
+            ],
         },
-    ],
+        y: {
+            type: 'number',
+            crossLines: [
+                {
+                    type: 'range',
+                    range: [180, 210],
+                    label: { text: 'Baseline', placement: 'inside-top-left' },
+                },
+            ],
+        },
+    },
 }
 ```
 
-In this configuration:
+In this example:
 
-- `inside-end` places the label on the line itself, at its end.
-- `end` is used instead if the label doesn't fit there, placing it beyond the end of the line.
-
-The first part of a placement names the edge or end the label sits against, and the second part positions the label along it. For example, `top-left` sits above the Cross Line aligned to its left, while `left-top` sits beside its left edge aligned to its top.
-
-### Text Direction
-
-Every placement that names `left` or `right` has a twin that names `start` or `end` instead, such as `top-start` or `inside-end`:
-
-- `start` and `end` resolve to `left` and `right` in a left-to-right chart, and are mirrored when [RTL Layout](./rtl/) is enabled.
-- Placements that name `left` or `right` are not mirrored.
-- On an x-axis `line`, `inside-start` and `inside-end` are the same as `inside-top` and `inside-bottom`, and are not mirrored.
-
-### Fallback Placements
-
-Providing `placement` as an ordered array lets the label fall back to the next placement when an earlier one collides with another element or doesn't fit in the chart:
-
-- The first placement that fits is used.
-- If none fits, the label uses the placement where it is least obstructed, preferring earlier placements when they are equally obstructed.
-- A placement that doesn't apply to the Cross Line type and axis is ignored, and a warning lists the placements that do.
+- Use the checkboxes to show a `line` and a `range` on each axis, and the dropdowns to change their placements. Each dropdown lists the placements that apply to that Cross Line.
+- The first part of a placement names the edge the label sits against, and the second positions it along that edge. For example, `top-left` sits above the Cross Line aligned to its left, while `left-top` sits beside its left edge aligned to its top.
+- Some placements apply to only one axis, such as `top-left` for a y-axis line and `left-top` for an x-axis line.
+- `start` and `end` resolve to `left` and `right`, and are mirrored when [RTL Layout](./rtl/) is enabled.
+- Providing `placement` as an ordered array lets the label [fall back](./series-labels/#placement) to the next placement when it collides or doesn't fit.
 
 ### Fitting Long Labels
 
-Set `maxWidth` or `maxHeight` to limit the space the label text can take up. A label that does not fit is wrapped, truncated or shrunk.
+There are a number of ways to handle long labels which do not fit within the series area or exceed a provided `maxWidth` or `maxHeight`.
 
 {% chartExampleRunner title="Fitting Long Labels" name="label-fitting" type="generated" /%}
 
@@ -131,12 +123,13 @@ Set `maxWidth` or `maxHeight` to limit the space the label text can take up. A l
 {
     crossLines: [
         {
-            type: 'line',
-            value: 250,
+            type: 'range',
+            range: [new Date(2025, 5, 1), new Date(2025, 7, 1)],
             label: {
-                text: 'Annual Revenue Target: £250k per Month',
-                placement: 'top-left',
+                text: 'Summer Promotion: Reduced Pricing in All Stores',
+                placement: 'inside-top',
                 maxWidth: 120,
+                maxHeight: 60,
             },
         },
     ],
@@ -145,12 +138,8 @@ Set `maxWidth` or `maxHeight` to limit the space the label text can take up. A l
 
 In this example:
 
-- Click the buttons to switch between wrapping, truncating and shrinking the labels.
-- `maxWidth` limits the label text to 120px wide, so by default the text wraps onto multiple lines.
-- `wrapping` sets how text wraps. Set it to `'never'` to keep the label on one line.
-- `truncate` controls whether text that still does not fit is truncated with an ellipsis.
-- `minimumFontSize` lets the label shrink from its `fontSize` to fit, before it is truncated.
-- The limits apply to the label text before any `rotation`, so a rotated label is fitted along its own direction.
+- Use the controls to see how the labels wrap, shrink and truncate.
+- A label that exceeds `maxWidth` or `maxHeight` or does not fit within the series area, wraps according to `wrapping`, shrinks towards `minimumFontSize`, then is truncated if `truncate` is enabled. See [Series Label Collision Avoidance](./series-labels/#collision-avoidance) for details.
 
 ## Polar Axes Cross Lines
 
