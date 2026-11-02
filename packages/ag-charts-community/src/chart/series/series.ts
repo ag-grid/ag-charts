@@ -1472,8 +1472,13 @@ export abstract class Series<
         const { legendItemName, legendItemKey } = this;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
+        if (series.id === this.id || matchedLegendItemName) {
             this.toggleSeriesItem(enabled, legendType, itemId, legendItemName, event);
+        } else if (legendItemKey != undefined) {
+            const linkedItemId = this.findLinkedLegendItemId(event);
+            if (linkedItemId != undefined) {
+                this.toggleSeriesItem(enabled, legendType, linkedItemId, legendItemName, event);
+            }
         }
     }
 
@@ -1482,9 +1487,14 @@ export abstract class Series<
         const { legendItemName, legendItemKey } = this;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
+        if (series.id === this.id || matchedLegendItemName) {
             // Double-clicked item should always become visible.
             this.toggleSeriesItem(true, legendType, itemId, legendItemName, event);
+        } else if (legendItemKey != undefined) {
+            const linkedItemId = this.findLinkedLegendItemId(event);
+            if (linkedItemId != undefined) {
+                this.toggleSeriesItem(true, legendType, linkedItemId, legendItemName, event);
+            }
         } else if (enabled && numVisibleItems === 1) {
             // Other items should become visible if there is only one existing visible item.
             this.toggleSeriesItem(true, legendType, undefined, legendItemName);
@@ -1492,6 +1502,13 @@ export abstract class Series<
             // Disable other items if not exactly one enabled.
             this.toggleSeriesItem(false, legendType, undefined, legendItemName);
         }
+    }
+
+    /** Series linked by `legendItemKey` can order their rows differently, so the clicked row is matched by name. */
+    private findLinkedLegendItemId({ itemId, legendItemName }: LegendItemClickEvent | LegendItemDoubleClickEvent) {
+        if (legendItemName == undefined) return;
+        const items = this.ctx.legendManager?.getData(this.id).filter((d) => d.legendItemName === legendItemName);
+        return (items?.find((d) => d.itemId === itemId) ?? items?.[0])?.itemId;
     }
 
     abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];

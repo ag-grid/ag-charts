@@ -428,6 +428,30 @@ describe('Context Menu', () => {
             expect(findMenuItem('Toggle Visibility').getAttribute('aria-disabled')).toBe(ariaDisabled);
         });
 
+        it('preventHidingAll sets aria-disabled on Toggle Visibility for series sharing the last visible name', async () => {
+            chart = await createEnterpriseChart({
+                ...SHARED_Y_KEY_OPTIONS,
+                legend: { enabled: true, preventHidingAll: true },
+                series: ['a', 'b', 'c'].map((id, index) => ({
+                    type: 'line',
+                    id,
+                    title: id,
+                    data: EXAMPLE_OPTIONS.data,
+                    xKey: 'x',
+                    yKey: 'y',
+                    stroke: 'red',
+                    marker: { fill: 'red', stroke: 'red' },
+                    legendItemName: index < 2 ? 'Shared' : undefined,
+                })),
+            });
+
+            await clickLegendItem(chart, 2);
+            await waitForChartStability(chart);
+
+            await openLegendItemMenu(0);
+            expect(findMenuItem('Toggle Visibility').getAttribute('aria-disabled')).toBe('true');
+        });
+
         it('preventHidingAll leaves Toggle Visibility enabled while another item is visible', async () => {
             chart = await createEnterpriseChart({
                 ...SHARED_Y_KEY_OPTIONS,
