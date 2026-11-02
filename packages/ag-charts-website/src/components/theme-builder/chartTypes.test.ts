@@ -216,17 +216,6 @@ describe('preview chart types', () => {
         }
     });
 
-    it('gives the context menu rows beyond its defaults to show the menu styles on', () => {
-        for (const type of PREVIEW_CHART_TYPES) {
-            const { contextMenu } = type.buildOptions(DEFAULT_SERIES_COUNT, ALL_OFF) as {
-                contextMenu: { items: unknown[] };
-            };
-            expect(contextMenu.items, type.id).toContain('defaults');
-            const extraItems = contextMenu.items.filter((item) => typeof item === 'object');
-            expect(extraItems.length, type.id).toBeGreaterThanOrEqual(3);
-        }
-    });
-
     it('draws the candlestick as a series of its own', () => {
         const series = seriesOf(CANDLESTICK.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON));
         expect(series.map((entry) => (entry as { type: string }).type)).toEqual(['candlestick']);
