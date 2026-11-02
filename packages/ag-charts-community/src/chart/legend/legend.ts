@@ -991,7 +991,20 @@ export class Legend {
     }
 
     private getVisibleItemCount(): number {
-        return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
+        // Items sharing a name are hidden together, so they count once.
+        let unnamedItems = 0;
+        const names = new Set<string>();
+        for (const { enabled, legendItemName } of this.ctx.chartService.series.flatMap((s) =>
+            s.getLegendData('category')
+        )) {
+            if (!enabled) continue;
+            if (legendItemName == null || legendItemName === '') {
+                unnamedItems += 1;
+            } else {
+                names.add(legendItemName);
+            }
+        }
+        return unnamedItems + names.size;
     }
 
     private doClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): boolean {

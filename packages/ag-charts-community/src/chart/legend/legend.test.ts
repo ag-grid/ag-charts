@@ -2,11 +2,13 @@ import { afterEach, describe, expect, it, test, vi } from 'vitest';
 
 import { Transformable } from 'ag-charts-core';
 import type {
+    AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgChartLegendItemOptions,
     AgChartLegendListeners,
     AgChartLegendPosition,
     AgChartOptions,
+    AgDonutSeriesOptions,
     AgLineSeriesOptions,
     AgMarkerShapeFnParams,
     AgPath,
@@ -1216,6 +1218,209 @@ describe('Legend', () => {
             interactionManager.popState(InteractionState.ZoomDrag);
             updateTooltip.mockRestore();
             removeTooltip.mockRestore();
+        });
+    });
+
+    describe('items sharing a legend name', () => {
+        const NAME_FILLS: Record<string, string> = { Alpha: 'red', Beta: 'green', Gamma: 'blue' };
+
+        const donutRing = (
+            id: string,
+            names: string[],
+            extra?: Partial<AgDonutSeriesOptions>
+        ): AgDonutSeriesOptions => ({
+            id,
+            type: 'donut',
+            angleKey: 'value',
+            legendItemKey: 'name',
+            data: names.map((name) => ({ name, value: 1 })),
+            fills: names.map((name) => NAME_FILLS[name]),
+            ...extra,
+        });
+
+        const namedLine = (id: string, legendItemName?: string, extra?: Partial<AgLineSeriesOptions>) =>
+            ({
+                ...buildSeries({ x: 0, y: 1 }),
+                id,
+                yName: legendItemName ?? id,
+                legendItemName,
+                stroke: 'red',
+                marker: { fill: 'red', stroke: 'red' },
+                ...extra,
+            }) as AgLineSeriesOptions;
+
+        function hiddenItems() {
+            return (chart.ctx.legendManager?.getData() ?? [])
+                .filter(({ enabled }) => !enabled)
+                .map(({ seriesId, itemId }) => `${seriesId}:${itemId}`);
+        }
+
+        describe('rings sharing a legendItemKey', () => {
+            const INNER = ['Alpha', 'Beta', 'Gamma'];
+            const OUTER = ['Gamma', 'Alpha', 'Beta'];
+
+            it.each([
+                ['the inner ring', 0],
+                ['the outer ring', 4],
+            ])('clicking Alpha in %s hides Alpha in both rings', async (_name, legendIndex) => {
+                const seriesVisibilityChange = vi.fn();
+                chart = deproxy(
+                    await createChart({
+                        series: [donutRing('inner', INNER), donutRing('outer', OUTER)],
+                        listeners: { seriesVisibilityChange },
+                    })
+                );
+
+                await clickLegendItem(chart, legendIndex);
+                await waitForChartStability(chart);
+
+                expect(hiddenItems()).toEqual(['inner:0', 'outer:1']);
+                const events = seriesVisibilityChange.mock.calls.map(([{ seriesId, itemId, legendItemName }]) => ({
+                    seriesId,
+                    itemId,
+                    legendItemName,
+                }));
+                expect(events).toEqual([
+                    { seriesId: 'inner', itemId: 0, legendItemName: 'Alpha' },
+                    { seriesId: 'outer', itemId: 1, legendItemName: 'Alpha' },
+                ]);
+            });
+
+            it('a ring hidden from the legend follows the name too', async () => {
+                chart = deproxy(
+                    await createChart({
+                        series: [donutRing('inner', INNER), donutRing('outer', OUTER, { showInLegend: false })],
+                    })
+                );
+
+                await clickLegendItem(chart, 0);
+                await waitForChartStability(chart);
+
+                expect(hiddenItems()).toEqual(['inner:0', 'outer:1']);
+            });
+
+            it('a ring without the name is left alone', async () => {
+                chart = deproxy(
+                    await createChart({ series: [donutRing('inner', INNER), donutRing('outer', ['Gamma', 'Beta'])] })
+                );
+
+                await clickLegendItem(chart, 0);
+                await waitForChartStability(chart);
+
+                expect(hiddenItems()).toEqual(['inner:0']);
+            });
+
+            it('a name repeated within rings in the same order follows the clicked row', async () => {
+                const names = ['Alpha', 'Alpha', 'Beta'];
+                chart = deproxy(await createChart({ series: [donutRing('inner', names), donutRing('outer', names)] }));
+
+                await clickLegendItem(chart, 1);
+                await waitForChartStability(chart);
+
+                expect(hiddenItems()).toEqual(['inner:1', 'outer:1']);
+            });
+
+            it('double-clicking a hidden item restores it in both rings', async () => {
+                chart = deproxy(await createChart({ series: [donutRing('inner', INNER), donutRing('outer', OUTER)] }));
+
+                await clickLegendItem(chart, 1);
+                await waitForChartStability(chart);
+                expect(hiddenItems()).toEqual(['inner:1', 'outer:2']);
+
+                const { x, y, width, height } = Transformable.toCanvas(getLegendModule(chart).itemSelection.nodes()[5]);
+                await doubleClickAction(x + width / 2, y + height / 2)(chart);
+                await waitForChartStability(chart);
+
+                expect(hiddenItems()).toEqual([]);
+            });
+        });
+
+        it('bars sharing a legendItemName toggle together whatever their data order', async () => {
+            const bar = (id: string, xs: string[], legendItemName: string, stackGroup: string): AgBarSeriesOptions => ({
+                id,
+                type: 'bar',
+                xKey: 'x',
+                yKey: 'y',
+                yName: id,
+                legendItemName,
+                stackGroup,
+                fill: legendItemName === 'Q1' ? 'red' : 'blue',
+                data: xs.map((x) => ({ x, y: 1 })),
+            });
+            chart = deproxy(
+                await createChart({
+                    series: [
+                        bar('na-q1', ['2023', '2024'], 'Q1', 'na'),
+                        bar('na-q2', ['2023', '2024'], 'Q2', 'na'),
+                        bar('eu-q1', ['2024', '2023'], 'Q1', 'eu'),
+                        bar('eu-q2', ['2024', '2023'], 'Q2', 'eu'),
+                    ],
+                })
+            );
+
+            await clickLegendItem(chart, 0);
+            await waitForChartStability(chart);
+
+            expect(hiddenItems()).toEqual(['na-q1:y', 'eu-q1:y']);
+        });
+
+        describe('preventHidingAll', () => {
+            it.each([
+                ['both listed in the legend', {}, 2],
+                ['one hidden from the legend', { showInLegend: false }, 1],
+            ])('keeps the last visible name with its series %s', async (_name, sharedExtra, otherIndex) => {
+                chart = deproxy(
+                    await createChart({
+                        legend: { preventHidingAll: true },
+                        series: [
+                            namedLine('shared-1', 'Shared'),
+                            namedLine('shared-2', 'Shared', sharedExtra),
+                            namedLine('other'),
+                        ],
+                    })
+                );
+
+                await clickLegendItem(chart, otherIndex);
+                await waitForChartStability(chart);
+                expect(hiddenItems()).toEqual(['other:y']);
+
+                await clickLegendItem(chart, 0);
+                await waitForChartStability(chart);
+                expect(hiddenItems()).toEqual(['other:y']);
+            });
+
+            it('still hides a shared name while an unnamed series is visible', async () => {
+                chart = deproxy(
+                    await createChart({
+                        legend: { preventHidingAll: true },
+                        series: [namedLine('shared-1', 'Shared'), namedLine('shared-2', 'Shared'), namedLine('other')],
+                    })
+                );
+
+                await clickLegendItem(chart, 0);
+                await waitForChartStability(chart);
+
+                expect(hiddenItems()).toEqual(['shared-1:y', 'shared-2:y']);
+            });
+
+            it('keeps the last visible name across linked rings', async () => {
+                chart = deproxy(
+                    await createChart({
+                        legend: { preventHidingAll: true },
+                        series: [
+                            donutRing('inner', ['Alpha', 'Beta', 'Gamma']),
+                            donutRing('outer', ['Gamma', 'Alpha', 'Beta']),
+                        ],
+                    })
+                );
+
+                for (const legendIndex of [1, 2, 0]) {
+                    await clickLegendItem(chart, legendIndex);
+                    await waitForChartStability(chart);
+                }
+
+                expect(hiddenItems()).toEqual(['inner:1', 'inner:2', 'outer:0', 'outer:2']);
+            });
         });
     });
 
