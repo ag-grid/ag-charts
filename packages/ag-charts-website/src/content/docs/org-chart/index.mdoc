@@ -162,8 +162,8 @@ starting at a given depth. This stops wide hierarchies growing wider at their lo
 In this example:
 
 - `stackFromDepth` is the first depth to be stacked, with levels above it keeping the tree layout. The root node, 'Ashley Rivers', is at depth `1`, so in this case stacking starts at the fourth level, with the reports under 'Nathan Jones' listed in a column.
-- `linkIndentation` indents the [connector lines](#connectors) from the parent's leading edge. Every connector from a parent shares this line, so it reads as a single trunk running down the stack.
-- `nodeIndentation` indents each child card from the [connector lines](#connectors).
+- `linkIndentation` indents the [links](#links) from the parent's leading edge. Every link from a parent shares this line, so it reads as a single trunk running down the stack.
+- `nodeIndentation` indents each child card from the [links](#links).
 - Stacking follows [direction](#direction), with children listed downwards and indented right for a vertical direction, or listed right and indented downwards for a horizontal one.
 
 ## Expander
@@ -232,11 +232,11 @@ In this configuration:
 
 See the [API Reference](#reference-AgOrganizationSeriesOptions-node) for the full list of available styling options.
 
-### Connectors
+### Links
 
-Connectors are the lines drawn between parent and child nodes and are configured via the `link` property.
+Links are the connector lines drawn between parent and child nodes and are configured via the `link` property.
 
-{% chartExampleRunner title="Connector Styling" name="org-chart-link-customisation" type="generated" /%}
+{% chartExampleRunner title="Link Styling" name="org-chart-link-customisation" type="generated" /%}
 
 ```js format="snippet"
 {
@@ -265,7 +265,7 @@ In this configuration:
 
 - `interpolation.cornerRadius` rounds the corners of each step.
 - `lineDash` sets a dashed line pattern.
-- `link.itemStyler` styles connectors per-relationship, receiving `fromDatum` (parent) and `toDatum` (child).
+- `link.itemStyler` styles links per-relationship, receiving `fromDatum` (parent) and `toDatum` (child).
 
 ### Expander
 
@@ -412,7 +412,7 @@ For large hierarchies, the following configuration is recommended:
 In this example:
 
 - Collapse and expand nodes, zoom and pan to explore the hierarchy.
-- When zoomed out until a card is below 20 pixels high, its text and image are replaced by placeholder bars, and the [expanders](#expander) and [connectors](#connectors) are hidden. They return as you zoom back in.
+- When zoomed out until a card is below 20 pixels high, its text and image are replaced by placeholder bars, and the [expanders](#expander) and [links](#links) are hidden. They return as you zoom back in.
 - Enable `node.clickToExpand` so users can still click on the card to collapse and expand nodes while the expanders are hidden. See [Collapse and Expand](#collapse-and-expand).
 - `layout.stackFromDepth` stacks the cards at and below the given depth into columns, which keeps a hierarchy with many nodes per level compact. See [Stacked Layout](#stacked-layout).
 
