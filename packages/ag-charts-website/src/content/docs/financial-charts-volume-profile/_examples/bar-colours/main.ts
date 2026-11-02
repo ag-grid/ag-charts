@@ -1,18 +1,20 @@
-import { AgCharts, AgVolumeProfileChartOptions, FinancialChartModule, ModuleRegistry } from 'ag-charts-enterprise';
+import { AgCharts, AgFinancialChartOptions, FinancialChartModule, ModuleRegistry } from 'ag-charts-enterprise';
 
-import { getRegularVolumeProfile } from './data';
+import { getData, getVolumeProfile } from './data';
 
 ModuleRegistry.registerModules([FinancialChartModule]);
 
-const options: AgVolumeProfileChartOptions = {
+const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
-    data: getRegularVolumeProfile(),
+    data: getData(),
     title: { text: 'Acme Inc.' },
-    upKey: 'upVolume',
-    downKey: 'downVolume',
-    tickSize: 5,
-    up: { fill: '#2e7d32', stroke: '#1b5e20' },
-    down: { fill: '#ef6c00', stroke: '#e65100' },
+    volumeProfile: {
+        data: getVolumeProfile(),
+        upKey: 'upVolume',
+        downKey: 'downVolume',
+        up: { fill: '#F2C12E', stroke: '#B8901A' },
+        down: { fill: '#2E6BF2', stroke: '#1A45A8' },
+    },
 };
 
-AgCharts.createVolumeProfileChart(options);
+AgCharts.createFinancialChart(options);
