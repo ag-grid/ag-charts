@@ -11,6 +11,7 @@ import {
 } from './chartFeatures';
 import {
     DEFAULT_CHART_TYPE_IDS,
+    MAX_SHARED_TOOLTIP_SERIES,
     PREVIEW_CHART_TYPES,
     PREVIEW_PANES,
     THUMBNAIL_OPTIONS,
@@ -266,6 +267,21 @@ describe('preview chart types', () => {
                 const ids = seriesOf(options).map((series) => (series as { id?: string }).id);
                 expect(ids, `${type.id} @ ${count}`).toContain(tooltipTarget.seriesId);
             }
+        }
+    });
+
+    it('shares the tooltip up to the series cap, and not beyond it', () => {
+        const tooltipOf = (options: unknown) => (options as { tooltip: unknown }).tooltip;
+        const pastCap = SERIES_COUNT_OPTIONS.find((count) => count > MAX_SHARED_TOOLTIP_SERIES)!;
+        for (const type of COUNTED_TYPES.filter((counted) => counted.countLabel === 'Series')) {
+            expect(tooltipOf(type.buildOptions(MAX_SHARED_TOOLTIP_SERIES, ALL_ON)), type.id).toEqual({
+                enabled: true,
+                mode: 'shared',
+            });
+            expect(tooltipOf(type.buildOptions(pastCap, ALL_OFF)), type.id).toEqual({
+                enabled: false,
+                mode: 'single',
+            });
         }
     });
 
