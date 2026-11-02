@@ -34,6 +34,21 @@ const paths = {
 const update = process.env.UPDATE_MODULE_TABLES === '1';
 const refreshHint = 'Run `UPDATE_MODULE_TABLES=1 yarn nx test ag-charts-enterprise -- moduleTables` to regenerate.';
 
+/** Exported for compatibility only, so kept out of the tables: never reported, suggested by the lint or documented. */
+const deprecatedCommunityExports = [
+    'AllCartesianModule',
+    'AllCartesianAxesModule',
+    'AllCartesianSeriesModule',
+    'AllPolarModule',
+];
+const deprecatedEnterpriseExports = [
+    ...deprecatedCommunityExports,
+    'AllGaugeModule',
+    'AllMapSeriesModule',
+    'AxisInteractionModule',
+];
+const deprecatedExports = new Set(deprecatedEnterpriseExports);
+
 const moduleTypes = new Set<string>(Object.values(ModuleType));
 const typeOrder = [
     ModuleType.Chart,
@@ -89,6 +104,7 @@ function collectExports(namespace: Record<string, unknown>): PackageExports {
     const definitions = new Map<string, Definition>();
     const bundles = new Map<string, Definition[]>();
     for (const [name, value] of Object.entries(namespace)) {
+        if (deprecatedExports.has(name)) continue;
         if (isDefinition(value)) {
             definitions.set(name, value);
         } else {
@@ -100,7 +116,7 @@ function collectExports(namespace: Record<string, unknown>): PackageExports {
 }
 
 /** Enterprise re-exports are read from `main.ts` by source, as vitest lets the community star export shadow them. */
-async function collectEnterpriseExports(): Promise<PackageExports> {
+async function readEnterpriseExports(): Promise<Record<string, unknown>> {
     const source = readFileSync(paths.enterpriseMain, 'utf-8');
     const namespace: Record<string, unknown> = {};
     const statements = [...source.matchAll(/^export \{([^}]+)\} from '(\.\/[^']+)';/gm)];
@@ -116,7 +132,7 @@ async function collectEnterpriseExports(): Promise<PackageExports> {
             if (name.length > 0) namespace[name] = imported[name];
         }
     }
-    return collectExports(namespace);
+    return namespace;
 }
 
 interface ModuleCatalogue {
@@ -602,9 +618,15 @@ function normalise(value: unknown): unknown {
 }
 
 describe('module tables', async () => {
-    const catalogue = buildCatalogue(collectExports(community), await collectEnterpriseExports());
+    const enterpriseNamespace = await readEnterpriseExports();
+    const catalogue = buildCatalogue(collectExports(community), collectExports(enterpriseNamespace));
     const placeholders = sortedPlaceholders(catalogue);
     const mappings = eslintMappings(catalogue);
+
+    it('still exports the deprecated modules it leaves out of the tables', () => {
+        expect(deprecatedCommunityExports.filter((name) => !(name in community))).toEqual([]);
+        expect(deprecatedEnterpriseExports.filter((name) => !(name in enterpriseNamespace))).toEqual([]);
+    });
 
     it('derives placeholders from the exported definitions', () => {
         expect(placeholders.length).toBeGreaterThan(50);
