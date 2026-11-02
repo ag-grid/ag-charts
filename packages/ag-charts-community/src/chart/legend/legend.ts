@@ -38,6 +38,7 @@ import type { AgChartLegendContextMenuEvent, AgMarkerShapeFn } from 'ag-charts-t
 import type { ActiveLoadMementoEvent, HighlightNodeDatum } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { ChartService } from '../chartService';
+import { createDatumId } from '../data/processors';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import { InteractionState } from '../interaction/interactionManager';
@@ -87,6 +88,11 @@ function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDat
     }
 }
 
+/** Identifies a legend item across series: an `itemId` is only unique within its series, where it is often a shared `yKey`. */
+function legendItemKey({ seriesId, itemId, id }: CategoryLegendDatum): string {
+    return createDatumId(seriesId, itemId ?? id);
+}
+
 function unreachable(_a: never): never {
     return undefined as never;
 }
@@ -111,7 +117,7 @@ export class Legend {
     /** Page awaiting restore; flushed by the next layout once the real page count is known. */
     private pendingPage?: number;
 
-    private readonly truncatedItems: Set<string | number> = new Set();
+    private readonly truncatedItems: Set<string> = new Set();
 
     /** Incremented on every highlight update so a deferred (animation-batch) update can detect
      * that a later update has superseded it and skip itself. */
@@ -130,17 +136,15 @@ export class Legend {
     }
 
     private syncProxyButtonStates(data: CategoryLegendDatum[]) {
-        const enabledMap = new Map(data.map((d) => [d.itemId, d.enabled]));
-        this.itemSelection.each(({ proxyButton }, { itemId }) => {
+        const enabledMap = new Map(data.map((d) => [legendItemKey(d), d.enabled]));
+        this.itemSelection.each(({ proxyButton }, datum) => {
             if (proxyButton == null) return;
-            const enabled = enabledMap.get(itemId);
+            const enabled = enabledMap.get(legendItemKey(datum));
             if (enabled != null) {
                 proxyButton.setChecked(enabled);
             }
         });
     }
-
-    private readonly contextMenuDatum?: CategoryLegendDatum;
 
     readonly size: [number, number] = [0, 0];
 
@@ -326,7 +330,7 @@ export class Legend {
             markerLabel.isRtl = isRtl;
 
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled, item);
-            const id = datum.itemId ?? datum.id;
+            const id = legendItemKey(datum);
             const labelText = this.getItemLabel(datum);
             const text = toPlainText(labelText, '<unknown>');
             markerLabel.label.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, measurer, id);
@@ -505,7 +509,7 @@ export class Legend {
         maxItemWidth: number,
         paddedMarkerWidth: number,
         measurer: ITextMeasurer,
-        id: string | number
+        id: string
     ): string {
         let addEllipsis = false;
         if (text.length > maxCharLength) {
@@ -932,7 +936,7 @@ export class Legend {
     } {
         const { datum, proxyButton } =
             this.itemSelection.select((ml: Node<any>): ml is LegendMarkerLabel => {
-                return ml.datum?.itemId === params.itemId;
+                return ml.datum?.itemId === params.itemId && ml.datum?.seriesId === params.seriesId;
             })[0] ?? {};
         if (datum === undefined || proxyButton === undefined) {
             throw new Error(
@@ -964,7 +968,7 @@ export class Legend {
         if (registryItems) {
             registryItems['toggle-series-visibility'].enabled = !(
                 this.opts.preventHidingAll &&
-                this.contextMenuDatum?.enabled &&
+                legendItem.enabled &&
                 this.getVisibleItemCount() <= 1
             );
         }
@@ -1131,7 +1135,7 @@ export class Legend {
 
     private getTooltipContent(datum: CategoryLegendDatum): TooltipContent[] | undefined {
         const tooltipOpts = this.opts.item.tooltip;
-        const isTruncated = this.truncatedItems.has(datum.itemId ?? datum.id);
+        const isTruncated = this.truncatedItems.has(legendItemKey(datum));
 
         // Resolve effective visibility: default is 'always' when custom content provided, else 'auto'
         const hasCustomContent = tooltipOpts?.text != null || tooltipOpts?.renderer != null;

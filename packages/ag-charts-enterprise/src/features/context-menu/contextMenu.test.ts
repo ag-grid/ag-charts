@@ -4,11 +4,13 @@ import type { AgChartInstance, AgChartOptions, AgContextMenuItem, AgContextMenuI
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     clickAction,
+    clickLegendItem,
     computeLegendBBox,
     contextMenuAction,
     deproxy,
     expectWarningsCalls,
     getCrossLinesPlugin,
+    getLegendModule,
     getSeriesAt,
     getSeriesNodeData,
     hoverAction,
@@ -358,6 +360,82 @@ describe('Context Menu', () => {
             const params = getItems.mock.calls[0][0];
             expect(params.showOn).toBe('series-node');
             expect(params.datum).toEqual({ x: 4, y: 50 });
+        });
+    });
+
+    describe('legend-item built-ins (CRT-1254)', () => {
+        const SHARED_Y_KEY_OPTIONS: AgChartOptions = {
+            contextMenu: { enabled: true },
+            legend: { enabled: true },
+            series: ['a', 'b', 'c'].map((id) => ({
+                type: 'line',
+                id,
+                title: id,
+                data: EXAMPLE_OPTIONS.data,
+                xKey: 'x',
+                yKey: 'y',
+            })),
+        };
+
+        function legendItems() {
+            return getLegendModule(deproxy(chart)).itemSelection.nodes();
+        }
+
+        async function openLegendItemMenu(index: number) {
+            const { x, y, width, height } = Transformable.toCanvas(legendItems()[index]);
+            await contextMenuAction(x + width / 2, y + height / 2)(chart);
+            await waitForChartStability(chart);
+        }
+
+        function findMenuItem(label: string) {
+            const menuItems = Array.from(
+                document.body.getElementsByClassName(
+                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
+                ) as HTMLCollectionOf<HTMLElement>
+            );
+            const menuItem = menuItems.find((item) => item.textContent?.includes(label));
+            expect(menuItem).toBeDefined();
+            return menuItem!;
+        }
+
+        it.each([
+            ['Toggle Visibility', [true, false, true]],
+            ['Toggle Other Series', [false, true, false]],
+        ])('%s acts on the clicked series when series share a yKey', async (label, expectedEnabled) => {
+            chart = await createEnterpriseChart(SHARED_Y_KEY_OPTIONS);
+
+            await openLegendItemMenu(1);
+            findMenuItem(label).dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            await waitForChartStability(chart);
+
+            expect(legendItems().map(({ datum }) => datum?.enabled)).toEqual(expectedEnabled);
+        });
+
+        it.each([
+            ['the last visible item', 0, 'true'],
+            ['a hidden item', 1, 'false'],
+        ])('preventHidingAll sets aria-disabled on Toggle Visibility for %s', async (_name, index, ariaDisabled) => {
+            chart = await createEnterpriseChart({
+                ...SHARED_Y_KEY_OPTIONS,
+                legend: { enabled: true, preventHidingAll: true },
+                series: SHARED_Y_KEY_OPTIONS.series?.slice(0, 2),
+            });
+
+            await clickLegendItem(chart, 1);
+            await waitForChartStability(chart);
+
+            await openLegendItemMenu(index);
+            expect(findMenuItem('Toggle Visibility').getAttribute('aria-disabled')).toBe(ariaDisabled);
+        });
+
+        it('preventHidingAll leaves Toggle Visibility enabled while another item is visible', async () => {
+            chart = await createEnterpriseChart({
+                ...SHARED_Y_KEY_OPTIONS,
+                legend: { enabled: true, preventHidingAll: true },
+            });
+
+            await openLegendItemMenu(0);
+            expect(findMenuItem('Toggle Visibility').getAttribute('aria-disabled')).toBe('false');
         });
     });
 
