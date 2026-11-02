@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, test, vi } from 'vitest';
 
+import { Transformable } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgChartLegendItemOptions,
@@ -20,6 +21,7 @@ import type { AgChartProxy, LegendTestItemNode } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    clickLegendItem,
     compareImageSnapshot,
     computeLegendBBox,
     createChart,
@@ -1214,6 +1216,45 @@ describe('Legend', () => {
             interactionManager.popState(InteractionState.ZoomDrag);
             updateTooltip.mockRestore();
             removeTooltip.mockRestore();
+        });
+    });
+
+    describe('CRT-1254 series sharing a yKey', () => {
+        const sharedYKeySeries = (names: string[]): AgLineSeriesOptions[] =>
+            names.map((yName, x) => ({ ...buildSeries({ x, y: 1 }), id: `series-${x}`, yName }));
+
+        function legendItems() {
+            return getLegendModule(chart).itemSelection.nodes();
+        }
+
+        test('each proxy switch follows its own series', async () => {
+            chart = deproxy(await createChart({ series: sharedYKeySeries(['a', 'b', 'c']) }));
+
+            await clickLegendItem(chart, 2);
+            await waitForChartStability(chart);
+
+            const checked = legendItems().map(({ proxyButton }) =>
+                proxyButton?.getElement().getAttribute('aria-checked')
+            );
+            expect(checked).toEqual(['true', 'true', 'false']);
+        });
+
+        test.each([
+            ['truncated', 0, true],
+            ['untruncated', 1, false],
+        ])('the %s item resolves its own auto tooltip', async (_name, index, tooltipVisible) => {
+            chart = deproxy(
+                await createChart({
+                    series: sharedYKeySeries(['A name long enough to be truncated', 'short']),
+                    legend: { item: { label: { maxLength: 10 } } },
+                })
+            );
+
+            const { x, y, width, height } = Transformable.toCanvas(legendItems()[index]);
+            await hoverAction(x + width / 2, y + height / 2)(chart);
+            await waitForChartStability(chart);
+
+            expect(isTooltipVisible(chart)).toBe(tooltipVisible);
         });
     });
 

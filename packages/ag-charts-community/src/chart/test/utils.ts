@@ -2473,7 +2473,8 @@ export function computeLegendBBox(chart: Chart): BBox {
 }
 
 export interface LegendTestItemNode {
-    datum?: { id: string; itemId?: string | number };
+    datum?: { id: string; seriesId?: string; itemId?: string | number; enabled?: boolean };
+    proxyButton?: { getElement(): HTMLElement };
     opacity?: number;
     label: { opacity?: number; text?: string };
     symbolsGroup: { opacity?: number };
