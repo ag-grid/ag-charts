@@ -1,3 +1,4 @@
+import type { AgBarSeriesStyle } from '../../series/cartesian/barOptions';
 import type { AgVolumeProfileSelectionOptions, AgVolumeProfileTotalSegmentOptions } from './priceVolumeOptions';
 
 export interface AgVolumeProfileChartPreset {
@@ -12,6 +13,10 @@ export interface AgVolumeProfileChartPreset {
     /** The key used to retrieve the down volume of each level from the data.
      */
     downKey: string;
+    /** Styling for the bars showing the up volume of each level. */
+    up?: AgBarSeriesStyle;
+    /** Styling for the bars showing the down volume of each level. */
+    down?: AgBarSeriesStyle;
     /** The height of each price level, in price units.
      *
      * If not set, the smallest gap between the prices in the data is used.

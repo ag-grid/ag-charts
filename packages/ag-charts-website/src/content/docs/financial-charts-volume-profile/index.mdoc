@@ -211,20 +211,25 @@ In this example:
 
 ### Colours
 
-The bars use the `up` and `down` fills of the theme palette.
+By default, the bars use the `up` and `down` fills of the theme palette. Set `up` and `down` to style the bars of each direction with the same options as the bars of a Bar Series, such as `fill`, `fillOpacity`, `stroke` and `strokeWidth`. They take precedence over the theme palette.
 
-{% chartExampleRunner title="Colours" name="customisation-colours" type="generated" /%}
+{% chartExampleRunner title="Colours" name="bar-colours" type="generated" /%}
 
 ```js format="snippet"
 {
-    theme: {
-        palette: {
-            up: { fill: '#F2C12E', stroke: '#B8901A' },
-            down: { fill: '#2E6BF2', stroke: '#1A45A8' },
-        },
-    },
+    up: { fill: '#2e7d32', stroke: '#1b5e20' },
+    down: { fill: '#ef6c00', stroke: '#e65100' },
 }
 ```
+
+In this example:
+
+- `up` and `down` colour the bars of the up and down volume.
+- A `stroke` is 1 pixel wide unless `strokeWidth` is set.
+
+The up and down colours can also be changed for every series with the theme palette, through `theme.palette.up` and `theme.palette.down`.
+
+On a Financial Chart, `up` and `down` are options of `volumeProfile`. The [status bar](./financial-charts-configuration/#chart-features) shows the up and down volume of the hovered price level in the `up.fill` and `down.fill` colours.
 
 ## API Reference
 
