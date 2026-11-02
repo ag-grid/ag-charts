@@ -2,6 +2,7 @@ import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
+    AgChartLabelCollisionOptions,
     AgChartOptions,
     AgOrganizationSeriesNodeTextStyle,
     AgOrganizationSeriesOptions,
@@ -2670,6 +2671,11 @@ describe('OrganizationSeries', () => {
             return { texts, series: getSeriesInstance(chart, OrganizationSeries) };
         };
 
+        // `collision` is an undocumented node text option.
+        const undocumentedText = <T extends AgOrganizationSeriesNodeTextStyle & { key?: string }>(
+            text: T & { collision?: AgChartLabelCollisionOptions }
+        ): T => text;
+
         const titleOf = (texts: NodeTexts[], id = 'ceo') => texts.find((t) => t.id === id)?.title;
         const BASE_NODE: OrgNodeOptions = {
             maxWidth: 100,
@@ -2772,7 +2778,7 @@ describe('OrganizationSeries', () => {
         it('should keep truncating with collision.alwaysShow alone', async () => {
             const { texts, series } = await render({
                 ...BASE_NODE,
-                title: { key: 'name', wrapping: 'never', collision: { alwaysShow: true } },
+                title: undocumentedText({ key: 'name', wrapping: 'never', collision: { alwaysShow: true } }),
             });
             expect(titleOf(texts)).toContain('…');
             expect(series.options.node.title.truncate).toBe(true);
@@ -2788,7 +2794,7 @@ describe('OrganizationSeries', () => {
                 expect(titleOf(hidden)).toBe('');
 
                 const { texts: kept } = await render(
-                    { ...node, title: { key: 'name', truncate, collision: { alwaysShow: true } } },
+                    { ...node, title: undocumentedText({ key: 'name', truncate, collision: { alwaysShow: true } }) },
                     {},
                     LONG_WORD_DATA
                 );
@@ -2804,7 +2810,7 @@ describe('OrganizationSeries', () => {
                         await render({
                             ...BASE_NODE,
                             maxWidth: 160,
-                            title: { key: 'name', wrapping: 'never', collision: { threshold } },
+                            title: undocumentedText({ key: 'name', wrapping: 'never', collision: { threshold } }),
                         })
                     ).texts
                 )!;
@@ -2822,7 +2828,9 @@ describe('OrganizationSeries', () => {
                     theme: {
                         overrides: {
                             organization: {
-                                series: { node: { title: { truncate: false, collision: { threshold: 5 } } } },
+                                series: {
+                                    node: { title: undocumentedText({ truncate: false, collision: { threshold: 5 } }) },
+                                },
                             },
                         },
                     },
@@ -2885,7 +2893,7 @@ describe('OrganizationSeries', () => {
 
             const { texts: kept } = await render({
                 ...node,
-                labels: [{ key: 'location', collision: { alwaysShow: true } }],
+                labels: [undocumentedText({ key: 'location', collision: { alwaysShow: true } })],
             });
             expect(kept.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
         });
@@ -2992,7 +3000,14 @@ describe('OrganizationSeries', () => {
 
             const { texts: kept } = await render({
                 ...node,
-                labels: [{ key: 'location', wrapping: 'never', truncate: false, collision: { alwaysShow: true } }],
+                labels: [
+                    undocumentedText({
+                        key: 'location',
+                        wrapping: 'never',
+                        truncate: false,
+                        collision: { alwaysShow: true },
+                    }),
+                ],
             });
             expect(kept.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
 
@@ -3006,7 +3021,9 @@ describe('OrganizationSeries', () => {
         });
 
         // One chart per budget, each node rendering a different fit configuration through the text stylers.
-        type FitVariant = Pick<AgOrganizationSeriesNodeTextStyle, 'truncate' | 'collision' | 'wrapping'>;
+        type FitVariant = Pick<AgOrganizationSeriesNodeTextStyle, 'truncate' | 'wrapping'> & {
+            collision?: AgChartLabelCollisionOptions;
+        };
         const renderFitVariants = async (variants: Record<string, FitVariant>, node: OrgNodeOptions, data: object) => {
             const variantStyler = ({ datum }: { datum: { name: string } }) => variants[datum.name];
             const options: AgChartOptions = {
