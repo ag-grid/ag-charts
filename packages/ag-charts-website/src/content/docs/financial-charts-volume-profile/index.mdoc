@@ -37,6 +37,26 @@ Use `AgCharts.createVolumeProfileChart()` to show a Volume Profile on its own, a
 
 {% chartExampleRunner title="Volume Profile Chart" name="volume-profile-chart" type="generated" /%}
 
+## Bar Colours
+
+By default, the bars take the up and down colours of the theme. Set `up` and `down` to style the bars of each direction with the same options as the bars of a Bar Series, such as `fill`, `fillOpacity`, `stroke` and `strokeWidth`.
+
+{% chartExampleRunner title="Bar Colours" name="bar-colours" type="generated" /%}
+
+```js format="snippet"
+{
+    up: { fill: '#2e7d32', stroke: '#1b5e20' },
+    down: { fill: '#ef6c00', stroke: '#e65100' },
+}
+```
+
+In this example:
+
+- `up` and `down` colour the bars of the up and down volume, and their tooltip markers.
+- A `stroke` is 1 pixel wide unless `strokeWidth` is set.
+
+On a Financial Chart, `up` and `down` are options of `volumeProfile`. The [status bar](#hovering-price-levels) shows the up and down volume of the hovered price level in the `up.fill` and `down.fill` colours.
+
 ## Total Segment
 
 Set `totalSegment.enabled` to show a column between the price axis and the bars, with a block at each price level labelled with the total volume traded at that price. The series area narrows to make room for it, in the same way as it does for an axis.
@@ -82,8 +102,8 @@ In this example:
 In a Financial Chart, the Volume Profile bars cannot be hovered and show no tooltip. Instead, moving the pointer over the chart shows the details of the price level at the pointer's price in the status bar, after the values of the hovered candle:
 
 - `Price`: the range of prices the level covers, which is its price plus or minus half the `tickSize`.
-- `Up`: the up volume traded in the level, in the up colour.
-- `Down`: the down volume traded in the level, in the down colour.
+- `Up`: the up volume traded in the level, in the up colour, which is `up.fill` if set.
+- `Down`: the down volume traded in the level, in the down colour, which is `down.fill` if set.
 - `Total`: the total volume traded in the level.
 
 If the level does not fit beside the candle values, it moves to a second line below them. It never uses more than two lines, and runs past the edge of the chart if the chart is narrower still.

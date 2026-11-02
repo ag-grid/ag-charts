@@ -1,5 +1,6 @@
 import type { AgSelectionClickMode, AgSelectionStyleOptions } from '../../chart/selectionOptions';
 import type { CssColor, DatumDefault, Opacity, PixelSize, Ratio } from '../../chart/types';
+import type { AgBarSeriesStyle } from '../../series/cartesian/barOptions';
 import type { TextOptions, Toggleable } from '../../series/cartesian/commonOptions';
 
 export type AgPriceVolumeChartType =
@@ -111,6 +112,16 @@ export interface AgVolumeProfileOptions extends Toggleable {
      * The series has the fixed id `'volumeProfileDown'`, for use in callbacks.
      */
     downKey: string;
+    /** Styling for the bars showing the up volume of each level.
+     *
+     * Default: the theme's up fill, with no stroke
+     */
+    up?: AgBarSeriesStyle;
+    /** Styling for the bars showing the down volume of each level.
+     *
+     * Default: the theme's down fill, with no stroke
+     */
+    down?: AgBarSeriesStyle;
     /** The edge of the series area the bars extend from.
      *
      * Default: `'right'`

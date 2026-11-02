@@ -6,14 +6,18 @@ import {
     boolean,
     callback,
     color,
+    fillOptionsDef,
     fontOptionsDef,
+    lineDashOptionsDef,
     positiveNumber,
     ratio,
     shapeSelectionOptionsDef,
     strictUnion,
+    strokeOptionsDef,
 } from 'ag-charts-core';
 import type {
     AgBarSeriesOptions,
+    AgBarSeriesStyle,
     AgCategoryAxisOptions,
     AgNumberAxisOptions,
     AgSelectionClickMode,
@@ -62,12 +66,40 @@ const volumeRow = ({ datum, yKey, yName }: { datum: any; yKey: string; yName?: s
     value: formatFixedCompact({ value: datum[yKey] }),
 });
 
+type VolumeProfileBars = Pick<AgVolumeProfileOptions, 'up' | 'down'>;
+
+const volumeProfileBarStyleOptionsDef: OptionsDefs<AgBarSeriesStyle> = {
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+};
+
+export const volumeProfileBarsOptionsDef: OptionsDefs<VolumeProfileBars> = {
+    up: volumeProfileBarStyleOptionsDef,
+    down: volumeProfileBarStyleOptionsDef,
+};
+
+// A stroke without a width is 1px wide, as in candlestick's `item.up` and `item.down`, not the bar series' 2px.
+function createBarStyleOptions(
+    style: AgBarSeriesStyle | undefined,
+    paletteKey: 'up' | 'down',
+    getTheme: () => ChartTheme
+) {
+    const strokeWidth = style?.stroke != null && style.strokeWidth == null ? { strokeWidth: 1 } : undefined;
+    const themeFill =
+        style?.fill == null ? { simpleItemStyler: () => ({ fill: getTheme().palette[paletteKey]?.fill }) } : undefined;
+
+    return { ...style, ...strokeWidth, ...themeFill };
+}
+
 // Without `levels`, the series read the chart's data, which must then hold the grouped levels.
 export function createVolumeProfileSeries(
     getTheme: () => ChartTheme,
     priceAxisKey: string,
     levels?: VolumeProfileDatum[],
     selection?: AgVolumeProfileSelectionOptions,
+    { up, down }: VolumeProfileBars = {},
     hoverable = true
 ) {
     const seriesData = levels == null ? {} : { data: levels };
@@ -89,13 +121,12 @@ export function createVolumeProfileSeries(
             xKeyAxis: priceAxisKey,
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
-            // @ts-expect-error undocumented option
-            simpleItemStyler: () => ({ fill: getTheme().palette.up?.fill }),
+            ...createBarStyleOptions(up, 'up', getTheme),
             tooltip: {
                 enabled: true,
                 renderer: (params) => {
                     return {
-                        symbol: { marker: { fill: getTheme().palette.up?.fill } },
+                        symbol: { marker: { fill: up?.fill ?? getTheme().palette.up?.fill } },
                         data: [priceRangeRow(params.datum), volumeRow(params)],
                     };
                 },
@@ -115,13 +146,12 @@ export function createVolumeProfileSeries(
             xKeyAxis: priceAxisKey,
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
-            // @ts-expect-error undocumented option
-            simpleItemStyler: () => ({ fill: getTheme().palette.down?.fill }),
+            ...createBarStyleOptions(down, 'down', getTheme),
             tooltip: {
                 enabled: true,
                 renderer: (params) => {
                     return {
-                        symbol: { marker: { fill: getTheme().palette.down?.fill } },
+                        symbol: { marker: { fill: down?.fill ?? getTheme().palette.down?.fill } },
                         data: [
                             volumeRow(params),
                             { label: 'Total', value: formatFixedCompact({ value: params.datum.total }) },
@@ -134,11 +164,17 @@ export function createVolumeProfileSeries(
 }
 
 /** The levels the status bar looks up under the pointer, by the price axis the pointer is read against. */
-export function createVolumeProfileStatusBarOptions(levels: VolumeProfileDatum[], priceAxisKey: string) {
+export function createVolumeProfileStatusBarOptions(
+    levels: VolumeProfileDatum[],
+    priceAxisKey: string,
+    { up, down }: VolumeProfileBars
+) {
     if (levels.length === 0) return undefined;
 
     return {
         priceAxisKey,
+        upColor: typeof up?.fill === 'string' ? up.fill : undefined,
+        downColor: typeof down?.fill === 'string' ? down.fill : undefined,
         levels: levels.map(({ priceLow, priceHigh, upVolume, downVolume, total }) => ({
             priceLow,
             priceHigh,
