@@ -162,7 +162,7 @@ export interface AgPieSeriesOptionsKeys<TDatum = DatumDefault> {
     calloutLabelKey?: DatumKey<TDatum>;
     /** The key to use to retrieve sector label values from the data. */
     sectorLabelKey?: DatumKey<TDatum>;
-    /** The key to use to retrieve legend item labels from the data. If multiple pie series share this key they will be merged in the legend. */
+    /** The key to use to retrieve legend item labels from the data. Legend items with the same value are toggled together across series that set this key. */
     legendItemKey?: DatumKey<TDatum>;
 }
 

@@ -991,7 +991,26 @@ export class Legend {
     }
 
     private getVisibleItemCount(): number {
-        return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
+        // A name hides together across series, but one row at a time within a series.
+        let count = 0;
+        const maxRowsByName = new Map<string, number>();
+        for (const series of this.ctx.chartService.series) {
+            const rowsByName = new Map<string, number>();
+            for (const { enabled, legendItemName } of series.getLegendData('category')) {
+                if (!enabled) continue;
+                if (legendItemName == null || legendItemName === '') {
+                    count += 1;
+                    continue;
+                }
+                const rows = (rowsByName.get(legendItemName) ?? 0) + 1;
+                rowsByName.set(legendItemName, rows);
+                if (rows > (maxRowsByName.get(legendItemName) ?? 0)) {
+                    maxRowsByName.set(legendItemName, rows);
+                    count += 1;
+                }
+            }
+        }
+        return count;
     }
 
     private doClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): boolean {
