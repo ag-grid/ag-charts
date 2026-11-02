@@ -17,15 +17,9 @@ export interface AgVolumeProfileChartPreset {
      * The series has the fixed id `'volumeProfileDown'`, for use in callbacks and the Selection API.
      */
     downKey: string;
-    /** Styling for the bars showing the up volume of each level.
-     *
-     * Default: the theme's up fill, with no stroke
-     */
+    /** Styling for the bars showing the up volume of each level. */
     up?: AgBarSeriesStyle;
-    /** Styling for the bars showing the down volume of each level.
-     *
-     * Default: the theme's down fill, with no stroke
-     */
+    /** Styling for the bars showing the down volume of each level. */
     down?: AgBarSeriesStyle;
     /** The height of each price level, in price units.
      *

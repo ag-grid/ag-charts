@@ -112,15 +112,9 @@ export interface AgVolumeProfileOptions extends Toggleable {
      * The series has the fixed id `'volumeProfileDown'`, for use in callbacks.
      */
     downKey: string;
-    /** Styling for the bars showing the up volume of each level.
-     *
-     * Default: the theme's up fill, with no stroke
-     */
+    /** Styling for the bars showing the up volume of each level. */
     up?: AgBarSeriesStyle;
-    /** Styling for the bars showing the down volume of each level.
-     *
-     * Default: the theme's down fill, with no stroke
-     */
+    /** Styling for the bars showing the down volume of each level. */
     down?: AgBarSeriesStyle;
     /** The edge of the series area the bars extend from.
      *
