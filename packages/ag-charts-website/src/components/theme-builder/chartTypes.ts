@@ -2,12 +2,7 @@ import type { IconName } from '@ag-website-shared/components/icon/Icon';
 import { type PersistentAtom, atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
 import { useAtom } from 'jotai';
 
-import type {
-    AgCartesianChartOptions,
-    AgCartesianSeriesOptions,
-    AgChartOptions,
-    AgContextMenuItem,
-} from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgCartesianSeriesOptions, AgChartOptions } from 'ag-charts-community';
 
 import { type ChartFeatureId, type ChartFeatures, DEFAULT_CHART_FEATURES, isFeatureActive } from './chartFeatures';
 import {
@@ -99,13 +94,6 @@ const COMMON_FEATURES: ChartFeatureId[] = ['seriesStrokes', 'legend', 'tooltip',
 /** Zoom, scrollbar and navigator are cartesian-only in AG Charts. */
 const CARTESIAN_FEATURES: ChartFeatureId[] = [...COMMON_FEATURES, 'crosshairs', 'zoom', 'scrollbar', 'navigator'];
 
-/** Stand-ins, so the menu has rows enough to show its hover, disabled and separator styles. */
-export const PREVIEW_MENU_EXTRA_ITEMS = [
-    { label: 'Copy Value' },
-    { label: 'Add Note' },
-    { label: 'Export Data', enabled: false },
-] satisfies AgContextMenuItem[];
-
 /**
  * AG Charts resolves a series' `strokeWidth` to zero unless the chart sets a
  * stroke of its own, so without this a palette carries a stroke per slot and
@@ -140,10 +128,7 @@ const cartesianAxes = (features: ChartFeatures) => {
 const commonOptions = (features: ChartFeatures) => ({
     legend: { ...LEGEND, enabled: isFeatureActive(features, 'legend') },
     tooltip: { enabled: isFeatureActive(features, 'tooltip') },
-    contextMenu: {
-        enabled: isFeatureActive(features, 'contextMenu'),
-        items: ['defaults', 'separator', ...PREVIEW_MENU_EXTRA_ITEMS] satisfies AgContextMenuItem[],
-    },
+    contextMenu: { enabled: isFeatureActive(features, 'contextMenu') },
 });
 
 const navigationOptions = (features: ChartFeatures) => ({
