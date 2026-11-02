@@ -1,29 +1,17 @@
 import {
     AgCartesianChartOptions,
-    AgCartesianCrossLineLabelOptions,
     AgCharts,
     CrossLinesModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
+    TextWrap,
     TimeAxisModule,
 } from 'ag-charts-community';
 
 import { getData } from './data';
 
 ModuleRegistry.registerModules([CrossLinesModule, LineSeriesModule, NumberAxisModule, TimeAxisModule]);
-
-const rangeLabel: AgCartesianCrossLineLabelOptions = {
-    text: 'Summer Promotion: Reduced Pricing in All Stores',
-    placement: 'inside-top',
-    maxWidth: 110,
-};
-
-const lineLabel: AgCartesianCrossLineLabelOptions = {
-    text: 'Annual Revenue Target: £250k per Month',
-    placement: 'top-left',
-    maxWidth: 120,
-};
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -46,7 +34,12 @@ const options: AgCartesianChartOptions = {
                 {
                     type: 'range',
                     range: [new Date(2025, 5, 1), new Date(2025, 7, 1)],
-                    label: rangeLabel,
+                    label: {
+                        text: 'Summer Promotion: Reduced Pricing in All Stores',
+                        placement: 'inside-top',
+                        maxWidth: 120,
+                        maxHeight: 60,
+                    },
                 },
             ],
         },
@@ -59,7 +52,12 @@ const options: AgCartesianChartOptions = {
                 {
                     type: 'line',
                     value: 250,
-                    label: lineLabel,
+                    label: {
+                        text: 'Annual Revenue Target: £250k per Month',
+                        placement: 'top-left',
+                        maxWidth: 120,
+                        maxHeight: 60,
+                    },
                 },
             ],
         },
@@ -68,20 +66,38 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setLabelFit(fit: AgCartesianCrossLineLabelOptions) {
-    options.axes!.x!.crossLines![0].label = { ...rangeLabel, ...fit };
-    options.axes!.y!.crossLines![0].label = { ...lineLabel, ...fit };
+function setMaxWidth(event: Event) {
+    const value = Number((event.target as HTMLInputElement).value);
+    document.getElementById('maxWidthValue')!.textContent = String(value);
+    options.axes!.x!.crossLines![0].label!.maxWidth = value;
+    options.axes!.y!.crossLines![0].label!.maxWidth = value;
     chart.update(options);
 }
 
-function wrap() {
-    setLabelFit({});
+function setMaxHeight(event: Event) {
+    const value = Number((event.target as HTMLInputElement).value);
+    document.getElementById('maxHeightValue')!.textContent = String(value);
+    options.axes!.x!.crossLines![0].label!.maxHeight = value;
+    options.axes!.y!.crossLines![0].label!.maxHeight = value;
+    chart.update(options);
 }
 
-function truncate() {
-    setLabelFit({ wrapping: 'never', truncate: true });
+function setWrapping(value: string) {
+    options.axes!.x!.crossLines![0].label!.wrapping = value as TextWrap;
+    options.axes!.y!.crossLines![0].label!.wrapping = value as TextWrap;
+    chart.update(options);
 }
 
-function shrink() {
-    setLabelFit({ wrapping: 'never', minimumFontSize: 8 });
+function setMinimumFontSize(event: Event) {
+    const value = Number((event.target as HTMLInputElement).value);
+    document.getElementById('minimumFontSizeValue')!.textContent = String(value);
+    options.axes!.x!.crossLines![0].label!.minimumFontSize = value;
+    options.axes!.y!.crossLines![0].label!.minimumFontSize = value;
+    chart.update(options);
+}
+
+function setTruncate(value: string) {
+    options.axes!.x!.crossLines![0].label!.truncate = value === 'enabled';
+    options.axes!.y!.crossLines![0].label!.truncate = value === 'enabled';
+    chart.update(options);
 }
