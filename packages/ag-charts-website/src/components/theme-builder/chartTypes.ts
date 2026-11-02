@@ -138,6 +138,9 @@ const navigationOptions = (features: ChartFeatures) => ({
     navigator: { enabled: isFeatureActive(features, 'navigator') },
 });
 
+/** AG Charts shares the tooltip for only two or three series; past this count the rows outgrow the preview. */
+export const MAX_SHARED_TOOLTIP_SERIES = 8;
+
 /**
  * Shared scaffolding for the four cartesian variants. Typed as cartesian rather
  * than as `AgChartOptions`, or the union stays unnarrowed and the axes fail to
@@ -158,6 +161,10 @@ const cartesian = (
     axes: cartesianAxes(features),
     ...navigationOptions(features),
     ...commonOptions(features),
+    tooltip: {
+        ...commonOptions(features).tooltip,
+        mode: seriesCount <= MAX_SHARED_TOOLTIP_SERIES ? 'shared' : 'single',
+    },
 });
 
 export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
