@@ -64,8 +64,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
             const { datum } = this;
             if (!datum) return;
 
-            datum.endRetracement.x = datum.end.x;
-            datum.endRetracement.y = datum.end.y;
+            applyAnnotationOptions(datum, { endRetracement: datum.end });
 
             this.node?.toggleHandles({ end: true });
             ctx.update();
