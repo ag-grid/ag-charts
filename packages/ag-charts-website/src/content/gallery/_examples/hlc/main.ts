@@ -19,8 +19,8 @@ ModuleRegistry.registerModules([
     OrdinalTimeAxisModule,
 ]);
 const numberFormatter = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
 });
 
 const data = getData();
@@ -57,7 +57,7 @@ const options: AgCartesianChartOptions<DataType> = {
                             day: 'numeric',
                             year: 'numeric',
                         }),
-                        title: `Range ${numberFormatter.format(datum.high - datum.low)}`,
+                        title: `Range £${numberFormatter.format(datum.high - datum.low)}`,
                         data: [
                             { label: 'High', value: `£${numberFormatter.format(datum.high)}` },
                             { label: 'Low', value: `£${numberFormatter.format(datum.low)}` },
@@ -94,7 +94,7 @@ const options: AgCartesianChartOptions<DataType> = {
         y: {
             type: 'number',
             position: 'right',
-            interval: { step: 0.01 },
+            interval: { step: 10 },
             crossLines: [
                 {
                     type: 'line',
@@ -102,7 +102,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     lineDash: [6, 3],
                     strokeWidth: 1.5,
                     label: {
-                        text: `Avg: ${numberFormatter.format(averageClose)}`,
+                        text: `Avg: £${numberFormatter.format(averageClose)}`,
                         placement: 'top-left',
                         padding: 4,
                         fill: { ref: 'backgroundColor' },

@@ -19,8 +19,8 @@ ModuleRegistry.registerModules([
     OrdinalTimeAxisModule,
 ]);
 const numberFormatter = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
 });
 
 const data = getData();
@@ -65,10 +65,10 @@ const options: AgCartesianChartOptions<DataType> = {
                         }),
                         title: `${changeSymbol} ${numberFormatter.format(Math.abs(change))} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`,
                         data: [
-                            { label: 'Open', value: `£${numberFormatter.format(datum.open)}` },
-                            { label: 'High', value: `£${numberFormatter.format(datum.high)}` },
-                            { label: 'Low', value: `£${numberFormatter.format(datum.low)}` },
-                            { label: 'Close', value: `£${numberFormatter.format(datum.close)}` },
+                            { label: 'Open', value: `£${datum.open}` },
+                            { label: 'High', value: `£${datum.high}` },
+                            { label: 'Low', value: `£${datum.low}` },
+                            { label: 'Close', value: `£${datum.close}` },
                         ],
                     };
                 },
@@ -101,7 +101,7 @@ const options: AgCartesianChartOptions<DataType> = {
         y: {
             type: 'number',
             position: 'right',
-            interval: { step: 0.01 },
+            interval: { step: 10 },
             crossLines: [
                 {
                     type: 'line',
@@ -109,7 +109,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     lineDash: [6, 3],
                     strokeWidth: 1.5,
                     label: {
-                        text: `Avg: ${numberFormatter.format(averageClose)}`,
+                        text: `Avg: £${numberFormatter.format(averageClose)}`,
                         placement: 'top-left',
                         padding: 4,
                         fill: { ref: 'backgroundColor' },
