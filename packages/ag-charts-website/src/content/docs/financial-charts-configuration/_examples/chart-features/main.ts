@@ -1,6 +1,6 @@
 import { AgCharts, AgFinancialChartOptions, FinancialChartModule, ModuleRegistry } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { getData, getVolumeProfile } from './data';
 
 ModuleRegistry.registerModules([FinancialChartModule]);
 
@@ -13,6 +13,12 @@ const options: AgFinancialChartOptions = {
     volume: true,
     statusBar: true,
     zoom: true,
+    volumeProfile: {
+        enabled: false,
+        data: getVolumeProfile(),
+        upKey: 'upVolume',
+        downKey: 'downVolume',
+    },
 };
 
 const chart = AgCharts.createFinancialChart(options);
@@ -21,4 +27,12 @@ function toggleFeature(type: 'navigator' | 'toolbar' | 'rangeButtons' | 'volume'
     options[type] = !options[type];
     chart.update(options);
     document.getElementById(`toggle-${type}`)?.setAttribute('aria-pressed', String(options[type]));
+}
+
+function toggleVolumeProfile() {
+    options.volumeProfile!.enabled = !options.volumeProfile!.enabled;
+    chart.update(options);
+    document
+        .getElementById('toggle-volumeProfile')
+        ?.setAttribute('aria-pressed', String(options.volumeProfile!.enabled));
 }

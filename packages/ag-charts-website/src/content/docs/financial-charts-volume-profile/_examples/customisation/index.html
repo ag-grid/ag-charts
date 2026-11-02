@@ -1,0 +1,35 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <span>Placement:</span>
+        <div class="button-group" role="group" aria-label="Placement">
+            <input type="radio" id="placement-left" name="placement" value="left" onchange="changePlacement(event)" />
+            <label for="placement-left">Left</label>
+            <input
+                type="radio"
+                id="placement-right"
+                name="placement"
+                value="right"
+                checked
+                onchange="changePlacement(event)"
+            />
+            <label for="placement-right">Right</label>
+        </div>
+        <span class="gap-left">Width Ratio:</span>
+        <div class="button-group" role="group" aria-label="Width Ratio">
+            <input type="radio" id="ratio-0-25" name="width-ratio" value="0.25" onchange="changeWidthRatio(event)" />
+            <label for="ratio-0-25">0.25</label>
+            <input
+                type="radio"
+                id="ratio-0-5"
+                name="width-ratio"
+                value="0.5"
+                checked
+                onchange="changeWidthRatio(event)"
+            />
+            <label for="ratio-0-5">0.5</label>
+            <input type="radio" id="ratio-0-75" name="width-ratio" value="0.75" onchange="changeWidthRatio(event)" />
+            <label for="ratio-0-75">0.75</label>
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>

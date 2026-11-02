@@ -1,0 +1,30 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="fontSizeSliderInput">fontSize:</label>
+        <input
+            type="range"
+            id="fontSizeSliderInput"
+            min="8"
+            max="32"
+            step="1"
+            value="12"
+            oninput="updateFontSize(event)"
+            onchange="updateFontSize(event)"
+        />
+        <span id="fontSizeSliderValue" class="slider-value">12</span>
+        <label for="lineHeightSliderInput">lineHeight:</label>
+        <input
+            type="range"
+            id="lineHeightSliderInput"
+            min="4"
+            max="48"
+            step="1"
+            value="14"
+            oninput="updateLineHeight(event)"
+            onchange="updateLineHeight(event)"
+        />
+        <span id="lineHeightSliderValue" class="slider-value">14</span>
+        <button id="lineHeightAutoButton" onclick="resetLineHeight()">Auto</button>
+    </div>
+</div>
+<div id="myChart"></div>
