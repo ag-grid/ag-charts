@@ -30,10 +30,10 @@ const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data,
     title: {
-        text: 'USD/GBP',
+        text: 'Share Price',
     },
     subtitle: {
-        text: 'Foreign Exchange Rate',
+        text: 'Daily OHLC',
     },
     footnote: {
         text: 'Apr 25, 2023 - Apr 25, 2024',
@@ -65,10 +65,10 @@ const options: AgCartesianChartOptions<DataType> = {
                         }),
                         title: `${changeSymbol} ${numberFormatter.format(Math.abs(change))} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`,
                         data: [
-                            { label: 'Open', value: `£${datum.open}` },
-                            { label: 'High', value: `£${datum.high}` },
-                            { label: 'Low', value: `£${datum.low}` },
-                            { label: 'Close', value: `£${datum.close}` },
+                            { label: 'Open', value: `£${numberFormatter.format(datum.open)}` },
+                            { label: 'High', value: `£${numberFormatter.format(datum.high)}` },
+                            { label: 'Low', value: `£${numberFormatter.format(datum.low)}` },
+                            { label: 'Close', value: `£${numberFormatter.format(datum.close)}` },
                         ],
                     };
                 },
