@@ -10,7 +10,6 @@ To create an icon uri:
     display: block;
     width: 20px;
     height: 20px;
-    speak: none;
     speak: never;
     mask: var(--icon) center / contain no-repeat;
     background-color: currentColor;
