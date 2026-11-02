@@ -51,11 +51,10 @@ export function groupVolumeProfile(
 export const VOLUME_PROFILE_UP_SERIES_ID = 'volumeProfileUp';
 export const VOLUME_PROFILE_DOWN_SERIES_ID = 'volumeProfileDown';
 
-// The two series share one tooltip, so only the up series adds the range.
-const priceRangeRow = ({ priceLow, priceHigh }: VolumeProfileDatum) => ({
-    label: 'Range',
-    value: `${priceLow}-${priceHigh}`,
-});
+// Both series give the same heading, which is what groups their rows into one tooltip.
+const priceRangeHeading = ({ priceLow, priceHigh }: VolumeProfileDatum) => `${priceLow}-${priceHigh}`;
+
+const noSymbol = { marker: { enabled: false } };
 
 const volumeRow = ({ datum, yKey, yName }: { datum: any; yKey: string; yName?: string }) => ({
     label: yName ?? yKey,
@@ -95,8 +94,9 @@ export function createVolumeProfileSeries(
                 enabled: true,
                 renderer: (params) => {
                     return {
-                        symbol: { marker: { fill: getTheme().palette.up?.fill } },
-                        data: [priceRangeRow(params.datum), volumeRow(params)],
+                        heading: priceRangeHeading(params.datum),
+                        symbol: noSymbol,
+                        data: [volumeRow(params)],
                     };
                 },
             },
@@ -121,7 +121,8 @@ export function createVolumeProfileSeries(
                 enabled: true,
                 renderer: (params) => {
                     return {
-                        symbol: { marker: { fill: getTheme().palette.down?.fill } },
+                        heading: priceRangeHeading(params.datum),
+                        symbol: noSymbol,
                         data: [
                             volumeRow(params),
                             { label: 'Total', value: formatFixedCompact({ value: params.datum.total }) },
