@@ -3126,6 +3126,17 @@ describe('CrossLine label fitting', () => {
         expect(rendered.width).toBeGreaterThan(80);
     });
 
+    it.each<[string, AgCartesianCrossLineLabelOptions]>([
+        ['maxWidth', { maxWidth: 80, wrapping: 'never' }],
+        ['maxHeight', { maxWidth: 80, maxHeight: 20 }],
+    ])('hides a label overflowing %s when truncate is disabled and alwaysShow is false', async (_, label) => {
+        chart = deproxy(
+            await createChart(fitChart(lineWith({ ...label, truncate: false, collision: { alwaysShow: false } })))
+        );
+
+        expect(renderedLabel().text).toBe('');
+    });
+
     it('shrinks a label towards minimumFontSize before truncating it', async () => {
         const text = 'Target value';
         const label = { text, fontSize: 20, wrapping: 'never', minimumFontSize: 8 } as const;
