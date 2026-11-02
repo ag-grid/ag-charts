@@ -30,10 +30,10 @@ const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data,
     title: {
-        text: 'USD/GBP',
+        text: 'Share Price',
     },
     subtitle: {
-        text: 'Foreign Exchange Rate',
+        text: 'Daily HLC',
     },
     footnote: {
         text: 'Apr 25, 2023 - Apr 25, 2024',
