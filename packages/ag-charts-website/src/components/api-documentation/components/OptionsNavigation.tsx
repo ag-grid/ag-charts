@@ -292,7 +292,7 @@ function NavProperty({
                     )}
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
-                    <NavLink navData={recursionTarget ?? navData} onClick={onClick}>
+                    <NavLink navData={navData} onClick={onClick}>
                         {isStringLiteralType(memberType) ? (
                             <>
                                 {member.name} <span className={styles.punctuation}>= '</span>
@@ -308,8 +308,8 @@ function NavProperty({
                         ) : (
                             ''
                         )}
+                        {recursionTarget && <span className={styles.comment}>{' // recursive'}</span>}
                     </NavLink>
-                    {recursionTarget && <span className={styles.punctuation}>{' // recursive'}</span>}
                     {expandable && (
                         <OpeningBrackets
                             isOpen={isExpanded}
