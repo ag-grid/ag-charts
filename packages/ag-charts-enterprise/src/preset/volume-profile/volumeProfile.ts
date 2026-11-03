@@ -310,13 +310,8 @@ export function createVolumeProfileAxis(
             crosshair: { enabled: false },
             gridLine: { enabled: false },
             paddingInner: 0,
-            // @ts-expect-error undocumented options
-            layoutConstraints: {
-                stacked: false,
-                width: 100,
-                unit: 'percent',
-                align: 'start',
-            },
+            thickness: 0,
+            // @ts-expect-error undocumented option
             linkZoom: 'y',
             ...createTotalSegmentAxisOptions(volumeProfile.totalSegment, placedRight ? 'right' : 'left'),
         } satisfies AgCategoryAxisOptions,

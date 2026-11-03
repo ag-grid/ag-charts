@@ -66,6 +66,12 @@ export interface AgBaseCartesianAxisOptions<
      * Default: `0.3`
      */
     maxThicknessRatio?: Ratio;
+    /**
+     * The space between this axis and the next axis further out at the same `position`.
+     *
+     * Default: `15`
+     */
+    spacing?: PixelSize;
     /** Configuration for the title shown next to the axis. */
     title?: AgCartesianAxisCaptionOptions;
     /** Configuration for the axis crosshair. */

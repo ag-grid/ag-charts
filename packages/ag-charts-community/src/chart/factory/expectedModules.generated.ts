@@ -678,6 +678,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         moduleId: 'CategoryAxisModule',
         alternativeModuleIds: [
             'GroupedCategoryAxisModule',
+            'InsetNumberAxisModule',
             'LogAxisModule',
             'NumberAxisModule',
             'OrdinalTimeAxisModule',

@@ -34,6 +34,7 @@ export const InsetNumberAxisModule: AxisModuleDefinition<
         {
             nice: false,
             maxThicknessRatio: 0.3,
+            spacing: 15,
             label: { enabled: false },
             line: { enabled: false },
             gridLine: { enabled: false },

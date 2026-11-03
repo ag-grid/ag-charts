@@ -293,13 +293,7 @@ function createPriceAxis(tickSize: number | undefined) {
             type: 'number',
             position: 'right',
             crosshair,
-            // @ts-expect-error undocumented option
-            layoutConstraints: {
-                stacked: false,
-                width: 100,
-                unit: 'percent',
-                align: 'start',
-            },
+            spacing: 0,
         } satisfies AgNumberAxisOptions,
     };
 }

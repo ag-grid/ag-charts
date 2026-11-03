@@ -167,7 +167,7 @@ export type NormalisedTimeAxisParentLevelOptions<TContext = ContextDefault> = No
 // The base alias keeps `title` optional because angle axes do not render a title.
 type AxisRequiredKeys = 'label' | 'line' | 'tick' | 'gridLine' | 'reverse';
 type TitledAxisRequiredKeys = AxisRequiredKeys | 'title';
-type CartesianAxisRequiredKeys = TitledAxisRequiredKeys | 'maxThicknessRatio';
+type CartesianAxisRequiredKeys = TitledAxisRequiredKeys | 'maxThicknessRatio' | 'spacing';
 type CategoryStyleAxisRequiredKeys = CartesianAxisRequiredKeys | 'groupPaddingInner';
 
 type AxisLineTickGridLineMorph = {

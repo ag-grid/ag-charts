@@ -72,8 +72,6 @@ export class CartesianChart extends Chart {
     static override readonly className = 'CartesianChart';
     static readonly type = 'cartesian';
 
-    private static readonly AxesPadding = 15; // TODO should come from theme
-
     /** Integrated Charts feature state - not used in Standalone Charts. */
     public readonly paired: boolean = true;
 
@@ -570,7 +568,7 @@ export class CartesianChart extends Chart {
                 totalAxisWidth = Math.max(totalAxisWidth, currentOffset + axisThickness);
                 if (axis.layoutConstraints.stacked) {
                     // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
-                    currentOffset += axisThickness + CartesianChart.AxesPadding;
+                    currentOffset += axisThickness + axis.options.spacing;
                 }
             }
 

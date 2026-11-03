@@ -34,6 +34,7 @@ export const LogAxisModule: AxisModuleDefinition<
         {
             base: 10,
             maxThicknessRatio: 0.3,
+            spacing: 15,
             line: { enabled: false },
         },
         titleAxisThemeTemplate,
