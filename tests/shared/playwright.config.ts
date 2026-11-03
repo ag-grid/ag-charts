@@ -4,6 +4,8 @@ const fw = process.env.FW_TYPE ?? 'unknown';
 const dev_port = process.env.FW_DEV_PORT ?? '';
 let baseURL = 'about:blank';
 let command = 'exit 1';
+/* run.sh runs the tests inside the Playwright container by default, which has no installed Chrome. */
+const useBundledChromium = !!process.env.CI || process.env.HOSTNAME === 'docker-desktop';
 if (fw === 'angular') {
     baseURL = `http://localhost:${dev_port}`;
     command = 'npx ng serve --host 0.0.0.0';
@@ -56,6 +58,10 @@ export default defineConfig({
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
+                // Locally, run the installed Chrome with its sandbox on: Playwright's bundled Chromium lags behind
+                // Chrome's security fixes and launches without the sandbox by default. CI and Docker keep the bundled browser.
+                ...(useBundledChromium ? {} : { channel: 'chrome' }),
+                launchOptions: { chromiumSandbox: !useBundledChromium },
                 viewport: {
                     width: 800,
                     height: 600,

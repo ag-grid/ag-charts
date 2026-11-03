@@ -65,6 +65,17 @@ export default defineConfig({
     retries: CI ? 1 : 0,
     workers: CI ? 2 : undefined,
     reporter,
-    projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+    projects: [
+        {
+            name: 'chromium',
+            use: {
+                ...devices['Desktop Chrome'],
+                // Locally, run the installed Chrome with its sandbox on: Playwright's bundled Chromium lags behind
+                // Chrome's security fixes and launches without the sandbox by default. CI keeps the bundled browser.
+                ...(CI ? {} : { channel: 'chrome' }),
+                launchOptions: { chromiumSandbox: !CI },
+            },
+        },
+    ],
     webServer: webServer.length > 0 ? webServer : undefined,
 });

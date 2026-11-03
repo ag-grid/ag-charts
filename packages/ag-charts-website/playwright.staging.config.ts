@@ -20,6 +20,11 @@ const localE2eEnv = loadEnvFile(join(__dirname, '.env.test:e2e'));
 /** An env var counts as set only when it is present and non-empty. */
 const isCI = process.env.CI != null && process.env.CI !== '';
 
+/** playwright.sh runs the tests inside the Playwright container, which has no installed Chrome. */
+const isDocker = process.env.HOSTNAME === 'docker-desktop';
+
+const useBundledChromium = isCI || isDocker;
+
 export default defineConfig({
     testDir: './e2e',
     testMatch: ['**/page-verification.spec.ts'],
@@ -50,7 +55,10 @@ export default defineConfig({
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
-                launchOptions: { args: ['--ignore-certificate-errors'] },
+                // Locally, run the installed Chrome with its sandbox on: Playwright's bundled Chromium lags behind
+                // Chrome's security fixes and launches without the sandbox by default. CI and Docker keep the bundled browser.
+                ...(useBundledChromium ? {} : { channel: 'chrome' }),
+                launchOptions: { args: ['--ignore-certificate-errors'], chromiumSandbox: !useBundledChromium },
             },
         },
     ],
@@ -59,7 +67,7 @@ export default defineConfig({
         // ag-grid works: set PUBLIC_SITE_URL=https://charts-staging.ag-grid.com and tests
         // run directly against that URL with no local server.
         isCI ||
-        process.env.HOSTNAME === 'docker-desktop' ||
+        isDocker ||
         (process.env.PUBLIC_SITE_URL != null &&
             process.env.PUBLIC_SITE_URL !== '' &&
             !process.env.PUBLIC_SITE_URL.includes('localhost'))

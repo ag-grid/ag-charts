@@ -124,6 +124,7 @@ if [[ ${mode} == "docker" ]] ; then
     mkdir -p ./npm-cache
     docker run ${it_opts} --rm --ipc=host \
         -v $(pwd):/project \
+        -e HOSTNAME=docker-desktop \
         $port_spec \
         mcr.microsoft.com/playwright:v1.52.0 \
         /bin/bash -il /project/run.sh -c ${passthrough_opts} ${version} /project

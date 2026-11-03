@@ -4,6 +4,9 @@ import path from 'node:path';
 import test, { after, before } from 'node:test';
 import { type Browser, type Page, chromium } from 'playwright';
 
+/** An env var counts as set only when it is present and non-empty. */
+const isCI = process.env.CI != null && process.env.CI !== '';
+
 /**
  * Runs the real `benchmarkHarness.ts` in Chromium with fake memory hooks, so the producer side of the
  * memory pass (hook detection, the `measuredRun` bracket, the `elapsed > 0 && bytes !== null` filter and
@@ -45,7 +48,9 @@ before(async () => {
         write: false,
     });
     harnessBundle = out.outputFiles[0].text;
-    browser = await chromium.launch();
+    // Locally, run the installed Chrome with its sandbox on: Playwright's bundled Chromium lags behind
+    // Chrome's security fixes and launches without the sandbox by default. CI keeps the bundled browser.
+    browser = await chromium.launch(isCI ? {} : { channel: 'chrome', chromiumSandbox: true });
 });
 
 after(async () => {
