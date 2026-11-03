@@ -195,7 +195,6 @@ export class ShipmentSchedule {
                 x: {
                     type: 'time',
                     position: 'bottom',
-                    crosshair: { label: { formatter: ({ value }) => fmtDate(value) } },
                     crossLines: [
                         {
                             type: 'line',

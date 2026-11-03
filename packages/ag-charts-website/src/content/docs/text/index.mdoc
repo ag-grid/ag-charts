@@ -42,6 +42,37 @@ In the above example:
 - The left axis uses the local system font `Helvetica` with a fallback to `Arial` then `sans-serif`.
 - The bottom axis uses the Google font `Orbitron`.
 
+## Line Height
+
+Text uses the natural line height of its font unless a line height is set. Set `lineHeight` alongside `fontSize` on any text element, in pixels.
+
+{% chartExampleRunner title="Line Height" name="line-height" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'category',
+            label: {
+                fontSize: 12,
+                lineHeight: 14,
+            },
+        },
+    },
+}
+```
+
+In this example:
+
+- The category axis labels span two lines.
+- The sliders set the label `fontSize` and `lineHeight` independently.
+- The **Auto** button removes `lineHeight`, so the labels use the natural line height of the font. Moving the slider sets it again.
+- A label that shrinks towards its `minimumFontSize` scales its line height down in proportion to its font size.
+
+{% note %}
+To set the line height as a ratio of the font size for the whole chart or specific elements, use the [Line Height theme parameters](./themes/#line-height).
+{% /note %}
+
 ## Multi-Style Text Elements
 
 The chart title, subtitle and footnote support multiple font styles within one element.

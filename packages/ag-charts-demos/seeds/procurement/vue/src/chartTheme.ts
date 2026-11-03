@@ -147,7 +147,6 @@ export const MONTH_AXIS: AgUnitTimeAxisOptions = {
     position: 'bottom',
     label: { formatter: ({ value }) => monthTick(value) },
     parentLevel: { label: { formatter: ({ value }) => monthTick(value), fontWeight: 'normal' } },
-    crosshair: { label: { format: "%b '%y" } },
 };
 
 export const THEME: AgChartTheme = {
@@ -182,7 +181,11 @@ export const THEME: AgChartTheme = {
                     label: { spacing: 8 },
                 },
                 time: {
+                    crosshair: { enabled: false },
                     title: { fontStyle: 'italic' },
+                },
+                'unit-time': {
+                    crosshair: { enabled: false },
                 },
             },
             legend: {

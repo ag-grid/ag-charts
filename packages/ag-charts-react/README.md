@@ -215,7 +215,6 @@ const options = {
 <!-- START QUICK START DESCRIPTION -->
 
 AG Charts are easy to set up - all you need to do is provide your data and series type along with any other chart options.
-
 <!-- END QUICK START DESCRIPTION -->
 
 ### Installation

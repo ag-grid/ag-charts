@@ -48,21 +48,16 @@ export const EditorPanel = () => {
     const strokeDirection = useStrokeDirection();
     const setEditedGroup = useSetEditedGroup();
 
-    // See `editedGroup.ts`. Capture handlers, so the panel clears the group and
-    // the group under the pointer then names itself; anywhere else in the panel
-    // clears it and stops there. No release on blur: colour pickers render in a
-    // portal, so a swatch click would read as abandoning the panel.
-    const releaseGroup = {
-        onFocusCapture: () => setEditedGroup(null),
-        onPointerDownCapture: () => setEditedGroup(null),
-    };
+    // See `editedGroup.ts`. Capture handlers, so they run after the root clears
+    // the group. No release on blur: colour pickers render in a portal, so a
+    // swatch click would read as abandoning the panel.
     const holdGroup = (id: string) => ({
         onFocusCapture: () => setEditedGroup(id),
         onPointerDownCapture: () => setEditedGroup(id),
     });
 
     return (
-        <PanelWrapper {...releaseGroup}>
+        <PanelWrapper>
             {/* Every group, and every param in it - including params that follow
                 another one, since the panel is where you find out what a theme
                 can change. */}

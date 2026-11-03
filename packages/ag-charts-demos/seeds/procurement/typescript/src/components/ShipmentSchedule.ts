@@ -184,7 +184,6 @@ export function createShipmentSchedule({ onSelectionChange, ...props }: Shipment
                 x: {
                     type: 'time',
                     position: 'bottom',
-                    crosshair: { label: { formatter: ({ value }) => fmtDate(value) } },
                     crossLines: [
                         {
                             type: 'line',

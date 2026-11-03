@@ -536,7 +536,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const measurer = cachedTextMeasurer(label);
         if (this.fitted?.measurer !== measurer) {
             const text = label.text ?? '';
-            const fitted = fitLabelTextAutoSize(text, resolveLabelFit(label), label);
+            const fitted = fitLabelTextAutoSize(text, resolveLabelFit(label, !this.keepsLabel), label);
             this.fitted = {
                 text: typeof fitted.text === 'string' ? fitted.text : text,
                 fontSize: fitted.fontSize ?? label.fontSize,

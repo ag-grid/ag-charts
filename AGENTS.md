@@ -79,6 +79,7 @@ Two further cloud-only notes: with more than one repository attached the working
 
 -   **Default branch:** `latest`
 -   **Install:** `yarn install` (or `./external/ag-shared/scripts/install-for-cloud/install-for-cloud.sh` in cloud/remote environments)
+-   **Worktrees:** `git worktree add` copy-on-write clones `node_modules`, `.nx` and the plugin builds from the main checkout through a `post-checkout` hook, in seconds on macOS, when `yarn.lock` matches. Claude Code's worktree support then finishes the setup. After a manual `git worktree add`, run `./external/ag-shared/scripts/setup-worktree/setup-worktree.sh` in the worktree instead of a full install; it falls back to a full install when the clone didn't apply. Don't symlink `node_modules`. If imports fail to resolve after a clone, delete the worktree's `node_modules` and run the full install.
 -   **Build:** `yarn nx build <package>`
 -   **Test:** `yarn nx test <package>`; filter by test name with `yarn nx test <package> -- -t "<name>"`. Always go via `nx test` — it builds the example fixtures the suites load, which bare `npx vitest` skips.
 -   **E2E:** `yarn nx test:e2e ag-charts-website`

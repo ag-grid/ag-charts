@@ -129,7 +129,7 @@ export function priceVolume(
         ...createAnnotationsOptions(toolbar, themeOverrides, data, dateKey, shownVolumeKey),
         ...createNavigatorOptions(navigator, dateKey, shownVolumeKey),
         ...createRangesOptions(rangeButtons, zoom),
-        ...createStatusBarOptions(statusBar, keys, shownVolumeKey, profileLevels),
+        ...createStatusBarOptions(statusBar, keys, shownVolumeKey, profileLevels, volumeProfile),
         ...createSyncOptions(sync),
         ...createZoomOptions(zoom),
         ...unusedOpts,
@@ -281,7 +281,7 @@ function createPriceVolumeProfileSeries(
 ) {
     if (volumeProfile == null || levels == null) return [];
 
-    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, undefined, false);
+    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, undefined, volumeProfile, false);
 }
 
 function createPriceAxis(tickSize: number | undefined) {
@@ -403,7 +403,8 @@ function createStatusBarOptions(
     statusBar: boolean,
     { openKey, closeKey, highKey, lowKey }: PriceSeriesKeys,
     volumeKey: string | undefined,
-    profileLevels: VolumeProfileDatum[] | undefined
+    profileLevels: VolumeProfileDatum[] | undefined,
+    volumeProfile: AgVolumeProfileOptions | undefined
 ) {
     if (!statusBar) return {};
 
@@ -415,7 +416,9 @@ function createStatusBarOptions(
             lowKey,
             closeKey,
             volumeKey,
-            volumeProfile: profileLevels && createVolumeProfileStatusBarOptions(profileLevels, PRICE_AXIS_KEY),
+            volumeProfile:
+                profileLevels &&
+                createVolumeProfileStatusBarOptions(profileLevels, PRICE_AXIS_KEY, volumeProfile ?? {}),
         },
     };
 }

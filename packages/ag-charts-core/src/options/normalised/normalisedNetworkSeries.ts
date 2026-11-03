@@ -103,7 +103,6 @@ export type NormalisedOrganizationSeriesNodeTextOptions = Normalised<
         color: CssColor;
         stroke?: CssColor;
         padding: NormalisedPaddingOptions;
-        collision: { threshold: number; alwaysShow: boolean };
     }
 > & {
     /** Undocumented: set by the theme when `key` was configured rather than left at its theme default. */
