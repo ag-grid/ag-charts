@@ -38,6 +38,7 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
             colorScale: MAP_COLOR_SCALE_THEME,
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
+            lineDash: { $mapPalette: 'lineDash' },
             maxStrokeWidth: 3,
             label: {
                 ...LABEL_BOXING_DEFAULTS,

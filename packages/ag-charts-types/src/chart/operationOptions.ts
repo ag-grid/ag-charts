@@ -82,6 +82,7 @@ type PaletteParam =
     | 'stroke'
     | 'markerShapes'
     | 'markerShape'
+    | 'lineDash'
     | 'gradients'
     | 'gradient'
     | 'sequentialColors'

@@ -43,6 +43,9 @@ import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultCol
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = '#ffffff';
 
+/** Series take their `lineDash` from the palette; a theme without its own dashes draws every line solid. */
+const SOLID_LINE_DASHES = [[0]];
+
 const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
     'radial-gauge': true,
     'linear-gauge': true,
@@ -324,13 +327,21 @@ export class ChartTheme {
             this.processOverrides(presets, overrides, moduleRegistry);
         }
 
-        const { fills, strokes, sequentialColors, ...otherColors } = this.getDefaultColors();
+        const {
+            fills,
+            paletteFills,
+            strokes,
+            sequentialColors,
+            lineDashes = SOLID_LINE_DASHES,
+            ...otherColors
+        } = this.getDefaultColors();
         this.palette = deepFreeze(
             mergeDefaults(palette, {
-                fills: Object.values(fills),
+                fills: paletteFills ?? Object.values(fills),
                 strokes: Object.values(strokes),
                 markerShapes: ['circle'],
                 sequentialColors: Object.values(sequentialColors),
+                lineDashes,
                 ...otherColors,
             })
         );

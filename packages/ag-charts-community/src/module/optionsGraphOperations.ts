@@ -752,6 +752,8 @@ function indexedPaletteArray(graph: OptionsGraphInterface, key: string) {
             return graph.palette.markerShapes;
         case 'gradient':
             return graph.palette.sequentialColors;
+        case 'lineDash':
+            return graph.palette.lineDashes;
     }
 }
 
